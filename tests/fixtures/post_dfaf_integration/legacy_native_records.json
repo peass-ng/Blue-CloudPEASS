@@ -1,0 +1,424 @@
+{
+  "source_version": "414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d",
+  "records": {
+    "gcp.compute.restrict_internet_ingress": {
+      "id": "gcp.compute.restrict_internet_ingress",
+      "provider": "gcp",
+      "category": "network",
+      "type": "firewall",
+      "title": "Firewall avoids broad internet ingress",
+      "severity": "high",
+      "frameworks": [
+        "HackTricks Cloud Best Practices",
+        "Cloud Computing Compliance Criteria Catalogue C5"
+      ],
+      "framework_ids": [
+        "c5_gcp"
+      ],
+      "mapping": {
+        "HackTricks Cloud Best Practices": {
+          "control": "network",
+          "reference": "https://github.com/HackTricks-wiki/hacktricks-cloud/blob/master/src/pentesting-cloud/pentesting-cloud-methodology.md",
+          "assurance": "thematic"
+        },
+        "Cloud Computing Compliance Criteria Catalogue C5": {
+          "controls": [
+            {
+              "framework_id": "c5_gcp",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "COS-01.01B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_gcp",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "COS-01.02B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_gcp",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "COS-03.01B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_gcp",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "COS-03.02B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_gcp",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "COS-03.03B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_gcp",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "COS-04.01B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            }
+          ],
+          "assurance": "reviewed requirement mapping; not certification"
+        }
+      },
+      "remediation": "Restrict source ranges and service ports; review target tags, service accounts and higher-priority firewall policies.",
+      "dependencies": [
+        "firewall"
+      ],
+      "target": "resource",
+      "evaluator_version": "1.0.0",
+      "evaluator": {
+        "language": "python",
+        "entrypoint": "peaso.checks:evaluate_check",
+        "check_id": "gcp.compute.restrict_internet_ingress"
+      },
+      "sources": [],
+      "expected_cost": {
+        "cloud_calls": 0,
+        "time": "linear in applicable snapshot facts"
+      },
+      "rationale": "For a GCP VPC firewall rule, this evaluator flags FAIL when an enabled ingress firewall allow rule has a public source range and no source tag or service-account selector. Unsolicited internet traffic can reach every matching firewall target.",
+      "description": "For a GCP VPC firewall rule, this evaluator flags FAIL when an enabled ingress firewall allow rule has a public source range and no source tag or service-account selector. Unsolicited internet traffic can reach every matching firewall target.",
+      "evaluated": [
+        "allowed",
+        "allowed[].IPProtocol",
+        "denied",
+        "direction",
+        "disabled",
+        "sourceRanges",
+        "sourceServiceAccounts",
+        "sourceTags"
+      ],
+      "pass_when": "PASS when the collected facts do not satisfy this condition: an enabled ingress firewall allow rule has a public source range and no source tag or service-account selector.",
+      "fail_when": "FAIL when an enabled ingress firewall allow rule has a public source range and no source tag or service-account selector.",
+      "not_applicable_when": "Firewall rule is disabled, not ingress, or declares denied rules.",
+      "requirement_controls": [
+        {
+          "framework_id": "c5_gcp",
+          "requirement_id": "COS-01.01B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_gcp",
+          "requirement_id": "COS-01.02B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_gcp",
+          "requirement_id": "COS-03.01B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_gcp",
+          "requirement_id": "COS-03.02B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_gcp",
+          "requirement_id": "COS-03.03B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_gcp",
+          "requirement_id": "COS-04.01B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        }
+      ]
+    },
+    "azure.iam.no_full_custom_role": {
+      "id": "azure.iam.no_full_custom_role",
+      "provider": "azure",
+      "category": "least_privilege",
+      "type": "role_definition",
+      "title": "Custom role avoids unrestricted control-plane actions",
+      "severity": "high",
+      "frameworks": [
+        "HackTricks Cloud Best Practices",
+        "Cloud Computing Compliance Criteria Catalogue C5",
+        "Payment Card Industry Data Security Standard (PCI DSS) v4.0"
+      ],
+      "framework_ids": [
+        "c5_azure",
+        "pci_4.0_azure"
+      ],
+      "mapping": {
+        "HackTricks Cloud Best Practices": {
+          "control": "least_privilege",
+          "reference": "https://github.com/HackTricks-wiki/hacktricks-cloud/blob/master/src/pentesting-cloud/pentesting-cloud-methodology.md",
+          "assurance": "thematic"
+        },
+        "Cloud Computing Compliance Criteria Catalogue C5": {
+          "controls": [
+            {
+              "framework_id": "c5_azure",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "IAM-01.02B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_azure",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "IAM-06.02B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_azure",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "PSS-08.01B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "c5_azure",
+              "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+              "control_id": "PSS-08.02B",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            }
+          ],
+          "assurance": "reviewed requirement mapping; not certification"
+        },
+        "Payment Card Industry Data Security Standard (PCI DSS) v4.0": {
+          "controls": [
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "7.2.1.14",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "7.2.2.14",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "7.2.3.7",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "7.2.5.10",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "7.3.1.10",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "7.3.2.10",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "7.3.3.10",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "8.2.7.10",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "8.2.8.12",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            },
+            {
+              "framework_id": "pci_4.0_azure",
+              "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
+              "control_id": "8.3.4.10",
+              "decision": "PARTIAL",
+              "runtime_status": "partial"
+            }
+          ],
+          "assurance": "reviewed requirement mapping; not certification"
+        }
+      },
+      "remediation": "Replace a literal wildcard in the flagged custom Azure RBAC role with owner-reviewed Actions or DataActions required by its assigned principals.",
+      "remediation_details": {
+        "summary": "Replace a literal wildcard in the flagged custom Azure RBAC role with owner-reviewed Actions or DataActions required by its assigned principals.",
+        "steps": [
+          "Inspect properties.type=CustomRole and every properties.permissions[] block of the exact role. This native check fails if at least one literal * appears in actions or dataActions and none of those wildcard blocks has notActions/notDataActions exclusions; any such exclusion makes the whole evaluation MANUAL, even if another block still contains an unrestricted wildcard.",
+          "Inventory assignments and each principal workload, then have the RBAC owner select the minimum supported control-plane Actions and data-plane DataActions. Draft a complete role JSON retaining the same role ID, assignableScopes and unrelated reviewed permission blocks while replacing the broad grant.",
+          "Apply the reviewed role definition, validate every dependent principal, re-read permissions and recollect. Separately review excluded and patterned grants, because an exclusion is not a deny and this predicate does not prove least privilege."
+        ],
+        "cli": [
+          {
+            "label": "Read the exact custom role definition",
+            "code": "az role definition show --id <ROLE_DEFINITION_ID>",
+            "shell": "bash"
+          },
+          {
+            "label": "Apply the owner-reviewed full custom role definition",
+            "code": "az role definition update --role-definition '@<REVIEWED_CUSTOM_ROLE_JSON>'",
+            "shell": "bash"
+          }
+        ],
+        "caveats": [
+          "Updating a custom role affects all current assignments and can remove required control-plane or data-plane access. Stage workload tests and a rollback, and obtain owner review of the complete definition.",
+          "Do not treat notActions or notDataActions as explicit denies; they only subtract operations from that role grant and may not restrict permissions granted through other roles.",
+          "The scan does not identify which permissions are needed. Do not add or substitute new privileged Actions to make the check pass."
+        ],
+        "references": [
+          {
+            "title": "Azure custom role permissions and assignable scopes",
+            "url": "https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles"
+          },
+          {
+            "title": "Create or update Azure custom roles with Azure CLI",
+            "url": "https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles-cli"
+          }
+        ]
+      },
+      "dependencies": [
+        "role_definition"
+      ],
+      "target": "resource",
+      "evaluator_version": "1.0.0",
+      "evaluator": {
+        "language": "python",
+        "entrypoint": "peaso.checks:evaluate_check",
+        "check_id": "azure.iam.no_full_custom_role"
+      },
+      "sources": [],
+      "expected_cost": {
+        "cloud_calls": 0,
+        "time": "linear in applicable snapshot facts"
+      },
+      "rationale": "For a custom Azure role, FAIL is reported when any permission block grants `*` in actions or dataActions without effective exclusions. The role can confer subscription wide administration.",
+      "description": "For a custom Azure role, FAIL is reported when any permission block grants `*` in actions or dataActions without effective exclusions. The role can confer subscription wide administration.",
+      "evaluated": [
+        "properties.type",
+        "properties.permissions[].actions",
+        "properties.permissions[].dataActions",
+        "properties.permissions[].notActions",
+        "properties.permissions[].notDataActions"
+      ],
+      "pass_when": "PASS when no permission block grants unrestricted wildcard actions.",
+      "fail_when": "FAIL when any permission block grants `*` in actions or dataActions without effective exclusions.",
+      "not_applicable_when": "NOT_APPLICABLE when the role is built in.",
+      "requirement_controls": [
+        {
+          "framework_id": "c5_azure",
+          "requirement_id": "IAM-01.02B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_azure",
+          "requirement_id": "IAM-06.02B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_azure",
+          "requirement_id": "PSS-08.01B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "c5_azure",
+          "requirement_id": "PSS-08.02B",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "7.2.1.14",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "7.2.2.14",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "7.2.3.7",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "7.2.5.10",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "7.3.1.10",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "7.3.2.10",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "7.3.3.10",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "8.2.7.10",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "8.2.8.12",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        },
+        {
+          "framework_id": "pci_4.0_azure",
+          "requirement_id": "8.3.4.10",
+          "decision": "PARTIAL",
+          "runtime_status": "partial"
+        }
+      ]
+    }
+  }
+}

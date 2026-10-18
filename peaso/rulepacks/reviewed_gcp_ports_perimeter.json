@@ -1,0 +1,948 @@
+{
+  "gcp-compliance.control.cis_v120_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.firewall_http_lb_proxy_source_restriction"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.firewall_http_lb_proxy_source_restriction. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL containment of both HTTP LB proxy ranges does not require only those ranges: adding 0.0.0.0/0 still yields OK although arbitrary sources are allowed. Replacement reviews declared LB proxy source restriction separately from TCP IAP tunneling, including active ingress applicability and no effective reachability claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_allow_connections_proxied_by_iap",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "844c5e4c75d7b296895ea348a9d44c31513b68ab94512548bfbd140e86cb6921",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L154"
+    },
+    "replacement_checks": [
+      "gcp.ports.firewall_http_lb_proxy_source_restriction"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_allow_connections_proxied_by_iap",
+      "target_native_checks": [
+        "gcp.ports.firewall_http_lb_proxy_source_restriction"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, allowed[].IPProtocol, sourceRanges",
+      "pass_condition": "PASS iff an active TCP/all INGRESS rule declares only ranges inside 130.211.0.0/22 or 35.191.0.0/16",
+      "upstream_defect_only": "SQL ?& containment passes when 0.0.0.0/0 is added alongside the Google LB ranges.",
+      "native_deviations": "Port 80 is not required (an LB-range-only rule on another TCP port passes, where the source alarms)."
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_not_open_to_internet"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_not_open_to_internet",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "ee4121633b38c14093d5e84e93fda06f9222fdc92d268b6a7eea8d2256cd5016",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L474"
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "e80b3bc6b7ae7d19841f2051f0520e11caa75f0e3ca30e902562e113d315bf85",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L154"
+    },
+    "replacement_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "former_native_checks": [
+      "gcp.ports.firewall_iap_tcp_proxy_source_restriction"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "target_native_checks": [
+        "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, allowed[].IPProtocol, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), sourceTags/sourceServiceAccounts",
+      "pass_condition": "For an active INGRESS rule allowing tcp/6/all: PASS iff every declared source range is inside 35.235.240.0/20, 130.211.0.0/22 or 35.191.0.0/16 (CIS GCP 3.10 list); any other range, or tag/SA-only sources, FAIL",
+      "upstream_defect_only": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms.",
+      "native_deviations": "Ports are not constrained (CIS: ports required by the app/LB); IPv6 sources FAIL because CIS lists no IPv6 range; UDP/ICMP-only, EGRESS, disabled and deny rules are NOT_APPLICABLE; rule priority/targets are not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.firewall_iap_tcp_proxy_source_restriction",
+          "reason": "Allows only the IAP range (plus its IPv6 range); CIS 3.10 also accepts the health-check ranges 130.211.0.0/22 and 35.191.0.0/16."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_not_open_to_internet"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_not_open_to_internet",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "ee4121633b38c14093d5e84e93fda06f9222fdc92d268b6a7eea8d2256cd5016",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L369"
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "e80b3bc6b7ae7d19841f2051f0520e11caa75f0e3ca30e902562e113d315bf85",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L154"
+    },
+    "replacement_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "former_native_checks": [
+      "gcp.ports.firewall_iap_tcp_proxy_source_restriction"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "target_native_checks": [
+        "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, allowed[].IPProtocol, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), sourceTags/sourceServiceAccounts",
+      "pass_condition": "For an active INGRESS rule allowing tcp/6/all: PASS iff every declared source range is inside 35.235.240.0/20, 130.211.0.0/22 or 35.191.0.0/16 (CIS GCP 3.10 list); any other range, or tag/SA-only sources, FAIL",
+      "upstream_defect_only": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms.",
+      "native_deviations": "Ports are not constrained (CIS: ports required by the app/LB); IPv6 sources FAIL because CIS lists no IPv6 range; UDP/ICMP-only, EGRESS, disabled and deny rules are NOT_APPLICABLE; rule priority/targets are not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.firewall_iap_tcp_proxy_source_restriction",
+          "reason": "Allows only the IAP range (plus its IPv6 range); CIS 3.10 also accepts the health-check ranges 130.211.0.0/22 and 35.191.0.0/16."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_not_open_to_internet"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_not_open_to_internet",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "ee4121633b38c14093d5e84e93fda06f9222fdc92d268b6a7eea8d2256cd5016",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L366"
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "e80b3bc6b7ae7d19841f2051f0520e11caa75f0e3ca30e902562e113d315bf85",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L154"
+    },
+    "replacement_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "former_native_checks": [
+      "gcp.ports.firewall_iap_tcp_proxy_source_restriction"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "target_native_checks": [
+        "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, allowed[].IPProtocol, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), sourceTags/sourceServiceAccounts",
+      "pass_condition": "For an active INGRESS rule allowing tcp/6/all: PASS iff every declared source range is inside 35.235.240.0/20, 130.211.0.0/22 or 35.191.0.0/16 (CIS GCP 3.10 list); any other range, or tag/SA-only sources, FAIL",
+      "upstream_defect_only": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms.",
+      "native_deviations": "Ports are not constrained (CIS: ports required by the app/LB); IPv6 sources FAIL because CIS lists no IPv6 range; UDP/ICMP-only, EGRESS, disabled and deny rules are NOT_APPLICABLE; rule priority/targets are not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.firewall_iap_tcp_proxy_source_restriction",
+          "reason": "Allows only the IAP range (plus its IPv6 range); CIS 3.10 also accepts the health-check ranges 130.211.0.0/22 and 35.191.0.0/16."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_not_open_to_internet"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_not_open_to_internet",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "ee4121633b38c14093d5e84e93fda06f9222fdc92d268b6a7eea8d2256cd5016",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L350"
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "source_path": [
+        "policy_bundle/compute.pp"
+      ],
+      "source_query_sha256": "e80b3bc6b7ae7d19841f2051f0520e11caa75f0e3ca30e902562e113d315bf85",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L154"
+    },
+    "replacement_checks": [
+      "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+    ],
+    "former_native_checks": [
+      "gcp.ports.firewall_iap_tcp_proxy_source_restriction"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_allow_tcp_connections_proxied_by_iap",
+      "target_native_checks": [
+        "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, allowed[].IPProtocol, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), sourceTags/sourceServiceAccounts",
+      "pass_condition": "For an active INGRESS rule allowing tcp/6/all: PASS iff every declared source range is inside 35.235.240.0/20, 130.211.0.0/22 or 35.191.0.0/16 (CIS GCP 3.10 list); any other range, or tag/SA-only sources, FAIL",
+      "upstream_defect_only": "Source passes only rules with exact TCP port sets drawn from 80/443/22/3389 and uses ?& containment, so a rule adding 0.0.0.0/0 next to the IAP/health-check ranges is OK while an IAP-only rule on another TCP port alarms.",
+      "native_deviations": "Ports are not constrained (CIS: ports required by the app/LB); IPv6 sources FAIL because CIS lists no IPv6 range; UDP/ICMP-only, EGRESS, disabled and deny rules are NOT_APPLICABLE; rule priority/targets are not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.firewall_iap_tcp_proxy_source_restriction",
+          "reason": "Allows only the IAP range (plus its IPv6 range); CIS 3.10 also accepts the health-check ranges 130.211.0.0/22 and 35.191.0.0/16."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.sql_instance_not_open_to_internet"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_not_open_to_internet",
+      "source_path": [
+        "policy_bundle/sql.pp"
+      ],
+      "source_query_sha256": "ee4121633b38c14093d5e84e93fda06f9222fdc92d268b6a7eea8d2256cd5016",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L350"
+    }
+  },
+  "gcp-perimeter.control.bigquery_dataset_policy_prohibit_public_access": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.no_public_acl"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.reviewed.bigquery.no_public_acl. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source considers only access.iamMember and misses valid legacy specialGroup=allAuthenticatedUsers. Such a publicly declared legacy dataset ACL falsely yields OK. Replacement inspects exact public IAM/legacy ACL fields without arbitrary-text scans or effective authorization claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_policy_prohibit_public_access",
+      "source_path": "perimeter/iam_policy_public_access.pp",
+      "source_query_sha256": "56c7046a78423b510e9ed41fc9ca8187875ec934f8ab099f531736ddb3476374",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.bigquery_dataset_policy_prohibit_public_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/iam_policy_public_access.pp#L118"
+    },
+    "replacement_checks": [
+      "gcp.reviewed.bigquery.no_public_acl"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "bigquery_dataset_policy_prohibit_public_access",
+      "target_native_checks": [
+        "gcp.reviewed.bigquery.no_public_acl"
+      ],
+      "resource": "Each BigQuery dataset (kind bigquery_dataset)",
+      "property": "access[].specialGroup / access[].iamMember",
+      "pass_condition": "FAIL iff an access entry principal is allUsers or allAuthenticatedUsers",
+      "upstream_defect_only": "Perimeter SQL misses legacy specialGroup; Prowler substring-scans str(access) (authorized-view tableId false alarm).",
+      "native_deviations": "none"
+    }
+  },
+  "gcp-perimeter.control.bigtable_instance_policy_shared_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.bigtable_instance_policy_shared_access"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "bigtable_instance_policy_shared_access",
+      "source_path": "perimeter/iam_policy_shared_access.pp",
+      "source_query_sha256": "4fbccb13afc0640dac5e175d3a450a3644ad1152e20da227df8ee2b5e0afa310",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.bigtable_instance_policy_shared_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/iam_policy_shared_access.pp#L649"
+    }
+  },
+  "gcp-perimeter.control.billing_account_policy_shared_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.billing_account_policy_shared_access"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "billing_account_policy_shared_access",
+      "source_path": "perimeter/iam_policy_shared_access.pp",
+      "source_query_sha256": "401a9de78ec191e335de67f4a57a415ccf53353a40a9d7be573b391944beb29b",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.billing_account_policy_shared_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/iam_policy_shared_access.pp#L618"
+    }
+  },
+  "gcp-perimeter.control.cloud_function_policy_shared_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloud_function_policy_shared_access"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloud_function_policy_shared_access",
+      "source_path": "perimeter/iam_policy_shared_access.pp",
+      "source_query_sha256": "5c3ee4bad7ca6b2ffeb204267564a1fd7412f3553a6837b94138a6c392c22f07",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.cloud_function_policy_shared_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/iam_policy_shared_access.pp#L587"
+    }
+  },
+  "gcp-perimeter.control.cloud_run_job_policy_shared_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloud_run_job_policy_shared_access"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloud_run_job_policy_shared_access",
+      "source_path": "perimeter/iam_policy_shared_access.pp",
+      "source_query_sha256": "74ca6b0e9a9348490f422185cbaba52c7be03cbb4c2fef91436beab5685c45ca",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.cloud_run_job_policy_shared_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/iam_policy_shared_access.pp#L526"
+    }
+  },
+  "gcp-perimeter.control.cloud_run_not_publicly_accessible": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloud_run_not_publicly_accessible"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloud_run_not_publicly_accessible",
+      "source_path": "perimeter/network_access.pp",
+      "source_query_sha256": "e2d84c25bf83d5477b954d77ed2342ffaa305d382c03db1982779a0b9cc0c2d9",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.cloud_run_not_publicly_accessible",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/network_access.pp#L284"
+    }
+  },
+  "gcp-perimeter.control.cloud_run_service_policy_prohibit_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloud_run_service_policy_prohibit_public_access"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloud_run_service_policy_prohibit_public_access",
+      "source_path": "perimeter/iam_policy_public_access.pp",
+      "source_query_sha256": "2302b4f1f44af6b9fc2371005903a22516a473e38b37f7ea075fea68dc5a53e9",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.cloud_run_service_policy_prohibit_public_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/iam_policy_public_access.pp#L108"
+    }
+  },
+  "gcp-perimeter.control.cloud_run_service_policy_shared_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.cloud_run_service_policy_shared_access"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloud_run_service_policy_shared_access",
+      "source_path": "perimeter/iam_policy_shared_access.pp",
+      "source_query_sha256": "6247f9c17c491ea25d34192532884294e6ad1ba0ae440b78aadb289cf06b670e",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.cloud_run_service_policy_shared_access",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/iam_policy_shared_access.pp#L556"
+    }
+  },
+  "gcp-perimeter.control.cloud_sql_not_publicly_accessible": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.sql.no_public_ip"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloud_sql_not_publicly_accessible",
+      "source_path": "perimeter/network_access.pp",
+      "source_query_sha256": "9a195026d251cf037a9ca5fe3d458daf2fd37441319e67de30027240caa2c3fd",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.cloud_sql_not_publicly_accessible",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/network_access.pp#L310"
+    }
+  },
+  "gcp-perimeter.control.cloudfunction_function_not_publicly_accessible": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.function_internal_ingress_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.function_internal_ingress_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Perimeter SQL requires vpc_connector for internal ingress. A valid ALLOW_INTERNAL_ONLY function with no outbound connector falsely alarms; VPC connector/direct VPC egress controls outbound connectivity rather than inbound public invocation. Replacement reviews declared internal ingress separately from IAM public-binding and outbound connector policies."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_not_publicly_accessible",
+      "source_path": "perimeter/network_access.pp",
+      "source_query_sha256": "38168b0faff7d318fe598f75bd01ade99c3bf68ee83f8d5f02e896278a4d3dc7",
+      "source_revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "gcp-perimeter.control.cloudfunction_function_not_publicly_accessible",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-perimeter/blob/e2c5a299d1927a41fe8bbd748bdffd295237937c/perimeter/network_access.pp#L256"
+    },
+    "replacement_checks": [
+      "gcp.ports.function_internal_ingress_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cloudfunction_function_not_publicly_accessible",
+      "target_native_checks": [
+        "gcp.ports.function_internal_ingress_declaration"
+      ],
+      "resource": "Each Cloud Functions v2 function (kind function)",
+      "property": "serviceConfig.ingressSettings",
+      "pass_condition": "PASS iff ingressSettings is ALLOW_INTERNAL_ONLY",
+      "upstream_defect_only": "Perimeter SQL additionally requires an outbound vpc_connector for internal ingress.",
+      "native_deviations": "Unrecognized ingress values are UNKNOWN."
+    }
+  },
+  "prowler.gcp.apikeys_api_restrictions_configured": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_api_key_restricts_apis"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.ports.iam_api_key_restricts_apis (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Nonempty restriction object is not a meaningful restriction: serverKeyRestrictions.allowedIps=[0.0.0.0/0] yields source PASS while allowing every IPv4 caller, with no API targets. Replacement validates meaningful API-target or caller declarations, handles empty/broad cases and never reads keyString."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "apikeys_api_restrictions_configured",
+      "source_path": "prowler/providers/gcp/services/apikeys/apikeys_api_restrictions_configured/apikeys_api_restrictions_configured.py",
+      "source_query_sha256": "c18601aea7088268ffc8a17ab645e632da8083459659d6d96c2945b2ce21b308",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "prowler.gcp.apikeys_api_restrictions_configured",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/apikeys/apikeys_api_restrictions_configured/apikeys_api_restrictions_configured.metadata.json"
+    },
+    "replacement_checks": [
+      "gcp.ports.api_key_meaningful_restrictions"
+    ],
+    "former_native_checks": [
+      "gcp.ports.api_key_meaningful_restrictions"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "apikeys_api_restrictions_configured",
+      "target_native_checks": [
+        "gcp.ports.iam_api_key_restricts_apis"
+      ],
+      "resource": "Each API key (collector kind api_key), restrictions object; keyString never read",
+      "property": "restrictions.apiTargets[].service",
+      "pass_condition": "PASS iff apiTargets is non-empty and does not include cloudapis.googleapis.com",
+      "upstream_defect_only": "Source tests only apiTargets field existence (an empty target list passes) / Prowler passes any non-empty restrictions object without API targets.",
+      "native_deviations": "An empty service name is UNKNOWN.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.api_key_meaningful_restrictions",
+          "reason": "gcp.ports.api_key_meaningful_restrictions also PASSes a key with only caller (IP/referrer/app) restrictions and no API targets; the Prowler requirement is restriction to specific APIs."
+        }
+      ]
+    }
+  },
+  "prowler.gcp.bigquery_dataset_public_access": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.bigquery.no_public_acl"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.reviewed.bigquery.no_public_acl. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Prowler service scans str(access) for allUsers/allAuthenticatedUsers instead of principal fields. A valid authorized-view entry whose tableId is allUsers falsely alarms. Replacement uses exact access.iamMember/specialGroup metadata, including legacy ACL forms."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_dataset_public_access",
+      "source_path": "prowler/providers/gcp/services/bigquery/bigquery_dataset_public_access/bigquery_dataset_public_access.py",
+      "source_query_sha256": "7195dcf1f9a195a9b7dd7c5dbe97cc4a94c81cdd5a6727413619719d2d3f793f",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "prowler.gcp.bigquery_dataset_public_access",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/bigquery/bigquery_dataset_public_access/bigquery_dataset_public_access.metadata.json"
+    },
+    "replacement_checks": [
+      "gcp.reviewed.bigquery.no_public_acl"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "bigquery_dataset_public_access",
+      "target_native_checks": [
+        "gcp.reviewed.bigquery.no_public_acl"
+      ],
+      "resource": "Each BigQuery dataset (kind bigquery_dataset)",
+      "property": "access[].specialGroup / access[].iamMember",
+      "pass_condition": "FAIL iff an access entry principal is allUsers or allAuthenticatedUsers",
+      "upstream_defect_only": "Perimeter SQL misses legacy specialGroup; Prowler substring-scans str(access) (authorized-view tableId false alarm).",
+      "native_deviations": "none"
+    }
+  },
+  "prowler.gcp.bigquery_table_cmk_encryption": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.bigquery_table_encrypted_with_cmk. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned service collects every tables.list entry and the predicate alarms whenever encryptionConfiguration is absent, including logical VIEW resources. Official logical views are virtual and store no table data to encrypt; applying physical-storage CMEK requirement to them is invalid scope. Replacement is applicable to storage tables and explicitly excludes logical VIEW while preserving the encryption requirement."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "bigquery_table_cmk_encryption",
+      "source_path": "prowler/providers/gcp/services/bigquery/bigquery_table_cmk_encryption/bigquery_table_cmk_encryption.py",
+      "source_query_sha256": "94b675f901d6602ee88d1d90cde1abfa31f2e5b45094634a27727c0921c21e4b",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "prowler.gcp.bigquery_table_cmk_encryption",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/bigquery/bigquery_table_cmk_encryption/bigquery_table_cmk_encryption.metadata.json"
+    },
+    "replacement_checks": [
+      "gcp.ports.bigquery_table_encrypted_with_cmk"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "bigquery_table_cmk_encryption",
+      "target_native_checks": [
+        "gcp.ports.bigquery_table_encrypted_with_cmk"
+      ],
+      "resource": "Each BigQuery table (kind bigquery_table)",
+      "property": "encryptionConfiguration.kmsKeyName",
+      "pass_condition": "PASS iff a customer-managed kmsKeyName is declared; logical VIEW is NOT_APPLICABLE",
+      "upstream_defect_only": "Source applies the physical-storage CMEK requirement to logical views.",
+      "native_deviations": "Views are NOT_APPLICABLE instead of FAIL."
+    }
+  },
+  "prowler.gcp.cloudsql_instance_public_access": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.sql_instance_not_open_to_internet"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.sql_instance_not_open_to_internet. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Pinned IPv4-only authorized-network loop misses ::/0 broad IPv6 declaration, although the source Cloud SQL requirement is not IPv4-only. Replacement evaluates both broad CIDR families as configuration metadata and does not claim live SQL reachability."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_public_access",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_public_access/cloudsql_instance_public_access.py",
+      "source_query_sha256": "ad16ef9df6f36ed432d1a1810be9bd25ff118f3c9a332e90f5113aaf4c641d03",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_public_access",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_public_access/cloudsql_instance_public_access.metadata.json"
+    },
+    "replacement_checks": [
+      "gcp.ports.sql_instance_not_open_to_internet"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cloudsql_instance_public_access",
+      "target_native_checks": [
+        "gcp.ports.sql_instance_not_open_to_internet"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "settings.ipConfiguration.authorizedNetworks[].value",
+      "pass_condition": "FAIL iff an authorized network is 0.0.0.0/0 or ::/0",
+      "upstream_defect_only": "Prowler loop checks IPv4 0.0.0.0/0 only.",
+      "native_deviations": "none"
+    }
+  },
+  "prowler.gcp.cloudsql_instance_ssl_connections": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.reference_sql_ssl_connections"
+    ],
+    "reason": "Reviewed exact parameterized principal trust or ingress/IP/SSL declaration criterion, native resource template and source INFO/skip applicability. All four trust allowlists are explicit operator facts; project-principal exceptions remain disclosed manual evidence, binding conditions are preserved, and no effective authorization is inferred. Distinct invoker-only vs any-role public bindings and modern mode vs legacy TLS fallback are not merged.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iap/docs/using-tcp-forwarding",
+      "https://docs.cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions",
+      "https://docs.cloud.google.com/run/docs/securing/ingress",
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets",
+      "https://docs.cloud.google.com/bigquery/docs/views-intro",
+      "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys",
+      "https://docs.cloud.google.com/iam/docs/policies"
+    ],
+    "review_notes": {
+      "predicate": "cloudsql_instance_ssl_connections",
+      "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_ssl_connections/cloudsql_instance_ssl_connections.py",
+      "source_query_sha256": "c2291be112c21ff17afdedd895b7b51817d31c105cf257d9e3e079b07238d95a",
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_perimeter.py; tests/test_peaso_checks_gcp_ports_keys.py",
+      "template_semantics": "Exact four typed principal parameter lists and source INFO project-principal exception; no default example principals are trusted.",
+      "source_row_id": "prowler.gcp.cloudsql_instance_ssl_connections",
+      "source_url": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/gcp/services/cloudsql/cloudsql_instance_ssl_connections/cloudsql_instance_ssl_connections.metadata.json"
+    }
+  }
+}

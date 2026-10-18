@@ -1,0 +1,385 @@
+"""Single-batch native admission: signed IDs, tags, fixtures and behavior."""
+from __future__ import annotations
+
+from copy import deepcopy
+import hashlib
+import json
+from pathlib import Path
+
+import pytest
+
+from peaso.checks import CHECKS, HACKTRICKS, resolve_check_id
+from peaso.checks.catalog import proposal_provenance_for, requirement_tags_for
+from peaso.checks.fixtures import CASES
+from scripts.peaso_compliance_compile import reviewed_equivalent_proposal, spec_digest, verified_file
+from scripts.peaso_compliance_merge_new import signed_proposals
+
+from tests.release_successor_history import (ancestor_json, ancestor_bytes, ancestor_sha, registered_before_bulk, registry_source_before_bulk)
+
+
+CHECKS = registered_before_bulk(CHECKS)
+
+ROOT = Path(__file__).resolve().parents[1]
+LEDGER = ROOT / "docs/compliance-ledgers"
+POST_DFAF_IDS = set(json.loads((ROOT / "tests/fixtures/post_dfaf_integration/contract.json").read_text()))
+NEXT20_IDS = {"aws_backup_plan_rule_required_frequency", "aws_cis_elbv2_only_tls_listeners"}
+SUCCESSOR_IDS = {"azure_api_management_appinsights_ensure_is_configured_42aac6a",
+                 "gcp_logging_detect_t1136", "gcp_logging_detect_t1546"}
+NEXT_GROUP_IDS = {
+    "azure.cis.defender_external_attack_surface_monitoring_easm",
+    "azure_directory_user_keyvault_rbac_secret_expiration_set_e2e0e28",
+    "azure.other.entra_app_secret_age_90", "aws.pci.secretsmanager.kms_encryption_any",
+    "aws.nist.rds_cluster_member_enhanced_monitoring",
+    "azure.gap.monitor_log_profile_retention_365_days",
+    "azure.cis.app_service_entra_registration_enabled",
+    "aws_ecs_task_definition_credential_environment_names",
+}
+MODULES = {"peaso.checks.batch_remaining_aws", "peaso.checks.batch_remaining_azure",
+           "peaso.checks.batch_remaining_gcp", "peaso.checks.batch_remaining_k8s",
+           "peaso.checks.batch_remaining_azure_vm_storage"}
+EXPECTED_IDS_SHA256 = "679411ee77b112849b790546a4ebb1ac62ce2fc804ea655b3e6ea0b9396f0d1f"
+BASELINE_IDS_SHA256 = "144a3f41d4c972da0f823ea2b0621147ac29ee018703c075d01a6a7e51f3b562"
+EXPECTED_COUNT = 181
+EXPECTED_CONTROL_LINKS = 716
+ONE_SIDED_FAIL = {"gcp.apikeys.active_service_restrictions"}
+ONE_SIDED_PASS = {"gcp.logging.access_transparency_entries"}
+REDSHIFT_PROPOSAL = "aws_g6_redshift_automatic_version_upgrade"
+REDSHIFT_SURVIVOR = "aws.cb.redshift.allow_version_upgrade"
+REDSHIFT_CONTROL = ("aws-compliance.benchmark.nist_csf_v2",
+                    "aws-compliance.control.redshift_cluster_automatic_upgrade_major_versions_enabled")
+CLOUDTRAIL_PROPOSAL = "aws.pci.cloudtrail.authentication_events"
+CLOUDTRAIL_SURVIVOR = "aws.gap.cloudtrail.region_logging_management_events"
+CLOUDTRAIL_CONTROL_KEYS = {
+    ("pci_3.2.1_aws", "10.2.5"), ("pci_3.2.1_aws", "10.2.5.a"),
+    ("fedramp_low_revision_4_aws", "au-2"),
+    ("fedramp_moderate_revision_4_aws", "au-2-a-d"),
+    ("nist_800_53_revision_4_aws", "au_2"),
+    ("nist_800_53_revision_5_aws", "au_12_a"),
+    ("nist_800_53_revision_5_aws", "au_12_c"),
+}
+
+
+def _batch():
+    return {check.id: check for check in CHECKS if check.evaluate.__module__ in MODULES}
+
+
+def _source_links(manifest, ids):
+    links = {cid: set() for cid in ids}
+    for entry in manifest["slices"].values():
+        source, _ = verified_file(LEDGER, entry)
+        for framework in source["frameworks"]:
+            for row in framework["requirements"]:
+                for spec in row["new_checks"]:
+                    if spec["id"] in ids:
+                        links[spec["id"]].add((framework["id"], row["requirement_id"]))
+    return links
+
+
+def test_exact_single_batch_ids_signed_described_and_framework_tagged():
+    checks = _batch()
+    ordered = sorted(checks)
+    assert len(checks) == EXPECTED_COUNT
+    assert hashlib.sha256(("\n".join(ordered) + "\n").encode()).hexdigest() == EXPECTED_IDS_SHA256
+    additive = set(json.loads((ROOT / "tests/fixtures/post_dfaf_integration/two_hour_native_cohort.json").read_text())["ids"]) | {"gcp.network.private_service_connect_google_apis"}
+    assert len(CHECKS) == len(additive) + 3215 + EXPECTED_COUNT + len(POST_DFAF_IDS) + len(NEXT20_IDS) + len(SUCCESSOR_IDS) + len(NEXT_GROUP_IDS)
+    existing = sorted(check.id for check in CHECKS if check.id not in additive and check.id not in checks and check.id not in POST_DFAF_IDS and check.id not in NEXT20_IDS and check.id not in SUCCESSOR_IDS and check.id not in NEXT_GROUP_IDS)
+    assert len(existing) == 3215
+    assert hashlib.sha256(("\n".join(existing) + "\n").encode()).hexdigest() == BASELINE_IDS_SHA256
+    manifest, signed = signed_proposals(LEDGER)
+    manifest = ancestor_json(LEDGER / "manifest.json")
+    desc = ancestor_json(LEDGER / "descriptions/implemented-new-checks.json")
+    assert manifest["new_descriptions"]["checks"] == len(desc) == len(additive) + 110 + EXPECTED_COUNT + len(POST_DFAF_IDS) + len(NEXT20_IDS) + len(SUCCESSOR_IDS) + len(NEXT_GROUP_IDS)
+    assert {cid for cid in desc if cid in checks} == set(checks)
+    links = _source_links(manifest, set(checks))
+    assert sum(map(len, links.values())) == EXPECTED_CONTROL_LINKS
+    for cid, check in checks.items():
+        spec = signed[cid]
+        provenance = proposal_provenance_for(cid)
+        assert desc[cid]["proposed_spec_sha256"] == provenance["signed_spec_sha256"] == spec_digest(spec)
+        assert check.provider == spec["provider"]
+        assert check.severity == spec["severity"]
+        assert provenance["signed_category"] == spec["category"]
+        assert HACKTRICKS in check.frameworks
+        actual = {(tag["framework_id"], tag["requirement_id"]) for tag in requirement_tags_for(cid)}
+        assert actual == links[cid], cid
+
+
+def test_all_real_batch_cases_have_truthful_verdicts_and_no_mutation():
+    checks = _batch()
+    fixture_keys = set(json.loads((ROOT / "peaso/checks/central_batch_fixtures.json").read_text()))
+    assert fixture_keys == set(checks) | POST_DFAF_IDS | NEXT20_IDS | SUCCESSOR_IDS | NEXT_GROUP_IDS
+    for cid, check in checks.items():
+        cases = CASES[cid]
+        present = {name for name in ("pass", "fail") if name in cases}
+        expected = ({"fail"} if cid in ONE_SIDED_FAIL else
+                    {"pass"} if cid in ONE_SIDED_PASS else {"pass", "fail"})
+        assert present == expected, cid
+        for name, verdict in (("pass", "PASS"), ("fail", "FAIL"), ("unknown", "UNKNOWN"),
+                              ("missing", "UNKNOWN"), ("malformed", "UNKNOWN")):
+            if name not in cases:
+                assert name in ("pass", "fail") and name not in expected
+                continue
+            original = cases[name]
+            index = cases.get(name + "_index", cases.get("index", {}))
+            before_data, before_index = deepcopy(original), deepcopy(index)
+            assert check.evaluate(original, index)[0] == verdict, (cid, name)
+            assert original == before_data and index == before_index, cid
+        denied = {"collection_status": "denied"}
+        assert check.evaluate(denied, deepcopy(cases.get("index", {})))[0] == "UNKNOWN", cid
+
+
+def test_reviewed_batch_cases_survive_legacy_fixture_imports():
+    reviewed = json.loads((ROOT / "peaso/checks/central_batch_fixtures.json").read_text())
+    assert len(reviewed) == EXPECTED_COUNT + len(POST_DFAF_IDS) + len(NEXT20_IDS) + len(SUCCESSOR_IDS) + len(NEXT_GROUP_IDS)
+    assert set(reviewed) == set(_batch()) | POST_DFAF_IDS | NEXT20_IDS | SUCCESSOR_IDS | NEXT_GROUP_IDS
+    assert {cid: CASES[cid] for cid in reviewed} == reviewed
+    rotation = "k8s.cis.kubelet_rotate_kubelet_server_certificate_true"
+    check = _batch()[rotation]
+    assert check.evaluate(CASES[rotation]["pass"], CASES[rotation]["pass_index"])[0] == "PASS"
+    assert check.evaluate(CASES[rotation]["fail"], CASES[rotation]["fail_index"])[0] == "FAIL"
+
+
+def test_exact_redshift_signed_duplicate_uses_one_existing_evaluator_and_all_controls():
+    assert REDSHIFT_PROPOSAL not in {check.id for check in CHECKS}
+    assert resolve_check_id(REDSHIFT_PROPOSAL) == REDSHIFT_SURVIVOR
+    tags = requirement_tags_for(REDSHIFT_SURVIVOR)
+    assert REDSHIFT_CONTROL in {(tag["framework_id"], tag["requirement_id"]) for tag in tags}
+    assert len(tags) == 7  # Six previous links plus this exact signed proposal row.
+    rows = ancestor_json(ROOT / "peaso/rulepacks/compliance_requirements.json")
+    matching = [row for framework in rows["frameworks"] if framework["id"] == REDSHIFT_CONTROL[0]
+                for row in framework["requirements"] if row["requirement_id"] == REDSHIFT_CONTROL[1]]
+    assert len(matching) == 1
+    assert matching[0]["native_checks"] == [REDSHIFT_SURVIVOR]
+    assert matching[0]["pending_checks"] == []
+    assert matching[0]["runtime_status"] == "automated"
+
+
+def test_redshift_alias_equivalence_and_exact_compiler_refusal():
+    _, signed = signed_proposals(LEDGER)
+    spec = signed[REDSHIFT_PROPOSAL]
+    native = {REDSHIFT_SURVIVOR: next(row for row in
+              ancestor_json(ROOT / "peaso/rulepacks/native_catalog.json")["checks"]
+              if row["id"] == REDSHIFT_SURVIVOR)}
+    assert reviewed_equivalent_proposal(spec, *REDSHIFT_CONTROL, native) == REDSHIFT_SURVIVOR
+    for value in (True, False, None):
+        item = {"ClusterIdentifier": "rs1"}
+        if value is not None:
+            item["AllowVersionUpgrade"] = value
+        from peaso.checks import evaluate_check
+        expected = "UNKNOWN" if value is None else "PASS" if value else "FAIL"
+        assert evaluate_check(REDSHIFT_PROPOSAL, item, {})[0] == expected
+        assert evaluate_check(REDSHIFT_SURVIVOR, item, {})[0] == expected
+    altered = dict(spec, predicate=spec["predicate"] + " changed")
+    with pytest.raises(ValueError, match="duplicate proposal changed"):
+        reviewed_equivalent_proposal(altered, *REDSHIFT_CONTROL, native)
+    with pytest.raises(ValueError, match="duplicate proposal changed"):
+        reviewed_equivalent_proposal(spec, "wrong.framework", REDSHIFT_CONTROL[1], native)
+    with pytest.raises(ValueError, match="duplicate proposal changed"):
+        reviewed_equivalent_proposal(spec, REDSHIFT_CONTROL[0], "wrong.requirement", native)
+    with pytest.raises(ValueError, match="duplicate proposal changed"):
+        reviewed_equivalent_proposal(spec, *REDSHIFT_CONTROL, {})
+    with pytest.raises(ValueError, match="duplicate proposal changed"):
+        reviewed_equivalent_proposal(spec, *REDSHIFT_CONTROL,
+                                     {REDSHIFT_SURVIVOR: dict(native[REDSHIFT_SURVIVOR], type="s3_bucket")})
+
+
+def test_redshift_alias_cli_selection_emits_one_canonical_finding(tmp_path):
+    from peaso import cli
+    from peaso.snapshot import make_snapshot
+    scope = "111111111111/us-east-1"
+    snapshot = make_snapshot("aws", [scope], [{"type": "redshift_cluster", "scope": scope,
+        "service": "redshift", "status": "collected",
+        "items": [{"ClusterIdentifier": "rs1", "AllowVersionUpgrade": False}]}])
+    source = tmp_path / "snapshot.json"
+    report = tmp_path / "report.json"
+    source.write_text(json.dumps(snapshot))
+    assert cli.main(["evaluate", str(source), "--categories", "hardening",
+                     "--checks", REDSHIFT_PROPOSAL, REDSHIFT_SURVIVOR, "-o", str(report)]) == 0
+    findings = json.loads(report.read_text())["findings"]
+    selected = [row for row in findings if row["check_id"] == REDSHIFT_SURVIVOR]
+    assert len(selected) == 1 and selected[0]["status"] == "FAIL"
+
+
+def test_exact_cloudtrail_signed_alias_has_seven_links_and_no_duplicate_native():
+    assert CLOUDTRAIL_PROPOSAL not in {check.id for check in CHECKS}
+    assert resolve_check_id(CLOUDTRAIL_PROPOSAL) == CLOUDTRAIL_SURVIVOR
+    _, signed = signed_proposals(LEDGER)
+    spec = signed[CLOUDTRAIL_PROPOSAL]
+    assert spec_digest(spec) == "f3b62c9ae56b850f165b1eb80a1244adb8854b9be2e8671f1d9e0c575f9bd9a1"
+    assert (spec["resource_kind"], spec["category"], spec["severity"]) == (
+        "cloudtrail_trail", "logging", "medium")
+    native = {CLOUDTRAIL_SURVIVOR: next(row for row in
+              ancestor_json(ROOT / "peaso/rulepacks/native_catalog.json")["checks"]
+              if row["id"] == CLOUDTRAIL_SURVIVOR)}
+    assert (native[CLOUDTRAIL_SURVIVOR]["type"], native[CLOUDTRAIL_SURVIVOR]["target"]) == (
+        "cloudtrail", "scope")
+    for key in CLOUDTRAIL_CONTROL_KEYS:
+        assert reviewed_equivalent_proposal(spec, *key, native) == CLOUDTRAIL_SURVIVOR
+    with pytest.raises(ValueError, match="CloudTrail duplicate proposal changed"):
+        reviewed_equivalent_proposal(dict(spec, predicate=spec["predicate"] + " changed"),
+                                     *next(iter(CLOUDTRAIL_CONTROL_KEYS)), native)
+    with pytest.raises(ValueError, match="CloudTrail duplicate proposal changed"):
+        reviewed_equivalent_proposal(spec, "wrong.framework", "wrong.requirement", native)
+    with pytest.raises(ValueError, match="CloudTrail duplicate proposal changed"):
+        reviewed_equivalent_proposal(spec, *next(iter(CLOUDTRAIL_CONTROL_KEYS)),
+                                     {CLOUDTRAIL_SURVIVOR: dict(native[CLOUDTRAIL_SURVIVOR], type="cloudtrail_trail")})
+    requirements = ancestor_json(ROOT / "peaso/rulepacks/compliance_requirements.json")
+    rows = {(framework["id"], row["requirement_id"]): row
+            for framework in requirements["frameworks"] for row in framework["requirements"]}
+    for key in CLOUDTRAIL_CONTROL_KEYS:
+        assert CLOUDTRAIL_SURVIVOR in rows[key]["native_checks"]
+        assert CLOUDTRAIL_PROPOSAL not in rows[key]["pending_checks"]
+        assert rows[key]["decision"] == "PARTIAL" and rows[key]["runtime_status"] == "partial"
+    tags = requirement_tags_for(CLOUDTRAIL_SURVIVOR)
+    assert CLOUDTRAIL_CONTROL_KEYS <= {(row["framework_id"], row["requirement_id"]) for row in tags}
+
+
+def test_cloudtrail_alias_regional_scope_and_missing_fact_truth_table():
+    from peaso.checks import aws_gap_core, evaluate_check
+
+    passing = deepcopy(aws_gap_core.TRAIL)
+    cases = [
+        ("home", aws_gap_core.idx(cloudtrail=[dict(passing, IsMultiRegionTrail=False)]), "PASS"),
+        ("multiregion", aws_gap_core.idx(cloudtrail=[passing]), "PASS"),
+        ("foreign_home", aws_gap_core.idx(cloudtrail=[dict(passing, IsMultiRegionTrail=False,
+                                                          HomeRegion="eu-west-1")]), "FAIL"),
+        ("read_only", aws_gap_core.idx(cloudtrail=[aws_gap_core.w(passing,
+            EventSelectors__EventSelectors=[{"ReadWriteType": "ReadOnly", "IncludeManagementEvents": True}])]), "FAIL"),
+        ("data_only", aws_gap_core.idx(cloudtrail=[aws_gap_core.w(passing,
+            EventSelectors=aws_gap_core.ADV_DATA_NAMED)]), "FAIL"),
+        ("not_logging", aws_gap_core.idx(cloudtrail=[aws_gap_core.w(passing,
+            Status__IsLogging=False)]), "FAIL"),
+        ("denied", aws_gap_core.idx(cloudtrail=None), "UNKNOWN"),
+        ("missing_status", aws_gap_core.idx(cloudtrail=[aws_gap_core.w(passing,
+            Status={"collection_status": "denied"})]), "UNKNOWN"),
+        ("missing_selectors", aws_gap_core.idx(cloudtrail=[aws_gap_core.w(passing,
+            EventSelectors={"collection_status": "denied"})]), "UNKNOWN"),
+    ]
+    partial = aws_gap_core.idx(cloudtrail=[passing])
+    partial["collections"]["cloudtrail"][0]["status"] = "partial"
+    cases.append(("partial", partial, "UNKNOWN"))
+    for label, index, expected in cases:
+        before = deepcopy(index)
+        assert evaluate_check(CLOUDTRAIL_PROPOSAL, {}, index)[0] == expected, label
+        assert evaluate_check(CLOUDTRAIL_SURVIVOR, {}, index)[0] == expected, label
+        assert index == before, label
+
+
+def test_cloudtrail_alias_cli_selection_emits_one_canonical_finding(tmp_path):
+    from peaso import cli
+    from peaso.checks import aws_gap_core
+    from peaso.snapshot import make_snapshot
+
+    scope = "123456789012/us-east-1"
+    trail = aws_gap_core.w(aws_gap_core.TRAIL, Status__IsLogging=False)
+    snapshot = make_snapshot("aws", [scope], [{"type": "cloudtrail", "scope": scope,
+        "service": "cloudtrail", "status": "collected", "items": [trail]}])
+    source = tmp_path / "snapshot.json"
+    report = tmp_path / "report.json"
+    source.write_text(json.dumps(snapshot))
+    assert cli.main(["evaluate", str(source), "--categories", "hardening",
+                     "--checks", CLOUDTRAIL_PROPOSAL, CLOUDTRAIL_SURVIVOR,
+                     "-o", str(report)]) == 0
+    findings = json.loads(report.read_text())["findings"]
+    selected = [row for row in findings if row["check_id"] == CLOUDTRAIL_SURVIVOR]
+    assert len(selected) == 1 and selected[0]["status"] == "FAIL"
+
+
+def test_four_k8s_scope_checks_use_collected_kinds_but_require_external_policy():
+    from peaso.engine import _selection
+    from peaso.collectors import supported_types
+    from peaso.checks.native_only import exclusions
+
+    expected = {
+        "k8s_cluster_version_at_least_oldest_supported": ("api_discovery", {"api_discovery"}, "cluster"),
+        "k8s_cluster_version_supported": ("api_discovery", {"api_discovery"}, "cluster"),
+        "k8s_privileged_utility_access": ("role", {"role", "clusterrole", "rolebinding", "clusterrolebinding", "pod"}, "cluster"),
+        "k8s_persistentvolume_persistentvolumeclaims_pvc_permissions_do_not_allow_00af04b0":
+            ("role", {"role", "clusterrole", "rolebinding", "clusterrolebinding", "namespace"}, "role,clusterrole"),
+    }
+    _, signed = signed_proposals(LEDGER)
+    collected = set(supported_types("k8s"))
+    by_id = {check.id: check for check in CHECKS}
+    for cid, (kind, dependencies, source_kind) in expected.items():
+        check = by_id[cid]
+        assert check.kind == kind and set(check.dependencies) == dependencies and check.target == "scope"
+        assert kind in collected and dependencies <= collected
+        assert signed[cid]["resource_kind"] == source_kind
+        assert cid in exclusions()
+        with pytest.raises(ValueError, match="requires external policy or manual evidence"):
+            _selection("k8s", None, [cid], None)
+
+
+def test_exact_ecr_private_policy_fixture_semantics_and_no_mutation():
+    cid = "aws_g6_ecr_public_repositories_absent"
+    check = _batch()[cid]
+    cases = CASES[cid]
+    for name, verdict in (("pass", "PASS"), ("fail", "FAIL"),
+                          ("unknown", "UNKNOWN"), ("missing", "UNKNOWN"),
+                          ("malformed", "UNKNOWN")):
+        item = deepcopy(cases[name])
+        index = deepcopy(cases.get(name + "_index", cases["index"]))
+        before = deepcopy((item, index))
+        assert check.evaluate(item, index)[0] == verdict, name
+        assert (item, index) == before, name
+
+    def with_policy(item, policy):
+        item = deepcopy(item)
+        index = deepcopy(cases["pass_index"])
+        item["Policy"] = policy
+        index["collections"]["ecr_repository"][0]["items"] = [deepcopy(item)]
+        index["ecr_repository"][0]["data"] = deepcopy(item)
+        return check.evaluate(item, index)[0]
+
+    wildcard = deepcopy(cases["fail"]["Policy"])
+    wildcard["policyText"]["Statement"][0]["Effect"] = "Deny"
+    assert with_policy(cases["fail"], wildcard) == "PASS"
+    scoped = deepcopy(cases["fail"]["Policy"])
+    scoped["policyText"]["Statement"][0]["Principal"]["AWS"] = "arn:aws:iam::111111111111:root"
+    assert with_policy(cases["fail"], scoped) == "PASS"
+    assert with_policy(cases["pass"], {"collection_status": "empty"}) == "UNKNOWN"
+    assert with_policy(cases["pass"], {"collection_status": "denied"}) == "UNKNOWN"
+    assert with_policy(cases["pass"], {"collection_status": "partial"}) == "UNKNOWN"
+    assert with_policy(cases["pass"], {}) == "UNKNOWN"
+
+    foreign = deepcopy(cases["pass"])
+    foreign["repositoryArn"] = "arn:aws:ecr-public::111111111111:repository/private-one"
+    index = deepcopy(cases["pass_index"])
+    index["collections"]["ecr_repository"][0]["items"] = [deepcopy(foreign)]
+    index["ecr_repository"][0]["data"] = deepcopy(foreign)
+    assert check.evaluate(foreign, index)[0] == "UNKNOWN"
+
+    from peaso.checks import aws_ecr_source_correction as correction
+    from peaso.checks.catalog import description_for
+    _, signed = signed_proposals(LEDGER)
+    assert correction.validate_prior_spec(signed[cid])
+    assert cases["proposed_spec_sha256"] == spec_digest(signed[cid]) == correction.PRIOR_FROZEN_SPEC_SHA256
+    provenance = proposal_provenance_for(cid)
+    assert provenance["signed_spec_sha256"] == correction.PRIOR_FROZEN_SPEC_SHA256
+    assert provenance["signed_spec_status"] == "historical_superseded_for_this_check"
+    assert provenance["signed_resource_kind"] == "ecr_public_repository"
+    assert provenance["source_correction"]["current_canonical_spec_sha256"] == correction.CORRECTED_SPEC_SHA256
+    assert provenance["source_correction"]["current_predicate_sha256"] == correction.PREDICATE_SHA256
+    assert description_for(cid)["source_correction"] == provenance["source_correction"]
+    assert correction.CORRECTED_SPEC["resource_kind"] == "ecr_repository"
+
+
+def test_exact_scoped_iam_corrected_fixture_semantics_and_no_mutation():
+    from peaso.checks import aws_pci_iam_scoped_source_correction as correction
+    cid = correction.CHECK_ID
+    cases = CASES[cid]
+    check = _batch()[cid]
+    _, signed = signed_proposals(LEDGER)
+    assert correction.validate_prior_spec(signed[cid])
+    assert cases["proposed_spec_sha256"] == spec_digest(signed[cid]) == correction.PRIOR_FROZEN_SPEC_SHA256
+    provenance = proposal_provenance_for(cid)
+    assert provenance["signed_spec_status"] == "historical_superseded_for_this_check"
+    assert provenance["source_correction"]["current_canonical_spec_sha256"] == correction.SOURCE_CORRECTION["current_canonical_spec_sha256"]
+    for name, verdict in (("pass", "PASS"), ("fail", "FAIL"),
+                          ("unknown", "UNKNOWN"), ("missing", "UNKNOWN"),
+                          ("malformed", "UNKNOWN")):
+        item = deepcopy(cases[name])
+        index = deepcopy(cases.get(name + "_index", cases["index"]))
+        before = deepcopy((item, index))
+        assert check.evaluate(item, index)[0] == verdict, name
+        assert (item, index) == before, name

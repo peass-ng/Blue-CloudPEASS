@@ -1,0 +1,652 @@
+{
+  "azure.cis.app_service_entra_registration_enabled": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "7759b611ae4dc6f5ad2950f86e7db8a7138899d10084845b49532a4deff0e29c",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Enable a system-assigned or user-assigned managed identity on the App Service and grant it the needed target-resource access."
+  },
+  "azure.cis.defender_external_attack_surface_monitoring_easm": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "6aac61eb97ebac681f9cd05c27f0fa013f1e510ac9fd61f848ea3ff2b9563722",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Azure portal > Defender EASM > create workspace in the subscription, then verify provisioning state is Succeeded."
+  },
+  "azure.cis.enforce_ssl_connection_mysql_server": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "mysql_single_server",
+      "path": "Microsoft.DBforMySQL/servers:get: id,properties.sslEnforcement",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "821d2fb032658c354ae7acff5e11f261a671fde9752cbfcc67f7cb47ea67da41",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/mysql/configurations/list-by-server?view=rest-mysql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "For each legacy MySQL Single Server, set SSL enforcement to Enabled in Connection security; migrate to Flexible Server and require secure transport where Single Server is retired.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "For each legacy MySQL Single Server, set SSL enforcement to Enabled in Connection security; migrate to Flexible Server and require secure transport where Single Server is retired."
+  },
+  "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "New paged ARM list Microsoft.DBforPostgreSQL/servers at subscription/resource-group scope plus GET each legacy server ?api-version=2017-12-01: properties.infrastructureEncryption enum Enabled/Disabled.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "87ad424bbef701ca1e75beeab786d698590dbc4dfd8b884688a8d75ea68c1f15",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "Migrate legacy PostgreSQL Single Server to Flexible Server with infrastructure encryption enabled; for existing Single Server, use ARM server settings if the service still permits changes.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "Migrate legacy PostgreSQL Single Server to Flexible Server with infrastructure encryption enabled; for existing Single Server, use ARM server settings if the service still permits changes."
+  },
+  "azure.cis.legacy_vhds_encrypted": {
+    "caveats": [
+      "Incomplete or stale source facts remain UNKNOWN.",
+      "Review impact and rollback with the owner before changing configuration."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw03",
+      "kind": "storage_account",
+      "path": "Collector azure.py vm items and storage_account items; VM properties.storageProfile.osDisk.vhd.uri and dataDisks[].vhd.uri are string URLs. Resolve against storage account properties.primaryEndpoints.blob (not guessed account names); GET storageAccounts 2023-05-01 for properties.encryption.services.blob.enabled boolean. Paginate VM and account inventories.",
+      "predicate": "For each in-scope unmanaged VHD URI, FAIL if its uniquely resolved storage account explicitly has blob encryption disabled; PASS if every VHD uniquely resolves and each account has blob encryption enabled; UNKNOWN for ambiguous/unresolved URL, missing encryption field or incomplete VM/account inventory. If complete inventory has no unmanaged VHD, NOT_APPLICABLE.",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "782daf2a0cca5ca5b5f5fcc413fa7c48776768c83de5539a36ecbec597ebc990",
+    "references": [
+      {
+        "title": "Azure API reference",
+        "url": "https://learn.microsoft.com/en-us/azure/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the current storage_account facts and collector coverage using read-only Azure API calls.",
+      "Ask the resource owner to approve a scoped configuration change: Migrate unmanaged VHDs to managed disks; while retained, enable Blob service encryption on each backing storage account in Storage account > Encryption.",
+      "After the owner-approved change, read back the configuration and rerun the snapshot check."
+    ],
+    "summary": "Migrate unmanaged VHDs to managed disks; while retained, enable Blob service encryption on each backing storage account in Storage account > Encryption."
+  },
+  "azure.cis.mysql_single_audit_log_enabled": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "mysql_single_server",
+      "path": "Microsoft.DBforMySQL/servers/configurations:listByServer: name=audit_log_enabled, properties.value; enumerate Microsoft.DBforMySQL/servers id",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "99c773662db15a77387006ea0ca689dc00384f492aaaef3d9648bae9bc10ec46",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/mysql/configurations/list-by-server?view=rest-mysql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "For each legacy MySQL Single Server, set audit_log_enabled to ON in Server parameters, or migrate to Flexible Server and configure its audit logs.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "For each legacy MySQL Single Server, set audit_log_enabled to ON in Server parameters, or migrate to Flexible Server and configure its audit logs."
+  },
+  "azure.cis.mysql_single_audit_log_events_connection": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "mysql_single_server",
+      "path": "New paged legacy MySQL servers and configurations lists. ARM LIST Microsoft.DBforMySQL/servers/{server}/configurations?api-version=2017-12-01: item[name=audit_log_events].properties.value. Also read name=audit_log_enabled in the same complete configuration list. Also read name=audit_log_enabled in the same complete configuration list.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "61602ee32d518e401840ad8b6df6239175bb2ea07e2e5a4ff2b74e4322b2d062",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/mysql/configurations/list-by-server?view=rest-mysql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "Azure portal > Azure Database for MySQL Single Server > Server parameters: Set audit_log_events to include CONNECTION on each legacy MySQL single server.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "Azure portal > Azure Database for MySQL Single Server > Server parameters: Set audit_log_events to include CONNECTION on each legacy MySQL single server."
+  },
+  "azure.cis.postgresql_single_connection_throttling": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "Microsoft.DBforPostgreSQL/servers/configurations:listByServer: name=connection_throttling, properties.value; enumerate Microsoft.DBforPostgreSQL/servers id",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6d447958a90581c1f35a116eb56ec56380cc4a471704cc13945920158e2d6dfa",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "For any remaining PostgreSQL Single Server, set connection_throttling=ON through server parameters, then migrate the retired server to Flexible Server.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "For any remaining PostgreSQL Single Server, set connection_throttling=ON through server parameters, then migrate the retired server to Flexible Server."
+  },
+  "azure.cis.postgresql_single_log_checkpoints": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "Microsoft.DBforPostgreSQL/servers/configurations:listByServer: name=log_checkpoints, properties.value; enumerate Microsoft.DBforPostgreSQL/servers id",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "d4400f7daf90760872e55528123811e75015ab06bbf88e63e17ecb8667a4d3e1",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "For each legacy PostgreSQL Single Server, open Server parameters and set log_checkpoints to ON.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "For each legacy PostgreSQL Single Server, open Server parameters and set log_checkpoints to ON."
+  },
+  "azure.cis.postgresql_single_log_connections": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "Paged ARM legacy Microsoft.DBforPostgreSQL/servers LIST and per-server /configurations LIST, api-version=2017-12-01; select name=log_connections and read properties.value string.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6e3492ca0ce562827a7fb76f196fbd9026bdfa550510d2ffd40aaf6e6bdc845d",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "Azure portal > legacy Azure Database for PostgreSQL server > Server parameters: set log_connections to ON, save, and migrate retired Single Server where possible.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "Azure portal > legacy Azure Database for PostgreSQL server > Server parameters: set log_connections to ON, save, and migrate retired Single Server where possible."
+  },
+  "azure.cis.postgresql_single_log_disconnections": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "ARM Microsoft.DBforPostgreSQL/servers/{server}/configurations/log_disconnections GET 2017-12-01: properties.value",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "cb13b60213390e824b9571d17c738307b626f548a94a9c8319ebd3dd05dc5e08",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "For each legacy PostgreSQL Single Server, set server parameter log_disconnections=on in Azure portal > Server parameters; plan migration to Flexible Server.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "For each legacy PostgreSQL Single Server, set server parameter log_disconnections=on in Azure portal > Server parameters; plan migration to Flexible Server."
+  },
+  "azure.cis.postgresql_single_log_retention_days": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "Paged legacy Microsoft.DBforPostgreSQL/servers LIST and configurations/listByServer 2017-12-01 per server; match configuration name=log_retention_days and parse properties.value decimal string.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "c231feb6858dd2d3219d2bd93d72c9b0e8088bb85d31bb67dab506d30125e8e7",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "Set PostgreSQL Single Server parameter log_retention_days to 4 or more in Server parameters or az postgres server configuration set.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "Set PostgreSQL Single Server parameter log_retention_days to 4 or more in Server parameters or az postgres server configuration set."
+  },
+  "azure.cis.postgresql_single_no_azure_services_rule": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "Microsoft.DBforPostgreSQL/servers/firewallRules:listByServer: properties.startIpAddress,endIpAddress; enumerate Microsoft.DBforPostgreSQL/servers id",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "55f2014d533de648cbe7891b49c4b7f663c25fb1862ecaf7f691eeee3fa1302a",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "Delete the 0.0.0.0 Azure-services firewall rule on each legacy PostgreSQL Single Server, then use scoped firewall or private connectivity.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "Delete the 0.0.0.0 Azure-services firewall rule on each legacy PostgreSQL Single Server, then use scoped firewall or private connectivity."
+  },
+  "azure.cis.postgresql_single_ssl_enforcement": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "postgresql_single_server",
+      "path": "New paged legacy PostgreSQL servers list. ARM GET Microsoft.DBforPostgreSQL/servers?api-version=2017-12-01: properties.sslEnforcement.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "2ddf6b921932af6b292a918ec7bbbaf1d1219b71863adb9373d7ca5017b020c2",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2017-12-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "Azure portal > Azure Database for PostgreSQL Single Server > Connection security: Set sslEnforcement to Enabled on the legacy server.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "Azure portal > Azure Database for PostgreSQL Single Server > Connection security: Set sslEnforcement to Enabled on the legacy server."
+  },
+  "azure.cis.public_network_access_should_mariadb_servers": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "mariadb_server",
+      "path": "Paged ARM Microsoft.DBforMariaDB/servers LIST/GET 2018-06-01: properties.publicNetworkAccess enum Enabled/Disabled when exposed. No firewall-rule inference is substituted for this setting.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ebcd6b48c5741b15e80e0e77709883f30716adc25d3537c673000833319f39e6",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/mariadb/servers/get?view=rest-mariadb-2018-06-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "For legacy MariaDB, disable Public network access in Connection security where supported; otherwise migrate to a service with private networking.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "For legacy MariaDB, disable Public network access in Connection security where supported; otherwise migrate to a service with private networking."
+  },
+  "azure.cis.resource_manager_delete_locks_applied_storage_accounts": {
+    "caveats": [
+      "Incomplete or stale source facts remain UNKNOWN.",
+      "Review impact and rollback with the owner before changing configuration."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw03",
+      "kind": "storage_account",
+      "path": "Existing azure.py storage_account.items[] plus new paged Microsoft.Authorization/locks listByScope ?api-version=2016-09-01 at each account, resource group and subscription (and management-group ancestors when applicable); properties.level enum CanNotDelete/ReadOnly.",
+      "predicate": "For each storage account, PASS if a complete chain of lock lists shows an effective CanNotDelete or ReadOnly lock on the account or ancestor. FAIL if all scope lists are complete and none applies. UNKNOWN if any scope list or ancestor mapping is unreadable; empty complete account inventory is not applicable.",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "7580aac3a6012476e3dd8169d336b4ff0816fe65929eb64203dba1869e8425e3",
+    "references": [
+      {
+        "title": "Azure API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/resources/management-locks/list-by-scope?view=rest-resources-2016-09-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the current storage_account facts and collector coverage using read-only Azure API calls.",
+      "Ask the resource owner to approve a scoped configuration change: Azure portal > Storage account > Locks > Add, choose Delete (CanNotDelete); alternatively apply a suitable resource-group or subscription lock.",
+      "After the owner-approved change, read back the configuration and rerun the snapshot check."
+    ],
+    "summary": "Azure portal > Storage account > Locks > Add, choose Delete (CanNotDelete); alternatively apply a suitable resource-group or subscription lock."
+  },
+  "azure.gap.compute_vm_attached_with_network": {
+    "caveats": [
+      "Incomplete or stale source facts remain UNKNOWN.",
+      "Review impact and rollback with the owner before changing configuration."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw02",
+      "kind": "vm",
+      "path": "Existing vm and nic collections. Collected vm.items[].properties.networkProfile.networkInterfaces[].id; nic.items[].properties.ipConfigurations[].properties.subnet.id; approvedVnetIds policy",
+      "predicate": "For each VM connected to a VNet, FAIL on a proven unapproved VNet; PASS only if every attached NIC and IP configuration resolves to an approved VNet. UNKNOWN for missing approvedVnetIds, NIC, subnet, parent or incomplete inventory. A fully observed VM without VNet attachment is NOT_APPLICABLE to this specific source rule.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0a3b74aa472b7e331bb0230fbbef71b5e61e9f659c35d6a16f2e16b0bb2c6bda",
+    "references": [
+      {
+        "title": "Azure API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-interfaces/get?view=rest-virtualnetwork-2023-09-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the current vm facts and collector coverage using read-only Azure API calls.",
+      "Ask the resource owner to approve a scoped configuration change: Azure portal > Virtual machines > Networking: Move or recreate VM NICs on approved VNet subnets.",
+      "After the owner-approved change, read back the configuration and rerun the snapshot check."
+    ],
+    "summary": "Azure portal > Virtual machines > Networking: Move or recreate VM NICs on approved VNet subnets."
+  },
+  "azure.gap.compute_vm_remote_access_restricted_all_ports": {
+    "caveats": [
+      "An incomplete, stale, or foreign-scoped collector result cannot establish compliance or a configuration failure.",
+      "Follow the approved change process; this draft does not authorize configuration changes or destructive commands."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw17",
+      "kind": "vm",
+      "path": "Collected vm, nic, subnet and nsg items: NIC/subnet networkSecurityGroup.id and each associated NSG properties.securityRules/defaultSecurityRules (sourceAddressPrefix(es), destinationPortRange(s), protocol, access, priority).",
+      "predicate": "For each VM-associated NIC and subnet NSG independently, evaluate inbound securityRules and defaultSecurityRules in priority order. FAIL if a complete effective rule path within either associated NSG permits any inbound traffic from Any, Internet, 0.0.0.0/0 or ::/0; a deny in the other NSG does not excuse the permissive associated NSG under the frozen rule. PASS only when every associated NSG is fully resolved and none has such an effective public allow. UNKNOWN for missing associations, unresolved service tags/ASGs, rule priorities, VM/NIC/subnet joins or incomplete inventories. If a VM has no associated NSG, report that as a separate unprotected-path signal and UNKNOWN for this NSG-rule control unless the source explicitly includes absence.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6e10cf4c0485e2893cb3e90624438dd2c7554c322ae828ad8ade5cc1ec731831",
+    "references": [
+      {
+        "title": "Azure documentation",
+        "url": "https://learn.microsoft.com/en-us/azure/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the current vm configuration and collection coverage in the affected scope using read-only Azure API calls. Record the exact observed values and any missing evidence.",
+      "Have the resource owner review the observed gap and approve a scoped change consistent with this control: On VM NIC and subnet NSGs, remove or narrow inbound Allow rules from Any/Internet and verify effective security rules in Network Watcher.",
+      "After the owner-approved change, collect a fresh read-only snapshot and confirm the predicate is met for every applicable resource."
+    ],
+    "summary": "On VM NIC and subnet NSGs, remove or narrow inbound Allow rules from Any/Internet and verify effective security rules in Network Watcher."
+  },
+  "azure.gap.compute_vm_scale_set_system_updates_installed": {
+    "caveats": [
+      "Incomplete or stale source facts remain UNKNOWN.",
+      "Review impact and rollback with the owner before changing configuration."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw02",
+      "kind": "vm_scale_set",
+      "path": "Azure Resource Graph POST /providers/Microsoft.ResourceGraph/resources?api-version=2024-04-01: paged patchassessmentresources summary rows (exclude softwarepatches), id, properties.lastModifiedDateTime, properties.availablePatchCountByClassification.critical/security/updateRollup/other, properties.errorDetails; paged Microsoft.Compute/virtualMachineScaleSets/virtualMachines LIST 2024-07-01; policy maxAssessmentAge.",
+      "predicate": "For every VMSS instance, use its exact normalized resource ID and latest patch-assessment summary. FAIL on a current successful assessment with critical>0 or security>0. PASS only if every instance has a current successful assessment with numeric critical=0 and security=0 and no unresolved classification or error that could conceal required updates. UNKNOWN for missing or stale summary, absent count, errors, ID ambiguity, missing maxAssessmentAge, incomplete Resource Graph or instance paging. Empty complete instance inventory is NOT_APPLICABLE.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "b46b78955982732e1d6101a8719f54328c85202e00b63ec2c86cdf7a3c77a69e",
+    "references": [
+      {
+        "title": "Azure API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/azureresourcegraph/resourcegraph/resources/resources?view=rest-azureresourcegraph-2024-04-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the current vm_scale_set facts and collector coverage using read-only Azure API calls.",
+      "Ask the resource owner to approve a scoped configuration change: Use Azure Update Manager to install Critical and Security patches on affected VMSS instances, then rerun patch assessment.",
+      "After the owner-approved change, read back the configuration and rerun the snapshot check."
+    ],
+    "summary": "Use Azure Update Manager to install Critical and Security patches on affected VMSS instances, then rerun patch assessment."
+  },
+  "azure.gap.compute_vm_tcp_udp_access_restricted_internet": {
+    "caveats": [
+      "An incomplete, stale, or foreign-scoped collector result cannot establish compliance or a configuration failure.",
+      "Follow the approved change process; this draft does not authorize configuration changes or destructive commands."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw17",
+      "kind": "vm",
+      "path": "Paged VM, NIC, subnet, public-IP, NSG, load-balancer and effective security rule reads; join by full ARM IDs. NSG association on NIC or subnet is the frozen requirement signal; policy prohibitedPorts is optional extra reachability analysis.",
+      "predicate": "For each internet-facing VM NIC, PASS only if a valid NSG is attached to that NIC or its subnet, as required by the frozen rule. FAIL if complete NIC, public-IP and subnet evidence proves neither association. UNKNOWN if inventory or joins are incomplete. If policy additionally requires prohibited port analysis, evaluate effective rules and NAT separately; do not use that stricter test to change this source-rule result.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "7158155ba1be9916eabc41e24e5a484b29bcb4d89633c5b7b69447d9e74e0a92",
+    "references": [
+      {
+        "title": "Azure API reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2026-01-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the current vm configuration and collection coverage in the affected scope using read-only Azure API calls. Record the exact observed values and any missing evidence.",
+      "Have the resource owner review the observed gap and approve a scoped change consistent with this control: Attach an NSG to the public VM NIC or its subnet and configure appropriate inbound restrictions; separately review NAT and effective rules for prohibited ports.",
+      "After the owner-approved change, collect a fresh read-only snapshot and confirm the predicate is met for every applicable resource."
+    ],
+    "summary": "Attach an NSG to the public VM NIC or its subnet and configure appropriate inbound restrictions; separately review NAT and effective rules for prohibited ports."
+  },
+  "azure.gap.monitor_log_cluster_infrastructure_encryption_enabled": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "log_analytics_cluster",
+      "path": "New paged ARM GET /subscriptions/{sub}/providers/Microsoft.OperationalInsights/clusters?api-version=2023-09-01 (or ListByResourceGroup for all groups), then GET each cluster if list omits the field; properties.isDoubleEncryptionEnabled is Boolean; follow nextLink. Collector has workspace, not cluster.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "93f62300dd7e0eb862e878d68807b367e2468436ba9828f6ba4d177636fddfcb",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/loganalytics/clusters/get?view=rest-loganalytics-2023-09-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "Azure portal > Log Analytics dedicated clusters: enable infrastructure encryption where supported, or create a double-encrypted replacement cluster and move linked workspaces.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "Azure portal > Log Analytics dedicated clusters: enable infrastructure encryption where supported, or create a double-encrypted replacement cluster and move linked workspaces."
+  },
+  "azure.gap.monitor_log_profile_retention_365_days": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "79ba51c47bda8b66e9a9b95854be99025fb8e45c83a88b1b0b934bf89e4105d1",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Azure Monitor > Activity log > legacy log profiles: enable retention for at least 365 days, or use the documented unlimited setting where supported."
+  },
+  "azure.gap.web_pub_sub_private_link_used": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "82a248e2b678bf88d4b5a78348a6b0d170103fc785e0d5117c835b0e797ef292",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Web PubSub > Networking > Private endpoint connections: approve a private endpoint; disable public network access separately if policy requires it."
+  },
+  "azure.other.entra_app_secret_age_90": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "09a61ffbd9501a64ab497315966c42954f81de35348edff65bfca0cb4da824fd",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Entra admin center > App registrations > Certificates & secrets: replace active credentials older than 90 days, remove old credentials after cutover, or use workload identity federation."
+  },
+  "azure_api_management_appinsights_ensure_is_configured_42aac6a": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "72f20de1ae592d55056bf3f1347732729526985d8072f8d41faeab33d5798ba1",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "API Management > Loggers: add an Application Insights logger; Diagnostics > All APIs: select that logger and set a positive sampling percentage."
+  },
+  "azure_directory_user_keyvault_rbac_secret_expiration_set_e2e0e28": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "6e2e97377d3b2e17d530b469e2c36880945e3455e0a8b3c74781f323552e4c3c",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Entra admin center > App registrations > Certificates & secrets: add a new credential, update consumers, then remove credentials older than maxCredentialAgeDays; prefer managed identity or workload federation."
+  },
+  "azure_firewall_policy_1_2_8_23_59ad733": {
+    "caveats": [],
+    "cli": [],
+    "proposed_spec_sha256": "2d5acd04c5e345e9622fcc966fc4c16c8924c808ea3b816495dfbf9d3436e17c",
+    "review_status": "source_bound_pending_review",
+    "steps": [],
+    "summary": "Add a filter or NAT rule collection containing an applicable rule to the policy or its effective base policy."
+  },
+  "azure_firewall_policy_1_2_8_24_cc7cb8a": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "firewall_policy",
+      "path": "Paged ARM Microsoft.Network/firewallPolicies and every policy /ruleCollectionGroups LIST/GET 2026-01-01: group id and properties.ruleCollections[].rules[]. Enumerate all policy groups in the assessed subscription, including unattached policies; follow every nextLink.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "fb7fef2975812a5d28069e1ff3b32ea7740aef79930717e75bf3d090fca7517f",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/firewall/firewall-policy-rule-collection-groups/get?view=rest-firewall-2026-01-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "In each empty Firewall Policy Rule Collection Group, add the approved filtering rule or remove the unused group after confirming its intended scope.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "In each empty Firewall Policy Rule Collection Group, add the approved filtering rule or remove the unused group after confirming its intended scope."
+  },
+  "azure_firewall_policy_1_2_8_42_cacbd9e": {
+    "caveats": [
+      "Missing, denied, partial, or malformed native facts remain UNKNOWN; this check does not infer effective access or policy beyond its signed predicate."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_azure",
+      "kind": "web_application_firewall_policy",
+      "path": "Paged Application Gateway WAF policy LIST/GET 2026-01-01 for every in-scope policy, attached or unattached: properties.customRules[] and properties.managedRules.managedRuleSets[]. Policy settings and rule state are supplementary, but the frozen requirement is structural rule presence.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "af9e659362c7b71b209eba4080f5e6f00b28d613774aba8de69384bbced9c28c",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/application-gateway/web-application-firewall-policies/get?view=rest-application-gateway-2026-01-01"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Verify the identified resource and complete same-scope native evidence in the finding.",
+      "In the WAF policy, enable the policy, use Prevention mode, enable a managed rule set or a blocking custom rule without blanket exclusions, and verify attachment.",
+      "Re-read the native resource and its dependencies; confirm the signed predicate is satisfied before closing the finding."
+    ],
+    "summary": "In the WAF policy, enable the policy, use Prevention mode, enable a managed rule set or a blocking custom rule without blanket exclusions, and verify attachment."
+  },
+  "azure_storage_account_storage_blob_public_access_level_is_disabled_4211794": {
+    "caveats": [
+      "Incomplete or stale source facts remain UNKNOWN.",
+      "Review impact and rollback with the owner before changing configuration."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw03",
+      "kind": "storage_account",
+      "path": "Collected storage_account.items[]: Microsoft.Storage/storageAccounts.properties.allowBlobPublicAccess,publicNetworkAccess,networkAcls.defaultAction; policy input expectedSettings for each named field.",
+      "predicate": "For each storage account, compare every applicable policy-named field in expectedSettings against the typed API value: allowBlobPublicAccess boolean, publicNetworkAccess enum Enabled/Disabled/SecuredByPerimeter, networkAcls.defaultAction Allow/Deny. Apply documented API defaults where fields are omitted; never treat omission as inherently secure. FAIL on a measured mismatch, PASS only for complete field and inventory coverage, UNKNOWN for missing policy, unsupported enum, unknown applicability or incomplete inventory.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "222fe45d4ac3a7cf978fb27a85af9760aea2b5c1b1fa9e085ac4bb846bae6d6f",
+    "references": [
+      {
+        "title": "Azure API reference",
+        "url": "https://learn.microsoft.com/en-us/azure/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the current storage_account facts and collector coverage using read-only Azure API calls.",
+      "Ask the resource owner to approve a scoped configuration change: Storage account > Configuration and Networking: set blob public access, public network access and default network action to the approved values in expectedSettings.",
+      "After the owner-approved change, read back the configuration and rerun the snapshot check."
+    ],
+    "summary": "Storage account > Configuration and Networking: set blob public access, public network access and default network action to the approved values in expectedSettings."
+  }
+}

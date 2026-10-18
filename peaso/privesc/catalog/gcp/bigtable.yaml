@@ -1,0 +1,37 @@
+# Active GCP privilege escalation catalog: each entry must show the source principal's permissions and actions leading to a named second principal or to additional effective permissions for the source. A data read or secret access alone is not escalation; credential paths require verified usable credentials tied to the exact target principal. Every active source must cite a GCP privilege-escalation page and the technique's heading anchor.
+- id: gcp-bigtable-row-credential
+  provider: gcp
+  service: bigtable
+  title: Read Bigtable base-table rows
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-bigtable-privesc.md#verified-service-account-private-key-in-table-rows
+  source_revision: 4e9b5eaaa6
+  summary: Usable token or credential in Bigtable cell; emit only for the exact verified source, resource
+    and target.
+  requires:
+    all_of:
+    - action: bigtable.tables.readRows
+      resource: '*'
+  source_kind:
+  - gcp_user
+  - gcp_service_account
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_challenge_fact: gcp-bigtable-row-credential
+    scope: any
+    outcome: credentials
+    aggregate_as: Verified targets for Read Bigtable base-table rows
+    grants:
+    - Exact inventoried service account authenticated by a reviewed usable private key in the named table
+  conditions:
+  - id: exact_table_key_subject_resource
+    description: Reviewed evidence must bind source, exact table, read permission, inventoried service-account
+      subject, reusable private key, usable credential and evidence reference; effective IAM permission
+      on the exact table and row-level access are required.
+  confidence: conditional
+  severity: high
+  mitigation: Limit bigtable.tables.readRows to trusted operators and monitor the target-specific use.
+  references:
+  - src/pentesting-cloud/gcp-security/gcp-post-exploitation/gcp-bigtable-post-exploitation.md#read-base-table-rows
+  notes: Normal scans collect IAM and service-account metadata, not secret-bearing Bigtable cells. A reviewed
+    gcp_privesc_challenge_evidence import is required. Scoped OAuth or application tokens remain held.

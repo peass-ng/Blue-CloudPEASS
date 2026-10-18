@@ -1,0 +1,385 @@
+{
+  "prowler.gcp.compute_instance_deletion_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.compute.deletion_protection"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_instance_automatic_restart_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.compute.automatic_restart"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_instance_on_host_maintenance_migrate": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.compute.maintenance_migrate"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_instance_confidential_computing_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.compute.confidential_computing"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudstorage_bucket_versioning_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.storage.versioning"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/storage/docs/json_api/v1/buckets"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_subnet_flow_logs_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.network.flow_logs"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/subnetworks"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_loadbalancer_logging_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Native rule tests one backend service; upstream enumerates load-balancer/backend-service joins, whose frontend applicability is not asserted here.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/backendServices"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.loadbalancer.backend_logging"
+    ]
+  },
+  "prowler.gcp.compute_instance_ip_forwarding_is_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream silently passes gke-prefixed instances. Native predicate requires MANUAL review for that naming hint instead of claiming a safe managed-node exemption.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.compute.ip_forwarding"
+    ]
+  },
+  "prowler.gcp.compute_instance_single_network_interface": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.compute.single_interface"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_instance_default_service_account_in_use": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream passes gke-prefixed default identities. Native returns MANUAL because naming alone does not establish node identity ownership.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.compute.no_default_service_account"
+    ]
+  },
+  "prowler.gcp.compute_instance_default_service_account_in_use_with_full_api_access": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream exempts gke-prefixed names; native flags declared broad scopes for owner review without inferring effective permissions.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.compute.no_default_full_api"
+    ]
+  },
+  "prowler.gcp.compute_instance_disk_auto_delete_disabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream checks every parsed attached disk. Native excludes explicitly SCRATCH disks and evaluates persistent data-retention intent, so applicability is narrower.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.compute.disk_auto_delete"
+    ]
+  },
+  "prowler.gcp.compute_instance_block_project_wide_ssh_keys_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.compute.block_project_ssh_keys"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_instance_serial_ports_in_use": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream treats absent metadata as safe and matches only case-sensitive 1/true values. Native recognizes case-insensitive explicit booleans and does not infer project/default values.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.compute.no_serial_console"
+    ]
+  },
+  "prowler.gcp.compute_project_os_login_2fa_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.project.os_login_2fa"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.compute_network_default_in_use": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream is a project-wide existence predicate over complete network inventory. Native is per-network and cannot establish project-wide absence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/networks"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.network.no_default_vpc"
+    ]
+  },
+  "prowler.gcp.cloudstorage_bucket_soft_delete_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.storage.soft_delete"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/storage/docs/json_api/v1/buckets"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudstorage_bucket_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.storage.access_logging"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/storage/docs/json_api/v1/buckets"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudstorage_bucket_lifecycle_management_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.storage.lifecycle"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/storage/docs/json_api/v1/buckets"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_high_availability_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.high_availability"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_cmek_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.cmek"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_mysql_local_infile_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_local_infile"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_mysql_skip_show_database_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.mysql_skip_show_database"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/mysql/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_postgres_enable_pgaudit_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_pgaudit"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_postgres_log_connections_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_connections"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_postgres_log_disconnections_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_disconnections"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_postgres_log_statement_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_statement"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.cloudsql_instance_postgres_log_error_verbosity_flag": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.sql.postgres_log_error_verbosity"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+      "https://docs.cloud.google.com/sql/docs/postgres/flags"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.kms_key_rotation_enabled": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream evaluates every key purpose. Native rotation predicate is restricted to ENCRYPT_DECRYPT keys, since automatic rotation has purpose applicability constraints.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.kms.rotation_enabled"
+    ]
+  },
+  "prowler.gcp.kms_key_rotation_max_90_days": {
+    "disposition": "pending",
+    "native_checks": [],
+    "reason": "Upstream uses current wall time, absolute/floored day differences and every key purpose. Native uses immutable collection time, exact seconds and future-only symmetric-key applicability.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "related_native_checks": [
+      "gcp.reviewed.kms.rotation_90_days"
+    ]
+  },
+  "prowler.gcp.kms_key_not_publicly_accessible": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.reviewed.kms.no_public_iam"
+    ],
+    "reason": "Reviewed the exact pinned evaluator and provider field semantics: same explicit configuration predicate and resource applicability, while unreadable, missing and malformed native facts remain UNKNOWN instead of default-derived results.",
+    "official_docs": [
+      "https://docs.cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys"
+    ],
+    "review_notes": "No live client calls, wall-clock dependency or input mutation; scope is declared metadata, not effective access. Source review at revision 61d2cc55c4539a6b48a3cf9f3729d8f2af300882"
+  },
+  "prowler.gcp.bigquery_dataset_cmk_encryption": {
+    "disposition": "pending",
+    "native_checks": [],
+    "related_native_checks": [
+      "gcp.reviewed.bigquery.cmek"
+    ],
+    "reason": "Upstream considers any truthy defaultEncryptionConfiguration to be CMEK. Native requires an explicit nonempty kmsKeyName and reports dataset defaults rather than claiming all stored tables are encrypted with that key.",
+    "official_docs": [
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+    ],
+    "review_notes": "Pinned Prowler evaluator and service parser independently inspected; native fact semantics intentionally narrower and no upstream support claim."
+  },
+  "prowler.gcp.bigquery_dataset_public_access": {
+    "disposition": "pending",
+    "native_checks": [],
+    "related_native_checks": [
+      "gcp.reviewed.bigquery.no_public_acl"
+    ],
+    "reason": "Upstream searches allUsers/allAuthenticatedUsers substrings in stringified access records. Native checks only exact specialGroup/iamMember identities, retaining conditions and avoiding false positives from names/authorized views.",
+    "official_docs": [
+      "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+    ],
+    "review_notes": "Pinned Prowler evaluator and service parser independently inspected; native fact semantics intentionally narrower and no upstream support claim."
+  }
+}

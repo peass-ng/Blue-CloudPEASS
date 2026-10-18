@@ -1,0 +1,437 @@
+{
+  "prowler.aws.cloudwatch_changes_to_network_acls_alarm_configured": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "460f088ae913db9dabe5343ecd4e47d9c6178929e7bbfd986f78f67a5903ebdf",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_changes_to_network_acls_alarm_configured/cloudwatch_changes_to_network_acls_alarm_configured.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_changes_to_network_gateways_alarm_configured": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "ca6d453fc80511b53bb2a3d62ee5b5503029c637e0ac12d1f674b45a5e1f5bc4",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_changes_to_network_gateways_alarm_configured/cloudwatch_changes_to_network_gateways_alarm_configured.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_changes_to_network_route_tables_alarm_configured": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "714b5f8e50f149ea49468795f01c717c66aae9bc252db4f72ba1afdbfaabff8a",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_changes_to_network_route_tables_alarm_configured/cloudwatch_changes_to_network_route_tables_alarm_configured.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_changes_to_vpcs_alarm_configured": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "b6a2f8ef64f84d08384e35c5182805246308919aa52848848b442ee18f0c2938",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_changes_to_vpcs_alarm_configured/cloudwatch_changes_to_vpcs_alarm_configured.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "a8aca9fa18e861d9fed9a0f080af754a4ae3ba11efa5272fd91f6aae7d048394",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled/cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "ce4d205bc970325d6bc094566485c423559a244e6b0c30ee9d10da5aac580f77",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled/cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_authentication_failures": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "49dddffe48b8315cd0f494d5107cdc6baf0da11c166ea4fd99a461cb7f1e2558",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_authentication_failures/cloudwatch_log_metric_filter_authentication_failures.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_aws_organizations_changes": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "f2542587fb98114059c03e2d48136e4bad6a28b625e048c689839d51674c706e",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_aws_organizations_changes/cloudwatch_log_metric_filter_aws_organizations_changes.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "0e5e2d6d613df858675ebcad826bb58db2967c80b4a7bfa43711e0f26531a936",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk/cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_for_s3_bucket_policy_changes": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "177c85f3a057c6707c29e044cec03f99e9bd246201e4cd2c40e3274b201c3564",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_for_s3_bucket_policy_changes/cloudwatch_log_metric_filter_for_s3_bucket_policy_changes.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_policy_changes": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "7173a292d6fecd2f2ca53408c4783b8c32cb4d5711f5e1a95dd12f42e477519a",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_policy_changes/cloudwatch_log_metric_filter_policy_changes.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_root_usage": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "a8945ce8d838d3a1f5099d4d31cc3a6c38b77edcd83cd4dbff30fe7da7871173",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_root_usage/cloudwatch_log_metric_filter_root_usage.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_security_group_changes": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "ab4b24361e4d2514ec3b03d5f797bbfacf0ad3d8b88293a3ebb1ff5635ab8389",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_security_group_changes/cloudwatch_log_metric_filter_security_group_changes.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_sign_in_without_mfa": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "133d04f7d4663bb55a1aa5a3edc7603b0a6ae829ad92cbb563fa490dd181e57a",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_sign_in_without_mfa/cloudwatch_log_metric_filter_sign_in_without_mfa.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_metric_filter_unauthorized_api_calls": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_MetricTransformation.html"
+    ],
+    "reason": "Full pinned execute/pattern/inventory logic reviewed separately for this source; its common metric-filter/alarm helper compares metric name, region and optional namespace but service drops metric transformation/alarm dimensions. Concrete matched security-pattern filter emits custom metric SecurityEvents/Audit with no dimensions, while only alarm has Environment=Unrelated dimension: helper reports PASS for a different metric which cannot alarm on filter output. Official CloudWatch dimensions are part of custom metric identity and are not aggregated away. This substantive falsePASS persists after source namespace/region fixes; no missing facts or runtime import rejection.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert independent name+region+namespace equal/dimension unequal counterexample in owned source_counterexamples test; full15execute bodies and complete shared helper/service statically inspected, source digests retained. Lead audit remains required before active integration; no corrected different predicate is called source-equivalent.",
+    "reviewed_helper_sources": [
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/lib/metric_filters.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "52f02086221a0c46b13cadf2a041295f5fd82d80cc4c4f1a9a94e89200f31079"
+      },
+      {
+        "path": "prowler/providers/aws/services/cloudwatch/cloudwatch_service.py",
+        "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+        "sha256": "424f27bb82fdd475ebad21630c4aec4f06677c0aa2a6b10ffb95e60e5d6a3ff1"
+      }
+    ],
+    "reviewed_source": {
+      "evaluator_sha256": "ba520e607e18ab2b7a3f082453cffb45554159b1b6e3fa269dea162208f589b9",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_metric_filter_unauthorized_api_calls/cloudwatch_log_metric_filter_unauthorized_api_calls.metadata.json"
+    }
+  }
+}

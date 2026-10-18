@@ -1,0 +1,1761 @@
+"""Offline internet-to-asset exposure (0.0.0.0/0 -> asset) from collected native facts.
+
+For every asset with a public address or endpoint the declared path layers are
+evaluated in provider order (AWS: IGW route, NACL, security group, listener;
+GCP: external IP, VPC firewall/firewall policies, forwarding rule/Cloud Armor;
+Azure: public IP, subnet+NIC NSGs, LB/AppGW rules; K8s: Service/Ingress source
+ranges). The result is one ``analysis.internet_exposure`` finding per asset:
+
+* FAIL    every collected layer admits internet traffic on at least one port
+          (layers that could not be resolved are listed in ``unresolved``);
+* PASS    every relevant layer is collected and blocks internet traffic;
+* UNKNOWN a required layer is missing, denied or uncollected.
+
+This is a declared-configuration model; it sends no traffic and never calls a
+provider. Port sets are evaluated as exact interval arithmetic per protocol.
+"""
+from __future__ import annotations
+
+import ipaddress
+import json
+import re
+
+from .common import RANK, _CONTEXT, as_list, finding, native_id, node, node_id, relationship, source, stable_id
+
+CHECK = "analysis.internet_exposure"
+TITLE = "Asset reachable from the internet"
+PROTOCOLS = ("tcp", "udp", "icmp")
+FULL = {"tcp": ((0, 65535),), "udp": ((0, 65535),), "icmp": ((0, 0),)}
+EMPTY = {}
+ADMIN_PORTS = {22, 23, 3389, 5985, 5986, 2375, 2376, 6443, 10250, 2379, 5900}
+DATA_PORTS = {1433, 1521, 3306, 5432, 6379, 9200, 9300, 11211, 27017, 5984, 8086, 9042, 7000, 50070, 5601, 9092, 2181, 8020, 8888}
+AVAILABLE = ("collected", "empty", "partial")
+# Facts the collectors would need for a complete model (routed to collector owners).
+STATIC_GAPS = {
+    "aws": [
+        {"fact": "apigateway get_resources(embed=methods) authorizationType/apiKeyRequired", "for": "rest_api"},
+        {"fact": "apigatewayv2 get_routes AuthorizationType/ApiKeyRequired", "for": "http_api"},
+        {"fact": "ec2 describe_snapshots(OwnerIds=[self]) + describe_snapshot_attribute(createVolumePermission)", "for": "ebs_snapshot"},
+        {"fact": "ec2 describe_images(Owners=[self]) + describe_image_attribute(launchPermission)", "for": "ami"},
+        {"fact": "rds describe_db_cluster_snapshot_attributes", "for": "rds_cluster_snapshot"},
+        {"fact": "ec2 describe_managed_prefix_lists + get_managed_prefix_list_entries", "for": "security_group prefix-list rules"},
+        {"fact": "redshift describe_cluster_subnet_groups", "for": "redshift_cluster subnet NACL/route"},
+    ],
+    "gcp": [
+        {"fact": "compute securityPolicies.get (Cloud Armor rules)", "for": "backend_service.securityPolicy"},
+        {"fact": "compute instanceGroups.listInstances / NEG endpoints", "for": "passthrough forwarding_rule backends"},
+    ],
+    "azure": [
+        {"fact": "Microsoft.Network/azureFirewalls + firewallPolicies rule collections", "for": "Azure Firewall DNAT"},
+        {"fact": "Microsoft.Network/applicationSecurityGroups membership", "for": "NSG ASG rules"},
+        {"fact": "Microsoft.Web/sites/config/authsettingsV2", "for": "App Service authentication"},
+    ],
+    "k8s": [{"fact": "cloud LB/node security groups or firewall for node addresses", "for": "NodePort services"}],
+}
+
+
+# ------------------------------------------------------------ port arithmetic
+
+def _merge(intervals):
+    output = []
+    for low, high in sorted(intervals):
+        if output and low <= output[-1][1] + 1:
+            output[-1] = (output[-1][0], max(output[-1][1], high))
+        else:
+            output.append((low, high))
+    return tuple(output)
+
+
+def pset(protocol, low=0, high=65535):
+    protocol = _proto(protocol)
+    if protocol is None:
+        return None
+    if protocol == "all":
+        return dict(FULL)
+    if protocol == "icmp":
+        return {"icmp": ((0, 0),)}
+    low, high = int(low), int(high)
+    if low < 0 or high < low:
+        return {}
+    return {protocol: ((max(low, 0), min(high, 65535)),)}
+
+
+def union(a, b):
+    return {p: _merge(a.get(p, ()) + b.get(p, ())) for p in PROTOCOLS if a.get(p) or b.get(p)}
+
+
+def intersect(a, b):
+    output = {}
+    for p in PROTOCOLS:
+        merged = [(max(l1, l2), min(h1, h2)) for l1, h1 in a.get(p, ()) for l2, h2 in b.get(p, ()) if max(l1, l2) <= min(h1, h2)]
+        if merged:
+            output[p] = _merge(merged)
+    return output
+
+
+def subtract(a, b):
+    output = {}
+    for p in PROTOCOLS:
+        current = list(a.get(p, ()))
+        for low, high in b.get(p, ()):
+            following = []
+            for l1, h1 in current:
+                if high < l1 or low > h1:
+                    following.append((l1, h1))
+                    continue
+                if l1 < low:
+                    following.append((l1, low - 1))
+                if h1 > high:
+                    following.append((high + 1, h1))
+            current = following
+        if current:
+            output[p] = _merge(current)
+    return output
+
+
+def empty(a):
+    return not any(a.get(p) for p in PROTOCOLS)
+
+
+def describe(a):
+    output = []
+    for p in PROTOCOLS:
+        for low, high in a.get(p, ()):
+            if p == "icmp":
+                output.append("icmp")
+            elif (low, high) == (0, 65535):
+                output.append(f"{p}/all")
+            else:
+                output.append(f"{p}/{low}" if low == high else f"{p}/{low}-{high}")
+    return output
+
+
+def ports_of(a):
+    return {(p, port) for p in ("tcp", "udp") for low, high in a.get(p, ()) for port in (range(low, high + 1) if high - low < 4096 else ())}
+
+
+def _proto(value):
+    text = str(value).strip().lower()
+    return {"-1": "all", "all": "all", "*": "all", "any": "all", "6": "tcp", "tcp": "tcp", "17": "udp", "udp": "udp",
+            "1": "icmp", "icmp": "icmp", "58": "icmp", "icmpv6": "icmp", "icmp6": "icmp", "ipv6-icmp": "icmp",
+            "http": "tcp", "https": "tcp", "tls": "tcp", "ssl": "tcp", "tcp_udp": "all", "sctp": None, "esp": None,
+            "ah": None, "gre": None}.get(text)
+
+
+def _port_spec(protocol, spec):
+    """'22', '80-443', '*' (or None) -> port set."""
+    if spec in (None, "", "*", "all", "0-65535"):
+        return pset(protocol)
+    text = str(spec).strip()
+    if "-" in text:
+        low, high = text.split("-", 1)
+        return pset(protocol, int(low), int(high))
+    return pset(protocol, int(text), int(text))
+
+
+def _cidr(value):
+    try:
+        return ipaddress.ip_network(str(value).strip(), strict=False)
+    except ValueError:
+        return None
+
+
+def _internet(value):
+    """True when the declared source covers the whole IPv4 or IPv6 internet."""
+    if value in ("*", "Internet", "internet", "Any", "any", "0.0.0.0/0", "::/0", "0.0.0.0", "<nw>/0"):
+        return True
+    network = _cidr(value)
+    return network is not None and network.prefixlen == 0
+
+
+def _public_ip(value):
+    try:
+        address = ipaddress.ip_address(str(value).split("/", 1)[0])
+    except ValueError:
+        return False
+    return address.is_global
+
+
+# ---------------------------------------------------------------- inventory
+
+class Inventory:
+    """Snapshot-wide lookup across scopes (native ids are globally unique per provider)."""
+
+    def __init__(self, snapshot, resources):
+        self.snapshot = snapshot
+        self.provider = snapshot["provider"]
+        self.by_type, self.by_id, self.status = {}, {}, {}
+        for resource in resources:
+            self.by_type.setdefault(resource["type"], []).append(resource)
+            for key in self._keys(resource):
+                self.by_id.setdefault((resource["type"], key), resource)
+        for collection in snapshot.get("collections", []):
+            self.status.setdefault(collection["type"], {})[collection["scope"]] = collection.get("status", "unknown")
+
+    def _keys(self, resource):
+        data = resource["data"]
+        keys = {str(native_id(resource))}
+        for field in ("id", "selfLink", "name", "GroupId", "SubnetId", "VpcId", "NetworkAclId", "RouteTableId", "InstanceId",
+                      "NetworkInterfaceId", "LoadBalancerArn", "LoadBalancerName"):
+            value = data.get(field) if isinstance(data, dict) else None
+            if isinstance(value, str):
+                keys.add(value)
+                keys.add(value.lower())
+        meta = data.get("metadata") if isinstance(data, dict) else None
+        if isinstance(meta, dict) and meta.get("name"):
+            keys.add(f"{meta.get('namespace', '')}/{meta['name']}")
+        return keys
+
+    def items(self, kind):
+        return self.by_type.get(kind, [])
+
+    def get(self, kind, key):
+        if key is None:
+            return None
+        return self.by_id.get((kind, str(key))) or self.by_id.get((kind, str(key).lower()))
+
+    def state(self, kind, scope=None):
+        """collected | empty | partial | missing (not collected/denied/unknown)."""
+        statuses = self.status.get(kind, {})
+        if scope is not None and scope in statuses:
+            value = statuses[scope]
+        elif statuses:
+            values = set(statuses.values())
+            value = "collected" if values <= {"collected", "empty"} and "collected" in values else \
+                "empty" if values == {"empty"} else "partial" if values & {"collected", "partial"} else next(iter(values))
+        else:
+            value = "not_collected"
+        return value if value in AVAILABLE else "missing:" + value
+
+
+class Assessment:
+    def __init__(self, resource, kind):
+        self.resource, self.kind, self.origin = resource, kind, resource
+        self.ports = None
+        self.path, self.unresolved, self.addresses, self.notes = [], [], [], []
+        self.blocked_by = None
+        self.authenticated = False
+        self.data_exposure = False
+        self.external_ids = []
+        self.endpoint = None
+        self.explicit = None
+        self.dormant = False
+
+    def step(self, layer, decision, **evidence):
+        self.path.append({"layer": layer, "decision": decision, **evidence})
+        if decision == "block" and self.blocked_by is None:
+            self.blocked_by = layer
+
+    def gap(self, layer, reason, fact=None):
+        self.unresolved.append({"layer": layer, "reason": reason, **({"collector_fact": fact} if fact else {})})
+
+    def verdict(self):
+        """FAIL: the primary filtering layers are known and admit traffic (secondary gaps listed);
+        PASS: a fully collected layer blocks; UNKNOWN: a primary layer is unresolved."""
+        if self.explicit:
+            return self.explicit
+        hard = [g for g in self.unresolved if g.get("decisive", True) and g["layer"] in self.decisive_layers()]
+        if self.data_exposure or (self.ports is not None and not empty(self.ports)):
+            return "UNKNOWN" if hard else "FAIL"
+        if self.blocked_by is not None:
+            # A blocking layer that is itself collected is decisive even when others are unknown.
+            return "PASS"
+        return "UNKNOWN" if hard or self.ports is None else "PASS"
+
+    @staticmethod
+    def decisive_layers():
+        # Route/NACL/public-IP gaps are reported but do not downgrade an otherwise open path.
+        return {"security_group", "nsg", "firewall", "listener", "policy", "inventory", "invoker",
+                "cloud_armor", "backend", "access_restrictions", "authorization", "attributes"}
+
+    def severity(self):
+        if self.verdict() != "FAIL":
+            return "info"
+        if self.data_exposure:
+            return "critical"
+        reachable = ports_of(self.ports or {})
+        full = any((low, high) == (0, 65535) for p in ("tcp", "udp") for low, high in (self.ports or {}).get(p, ()))
+        if full or any(port in ADMIN_PORTS | DATA_PORTS for _, port in reachable):
+            return "critical"
+        severity = "medium" if self.authenticated else "high"
+        return severity
+
+    def adjusted_severity(self):
+        """Stopped/deallocated compute keeps its exposed configuration but is not reachable right now."""
+        severity = self.severity()
+        if self.dormant and severity in ("critical", "high"):
+            return {"critical": "high", "high": "medium"}[severity]
+        return severity
+
+
+def _status(snapshot, inventory, resource, path):
+    return source(snapshot, resource, path)
+
+
+# ---------------------------------------------------------------------- AWS
+
+def _aws_sg_ports(inventory, group_ids, assessment, where):
+    """Union of 0.0.0.0/0 and ::/0 ingress over the attached security groups."""
+    if not group_ids:
+        assessment.step("security_group", "block", reason="no security groups attached", at=where)
+        return {}
+    allowed, seen = {}, []
+    for group_id in group_ids:
+        group = inventory.get("security_group", group_id)
+        if group is None:
+            assessment.gap("security_group", f"{group_id} not in inventory ({inventory.state('security_group')})", "ec2 describe_security_groups")
+            continue
+        rules = []
+        for permission in as_list(group["data"].get("IpPermissions")):
+            if not isinstance(permission, dict):
+                continue
+            protocol = _proto(permission.get("IpProtocol"))
+            ports = pset(permission.get("IpProtocol"), permission.get("FromPort", 0) if protocol in ("tcp", "udp") else 0,
+                         permission.get("ToPort", 65535) if protocol in ("tcp", "udp") else 65535) if protocol else None
+            if protocol in ("tcp", "udp") and permission.get("FromPort") in (None, -1):
+                ports = pset(protocol)
+            if ports is None:
+                continue
+            cidrs = [r.get("CidrIp") for r in as_list(permission.get("IpRanges")) if isinstance(r, dict)] + \
+                    [r.get("CidrIpv6") for r in as_list(permission.get("Ipv6Ranges")) if isinstance(r, dict)]
+            if any(_internet(c) for c in cidrs):
+                allowed = union(allowed, ports)
+                rules.append({"ports": describe(ports), "cidrs": [c for c in cidrs if _internet(c)]})
+            if as_list(permission.get("PrefixListIds")):
+                assessment.gap("security_group_prefix_list", f"{group_id} references prefix lists {[p.get('PrefixListId') for p in permission['PrefixListIds'] if isinstance(p, dict)]}",
+                               "ec2 get_managed_prefix_list_entries")
+        seen.append({"group_id": group_id, "internet_rules": rules})
+    assessment.step("security_group", "allow" if not empty(allowed) else "block" if not any(g["layer"] == "security_group" for g in assessment.unresolved) else "unknown",
+                    groups=seen, allowed=describe(allowed), at=where)
+    return allowed
+
+
+def _aws_nacl(inventory, subnet_id, ports, assessment, where):
+    if not subnet_id:
+        assessment.gap("network_acl", "subnet unknown")
+        return ports
+    acl = next((a for a in inventory.items("network_acl") if any(
+        isinstance(x, dict) and x.get("SubnetId") == subnet_id for x in as_list(a["data"].get("Associations")))), None)
+    if acl is None:
+        subnet = inventory.get("subnet", subnet_id)
+        vpc = subnet["data"].get("VpcId") if subnet else None
+        acl = next((a for a in inventory.items("network_acl") if a["data"].get("IsDefault") and a["data"].get("VpcId") == vpc), None) if vpc else None
+    if acl is None:
+        assessment.gap("network_acl", f"no NACL association for {subnet_id} ({inventory.state('network_acl')})", "ec2 describe_network_acls")
+        return ports
+
+    def evaluate(egress):
+        allowed, decided = {}, {}
+        entries = sorted((e for e in as_list(acl["data"].get("Entries")) if isinstance(e, dict) and bool(e.get("Egress")) is egress),
+                         key=lambda e: int(e.get("RuleNumber", 32767)))
+        for entry in entries:
+            if not (_internet(entry.get("CidrBlock")) or _internet(entry.get("Ipv6CidrBlock"))):
+                continue
+            protocol = _proto(entry.get("Protocol"))
+            if protocol is None:
+                continue
+            port_range = entry.get("PortRange") if isinstance(entry.get("PortRange"), dict) else {}
+            rule = pset(protocol, port_range.get("From", 0), port_range.get("To", 65535)) if protocol in ("tcp", "udp") and port_range else pset(protocol)
+            fresh = subtract(rule, decided)
+            if entry.get("RuleAction") == "allow":
+                allowed = union(allowed, fresh)
+            decided = union(decided, rule)
+        return allowed
+    inbound = evaluate(False)
+    outbound = evaluate(True)
+    result = intersect(ports, inbound)
+    if not empty(result) and empty(intersect(outbound, pset("tcp", 1024, 65535))) and result.get("tcp"):
+        assessment.notes.append(f"NACL {native_id(acl)} egress to 0.0.0.0/0 does not allow TCP ephemeral ports; stateless return traffic may be dropped")
+    assessment.step("network_acl", "allow" if not empty(result) else "block", acl=native_id(acl), subnet=subnet_id,
+                    inbound_allowed=describe(inbound), at=where)
+    return result
+
+
+def _aws_route(inventory, subnet_id, vpc_id, assessment, where, ipv6=False):
+    if not subnet_id:
+        assessment.gap("route", "subnet unknown")
+        return None
+    tables = inventory.items("route_table")
+    table = next((t for t in tables if any(isinstance(a, dict) and a.get("SubnetId") == subnet_id for a in as_list(t["data"].get("Associations")))), None)
+    if table is None and vpc_id:
+        table = next((t for t in tables if t["data"].get("VpcId") == vpc_id and any(
+            isinstance(a, dict) and a.get("Main") for a in as_list(t["data"].get("Associations")))), None)
+    if table is None:
+        assessment.gap("route", f"no route table for {subnet_id} ({inventory.state('route_table')})", "ec2 describe_route_tables")
+        return None
+    routes = [r for r in as_list(table["data"].get("Routes")) if isinstance(r, dict) and str(r.get("GatewayId", "")).startswith("igw-")
+              and r.get("State", "active") == "active" and (r.get("DestinationCidrBlock") == "0.0.0.0/0" or r.get("DestinationIpv6CidrBlock") == "::/0")]
+    if routes:
+        assessment.step("route", "allow", route_table=native_id(table), internet_gateway=routes[0]["GatewayId"], subnet=subnet_id, at=where)
+        return True
+    assessment.step("route", "block", route_table=native_id(table), subnet=subnet_id, reason="no active default route to an internet gateway", at=where)
+    return False
+
+
+def _aws_vpc_path(inventory, assessment, subnet_ids, group_ids, ports, where, route=True, vpc_id=None):
+    """route -> NACL -> SG for a set of candidate subnets; returns the reachable port set."""
+    if group_ids is not None:
+        ports = intersect(ports, _aws_sg_ports(inventory, group_ids, assessment, where))
+    if empty(ports):
+        return ports
+    if not subnet_ids:
+        assessment.gap("network_acl", "subnets not collected for this asset")
+        return ports
+    reachable = {}
+    for subnet_id in subnet_ids:
+        subnet = inventory.get("subnet", subnet_id)
+        vpc = vpc_id or (subnet["data"].get("VpcId") if subnet else None)
+        if route and _aws_route(inventory, subnet_id, vpc, assessment, where) is False:
+            continue
+        reachable = union(reachable, _aws_nacl(inventory, subnet_id, ports, assessment, where))
+    if empty(reachable) and assessment.blocked_by is None:
+        assessment.step("subnets", "block", reason="no candidate subnet admits internet traffic")
+    elif not empty(reachable):
+        # An earlier subnet may have recorded a block; any reachable subnet makes the asset reachable.
+        assessment.blocked_by = None
+    return reachable
+
+
+def _aws_instance(snapshot, inventory, resource):
+    data = resource["data"]
+    a = Assessment(resource, "public_ip")
+    interfaces = [n for n in as_list(data.get("NetworkInterfaces")) if isinstance(n, dict)]
+    addresses = []
+    for interface in interfaces:
+        public = (interface.get("Association") or {}).get("PublicIp")
+        v6 = [x.get("Ipv6Address") for x in as_list(interface.get("Ipv6Addresses")) if isinstance(x, dict) and x.get("Ipv6Address")]
+        if public or v6:
+            addresses.append((interface, [public] if public else [], v6))
+    if not interfaces and data.get("PublicIpAddress"):
+        addresses.append(({"SubnetId": data.get("SubnetId"), "Groups": data.get("SecurityGroups", [])}, [data["PublicIpAddress"]], []))
+    if not addresses:
+        return None
+    a.addresses = [ip for _, v4, v6 in addresses for ip in v4 + v6]
+    state = (data.get("State") or {}).get("Name")
+    total = {}
+    for interface, v4, v6 in addresses:
+        groups = [g.get("GroupId") for g in as_list(interface.get("Groups")) if isinstance(g, dict)]
+        where = interface.get("NetworkInterfaceId", "primary")
+        total = union(total, _aws_vpc_path(inventory, a, [interface.get("SubnetId") or data.get("SubnetId")], groups, dict(FULL), where,
+                                           vpc_id=interface.get("VpcId") or data.get("VpcId")))
+    a.ports = total
+    if not empty(total):
+        a.blocked_by = None
+    if state and state != "running":
+        a.dormant = True
+        a.notes.append(f"instance state is {state}; exposure applies when it runs (public address retained)")
+    return a
+
+
+def _aws_eni(snapshot, inventory, resource):
+    data = resource["data"]
+    attachment = data.get("Attachment") if isinstance(data.get("Attachment"), dict) else {}
+    if attachment.get("InstanceId") or str(data.get("Description", "")).startswith("ELB ") or data.get("InterfaceType") in (
+            "nat_gateway", "network_load_balancer", "gateway_load_balancer", "gateway_load_balancer_endpoint", "vpc_endpoint", "load_balancer"):
+        return None
+    public = (data.get("Association") or {}).get("PublicIp")
+    v6 = [x.get("Ipv6Address") for x in as_list(data.get("Ipv6Addresses")) if isinstance(x, dict) and x.get("Ipv6Address")]
+    if not public and not v6:
+        return None
+    a = Assessment(resource, "public_ip")
+    a.addresses = ([public] if public else []) + v6
+    groups = [g.get("GroupId") for g in as_list(data.get("Groups")) if isinstance(g, dict)]
+    a.ports = _aws_vpc_path(inventory, a, [data.get("SubnetId")], groups, dict(FULL), native_id(resource), vpc_id=data.get("VpcId"))
+    if data.get("Description"):
+        a.notes.append(f"interface description: {data['Description']}")
+    return a
+
+
+def _listener_ports(protocol, port):
+    proto = str(protocol or "TCP").upper()
+    kind = "udp" if proto == "UDP" else "all" if proto == "TCP_UDP" else "tcp"
+    if kind == "all":
+        return union(pset("tcp", port, port), pset("udp", port, port))
+    return pset(kind, port, port)
+
+
+def _aws_elbv2(snapshot, inventory, resource):
+    data = resource["data"]
+    if data.get("Scheme") != "internet-facing":
+        return None
+    a = Assessment(resource, "load_balancer")
+    a.endpoint = data.get("DNSName")
+    a.addresses = [data.get("DNSName")] if data.get("DNSName") else []
+    listeners = data.get("Listeners") if isinstance(data.get("Listeners"), dict) else {}
+    ports = {}
+    if listeners.get("collection_status") in ("collected", "empty"):
+        auth = []
+        for listener in as_list(listeners.get("items")):
+            if isinstance(listener, dict) and isinstance(listener.get("Port"), int):
+                ports = union(ports, _listener_ports(listener.get("Protocol"), listener["Port"]))
+                if any(isinstance(x, dict) and str(x.get("Type", "")).startswith("authenticate-") for x in as_list(listener.get("DefaultActions"))):
+                    auth.append(listener["Port"])
+        a.step("listener", "allow" if not empty(ports) else "block", listeners=describe(ports), authenticated_default_actions=auth)
+        a.authenticated = bool(auth) and set(auth) >= {p for _, p in ports_of(ports)}
+    else:
+        a.gap("listener", f"listeners {listeners.get('collection_status', 'not collected')}", "elbv2 describe_listeners")
+        ports = dict(FULL)
+    groups = data.get("SecurityGroups")
+    subnets = [z.get("SubnetId") for z in as_list(data.get("AvailabilityZones")) if isinstance(z, dict) and z.get("SubnetId")]
+    a.ports = _aws_vpc_path(inventory, a, subnets, groups if data.get("Type") == "application" or groups else None, ports,
+                            native_id(resource), route=False, vpc_id=data.get("VpcId"))
+    if data.get("Type") == "network" and not groups:
+        a.notes.append("NLB without security groups: target security groups govern client traffic (client IP preserved)")
+    if any(g["layer"] == "listener" for g in a.unresolved) and not empty(a.ports):
+        a.ports = None
+    return a
+
+
+def _aws_classic(snapshot, inventory, resource):
+    data = resource["data"]
+    if data.get("Scheme") != "internet-facing":
+        return None
+    a = Assessment(resource, "load_balancer")
+    a.addresses = [data.get("DNSName")] if data.get("DNSName") else []
+    ports = {}
+    for item in as_list(data.get("ListenerDescriptions")):
+        listener = item.get("Listener") if isinstance(item, dict) else None
+        if isinstance(listener, dict) and isinstance(listener.get("LoadBalancerPort"), int):
+            ports = union(ports, pset("tcp", listener["LoadBalancerPort"], listener["LoadBalancerPort"]))
+    a.step("listener", "allow" if not empty(ports) else "block", listeners=describe(ports))
+    a.ports = _aws_vpc_path(inventory, a, as_list(data.get("Subnets")), as_list(data.get("SecurityGroups")) if data.get("VPCId") else None,
+                            ports, native_id(resource), route=False, vpc_id=data.get("VPCId"))
+    return a
+
+
+def _aws_rds(snapshot, inventory, resource):
+    data = resource["data"]
+    if data.get("PubliclyAccessible") is not True:
+        return None
+    a = Assessment(resource, "database")
+    endpoint = data.get("Endpoint") if isinstance(data.get("Endpoint"), dict) else {}
+    a.addresses = [endpoint.get("Address")] if endpoint.get("Address") else []
+    port = endpoint.get("Port", data.get("DbInstancePort"))
+    ports = pset("tcp", port, port) if isinstance(port, int) else None
+    if ports is None:
+        a.gap("listener", "database endpoint port not collected")
+        ports = dict(FULL)
+    a.step("listener", "allow", port=port, engine=data.get("Engine"))
+    groups = [g.get("VpcSecurityGroupId") for g in as_list(data.get("VpcSecurityGroups")) if isinstance(g, dict) and g.get("Status", "active") == "active"]
+    group = data.get("DBSubnetGroup") if isinstance(data.get("DBSubnetGroup"), dict) else {}
+    subnets = [s.get("SubnetIdentifier") for s in as_list(group.get("Subnets")) if isinstance(s, dict)]
+    a.ports = _aws_vpc_path(inventory, a, subnets, groups, ports, native_id(resource), vpc_id=group.get("VpcId"))
+    if data.get("DBInstanceStatus") not in (None, "available"):
+        a.notes.append(f"DB instance status {data.get('DBInstanceStatus')}")
+    return a
+
+
+def _aws_redshift(snapshot, inventory, resource):
+    data = resource["data"]
+    if data.get("PubliclyAccessible") is not True:
+        return None
+    a = Assessment(resource, "database")
+    endpoint = data.get("Endpoint") if isinstance(data.get("Endpoint"), dict) else {}
+    a.addresses = [endpoint.get("Address")] if endpoint.get("Address") else []
+    port = endpoint.get("Port", 5439)
+    a.step("listener", "allow", port=port)
+    groups = [g.get("VpcSecurityGroupId") for g in as_list(data.get("VpcSecurityGroups")) if isinstance(g, dict)]
+    ports = intersect(pset("tcp", port, port), _aws_sg_ports(inventory, groups, a, native_id(resource)))
+    if not empty(ports):
+        a.gap("network_acl", f"subnet group {data.get('ClusterSubnetGroupName')} subnets not collected", "redshift describe_cluster_subnet_groups")
+        a.unresolved[-1]["decisive"] = False
+    a.ports = ports
+    return a
+
+
+def _public_policy(document_value):
+    """(public, restrictive_conditions) for an AWS resource policy document."""
+    from .iam import document
+    from .trust import restrictive_conditions
+    doc = document(document_value)
+    if doc is None:
+        return None, []
+    public, restricted = False, []
+    for statement in as_list(doc.get("Statement")):
+        if not isinstance(statement, dict) or statement.get("Effect") != "Allow":
+            continue
+        principal = statement.get("Principal")
+        values = [principal] if isinstance(principal, str) else [v for x in principal.values() for v in as_list(x)] if isinstance(principal, dict) else []
+        if "*" not in values:
+            continue
+        conditions = restrictive_conditions(statement.get("Condition"))
+        if conditions:
+            restricted.extend(conditions)
+        else:
+            public = True
+    return public, restricted
+
+
+def _aws_opensearch(snapshot, inventory, resource):
+    domain = resource["data"].get("Domain")
+    status = domain.get("DomainStatus") if isinstance(domain, dict) else None
+    if not isinstance(status, dict):
+        return None
+    a = Assessment(resource, "managed_endpoint")
+    if status.get("VPCOptions") and status["VPCOptions"].get("VPCId"):
+        return None
+    a.addresses = [status.get("Endpoint")] if status.get("Endpoint") else []
+    a.step("route", "allow", reason="public (non-VPC) domain endpoint")
+    public, restricted = _public_policy(status.get("AccessPolicies"))
+    ports = pset("tcp", 443, 443)
+    if status.get("DomainEndpointOptions", {}).get("EnforceHTTPS") is False:
+        ports = union(ports, pset("tcp", 80, 80))
+    if public is None:
+        a.step("policy", "allow", reason="no access policy document; IAM identity policies govern", note="authenticated")
+        a.authenticated = True
+    elif public:
+        a.step("policy", "allow", reason="access policy grants Principal * without restrictive conditions")
+    else:
+        a.step("policy", "allow", reason="access policy requires signed or condition-restricted access", restrictive_conditions=restricted)
+        a.authenticated = True
+    fine = status.get("AdvancedSecurityOptions", {})
+    if isinstance(fine, dict) and fine.get("Enabled"):
+        a.authenticated = True
+        a.notes.append("fine-grained access control enabled")
+    a.ports = ports
+    return a
+
+
+def _aws_eks(snapshot, inventory, resource):
+    cluster = resource["data"].get("Cluster")
+    config = cluster.get("cluster", {}).get("resourcesVpcConfig") if isinstance(cluster, dict) else None
+    if not isinstance(config, dict):
+        return None
+    a = Assessment(resource, "control_plane")
+    a.authenticated = True
+    if config.get("endpointPublicAccess") is not True:
+        return None
+    a.addresses = [cluster["cluster"].get("endpoint")] if cluster["cluster"].get("endpoint") else []
+    cidrs = as_list(config.get("publicAccessCidrs")) or ["0.0.0.0/0"]
+    if any(_internet(c) for c in cidrs):
+        a.step("source_ranges", "allow", public_access_cidrs=cidrs)
+        a.ports = pset("tcp", 443, 443)
+    else:
+        a.step("source_ranges", "block", public_access_cidrs=cidrs)
+        a.ports = {}
+    return a
+
+
+def _aws_lambda_url(snapshot, inventory, resource):
+    data = resource["data"]
+    url = data.get("FunctionUrl")
+    if not isinstance(url, dict) or url.get("absent") or url.get("AuthType") is None:
+        if isinstance(url, dict) and url.get("collection_status") not in (None, "collected", "empty"):
+            a = Assessment(resource, "function_url")
+            a.gap("inventory", f"function URL config {url.get('collection_status')}", "lambda get_function_url_config")
+            return a
+        return None
+    a = Assessment(resource, "function_url")
+    a.addresses = [url.get("FunctionUrl")] if url.get("FunctionUrl") else []
+    a.ports = pset("tcp", 443, 443)
+    if url.get("AuthType") != "NONE":
+        a.step("authorization", "allow", auth_type=url.get("AuthType"))
+        a.authenticated = True
+        a.explicit = "PASS"
+        a.notes.append("Function URL requires SigV4 (AWS_IAM); not anonymously invocable")
+        return a
+    a.step("authorization", "allow", auth_type="NONE")
+    policy = data.get("Policy") if isinstance(data.get("Policy"), dict) else {}
+    if policy.get("absent"):
+        a.step("policy", "block", reason="AuthType NONE but no resource policy grants public InvokeFunctionUrl")
+        a.ports = {}
+        return a
+    if "Policy" not in policy:
+        a.gap("policy", f"function policy {policy.get('collection_status', 'not collected')}", "lambda get_policy")
+        return a
+    from .iam import document
+    doc = document(policy["Policy"]) or {}
+    public = []
+    for statement in as_list(doc.get("Statement")):
+        if not isinstance(statement, dict) or statement.get("Effect") != "Allow":
+            continue
+        principal = statement.get("Principal")
+        values = [principal] if isinstance(principal, str) else [v for x in principal.values() for v in as_list(x)] if isinstance(principal, dict) else []
+        actions = [str(x).lower() for x in as_list(statement.get("Action"))]
+        if "*" in values and any(x in ("lambda:invokefunctionurl", "lambda:*", "*", "lambda:invokefunction") for x in actions):
+            public.append(statement.get("Sid"))
+    if public:
+        a.step("policy", "allow", public_statements=public)
+    else:
+        a.step("policy", "block", reason="no public InvokeFunctionUrl statement")
+        a.ports = {}
+    return a
+
+
+def _aws_rest_api(snapshot, inventory, resource):
+    data = resource["data"]
+    a = Assessment(resource, "api")
+    types = as_list((data.get("endpointConfiguration") or {}).get("types"))
+    if "PRIVATE" in types or data.get("disableExecuteApiEndpoint") is True:
+        a.step("route", "block", endpoint_types=types, disable_execute_api_endpoint=data.get("disableExecuteApiEndpoint"))
+        a.ports = {}
+        return a
+    a.addresses = [f"https://{native_id(resource)}.execute-api.{resource['scope'].split('/')[-1]}.amazonaws.com"]
+    a.step("route", "allow", endpoint_types=types)
+    public, restricted = _public_policy(data.get("policy"))
+    if public is False and restricted:
+        a.step("policy", "allow", restrictive_conditions=restricted)
+        a.notes.append("resource policy restricts callers by condition")
+    a.ports = pset("tcp", 443, 443)
+    methods = data.get("Methods", data.get("resources"))
+    if not methods:
+        a.gap("authorization", "method authorizationType/apiKeyRequired not collected", STATIC_GAPS["aws"][0]["fact"])
+    return a
+
+
+def _aws_http_api(snapshot, inventory, resource):
+    data = resource["data"]
+    a = Assessment(resource, "api")
+    if data.get("DisableExecuteApiEndpoint") is True:
+        a.step("route", "block", disable_execute_api_endpoint=True)
+        a.ports = {}
+        return a
+    a.addresses = [data.get("ApiEndpoint")] if data.get("ApiEndpoint") else []
+    a.step("route", "allow", protocol=data.get("ProtocolType"))
+    a.ports = pset("tcp", 443, 443)
+    routes = data.get("Routes")
+    if isinstance(routes, dict) and routes.get("collection_status") == "collected":
+        routes = routes.get("items")
+    if isinstance(routes, list):
+        open_routes = [r.get("RouteKey") for r in routes if isinstance(r, dict) and r.get("AuthorizationType", "NONE") == "NONE" and not r.get("ApiKeyRequired")]
+        a.step("authorization", "allow" if open_routes else "block", unauthenticated_routes=open_routes)
+        if not open_routes:
+            a.ports = {}
+    else:
+        a.gap("authorization", "route AuthorizationType not collected", STATIC_GAPS["aws"][1]["fact"])
+    return a
+
+
+def _aws_snapshot_share(snapshot, inventory, resource, attribute_path, name):
+    from .trust import trusted_scopes
+    data = resource["data"]
+    a = Assessment(resource, "data_share")
+    attributes = data.get("Attributes")
+    if not isinstance(attributes, dict) or attributes.get("collection_status") not in (None, "collected"):
+        if data.get("SnapshotType") in ("automated", "awsbackup"):
+            return None
+        a.gap("attributes", f"{name} sharing attributes {'not collected' if not isinstance(attributes, dict) else attributes.get('collection_status')}",
+              "rds describe_db_cluster_snapshot_attributes" if name == "cluster snapshot" else "rds describe_db_snapshot_attributes")
+        return a
+    result = attributes
+    for key in attribute_path:
+        result = result.get(key, {}) if isinstance(result, dict) else {}
+    values = [v for x in as_list(result) if isinstance(x, dict) and x.get("AttributeName") == "restore" for v in as_list(x.get("AttributeValues"))]
+    trusted = trusted_scopes(snapshot)["ids"]
+    if "all" in values:
+        a.step("attributes", "allow", restore=["all"])
+        a.data_exposure = True
+        a.ports = {}
+        return a
+    foreign = [v for v in values if trusted and v not in trusted]
+    if foreign:
+        a.step("attributes", "allow", restore=values, external_accounts=foreign)
+        a.external_ids = foreign
+        a.kind = "external_share"
+        a.explicit = "FAIL"
+        return a
+    a.step("attributes", "block", restore=values)
+    a.ports = {}
+    return a
+
+
+def _aws_bucket(snapshot, inventory, resource):
+    data = resource["data"]
+    a = Assessment(resource, "data_share")
+    policy_status = (data.get("PolicyStatus") or {}).get("PolicyStatus", {}) if isinstance(data.get("PolicyStatus"), dict) else {}
+    public_policy = policy_status.get("IsPublic") if isinstance(policy_status, dict) else None
+    restricted = []
+    if public_policy is None:
+        policy = data.get("Policy") if isinstance(data.get("Policy"), dict) else {}
+        if policy.get("absent"):
+            public_policy = False
+        elif "Policy" in policy:
+            public_policy, restricted = _public_policy(policy["Policy"])
+    acl = data.get("Acl") if isinstance(data.get("Acl"), dict) else {}
+    grants = [g for g in as_list(acl.get("Grants")) if isinstance(g, dict) and str((g.get("Grantee") or {}).get("URI", "")).endswith(("/AllUsers", "/AuthenticatedUsers"))]
+    public_acl = bool(grants) if acl.get("collection_status") in (None, "collected") and "Grants" in acl else None
+    if public_policy is False and public_acl is False:
+        return None
+    if public_policy is None and public_acl is None:
+        a.gap("policy", "bucket policy status and ACL not collected", "s3 get_bucket_policy_status / get_bucket_acl")
+        return a
+    settings, sources = effective_bucket_bpa(snapshot, inventory, resource)
+    a.step("policy", "allow" if public_policy else "not_public", public_policy=public_policy, restrictive_conditions=restricted)
+    a.step("acl", "allow" if public_acl else "not_public", public_grants=[g.get("Permission") for g in grants])
+    if settings is None:
+        a.gap("public_access_block", "account-level S3 Block Public Access not collected", "s3control get_public_access_block")
+        a.unresolved[-1]["layer"] = "policy"
+        a.data_exposure = True
+        return a
+    exposed_policy = bool(public_policy) and not settings.get("RestrictPublicBuckets")
+    exposed_acl = bool(public_acl) and not settings.get("IgnorePublicAcls")
+    a.step("public_access_block", "allow" if exposed_policy or exposed_acl else "block", effective=settings, sources=sources)
+    if exposed_policy or exposed_acl:
+        a.data_exposure = True
+        a.addresses = [f"https://{native_id(resource)}.s3.amazonaws.com"]
+        a.blocked_by = None
+    else:
+        a.ports = {}
+    return a
+
+
+def effective_bucket_bpa(snapshot, inventory, resource):
+    """(settings or None, sources) combining bucket and account S3 Block Public Access (logical OR)."""
+    names = ("BlockPublicAcls", "IgnorePublicAcls", "BlockPublicPolicy", "RestrictPublicBuckets")
+    bucket = resource["data"].get("PublicAccessBlock") if isinstance(resource["data"].get("PublicAccessBlock"), dict) else {}
+    bucket_config = bucket.get("PublicAccessBlockConfiguration") if isinstance(bucket.get("PublicAccessBlockConfiguration"), dict) else {}
+    if not bucket.get("absent") and not bucket_config:
+        return None, {"bucket": bucket.get("collection_status", "not_collected")}
+    account = resource["scope"].split("/", 1)[0]
+    state = inventory.state("s3_account_public_access_block", resource["scope"])
+    if state.startswith("missing"):
+        return None, {"bucket": "collected", "account": state}
+    account_items = [r for r in inventory.items("s3_account_public_access_block") if r["scope"].split("/", 1)[0] == account]
+    account_config = {}
+    for item in account_items:
+        config = item["data"].get("PublicAccessBlockConfiguration", item["data"])
+        if isinstance(config, dict):
+            account_config = config
+    settings = {k: bool(bucket_config.get(k)) or bool(account_config.get(k)) for k in names}
+    return settings, {"bucket": dict(bucket_config) if bucket_config else "absent", "account": dict(account_config) if account_config else "absent"}
+
+
+# ---------------------------------------------------------------------- GCP
+
+def _gcp_rule_ports(entries):
+    ports = {}
+    for entry in as_list(entries):
+        if not isinstance(entry, dict):
+            continue
+        protocol = entry.get("IPProtocol", entry.get("ipProtocol"))
+        if _proto(protocol) is None:
+            continue
+        specs = as_list(entry.get("ports")) or [None]
+        for spec in specs:
+            current = _port_spec(protocol, spec)
+            if current:
+                ports = union(ports, current)
+    return ports
+
+
+def _gcp_firewall(inventory, instance, interface, assessment):
+    data = instance["data"]
+    network = interface.get("network")
+    tags = set(as_list((data.get("tags") or {}).get("items")))
+    accounts = {s.get("email") for s in as_list(data.get("serviceAccounts")) if isinstance(s, dict)}
+    allowed, decided = {}, {}
+    policies = inventory.items("firewall_policy")
+    for policy in policies:
+        rules = sorted((r for r in as_list(policy["data"].get("rules")) if isinstance(r, dict) and r.get("direction", "INGRESS") == "INGRESS"
+                        and not r.get("disabled")), key=lambda r: int(r.get("priority", 1000)))
+        for rule in rules:
+            match = rule.get("match") or {}
+            if not any(_internet(x) for x in as_list(match.get("srcIpRanges"))):
+                continue
+            targets = as_list(rule.get("targetResources"))
+            if targets and network not in targets:
+                continue
+            if rule.get("targetSecureTags") or rule.get("targetServiceAccounts"):
+                assessment.gap("firewall", f"firewall policy {native_id(policy)} rule {rule.get('priority')} targets tags/service accounts", None)
+                assessment.unresolved[-1]["decisive"] = False
+                continue
+            ports = _gcp_rule_ports(match.get("layer4Configs"))
+            fresh = subtract(ports, decided)
+            if rule.get("action") == "allow":
+                allowed = union(allowed, fresh)
+                decided = union(decided, ports)
+            elif rule.get("action") == "deny":
+                decided = union(decided, ports)
+    if policies:
+        assessment.step("firewall_policy", "evaluated", policies=[native_id(p) for p in policies], allowed=describe(allowed))
+    elif inventory.state("firewall_policy").startswith("missing"):
+        assessment.gap("firewall_policy", "hierarchical/network firewall policies not collected", "compute firewallPolicies")
+        assessment.unresolved[-1]["decisive"] = False
+    candidates = []
+    for rule in inventory.items("firewall"):
+        r = rule["data"]
+        if r.get("network") != network or r.get("direction", "INGRESS") != "INGRESS" or r.get("disabled"):
+            continue
+        sources = as_list(r.get("sourceRanges"))
+        if not sources and (r.get("sourceTags") or r.get("sourceServiceAccounts")):
+            continue
+        if sources and not any(_internet(x) for x in sources):
+            continue
+        if r.get("targetTags") and not tags & set(r["targetTags"]):
+            continue
+        if r.get("targetServiceAccounts") and not accounts & set(r["targetServiceAccounts"]):
+            continue
+        candidates.append(rule)
+    if inventory.state("firewall").startswith("missing"):
+        assessment.gap("firewall", f"VPC firewall rules {inventory.state('firewall')}", "compute firewalls.list")
+        return None
+    matched = []
+    for rule in sorted(candidates, key=lambda x: (int(x["data"].get("priority", 1000)), 0 if x["data"].get("denied") else 1)):
+        r = rule["data"]
+        ports = _gcp_rule_ports(r.get("denied") or r.get("allowed"))
+        fresh = subtract(ports, decided)
+        if r.get("allowed") and not empty(fresh):
+            allowed = union(allowed, fresh)
+            matched.append({"rule": r.get("name"), "priority": r.get("priority", 1000), "action": "allow", "ports": describe(fresh)})
+        elif r.get("denied") and not empty(fresh):
+            matched.append({"rule": r.get("name"), "priority": r.get("priority", 1000), "action": "deny", "ports": describe(fresh)})
+        decided = union(decided, ports)
+    assessment.step("firewall", "allow" if not empty(allowed) else "block", network=network, matched_rules=matched,
+                    implied="deny ingress", allowed=describe(allowed))
+    return allowed
+
+
+def _gcp_instance(snapshot, inventory, resource):
+    data = resource["data"]
+    interfaces = [n for n in as_list(data.get("networkInterfaces")) if isinstance(n, dict)]
+    exposed = [(n, [c.get("natIP") for c in as_list(n.get("accessConfigs")) if isinstance(c, dict) and c.get("natIP")]
+                + [c.get("externalIpv6") for c in as_list(n.get("ipv6AccessConfigs")) if isinstance(c, dict) and c.get("externalIpv6")]) for n in interfaces]
+    exposed = [(n, ips) for n, ips in exposed if ips]
+    if not exposed:
+        return None
+    a = Assessment(resource, "public_ip")
+    total = {}
+    unknown = False
+    for interface, ips in exposed:
+        a.addresses.extend(ips)
+        a.step("external_ip", "allow", interface=interface.get("name"), addresses=ips)
+        allowed = _gcp_firewall(inventory, resource, interface, a)
+        if allowed is None:
+            unknown = True
+        else:
+            total = union(total, allowed)
+    a.ports = None if unknown and empty(total) else total
+    if not empty(total):
+        a.blocked_by = None
+    if data.get("status") not in (None, "RUNNING"):
+        a.dormant = True
+        a.notes.append(f"instance status {data.get('status')}")
+    return a
+
+
+def _gcp_forwarding_rule(snapshot, inventory, resource):
+    data = resource["data"]
+    if str(data.get("loadBalancingScheme", "EXTERNAL")) not in ("EXTERNAL", "EXTERNAL_MANAGED"):
+        return None
+    a = Assessment(resource, "load_balancer")
+    a.addresses = [data.get("IPAddress")] if data.get("IPAddress") else []
+    protocol = data.get("IPProtocol", "TCP")
+    if data.get("allPorts"):
+        ports = pset(protocol)
+    elif data.get("ports"):
+        ports = {}
+        for spec in as_list(data["ports"]):
+            ports = union(ports, _port_spec(protocol, spec) or {})
+    else:
+        ports = _port_spec(protocol, data.get("portRange")) or {}
+    a.step("forwarding_rule", "allow", scheme=data.get("loadBalancingScheme"), ports=describe(ports), target=data.get("target") or data.get("backendService"))
+    a.ports = ports
+    target = data.get("target")
+    if target and "/target" in target and "Pools" not in target and "Instances" not in target:
+        proxy = inventory.get("target_proxy", target)
+        if proxy is None:
+            a.gap("backend", f"target proxy {target} not collected", "compute targetHttp(s)Proxies")
+            return a
+        services = []
+        url_map = proxy["data"].get("urlMap")
+        if url_map:
+            mapping = inventory.get("url_map", url_map)
+            if mapping is None:
+                a.gap("backend", f"url map {url_map} not collected", "compute urlMaps")
+                return a
+            m = mapping["data"]
+            services = [m.get("defaultService")] + [p.get("defaultService") for p in as_list(m.get("pathMatchers")) if isinstance(p, dict)] + \
+                [s for p in as_list(m.get("pathMatchers")) if isinstance(p, dict) for r in as_list(p.get("pathRules")) if isinstance(r, dict) for s in [r.get("service")]]
+        elif proxy["data"].get("service"):
+            services = [proxy["data"]["service"]]
+        services = [s for s in dict.fromkeys(services) if s]
+        armor, unprotected, buckets = [], [], []
+        for service in services:
+            if "/backendBuckets/" in service:
+                buckets.append(service)
+                continue
+            backend = inventory.get("backend_service", service)
+            if backend is None:
+                a.gap("backend", f"backend service {service} not collected", "compute backendServices")
+                continue
+            policy = backend["data"].get("securityPolicy")
+            (armor if policy else unprotected).append({"backend_service": service, "security_policy": policy})
+            if backend["data"].get("iap", {}).get("enabled"):
+                a.authenticated = True
+                a.notes.append(f"IAP enabled on {service}")
+        a.step("cloud_armor", "allow" if unprotected or buckets else "unknown", unprotected=unprotected, protected=armor, backend_buckets=buckets)
+        if armor and not unprotected and not buckets:
+            a.gap("cloud_armor", "Cloud Armor policy attached; its rules are not collected", STATIC_GAPS["gcp"][0]["fact"])
+    else:
+        a.gap("backend", "passthrough load balancer: backend instance firewall not resolved", STATIC_GAPS["gcp"][1]["fact"])
+    return a
+
+
+def _gcp_invoker(policy, roles):
+    if not isinstance(policy, dict):
+        return None
+    public = []
+    for binding in as_list(policy.get("bindings")):
+        if isinstance(binding, dict) and binding.get("role") in roles:
+            members = [m for m in as_list(binding.get("members")) if m in ("allUsers", "allAuthenticatedUsers")]
+            if members and not binding.get("condition"):
+                public.extend(members)
+    return public
+
+
+def _gcp_serverless(snapshot, inventory, resource):
+    data = resource["data"]
+    a = Assessment(resource, "serverless")
+    if resource["type"] == "cloudrun_service":
+        ingress = data.get("ingress", "INGRESS_TRAFFIC_ALL")
+        open_ingress = ingress == "INGRESS_TRAFFIC_ALL"
+        a.addresses = as_list(data.get("urls")) or ([data.get("uri")] if data.get("uri") else [])
+        roles = {"roles/run.invoker"}
+        disabled = data.get("invokerIamDisabled") is True
+    else:
+        config = data.get("serviceConfig") if isinstance(data.get("serviceConfig"), dict) else data
+        ingress = config.get("ingressSettings", "ALLOW_ALL")
+        open_ingress = ingress == "ALLOW_ALL"
+        a.addresses = [config.get("uri") or (data.get("httpsTrigger") or {}).get("url")] if (config.get("uri") or (data.get("httpsTrigger") or {}).get("url")) else []
+        roles = {"roles/cloudfunctions.invoker", "roles/run.invoker"}
+        disabled = False
+    a.step("ingress", "allow" if open_ingress else "block", ingress=ingress)
+    a.ports = pset("tcp", 443, 443) if open_ingress else {}
+    if not open_ingress:
+        return a
+    if disabled:
+        a.step("invoker", "allow", invoker_iam_disabled=True)
+        return a
+    policy = data.get("iamPolicy")
+    if isinstance(policy, dict) and policy.get("collection_status") not in (None, "collected"):
+        policy = None
+    public = _gcp_invoker(policy, roles)
+    if public is None:
+        a.gap("invoker", "invoker IAM policy not collected", "getIamPolicy")
+    elif public:
+        a.step("invoker", "allow", public_members=public)
+        if "allUsers" not in public:
+            a.authenticated = True
+    else:
+        a.step("invoker", "block", reason="no allUsers/allAuthenticatedUsers invoker; IAM authentication required")
+        a.ports = {}
+    return a
+
+
+def _gcp_sql(snapshot, inventory, resource):
+    settings = resource["data"].get("settings") if isinstance(resource["data"].get("settings"), dict) else {}
+    ip = settings.get("ipConfiguration") if isinstance(settings.get("ipConfiguration"), dict) else {}
+    if ip.get("ipv4Enabled") is not True:
+        return None
+    a = Assessment(resource, "database")
+    a.addresses = [x.get("ipAddress") for x in as_list(resource["data"].get("ipAddresses")) if isinstance(x, dict) and x.get("type") == "PRIMARY"]
+    version = str(resource["data"].get("databaseVersion", ""))
+    port = 5432 if "POSTGRES" in version else 1433 if "SQLSERVER" in version else 3306
+    networks = [n.get("value") for n in as_list(ip.get("authorizedNetworks")) if isinstance(n, dict)]
+    if any(_internet(n) for n in networks):
+        a.step("authorized_networks", "allow", authorized_networks=networks, require_ssl=ip.get("requireSsl"), ssl_mode=ip.get("sslMode"))
+        a.ports = pset("tcp", port, port)
+    else:
+        a.step("authorized_networks", "block", authorized_networks=networks, note="Cloud SQL Auth Proxy/connectors still authenticate via IAM")
+        a.ports = {}
+    return a
+
+
+def _gcp_gke(snapshot, inventory, resource):
+    from ..checks.exposure_endpoints import gke_control_plane
+    from ..checks.facts import Unavailable
+    data = resource["data"]
+    a = Assessment(resource, "control_plane")
+    a.authenticated = True
+    try:
+        status, evidence = gke_control_plane(data, {})
+    except (Unavailable, ValueError, TypeError, AttributeError, KeyError):
+        status, evidence = "UNKNOWN", {"reason": "GKE endpoint configuration is unavailable or malformed"}
+    control = data.get("controlPlaneEndpointsConfig")
+    control = control if isinstance(control, dict) else {}
+    endpoints = control.get("ipEndpointsConfig")
+    endpoints = endpoints if isinstance(endpoints, dict) else {}
+    if status == "NOT_APPLICABLE":
+        dns = control.get("dnsEndpointConfig")
+        dns = dns if isinstance(dns, dict) else {}
+        a.addresses = [dns["endpoint"]] if isinstance(dns.get("endpoint"), str) else []
+        if dns.get("allowExternalTraffic") is False:
+            a.step("dns_user_traffic", "block", google_managed_service_access="not_assessed")
+            a.ports = {}
+        else:
+            a.ports = pset("tcp", 443, 443)
+            a.explicit = "UNKNOWN"
+            a.gap("dns_authorization", "IP endpoints are disabled. DNS endpoint IAM/VPC Service Controls need separate context; no IP exposure is inferred.")
+        return a
+    if status == "PASS" and evidence.get("private_endpoint"):
+        return None
+    address = endpoints.get("publicEndpoint") or data.get("endpoint")
+    a.addresses = [address] if address else []
+    if status == "PASS":
+        a.step("source_ranges", "block", **evidence)
+        a.ports = {}
+    elif status == "FAIL":
+        a.step("source_ranges", "allow", **evidence)
+        a.ports = pset("tcp", 443, 443)
+    else:
+        a.ports = pset("tcp", 443, 443)
+        a.explicit = "UNKNOWN"
+        a.gap("source_ranges", evidence.get("reason", "Control-plane source range decision needs review"))
+    return a
+
+
+def _gcp_bucket(snapshot, inventory, resource):
+    data = resource["data"]
+    policy = data.get("iamPolicy")
+    if not isinstance(policy, dict) or policy.get("collection_status") not in (None, "collected"):
+        return None
+    public = []
+    for binding in as_list(policy.get("bindings")):
+        if isinstance(binding, dict):
+            public += [(binding.get("role"), m) for m in as_list(binding.get("members")) if m in ("allUsers", "allAuthenticatedUsers")]
+    if not public:
+        return None
+    a = Assessment(resource, "data_share")
+    prevention = (data.get("iamConfiguration") or {}).get("publicAccessPrevention")
+    if prevention == "enforced":
+        a.step("public_access_prevention", "block", bindings=public)
+        a.ports = {}
+        return a
+    a.step("policy", "allow", bindings=public, public_access_prevention=prevention)
+    a.data_exposure = True
+    a.addresses = [f"https://storage.googleapis.com/{data.get('name', native_id(resource))}"]
+    return a
+
+
+# -------------------------------------------------------------------- Azure
+
+def _props(resource):
+    data = resource["data"]
+    return data.get("properties") if isinstance(data.get("properties"), dict) else {}
+
+
+def _nsg_allowed(nsg, address=None, groups=()):
+    props = _props(nsg)
+    rules = [r for r in as_list(props.get("securityRules")) + as_list(props.get("defaultSecurityRules")) if isinstance(r, dict)]
+    if not any((r.get("properties") or {}).get("priority", 0) >= 65000 for r in rules):
+        rules.append({"name": "DenyAllInBound(default)", "properties": {"priority": 65500, "direction": "Inbound", "access": "Deny",
+                      "protocol": "*", "sourceAddressPrefix": "*", "destinationAddressPrefix": "*", "destinationPortRange": "*"}})
+    allowed, decided, matched = {}, {}, []
+    for rule in sorted(rules, key=lambda r: int((r.get("properties") or {}).get("priority", 4096))):
+        p = rule.get("properties") or {}
+        if p.get("direction", "Inbound") != "Inbound":
+            continue
+        sources = as_list(p.get("sourceAddressPrefixes")) + as_list(p.get("sourceAddressPrefix"))
+        if p.get("sourceApplicationSecurityGroups") or not any(_internet(s) for s in sources):
+            continue
+        destinations = as_list(p.get("destinationAddressPrefixes")) + as_list(p.get("destinationAddressPrefix"))
+        asgs = {str(x.get("id", "")).lower() for x in as_list(p.get("destinationApplicationSecurityGroups")) if isinstance(x, dict)}
+        if asgs:
+            if not asgs & {str(g).lower() for g in groups}:
+                continue
+        elif destinations and not any(d in ("*", "Any", "VirtualNetwork", "Internet") or _internet(d) or
+                                      (address and _cidr(d) is not None and _cidr(address) is not None and _cidr(address).subnet_of(_cidr(d)) if _cidr(d) and _cidr(address) and _cidr(d).version == _cidr(address).version else False)
+                                      for d in destinations):
+            continue
+        ports = {}
+        for spec in as_list(p.get("destinationPortRanges")) + as_list(p.get("destinationPortRange")) or ["*"]:
+            ports = union(ports, _port_spec(p.get("protocol", "*"), spec) or {})
+        fresh = subtract(ports, decided)
+        if empty(fresh):
+            continue
+        if p.get("access") == "Allow":
+            allowed = union(allowed, fresh)
+        matched.append({"rule": rule.get("name"), "priority": p.get("priority"), "access": p.get("access"), "ports": describe(fresh)})
+        decided = union(decided, ports)
+    return allowed, matched
+
+
+def _azure_subnet(inventory, subnet_id):
+    if not subnet_id:
+        return None, "unknown subnet"
+    subnet = inventory.get("subnet", subnet_id)
+    if subnet is not None:
+        return subnet, None
+    vnet_id = subnet_id.lower().split("/subnets/")[0]
+    vnet = inventory.get("vnet", vnet_id)
+    if vnet is not None:
+        for item in as_list(_props(vnet).get("subnets")):
+            if isinstance(item, dict) and str(item.get("id", "")).lower() == subnet_id.lower():
+                return {"data": item, "type": "subnet", "scope": vnet["scope"], "provider": "azure", "id": item.get("id")}, None
+    return None, f"subnet {subnet_id} not collected"
+
+
+def _azure_nsg_path(inventory, a, nic_nsg_id, subnet_id, ports, address=None, groups=(), sku=None, where=None):
+    """Subnet NSG AND NIC NSG must both allow; a missing NSG level is open (Standard public IPs are closed with no NSG)."""
+    levels, present = [], 0
+    subnet, problem = _azure_subnet(inventory, subnet_id)
+    subnet_nsg = None
+    if subnet is None:
+        a.gap("nsg", problem, "Microsoft.Network/virtualNetworks subnets")
+    else:
+        subnet_nsg = ((subnet["data"].get("properties") or {}).get("networkSecurityGroup") or {}).get("id")
+    result = ports
+    for level, nsg_id in (("subnet", subnet_nsg if subnet is not None else False), ("nic", nic_nsg_id)):
+        if nsg_id is False:
+            continue
+        if not nsg_id:
+            levels.append({"level": level, "nsg": None})
+            continue
+        nsg = inventory.get("nsg", nsg_id)
+        if nsg is None:
+            a.gap("nsg", f"{level} NSG {nsg_id} not collected", "Microsoft.Network/networkSecurityGroups")
+            continue
+        present += 1
+        allowed, matched = _nsg_allowed(nsg, address, groups)
+        result = intersect(result, allowed)
+        levels.append({"level": level, "nsg": native_id(nsg), "matched_rules": matched, "allowed": describe(allowed)})
+    if present == 0 and not any(g["layer"] == "nsg" for g in a.unresolved) and str(sku or "").lower() == "standard":
+        a.step("nsg", "block", reason="Standard SKU public IP without NSG is closed to inbound by default", levels=levels, at=where)
+        return {}
+    a.step("nsg", "allow" if not empty(result) else "block", levels=levels, allowed=describe(result), at=where)
+    return result
+
+
+def _azure_public_ips(inventory):
+    output = {}
+    for item in inventory.items("public_ip"):
+        config = (_props(item).get("ipConfiguration") or {}).get("id")
+        if config:
+            output[str(config).lower()] = item
+    return output
+
+
+def _azure_nic(snapshot, inventory, resource, public_ips):
+    props = _props(resource)
+    a = Assessment(resource, "public_ip")
+    total, found = {}, False
+    for config in as_list(props.get("ipConfigurations")):
+        if not isinstance(config, dict):
+            continue
+        cp = config.get("properties") or {}
+        public_ref = (cp.get("publicIPAddress") or {}).get("id")
+        if not public_ref:
+            continue
+        found = True
+        public = inventory.get("public_ip", public_ref) or public_ips.get(str(config.get("id", "")).lower())
+        sku = None
+        if public is None:
+            a.gap("public_ip", f"public IP {public_ref} not collected", "Microsoft.Network/publicIPAddresses")
+        else:
+            sku = (public["data"].get("sku") or {}).get("name")
+            if _props(public).get("ipAddress"):
+                a.addresses.append(_props(public)["ipAddress"])
+            a.step("public_ip", "allow", public_ip=native_id(public), sku=sku, address=_props(public).get("ipAddress"))
+        groups = [g.get("id") for g in as_list(cp.get("applicationSecurityGroups")) if isinstance(g, dict)]
+        total = union(total, _azure_nsg_path(inventory, a, (props.get("networkSecurityGroup") or {}).get("id"), (cp.get("subnet") or {}).get("id"),
+                                             dict(FULL), cp.get("privateIPAddress"), groups, sku, config.get("name")))
+    if not found:
+        return None
+    a.ports = total
+    if not empty(total):
+        a.blocked_by = None
+    vm = (props.get("virtualMachine") or {}).get("id")
+    target = inventory.get("vm", vm) if vm else None
+    if target is not None:
+        a.resource = target
+        a.notes.append(f"via network interface {native_id(resource)}")
+    return a
+
+
+def _azure_backend_nics(inventory, pool_ids):
+    pools = {str(p).lower() for p in pool_ids}
+    for nic in inventory.items("nic"):
+        for config in as_list(_props(nic).get("ipConfigurations")):
+            cp = (config or {}).get("properties") or {}
+            refs = {str(x.get("id", "")).lower() for x in as_list(cp.get("loadBalancerBackendAddressPools")) + as_list(cp.get("applicationGatewayBackendAddressPools")) if isinstance(x, dict)}
+            if refs & pools:
+                yield nic, config
+
+
+def _azure_lb(snapshot, inventory, resource):
+    props = _props(resource)
+    fronts = {str(f.get("id", "")).lower(): f for f in as_list(props.get("frontendIPConfigurations")) if isinstance(f, dict)
+              and ((f.get("properties") or {}).get("publicIPAddress") or {}).get("id")}
+    if not fronts:
+        return None
+    a = Assessment(resource, "load_balancer")
+    for front in fronts.values():
+        public = inventory.get("public_ip", front["properties"]["publicIPAddress"]["id"])
+        if public is not None and _props(public).get("ipAddress"):
+            a.addresses.append(_props(public)["ipAddress"])
+    total = {}
+    rules = [("loadBalancingRules", r) for r in as_list(props.get("loadBalancingRules"))] + [("inboundNatRules", r) for r in as_list(props.get("inboundNatRules"))]
+    for kind, rule in rules:
+        rp = (rule or {}).get("properties") or {}
+        if str((rp.get("frontendIPConfiguration") or {}).get("id", "")).lower() not in fronts:
+            continue
+        protocol = rp.get("protocol", "Tcp")
+        frontend, backend = rp.get("frontendPort"), rp.get("backendPort", rp.get("frontendPort"))
+        if frontend == 0:  # HA ports
+            frontend_ports, backend_ports = pset(protocol), pset(protocol)
+        else:
+            frontend_ports, backend_ports = pset(protocol, frontend, frontend), pset(protocol, backend, backend)
+        pools = [x.get("id") for x in as_list(rp.get("backendAddressPools")) + as_list(rp.get("backendAddressPool")) if isinstance(x, dict)]
+        nics = list(_azure_backend_nics(inventory, pools)) if pools else []
+        if kind == "inboundNatRules":
+            target = (rp.get("backendIPConfiguration") or {}).get("id")
+            nics = [(n, c) for n in inventory.items("nic") for c in as_list(_props(n).get("ipConfigurations"))
+                    if target and str((c or {}).get("id", "")).lower() == str(target).lower()]
+        if not nics:
+            a.gap("backend", f"{kind} {rule.get('name')}: backend NICs not resolved", "Microsoft.Network/networkInterfaces")
+            continue
+        for nic, config in nics:
+            cp = config.get("properties") or {}
+            allowed = _azure_nsg_path(inventory, a, (_props(nic).get("networkSecurityGroup") or {}).get("id"), (cp.get("subnet") or {}).get("id"),
+                                      backend_ports, cp.get("privateIPAddress"), [g.get("id") for g in as_list(cp.get("applicationSecurityGroups")) if isinstance(g, dict)],
+                                      "standard" if (resource["data"].get("sku") or {}).get("name", "").lower() == "standard" else "basic", rule.get("name"))
+            if not empty(allowed):
+                total = union(total, frontend_ports)
+    a.step("listener", "allow" if not empty(total) else "block", frontend_ports=describe(total))
+    a.ports = total if rules else {}
+    if not empty(total):
+        a.blocked_by = None
+    return a
+
+
+def _azure_appgw(snapshot, inventory, resource):
+    props = _props(resource)
+    fronts = {str(f.get("id", "")).lower() for f in as_list(props.get("frontendIPConfigurations")) if isinstance(f, dict)
+              and ((f.get("properties") or {}).get("publicIPAddress") or {}).get("id")}
+    if not fronts:
+        return None
+    a = Assessment(resource, "load_balancer")
+    port_map = {str(p.get("id", "")).lower(): (p.get("properties") or {}).get("port") for p in as_list(props.get("frontendPorts")) if isinstance(p, dict)}
+    ports = {}
+    for listener in as_list(props.get("httpListeners")) + as_list(props.get("listeners")):
+        lp = (listener or {}).get("properties") or {}
+        if str((lp.get("frontendIPConfiguration") or {}).get("id", "")).lower() in fronts:
+            port = port_map.get(str((lp.get("frontendPort") or {}).get("id", "")).lower())
+            if isinstance(port, int):
+                ports = union(ports, pset("tcp", port, port))
+    a.step("listener", "allow" if not empty(ports) else "block", listener_ports=describe(ports))
+    subnet = next((((c.get("properties") or {}).get("subnet") or {}).get("id") for c in as_list(props.get("gatewayIPConfigurations")) if isinstance(c, dict)), None)
+    a.ports = _azure_nsg_path(inventory, a, None, subnet, ports, sku="basic", where="gateway subnet")
+    waf = props.get("webApplicationFirewallConfiguration") or props.get("firewallPolicy")
+    a.notes.append("WAF configured" if waf else "no WAF configuration on the gateway")
+    return a
+
+
+def _azure_app_service(snapshot, inventory, resource, configs):
+    props = _props(resource)
+    a = Assessment(resource, "web_app")
+    a.addresses = [h for h in as_list(props.get("defaultHostName")) if h]
+    if str(props.get("publicNetworkAccess", "")).lower() == "disabled":
+        a.step("public_network_access", "block", public_network_access="Disabled")
+        a.ports = {}
+        return a
+    if props.get("publicNetworkAccess") is None and as_list(props.get("privateEndpointConnections")):
+        a.notes.append("private endpoint present; public access defaults to disabled when publicNetworkAccess is unset")
+    ports = pset("tcp", 443, 443) if props.get("httpsOnly") else union(pset("tcp", 80, 80), pset("tcp", 443, 443))
+    a.step("public_network_access", "allow", public_network_access=props.get("publicNetworkAccess", "default(Enabled)"))
+    config = configs.get(str(resource["data"].get("id", "")).lower())
+    if config is None:
+        a.gap("access_restrictions", "site config (ipSecurityRestrictions) not collected", "Microsoft.Web/sites/config/web")
+        a.ports = ports
+        return a
+    cp = _props(config)
+    restrictions = [r for r in as_list(cp.get("ipSecurityRestrictions")) if isinstance(r, dict)]
+    default = cp.get("ipSecurityRestrictionsDefaultAction") or ("Deny" if restrictions and not any(r.get("ipAddress") == "Any" for r in restrictions) else "Allow")
+    open_rules = [r.get("name") for r in sorted(restrictions, key=lambda r: int(r.get("priority", 65000)))
+                  if r.get("action", "Allow") == "Allow" and (_internet(r.get("ipAddress")) or r.get("ipAddress") == "Any")]
+    first_open = next((r for r in sorted(restrictions, key=lambda r: int(r.get("priority", 65000))) if _internet(r.get("ipAddress")) or r.get("ipAddress") == "Any"), None)
+    reachable = (first_open is not None and first_open.get("action", "Allow") == "Allow") or (first_open is None and default == "Allow")
+    a.step("access_restrictions", "allow" if reachable else "block", restriction_count=len(restrictions), default_action=default, open_rules=open_rules)
+    a.ports = ports if reachable else {}
+    a.notes.append("App Service authentication (Easy Auth) settings are not collected")
+    return a
+
+
+def _azure_aks(snapshot, inventory, resource):
+    from ..checks.exposure_endpoints import aks_api_server
+    from ..checks.facts import Unavailable
+    a = Assessment(resource, "control_plane")
+    a.authenticated = True
+    a.addresses = [_props(resource).get("fqdn")] if _props(resource).get("fqdn") else []
+    try:
+        status, evidence = aks_api_server(resource["data"], {})
+    except (Unavailable, ValueError, TypeError, AttributeError, KeyError):
+        status, evidence = "UNKNOWN", {"reason": "AKS endpoint configuration is unavailable or malformed"}
+    if status == "PASS" and evidence.get("private_cluster"):
+        return None
+    if status == "PASS":
+        a.step("source_ranges", "block", **evidence)
+        a.ports = {}
+    elif status == "FAIL":
+        a.step("source_ranges", "allow", **evidence)
+        a.ports = pset("tcp", 443, 443)
+    else:
+        a.ports = pset("tcp", 443, 443)
+        a.explicit = "UNKNOWN"
+        a.gap("source_ranges", evidence.get("reason", "Control-plane source range decision needs review"))
+    return a
+
+
+def _azure_storage(snapshot, inventory, resource):
+    props = _props(resource)
+    a = Assessment(resource, "data_share")
+    if str(props.get("publicNetworkAccess", "")).lower() == "disabled":
+        return None
+    acls = props.get("networkAcls") or {}
+    if acls.get("defaultAction", "Allow") != "Allow":
+        a.step("network_rules", "block", default_action=acls.get("defaultAction"), ip_rules=len(as_list(acls.get("ipRules"))))
+        a.ports = {}
+        return a
+    a.addresses = sorted(v for v in (props.get("primaryEndpoints") or {}).values() if isinstance(v, str))[:4]
+    a.step("network_rules", "allow", default_action="Allow")
+    a.ports = pset("tcp", 443, 443) if props.get("supportsHttpsTrafficOnly", True) else union(pset("tcp", 80, 80), pset("tcp", 443, 443))
+    if props.get("allowBlobPublicAccess") is True:
+        a.step("anonymous_access", "allow", allow_blob_public_access=True)
+        a.notes.append("anonymous blob access allowed at account level; container access levels decide actual anonymous reads")
+    else:
+        a.authenticated = True
+        a.step("anonymous_access", "authenticated_only", allow_blob_public_access=props.get("allowBlobPublicAccess"),
+               shared_key_access=props.get("allowSharedKeyAccess"))
+    return a
+
+
+def _azure_sql(snapshot, inventory, resource, rules):
+    props = _props(resource)
+    if str(props.get("publicNetworkAccess", "")).lower() == "disabled":
+        return None
+    a = Assessment(resource, "database")
+    a.addresses = [props.get("fullyQualifiedDomainName")] if props.get("fullyQualifiedDomainName") else []
+    rid = str(resource["data"].get("id", "")).lower()
+    state = inventory.state("sql_firewall_rule", resource["data"].get("id"))
+    if state.startswith("missing") and rid not in rules:
+        a.gap("firewall", f"SQL firewall rules {state}", "Microsoft.Sql/servers/firewallRules")
+        return a
+    open_rules, azure = [], False
+    for rule in rules.get(rid, []):
+        rp = _props(rule)
+        start, end = rp.get("startIpAddress"), rp.get("endIpAddress")
+        if start == "0.0.0.0" and end == "0.0.0.0":
+            azure = True
+        elif start == "0.0.0.0" and end == "255.255.255.255":
+            open_rules.append(rule["data"].get("name"))
+    if azure:
+        a.notes.append("'Allow Azure services' rule (0.0.0.0-0.0.0.0) admits any Azure tenant's resources")
+    a.step("firewall", "allow" if open_rules else "block", open_rules=open_rules)
+    a.ports = pset("tcp", 1433, 1433) if open_rules else {}
+    return a
+
+
+# ---------------------------------------------------------------------- K8s
+
+INTERNAL = {"service.beta.kubernetes.io/aws-load-balancer-internal": {"true", "0.0.0.0/0"},
+            "service.beta.kubernetes.io/aws-load-balancer-scheme": {"internal"},
+            "service.beta.kubernetes.io/azure-load-balancer-internal": {"true"},
+            "networking.gke.io/load-balancer-type": {"internal"},
+            "cloud.google.com/load-balancer-type": {"internal"},
+            "service.beta.kubernetes.io/oci-load-balancer-internal": {"true"},
+            "alb.ingress.kubernetes.io/scheme": {"internal"},
+            "service.beta.kubernetes.io/openstack-internal-load-balancer": {"true"}}
+SOURCE_ANNOTATIONS = ("service.beta.kubernetes.io/load-balancer-source-ranges", "alb.ingress.kubernetes.io/inbound-cidrs",
+                      "nginx.ingress.kubernetes.io/whitelist-source-range", "nginx.ingress.kubernetes.io/allowlist-source-range",
+                      "service.beta.kubernetes.io/azure-allowed-ip-ranges")
+
+
+def k8s_internal(meta):
+    annotations = meta.get("annotations") if isinstance(meta.get("annotations"), dict) else {}
+    return [k for k, values in INTERNAL.items() if str(annotations.get(k, "")).strip().lower() in values]
+
+
+def k8s_source_ranges(spec, meta):
+    annotations = meta.get("annotations") if isinstance(meta.get("annotations"), dict) else {}
+    ranges = [str(x) for x in as_list(spec.get("loadBalancerSourceRanges"))]
+    for key in SOURCE_ANNOTATIONS:
+        if annotations.get(key):
+            ranges += [x.strip() for x in str(annotations[key]).split(",") if x.strip()]
+    return ranges
+
+
+def _k8s_ports(spec, field="port"):
+    ports = {}
+    for port in as_list(spec.get("ports")):
+        if isinstance(port, dict) and isinstance(port.get(field), int):
+            ports = union(ports, pset(port.get("protocol", "TCP"), port[field], port[field]) or {})
+    return ports
+
+
+def _k8s_service(snapshot, inventory, resource):
+    data = resource["data"]
+    spec, meta = data.get("spec") or {}, data.get("metadata") or {}
+    kind = spec.get("type", "ClusterIP")
+    external = [ip for ip in as_list(spec.get("externalIPs")) if _public_ip(ip)]
+    if kind not in ("LoadBalancer", "NodePort") and not external:
+        return None
+    a = Assessment(resource, "service")
+    a.step("service_type", "allow", type=kind, external_ips=external)
+    if kind == "LoadBalancer":
+        internal = k8s_internal(meta)
+        ingress = [x.get("ip") or x.get("hostname") for x in as_list(((data.get("status") or {}).get("loadBalancer") or {}).get("ingress")) if isinstance(x, dict)]
+        a.addresses = [x for x in ingress if x]
+        if internal:
+            a.step("scheme", "block", internal_annotations=internal)
+            a.ports = {}
+            return a
+        if a.addresses and all(not _public_ip(x) for x in a.addresses if re.match(r"^[0-9a-fA-F:.]+$", str(x))) and \
+                all(re.match(r"^[0-9a-fA-F:.]+$", str(x)) for x in a.addresses):
+            a.step("scheme", "block", reason="load balancer address is private", addresses=a.addresses)
+            a.ports = {}
+            return a
+        ranges = k8s_source_ranges(spec, meta)
+        if ranges and not any(_internet(r) for r in ranges):
+            a.step("source_ranges", "block", load_balancer_source_ranges=ranges)
+            a.ports = {}
+            return a
+        a.step("source_ranges", "allow", load_balancer_source_ranges=ranges or ["0.0.0.0/0 (default)"])
+        a.ports = _k8s_ports(spec)
+        if not a.addresses:
+            a.notes.append("no load balancer address observed in status; provisioning not confirmed")
+        return a
+    if kind == "NodePort":
+        nodes = inventory.items("node")
+        public_nodes = [native_id(n) for n in nodes if any(isinstance(x, dict) and x.get("type") == "ExternalIP" and _public_ip(x.get("address"))
+                        for x in as_list((n["data"].get("status") or {}).get("addresses")))]
+        a.ports = _k8s_ports(spec, "nodePort")
+        if inventory.state("node").startswith("missing"):
+            a.gap("inventory", "nodes not collected", "k8s nodes list")
+        elif not public_nodes:
+            a.step("node_address", "block", reason="no node has a public ExternalIP")
+            a.ports = {} if not external else _k8s_ports(spec)
+        else:
+            a.step("node_address", "allow", public_nodes=public_nodes)
+            a.gap("security_group", "node cloud firewall/security groups are outside the cluster inventory", STATIC_GAPS["k8s"][0]["fact"])
+    if external:
+        a.addresses += external
+        a.ports = union(a.ports or {}, _k8s_ports(spec))
+        a.blocked_by = None
+    return a
+
+
+def _k8s_ingress(snapshot, inventory, resource):
+    data = resource["data"]
+    spec, meta = data.get("spec") or {}, data.get("metadata") or {}
+    a = Assessment(resource, "ingress")
+    addresses = [x.get("ip") or x.get("hostname") for x in as_list(((data.get("status") or {}).get("loadBalancer") or {}).get("ingress")) if isinstance(x, dict)]
+    a.addresses = [x for x in addresses if x]
+    internal = k8s_internal(meta)
+    klass = spec.get("ingressClassName") or (meta.get("annotations") or {}).get("kubernetes.io/ingress.class")
+    if internal or (klass and "internal" in str(klass).lower()):
+        a.step("scheme", "block", internal_annotations=internal, ingress_class=klass)
+        a.ports = {}
+        return a
+    ranges = k8s_source_ranges(spec, meta)
+    ports = pset("tcp", 80, 80)
+    if spec.get("tls"):
+        ports = union(ports, pset("tcp", 443, 443))
+    if ranges and not any(_internet(r) for r in ranges):
+        a.step("source_ranges", "block", source_ranges=ranges)
+        a.ports = {}
+        return a
+    if not a.addresses:
+        a.gap("inventory", "no load balancer address in ingress status; controller exposure not observed", None)
+        a.ports = ports
+        return a
+    if all(re.match(r"^[0-9a-fA-F:.]+$", str(x)) and not _public_ip(x) for x in a.addresses):
+        a.step("scheme", "block", reason="ingress address is private", addresses=a.addresses)
+        a.ports = {}
+        return a
+    a.step("source_ranges", "allow", source_ranges=ranges or ["0.0.0.0/0 (default)"], ingress_class=klass,
+           hosts=[r.get("host") for r in as_list(spec.get("rules")) if isinstance(r, dict) and r.get("host")])
+    a.ports = ports
+    return a
+
+
+# --------------------------------------------------------------- dispatcher
+
+AWS_TYPES = ["vpc", "subnet", "route_table", "network_acl", "security_group", "network_interface", "instance", "internet_gateway",
+             "load_balancer", "classic_load_balancer", "rds_instance", "rds_snapshot", "rds_cluster_snapshot", "redshift_cluster",
+             "opensearch_domain", "eks_cluster", "lambda_function", "rest_api", "http_api", "bucket", "s3_account_public_access_block",
+             "organization_account"]
+GCP_TYPES = ["network", "firewall", "firewall_policy", "instance", "forwarding_rule", "target_proxy", "url_map", "backend_service",
+             "cloudrun_service", "function", "sql_instance", "gke_cluster", "bucket", "project", "workload_identity_provider"]
+AZURE_TYPES = ["vnet", "subnet", "nsg", "nic", "vm", "public_ip", "load_balancer", "application_gateway", "app_service",
+               "app_service_config", "aks_cluster", "storage_account", "sql_server", "sql_firewall_rule", "managed_identity_federated_credential"]
+K8S_TYPES = ["service", "ingress", "node"]
+EXPOSURE_TYPES = {"aws": AWS_TYPES, "gcp": GCP_TYPES, "azure": AZURE_TYPES, "k8s": K8S_TYPES}
+EVALUATED = {"aws": {"instance", "network_interface", "load_balancer", "classic_load_balancer", "rds_instance", "redshift_cluster",
+                     "opensearch_domain", "eks_cluster", "lambda_function", "rest_api", "http_api", "rds_snapshot", "rds_cluster_snapshot", "bucket"},
+             "gcp": {"instance", "forwarding_rule", "cloudrun_service", "function", "sql_instance", "gke_cluster", "bucket"},
+             "azure": {"nic", "load_balancer", "application_gateway", "app_service", "aks_cluster", "storage_account", "sql_server"},
+             "k8s": {"service", "ingress"}}
+
+
+def assess(snapshot, resources):
+    """Return [Assessment] for every asset with a public address/endpoint (cached per snapshot)."""
+    context = _CONTEXT.get()
+    key = ("snapshot", "internet_exposure")
+    if context is not None and context["snapshot"] is snapshot and key in context["derivations"]:
+        return context["derivations"][key]
+    inventory = Inventory(snapshot, resources)
+    provider = snapshot["provider"]
+    output = []
+    extra = {}
+    if provider == "azure":
+        extra["public_ips"] = _azure_public_ips(inventory)
+        extra["configs"] = {str(c["data"].get("parent_id", "")).lower() or str(c["data"].get("id", "")).lower().split("/config/")[0]: c
+                            for c in inventory.items("app_service_config")}
+        rules = {}
+        for rule in inventory.items("sql_firewall_rule"):
+            parent = str(rule["data"].get("id", "")).lower().split("/firewallrules/")[0]
+            rules.setdefault(parent, []).append(rule)
+        extra["rules"] = rules
+    handlers = {
+        "aws": {"instance": _aws_instance, "network_interface": _aws_eni, "load_balancer": _aws_elbv2, "classic_load_balancer": _aws_classic,
+                "rds_instance": _aws_rds, "redshift_cluster": _aws_redshift, "opensearch_domain": _aws_opensearch, "eks_cluster": _aws_eks,
+                "lambda_function": _aws_lambda_url, "rest_api": _aws_rest_api, "http_api": _aws_http_api, "bucket": _aws_bucket,
+                "rds_snapshot": lambda s, i, r: _aws_snapshot_share(s, i, r, ("DBSnapshotAttributesResult", "DBSnapshotAttributes"), "snapshot"),
+                "rds_cluster_snapshot": lambda s, i, r: _aws_snapshot_share(s, i, r, ("DBClusterSnapshotAttributesResult", "DBClusterSnapshotAttributes"), "cluster snapshot")},
+        "gcp": {"instance": _gcp_instance, "forwarding_rule": _gcp_forwarding_rule, "cloudrun_service": _gcp_serverless, "function": _gcp_serverless,
+                "sql_instance": _gcp_sql, "gke_cluster": _gcp_gke, "bucket": _gcp_bucket},
+        "azure": {"nic": lambda s, i, r: _azure_nic(s, i, r, extra["public_ips"]), "load_balancer": _azure_lb, "application_gateway": _azure_appgw,
+                  "app_service": lambda s, i, r: _azure_app_service(s, i, r, extra["configs"]), "aks_cluster": _azure_aks,
+                  "storage_account": _azure_storage, "sql_server": lambda s, i, r: _azure_sql(s, i, r, extra["rules"])},
+        "k8s": {"service": _k8s_service, "ingress": _k8s_ingress},
+    }.get(provider, {})
+    for resource in resources:
+        handler = handlers.get(resource["type"])
+        if handler is None or not isinstance(resource.get("data"), dict):
+            continue
+        try:
+            current = handler(snapshot, inventory, resource)
+        except (TypeError, AttributeError, KeyError, ValueError, IndexError) as exc:
+            current = Assessment(resource, "malformed")
+            current.gap("inventory", f"malformed native fact: {type(exc).__name__}")
+        if current is not None:
+            output.append(current)
+    if context is not None and context["snapshot"] is snapshot:
+        context["derivations"][key] = output
+    return output
+
+
+def _title(assessment, status):
+    if status == "FAIL":
+        if assessment.kind == "external_share":
+            return "Data shared with external account"
+        if assessment.data_exposure:
+            return "Data publicly accessible from the internet"
+        ports = describe(assessment.ports or {})
+        addresses = sorted(x for x in assessment.addresses if x)
+        target = f" at {', '.join(addresses[:2])}" if addresses else ""
+        if ports:
+            return f"Internet access to {', '.join(ports[:4])}{target}"
+        return f"Asset reachable from the internet{target}"
+    if status == "PASS":
+        return "Public endpoint blocked from the internet"
+    return "Internet exposure could not be fully resolved"
+
+
+def internet_findings(snapshot, resources):
+    output = []
+    for assessment in assess(snapshot, resources):
+        status = assessment.verdict()
+        exposed = describe(assessment.ports or {})
+        evidence = {"exposure_kind": assessment.kind, "exposed_ports": exposed if status != "PASS" else [],
+                    "public_addresses": sorted(x for x in assessment.addresses if x), "path": assessment.path,
+                    "blocked_by": assessment.blocked_by if status == "PASS" else None,
+                    "unresolved": assessment.unresolved, "notes": assessment.notes,
+                    "authenticated_endpoint": assessment.authenticated, "data_exposure": assessment.data_exposure,
+                    "external_scope_ids": assessment.external_ids,
+                    "collector_facts_needed": sorted({g["collector_fact"] for g in assessment.unresolved if g.get("collector_fact")}),
+                    "source": source(snapshot, assessment.resource, "data"),
+                    "risk_state": "observed" if status == "FAIL" else "reviewed" if status == "PASS" else "unknown",
+                    "semantics": "Declared-configuration path model from 0.0.0.0/0; no traffic was sent."}
+        severity = "high" if assessment.kind == "external_share" and status == "FAIL" else assessment.adjusted_severity()
+        current = finding(snapshot, assessment.resource, "exposure", CHECK, _title(assessment, status), severity, evidence, status=status)
+        current["id"] = stable_id("exposure", CHECK, node_id(assessment.resource), node_id(assessment.origin), assessment.kind)
+        output.append(current)
+    output.extend(coverage_findings(snapshot, resources))
+    return output
+
+
+def coverage_findings(snapshot, resources):
+    """One UNKNOWN per scope listing exposure inventory that is missing or never collected."""
+    provider = snapshot["provider"]
+    collected = {(c["scope"], c["type"]): c.get("status") for c in snapshot.get("collections", [])}
+    output = []
+    for scope in snapshot.get("scopes", []):
+        gaps = []
+        for kind in sorted(EVALUATED.get(provider, ())):
+            status = collected.get((scope, kind))
+            if status is None and provider == "aws":
+                # Account-global inventories (bucket) live under <account>/global.
+                status = collected.get((scope.split("/", 1)[0] + "/global", kind))
+            if status is not None and status not in AVAILABLE:
+                gaps.append({"type": kind, "status": status})
+        if not gaps:
+            continue
+        placeholder = {"id": "inventory:internet_exposure", "type": "inventory", "scope": scope, "provider": provider, "service": "exposure", "data": {}}
+        output.append(finding(snapshot, placeholder, "exposure", CHECK, "Internet exposure inventory incomplete", "info",
+            {"gaps": gaps, "collector_facts_needed": STATIC_GAPS.get(provider, []), "risk_state": "unknown"}, status="UNKNOWN"))
+    return output
+
+
+def annotate_network(graph, snapshot, resources):
+    """Add an Internet node and ``internet_exposure`` edges to every exposed or unresolved asset."""
+    assessments = [a for a in assess(snapshot, resources) if a.verdict() in ("FAIL", "UNKNOWN") and a.kind != "external_share"]
+    if not assessments:
+        return graph
+    nodes = {n["id"]: n for n in graph.get("nodes", [])}
+    internet_id = stable_id(snapshot["provider"], "internet")
+    if internet_id not in nodes:
+        nodes[internet_id] = {"id": internet_id, "resource_id": "internet", "native_id": "0.0.0.0/0", "label": "Internet (0.0.0.0/0, ::/0)",
+            "type": "internet", "native_kind": "internet", "provider_specific": {"native_kind": "internet"}, "provider": snapshot["provider"],
+            "scope": "internet", "evidence": {"synthetic": True, "inventory_status": "reference_only"}, "risk_annotations": []}
+    edges = {e["id"]: e for e in graph.get("edges", [])}
+    for assessment in assessments:
+        status = assessment.verdict()
+        target = node_id(assessment.resource)
+        if target not in nodes:
+            nodes[target] = node(assessment.resource)
+        current = nodes[target]
+        exposed = describe(assessment.ports or {})
+        current["exposure"] = {"status": status, "exposed_ports": exposed, "kind": assessment.kind,
+                               "public_addresses": sorted(x for x in assessment.addresses if x)}
+        annotations = [x for x in current.get("risk_annotations", []) if not (isinstance(x, dict) and x.get("kind") == "internet_exposed")]
+        annotations.append({"kind": "internet_exposed", "status": status, "severity": assessment.severity(), "ports": exposed})
+        current["risk_annotations"] = annotations
+        edge = relationship(internet_id, target, "internet_exposure",
+            {"source": {"path": f"internet_exposure:{assessment.kind}"}, "status": status, "exposed_ports": exposed,
+             "path": [{"layer": s["layer"], "decision": s["decision"]} for s in assessment.path],
+             "unresolved": [g["layer"] for g in assessment.unresolved]},
+            layer="exposure", confidence="high" if status == "FAIL" else "low")
+        edges[edge["id"]] = edge
+    graph = dict(graph)
+    graph["nodes"] = sorted(nodes.values(), key=lambda row: row["id"])
+    graph["edges"] = sorted(edges.values(), key=lambda row: row["id"])
+    return graph
+
+
+def federated_findings(snapshot, resources):
+    from .trust import aws_federated_trust, azure_federated_credential, gcp_wif_provider
+    handlers = {("aws", "iam_role"): aws_federated_trust, ("gcp", "workload_identity_provider"): gcp_wif_provider,
+                ("azure", "managed_identity_federated_credential"): azure_federated_credential,
+                ("azure", "directory_application_federated_credential"): azure_federated_credential}
+    output = []
+    for resource in resources:
+        handler = handlers.get((snapshot["provider"], resource["type"]))
+        if handler is None or not isinstance(resource.get("data"), dict):
+            continue
+        try:
+            verdict = handler(snapshot, resource)
+        except (TypeError, AttributeError, KeyError, ValueError, IndexError):
+            verdict = ("UNKNOWN", "info", {"reason": "malformed_native_fact"})
+        if verdict is None:
+            continue
+        status, severity, evidence = verdict
+        evidence["source"] = source(snapshot, resource, "data")
+        output.append(finding(snapshot, resource, "exposure", "analysis.federated_trust",
+            "Federated (OIDC) trust is not pinned to a subject" if status == "FAIL" else "Federated (OIDC) trust review",
+            severity if status != "PASS" else "info", evidence, status=status))
+    return output
+
+
+__all__ = ["EXPOSURE_TYPES", "annotate_network", "assess", "effective_bucket_bpa", "federated_findings", "internet_findings",
+           "k8s_internal", "k8s_source_ranges", "pset", "union", "intersect", "subtract", "describe"]

@@ -1,0 +1,512 @@
+{
+  "aws-compliance.control.cloudfront_distribution_latest_tls_version": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [],
+    "reason": "The query requires CertificateSource=cloudfront and MinimumProtocolVersion=TLSv1.2_2021 simultaneously. AWS documents that a CloudFront default certificate always sets the policy to TLSv1 regardless of requested setting, so the source has no passing valid default-certificate configuration and incorrectly excludes custom ACM certificates. No implementation gap is classified as rejection.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ViewerCertificate.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L178",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b72772ad152aaa002e3a4f97f29a2e8de47d32624365bc5007ae5165d6250ce1",
+      "query_id": "cloudfront_distribution_latest_tls_version"
+    }
+  },
+  "aws-compliance.control.codebuild_project_artifact_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.codebuild.artifact_encryption"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/codebuild.pp#L95",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "39a18f31d8cce248a5b468d490dd1db5da7b93979159f5f8c4a4bc10e6b836a5",
+      "query_id": "codebuild_project_artifact_encryption_enabled"
+    }
+  },
+  "aws-compliance.control.codebuild_project_environment_privileged_mode_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.codebuild.nonprivileged"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/codebuild.pp#L66",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b0531bf9dc19b1117cd5eec1482c65f84feb29071d1e99a68edfa43a59e3ba31",
+      "query_id": "codebuild_project_environment_privileged_mode_disabled"
+    }
+  },
+  "aws-compliance.control.codebuild_project_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.codebuild.logs_enabled"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/codebuild.pp#L78",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d6a1ec775d596f2e09723eba8a84e8dd5254733a3cb9f50ad618fa05110cd291",
+      "query_id": "codebuild_project_logging_enabled"
+    }
+  },
+  "aws-compliance.control.codebuild_project_s3_logs_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.codebuild.s3_log_encryption"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/codebuild.pp#L109",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "f0809db9eac096abc01f89955d7fbb0170543501efa42a92a3d3c7c884a3ff40",
+      "query_id": "codebuild_project_s3_logs_encryption_enabled"
+    }
+  },
+  "aws-compliance.control.cognito_identity_pools_restrict_unauthenticated_identities": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.no_guest_identities"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognitoidentity/latest/APIReference/API_DescribeIdentityPool.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cognito.pp#L7",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "18488334e076a745533b9b5e837b08394f0b0ee53afd65d42da37239a5531de5",
+      "query_id": "cognito_identity_pools_restrict_unauthenticated_identities"
+    }
+  },
+  "aws-compliance.control.cognito_user_pool_password_policy_with_strong_configuration": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.password_policy"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognitoidentity/latest/APIReference/API_DescribeIdentityPool.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cognito.pp#L15",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "06cd598c89ed6e95c1ba077e010b761070f391db93b222481058bd43d491c96b",
+      "query_id": "cognito_user_pool_password_policy_with_strong_configuration"
+    }
+  },
+  "aws-compliance.control.ecs_task_definition_container_non_privileged": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecs.no_privileged_containers"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecs.pp#L101",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7a32be20975e9f7fb1e0564570dc513d10037796474a7939eb6ee4afca4630c6",
+      "query_id": "ecs_task_definition_container_non_privileged"
+    }
+  },
+  "aws-compliance.control.ecs_task_definition_container_readonly_root_filesystem": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.ecs.all_readonly_roots"
+    ],
+    "reason": "The source declares all container root filesystems read-only but its CTE only requires EXISTS one read-only container. A task with one read-only container and a writable sibling passes; the universal native replacement is independent of this invalid predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecs.pp#L114",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "269fad2b37f9d929a3faf92551022450df76ff745c86f95467fbaf4b42ecd759",
+      "query_id": "ecs_task_definition_container_readonly_root_filesystem"
+    }
+  },
+  "aws-compliance.control.ecs_task_definition_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecs.some_logging_configuration"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecs.pp#L78",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2e336176123d60f70a8229a1cf1af36897839e88adac528270d6b0702f9e634f",
+      "query_id": "ecs_task_definition_logging_enabled"
+    }
+  },
+  "aws-compliance.control.ecs_task_definition_no_host_pid_mode": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecs.no_host_pid"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecs.pp#L139",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "69abc8a5eab2f4f2ab9e0e2408dfd9a9951ec1a4e14003e103d47c0a4513cdac",
+      "query_id": "ecs_task_definition_no_host_pid_mode"
+    }
+  },
+  "aws-compliance.control.ecs_task_definition_no_root_user": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.ecs.declared_nonroot_users"
+    ],
+    "reason": "The pinned test only matches exact User=root and passes explicit UID0/0:gid configurations that the documented User field supports. These are known root declarations, not missing image facts; the native replacement checks both root names and UID zero, while inherited image identity stays UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecs.pp#L163",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "084929bf13290d9eb6f60b93e58e922ce1c7c69981e12046f7ac7e414327a69c",
+      "query_id": "ecs_task_definition_no_root_user"
+    }
+  },
+  "aws-compliance.control.ecs_task_definition_user_for_host_mode_check": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.ecs.host_network_nonprivileged"
+    ],
+    "reason": "The source positive host-network condition explicitly requires Privileged not false, allowing a privileged container as its passing path and failing nonprivileged nonroot configurations. This is the inverse of the documented defensive privileged-container condition.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ecs.pp#L57",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "038fa764582906605ae9a3ead9bc396e9f45a333325a775ac9302e8955a92350",
+      "query_id": "ecs_task_definition_user_for_host_mode_check"
+    }
+  },
+  "aws-compliance.control.elasticache_cluster_auto_minor_version_upgrade_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.automatic_minor_upgrade"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elasticache.pp#L7",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c7345f4d9cf2b2e81bc988e8554545169039cc5980e48b955eb11738001971d9",
+      "query_id": "elasticache_cluster_auto_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.elasticache_replication_group_auto_failover_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.automatic_failover"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elasticache.pp#L18",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "dbb39ce851a22ce90238ca425be544f85f03a38dde59ce16476e79168f531bab",
+      "query_id": "elasticache_replication_group_auto_failover_enabled"
+    }
+  },
+  "aws-compliance.control.elasticache_replication_group_encryption_at_rest_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.at_rest"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elasticache.pp#L26",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "f9ae28fe9382036f330cf2b6066c50b7d4375c1dd2b918dec03f93f2e59a50cf",
+      "query_id": "elasticache_replication_group_encryption_at_rest_enabled"
+    }
+  },
+  "aws-compliance.control.elasticache_replication_group_encryption_in_transit_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.in_transit"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/elasticache.pp#L34",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "65c311a3bd89d3971b5f6279dd3cd5e8ad66098756e332b8201649daf6288e1e",
+      "query_id": "elasticache_replication_group_encryption_in_transit_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_codebuild_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.codebuild.s3_log_encryption"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/codebuild.pp#L50",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "f0809db9eac096abc01f89955d7fbb0170543501efa42a92a3d3c7c884a3ff40",
+      "query_id": "codebuild_project_s3_logs_encryption_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_codebuild_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.codebuild.logs_enabled"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/codebuild.pp#L64",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d6a1ec775d596f2e09723eba8a84e8dd5254733a3cb9f50ad618fa05110cd291",
+      "query_id": "codebuild_project_logging_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_codebuild_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.codebuild.nonprivileged"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_Project.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/codebuild.pp#L77",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b0531bf9dc19b1117cd5eec1482c65f84feb29071d1e99a68edfa43a59e3ba31",
+      "query_id": "codebuild_project_environment_privileged_mode_disabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_cognito_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.no_guest_identities"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognitoidentity/latest/APIReference/API_DescribeIdentityPool.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cognito.pp#L20",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "18488334e076a745533b9b5e837b08394f0b0ee53afd65d42da37239a5531de5",
+      "query_id": "cognito_identity_pools_restrict_unauthenticated_identities"
+    }
+  },
+  "aws-compliance.control.foundational_security_cognito_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.password_policy"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognitoidentity/latest/APIReference/API_DescribeIdentityPool.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cognito.pp#L33",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "06cd598c89ed6e95c1ba077e010b761070f391db93b222481058bd43d491c96b",
+      "query_id": "cognito_user_pool_password_policy_with_strong_configuration"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecs_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.ecs.host_network_nonprivileged"
+    ],
+    "reason": "The source positive host-network condition explicitly requires Privileged not false, allowing a privileged container as its passing path and failing nonprivileged nonroot configurations. This is the inverse of the documented defensive privileged-container condition.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecs.pp#L27",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "038fa764582906605ae9a3ead9bc396e9f45a333325a775ac9302e8955a92350",
+      "query_id": "ecs_task_definition_user_for_host_mode_check"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecs_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecs.no_host_pid"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecs.pp#L53",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "69abc8a5eab2f4f2ab9e0e2408dfd9a9951ec1a4e14003e103d47c0a4513cdac",
+      "query_id": "ecs_task_definition_no_host_pid_mode"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecs_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecs.no_privileged_containers"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecs.pp#L66",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7a32be20975e9f7fb1e0564570dc513d10037796474a7939eb6ee4afca4630c6",
+      "query_id": "ecs_task_definition_container_non_privileged"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecs_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "replacement_checks": [
+      "aws.b.ecs.all_readonly_roots"
+    ],
+    "reason": "The source declares all container root filesystems read-only but its CTE only requires EXISTS one read-only container. A task with one read-only container and a writable sibling passes; the universal native replacement is independent of this invalid predicate.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecs.pp#L79",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "269fad2b37f9d929a3faf92551022450df76ff745c86f95467fbaf4b42ecd759",
+      "query_id": "ecs_task_definition_container_readonly_root_filesystem"
+    }
+  },
+  "aws-compliance.control.foundational_security_ecs_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ecs.some_logging_configuration"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ecs.pp#L105",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2e336176123d60f70a8229a1cf1af36897839e88adac528270d6b0702f9e634f",
+      "query_id": "ecs_task_definition_logging_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_elasticache_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.automatic_minor_upgrade"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elasticache.pp#L38",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c7345f4d9cf2b2e81bc988e8554545169039cc5980e48b955eb11738001971d9",
+      "query_id": "elasticache_cluster_auto_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_elasticache_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.automatic_failover"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elasticache.pp#L51",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "dbb39ce851a22ce90238ca425be544f85f03a38dde59ce16476e79168f531bab",
+      "query_id": "elasticache_replication_group_auto_failover_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_elasticache_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.at_rest"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elasticache.pp#L64",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "f9ae28fe9382036f330cf2b6066c50b7d4375c1dd2b918dec03f93f2e59a50cf",
+      "query_id": "elasticache_replication_group_encryption_at_rest_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_elasticache_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.elasticache.in_transit"
+    ],
+    "reason": "Reviewed exact source condition, configuration defaults and relation membership against native SDK metadata; compound password, logging alternatives and artifact-encryption branches retained. Corrected universal/UID/privilege semantics are separate invalid-source replacements, not silently merged. Missing/denied/malformed facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_ReplicationGroup.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/elasticache.pp#L77",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "65c311a3bd89d3971b5f6279dd3cd5e8ad66098756e332b8201649daf6288e1e",
+      "query_id": "elasticache_replication_group_encryption_in_transit_enabled"
+    }
+  }
+}

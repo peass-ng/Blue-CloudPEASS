@@ -1,0 +1,91 @@
+{
+  "aws-compliance.control.cis_compute_service_v100_2_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.ec2.user_data_source_indicators"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstanceAttribute.html"
+    ],
+    "reason": "Full decoded-userdata source heuristic preserved: case-sensitive pass/secret/token/key substrings OR lower+upper+digit+special lookahead expression. Four-lookahead condition proven linear existential character-class equivalent on complete UTF8configuration; native pure predicate reads only keyword/password-shape booleans. Read-only config response projects before cache/future/copy to booleans, discards script/base64/values; no execution/credential validation/probes. Missing APIvalue after successful matchingInstanceId mapsSourceNULLPASS, malformedencoding/denialunknown.",
+    "review_notes": "Complete pinned query/check/service and current SDK/provider semantics individuallyreviewed; real pass/fail/manual/unknown/denied/malformed/purity and sourceboundary/empty/join/defaultshape fixtures. Cloudcalls onlydeclaredcollectors; metadata/UserData booleans only, no secretvalues serialized/cached, no runtime scanner imports/probes/writes. Lead imports/read-action/whitelist/framework conservation stillpending.",
+    "reviewed_query_id": "ec2_instance_user_data_no_secrets",
+    "reviewed_source": {
+      "evaluator_sha256": "3295b13ecee8ecd067a5acc07d728ac95d4ef5b168b639643f7192ad3cede1a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L342"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.autoscaling.tag_propagation"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DescribeAutoScalingGroups.html"
+    ],
+    "reason": "Full count of tag PropagateAtLaunch=false: anyfalse fails, successful emptyTags passes. No tagkey/value, instance-count, running-state condition added; credential-like tag values are redacted and irrelevant to this boolean predicate.",
+    "review_notes": "Complete pinned query/check/service and current SDK/provider semantics individuallyreviewed; real pass/fail/manual/unknown/denied/malformed/purity and sourceboundary/empty/join/defaultshape fixtures. Cloudcalls onlydeclaredcollectors; metadata/UserData booleans only, no secretvalues serialized/cached, no runtime scanner imports/probes/writes. Lead imports/read-action/whitelist/framework conservation stillpending.",
+    "reviewed_query_id": "autoscaling_group_propagate_tags_to_ec2_instance_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "83fef4fbdcfad3e307951afc5ec2e72b4e3550bd9828390c596886eff2357433",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L356"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.ec2.ssm_managed_source"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeInstanceInformation.html"
+    ],
+    "reason": "Full stopped-first INFO/MANUAL branch and other-state LEFTJOIN InstanceId membership. No onlinePingStatus or running-only requirement; stopped is MANUAL rather than previous canonical NAPP. Complete-empty registration inventory fails for otherstates, unknown/denied dependency staysunknown.",
+    "review_notes": "Complete pinned query/check/service and current SDK/provider semantics individuallyreviewed; real pass/fail/manual/unknown/denied/malformed/purity and sourceboundary/empty/join/defaultshape fixtures. Cloudcalls onlydeclaredcollectors; metadata/UserData booleans only, no secretvalues serialized/cached, no runtime scanner imports/probes/writes. Lead imports/read-action/whitelist/framework conservation stillpending.",
+    "reviewed_query_id": "ec2_instance_ssm_managed",
+    "reviewed_source": {
+      "evaluator_sha256": "29ca6d368e16604ff193694e19b9a620dfce0c7987de02c6b7ccc17671de9d08",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L286"
+    }
+  },
+  "aws-compliance.control.cloudtrail_trail_bucket_mfa_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.home_bucket_mfa_join"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketVersioning.html"
+    ],
+    "reason": "Full home-region filter and LEFTJOIN destination/MFA CASE. NULL destination or known complete own-account inventory lacking joined destination is sourceFAIL; evidence explicitly says remote MFA unknown, failure is source in-scope verification rather than inventedremoteMFAdisabled. Joined native Enabled passes, Disabled/provennotreported fails, unavailablelist/detailunknown. Separate from Prowler logging-only+MANUAL outside-scope variant.",
+    "review_notes": "Complete pinned query/check/service and current SDK/provider semantics individuallyreviewed; real pass/fail/manual/unknown/denied/malformed/purity and sourceboundary/empty/join/defaultshape fixtures. Cloudcalls onlydeclaredcollectors; metadata/UserData booleans only, no secretvalues serialized/cached, no runtime scanner imports/probes/writes. Lead imports/read-action/whitelist/framework conservation stillpending.",
+    "reviewed_query_id": "cloudtrail_trail_bucket_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "7260837842ff85b710d98120d676c448f59a64498360be34854e11e4a76af687",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L265"
+    }
+  },
+  "prowler.aws.config_delegated_admin_and_org_aggregator_all_regions": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.config.account_org_aggregators_delegated"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/config/latest/APIReference/API_DescribeConfigurationAggregators.html"
+    ],
+    "reason": "Full source zero-aggregator syntheticFAIL and every aggregator predicate: org-source+AllAwsRegions required, knownempty delegatedadminsFAIL, unavailable adminlookup MANUAL onlyafter good aggregate config, badaggregate remainsFAIL. Global all-enabled-region inventory proves accountabsence; explicit region subset is not_collected, never fabricatedcompleteempty. All aggregate outcomes retained via any-sourceFAIL aggregation; no configuration creation/enablement.",
+    "review_notes": "Complete pinned query/check/service and current SDK/provider semantics individuallyreviewed; real pass/fail/manual/unknown/denied/malformed/purity and sourceboundary/empty/join/defaultshape fixtures. Cloudcalls onlydeclaredcollectors; metadata/UserData booleans only, no secretvalues serialized/cached, no runtime scanner imports/probes/writes. Lead imports/read-action/whitelist/framework conservation stillpending.",
+    "reviewed_source": {
+      "evaluator_sha256": "3d13d43903614c541636f3f8aaccd74bb4f03015d6daa3aaf92d38fc3c52b1fb",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/config/config_delegated_admin_and_org_aggregator_all_regions/config_delegated_admin_and_org_aggregator_all_regions.metadata.json"
+    }
+  }
+}

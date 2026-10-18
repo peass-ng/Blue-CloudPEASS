@@ -1,0 +1,1136 @@
+{
+  "aws-compliance.control.cis_v120_1_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L166"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v120_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_expiry_at_most_90"
+    ],
+    "reason": "MaxPasswordAge <= 90, preserving SQL upper-bound semantics independently from Prowler positive-age predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "d08624582192c97ecf7decd96cadbcfcc5968ca9755b8e5303b8593cbbb812b4",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L180"
+    },
+    "reviewed_query_id": "iam_password_policy_expire_90"
+  },
+  "aws-compliance.control.cis_v120_1_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L194"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v120_1_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.root_summary_mfa"
+    ],
+    "reason": "IAM account summary AccountMFAEnabled true; remains separate from root credential-report applicability predicates. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5243dc7521f99f264e1b00add6fec142ed966d5285944c7e636c5285dfc74eda",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L208"
+    },
+    "reviewed_query_id": "iam_root_user_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v120_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L54"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v120_1_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_uppercase"
+    ],
+    "reason": "RequireUppercaseCharacters true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "2369891071ebe0c1ca2af0448f3974d3394dd9510a43da4ec1be6c24a8832033",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L96"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_uppercase_letter"
+  },
+  "aws-compliance.control.cis_v120_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_lowercase"
+    ],
+    "reason": "RequireLowercaseCharacters true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "56d34124c37e74343ae0267c2c680abd32a38278256fde99f21c08d1863c9228",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L110"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_lowercase_letter"
+  },
+  "aws-compliance.control.cis_v120_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_symbols"
+    ],
+    "reason": "RequireSymbols true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "40b6eb4aec52e1e52d2eb6f7de9bcc366709d220d131e2791c867c05ce66fdde",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L124"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_symbol"
+  },
+  "aws-compliance.control.cis_v120_1_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_numbers"
+    ],
+    "reason": "RequireNumbers true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "9587e9f4c9d442d781ceb0382f41fd8063b6821202514eef762da9dd8f8eeaf0",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L138"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_number"
+  },
+  "aws-compliance.control.cis_v120_1_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L152"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v130_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L166"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v130_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L82"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v130_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_mfa"
+    ],
+    "reason": "IAM account summary AccountMFAEnabled true; remains separate from root credential-report applicability predicates. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5243dc7521f99f264e1b00add6fec142ed966d5285944c7e636c5285dfc74eda",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L96"
+    },
+    "reviewed_query_id": "iam_root_user_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v130_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L138"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v130_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L152"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v140_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L165"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v140_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L81"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v140_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_mfa"
+    ],
+    "reason": "IAM account summary AccountMFAEnabled true; remains separate from root credential-report applicability predicates. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5243dc7521f99f264e1b00add6fec142ed966d5285944c7e636c5285dfc74eda",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L95"
+    },
+    "reviewed_query_id": "iam_root_user_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v140_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L137"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v140_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L151"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v150_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L165"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v150_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L81"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v150_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L137"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v150_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L151"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v200_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L166"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v200_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L82"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v200_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_mfa"
+    ],
+    "reason": "IAM account summary AccountMFAEnabled true; remains separate from root credential-report applicability predicates. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5243dc7521f99f264e1b00add6fec142ed966d5285944c7e636c5285dfc74eda",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L96"
+    },
+    "reviewed_query_id": "iam_root_user_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v200_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L138"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v200_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L152"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v300_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L166"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v300_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L82"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v300_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_mfa"
+    ],
+    "reason": "IAM account summary AccountMFAEnabled true; remains separate from root credential-report applicability predicates. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5243dc7521f99f264e1b00add6fec142ed966d5285944c7e636c5285dfc74eda",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L96"
+    },
+    "reviewed_query_id": "iam_root_user_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v300_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L138"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v300_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L152"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v400_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L166"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v400_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L82"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v400_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_mfa"
+    ],
+    "reason": "IAM account summary AccountMFAEnabled true; remains separate from root credential-report applicability predicates. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5243dc7521f99f264e1b00add6fec142ed966d5285944c7e636c5285dfc74eda",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L96"
+    },
+    "reviewed_query_id": "iam_root_user_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v400_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L138"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v400_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L152"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v500_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L67"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v500_1_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L123"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v500_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L137"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v500_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L151"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.cis_v600_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L67"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.cis_v600_2_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L123"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.cis_v600_2_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L137"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.cis_v600_2_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L151"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.foundational_security_iam_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/iam.pp#L66"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.foundational_security_iam_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/iam.pp#L79"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.foundational_security_iam_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_strong_min_length_8"
+    ],
+    "reason": "Complete compound requires length >=8 AND lower/upper/numbers/symbols; absent account policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "87359c39c48c42b731f4f0a7adaa09b0097a91a647d6dba2ef4f50de5d909a3d",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/iam.pp#L105"
+    },
+    "reviewed_query_id": "iam_account_password_policy_strong_min_length_8"
+  },
+  "aws-compliance.control.iam_account_password_policy_min_length_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_minimum_length_14"
+    ],
+    "reason": "MinimumPasswordLength >= 14; preserve aws_account LEFT JOIN so known absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "38c256ab2b9328630309964b33d8f052bd33f818958691330c64bff3fc29fbc8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L476"
+    },
+    "reviewed_query_id": "iam_account_password_policy_min_length_14"
+  },
+  "aws-compliance.control.iam_account_password_policy_one_lowercase_letter": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_lowercase"
+    ],
+    "reason": "RequireLowercaseCharacters true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "56d34124c37e74343ae0267c2c680abd32a38278256fde99f21c08d1863c9228",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L499"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_lowercase_letter"
+  },
+  "aws-compliance.control.iam_account_password_policy_one_number": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_numbers"
+    ],
+    "reason": "RequireNumbers true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "9587e9f4c9d442d781ceb0382f41fd8063b6821202514eef762da9dd8f8eeaf0",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L519"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_number"
+  },
+  "aws-compliance.control.iam_account_password_policy_one_symbol": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_symbols"
+    ],
+    "reason": "RequireSymbols true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "40b6eb4aec52e1e52d2eb6f7de9bcc366709d220d131e2791c867c05ce66fdde",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L539"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_symbol"
+  },
+  "aws-compliance.control.iam_account_password_policy_one_uppercase_letter": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_uppercase"
+    ],
+    "reason": "RequireUppercaseCharacters true, with complete-empty account policy failing the LEFT JOIN. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "2369891071ebe0c1ca2af0448f3974d3394dd9510a43da4ec1be6c24a8832033",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L509"
+    },
+    "reviewed_query_id": "iam_account_password_policy_one_uppercase_letter"
+  },
+  "aws-compliance.control.iam_account_password_policy_reuse_24": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_reuse_at_least_24"
+    ],
+    "reason": "PasswordReusePrevention >= 24, not the distinct Prowler ==24 predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "8874a2f057e6efcd9b243a61488a31226dfba27095b76e85b806839c5ace6686",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L489"
+    },
+    "reviewed_query_id": "iam_account_password_policy_reuse_24"
+  },
+  "aws-compliance.control.iam_account_password_policy_strong_min_length_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_strong_min_length_8"
+    ],
+    "reason": "Complete compound requires length >=8 AND lower/upper/numbers/symbols; absent account policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "87359c39c48c42b731f4f0a7adaa09b0097a91a647d6dba2ef4f50de5d909a3d",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L97"
+    },
+    "reviewed_query_id": "iam_account_password_policy_strong_min_length_8"
+  },
+  "aws-compliance.control.iam_account_password_policy_strong_min_reuse_24": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.password_policy_strong_min_length_14_reuse_24_age_90"
+    ],
+    "reason": "Complete compound requires length>=14, reuse>=24, all four composition booleans, age<=90; complete-empty policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "087404b609e23b37c18b1764d868b393f6d6bef482e2eb0264946314094008e4",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L105"
+    },
+    "reviewed_query_id": "iam_account_password_policy_strong_min_reuse_24"
+  },
+  "aws-compliance.control.iam_password_policy_expire_90": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.password_policy_expiry_at_most_90"
+    ],
+    "reason": "MaxPasswordAge <= 90, preserving SQL upper-bound semantics independently from Prowler positive-age predicate; account LEFT JOIN absent policy fails. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "d08624582192c97ecf7decd96cadbcfcc5968ca9755b8e5303b8593cbbb812b4",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L529"
+    },
+    "reviewed_query_id": "iam_password_policy_expire_90"
+  },
+  "aws-compliance.control.iam_root_user_mfa_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_mfa"
+    ],
+    "reason": "IAM account summary AccountMFAEnabled true; remains separate from root credential-report applicability predicates. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5243dc7521f99f264e1b00add6fec142ed966d5285944c7e636c5285dfc74eda",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L242"
+    },
+    "reviewed_query_id": "iam_root_user_mfa_enabled"
+  },
+  "aws-compliance.control.iam_root_user_no_access_keys": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_summary_no_keys"
+    ],
+    "reason": "IAM account summary root access key count >0 fails; zero passes. Native integer is not coerced from booleans. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_summary.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "7b8ccc219283f476a7010530346c3240288058f7de87312881c4bddf994cb726",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L184"
+    },
+    "reviewed_query_id": "iam_root_user_no_access_keys"
+  },
+  "aws-compliance.control.iam_user_console_access_mfa_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.report_console_mfa"
+    ],
+    "reason": "Credential report password_enabled AND NOT mfa_active fails; password-disabled row passes even without MFA. Native CSV true/false normalization is strict. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e96fe9b7fd44631e662a9631bd586faa1ae53ace0859e99ca325bac7f1153d8f",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L296"
+    },
+    "reviewed_query_id": "iam_user_console_access_mfa_enabled"
+  },
+  "aws-compliance.control.iam_user_mfa_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.report_all_mfa"
+    ],
+    "reason": "Every credential report principal requires mfa_active; distinct from password-enabled-only applicability. Full pinned source query, joins, constants and CASE branches independently reviewed; each alias invokes that exact query. Denied/partial/missing/malformed dependency evidence is UNKNOWN, never converted into known absence.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "review_notes": "Scoped account/global identity proof and dependency completeness required. Exact framework/control/version references preserved per source alias. Native source conditions are not changed to a narrower existing predicate.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "5869589e5bd0edd2a01b7d9b09b51daa8b1800552bff625bf4fcc127dd532883",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/iam.pp#L326"
+    },
+    "reviewed_query_id": "iam_user_mfa_enabled"
+  }
+}

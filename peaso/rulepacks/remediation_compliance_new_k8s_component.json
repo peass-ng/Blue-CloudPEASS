@@ -1,0 +1,80 @@
+{
+  "k8s.cis.a_limit_is_set_on_pod_pids": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_component",
+      "kind": "component_configuration",
+      "path": "component, configuration.podPidsLimit",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "04d16cbd9b894c64006d99fe156b0c7da10c0e4fb9a916985e0600851d0efafe",
+    "references": [
+      {
+        "title": "KubeletConfiguration v1beta1 podPidsLimit",
+        "url": "https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      },
+      {
+        "title": "Set Kubelet Parameters Via A Configuration File",
+        "url": "https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the operator-supplied kubelet podPidsLimit, source node and currentness; one record does not establish coverage of other nodes.",
+      "With the node owner, choose a positive limit that fits expected Pod process counts and update the owning kubelet configuration or node-pool IaC.",
+      "Roll out by node group with workload disruption planning; verify the effective per-node setting and restore the prior node configuration if the approved capacity criteria fail."
+    ],
+    "summary": "Set a positive Pod PID limit on the applicable kubelet configuration after capacity review."
+  },
+  "k8s.cis.kubelet_rotate_kubelet_server_certificate_true": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_component",
+      "kind": "component_configuration",
+      "path": "component, configuration.featureGates.RotateKubeletServerCertificate",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "fbc62ea96bfc27d080ddf2b7198ff87a62610e0523a0d6e9ffcd781d0efa0fa4",
+    "references": [
+      {
+        "title": "Kubernetes feature gates",
+        "url": "https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/"
+      },
+      {
+        "title": "Kubelet TLS bootstrapping",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/kubelet-tls-bootstrapping/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the operator-attested feature gate and kubelet release; an omitted gate on a current release can be default-enabled and is not proof of disabled rotation.",
+      "With the node and certificate owners, verify serverTLSBootstrap and a security-reviewed serving-certificate CSR approver before setting the gate true in the owned kubelet configuration where supported.",
+      "Roll out safely and verify approved CSRs and issued serving certificates independently; restore the prior configuration if bootstrap or node availability fails."
+    ],
+    "summary": "Review an explicit disabled kubelet serving-certificate rotation gate with bootstrap and CSR approval prerequisites."
+  },
+  "k8s.cis.the_seccomp_default_parameter_is_set_to_true": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s_component",
+      "kind": "component_configuration",
+      "path": "component, configuration.seccompDefault",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "912f4175651b604e86795ed7bb8b26d64f691a149832e1e0936c44398240e4b1",
+    "references": [
+      {
+        "title": "KubeletConfiguration v1beta1",
+        "url": "https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/"
+      },
+      {
+        "title": "Kubernetes seccomp default",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the operator-attested kubelet seccompDefault field, applicable kubelet release and workload overrides; a missing field does not prove false.",
+      "With the node owner, test RuntimeDefault compatibility and set seccompDefault=true in the owned kubelet configuration for applicable nodes.",
+      "Roll out node by node, verify effective seccomp behavior without assuming declaration equals enforcement, and restore the prior configuration if workloads fail."
+    ],
+    "summary": "Declare seccompDefault=true in the applicable kubelet configuration after workload compatibility review."
+  }
+}

@@ -1,0 +1,1138 @@
+{
+  "azure-compliance.control.appservice_web_app_latest_dotnet_framework_version": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Hardcodes ONLY .NET6/7 as latest and rejects supported .NET8/9/10. Microsoft lifecycle records .NET7 EOL May 15 2024 and .NET6 EOL Nov13 2024; preserving this selector would recommend end-of-support runtimes.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/lifecycle/products/microsoft-net-and-net-core"
+    ],
+    "review_classification": "obsolete_definition",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "appservice_web_app_latest_dotnet_framework_version",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1645,
+      "query_sha256": "7a572cc0be4c3af4076fe3913e7b3d893ca19fe004fb60a400e2b4761a5cd430",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with all_linux_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem = 'linux'\n        )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null and configuration -> 'properties' ->> 'netFrameworkVersion' in ('v6.0', 'v7.0') then 'ok'\n        when b.id is not null and configuration -> 'properties' ->> 'linuxFxVersion' not like 'DOTNETCORE|%' then 'ok'\n        when b.id is not null and configuration -> 'properties' ->> 'linuxFxVersion' in ('DOTNETCORE|6.0', 'DOTNETCORE|7.0') then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null and configuration -> 'properties' ->> 'netFrameworkVersion' in ('v6.0', 'v7.0') then a.name || ' using latest dotnet framework version.'\n        when b.id is not null and configuration -> 'properties' ->> 'linuxFxVersion' not like 'DOTNETCORE|%' then a.name || ' not using dotnet framework.'\n        when b.id is not null and configuration -> 'properties' ->> 'linuxFxVersion' in ('DOTNETCORE|6.0', 'DOTNETCORE|7.0') then a.name || ' using latest dotnet vframework ersion.'\n        else a.name || ' not using latest dotnet framework version.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_linux_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "counterexample": {
+        "accepted_versions": [
+          "6.0",
+          "7.0"
+        ],
+        "current_supported": "10.0",
+        "pinned_status_for_dotnet10": "alarm",
+        "retired_dates": [
+          "2024-05-15",
+          "2024-11-13"
+        ]
+      },
+      "pinned_sql_sha256": "358139d4832f1049fc04f50ba54f21ff638138e1774ee50f8692db427c9b8ba7",
+      "upstream_evaluator_sha256": "7a572cc0be4c3af4076fe3913e7b3d893ca19fe004fb60a400e2b4761a5cd430",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.arc_compute_machine_linux_log_analytics_agent_installed": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Requires OMSAgentForLinux as a current Log Analytics baseline. Microsoft retired OMS/MMA August 31 2024 and cloud ingestion can cease after March 2 2026; modern AMA is not accepted by this source. SCOM-only retirement exception does not justify this Azure cloud ingestion requirement.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-monitor/agents/azure-monitor-agent-migration"
+    ],
+    "review_classification": "obsolete_definition",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "arc_compute_machine_linux_log_analytics_agent_installed",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1897,
+      "query_sha256": "e603709c209a10f807914c3b5e29c1386c115ddc690e1d83e354c2eeb013e3cf",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with compute_machine as(\n      select\n        id,\n        name,\n        subscription_id,\n        resource_group\n      from\n        azure_hybrid_compute_machine,\n        jsonb_array_elements(extensions) as e\n      where\n      e ->> 'name' = 'OMSAgentForLinux'\n      and e ->> 'provisioningState' = 'Succeeded'\n    )\n    select\n      a.id as resource,\n      case\n        when a.os_name <> 'linux' then 'skip'\n        when m.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.os_name <> 'linux' then a.name || ' is of ' || a.os_name || ' operating system.'\n        when m.id is not null then a.name || ' log analytics extension installed.'\n        else a.name || ' log analytics extension not installed.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n    azure_hybrid_compute_machine as a\n    left join compute_machine as m on m.id = a.id,\n    azure_subscription as sub\n    where\n      sub.subscription_id = a.subscription_id;",
+      "counterexample": {
+        "required_extension": "OMSAgentForLinux",
+        "current_extension": "AzureMonitorLinuxAgent",
+        "pinned_status": "alarm",
+        "retirement": "2024-08-31",
+        "ingestion_shutdown_after": "2026-03-02"
+      },
+      "pinned_sql_sha256": "b37395f18b52e5ef08d515617c80415649e9c90db431d7e88c6b962f0565ba8e",
+      "upstream_evaluator_sha256": "e603709c209a10f807914c3b5e29c1386c115ddc690e1d83e354c2eeb013e3cf",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.arc_compute_machine_windows_log_analytics_agent_installed": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Requires MicrosoftMonitoringAgent as a current Log Analytics baseline. Microsoft retired OMS/MMA August 31 2024 and cloud ingestion can cease after March 2 2026; modern AMA is not accepted by this source. SCOM-only retirement exception does not justify this Azure cloud ingestion requirement.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-monitor/agents/azure-monitor-agent-migration"
+    ],
+    "review_classification": "obsolete_definition",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "arc_compute_machine_windows_log_analytics_agent_installed",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2223,
+      "query_sha256": "ce20e0b8dbe3b263a8990628fc76540574c009aa35f5d920b6e111499d064618",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with compute_machine as(\n      select\n        id,\n        name,\n        subscription_id,\n        resource_group\n      from\n        azure_hybrid_compute_machine,\n        jsonb_array_elements(extensions) as e\n      where\n      e ->> 'name' = 'MicrosoftMonitoringAgent'\n      and e ->> 'provisioningState' = 'Succeeded'\n    )\n    select\n      a.id as resource,\n      case\n        when a.os_name <> 'windows' then 'skip'\n        when m.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.os_name <> 'windows' then a.name || ' is of ' || a.os_name || ' operating system.'\n        when m.id is not null then a.name || ' log analytics extension installed.'\n        else a.name || ' log analytics extension not installed.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n    azure_hybrid_compute_machine as a\n    left join compute_machine as m on m.id = a.id\n    left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "counterexample": {
+        "required_extension": "MicrosoftMonitoringAgent",
+        "current_extension": "AzureMonitorWindowsAgent",
+        "pinned_status": "alarm",
+        "retirement": "2024-08-31",
+        "ingestion_shutdown_after": "2026-03-02"
+      },
+      "pinned_sql_sha256": "eabbfafa2dcc3ec62a13165b20f62a8f26059fa94179ad7a4512d3b19b11ca1c",
+      "upstream_evaluator_sha256": "ce20e0b8dbe3b263a8990628fc76540574c009aa35f5d920b6e111499d064618",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.batch_account_logging_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Logging evidence joins Batch account name rather than full ARM ID/subscription/region. Same names are allowed in distinct regions; a foreign account logging configuration makes an unlogged account PASS.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/batchmanagement/batch-account/get?view=rest-batchmanagement-2024-07-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "batch_account_logging_enabled",
+      "query_path": "regulatory_compliance/batch.pp",
+      "query_line": 40,
+      "query_sha256": "306d8099d8f1bfe57aa1982374861228588f0d072e797da0f499d52321ffd1ec",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with logging_details as (\n      select\n        distinct name as account_name\n      from\n        azure_batch_account,\n        jsonb_array_elements(diagnostic_settings) setting,\n        jsonb_array_elements(setting -> 'properties' -> 'logs') log\n      where\n      diagnostic_settings is not null\n        and (\n          (\n            (log ->> 'enabled') :: boolean\n            and (log -> 'retentionPolicy' ->> 'enabled') :: boolean\n            and (log -> 'retentionPolicy') :: JSONB ? 'days'\n          )\n          or\n          (\n            (log ->> 'enabled') :: boolean\n            and (\n              log -> 'retentionPolicy' ->> 'enabled' <> 'true'\n              or setting -> 'properties' ->> 'storageAccountId' = ''\n            )\n          )\n        )\n    )\n    select\n      v.id as resource,\n      case\n        when v.diagnostic_settings is null then 'alarm'\n        when l.account_name is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when v.diagnostic_settings is null then v.name || ' logging not enabled.'\n        when l.account_name is null then v.name || ' logging not enabled.'\n        else v.name || ' logging enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"v.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"v.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_batch_account as v\n      left join logging_details as l on v.name = l.account_name\n      left join azure_subscription sub on v.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "accounts": [
+          {
+            "name": "same",
+            "region": "eastus",
+            "logging": true
+          },
+          {
+            "name": "same",
+            "region": "westus",
+            "logging": false
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "aa7eab3832b4e0fa9bd423b95651be3b84da1663807ff2a749e538a153f1c4cd",
+      "upstream_evaluator_sha256": "306d8099d8f1bfe57aa1982374861228588f0d072e797da0f499d52321ffd1ec",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v130_6_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v140_6_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v150_1_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Applies IsTrusted to every named location and tenant cross product without type or policy-use applicability. Graph countryNamedLocation has no isTrusted property; adding a legitimate country location to an existing trusted IP location produces a spurious alarm and does not assess whether a trusted location exists.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/countrynamedlocation?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/ipnamedlocation?view=graph-rest-1.0"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "iam_conditional_access_trusted_location_configured",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 918,
+      "query_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (location_info -> 'IsTrusted')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (location_info -> 'IsTrusted')::bool then title || ' trusted location configured.'\n        else title || ' trusted location not configured.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_named_location;",
+      "counterexample": {
+        "locations": [
+          {
+            "type": "ipNamedLocation",
+            "isTrusted": true
+          },
+          {
+            "type": "countryNamedLocation",
+            "countriesAndRegions": [
+              "ES"
+            ]
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "trusted_ip_configuration_exists": true
+      },
+      "pinned_sql_sha256": "ccf4e57728ed81afb63e5c229b37f34e8e5a1a880a3c4bc52f1fa5887574439e",
+      "upstream_evaluator_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v150_5_1_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "nsg_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2290,
+      "query_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with nsg_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as nsg_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/networkSecurityGroups/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when nsg_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg_flow_log_count > 0 then sub.display_name || ' has ' || nsg_flow_log_count || ' NSG flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no NSG flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join nsg_network_watcher_flow_log as nsg_flow_log on nsg_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "486aca3a1921026098236952937c53490e345f0f4b184d8a4f303e8c0a0387ad",
+      "upstream_evaluator_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v150_6_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v200_1_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Applies IsTrusted to every named location and tenant cross product without type or policy-use applicability. Graph countryNamedLocation has no isTrusted property; adding a legitimate country location to an existing trusted IP location produces a spurious alarm and does not assess whether a trusted location exists.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/countrynamedlocation?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/ipnamedlocation?view=graph-rest-1.0"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "iam_conditional_access_trusted_location_configured",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 918,
+      "query_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (location_info -> 'IsTrusted')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (location_info -> 'IsTrusted')::bool then title || ' trusted location configured.'\n        else title || ' trusted location not configured.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_named_location;",
+      "counterexample": {
+        "locations": [
+          {
+            "type": "ipNamedLocation",
+            "isTrusted": true
+          },
+          {
+            "type": "countryNamedLocation",
+            "countriesAndRegions": [
+              "ES"
+            ]
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "trusted_ip_configuration_exists": true
+      },
+      "pinned_sql_sha256": "ccf4e57728ed81afb63e5c229b37f34e8e5a1a880a3c4bc52f1fa5887574439e",
+      "upstream_evaluator_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v200_5_1_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "nsg_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2290,
+      "query_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with nsg_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as nsg_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/networkSecurityGroups/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when nsg_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg_flow_log_count > 0 then sub.display_name || ' has ' || nsg_flow_log_count || ' NSG flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no NSG flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join nsg_network_watcher_flow_log as nsg_flow_log on nsg_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "486aca3a1921026098236952937c53490e345f0f4b184d8a4f303e8c0a0387ad",
+      "upstream_evaluator_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v200_6_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v210_1_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Applies IsTrusted to every named location and tenant cross product without type or policy-use applicability. Graph countryNamedLocation has no isTrusted property; adding a legitimate country location to an existing trusted IP location produces a spurious alarm and does not assess whether a trusted location exists.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/countrynamedlocation?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/ipnamedlocation?view=graph-rest-1.0"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "iam_conditional_access_trusted_location_configured",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 918,
+      "query_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (location_info -> 'IsTrusted')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (location_info -> 'IsTrusted')::bool then title || ' trusted location configured.'\n        else title || ' trusted location not configured.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_named_location;",
+      "counterexample": {
+        "locations": [
+          {
+            "type": "ipNamedLocation",
+            "isTrusted": true
+          },
+          {
+            "type": "countryNamedLocation",
+            "countriesAndRegions": [
+              "ES"
+            ]
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "trusted_ip_configuration_exists": true
+      },
+      "pinned_sql_sha256": "ccf4e57728ed81afb63e5c229b37f34e8e5a1a880a3c4bc52f1fa5887574439e",
+      "upstream_evaluator_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v210_5_1_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "nsg_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2290,
+      "query_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with nsg_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as nsg_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/networkSecurityGroups/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when nsg_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg_flow_log_count > 0 then sub.display_name || ' has ' || nsg_flow_log_count || ' NSG flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no NSG flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join nsg_network_watcher_flow_log as nsg_flow_log on nsg_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "486aca3a1921026098236952937c53490e345f0f4b184d8a4f303e8c0a0387ad",
+      "upstream_evaluator_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v210_6_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v300_2_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Applies IsTrusted to every named location and tenant cross product without type or policy-use applicability. Graph countryNamedLocation has no isTrusted property; adding a legitimate country location to an existing trusted IP location produces a spurious alarm and does not assess whether a trusted location exists.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/countrynamedlocation?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/ipnamedlocation?view=graph-rest-1.0"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "iam_conditional_access_trusted_location_configured",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 918,
+      "query_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (location_info -> 'IsTrusted')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (location_info -> 'IsTrusted')::bool then title || ' trusted location configured.'\n        else title || ' trusted location not configured.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_named_location;",
+      "counterexample": {
+        "locations": [
+          {
+            "type": "ipNamedLocation",
+            "isTrusted": true
+          },
+          {
+            "type": "countryNamedLocation",
+            "countriesAndRegions": [
+              "ES"
+            ]
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "trusted_ip_configuration_exists": true
+      },
+      "pinned_sql_sha256": "ccf4e57728ed81afb63e5c229b37f34e8e5a1a880a3c4bc52f1fa5887574439e",
+      "upstream_evaluator_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v300_6_1_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "nsg_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2290,
+      "query_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with nsg_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as nsg_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/networkSecurityGroups/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when nsg_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg_flow_log_count > 0 then sub.display_name || ' has ' || nsg_flow_log_count || ' NSG flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no NSG flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join nsg_network_watcher_flow_log as nsg_flow_log on nsg_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "486aca3a1921026098236952937c53490e345f0f4b184d8a4f303e8c0a0387ad",
+      "upstream_evaluator_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v300_7_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v400_6_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Applies IsTrusted to every named location and tenant cross product without type or policy-use applicability. Graph countryNamedLocation has no isTrusted property; adding a legitimate country location to an existing trusted IP location produces a spurious alarm and does not assess whether a trusted location exists.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/countrynamedlocation?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/ipnamedlocation?view=graph-rest-1.0"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "iam_conditional_access_trusted_location_configured",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 918,
+      "query_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (location_info -> 'IsTrusted')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (location_info -> 'IsTrusted')::bool then title || ' trusted location configured.'\n        else title || ' trusted location not configured.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_named_location;",
+      "counterexample": {
+        "locations": [
+          {
+            "type": "ipNamedLocation",
+            "isTrusted": true
+          },
+          {
+            "type": "countryNamedLocation",
+            "countriesAndRegions": [
+              "ES"
+            ]
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "trusted_ip_configuration_exists": true
+      },
+      "pinned_sql_sha256": "ccf4e57728ed81afb63e5c229b37f34e8e5a1a880a3c4bc52f1fa5887574439e",
+      "upstream_evaluator_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v400_7_1_1_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "nsg_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2290,
+      "query_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with nsg_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as nsg_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/networkSecurityGroups/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when nsg_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg_flow_log_count > 0 then sub.display_name || ' has ' || nsg_flow_log_count || ' NSG flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no NSG flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join nsg_network_watcher_flow_log as nsg_flow_log on nsg_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "486aca3a1921026098236952937c53490e345f0f4b184d8a4f303e8c0a0387ad",
+      "upstream_evaluator_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v400_7_1_1_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_virtual_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2321,
+      "query_sha256": "44a7f3eba20bb632d76d0799d8ee40ac45d610cda65635511323a46574a3adb7",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with virtual_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as vn_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/virtualNetworks/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when vn_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when vn_flow_log_count > 0 then sub.display_name || ' has ' || vn_flow_log_count || ' virtual network flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no virtual network flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join virtual_network_watcher_flow_log as vn_flow_log on vn_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "33ab2e6f143634d1ba477f53e918aacad28888299639c9c8c1405f4773745310",
+      "upstream_evaluator_sha256": "44a7f3eba20bb632d76d0799d8ee40ac45d610cda65635511323a46574a3adb7",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v400_8_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v500_5_27": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Counts Owner assignment rows rather than distinct owners and omits zero-owner subscriptions entirely due to inner CTE/grouping. Two assignments for one principal PASS the 2-3 owner baseline; no owner yields no check row.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/authorization/role-assignments/list-for-subscription?view=rest-authorization-2022-04-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "iam_subscription_owner_between_2_and_3",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 335,
+      "query_sha256": "2711f695f4c2c61c4a388e314709179ca9062a5459c9a54ac2e5f33447e7be5f",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with owner_roles as (\n      select\n        d.role_name,\n        d.role_type,\n        d.name,\n        d.title,\n        d._ctx,\n        d.subscription_id\n      from\n        azure_role_definition as d\n        join azure_role_assignment as a on d.id = a.role_definition_id\n      where\n        d.role_name = 'Owner'\n    )\n    select\n      owner.subscription_id as resource,\n      case\n        when count(*) >= 2 and count(*) <= 3  then 'ok'\n        else 'alarm'\n      end as status,\n      count(*) || ' owner(s) associated.' as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"owner.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      owner_roles as owner,\n      azure_subscription as sub\n    where\n      sub.subscription_id =owner.subscription_id\n    group by\n      owner.subscription_id,\n      owner._ctx,\n      sub.display_name;",
+      "counterexample": {
+        "principal_ids": [
+          "one",
+          "one"
+        ],
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "zero_owner_source_rows": 0
+      },
+      "pinned_sql_sha256": "832b8e48c0fe6db57d75585cf791f0eea6062ef6db82a3de0c0ad785854d1804",
+      "upstream_evaluator_sha256": "2711f695f4c2c61c4a388e314709179ca9062a5459c9a54ac2e5f33447e7be5f",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v500_5_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Applies IsTrusted to every named location and tenant cross product without type or policy-use applicability. Graph countryNamedLocation has no isTrusted property; adding a legitimate country location to an existing trusted IP location produces a spurious alarm and does not assess whether a trusted location exists.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/countrynamedlocation?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/ipnamedlocation?view=graph-rest-1.0"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "iam_conditional_access_trusted_location_configured",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 918,
+      "query_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when (location_info -> 'IsTrusted')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (location_info -> 'IsTrusted')::bool then title || ' trusted location configured.'\n        else title || ' trusted location not configured.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_named_location;",
+      "counterexample": {
+        "locations": [
+          {
+            "type": "ipNamedLocation",
+            "isTrusted": true
+          },
+          {
+            "type": "countryNamedLocation",
+            "countriesAndRegions": [
+              "ES"
+            ]
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "alarm"
+        ],
+        "trusted_ip_configuration_exists": true
+      },
+      "pinned_sql_sha256": "ccf4e57728ed81afb63e5c229b37f34e8e5a1a880a3c4bc52f1fa5887574439e",
+      "upstream_evaluator_sha256": "4c88e1ab1aa5f665b7acd620ca6bd4c0e3051433e3ae868ef7a5a5f7eaff66c4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_1_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "nsg_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2290,
+      "query_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with nsg_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as nsg_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/networkSecurityGroups/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when nsg_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg_flow_log_count > 0 then sub.display_name || ' has ' || nsg_flow_log_count || ' NSG flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no NSG flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join nsg_network_watcher_flow_log as nsg_flow_log on nsg_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "486aca3a1921026098236952937c53490e345f0f4b184d8a4f303e8c0a0387ad",
+      "upstream_evaluator_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_1_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Workspace JSON key non-nullness alone declares logs captured and sent. Disabled flow logs with disabled traffic analytics still PASS; JSON null also satisfies JSONB IS NOT NULL. Enabling logging/analytics is not inspected.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/flow-logs/get?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_virtual_network_watcher_flow_log_send_to_log_analytics",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 2321,
+      "query_sha256": "44a7f3eba20bb632d76d0799d8ee40ac45d610cda65635511323a46574a3adb7",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with virtual_network_watcher_flow_log as (\n      select\n        subscription_id,\n        count(*) as vn_flow_log_count\n      from\n        azure_network_watcher_flow_log\n      where\n        traffic_analytics -> 'workspaceId' is not null\n        and target_resource_id like '%/Microsoft.Network/virtualNetworks/%'\n      group by\n        subscription_id\n    )\n    select\n      sub.id resource,\n      case\n        when vn_flow_log_count > 0  then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when vn_flow_log_count > 0 then sub.display_name || ' has ' || vn_flow_log_count || ' virtual network flow log(s) captured and sent to log analytics.'\n        else sub.display_name || ' has no virtual network flow log captured and sent to log analytics.'\n      end as reason\n      ${local.common_dimensions_subscription_sql}\n    from\n      azure_subscription as sub\n      left join virtual_network_watcher_flow_log as vn_flow_log on vn_flow_log.subscription_id = sub.subscription_id;",
+      "counterexample": {
+        "enabled": false,
+        "trafficAnalytics": {
+          "enabled": false,
+          "workspaceId": "workspace"
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "33ab2e6f143634d1ba477f53e918aacad28888299639c9c8c1405f4773745310",
+      "upstream_evaluator_sha256": "44a7f3eba20bb632d76d0799d8ee40ac45d610cda65635511323a46574a3adb7",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v500_7_11": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source checks subnets IS NULL rather than required association existence. An authoritative empty subnets array produces an OK row through the LEFT LATERAL join despite no associated subnet.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/virtual-network/network-security-groups/get?view=rest-virtual-network-2025-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_security_group_subnet_associated",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 570,
+      "query_sha256": "f4289b5ab214eb0bb75d3a5f29f47123b12208fe764da2efd91992d3ee628082",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      sg.id resource,\n      case\n        when subnets is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when subnets is null then name || ' not associated with subnet.'\n        else name || ' associated with ' || split_part(rtrim((subnet -> 'id') :: text, '\"'), '/subnets/',2) || '.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group as sg\n      left join azure_subscription as sub on sub.subscription_id = sg.subscription_id\n      left join jsonb_array_elements(subnets) as subnet on true;",
+      "counterexample": {
+        "subnets": [],
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "f4e6b994b6b11a9743bb198c4d047ba980aa38c1a4d4fe30a13f57521d18b9fd",
+      "upstream_evaluator_sha256": "f4289b5ab214eb0bb75d3a5f29f47123b12208fe764da2efd91992d3ee628082",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v500_7_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Region-only left join omits subscription identity. A watcher in subscription A makes subscription B in the same region PASS although B has no watcher; the ARM operation is subscription-scoped.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/network-watcher/network-watchers/list-all?view=rest-network-watcher-2026-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_watcher_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 547,
+      "query_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "select\n      loc.id resource,\n      case\n        when watcher.id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when watcher.id is null then 'Network watcher not enabled in ' || loc.name || '.'\n        else 'Network watcher enabled in ' || loc.name || '.'\n      end as reason,\n      loc.name\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"watcher.\")}\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"loc.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_location loc\n      left join azure_network_watcher watcher on watcher.region = loc.name\n      left join azure_subscription sub on sub.subscription_id = loc.subscription_id;",
+      "counterexample": {
+        "locations": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          },
+          {
+            "subscription": "B",
+            "region": "eastus"
+          }
+        ],
+        "watchers": [
+          {
+            "subscription": "A",
+            "region": "eastus"
+          }
+        ],
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "alarm"
+        ]
+      },
+      "pinned_sql_sha256": "c9127bb7a286d13d11b5d6e67a9ab59b43c71d904b3a0d82a19996f242fa44bd",
+      "upstream_evaluator_sha256": "8e588c4913d6d0547d75402dd26cf1739ac78742a4b8b189bc590c670572be33",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.cis_v500_8_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Application-gateway association joins only VNet name, not full ARM ID. A protected same-name VNet in another resource group with no gateway gets classified against a foreign gateway; correcting identity changes applicability.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/application-gateway/application-gateways/get?view=rest-application-gateway-2025-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_ddos_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 693,
+      "query_sha256": "5bc16dfbdf7477006c2281181f0cec25ab02fb421890c2a8596b40d6c77211be",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with application_gateway_subnet as (\n      select\n        distinct (split_part(c -> 'properties' -> 'subnet' ->> 'id', '/', 9)) as vn_name\n      from\n        azure_application_gateway as ag,\n        jsonb_array_elements(gateway_ip_configurations) as c\n    )\n    select\n      a.id as resource,\n      case\n        when b.vn_name is null then 'ok'\n        when b.vn_name is not null and enable_ddos_protection::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.vn_name is null then 'DDoS protection not required.'\n        when b.vn_name is not null and enable_ddos_protection::bool then a.name || ' DDoS protection enabled.'\n        else a.name || ' DDoS protection disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_virtual_network as a\n      left join application_gateway_subnet as b on a.name = b.vn_name\n      left join azure_subscription sub on sub.subscription_id = a.subscription_id;",
+      "counterexample": {
+        "gateway_vnet": "/subscriptions/A/resourceGroups/one/providers/Microsoft.Network/virtualNetworks/same",
+        "tested_vnet": "/subscriptions/A/resourceGroups/two/providers/Microsoft.Network/virtualNetworks/same",
+        "tested_ddos": false,
+        "pinned_status": "alarm",
+        "required_status": "ok"
+      },
+      "pinned_sql_sha256": "a32481c593cb3dbd3309d3762959b29d37e20b6f1169493a731eca4b2ab17ddd",
+      "upstream_evaluator_sha256": "5bc16dfbdf7477006c2281181f0cec25ab02fb421890c2a8596b40d6c77211be",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  },
+  "azure-compliance.control.network_ddos_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Application-gateway association joins only VNet name, not full ARM ID. A protected same-name VNet in another resource group with no gateway gets classified against a foreign gateway; correcting identity changes applicability.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/application-gateway/application-gateways/get?view=rest-application-gateway-2025-01-01"
+    ],
+    "review_classification": "invalid_predicate",
+    "review_notes": "Substantive source counterexample/current official API evidence; not rejected for unavailable collector facts. Original framework IDs/revision remain in master source manifest.",
+    "source_review": {
+      "query_id": "network_ddos_enabled",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 693,
+      "query_sha256": "5bc16dfbdf7477006c2281181f0cec25ab02fb421890c2a8596b40d6c77211be",
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "arguments": [],
+      "pinned_sql": "with application_gateway_subnet as (\n      select\n        distinct (split_part(c -> 'properties' -> 'subnet' ->> 'id', '/', 9)) as vn_name\n      from\n        azure_application_gateway as ag,\n        jsonb_array_elements(gateway_ip_configurations) as c\n    )\n    select\n      a.id as resource,\n      case\n        when b.vn_name is null then 'ok'\n        when b.vn_name is not null and enable_ddos_protection::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.vn_name is null then 'DDoS protection not required.'\n        when b.vn_name is not null and enable_ddos_protection::bool then a.name || ' DDoS protection enabled.'\n        else a.name || ' DDoS protection disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_virtual_network as a\n      left join application_gateway_subnet as b on a.name = b.vn_name\n      left join azure_subscription sub on sub.subscription_id = a.subscription_id;",
+      "counterexample": {
+        "gateway_vnet": "/subscriptions/A/resourceGroups/one/providers/Microsoft.Network/virtualNetworks/same",
+        "tested_vnet": "/subscriptions/A/resourceGroups/two/providers/Microsoft.Network/virtualNetworks/same",
+        "tested_ddos": false,
+        "pinned_status": "alarm",
+        "required_status": "ok"
+      },
+      "pinned_sql_sha256": "a32481c593cb3dbd3309d3762959b29d37e20b6f1169493a731eca4b2ab17ddd",
+      "upstream_evaluator_sha256": "5bc16dfbdf7477006c2281181f0cec25ab02fb421890c2a8596b40d6c77211be",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    }
+  }
+}

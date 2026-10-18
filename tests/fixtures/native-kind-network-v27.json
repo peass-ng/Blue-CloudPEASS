@@ -1,0 +1,1544 @@
+{
+  "collections": [
+    {
+      "items": [
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/deployment/peaso-net-434ea956da40c754774b/30d9b68f-f98f-4edf-8c03-1aaaa286c34d",
+          "metadata": {
+            "annotations": {},
+            "creationTimestamp": "2026-10-15T20:20:42Z",
+            "generation": 2,
+            "labels": {
+              "peaso.fixture/nonce": "434ea956da40c754774b"
+            },
+            "name": "frontend",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "831",
+            "uid": "30d9b68f-f98f-4edf-8c03-1aaaa286c34d"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "831",
+            "uid": "30d9b68f-f98f-4edf-8c03-1aaaa286c34d"
+          },
+          "spec": {
+            "progressDeadlineSeconds": 600,
+            "replicas": 2,
+            "revisionHistoryLimit": 10,
+            "selector": {
+              "matchLabels": {
+                "app": "frontend",
+                "peaso.fixture/nonce": "434ea956da40c754774b",
+                "tier": "web"
+              }
+            },
+            "strategy": {
+              "rollingUpdate": {
+                "maxSurge": "25%",
+                "maxUnavailable": "25%"
+              },
+              "type": "RollingUpdate"
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "frontend",
+                  "peaso.fixture/nonce": "434ea956da40c754774b",
+                  "tier": "web"
+                }
+              },
+              "spec": {
+                "automountServiceAccountToken": false,
+                "containers": [
+                  {
+                    "image": "registry.k8s.io/pause:3.10",
+                    "imagePullPolicy": "Never",
+                    "name": "inert-pause",
+                    "resources": {
+                      "limits": {
+                        "cpu": "50m",
+                        "memory": "32Mi"
+                      },
+                      "requests": {
+                        "cpu": "1m",
+                        "memory": "8Mi"
+                      }
+                    },
+                    "securityContext": {
+                      "allowPrivilegeEscalation": false,
+                      "capabilities": {
+                        "drop": [
+                          "ALL"
+                        ]
+                      },
+                      "readOnlyRootFilesystem": true
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File"
+                  }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                  "runAsNonRoot": true,
+                  "runAsUser": 65532,
+                  "seccompProfile": {
+                    "type": "RuntimeDefault"
+                  }
+                },
+                "terminationGracePeriodSeconds": 30
+              }
+            }
+          },
+          "status": {
+            "availableReplicas": 2,
+            "conditions": [
+              {
+                "lastTransitionTime": "2026-10-15T20:22:10Z",
+                "lastUpdateTime": "2026-10-15T20:22:10Z",
+                "message": "Deployment has minimum availability.",
+                "reason": "MinimumReplicasAvailable",
+                "status": "True",
+                "type": "Available"
+              },
+              {
+                "lastTransitionTime": "2026-10-15T20:20:43Z",
+                "lastUpdateTime": "2026-10-15T20:22:10Z",
+                "message": "ReplicaSet \"frontend-7d654d8dbb\" has successfully progressed.",
+                "reason": "NewReplicaSetAvailable",
+                "status": "True",
+                "type": "Progressing"
+              }
+            ],
+            "observedGeneration": 2,
+            "readyReplicas": 2,
+            "replicas": 2,
+            "terminatingReplicas": 0,
+            "updatedReplicas": 2
+          }
+        },
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/deployment/peaso-net-434ea956da40c754774b/74230b13-fdd2-425e-8da1-6535bb4a45e2",
+          "metadata": {
+            "annotations": {},
+            "creationTimestamp": "2026-10-15T20:20:42Z",
+            "generation": 2,
+            "labels": {
+              "peaso.fixture/nonce": "434ea956da40c754774b"
+            },
+            "name": "other",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "797",
+            "uid": "74230b13-fdd2-425e-8da1-6535bb4a45e2"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "797",
+            "uid": "74230b13-fdd2-425e-8da1-6535bb4a45e2"
+          },
+          "spec": {
+            "progressDeadlineSeconds": 600,
+            "replicas": 1,
+            "revisionHistoryLimit": 10,
+            "selector": {
+              "matchLabels": {
+                "app": "other",
+                "peaso.fixture/nonce": "434ea956da40c754774b",
+                "tier": "web"
+              }
+            },
+            "strategy": {
+              "rollingUpdate": {
+                "maxSurge": "25%",
+                "maxUnavailable": "25%"
+              },
+              "type": "RollingUpdate"
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "other",
+                  "peaso.fixture/nonce": "434ea956da40c754774b",
+                  "tier": "web"
+                }
+              },
+              "spec": {
+                "automountServiceAccountToken": false,
+                "containers": [
+                  {
+                    "image": "registry.k8s.io/pause:3.10",
+                    "imagePullPolicy": "Never",
+                    "name": "inert-pause",
+                    "resources": {
+                      "limits": {
+                        "cpu": "50m",
+                        "memory": "32Mi"
+                      },
+                      "requests": {
+                        "cpu": "1m",
+                        "memory": "8Mi"
+                      }
+                    },
+                    "securityContext": {
+                      "allowPrivilegeEscalation": false,
+                      "capabilities": {
+                        "drop": [
+                          "ALL"
+                        ]
+                      },
+                      "readOnlyRootFilesystem": true
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File"
+                  }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                  "runAsNonRoot": true,
+                  "runAsUser": 65532,
+                  "seccompProfile": {
+                    "type": "RuntimeDefault"
+                  }
+                },
+                "terminationGracePeriodSeconds": 30
+              }
+            }
+          },
+          "status": {
+            "availableReplicas": 1,
+            "conditions": [
+              {
+                "lastTransitionTime": "2026-10-15T20:22:08Z",
+                "lastUpdateTime": "2026-10-15T20:22:08Z",
+                "message": "Deployment has minimum availability.",
+                "reason": "MinimumReplicasAvailable",
+                "status": "True",
+                "type": "Available"
+              },
+              {
+                "lastTransitionTime": "2026-10-15T20:20:43Z",
+                "lastUpdateTime": "2026-10-15T20:22:08Z",
+                "message": "ReplicaSet \"other-6cf687d84\" has successfully progressed.",
+                "reason": "NewReplicaSetAvailable",
+                "status": "True",
+                "type": "Progressing"
+              }
+            ],
+            "observedGeneration": 2,
+            "readyReplicas": 1,
+            "replicas": 1,
+            "terminatingReplicas": 0,
+            "updatedReplicas": 1
+          }
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "deployment"
+    },
+    {
+      "items": [
+        {
+          "_static_pod_metadata": false,
+          "addressType": "IPv4",
+          "endpoints": [
+            {
+              "addresses": [
+                "10.244.0.8"
+              ],
+              "conditions": {
+                "ready": true,
+                "serving": true,
+                "terminating": false
+              },
+              "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+              "targetRef": {
+                "kind": "Pod",
+                "name": "frontend-7d654d8dbb-5rrxd",
+                "namespace": "peaso-net-434ea956da40c754774b",
+                "uid": "9ca1dd14-f7e1-4250-bd3e-2737c8fa00a3"
+              }
+            },
+            {
+              "addresses": [
+                "10.244.0.10"
+              ],
+              "conditions": {
+                "ready": true,
+                "serving": true,
+                "terminating": false
+              },
+              "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+              "targetRef": {
+                "kind": "Pod",
+                "name": "frontend-7d654d8dbb-bh7nm",
+                "namespace": "peaso-net-434ea956da40c754774b",
+                "uid": "b7b58dd5-e851-4163-bcfd-bc492439ae36"
+              }
+            }
+          ],
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/endpointslice/peaso-net-434ea956da40c754774b/b1dd233c-5798-4146-bcf4-9e153924f856",
+          "metadata": {
+            "creationTimestamp": "2026-10-15T20:20:43Z",
+            "generateName": "frontend-",
+            "generation": 9,
+            "labels": {
+              "endpointslice.kubernetes.io/managed-by": "endpointslice-controller.k8s.io",
+              "kubernetes.io/service-name": "frontend",
+              "peaso.fixture/nonce": "434ea956da40c754774b"
+            },
+            "name": "frontend-76ngj",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "ownerReferences": [
+              {
+                "apiVersion": "v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "Service",
+                "name": "frontend",
+                "uid": "0bb04c61-72ea-4057-ae35-d1c8976d7597"
+              }
+            ],
+            "resourceVersion": "828",
+            "uid": "b1dd233c-5798-4146-bcf4-9e153924f856"
+          },
+          "ports": [
+            {
+              "name": "tcp",
+              "port": 8080,
+              "protocol": "TCP"
+            }
+          ],
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "828",
+            "uid": "b1dd233c-5798-4146-bcf4-9e153924f856"
+          }
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "endpointslice"
+    },
+    {
+      "items": [
+        {
+          "_static_pod_metadata": false,
+          "apiVersion": "v1",
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/namespace/_cluster/82fedf8a-91fb-4f47-8948-1551cdd3d958",
+          "kind": "Namespace",
+          "metadata": {
+            "creationTimestamp": "2026-10-15T20:20:42Z",
+            "labels": {
+              "kubernetes.io/metadata.name": "peaso-net-434ea956da40c754774b",
+              "peaso.fixture/nonce": "434ea956da40c754774b",
+              "pod-security.kubernetes.io/enforce": "restricted"
+            },
+            "name": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "467",
+            "uid": "82fedf8a-91fb-4f47-8948-1551cdd3d958"
+          },
+          "provenance": {
+            "apiVersion": "v1",
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "_cluster",
+            "resourceVersion": "467",
+            "uid": "82fedf8a-91fb-4f47-8948-1551cdd3d958"
+          },
+          "spec": {
+            "finalizers": [
+              "kubernetes"
+            ]
+          },
+          "status": {
+            "phase": "Active"
+          }
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "namespace"
+    },
+    {
+      "items": [
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/networkpolicy/peaso-net-434ea956da40c754774b/9241e73c-76d3-4a18-88e2-ead9ca773784",
+          "metadata": {
+            "creationTimestamp": "2026-10-15T20:20:43Z",
+            "generation": 1,
+            "labels": {
+              "peaso.fixture/nonce": "434ea956da40c754774b"
+            },
+            "name": "frontend",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "483",
+            "uid": "9241e73c-76d3-4a18-88e2-ead9ca773784"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "483",
+            "uid": "9241e73c-76d3-4a18-88e2-ead9ca773784"
+          },
+          "spec": {
+            "podSelector": {
+              "matchLabels": {
+                "app": "frontend",
+                "tier": "web"
+              }
+            },
+            "policyTypes": [
+              "Ingress"
+            ]
+          }
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "networkpolicy"
+    },
+    {
+      "items": [
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/node/_cluster/ae80c2a8-2500-49b6-b7a0-43cdee3b76df",
+          "metadata": {
+            "annotations": {},
+            "creationTimestamp": "2026-10-15T20:20:18Z",
+            "labels": {
+              "beta.kubernetes.io/arch": "arm64",
+              "beta.kubernetes.io/os": "linux",
+              "kubernetes.io/arch": "arm64",
+              "kubernetes.io/hostname": "peaso-v27-434ea956da40c754774b-control-plane",
+              "kubernetes.io/os": "linux",
+              "node-role.kubernetes.io/control-plane": ""
+            },
+            "name": "peaso-v27-434ea956da40c754774b-control-plane",
+            "resourceVersion": "447",
+            "uid": "ae80c2a8-2500-49b6-b7a0-43cdee3b76df"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "_cluster",
+            "resourceVersion": "447",
+            "uid": "ae80c2a8-2500-49b6-b7a0-43cdee3b76df"
+          },
+          "spec": {
+            "podCIDR": "10.244.0.0/24",
+            "podCIDRs": [
+              "10.244.0.0/24"
+            ],
+            "providerID": "kind://docker/peaso-v27-434ea956da40c754774b/peaso-v27-434ea956da40c754774b-control-plane"
+          },
+          "status": {
+            "addresses": [
+              {
+                "address": "172.19.0.2",
+                "type": "InternalIP"
+              },
+              {
+                "address": "peaso-v27-434ea956da40c754774b-control-plane",
+                "type": "Hostname"
+              }
+            ],
+            "allocatable": {
+              "cpu": "10",
+              "ephemeral-storage": "977896124416",
+              "hugepages-1Gi": "0",
+              "hugepages-2Mi": "0",
+              "hugepages-32Mi": "0",
+              "hugepages-64Ki": "0",
+              "memory": "8024852Ki",
+              "pods": "110"
+            },
+            "capacity": {
+              "cpu": "10",
+              "ephemeral-storage": "977896124416",
+              "hugepages-1Gi": "0",
+              "hugepages-2Mi": "0",
+              "hugepages-32Mi": "0",
+              "hugepages-64Ki": "0",
+              "memory": "8024852Ki",
+              "pods": "110"
+            },
+            "conditions": [
+              {
+                "lastHeartbeatTime": "2026-10-15T20:20:40Z",
+                "lastTransitionTime": "2026-10-15T20:20:17Z",
+                "message": "kubelet has sufficient memory available",
+                "reason": "KubeletHasSufficientMemory",
+                "status": "False",
+                "type": "MemoryPressure"
+              },
+              {
+                "lastHeartbeatTime": "2026-10-15T20:20:40Z",
+                "lastTransitionTime": "2026-10-15T20:20:17Z",
+                "message": "kubelet has no disk pressure",
+                "reason": "KubeletHasNoDiskPressure",
+                "status": "False",
+                "type": "DiskPressure"
+              },
+              {
+                "lastHeartbeatTime": "2026-10-15T20:20:40Z",
+                "lastTransitionTime": "2026-10-15T20:20:17Z",
+                "message": "kubelet has sufficient PID available",
+                "reason": "KubeletHasSufficientPID",
+                "status": "False",
+                "type": "PIDPressure"
+              },
+              {
+                "lastHeartbeatTime": "2026-10-15T20:20:40Z",
+                "lastTransitionTime": "2026-10-15T20:20:40Z",
+                "message": "kubelet is posting ready status",
+                "reason": "KubeletReady",
+                "status": "True",
+                "type": "Ready"
+              }
+            ],
+            "daemonEndpoints": {
+              "kubeletEndpoint": {
+                "Port": 10250
+              }
+            },
+            "declaredFeatures": [
+              "ExtendWebSocketsToKubelet",
+              "InPlacePodLevelResourcesVerticalScaling",
+              "InPlacePodVerticalScalingInitContainers",
+              "RestartAllContainersOnContainerExits"
+            ],
+            "features": {
+              "supplementalGroupsPolicy": true
+            },
+            "images": [
+              {
+                "names": [
+                  "docker.io/library/import-2026-08-26@sha256:4fbbef5581e6ed60b96426e3786371b57da07f66e350b4ff2b0077413c2b0444",
+                  "registry.k8s.io/kube-apiserver-arm64:v1.37.0",
+                  "registry.k8s.io/kube-apiserver:v1.37.0"
+                ],
+                "sizeBytes": 97074418
+              },
+              {
+                "names": [
+                  "docker.io/library/import-2026-08-26@sha256:dda35f6553455c1dde75aebfbb20759d24b7de776b884eb06415f242f276200c",
+                  "registry.k8s.io/kube-controller-manager-arm64:v1.37.0",
+                  "registry.k8s.io/kube-controller-manager:v1.37.0"
+                ],
+                "sizeBytes": 85082212
+              },
+              {
+                "names": [
+                  "docker.io/library/import-2026-08-26@sha256:d5e740cce95911da5590b633aae2f7f7e3370ec9d212d4dbbbf3bf19fa07551f",
+                  "registry.k8s.io/kube-proxy-arm64:v1.37.0",
+                  "registry.k8s.io/kube-proxy:v1.37.0"
+                ],
+                "sizeBytes": 84532964
+              },
+              {
+                "names": [
+                  "docker.io/library/import-2026-08-26@sha256:2aa78b45454b3df79d15bf6a57b4f9871f11ce16c8b645109ba2310076d228dd",
+                  "registry.k8s.io/kube-scheduler-arm64:v1.37.0",
+                  "registry.k8s.io/kube-scheduler:v1.37.0"
+                ],
+                "sizeBytes": 59129565
+              },
+              {
+                "names": [
+                  "docker.io/kindest/kindnetd:v20260820-69b56db7"
+                ],
+                "sizeBytes": 35652389
+              },
+              {
+                "names": [
+                  "registry.k8s.io/coredns/coredns:v1.14.6"
+                ],
+                "sizeBytes": 21239459
+              },
+              {
+                "names": [
+                  "registry.k8s.io/etcd:3.7.0-0"
+                ],
+                "sizeBytes": 20455189
+              },
+              {
+                "names": [
+                  "docker.io/kindest/local-path-provisioner:v20260820-69b56db7"
+                ],
+                "sizeBytes": 14217939
+              },
+              {
+                "names": [
+                  "docker.io/kindest/local-path-helper:v20260131-7181c60a"
+                ],
+                "sizeBytes": 2740462
+              },
+              {
+                "names": [
+                  "registry.k8s.io/pause:3.10"
+                ],
+                "sizeBytes": 267933
+              }
+            ],
+            "nodeInfo": {
+              "architecture": "arm64",
+              "bootID": "eff11580-9536-4cd1-b520-d02c6beaf106",
+              "containerRuntimeVersion": "containerd://2.3.4",
+              "kernelVersion": "6.12.54-linuxkit",
+              "kubeProxyVersion": "",
+              "kubeletVersion": "v1.37.0",
+              "machineID": "3c4a19eb6e57403dade9de46e23faf03",
+              "operatingSystem": "linux",
+              "osImage": "Debian GNU/Linux 13 (trixie)",
+              "runningInUserNamespace": false,
+              "swap": {
+                "capacity": 1073737728
+              },
+              "systemUUID": "3c4a19eb6e57403dade9de46e23faf03"
+            },
+            "runtimeHandlers": [
+              {
+                "features": {
+                  "recursiveReadOnlyMounts": true,
+                  "userNamespaces": true
+                },
+                "name": ""
+              },
+              {
+                "features": {
+                  "recursiveReadOnlyMounts": true,
+                  "userNamespaces": true
+                },
+                "name": "runc"
+              },
+              {
+                "features": {
+                  "recursiveReadOnlyMounts": true,
+                  "userNamespaces": true
+                },
+                "name": "test-handler"
+              }
+            ]
+          }
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "node"
+    },
+    {
+      "items": [
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/9ca1dd14-f7e1-4250-bd3e-2737c8fa00a3",
+          "metadata": {
+            "creationTimestamp": "2026-10-15T20:22:06Z",
+            "generateName": "frontend-7d654d8dbb-",
+            "generation": 1,
+            "labels": {
+              "app": "frontend",
+              "peaso.fixture/nonce": "434ea956da40c754774b",
+              "pod-template-hash": "7d654d8dbb",
+              "tier": "web"
+            },
+            "name": "frontend-7d654d8dbb-5rrxd",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "frontend-7d654d8dbb",
+                "uid": "381b1ff2-fcd7-4091-8291-2245b5e2c4a1"
+              }
+            ],
+            "resourceVersion": "761",
+            "uid": "9ca1dd14-f7e1-4250-bd3e-2737c8fa00a3"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "761",
+            "uid": "9ca1dd14-f7e1-4250-bd3e-2737c8fa00a3"
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "image": "registry.k8s.io/pause:3.10",
+                "imagePullPolicy": "Never",
+                "name": "inert-pause",
+                "resources": {
+                  "limits": {
+                    "cpu": "50m",
+                    "memory": "32Mi"
+                  },
+                  "requests": {
+                    "cpu": "1m",
+                    "memory": "8Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File"
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "enableServiceLinks": true,
+            "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+            "preemptionPolicy": "PreemptLowerPriority",
+            "priority": 0,
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 65532,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "default",
+            "serviceAccountName": "default",
+            "terminationGracePeriodSeconds": 30,
+            "tolerations": [
+              {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+              },
+              {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+              }
+            ]
+          },
+          "status": {
+            "allocatedResources": {
+              "cpu": "1m",
+              "memory": "8Mi"
+            },
+            "conditions": [
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:08Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "PodReadyToStartContainers"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:07Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "Initialized"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:08Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "Ready"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:08Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "ContainersReady"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:06Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "PodScheduled"
+              }
+            ],
+            "containerStatuses": [
+              {
+                "allocatedResources": {
+                  "cpu": "1m",
+                  "memory": "8Mi"
+                },
+                "containerID": "containerd://538f1c43dee0005aa31074fad465c8a25d2c0c3e387002c47eb4a476058458e0",
+                "image": "registry.k8s.io/pause:3.10",
+                "imageID": "sha256:afb61768ce381961ca0beff95337601f29dc70ff3ed14e5e4b3e5699057e6aa8",
+                "lastState": {},
+                "name": "inert-pause",
+                "ready": true,
+                "resources": {
+                  "limits": {
+                    "cpu": "50m",
+                    "memory": "32Mi"
+                  },
+                  "requests": {
+                    "cpu": "1m",
+                    "memory": "8Mi"
+                  }
+                },
+                "restartCount": 0,
+                "started": true,
+                "state": {
+                  "running": {
+                    "startedAt": "2026-10-15T20:22:08Z"
+                  }
+                },
+                "user": {
+                  "linux": {
+                    "gid": 0,
+                    "supplementalGroups": [
+                      0
+                    ],
+                    "uid": 65532
+                  }
+                }
+              }
+            ],
+            "hostIP": "172.19.0.2",
+            "hostIPs": [
+              {
+                "ip": "172.19.0.2"
+              }
+            ],
+            "observedGeneration": 1,
+            "phase": "Running",
+            "podIP": "10.244.0.8",
+            "podIPs": [
+              {
+                "ip": "10.244.0.8"
+              }
+            ],
+            "qosClass": "Burstable",
+            "resources": {
+              "limits": {
+                "cpu": "50m",
+                "memory": "32Mi"
+              },
+              "requests": {
+                "cpu": "1m",
+                "memory": "8Mi"
+              }
+            },
+            "startTime": "2026-10-15T20:22:07Z"
+          }
+        },
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/b7b58dd5-e851-4163-bcfd-bc492439ae36",
+          "metadata": {
+            "creationTimestamp": "2026-10-15T20:22:08Z",
+            "generateName": "frontend-7d654d8dbb-",
+            "generation": 1,
+            "labels": {
+              "app": "frontend",
+              "peaso.fixture/nonce": "434ea956da40c754774b",
+              "pod-template-hash": "7d654d8dbb",
+              "tier": "web"
+            },
+            "name": "frontend-7d654d8dbb-bh7nm",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "frontend-7d654d8dbb",
+                "uid": "381b1ff2-fcd7-4091-8291-2245b5e2c4a1"
+              }
+            ],
+            "resourceVersion": "809",
+            "uid": "b7b58dd5-e851-4163-bcfd-bc492439ae36"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "809",
+            "uid": "b7b58dd5-e851-4163-bcfd-bc492439ae36"
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "image": "registry.k8s.io/pause:3.10",
+                "imagePullPolicy": "Never",
+                "name": "inert-pause",
+                "resources": {
+                  "limits": {
+                    "cpu": "50m",
+                    "memory": "32Mi"
+                  },
+                  "requests": {
+                    "cpu": "1m",
+                    "memory": "8Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File"
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "enableServiceLinks": true,
+            "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+            "preemptionPolicy": "PreemptLowerPriority",
+            "priority": 0,
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 65532,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "default",
+            "serviceAccountName": "default",
+            "terminationGracePeriodSeconds": 30,
+            "tolerations": [
+              {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+              },
+              {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+              }
+            ]
+          },
+          "status": {
+            "allocatedResources": {
+              "cpu": "1m",
+              "memory": "8Mi"
+            },
+            "conditions": [
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:10Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "PodReadyToStartContainers"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:09Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "Initialized"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:10Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "Ready"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:10Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "ContainersReady"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:09Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "PodScheduled"
+              }
+            ],
+            "containerStatuses": [
+              {
+                "allocatedResources": {
+                  "cpu": "1m",
+                  "memory": "8Mi"
+                },
+                "containerID": "containerd://81a26bd17d1fcdd92731aeb0be56ee5f469aa6eefbabdc95b71b40f6e40e1733",
+                "image": "registry.k8s.io/pause:3.10",
+                "imageID": "sha256:afb61768ce381961ca0beff95337601f29dc70ff3ed14e5e4b3e5699057e6aa8",
+                "lastState": {},
+                "name": "inert-pause",
+                "ready": true,
+                "resources": {
+                  "limits": {
+                    "cpu": "50m",
+                    "memory": "32Mi"
+                  },
+                  "requests": {
+                    "cpu": "1m",
+                    "memory": "8Mi"
+                  }
+                },
+                "restartCount": 0,
+                "started": true,
+                "state": {
+                  "running": {
+                    "startedAt": "2026-10-15T20:22:10Z"
+                  }
+                },
+                "user": {
+                  "linux": {
+                    "gid": 0,
+                    "supplementalGroups": [
+                      0
+                    ],
+                    "uid": 65532
+                  }
+                }
+              }
+            ],
+            "hostIP": "172.19.0.2",
+            "hostIPs": [
+              {
+                "ip": "172.19.0.2"
+              }
+            ],
+            "observedGeneration": 1,
+            "phase": "Running",
+            "podIP": "10.244.0.10",
+            "podIPs": [
+              {
+                "ip": "10.244.0.10"
+              }
+            ],
+            "qosClass": "Burstable",
+            "resources": {
+              "limits": {
+                "cpu": "50m",
+                "memory": "32Mi"
+              },
+              "requests": {
+                "cpu": "1m",
+                "memory": "8Mi"
+              }
+            },
+            "startTime": "2026-10-15T20:22:09Z"
+          }
+        },
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/96ee42f2-7411-43c1-a511-8190fb38cd92",
+          "metadata": {
+            "creationTimestamp": "2026-10-15T20:22:07Z",
+            "generateName": "other-6cf687d84-",
+            "generation": 1,
+            "labels": {
+              "app": "other",
+              "peaso.fixture/nonce": "434ea956da40c754774b",
+              "pod-template-hash": "6cf687d84",
+              "tier": "web"
+            },
+            "name": "other-6cf687d84-9h7gx",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "other-6cf687d84",
+                "uid": "c18bc15c-3e15-4060-8a2d-4badd4b69d8d"
+              }
+            ],
+            "resourceVersion": "748",
+            "uid": "96ee42f2-7411-43c1-a511-8190fb38cd92"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "748",
+            "uid": "96ee42f2-7411-43c1-a511-8190fb38cd92"
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "image": "registry.k8s.io/pause:3.10",
+                "imagePullPolicy": "Never",
+                "name": "inert-pause",
+                "resources": {
+                  "limits": {
+                    "cpu": "50m",
+                    "memory": "32Mi"
+                  },
+                  "requests": {
+                    "cpu": "1m",
+                    "memory": "8Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File"
+              }
+            ],
+            "dnsPolicy": "ClusterFirst",
+            "enableServiceLinks": true,
+            "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+            "preemptionPolicy": "PreemptLowerPriority",
+            "priority": 0,
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 65532,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "serviceAccount": "default",
+            "serviceAccountName": "default",
+            "terminationGracePeriodSeconds": 30,
+            "tolerations": [
+              {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+              },
+              {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+              }
+            ]
+          },
+          "status": {
+            "allocatedResources": {
+              "cpu": "1m",
+              "memory": "8Mi"
+            },
+            "conditions": [
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:08Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "PodReadyToStartContainers"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:07Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "Initialized"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:08Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "Ready"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:08Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "ContainersReady"
+              },
+              {
+                "lastProbeTime": null,
+                "lastTransitionTime": "2026-10-15T20:22:07Z",
+                "observedGeneration": 1,
+                "status": "True",
+                "type": "PodScheduled"
+              }
+            ],
+            "containerStatuses": [
+              {
+                "allocatedResources": {
+                  "cpu": "1m",
+                  "memory": "8Mi"
+                },
+                "containerID": "containerd://a01422a6f10849e29d91dea4fddb2a7338149d121bc03616b51d35ac84c8f836",
+                "image": "registry.k8s.io/pause:3.10",
+                "imageID": "sha256:afb61768ce381961ca0beff95337601f29dc70ff3ed14e5e4b3e5699057e6aa8",
+                "lastState": {},
+                "name": "inert-pause",
+                "ready": true,
+                "resources": {
+                  "limits": {
+                    "cpu": "50m",
+                    "memory": "32Mi"
+                  },
+                  "requests": {
+                    "cpu": "1m",
+                    "memory": "8Mi"
+                  }
+                },
+                "restartCount": 0,
+                "started": true,
+                "state": {
+                  "running": {
+                    "startedAt": "2026-10-15T20:22:08Z"
+                  }
+                },
+                "user": {
+                  "linux": {
+                    "gid": 0,
+                    "supplementalGroups": [
+                      0
+                    ],
+                    "uid": 65532
+                  }
+                }
+              }
+            ],
+            "hostIP": "172.19.0.2",
+            "hostIPs": [
+              {
+                "ip": "172.19.0.2"
+              }
+            ],
+            "observedGeneration": 1,
+            "phase": "Running",
+            "podIP": "10.244.0.9",
+            "podIPs": [
+              {
+                "ip": "10.244.0.9"
+              }
+            ],
+            "qosClass": "Burstable",
+            "resources": {
+              "limits": {
+                "cpu": "50m",
+                "memory": "32Mi"
+              },
+              "requests": {
+                "cpu": "1m",
+                "memory": "8Mi"
+              }
+            },
+            "startTime": "2026-10-15T20:22:07Z"
+          }
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "pod"
+    },
+    {
+      "items": [
+        {
+          "_static_pod_metadata": false,
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/service/peaso-net-434ea956da40c754774b/0bb04c61-72ea-4057-ae35-d1c8976d7597",
+          "metadata": {
+            "creationTimestamp": "2026-10-15T20:20:43Z",
+            "labels": {
+              "peaso.fixture/nonce": "434ea956da40c754774b"
+            },
+            "name": "frontend",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "480",
+            "uid": "0bb04c61-72ea-4057-ae35-d1c8976d7597"
+          },
+          "provenance": {
+            "apiVersion": null,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "credential_material": "omitted",
+            "evidence": "read-only list",
+            "namespace": "peaso-net-434ea956da40c754774b",
+            "resourceVersion": "480",
+            "uid": "0bb04c61-72ea-4057-ae35-d1c8976d7597"
+          },
+          "spec": {
+            "clusterIP": "10.96.100.60",
+            "clusterIPs": [
+              "10.96.100.60"
+            ],
+            "internalTrafficPolicy": "Cluster",
+            "ipFamilies": [
+              "IPv4"
+            ],
+            "ipFamilyPolicy": "SingleStack",
+            "ports": [
+              {
+                "name": "tcp",
+                "port": 80,
+                "protocol": "TCP",
+                "targetPort": 8080
+              }
+            ],
+            "selector": {
+              "app": "frontend",
+              "tier": "web"
+            },
+            "sessionAffinity": "None",
+            "type": "ClusterIP"
+          },
+          "status": {
+            "loadBalancer": {}
+          }
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "service"
+    },
+    {
+      "items": [
+        {
+          "addresses": [
+            {
+              "address": "172.19.0.2",
+              "type": "InternalIP"
+            },
+            {
+              "address": "peaso-v27-434ea956da40c754774b-control-plane",
+              "type": "Hostname"
+            }
+          ],
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/node/_cluster/ae80c2a8-2500-49b6-b7a0-43cdee3b76df/observed-addresses",
+          "nodeName": null,
+          "provenance": {
+            "authoritative_interface_inventory": false,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "source": "object.status"
+          },
+          "resource_id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/node/_cluster/ae80c2a8-2500-49b6-b7a0-43cdee3b76df"
+        },
+        {
+          "addresses": [
+            {
+              "ip": "10.244.0.8"
+            }
+          ],
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/9ca1dd14-f7e1-4250-bd3e-2737c8fa00a3/observed-addresses",
+          "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+          "provenance": {
+            "authoritative_interface_inventory": false,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "source": "object.status"
+          },
+          "resource_id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/9ca1dd14-f7e1-4250-bd3e-2737c8fa00a3"
+        },
+        {
+          "addresses": [
+            {
+              "ip": "10.244.0.10"
+            }
+          ],
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/b7b58dd5-e851-4163-bcfd-bc492439ae36/observed-addresses",
+          "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+          "provenance": {
+            "authoritative_interface_inventory": false,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "source": "object.status"
+          },
+          "resource_id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/b7b58dd5-e851-4163-bcfd-bc492439ae36"
+        },
+        {
+          "addresses": [
+            {
+              "ip": "10.244.0.9"
+            }
+          ],
+          "id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/96ee42f2-7411-43c1-a511-8190fb38cd92/observed-addresses",
+          "nodeName": "peaso-v27-434ea956da40c754774b-control-plane",
+          "provenance": {
+            "authoritative_interface_inventory": false,
+            "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+            "source": "object.status"
+          },
+          "resource_id": "k8s://kind-owned%3Apeaso-v27-434ea956da40c754774b/pod/peaso-net-434ea956da40c754774b/96ee42f2-7411-43c1-a511-8190fb38cd92"
+        }
+      ],
+      "scope": "peaso-net-434ea956da40c754774b",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "network_interface"
+    }
+  ],
+  "created_at": "2026-10-15T20:22:13.313981+00:00",
+  "metadata": {
+    "calls": 7,
+    "cluster_id": "kind-owned:peaso-v27-434ea956da40c754774b",
+    "cluster_id_source": "explicit",
+    "collection": "read-only",
+    "collection_deadline_seconds": null,
+    "collection_plan": {
+      "categories": [
+        "hardening",
+        "exposure",
+        "least_privilege",
+        "iam_graph",
+        "network",
+        "privesc",
+        "monitoring",
+        "encryption",
+        "compliance",
+        "logging",
+        "identity",
+        "recovery",
+        "vulnerability",
+        "threat_detection",
+        "secure_development",
+        "backup",
+        "supply_chain",
+        "malware",
+        "asset_management",
+        "patch_management"
+      ],
+      "checks": [
+        "k8s_service_service_uses_ftp_endpoint_connection_e9b0a5f836"
+      ],
+      "frameworks": "all_selected",
+      "mode": "explicit_inventories",
+      "requirements": [
+        "deployment",
+        "endpointslice",
+        "namespace",
+        "network_interface",
+        "networkpolicy",
+        "node",
+        "pod",
+        "service"
+      ]
+    },
+    "compliance_policy": {
+      "reason": "owner_policy_missing",
+      "source": "operator-supplied",
+      "status": "unknown"
+    },
+    "concurrency": 2,
+    "context": null,
+    "explicit_limits": {
+      "max_calls": 100,
+      "max_pages": 10,
+      "max_resources": 200
+    },
+    "intentional_partial": false,
+    "kube_proxy_pod_coverage": {
+      "reason": "coverage_manifest_missing_invalid_or_foreign",
+      "runtime_verified": false,
+      "status": "unknown"
+    },
+    "max_calls": 100,
+    "max_pages": 10,
+    "max_resources": 200,
+    "namespace_semantics": "administrative scope; not a subnet",
+    "network_interfaces": {
+      "authoritative": false,
+      "status": "observed_addresses_only"
+    },
+    "network_policy_enforcement": {
+      "reason": "CNI implementation and runtime enforcement are not verified by Kubernetes policy objects",
+      "status": "unknown"
+    },
+    "omitted_inventories": [
+      "admission_configuration",
+      "admission_configuration_file",
+      "admission_policy",
+      "api_discovery",
+      "clusterrole",
+      "clusterrolebinding",
+      "component_configuration",
+      "configmap_metadata",
+      "cronjob",
+      "daemonset",
+      "file_metadata",
+      "ingress",
+      "ingressclass",
+      "job",
+      "limitrange",
+      "podsecuritypolicy",
+      "podtemplate",
+      "replicaset",
+      "replicationcontroller",
+      "resourcequota",
+      "role",
+      "rolebinding",
+      "secret_metadata",
+      "securitycontextconstraint",
+      "serviceaccount",
+      "statefulset"
+    ],
+    "retries": 0,
+    "trusted_scope_ids": [],
+    "usage_evidence": {
+      "reason": "No audit logs, pod logs, exec or Secret objects read",
+      "status": "unknown"
+    }
+  },
+  "provider": "k8s",
+  "schema_version": "1.0",
+  "scopes": [
+    "peaso-net-434ea956da40c754774b"
+  ],
+  "snapshot_id": "sha256:e38f38154e03000334a34f9d3097a516922779649cece66cec3b57cc477f5693"
+}

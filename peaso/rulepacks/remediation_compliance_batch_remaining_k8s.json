@@ -1,0 +1,1045 @@
+{
+  "k8s.cis.admission_allowprivilegeescalation": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "224b0185859bb6795c15b22156573eb0b82583bc0f6bbf44a26cd95db14b4603",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, c.securityContext.allowPrivilegeEscalation == false)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; allowPrivilegeEscalation false on each container",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, c.securityContext.allowPrivilegeEscalation == false)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; allowPrivilegeEscalation false on each container."
+  },
+  "k8s.cis.admission_capabilities_add": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "502451c92f88a516a9b31c57950f963c053bfbd89f153e3b8201ec91e72ebc94",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.capabilities.add) || size(c.securityContext.capabilities.add)==0)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; drop ALL and add no capabilities",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.capabilities.add) || size(c.securityContext.capabilities.add)==0)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; drop ALL and add no capabilities."
+  },
+  "k8s.cis.admission_capabilities_add_net_raw": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "bc46b030150b9b266865ec8e3472a53e801ce019cfacfc7cf2afa0dae32af805",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.capabilities.add) || !c.securityContext.capabilities.add.exists(x, x==\"NET_RAW\"))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; remove NET_RAW from capabilities.add",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.capabilities.add) || !c.securityContext.capabilities.add.exists(x, x==\"NET_RAW\"))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; remove NET_RAW from capabilities.add."
+  },
+  "k8s.cis.admission_capabilities_drop": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "7d25a97fd22258704b1133f3781e153f90e68d0e0b2d947186b39ff91c2ac477",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, has(c.securityContext.capabilities.drop) && c.securityContext.capabilities.drop.exists(x, x==\"ALL\"))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; drop ALL capabilities",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, has(c.securityContext.capabilities.drop) && c.securityContext.capabilities.drop.exists(x, x==\"ALL\"))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; drop ALL capabilities."
+  },
+  "k8s.cis.admission_container_ports_hostport": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "ac0ae88d83753ba169adf90a5e0258ed3ca5d6b5d2569871d9b313d70cad1d10",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.ports) || c.ports.all(p, !has(p.hostPort) || p.hostPort==0))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; remove hostPort from containers",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.ports) || c.ports.all(p, !has(p.hostPort) || p.hostPort==0))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; remove hostPort from containers."
+  },
+  "k8s.cis.admission_hostipc": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "b4fed62a3fd79c8d22b790ac52a938db52ec47ccbd01de3a5d4c90356cad38b1",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.hostIPC) || object.spec.hostIPC==false` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set hostIPC false",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.hostIPC) || object.spec.hostIPC==false` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set hostIPC false."
+  },
+  "k8s.cis.admission_hostnetwork": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "48b7f83cbb2a87a2bd38f58ba30d2da1d20354f5de041862066375ee2754dd14",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.hostNetwork) || object.spec.hostNetwork==false` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set hostNetwork false",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.hostNetwork) || object.spec.hostNetwork==false` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set hostNetwork false."
+  },
+  "k8s.cis.admission_hostpath": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "ecbc26cb67678979aa2fd58e5621e7ca68db1f70c06791708052b417fd85119d",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.volumes) || object.spec.volumes.all(v, !has(v.hostPath))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; replace hostPath with a PVC or other scoped volume",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.volumes) || object.spec.volumes.all(v, !has(v.hostPath))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; replace hostPath with a PVC or other scoped volume."
+  },
+  "k8s.cis.admission_hostpid": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "d05850dd8a18c0b560b144eaa089b283e5a25781ca1b5d07f8a2bcf461c3dbdb",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.hostPID) || object.spec.hostPID==false` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set hostPID false",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `!has(object.spec.hostPID) || object.spec.hostPID==false` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set hostPID false."
+  },
+  "k8s.cis.admission_privileged": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "3590c293438808fd2a04cdccb8f7d5aade58da2fcd345220429e35a89a0ba490",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.privileged) || c.securityContext.privileged==false)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set securityContext.privileged false",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.privileged) || c.securityContext.privileged==false)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set securityContext.privileged false."
+  },
+  "k8s.cis.admission_runasnonroot": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "03d949524241f82fda7020314de41f5457dad3b3c4f86537573b0253d561ba7f",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, (has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot==true) || (!has(c.securityContext.runAsNonRoot) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot==true))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set runAsNonRoot true on the Pod or every container",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, (has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot==true) || (!has(c.securityContext.runAsNonRoot) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot==true))` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set runAsNonRoot true on the Pod or every container."
+  },
+  "k8s.cis.admission_windowsoptions_hostprocess": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "admission_policy",
+      "path": "context.provider/scope/metadata.cluster_id; complete same-scope namespace and admission_policy inventories with matching provenance.cluster_id; namespace.metadata.name and labels; ValidatingAdmissionPolicyBinding.spec.policyName, validationActions and matchResources selectors/resourceRules/exclusions; ValidatingAdmissionPolicy.spec.matchConstraints selectors/resourceRules/exclusions, matchConditions, paramKind, failurePolicy and validations[].expression",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "d0812f3ec7685b2ed65fe5df66f4880e577731d0cd83ee8b4588c33cc71a2190",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.windowsOptions.hostProcess) || c.securityContext.windowsOptions.hostProcess==false)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set windowsOptions.hostProcess false",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Create a ValidatingAdmissionPolicy and binding with a CEL validation equivalent to `object.spec.containers.all(c, !has(c.securityContext.windowsOptions.hostProcess) || c.securityContext.windowsOptions.hostProcess==false)` and validationActions: [Deny], or set Pod Security Admission enforce=restricted where it covers this field; set windowsOptions.hostProcess false."
+  },
+  "k8s.cis.consider_external_secret_storage": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.spec.volumes[].secret.secretName and csi.driver; pod.spec.containers[].env[].valueFrom.secretKeyRef.name and envFrom[].secretRef.name; full native Pod LIST provenance; typed, nonempty observed Secret reference names and CSI driver; valueFrom/Secret/CSI coverage honored; only regular-container reference paths in the signed spec",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "4316dc4f3b4b2a3ff2ead1e3db07ae94492daadbdc24c60d4d49b3f007803552",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Install a CSI Secrets Store driver, configure SecretProviderClass for the external store, and replace direct Secret volumes or environment references in the Pod spec where supported."
+  },
+  "k8s.cis.controller_manager_rotate_kubelet_server_certificate_true": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.spec.containers[]._component_config.component, flags_complete and flags.feature-gates",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "4c7d1fcbc47532460e7954ed448e15082c572f8bfb23e0eb7db790e727144260",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Set --feature-gates=RotateKubeletServerCertificate=true on kube-controller-manager and roll out its static Pod manifest."
+  },
+  "k8s.cis.file_pki_owner": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "file_metadata",
+      "path": "complete file_metadata inventory; file_metadata.path, node_name, uid and gid; cluster-bound file_metadata_coverage.status=attested_complete; file_metadata_recursive_coverage for /etc/kubernetes/pki; file_metadata_recursive_coverage.applicable_nodes and enumeration_complete; PKI root file_metadata row for each applicable node",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "a69344c8ffa20787da6391fb359154874af550438f0a4af9c62af06e098a96bc",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/architecture/nodes/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. On each control-plane node, run `chown -R root:root /etc/kubernetes/pki` after verifying PKI ownership requirements",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "On each control-plane node, run `chown -R root:root /etc/kubernetes/pki` after verifying PKI ownership requirements."
+  },
+  "k8s.cis.file_var_lib_etcd_owner": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "file_metadata",
+      "path": "complete file_metadata inventory; file_metadata.path, node_name, uid and gid; cluster-bound file_metadata_coverage.status=attested_complete; cluster-bound resolved_etcd_accounts[node_name].uid/gid; file_metadata_coverage.selector_paths[\"/var/lib/etcd\"] per-node applicability and exact row join",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "842f7718dc226a855b09f288f950c8fca39e6b87c2ce527e8c8fa7d049e03d30",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/architecture/nodes/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. On each etcd node, resolve the local etcd UID and GID and run `chown etcd:etcd /var/lib/etcd`; verify the service account configured for that node",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "On each etcd node, resolve the local etcd UID and GID and run `chown etcd:etcd /var/lib/etcd`; verify the service account configured for that node."
+  },
+  "k8s.cis.kubelet_rotate_kubelet_server_certificate_true": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.batch_remaining_k8s",
+      "kind": "component_configuration",
+      "path": "Proposed extension to operator-supplied component_configuration.configuration.featureGates.RotateKubeletServerCertificate; current collector drops featureGates.",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "fbc62ea96bfc27d080ddf2b7198ff87a62610e0523a0d6e9ffcd781d0efa0fa4",
+    "references": [],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact observed declaration and completeness with the resource owner.",
+      "Set featureGates.RotateKubeletServerCertificate: true in each kubelet configuration and restart kubelet.",
+      "Re-evaluate the same resource and scope; review runtime behavior separately where the predicate is narrower."
+    ],
+    "summary": "Set featureGates.RotateKubeletServerCertificate: true in each kubelet configuration and restart kubelet."
+  },
+  "k8s.cis.psp_binding_enforced": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "clusterrolebinding",
+      "path": "complete api_discovery and serverVersion.gitVersion; complete podsecuritypolicy, role, clusterrole, rolebinding and clusterrolebinding inventories; namespace inventory for cluster-wide bindings; RBAC roleRef, subjects, rules and PSP resourceNames",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "ae51b4bfae6f423bbbbc7333b75bee293f5eba2eed515a9a8d48151e20eb586e",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/security/pod-security-policy/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. On Kubernetes versions serving PSP, bind each workload ServiceAccount to an approved restrictive PodSecurityPolicy using an RBAC Role with `use` on that policy; migrate to Pod Security Admission before upgrading",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "On Kubernetes versions serving PSP, bind each workload ServiceAccount to an approved restrictive PodSecurityPolicy using an RBAC Role with `use` on that policy; migrate to Pod Security Admission before upgrading."
+  },
+  "k8s.cis.the_eventrecordqps_argument_is_set_to_a_level_which_ensures_appropriate_event_capture": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "component_configuration",
+      "path": "complete component_configuration inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; component_configuration.component and configuration.eventRecordQPS; context.metadata.component_configuration_coverage.status=attested_complete; cluster-bound approved_min_event_qps; context.metadata.component_configuration_coverage has attested_complete status, matching cluster_id, positive integer node_count/max_age_seconds, and UTC observed_at fresh against context.created_at; eventRecordQPS is a nonnegative signed int32; approved_min_event_qps is a nonnegative signed int64",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "385298984b3a9e471b1341d0ec131a1ae9532f425cbf539f151dc849b6b414f2",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Set eventRecordQPS in each kubelet configuration to at least the organization’s approved minimum, then restart kubelet."
+  },
+  "k8s.cis.the_ipaddressdeny_is_set_to_any": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "component_configuration",
+      "path": "complete node inventory and status.nodeInfo.operatingSystem; complete component_configuration inventory for Windows nodes; component=kubelet, node_name and configuration.IPAddressDeny",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "1222f065246cd126adf46368717e85fcd62d2e323e3c42bcd20b6066f92b7f7b",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/architecture/nodes/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Set the Windows node IPAddressDeny policy value to Any using the node management policy, then confirm it on each Windows node",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Set the Windows node IPAddressDeny policy value to Any using the node management policy, then confirm it on each Windows node."
+  },
+  "k8s.cis.the_kube_proxy_metrics_service_is_bound_to_localhost": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.spec.containers[]._component_config.component, flags_complete and flags.metrics-bind-address; context.metadata.kube_proxy_pod_coverage.status=attested_complete for all Nodes; context.metadata.kube_proxy_pod_coverage has attested_complete status, matching cluster_id, positive integer node_count/max_age_seconds, and UTC observed_at fresh against context.created_at; context.scope=*; strict IP:decimal-port or [IP]:decimal-port syntax; port 0..65535",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "aef740a2baf695af215b30268605a9668e3c3c7b90aef95aa2b50a27eeaa0b14",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Set kube-proxy --metrics-bind-address=127.0.0.1:10249 (or [::1]:10249) in its DaemonSet or component configuration."
+  },
+  "k8s.cis.the_request_timeout_argument_is_set_as_appropriate": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.spec.containers[]._component_config.flags.request-timeout; cluster-bound approved_max_request_timeout integer seconds; signed Go duration grammar: compound/fractional h,m,s,ms,us,ns; nanosecond truncation and signed int64 range",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "d083d19f202cc099e88efdbee7dba336dcfdf1f248f27e08b5f778dd23f8df6c",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Set kube-apiserver --request-timeout to a positive duration no greater than the approved maximum in the static Pod manifest."
+  },
+  "k8s.cis.the_service_account_extend_token_expiration_parameter_is_set_to_false": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.spec.containers[]._component_config.flags.service-account-extend-token-expiration",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "094dc500a138ee59718529b04cd2302da87e4da154c4464d4fdaed244a73e89f",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Set kube-apiserver --service-account-extend-token-expiration=false in the static Pod manifest."
+  },
+  "k8s_approved_image_installation": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw56",
+      "kind": "pod",
+      "path": "complete same-scope pod, namespace and admission_policy inventories with matching cluster provenance; pod.spec.containers/initContainers/ephemeralContainers[*].image and metadata.namespace; context.metadata.compliance_policy.status, cluster_id, approved_images and optional freshness fields; Namespace labels and ValidatingAdmissionPolicy/Binding matching fields, actions and CEL expression",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "91c5faf48c6a380644bb003b65d9ee28c589209cdea2fefa3f5a26df035278ef",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/workloads/pods/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Pin Pod images to approved registry digests and bind a ValidatingAdmissionPolicy with validationActions: [Deny] for Pod CREATE and UPDATE across the target namespaces",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Pin Pod images to approved registry digests and bind a ValidatingAdmissionPolicy with validationActions: [Deny] for Pod CREATE and UPDATE across the target namespaces."
+  },
+  "k8s_cluster_appropriate_set_procedures_information_labelling_should_e24bda19": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "namespace",
+      "path": "complete namespace, secret_metadata, pod and deployment inventories; metadata.name, namespace and labels; cluster-bound classification_label_key and approved_values",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "5d91d17cc2bffa0f4ef62fcbb2b736d77b2b1f606f1adc0d6c274ca7659aae20",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/workloads/pods/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Set metadata.labels[classification_label_key] to an approved classification value in each Namespace, Secret, Pod and Deployment manifest or template",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Set metadata.labels[classification_label_key] to an approved classification value in each Namespace, Secret, Pod and Deployment manifest or template."
+  },
+  "k8s_cluster_version_at_least_oldest_supported": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "cluster",
+      "path": "complete cluster inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; api_discovery.serverVersion.gitVersion; cluster-bound oldestVersionSupported semver; scope target equals context.scope; strict ASCII semver core, prerelease and build identifiers",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "48560d0bdcd2ad2128c14d49cec120b3a83c535b8760978ff46d00e88fc588aa",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Upgrade the control plane and nodes to Kubernetes oldestVersionSupported or later using the cluster provider or kubeadm upgrade plan."
+  },
+  "k8s_cluster_version_supported": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "cluster",
+      "path": "complete cluster inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; api_discovery.serverVersion.gitVersion; cluster-bound oldestVersionSupported semver; scope target equals context.scope; strict ASCII semver core, prerelease and build identifiers",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "0f17e7d4c168a18dfafad6660b4cfa9775512b9f7844c45cac86c35c2ce26eb5",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Upgrade the control plane and nodes to a supported Kubernetes release above oldestVersionSupported using the cluster provider or kubeadm upgrade plan."
+  },
+  "k8s_environment_separation": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "namespace",
+      "path": "complete namespace, role, clusterrole, rolebinding, clusterrolebinding and networkpolicy inventories; metadata.labels[environment_key]; RBAC roleRef, subjects and resolved rules; NetworkPolicy ingress/egress namespaceSelector.matchLabels; environment_matrix namespaces, subject_environments and allowed_cross_environment; network_policy_enforcement.status=verified with matching cluster_id and scope",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "a51276c77a8c5288c658a5ec27924674b10de33a59cd02e352f7371b160280e1",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Label each namespace with the approved environment, remove cross-environment RoleBindings, and replace cross-environment NetworkPolicy peers with approved namespaceSelectors",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Label each namespace with the approved environment, remove cross-environment RoleBindings, and replace cross-environment NetworkPolicy peers with approved namespaceSelectors."
+  },
+  "k8s_networkpolicy_cluster_has_network_policies_that_1fd253608e": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "networkpolicy",
+      "path": "complete scoped networkpolicy inventory and policy identity; spec.podSelector, policyTypes, ingress and egress; ingress[].from[].ipBlock.cidr/except; ingress[].ports[].protocol/port/endPort; cluster-bound compliance_policy.allowed_public_ports",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "a1e4fc801622d32658ead5ed6097263ed610377465469826b8aa54a9e4d16ef4",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Narrow spec.ingress[].from[].ipBlock.cidr to trusted ranges or limit spec.ingress[].ports to the approved protocol/port pairs",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Narrow spec.ingress[].from[].ipBlock.cidr to trusted ranges or limit spec.ingress[].ports to the approved protocol/port pairs."
+  },
+  "k8s_networkpolicy_cluster_has_network_policies_that_24d2fc90b0": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "networkpolicy",
+      "path": "complete scoped networkpolicy inventory; spec.podSelector, policyTypes and ingress rules; ingress.from ipBlock CIDRs and exceptions; ingress.ports protocol, port and endPort; network_policy_enforcement.status=verified with matching cluster_id and scope and policy_union_complete=true",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "f14ac3e21c2f054c5ffbe104e1aa81188fc062af4085a877df75972e18299e37",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Remove non-22 entries from spec.ingress[].ports and set protocol: TCP, port: 22 in the NetworkPolicy manifest",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Remove non-22 entries from spec.ingress[].ports and set protocol: TCP, port: 22 in the NetworkPolicy manifest."
+  },
+  "k8s_networkpolicy_has_ingress_or_egress_rules": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "networkpolicy",
+      "path": "complete scoped networkpolicy inventory; spec.podSelector, policyTypes, ingress and egress; cluster-bound compliance_policy.network_policy_intent[namespace/name]; network_policy_enforcement.status=verified with matching cluster_id and scope",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "52d8472088c73ca7c64893c85b2bd371da4ec3a9d0e7fa662db52972b8809044",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Review the selected Pods, policyTypes, owner-approved allow or deny intent, and CNI enforcement before changing NetworkPolicy rules; retain intentional default-deny policies",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Review the selected Pods, policyTypes, owner-approved allow or deny intent, and CNI enforcement before changing NetworkPolicy rules; retain intentional default-deny policies."
+  },
+  "k8s_networkpolicy_world_ingress_authorized_ports": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "networkpolicy",
+      "path": "complete scoped networkpolicy inventory; spec.podSelector, policyTypes and ingress; ingress.from ipBlock CIDRs and exceptions; ingress.ports protocol, port and endPort; cluster-bound compliance_policy.allowed_ports",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "d34626295c73711c17c982ee63c46e927173a0523eff20b24c56445313ff8b5a",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Set ingress.ports to the approved protocol/port pairs for any rule with 0.0.0.0/0 or ::/0 in ingress.from",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Set ingress.ports to the approved protocol/port pairs for any rule with 0.0.0.0/0 or ::/0 in ingress.from."
+  },
+  "k8s_persistentvolume_persistentvolumeclaims_pvc_permissions_do_not_allow_00af04b0": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "role,clusterrole",
+      "path": "complete role, clusterrole, rolebinding, clusterrolebinding and namespace inventories; RBAC roleRef, ServiceAccount subjects, rules apiGroups/resources/verbs; cluster-bound approved_control_namespaces",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "37a23a1e881ce9809dfe8083fd165ff12fa76860e5090353a9acf4b19c3900a3",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Remove the offending RoleBinding or ClusterRoleBinding, or replace it with a namespace-scoped Role limited to approved ServiceAccounts and PVC verbs",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Remove the offending RoleBinding or ClusterRoleBinding, or replace it with a namespace-scoped Role limited to approved ServiceAccounts and PVC verbs."
+  },
+  "k8s_pod_pod_deployed_specific_namespace_its_76714f9dfe": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod, node inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.metadata.namespace and spec.nodeName; complete node.metadata.name and metadata.labels; cluster-bound approved_namespaces and approved_node_pool_selector; omitted nodeSelector or labels maps mean empty only on their full native resource; observed label key/value syntax is validated",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "9fdf4eaa012ac0324d880f3c33ca09b3f0caa620879f353abcbeeffcc164d635",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Move the workload manifest to an approved namespace and set nodeSelector or nodeAffinity to the approved node pool labels."
+  },
+  "k8s_pod_pod_deployed_within_specific_namespace_3790c81f90": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.metadata.namespace and spec.nodeSelector; cluster-bound approved_namespaces and approved_node_selector; omitted nodeSelector or labels maps mean empty only on their full native resource; observed label key/value syntax is validated",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "cec1d39c8340b920b58f9dcbf9d2240bc480d87042830d8ebb4e777b2a115079",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Set metadata.namespace to an approved namespace and spec.nodeSelector to the required node pool key/value pairs."
+  },
+  "k8s_pod_pod_deployed_within_specific_namespace_62bb9e62c0": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.metadata.namespace and metadata.labels; cluster-bound approved_namespaces and approved_label_selector; omitted nodeSelector or labels maps mean empty only on their full native resource; observed label key/value syntax is validated",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "994ebe3cb92a172ef2fba43991a2d98d98b2d3ca14cb7e41d255c73c2702cb4d",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Set metadata.namespace to an approved namespace and add the required metadata.labels to the Pod template."
+  },
+  "k8s_pod_pod_running_within_specific_namespace_0f3d581358": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.metadata.namespace, metadata.labels and status.phase; cluster-bound approved_namespaces and approved_label_selector; omitted nodeSelector or labels maps mean empty only on their full native resource; observed label key/value syntax is validated",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "7c74acf03c3bb74272539f858143236f81536f1eb1e5f7ae7397958bb790b5a6",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Fix the Pod scheduling or readiness failure, place the workload in an approved namespace, and set the required Pod template labels."
+  },
+  "k8s_pod_serviceaccount_has_rbac_binding": {
+    "caveats": [
+      "Resolve UNKNOWN evidence before deciding a setting is compliant or deficient.",
+      "Guidance is read-only inspection plus an owner-approved change; no destructive command is provided."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw10",
+      "kind": "pod",
+      "path": "complete pod, rolebinding, clusterrolebinding inventories; matching collection and wrapper scope/type; context.provider=k8s and nonempty context.metadata.cluster_id; native provenance.cluster_id when present; pod.metadata.namespace and spec.serviceAccountName, default only on full native LIST; complete rolebinding and clusterrolebinding subjects[].kind/name/namespace; native omitted/empty Pod serviceAccountName defaults to default; native omitted RoleBinding ServiceAccount subject namespace defaults to binding namespace; ClusterRoleBinding ServiceAccount namespace is required; valid nonempty subject kind/name",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "040cde12199750f617a723f5c5f729d63bcfda9ec6fbaf35a7147d48d29e54c5",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/home/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only fields listed in the field binding, including inventory completeness and cluster scope.",
+      "With owner approval, implement the configuration change indicated by the finding through the approved change process.",
+      "Recollect the same scope and verify the result after the owner-approved change."
+    ],
+    "summary": "Create a namespace scoped RoleBinding for the Pod’s effective spec.serviceAccountName and the minimum required Role."
+  },
+  "k8s_privileged_utility_access": {
+    "caveats": [
+      "This check evaluates the collected declaration and does not prove runtime enforcement where the description states a collector gap.",
+      "Use read-only inspection; make changes only with owner approval."
+    ],
+    "cli": [],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_sw57",
+      "kind": "cluster",
+      "path": "complete role, clusterrole, rolebinding, clusterrolebinding and pod inventories; RBAC roleRef, subjects, rules apiGroups/resources/verbs; Pod namespace, name and container securityContext.privileged; cluster-bound authorized_subjects, authorized_utility_namespaces and privileged_utility_pods",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "c054b202fe5061aaa34f915bc869ce7c2918ac3fc008d361a604f1b80a567265",
+    "references": [
+      {
+        "title": "Kubernetes documentation",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "source_bound_pending_review",
+    "steps": [
+      "Inspect the read-only facts listed in the field binding for this check and resolve UNKNOWN evidence before deciding on a change.",
+      "Ask the resource owner to approve the intended configuration and scope. Remove unapproved RBAC grants for pods/exec create and pods/ephemeralcontainers update, and restrict privileged utility Pods to authorized namespaces",
+      "After the owner-approved change, recollect the same scope and verify the check result and relevant runtime behavior."
+    ],
+    "summary": "Remove unapproved RBAC grants for pods/exec create and pods/ephemeralcontainers update, and restrict privileged utility Pods to authorized namespaces."
+  }
+}

@@ -1,0 +1,71 @@
+# Frozen copies of peaso/privesc/catalog/gcp entries used by tests (rev a53b46392c).
+- id: gcp-compute-instances-create-actas
+  provider: gcp
+  service: compute
+  title: Create a VM running as a chosen service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-compute-privesc/README.md#computeinstancescreateiamserviceaccountsactas-computediskscreate-computeinstancescreate-computeinstancessetmetadata-computeinstancessetserviceaccount-computesubnetworksuse-computesubnetworksuseexternalip
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of any service account in the project on which it holds iam.serviceAccounts.actAs.
+  requires:
+    all_of:
+    - action: iam.serviceAccounts.actAs
+      resource: '{target.email}'
+    - action: compute.instances.create
+      resource: '*'
+    - action: compute.disks.create
+      resource: '*'
+    - action: compute.instances.setMetadata
+      resource: '*'
+    - action: compute.instances.setServiceAccount
+      resource: '*'
+    - action: compute.subnetworks.use
+      resource: '*'
+  target:
+    kind: gcp_service_account
+    selector:
+      gcp_actas_granted_on_target: true
+      gcp_sa_in_scope_of_permission: true
+    scope: same_project
+    aggregate_as: Service accounts usable by new VMs in {project}
+  conditions:
+  - id: cross_project_sa
+    description: SAs from other projects are attachable only when iam.disableCrossProjectServiceAccountUsage is not enforced on the SA's project; not modelled (cross-project false negatives).
+  - id: token_exfil_path
+    description: Reading the token out of the VM needs a network path (compute.subnetworks.useExternalIp for an external IP, or any egress the code can use).
+  blockers:
+  - gcp_deny_policy
+  - vpc_sc_perimeter
+  confidence: derived
+  severity: critical
+  mitigation: Grant roles/iam.serviceAccountUser only on specific low-privilege SAs, never project-wide, and keep privileged SAs out of projects where users can create VMs.
+  references:
+  - https://cloud.google.com/compute/docs/access/service-accounts
+  notes: The attacker chooses the access scopes of the new VM, so the full IAM permissions of the SA are reachable.
+- id: gcp-iam-serviceaccounts-getaccesstoken
+  provider: gcp
+  service: iam
+  title: Mint OAuth access tokens for a service account
+  source: src/pentesting-cloud/gcp-security/gcp-privilege-escalation/gcp-iam-privesc.md#iamserviceaccountsgetaccesstoken-iamserviceaccountsget
+  source_revision: a53b46392c
+  summary: The source can obtain the privileges of every service account on which it holds iam.serviceAccounts.getAccessToken.
+  requires:
+    all_of:
+    - action: iam.serviceAccounts.getAccessToken
+      resource: '{target.email}'
+  target:
+    kind: gcp_service_account
+    selector:
+      resource_permission_covers_target: iam.serviceAccounts.getAccessToken
+    scope: any
+    aggregate_as: Service accounts the source can mint tokens for
+  conditions:
+  - id: iam_condition
+    description: An IAM Condition on the granting binding (time, resource name) may limit when or for which SA the permission applies.
+  blockers:
+  - gcp_deny_policy
+  confidence: derived
+  severity: critical
+  mitigation: Grant roles/iam.serviceAccountTokenCreator only on specific service accounts, never at project/folder/org level.
+  references:
+  - https://cloud.google.com/iam/docs/service-account-permissions
+  notes: Works across projects; the token carries the full IAM permissions of the target SA. iam.serviceAccounts.get is only needed for discovery.

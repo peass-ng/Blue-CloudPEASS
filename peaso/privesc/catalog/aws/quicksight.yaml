@@ -1,0 +1,37 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
+# Amazon QuickSight application-plane privilege escalation techniques (aws_service_plane_admin targets).
+# Source: hacktricks-cloud aws-quicksight-privesc/README.md (rev 171e422299).
+# QuickSight users are not collected: every edge is one unresolved placeholder per account.
+
+- id: aws-quicksight-registeruser-admin
+  provider: aws
+  service: quicksight
+  title: Register a controlled IAM identity as a QuickSight ADMIN
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-quicksight-privesc/README.md#quicksightregisteruser--map-a-controlled-iam-identity-to-an-admin
+  source_revision: 171e422299
+  summary: The source can register an IAM identity it controls as a QuickSight ADMIN, gaining control of the account's QuickSight resources and data sources.
+  requires:
+    all_of:
+      - action: quicksight:RegisterUser
+        resource: "arn:aws:quicksight:*:{target.account}:user/*"
+  target:
+    kind: aws_service_plane_admin
+    selector:
+      service_plane: quicksight
+    scope: same_account
+    aggregate_as: "QuickSight administrators in {account}"
+    grants: [QuickSight ADMIN]
+  conditions:
+    - id: quicksight_subscribed
+      description: The account must have a QuickSight subscription whose namespace accepts IAM identities.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: high
+  mitigation: Restrict quicksight:RegisterUser to QuickSight administrators and alert on RegisterUser with Role=ADMIN.
+  notes: The registered identity is the source itself or an IAM principal it controls. Application-plane administration, not IAM administrator access.

@@ -1,0 +1,14 @@
+output "url" { value = "https://${local.domain}" }
+output "frontend_bucket" { value = aws_s3_bucket.frontend.id }
+output "customer_role_template_download_url" { value = "https://${local.domain}/${aws_s3_object.customer_role_download.key}" }
+output "customer_role_template_quick_create_url" { value = var.enable_public_customer_role_template ? "https://${aws_s3_bucket.templates[0].bucket}.s3.${var.region}.amazonaws.com/${aws_s3_object.customer_role_template[local.customer_role_template_sha256].key}" : null }
+output "artifact_bucket" { value = aws_s3_bucket.artifacts.id }
+output "metadata_table" { value = aws_dynamodb_table.metadata.id }
+output "cloudfront_distribution_id" { value = aws_cloudfront_distribution.cspm.id }
+output "api_id" { value = aws_apigatewayv2_api.cspm.id }
+output "api_function" { value = aws_lambda_function.api.function_name }
+output "workflow_arn" { value = aws_sfn_state_machine.scan.arn }
+output "worker_repository" { value = aws_ecr_repository.worker.repository_url }
+output "collector_role_arn" { value = aws_iam_role.customer_trust.arn }
+output "analyzer_role_arn" { value = aws_iam_role.analyzer.arn }
+output "credential_secret_arn" { value = aws_secretsmanager_secret.credentials.arn }

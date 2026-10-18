@@ -1,0 +1,669 @@
+{
+  "azure-compliance.control.cis_v130_4_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_atp_enabled"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_atp_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 655,
+      "query_sha256": "f99ad44c48e07a540d75b58bb5376400f08a271843fdb76a06474ed9c11c7b85",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 128,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_db_active_directory_admin_configured"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_db_active_directory_admin_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 634,
+      "query_sha256": "2e4e1a6c560eb7d174eb54a786ab7f674cbfad3e1b794db72cba72afa8b29f60",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 310,
+      "arguments": [],
+      "status_case_sql": "case\n        when server_azure_ad_administrator is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v130_4_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_tde_protector_cmk_encrypted"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_tde_protector_cmk_encrypted",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 340,
+      "query_sha256": "57508ad0c6b909c38c2d95eac32e61ed66342923f012e0cf7ed9aacf2c3e93f8",
+      "control_path": "cis_v130/section_4.pp",
+      "control_line": 324,
+      "arguments": [],
+      "status_case_sql": "case\n        when encryption ->> 'kind' = 'servicemanaged' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v130_6_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_database_allow_internet_access"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_database_allow_internet_access",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 609,
+      "query_sha256": "ddae3e25ffb3c348bc2c5b4954e19405730b1e7df126f5659ee4089ac901e912",
+      "control_path": "cis_v130/section_6.pp",
+      "control_line": 53,
+      "arguments": [],
+      "status_case_sql": "case\n        when firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"0.0.0.0\",\"startIpAddress\":\"0.0.0.0\"}}]'\n        or firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"255.255.255.255\",\"startIpAddress\":\"0.0.0.0\"}}]'\n          then 'alarm'\n          else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_atp_enabled"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_atp_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 655,
+      "query_sha256": "f99ad44c48e07a540d75b58bb5376400f08a271843fdb76a06474ed9c11c7b85",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 132,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_db_active_directory_admin_configured"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_db_active_directory_admin_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 634,
+      "query_sha256": "2e4e1a6c560eb7d174eb54a786ab7f674cbfad3e1b794db72cba72afa8b29f60",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 356,
+      "arguments": [],
+      "status_case_sql": "case\n        when server_azure_ad_administrator is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v140_4_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_tde_protector_cmk_encrypted"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_tde_protector_cmk_encrypted",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 340,
+      "query_sha256": "57508ad0c6b909c38c2d95eac32e61ed66342923f012e0cf7ed9aacf2c3e93f8",
+      "control_path": "cis_v140/section_4.pp",
+      "control_line": 370,
+      "arguments": [],
+      "status_case_sql": "case\n        when encryption ->> 'kind' = 'servicemanaged' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v140_6_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_database_allow_internet_access"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_database_allow_internet_access",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 609,
+      "query_sha256": "ddae3e25ffb3c348bc2c5b4954e19405730b1e7df126f5659ee4089ac901e912",
+      "control_path": "cis_v140/section_6.pp",
+      "control_line": 53,
+      "arguments": [],
+      "status_case_sql": "case\n        when firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"0.0.0.0\",\"startIpAddress\":\"0.0.0.0\"}}]'\n        or firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"255.255.255.255\",\"startIpAddress\":\"0.0.0.0\"}}]'\n          then 'alarm'\n          else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_database_allow_internet_access"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_database_allow_internet_access",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 609,
+      "query_sha256": "ddae3e25ffb3c348bc2c5b4954e19405730b1e7df126f5659ee4089ac901e912",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 73,
+      "arguments": [],
+      "status_case_sql": "case\n        when firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"0.0.0.0\",\"startIpAddress\":\"0.0.0.0\"}}]'\n        or firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"255.255.255.255\",\"startIpAddress\":\"0.0.0.0\"}}]'\n          then 'alarm'\n          else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_tde_protector_cmk_encrypted"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_tde_protector_cmk_encrypted",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 340,
+      "query_sha256": "57508ad0c6b909c38c2d95eac32e61ed66342923f012e0cf7ed9aacf2c3e93f8",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 87,
+      "arguments": [],
+      "status_case_sql": "case\n        when encryption ->> 'kind' = 'servicemanaged' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_db_active_directory_admin_configured"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_db_active_directory_admin_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 634,
+      "query_sha256": "2e4e1a6c560eb7d174eb54a786ab7f674cbfad3e1b794db72cba72afa8b29f60",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 101,
+      "arguments": [],
+      "status_case_sql": "case\n        when server_azure_ad_administrator is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v150_4_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_atp_enabled"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_atp_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 655,
+      "query_sha256": "f99ad44c48e07a540d75b58bb5376400f08a271843fdb76a06474ed9c11c7b85",
+      "control_path": "cis_v150/section_4.pp",
+      "control_line": 160,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_database_allow_internet_access"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_database_allow_internet_access",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 609,
+      "query_sha256": "ddae3e25ffb3c348bc2c5b4954e19405730b1e7df126f5659ee4089ac901e912",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 73,
+      "arguments": [],
+      "status_case_sql": "case\n        when firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"0.0.0.0\",\"startIpAddress\":\"0.0.0.0\"}}]'\n        or firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"255.255.255.255\",\"startIpAddress\":\"0.0.0.0\"}}]'\n          then 'alarm'\n          else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_tde_protector_cmk_encrypted"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_tde_protector_cmk_encrypted",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 340,
+      "query_sha256": "57508ad0c6b909c38c2d95eac32e61ed66342923f012e0cf7ed9aacf2c3e93f8",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 87,
+      "arguments": [],
+      "status_case_sql": "case\n        when encryption ->> 'kind' = 'servicemanaged' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_db_active_directory_admin_configured"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_db_active_directory_admin_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 634,
+      "query_sha256": "2e4e1a6c560eb7d174eb54a786ab7f674cbfad3e1b794db72cba72afa8b29f60",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 101,
+      "arguments": [],
+      "status_case_sql": "case\n        when server_azure_ad_administrator is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v200_4_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_atp_enabled"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_atp_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 655,
+      "query_sha256": "f99ad44c48e07a540d75b58bb5376400f08a271843fdb76a06474ed9c11c7b85",
+      "control_path": "cis_v200/section_4.pp",
+      "control_line": 160,
+      "arguments": [],
+      "status_case_sql": "case\n        when security -> 'properties' ->> 'state' = 'Disabled' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_database_allow_internet_access"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_database_allow_internet_access",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 609,
+      "query_sha256": "ddae3e25ffb3c348bc2c5b4954e19405730b1e7df126f5659ee4089ac901e912",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 69,
+      "arguments": [],
+      "status_case_sql": "case\n        when firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"0.0.0.0\",\"startIpAddress\":\"0.0.0.0\"}}]'\n        or firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"255.255.255.255\",\"startIpAddress\":\"0.0.0.0\"}}]'\n          then 'alarm'\n          else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_tde_protector_cmk_encrypted"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_tde_protector_cmk_encrypted",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 340,
+      "query_sha256": "57508ad0c6b909c38c2d95eac32e61ed66342923f012e0cf7ed9aacf2c3e93f8",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 83,
+      "arguments": [],
+      "status_case_sql": "case\n        when encryption ->> 'kind' = 'servicemanaged' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v210_4_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_db_active_directory_admin_configured"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_db_active_directory_admin_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 634,
+      "query_sha256": "2e4e1a6c560eb7d174eb54a786ab7f674cbfad3e1b794db72cba72afa8b29f60",
+      "control_path": "cis_v210/section_4.pp",
+      "control_line": 97,
+      "arguments": [],
+      "status_case_sql": "case\n        when server_azure_ad_administrator is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_1_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_database_allow_internet_access"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_database_allow_internet_access",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 609,
+      "query_sha256": "ddae3e25ffb3c348bc2c5b4954e19405730b1e7df126f5659ee4089ac901e912",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 70,
+      "arguments": [],
+      "status_case_sql": "case\n        when firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"0.0.0.0\",\"startIpAddress\":\"0.0.0.0\"}}]'\n        or firewall_rules @> '[{\"properties\":{\"endIpAddress\":\"255.255.255.255\",\"startIpAddress\":\"0.0.0.0\"}}]'\n          then 'alarm'\n          else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_1_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_server_tde_protector_cmk_encrypted"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_server_tde_protector_cmk_encrypted",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 340,
+      "query_sha256": "57508ad0c6b909c38c2d95eac32e61ed66342923f012e0cf7ed9aacf2c3e93f8",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 84,
+      "arguments": [],
+      "status_case_sql": "case\n        when encryption ->> 'kind' = 'servicemanaged' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.sql_db_active_directory_admin_configured"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_db_active_directory_admin_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 634,
+      "query_sha256": "2e4e1a6c560eb7d174eb54a786ab7f674cbfad3e1b794db72cba72afa8b29f60",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 98,
+      "arguments": [],
+      "status_case_sql": "case\n        when server_azure_ad_administrator is null then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_1_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.sql.no_public_network"
+    ],
+    "reason": "Individually inspected complete source query/delegation. Preserve SQL-server target scope, authoritative complete child metadata, Entra administrator existence, exact current protector kind and matching key type, two firewall sentinel declarations, and security-alert Enabled/Disabled state; no blanket merge with child-target checks or vulnerability-assessment predicates. Missing/denied/malformed required facts UNKNOWN, enabled-config empty UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/sql/encryption-protectors/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-administrators/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-security-alert-policies/list-by-server?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/firewall-rules/list-by-server?view=rest-sql-2023-08-01"
+    ],
+    "review_notes": "Current ARM enum permits only ActiveDirectory administrators; empty list is source-null equivalent. Protector kind portal metadata and serverKeyType must agree. Knowncomplete empty firewall list passes exclusion requirement, but empty security-policy list cannot prove enabled account configuration. These are metadata declarations, no database reads, key values or network probes.",
+    "source_review": {
+      "query_id": "sql_db_public_network_access_disabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 516,
+      "query_sha256": "5e6aef3432fd43802cfe5a20bc8be5edd5185068d4924761d6adc2f7d4d16997",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 140,
+      "arguments": [],
+      "status_case_sql": "case\n        when public_network_access = 'Enabled' then 'alarm'\n        else 'ok'\n      end",
+      "source_dependencies": [
+        "azure_sql_server",
+        "azure_subscription"
+      ],
+      "scope": "per server; exact full ARM child IDs and field coverage"
+    }
+  }
+}

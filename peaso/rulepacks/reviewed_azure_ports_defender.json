@@ -1,0 +1,2248 @@
+{
+  "azure-compliance.control.cis_v130_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 76,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 76,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 122,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 125,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 106,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_7_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 359,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_7_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 311,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_7_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 387,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_sqlservervm": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqlservervm, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqlservervm",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 399,
+      "query_sha256": "5a5b932277a86d0529388d060905c2f12ebcaa42d280d0cd3712660b23266813",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 60,
+      "arguments": [],
+      "selector": "SqlServerVirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 48,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 48,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 80,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 83,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 78,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 287,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 239,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 316,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_appservice": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_appservice, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_appservice",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 495,
+      "query_sha256": "55da9dc87370165de110c9edaac0cbc27e3527ba87176ad8a6bba9d401ab8d28",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 93,
+      "arguments": [],
+      "selector": "AppServices",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_cosmosdb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_cosmosdb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 539,
+      "query_sha256": "5f6a4210c064bb2807f7fa2cd6211707caa43a39824ae8d7e4f7042f48540727",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 178,
+      "arguments": [],
+      "selector": "CosmosDbs",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_cosmosdb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_cosmosdb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 539,
+      "query_sha256": "5f6a4210c064bb2807f7fa2cd6211707caa43a39824ae8d7e4f7042f48540727",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 181,
+      "arguments": [],
+      "selector": "CosmosDbs",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_cosmosdb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_cosmosdb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 539,
+      "query_sha256": "5f6a4210c064bb2807f7fa2cd6211707caa43a39824ae8d7e4f7042f48540727",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 134,
+      "arguments": [],
+      "selector": "CosmosDbs",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_7_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_cosmosdb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_cosmosdb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 539,
+      "query_sha256": "5f6a4210c064bb2807f7fa2cd6211707caa43a39824ae8d7e4f7042f48540727",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 317,
+      "arguments": [],
+      "selector": "CosmosDbs",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_7_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_cosmosdb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_cosmosdb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 539,
+      "query_sha256": "5f6a4210c064bb2807f7fa2cd6211707caa43a39824ae8d7e4f7042f48540727",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 269,
+      "arguments": [],
+      "selector": "CosmosDbs",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_7_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_cosmosdb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_cosmosdb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 539,
+      "query_sha256": "5f6a4210c064bb2807f7fa2cd6211707caa43a39824ae8d7e4f7042f48540727",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 345,
+      "arguments": [],
+      "selector": "CosmosDbs",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_cosmosdb": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_cosmosdb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_cosmosdb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 539,
+      "query_sha256": "5f6a4210c064bb2807f7fa2cd6211707caa43a39824ae8d7e4f7042f48540727",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 213,
+      "arguments": [],
+      "selector": "CosmosDbs",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 132,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 132,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 192,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 195,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 176,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_8_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 386,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_8_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 338,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_8_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 413,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_keyvault": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_keyvault, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_keyvault",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 646,
+      "query_sha256": "9a2324ef347beaef1374383935e387a1a579feac257b295ccddd277ac8e43afa",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 106,
+      "arguments": [],
+      "selector": "KeyVaults",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_opensource_relational_db, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_opensource_relational_db",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 668,
+      "query_sha256": "ecc4da0c9b2a47480befd247176375b9c97f59bfdf998be0037c5756bb1c8595",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 136,
+      "arguments": [],
+      "selector": "OpenSourceRelationalDatabases",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_opensource_relational_db, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_opensource_relational_db",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 668,
+      "query_sha256": "ecc4da0c9b2a47480befd247176375b9c97f59bfdf998be0037c5756bb1c8595",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 139,
+      "arguments": [],
+      "selector": "OpenSourceRelationalDatabases",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_opensource_relational_db, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_opensource_relational_db",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 668,
+      "query_sha256": "ecc4da0c9b2a47480befd247176375b9c97f59bfdf998be0037c5756bb1c8595",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 120,
+      "arguments": [],
+      "selector": "OpenSourceRelationalDatabases",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_7_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_opensource_relational_db, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_opensource_relational_db",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 668,
+      "query_sha256": "ecc4da0c9b2a47480befd247176375b9c97f59bfdf998be0037c5756bb1c8595",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 331,
+      "arguments": [],
+      "selector": "OpenSourceRelationalDatabases",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_7_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_opensource_relational_db, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_opensource_relational_db",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 668,
+      "query_sha256": "ecc4da0c9b2a47480befd247176375b9c97f59bfdf998be0037c5756bb1c8595",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 283,
+      "arguments": [],
+      "selector": "OpenSourceRelationalDatabases",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_7_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_opensource_relational_db, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_opensource_relational_db",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 668,
+      "query_sha256": "ecc4da0c9b2a47480befd247176375b9c97f59bfdf998be0037c5756bb1c8595",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 359,
+      "arguments": [],
+      "selector": "OpenSourceRelationalDatabases",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_opensource_relational_db": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_opensource_relational_db, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_opensource_relational_db",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 668,
+      "query_sha256": "ecc4da0c9b2a47480befd247176375b9c97f59bfdf998be0037c5756bb1c8595",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 231,
+      "arguments": [],
+      "selector": "OpenSourceRelationalDatabases",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_resource_manager"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_resource_manager, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_resource_manager",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 690,
+      "query_sha256": "85e26e1f07a145c2d75c4ffe5e83415329d3b22d4576f892cfa021876402f0af",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 234,
+      "arguments": [],
+      "selector": "Arm",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_resource_manager"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_resource_manager, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_resource_manager",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 690,
+      "query_sha256": "85e26e1f07a145c2d75c4ffe5e83415329d3b22d4576f892cfa021876402f0af",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 204,
+      "arguments": [],
+      "selector": "Arm",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_9_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_resource_manager"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_resource_manager, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_resource_manager",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 690,
+      "query_sha256": "85e26e1f07a145c2d75c4ffe5e83415329d3b22d4576f892cfa021876402f0af",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 413,
+      "arguments": [],
+      "selector": "Arm",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_9_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_resource_manager"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_resource_manager, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_resource_manager",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 690,
+      "query_sha256": "85e26e1f07a145c2d75c4ffe5e83415329d3b22d4576f892cfa021876402f0af",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 365,
+      "arguments": [],
+      "selector": "Arm",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_9_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_resource_manager"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_resource_manager, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_resource_manager",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 690,
+      "query_sha256": "85e26e1f07a145c2d75c4ffe5e83415329d3b22d4576f892cfa021876402f0af",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 439,
+      "arguments": [],
+      "selector": "Arm",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_resource_manager": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_resource_manager"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_resource_manager, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_resource_manager",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 690,
+      "query_sha256": "85e26e1f07a145c2d75c4ffe5e83415329d3b22d4576f892cfa021876402f0af",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 176,
+      "arguments": [],
+      "selector": "Arm",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_server, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_server",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 712,
+      "query_sha256": "7542dae6f1f98cd3faa0d1b2ba3b175a79147d976c8918abb1ed6f7fc5b64b49",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 34,
+      "arguments": [],
+      "selector": "VirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_server, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_server",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 712,
+      "query_sha256": "7542dae6f1f98cd3faa0d1b2ba3b175a79147d976c8918abb1ed6f7fc5b64b49",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 34,
+      "arguments": [],
+      "selector": "VirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_server, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_server",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 712,
+      "query_sha256": "7542dae6f1f98cd3faa0d1b2ba3b175a79147d976c8918abb1ed6f7fc5b64b49",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 66,
+      "arguments": [],
+      "selector": "VirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_server, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_server",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 712,
+      "query_sha256": "7542dae6f1f98cd3faa0d1b2ba3b175a79147d976c8918abb1ed6f7fc5b64b49",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 69,
+      "arguments": [],
+      "selector": "VirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_server, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_server",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 712,
+      "query_sha256": "7542dae6f1f98cd3faa0d1b2ba3b175a79147d976c8918abb1ed6f7fc5b64b49",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 64,
+      "arguments": [],
+      "selector": "VirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_server, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_server",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 712,
+      "query_sha256": "7542dae6f1f98cd3faa0d1b2ba3b175a79147d976c8918abb1ed6f7fc5b64b49",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 120,
+      "arguments": [],
+      "selector": "VirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_server": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_server, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_server",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 712,
+      "query_sha256": "7542dae6f1f98cd3faa0d1b2ba3b175a79147d976c8918abb1ed6f7fc5b64b49",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 119,
+      "arguments": [],
+      "selector": "VirtualMachines",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 62,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 62,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 108,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 111,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 92,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 345,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 297,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 373,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_sqldb": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_sqldb, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_sqldb",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 734,
+      "query_sha256": "f6b1b6b6508b78677c380d27c2d07edb662d9c5ab9f7ff3df6bed3ea1ec16a5a",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 132,
+      "arguments": [],
+      "selector": "SqlServers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 90,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 90,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 150,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 153,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 148,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 260,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 212,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 276,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_storage": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_storage"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_storage, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_storage",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 756,
+      "query_sha256": "675ad3e2eeab43bf7c15e1e80c4aa36995be7bd51b3032f4d4eca3aa9cba6029",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 145,
+      "arguments": [],
+      "selector": "StorageAccounts",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_16": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containers"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_containers, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containers",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 822,
+      "query_sha256": "42090f69025ff8b5861650a417c43d2e728ed33cff43a66827e38cd3cd44df61",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 274,
+      "arguments": [],
+      "selector": "Containers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_containers": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containers"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_containers, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containers",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 822,
+      "query_sha256": "42090f69025ff8b5861650a417c43d2e728ed33cff43a66827e38cd3cd44df61",
+      "status_case_sql": "case when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 73,
+      "arguments": [],
+      "selector": "Containers",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.security_center_defender_for_api_enabled"
+    ],
+    "reason": "Inspected exact query security_center_defender_for_api_enabled, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "security_center_defender_for_api_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 938,
+      "query_sha256": "5b0488dd9d8a4e32e7c9293fbaf7e3f6e9e75575875ec529be9ec18664627e28",
+      "status_case_sql": "case when p.name = 'Api' and p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 137,
+      "arguments": [],
+      "selector": "Api",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.security_center_defender_for_api_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.security_center_defender_for_api_enabled"
+    ],
+    "reason": "Inspected exact query security_center_defender_for_api_enabled, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "security_center_defender_for_api_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 938,
+      "query_sha256": "5b0488dd9d8a4e32e7c9293fbaf7e3f6e9e75575875ec529be9ec18664627e28",
+      "status_case_sql": "case when p.name = 'Api' and p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 265,
+      "arguments": [],
+      "selector": "Api",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.security_center_defender_for_cloudposture_enabled"
+    ],
+    "reason": "Inspected exact query security_center_defender_for_cloudposture_enabled, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "security_center_defender_for_cloudposture_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 963,
+      "query_sha256": "67189903fc8bb0d9553c1e0fe793319c52c9c42c123c315f8f6aca556afc6310",
+      "status_case_sql": "case when p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 110,
+      "arguments": [],
+      "selector": "CloudPosture",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.security_center_defender_for_cloudposture_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.security_center_defender_for_cloudposture_enabled"
+    ],
+    "reason": "Inspected exact query security_center_defender_for_cloudposture_enabled, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "security_center_defender_for_cloudposture_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 963,
+      "query_sha256": "67189903fc8bb0d9553c1e0fe793319c52c9c42c123c315f8f6aca556afc6310",
+      "status_case_sql": "case when p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 273,
+      "arguments": [],
+      "selector": "CloudPosture",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_database"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_database, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_database",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 561,
+      "query_sha256": "f65cae3fc1ced85c26c9ba86b509ecbcab69e81bd127a2aa10517b884cb9bd43",
+      "status_case_sql": "case when\n          data ->> 'CosmosDbs' = 'Standard'\n          and data ->> 'OpenSourceRelationalDatabases' = 'Standard'\n          and data ->> 'SqlServerVirtualMachines' = 'Standard'\n          and data ->> 'SqlServers' = 'Standard'\n          then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 94,
+      "arguments": [],
+      "selector": [
+        "CosmosDbs",
+        "OpenSourceRelationalDatabases",
+        "SqlServerVirtualMachines",
+        "SqlServers"
+      ],
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_database"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_database, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_database",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 561,
+      "query_sha256": "f65cae3fc1ced85c26c9ba86b509ecbcab69e81bd127a2aa10517b884cb9bd43",
+      "status_case_sql": "case when\n          data ->> 'CosmosDbs' = 'Standard'\n          and data ->> 'OpenSourceRelationalDatabases' = 'Standard'\n          and data ->> 'SqlServerVirtualMachines' = 'Standard'\n          and data ->> 'SqlServers' = 'Standard'\n          then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 97,
+      "arguments": [],
+      "selector": [
+        "CosmosDbs",
+        "OpenSourceRelationalDatabases",
+        "SqlServerVirtualMachines",
+        "SqlServers"
+      ],
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_azure_defender_on_for_database": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_database"
+    ],
+    "reason": "Inspected exact query securitycenter_azure_defender_on_for_database, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_database",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 561,
+      "query_sha256": "f65cae3fc1ced85c26c9ba86b509ecbcab69e81bd127a2aa10517b884cb9bd43",
+      "status_case_sql": "case when\n          data ->> 'CosmosDbs' = 'Standard'\n          and data ->> 'OpenSourceRelationalDatabases' = 'Standard'\n          and data ->> 'SqlServerVirtualMachines' = 'Standard'\n          and data ->> 'SqlServers' = 'Standard'\n          then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 221,
+      "arguments": [],
+      "selector": [
+        "CosmosDbs",
+        "OpenSourceRelationalDatabases",
+        "SqlServerVirtualMachines",
+        "SqlServers"
+      ],
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_mcas_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_mcas_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_mcas_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 778,
+      "query_sha256": "368d72f19c6395016a2c5226a31e0e781ee17d39d9ea84f9611df2acf3fc45d9",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 160,
+      "arguments": [],
+      "selector": "MCAS",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_mcas_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_mcas_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_mcas_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 778,
+      "query_sha256": "368d72f19c6395016a2c5226a31e0e781ee17d39d9ea84f9611df2acf3fc45d9",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 160,
+      "arguments": [],
+      "selector": "MCAS",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_4_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_mcas_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_mcas_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_mcas_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 778,
+      "query_sha256": "368d72f19c6395016a2c5226a31e0e781ee17d39d9ea84f9611df2acf3fc45d9",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 376,
+      "arguments": [],
+      "selector": "MCAS",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_21": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_mcas_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_mcas_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_mcas_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 778,
+      "query_sha256": "368d72f19c6395016a2c5226a31e0e781ee17d39d9ea84f9611df2acf3fc45d9",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 349,
+      "arguments": [],
+      "selector": "MCAS",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_20": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_mcas_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_mcas_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_mcas_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 778,
+      "query_sha256": "368d72f19c6395016a2c5226a31e0e781ee17d39d9ea84f9611df2acf3fc45d9",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 330,
+      "arguments": [],
+      "selector": "MCAS",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_mcas_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_mcas_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_mcas_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 778,
+      "query_sha256": "368d72f19c6395016a2c5226a31e0e781ee17d39d9ea84f9611df2acf3fc45d9",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 89,
+      "arguments": [],
+      "selector": "MCAS",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_mcas_integration": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_mcas_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_mcas_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_mcas_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 778,
+      "query_sha256": "368d72f19c6395016a2c5226a31e0e781ee17d39d9ea84f9611df2acf3fc45d9",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 241,
+      "arguments": [],
+      "selector": "MCAS",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 146,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 146,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_4_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 390,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_22": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 363,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_21": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 344,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 148,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 130,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 195,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  },
+  "azure-compliance.control.securitycenter_wdatp_integration": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_wdatp_integration"
+    ],
+    "reason": "Inspected exact query securitycenter_wdatp_integration, source selector and subscription-id join; native evaluator requires complete selected-subscription metadata and retains the queried pricing/setting condition. Missing or absent selector metadata never becomes EMPTY/PASS; the database aggregate explicitly tests required plan absence after completeness. No runtime or effective-coverage claim.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Scope unit is the actual selected subscription; source plan/setting name filter and branch order are preserved. No cross-subscription resource can fulfill the predicate. Unknown/denied/partial source dependencies remain unassessed.",
+    "source_review": {
+      "query_id": "securitycenter_wdatp_integration",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 800,
+      "query_sha256": "bbce60590b9dbda5004a6a305d7594f93279a5dc66afe24027a48aa6915f06d1",
+      "status_case_sql": "case when enabled then 'ok'\n        else 'alarm'\n      end",
+      "control_path": "regulatory_compliance/securitycenter.pp",
+      "control_line": 249,
+      "arguments": [],
+      "selector": "WDATP",
+      "join": "subscription_id exact"
+    }
+  }
+}

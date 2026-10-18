@@ -1,0 +1,1247 @@
+{
+  "schema_version": 1,
+  "historical_legacy_sha256": "19f84adcda761567f3d3ff20c169a873640405d1002f45dd02b9363d182f123b",
+  "sources": {
+    "peaso/rulepacks/remediation_aws_reviewed.json": {
+      "pre_sha256": "b7e7c558373a33a881132a79c00629a119ceba324afda33abd09bfa898412ab8",
+      "post_sha256": "18be5648b8efd154bcd86a5b8f2e5063aef309109a097b849b34eecc6dbf5d2b",
+      "ensure_ascii": true,
+      "fields": [
+        {
+          "id": "aws.a.iam.console_key_created_at_setup",
+          "field": "summary",
+          "old": "Investigate a console-enabled IAM user whose first access key was created within ten seconds of account setup; migrate machine use to a scoped role and retire an unneeded key after testing.",
+          "new": "Investigate a console-enabled IAM user with a current first key whose initial setup timing cannot be proven from the credential report."
+        },
+        {
+          "id": "aws.a.iam.console_key_created_at_setup",
+          "field": "steps",
+          "old": [
+            "Inspect password_enabled, user_creation_time, access_key_1_last_rotated on the exact native resource or selected account; source target: for console-enabled user, first key rotation not within source ten-second setup interval.",
+            "Review why a console-enabled identity also received a first access key at setup; migrate machine use to a scoped role and retire an unneeded key only after workload testing.",
+            "Recollect the required native facts and rerun aws.a.iam.console_key_created_at_setup; preserve UNKNOWN or NOT_APPLICABLE where source eligibility differs."
+          ],
+          "new": [
+            "Inspect password_enabled and access_key_1_last_rotated; a current first key has UNKNOWN historical setup timing because last_rotated records creation or later change.",
+            "Review why a console-enabled identity also has an access key; seek independent first-key creation history, migrate machine use to a scoped role, and retire an unneeded key only after workload testing.",
+            "Recollect the required native facts and rerun aws.a.iam.console_key_created_at_setup; preserve UNKNOWN for unproven historical setup timing."
+          ]
+        },
+        {
+          "id": "aws.a.iam.console_key_created_at_setup",
+          "field": "field_binding.source_note",
+          "old": "Console-enabled IAM identity's first key was not created within the source ten-second setup interval: evaluator target for password_enabled, user_creation_time, access_key_1_last_rotated is for console-enabled user, first key rotation not within source ten-second setup interval.",
+          "new": "For a console-enabled IAM user with a current first key, access_key_1_last_rotated cannot prove historical first-key creation timing; the reviewed evaluator returns UNKNOWN when that timestamp is present."
+        },
+        {
+          "id": "aws.b.dynamodb.kms_description",
+          "field": "summary",
+          "old": "DynamoDB table declares a KMS SSE description: Table.Table.SSEDescription target is description present under the pinned source policy.",
+          "new": "DynamoDB table lacks an SSEDescription object; inspect the collected table description before deciding whether KMS is required separately."
+        },
+        {
+          "id": "aws.c2b.elbv2.http_listeners_redirect_https",
+          "field": "summary",
+          "old": "ALB HTTP listeners redirect to HTTPS (default action or listener rule). Replace plain HTTP forwarding with a redirect action to HTTPS on every HTTP listener.",
+          "new": "Make each HTTP listener default action and every collected listener rule action redirect to HTTPS, with the default rule agreeing with the listener default."
+        },
+        {
+          "id": "aws.c2b.elbv2.http_listeners_redirect_https",
+          "field": "caveats",
+          "old": [
+            "Each HTTP listener needs a redirect to HTTPS in DefaultActions or in a DescribeRules rule (COLLECTOR_FACTS). Corrected per listener: prowler flips the whole load balancer to PASS once any HTTP listener has a redirect.",
+            "Load balancer listener, security-group, WAF, or scheme changes can break live traffic and health checks; verify target reachability, certificates, client compatibility, and rollback.",
+            "The full JSON request must preserve unrelated existing settings and be reviewed against the current native response."
+          ],
+          "new": [
+            "Every HTTP listener DefaultActions and every collected DescribeRules action, including the default rule, must redirect to HTTPS. A conditional redirect does not compensate for a forwarding default; missing or conflicting rule evidence is UNKNOWN.",
+            "Load balancer listener, security-group, WAF, or scheme changes can break live traffic and health checks; verify target reachability, certificates, client compatibility, and rollback.",
+            "The full JSON request must preserve unrelated existing settings and be reviewed against the current native response."
+          ]
+        },
+        {
+          "id": "aws.c2b.elbv2.http_listeners_redirect_https",
+          "field": "steps",
+          "old": [
+            "Inspect the load balancer metadata and the evaluator fields Listeners.items for the named resource; confirm the relevant response was fully collected.",
+            "Replace plain HTTP forwarding with a redirect action to HTTPS on every HTTP listener.",
+            "Recollect the source facts and rerun the aws.c2b.elbv2.http_listeners_redirect_https check; if prerequisites or related inventory are missing, retain UNKNOWN or MANUAL rather than assuming compliance."
+          ],
+          "new": [
+            "Inspect every HTTP listener DefaultActions and all collected rule actions, including the default rule; confirm complete and consistent rule evidence.",
+            "Replace forwarding defaults and nonredirect rule actions with owner-reviewed HTTPS redirects on every HTTP listener.",
+            "Recollect the source facts and rerun the aws.c2b.elbv2.http_listeners_redirect_https check; if prerequisites or related inventory are missing, retain UNKNOWN or MANUAL rather than assuming compliance."
+          ]
+        },
+        {
+          "id": "aws.c2b.elbv2.http_listeners_redirect_https",
+          "field": "iac.code",
+          "old": "In the owner-managed load balancer Terraform/CloudFormation declaration, make this exact change: Replace plain HTTP forwarding with a redirect action to HTTPS on every HTTP listener. Load balancer listener, security-group, WAF, or scheme changes can break live traffic and health checks; verify target reachability, certificates, client compatibility, and rollback. Review the plan and dependent resources with the service owner before applying.",
+          "new": "In the owner-managed load balancer Terraform/CloudFormation declaration, make every HTTP listener default and rule action redirect to HTTPS, including the default rule. Verify target reachability, certificates, client compatibility and rollback with the service owner before applying."
+        },
+        {
+          "id": "aws.c2b.elbv2.http_listeners_redirect_https",
+          "field": "field_binding.path",
+          "old": "Listeners.items",
+          "new": "Listeners.items[].DefaultActions,Listeners.items[].Rules.items[].Actions"
+        },
+        {
+          "id": "aws.c2b.ecs.container_insights_setting",
+          "field": "caveats",
+          "old": [
+            "Steampipe evaluates one row per returned setting (clusters without settings produce no row: NOT_APPLICABLE). The pinned query only accepts 'enabled'; 'enhanced' (Container Insights with enhanced observability, a superset) is accepted to avoid a false positive.",
+            "Container Insights adds CloudWatch telemetry cost; review data retention and account-level setting precedence."
+          ],
+          "new": [
+            "The native evaluator fails a collected empty settings list or missing containerInsights entry; enabled and enhanced pass. Steampipe's row-per-setting query can omit a cluster with no settings, but that is not native NOT_APPLICABLE.",
+            "Container Insights adds CloudWatch telemetry cost; review data retention and account-level setting precedence."
+          ]
+        },
+        {
+          "id": "aws.c2b.ecs.container_insights_setting",
+          "field": "steps",
+          "old": [
+            "Inspect the ecs cluster metadata and the evaluator fields Configuration.clusters[0].settings[0].value for the named resource; confirm the relevant response was fully collected.",
+            "Turn on Container Insights for the cluster.",
+            "Recollect the source facts and rerun the aws.c2b.ecs.container_insights_setting check; if prerequisites or related inventory are missing, retain UNKNOWN or MANUAL rather than assuming compliance."
+          ],
+          "new": [
+            "Inspect the complete collected ECS cluster settings list for the containerInsights name and value; an empty list or missing entry fails.",
+            "Turn on Container Insights for the cluster.",
+            "Recollect the source facts and rerun the aws.c2b.ecs.container_insights_setting check; if prerequisites or related inventory are missing, retain UNKNOWN or MANUAL rather than assuming compliance."
+          ]
+        },
+        {
+          "id": "aws.c2b.ecs.container_insights_setting",
+          "field": "field_binding.path",
+          "old": "Configuration.clusters[0].settings[0].value",
+          "new": "Configuration.clusters[0].settings[*].name,Configuration.clusters[0].settings[*].value"
+        },
+        {
+          "id": "aws.gap.s3.bucket_policy_denies_insecure_transport",
+          "field": "steps",
+          "old": [
+            "Inspect Policy.Statement Effect/Principal/Action/Resource/Condition on the exact collected resource/scope; source target: one Deny for Principal *, Action * or s3:*, bucket and object ARNs, sole Bool/BoolIfExists aws:SecureTransport=false condition.",
+            "Add an owner-reviewed TLS-only Deny that covers both bucket and object actions/resources with the exact secure-transport condition, then test clients.",
+            "Recollect the required native and joined facts and rerun aws.gap.s3.bucket_policy_denies_insecure_transport; retain UNKNOWN, MANUAL or NOT_APPLICABLE source branches."
+          ],
+          "new": [
+            "Inspect qualifying Policy.Statement Effect/Principal/Action/Resource/Condition entries; combined Deny coverage must include wildcard principal, all S3 actions, the bucket ARN and every object key, with aws:SecureTransport=false.",
+            "Add an owner-reviewed TLS-only Deny that covers both bucket and object actions/resources with the exact secure-transport condition, then test clients.",
+            "Recollect the required native and joined facts and rerun aws.gap.s3.bucket_policy_denies_insecure_transport; retain UNKNOWN, MANUAL or NOT_APPLICABLE source branches."
+          ]
+        },
+        {
+          "id": "aws.gap.s3.bucket_policy_denies_insecure_transport",
+          "field": "field_binding.source_note",
+          "old": "S3 bucket policy denies every request made without TLS: evaluator target for Policy.Statement Effect/Principal/Action/Resource/Condition is one Deny for Principal *, Action * or s3:*, bucket and object ARNs, sole Bool/BoolIfExists aws:SecureTransport=false condition.",
+          "new": "Qualifying aws:SecureTransport=false Deny statements may collectively cover wildcard principal, all S3 actions, the bucket ARN and every object key; one literal object ARN does not cover the object namespace. Incomplete or malformed policy evidence is UNKNOWN."
+        },
+        {
+          "id": "aws.guardduty.eks_audit_logs",
+          "field": "summary",
+          "old": "Existing GuardDuty detector enables EKS audit-log protection: target Configuration.Features[Name=EKS_AUDIT_LOGS].Status is ENABLED for an existing detector.",
+          "new": "Enable the existing GuardDuty detector and its EKS_AUDIT_LOGS feature; both statuses must be ENABLED."
+        },
+        {
+          "id": "aws.guardduty.eks_audit_logs",
+          "field": "steps",
+          "old": [
+            "Inspect Configuration.Features[Name=EKS_AUDIT_LOGS].Status for the exact guardduty detector and compare the collected value with this check's target: ENABLED for an existing detector.",
+            "For the existing detector, enable the EKS_AUDIT_LOGS feature after reviewing EKS cluster coverage and regional billing.",
+            "Read Configuration.Features[Name=EKS_AUDIT_LOGS].Status again after owner-approved work, test dependent clients, and rerun aws.guardduty.eks_audit_logs; retain UNKNOWN when the needed fact is unreadable."
+          ],
+          "new": [
+            "Inspect Configuration.Status and Configuration.Features[Name=EKS_AUDIT_LOGS].Status for the exact detector; both must be ENABLED.",
+            "Have the owner enable the detector and EKS_AUDIT_LOGS feature after reviewing regional support, coverage and billing.",
+            "Read both statuses again after owner-approved work, test dependent clients, and rerun aws.guardduty.eks_audit_logs; retain UNKNOWN when a required status is unreadable."
+          ]
+        },
+        {
+          "id": "aws.guardduty.eks_audit_logs",
+          "field": "iac.code",
+          "old": "For the existing detector, enable the EKS_AUDIT_LOGS feature after reviewing EKS cluster coverage and regional billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval.",
+          "new": "For the existing detector, enable Configuration.Status and the EKS_AUDIT_LOGS feature after reviewing regional support, workload coverage and billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval."
+        },
+        {
+          "id": "aws.guardduty.eks_audit_logs",
+          "field": "field_binding.path",
+          "old": "Configuration.Features[Name=EKS_AUDIT_LOGS].Status",
+          "new": "Configuration.Status,Configuration.Features[Name=EKS_AUDIT_LOGS].Status"
+        },
+        {
+          "id": "aws.guardduty.lambda_network_logs",
+          "field": "summary",
+          "old": "Existing GuardDuty detector enables Lambda network protection: target Configuration.Features[Name=LAMBDA_NETWORK_LOGS].Status is ENABLED for an existing detector.",
+          "new": "Enable the existing GuardDuty detector and its LAMBDA_NETWORK_LOGS feature; both statuses must be ENABLED."
+        },
+        {
+          "id": "aws.guardduty.lambda_network_logs",
+          "field": "steps",
+          "old": [
+            "Inspect Configuration.Features[Name=LAMBDA_NETWORK_LOGS].Status for the exact guardduty detector and compare the collected value with this check's target: ENABLED for an existing detector.",
+            "For the existing detector, enable the LAMBDA_NETWORK_LOGS feature after reviewing supported functions and regional billing.",
+            "Read Configuration.Features[Name=LAMBDA_NETWORK_LOGS].Status again after owner-approved work, test dependent clients, and rerun aws.guardduty.lambda_network_logs; retain UNKNOWN when the needed fact is unreadable."
+          ],
+          "new": [
+            "Inspect Configuration.Status and Configuration.Features[Name=LAMBDA_NETWORK_LOGS].Status for the exact detector; both must be ENABLED.",
+            "Have the owner enable the detector and LAMBDA_NETWORK_LOGS feature after reviewing regional support, coverage and billing.",
+            "Read both statuses again after owner-approved work, test dependent clients, and rerun aws.guardduty.lambda_network_logs; retain UNKNOWN when a required status is unreadable."
+          ]
+        },
+        {
+          "id": "aws.guardduty.lambda_network_logs",
+          "field": "iac.code",
+          "old": "For the existing detector, enable the LAMBDA_NETWORK_LOGS feature after reviewing supported functions and regional billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval.",
+          "new": "For the existing detector, enable Configuration.Status and the LAMBDA_NETWORK_LOGS feature after reviewing regional support, workload coverage and billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval."
+        },
+        {
+          "id": "aws.guardduty.lambda_network_logs",
+          "field": "field_binding.path",
+          "old": "Configuration.Features[Name=LAMBDA_NETWORK_LOGS].Status",
+          "new": "Configuration.Status,Configuration.Features[Name=LAMBDA_NETWORK_LOGS].Status"
+        },
+        {
+          "id": "aws.guardduty.rds_login_events",
+          "field": "summary",
+          "old": "Existing GuardDuty detector enables RDS login-event protection: target Configuration.Features[Name=RDS_LOGIN_EVENTS].Status is ENABLED for an existing detector.",
+          "new": "Enable the existing GuardDuty detector and its RDS_LOGIN_EVENTS feature; both statuses must be ENABLED."
+        },
+        {
+          "id": "aws.guardduty.rds_login_events",
+          "field": "steps",
+          "old": [
+            "Inspect Configuration.Features[Name=RDS_LOGIN_EVENTS].Status for the exact guardduty detector and compare the collected value with this check's target: ENABLED for an existing detector.",
+            "For the existing detector, enable the RDS_LOGIN_EVENTS feature after reviewing supported databases and regional billing.",
+            "Read Configuration.Features[Name=RDS_LOGIN_EVENTS].Status again after owner-approved work, test dependent clients, and rerun aws.guardduty.rds_login_events; retain UNKNOWN when the needed fact is unreadable."
+          ],
+          "new": [
+            "Inspect Configuration.Status and Configuration.Features[Name=RDS_LOGIN_EVENTS].Status for the exact detector; both must be ENABLED.",
+            "Have the owner enable the detector and RDS_LOGIN_EVENTS feature after reviewing regional support, coverage and billing.",
+            "Read both statuses again after owner-approved work, test dependent clients, and rerun aws.guardduty.rds_login_events; retain UNKNOWN when a required status is unreadable."
+          ]
+        },
+        {
+          "id": "aws.guardduty.rds_login_events",
+          "field": "iac.code",
+          "old": "For the existing detector, enable the RDS_LOGIN_EVENTS feature after reviewing supported databases and regional billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval.",
+          "new": "For the existing detector, enable Configuration.Status and the RDS_LOGIN_EVENTS feature after reviewing regional support, workload coverage and billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval."
+        },
+        {
+          "id": "aws.guardduty.rds_login_events",
+          "field": "field_binding.path",
+          "old": "Configuration.Features[Name=RDS_LOGIN_EVENTS].Status",
+          "new": "Configuration.Status,Configuration.Features[Name=RDS_LOGIN_EVENTS].Status"
+        },
+        {
+          "id": "aws.guardduty.runtime_monitoring",
+          "field": "summary",
+          "old": "Existing GuardDuty detector enables runtime monitoring: target Configuration.Features[Name=RUNTIME_MONITORING].Status is ENABLED for an existing detector.",
+          "new": "Enable the existing GuardDuty detector and its RUNTIME_MONITORING feature; both statuses must be ENABLED."
+        },
+        {
+          "id": "aws.guardduty.runtime_monitoring",
+          "field": "steps",
+          "old": [
+            "Inspect Configuration.Features[Name=RUNTIME_MONITORING].Status for the exact guardduty detector and compare the collected value with this check's target: ENABLED for an existing detector.",
+            "For the existing detector, enable RUNTIME_MONITORING after checking supported resources, agent prerequisites and regional billing.",
+            "Read Configuration.Features[Name=RUNTIME_MONITORING].Status again after owner-approved work, test dependent clients, and rerun aws.guardduty.runtime_monitoring; retain UNKNOWN when the needed fact is unreadable."
+          ],
+          "new": [
+            "Inspect Configuration.Status and Configuration.Features[Name=RUNTIME_MONITORING].Status for the exact detector; both must be ENABLED.",
+            "Have the owner enable the detector and RUNTIME_MONITORING feature after reviewing regional support, coverage and billing.",
+            "Read both statuses again after owner-approved work, test dependent clients, and rerun aws.guardduty.runtime_monitoring; retain UNKNOWN when a required status is unreadable."
+          ]
+        },
+        {
+          "id": "aws.guardduty.runtime_monitoring",
+          "field": "iac.code",
+          "old": "For the existing detector, enable RUNTIME_MONITORING after checking supported resources, agent prerequisites and regional billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval.",
+          "new": "For the existing detector, enable Configuration.Status and the RUNTIME_MONITORING feature after reviewing regional support, workload coverage and billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval."
+        },
+        {
+          "id": "aws.guardduty.runtime_monitoring",
+          "field": "field_binding.path",
+          "old": "Configuration.Features[Name=RUNTIME_MONITORING].Status",
+          "new": "Configuration.Status,Configuration.Features[Name=RUNTIME_MONITORING].Status"
+        },
+        {
+          "id": "aws.guardduty.s3_data_events",
+          "field": "summary",
+          "old": "Existing GuardDuty detector enables S3 data-event protection: target Configuration.Features[Name=S3_DATA_EVENTS].Status is ENABLED for an existing detector.",
+          "new": "Enable the existing GuardDuty detector and its S3_DATA_EVENTS feature; both statuses must be ENABLED."
+        },
+        {
+          "id": "aws.guardduty.s3_data_events",
+          "field": "steps",
+          "old": [
+            "Inspect Configuration.Features[Name=S3_DATA_EVENTS].Status for the exact guardduty detector and compare the collected value with this check's target: ENABLED for an existing detector.",
+            "For the existing detector, enable S3_DATA_EVENTS after reviewing bucket scope and regional billing.",
+            "Read Configuration.Features[Name=S3_DATA_EVENTS].Status again after owner-approved work, test dependent clients, and rerun aws.guardduty.s3_data_events; retain UNKNOWN when the needed fact is unreadable."
+          ],
+          "new": [
+            "Inspect Configuration.Status and Configuration.Features[Name=S3_DATA_EVENTS].Status for the exact detector; both must be ENABLED.",
+            "Have the owner enable the detector and S3_DATA_EVENTS feature after reviewing regional support, coverage and billing.",
+            "Read both statuses again after owner-approved work, test dependent clients, and rerun aws.guardduty.s3_data_events; retain UNKNOWN when a required status is unreadable."
+          ]
+        },
+        {
+          "id": "aws.guardduty.s3_data_events",
+          "field": "iac.code",
+          "old": "For the existing detector, enable S3_DATA_EVENTS after reviewing bucket scope and regional billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval.",
+          "new": "For the existing detector, enable Configuration.Status and the S3_DATA_EVENTS feature after reviewing regional support, workload coverage and billing. Change the existing Terraform/CloudFormation owner declaration, review the plan and dependent clients, then apply under owner approval."
+        },
+        {
+          "id": "aws.guardduty.s3_data_events",
+          "field": "field_binding.path",
+          "old": "Configuration.Features[Name=S3_DATA_EVENTS].Status",
+          "new": "Configuration.Status,Configuration.Features[Name=S3_DATA_EVENTS].Status"
+        },
+        {
+          "id": "aws.a.iam.console_key_created_at_setup",
+          "field": "field_binding.path",
+          "old": "password_enabled, user_creation_time, access_key_1_last_rotated",
+          "new": "password_enabled,access_key_1_last_rotated"
+        },
+        {
+          "id": "aws.a.cloudtrail.cloudwatch_delivery_24h",
+          "field": "caveats",
+          "old": [
+            "The threshold uses the captured scan clock; a successfully collected missing delivery timestamp is a known failure.",
+            "The trail bucket name is never inferred from the trail ARN; verify the native S3BucketName and account scope before replacing <TRAIL_BUCKET_NAME>."
+          ],
+          "new": [
+            "The threshold uses the captured scan clock; a future delivery timestamp is UNKNOWN, a successfully collected missing delivery timestamp is a known failure, and unavailable clock/status remains UNKNOWN.",
+            "The trail bucket name is never inferred from the trail ARN; verify the native S3BucketName and account scope before replacing <TRAIL_BUCKET_NAME>."
+          ]
+        }
+      ]
+    },
+    "peaso/rulepacks/remediation_aws_families_reviewed.json": {
+      "pre_sha256": "b67305e1437e628d3dd062217e525f58a4229993f5d66f9aa3f72e9a19024c3a",
+      "post_sha256": "89b25e16374e8cd40140e96fb12fbda64615a135736b6a28d0f44d478e06ab0c",
+      "ensure_ascii": false,
+      "fields": [
+        {
+          "id": "aws.claude_a.iam.prowler_console_password_used_45",
+          "field": "summary",
+          "old": "A non-root IAM principal has an enabled console password last used more than 45 whole days ago.",
+          "new": "A non-root IAM user has an enabled console password whose recorded last use, or last change when never used, is more than 45 whole days old."
+        },
+        {
+          "id": "aws.claude_a.iam.prowler_console_password_used_45",
+          "field": "caveats",
+          "old": [
+            "This branch passes a never-used password and computes whole elapsed days from the captured instant, unlike the Steampipe-style sibling. Credential-report use data can lag."
+          ],
+          "new": [
+            "A never-used enabled password passes only while password_last_changed is no more than 45 whole days old; older passwords fail and unavailable change age is UNKNOWN. The Steampipe-style sibling fails never-used passwords immediately. Credential-report use data can lag."
+          ]
+        },
+        {
+          "id": "aws.claude_a.iam.prowler_console_password_used_45",
+          "field": "steps",
+          "old": [
+            "Inspect the non-root user and the recorded password_last_used timestamp; a never-used enabled password does not fail this exact branch.",
+            "Ask the identity owner to review service need, delayed sign-in reporting and SSO migration for users with more than 45 elapsed whole days of inactivity.",
+            "Retire a confirmed dormant login profile only after alternate access is tested, then verify sign-in policy and downstream workflows."
+          ],
+          "new": [
+            "Inspect the non-root user, password_enabled, password_last_used and password_last_changed; age a never-used enabled password from its last change, with missing age UNKNOWN.",
+            "Ask the identity owner to review service need, delayed sign-in reporting and SSO migration for passwords whose recorded use or never-used change age exceeds 45 whole days.",
+            "Retire a confirmed dormant login profile only after alternate access is tested, then verify sign-in policy and downstream workflows."
+          ]
+        },
+        {
+          "id": "aws.claude_a.iam.prowler_console_password_used_45",
+          "field": "iac.code",
+          "old": "Declare user console password_enabled lifecycle with reviewed password_last_used evidence, SSO migration and emergency-access exception; avoid revoking access solely from a delayed timestamp.",
+          "new": "Declare user console password_enabled lifecycle with reviewed password_last_used and password_last_changed evidence, SSO migration and emergency-access exception; avoid revoking access solely from a delayed timestamp."
+        },
+        {
+          "id": "aws.claude_a.iam.prowler_console_password_used_45",
+          "field": "source_proof.evaluated_field",
+          "old": "user,arn,password_enabled,password_last_used",
+          "new": "user,arn,password_enabled,password_last_used,password_last_changed"
+        },
+        {
+          "id": "aws.claude_a.iam.prowler_console_password_used_45",
+          "field": "field_binding.path",
+          "old": "user,arn,password_enabled,password_last_used",
+          "new": "user,arn,password_enabled,password_last_used,password_last_changed"
+        },
+        {
+          "id": "aws.claude_a.iam.access_keys_used_45",
+          "field": "summary",
+          "old": "An active access key slot has a recorded last-used date more than 45 whole days before capture.",
+          "new": "An active access key slot has a recorded last use, or last rotation when never used, more than 45 whole days before capture."
+        },
+        {
+          "id": "aws.claude_a.iam.access_keys_used_45",
+          "field": "caveats",
+          "old": [
+            "This predicate passes a never-used active key (N/A); the separate initial-key check can fail that case. The source includes root and last-used records can lag or omit rare recovery use."
+          ],
+          "new": [
+            "A never-used active key is aged from its last rotation or creation: it passes through 45 whole days, fails when older, and is UNKNOWN when that age is unavailable. The separate initial-key check has a different predicate. The source includes root and last-used records can lag or omit rare recovery use."
+          ]
+        },
+        {
+          "id": "aws.claude_a.iam.access_keys_used_45",
+          "field": "steps",
+          "old": [
+            "Inspect each active slot with a recorded last_used_date more than 45 whole days old and map it to real key metadata; note that never-used N/A slots pass this branch.",
+            "Have the service owner verify delayed telemetry, scheduled or disaster-recovery use before declaring a stale key unnecessary.",
+            "Migrate any remaining consumers and deactivate only the reviewed stale key, then validate workloads and the next credential report."
+          ],
+          "new": [
+            "Inspect each active slot and its last_used_date and last_rotated fields; age a never-used N/A slot from last_rotated and map the slot to real key metadata.",
+            "Have the service owner verify delayed telemetry, scheduled or disaster-recovery use before declaring a stale key unnecessary.",
+            "Migrate any remaining consumers and deactivate only the reviewed stale key, then validate workloads and the next credential report."
+          ]
+        },
+        {
+          "id": "aws.claude_a.iam.access_keys_used_45",
+          "field": "source_proof.evaluated_field",
+          "old": "user,arn,access_key_1_active,access_key_1_last_used_date,access_key_2_active,access_key_2_last_used_date",
+          "new": "user,arn,access_key_1_active,access_key_1_last_used_date,access_key_1_last_rotated,access_key_2_active,access_key_2_last_used_date,access_key_2_last_rotated"
+        },
+        {
+          "id": "aws.claude_a.iam.access_keys_used_45",
+          "field": "field_binding.path",
+          "old": "user,arn,access_key_1_active,access_key_1_last_used_date,access_key_2_active,access_key_2_last_used_date",
+          "new": "user,arn,access_key_1_active,access_key_1_last_used_date,access_key_1_last_rotated,access_key_2_active,access_key_2_last_used_date,access_key_2_last_rotated"
+        },
+        {
+          "id": "aws.claude_a.ec2.enclave_host_imdsv2",
+          "field": "summary",
+          "old": "An active Nitro Enclave parent instance has MetadataOptions.HttpTokens other than required, leaving its parent metadata endpoint eligible for IMDSv1.",
+          "new": "An active Nitro Enclave parent has MetadataOptions.HttpTokens other than required; inspect endpoint state separately before assessing exposure."
+        },
+        {
+          "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+          "field": "summary",
+          "old": "GuardDuty EBS_MALWARE_PROTECTION in Configuration.Features[Name=EBS_MALWARE_PROTECTION].Status must be ENABLED; the feature setting alone does not prove the detector is active.",
+          "new": "Enable the GuardDuty detector and its EBS_MALWARE_PROTECTION feature; both statuses must be ENABLED."
+        },
+        {
+          "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+          "field": "steps",
+          "old": [
+            "List regional detector IDs, inspect the exact detector and compare Configuration.Features[Name=EBS_MALWARE_PROTECTION].Status with the captured snapshot for EBS_MALWARE_PROTECTION.",
+            "Have the security owner review the ebs malware protection feature, cost and prerequisites, then apply a separately reviewed features input file to the exact detector.",
+            "Recollect the detector and rerun this exact check; verify service-specific protection and runtime eligibility outside the predicate."
+          ],
+          "new": [
+            "List regional detector IDs, inspect the exact detector and compare Configuration.Status and Configuration.Features[Name=EBS_MALWARE_PROTECTION].Status with the captured snapshot.",
+            "Have the security owner review detector activation, the EBS malware protection feature, cost and prerequisites, then apply a separately reviewed configuration to the exact detector.",
+            "Recollect the detector and rerun this exact check; verify service-specific protection and runtime eligibility outside the predicate."
+          ]
+        },
+        {
+          "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+          "field": "iac.code",
+          "old": "Update the owner-managed GuardDuty detector declaration for EBS_MALWARE_PROTECTION after confirming regional support, account organization ownership, feature charges and agent or data-source prerequisites. Keep other reviewed detector features intact.",
+          "new": "Update the owner-managed GuardDuty detector declaration so Configuration.Status and EBS_MALWARE_PROTECTION.Status are ENABLED after confirming regional support, account organization ownership, feature charges and prerequisites. Keep other reviewed detector features intact."
+        },
+        {
+          "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+          "field": "source_proof.evaluated_field",
+          "old": "Configuration.Features[Name=EBS_MALWARE_PROTECTION].Status",
+          "new": "Configuration.Status,Configuration.Features[Name=EBS_MALWARE_PROTECTION].Status"
+        },
+        {
+          "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+          "field": "field_binding.path",
+          "old": "Configuration.Features[Name=EBS_MALWARE_PROTECTION].Status",
+          "new": "Configuration.Status,Configuration.Features[Name=EBS_MALWARE_PROTECTION].Status"
+        },
+        {
+          "id": "aws.claude_a.s3.versioning_and_lifecycle",
+          "field": "summary",
+          "old": "The bucket does not have Versioning.Status Enabled, or it is versioned but has no lifecycle rule with Status Enabled.",
+          "new": "A bucket with Versioning.Status=Enabled lacks an enabled lifecycle rule."
+        },
+        {
+          "id": "aws.claude_a.s3.versioning_and_lifecycle",
+          "field": "caveats",
+          "old": [
+            "Enabling versioning changes object version and delete behavior, adds storage cost and may need propagation time. Existing expiration rules can leave noncurrent versions indefinitely unless separately reviewed; lifecycle replacement can delete data."
+          ],
+          "new": [
+            "Unversioned and suspended buckets are NOT_APPLICABLE to this lifecycle check; separate versioning checks cover them.",
+            "Enabling versioning changes object version and delete behavior, adds storage cost and may need propagation time. Existing expiration rules can leave noncurrent versions indefinitely unless separately reviewed; lifecycle replacement can delete data."
+          ]
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+          "field": "summary",
+          "old": "In a region with a non-default security group, ordered network ACL ingress must not first allow all protocols from 0.0.0.0/0 or ::/0.",
+          "new": "ordered network ACL ingress must not first allow all protocols from 0.0.0.0/0 or ::/0."
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+          "field": "caveats",
+          "old": [
+            "No single safe CLI mutation is provided: rule number, direction, CIDR and subnet consumers must be reviewed. Regions without non-default security groups are NOT_APPLICABLE."
+          ],
+          "new": [
+            "No single safe CLI mutation is provided: rule number, direction, CIDR and subnet consumers must be reviewed. All collected network ACLs are in scope; there is no non-default-security-group prerequisite."
+          ]
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+          "field": "source_proof.evaluated_field",
+          "old": "Entries[].Egress,RuleNumber,RuleAction,Protocol,CidrBlock,Ipv6CidrBlock / security_group.GroupName",
+          "new": "Entries[].Egress,RuleNumber,RuleAction,Protocol,CidrBlock,Ipv6CidrBlock"
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+          "field": "field_binding.path",
+          "old": "Entries[].Egress,RuleNumber,RuleAction,Protocol,CidrBlock,Ipv6CidrBlock / security_group.GroupName",
+          "new": "Entries[].Egress,RuleNumber,RuleAction,Protocol,CidrBlock,Ipv6CidrBlock"
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+          "field": "summary",
+          "old": "In a region with a non-default security group, ordered ACL ingress must not first allow TCP 22 from 0.0.0.0/0 or ::/0.",
+          "new": "ordered ACL ingress must not first allow TCP 22 from 0.0.0.0/0 or ::/0."
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+          "field": "caveats",
+          "old": [
+            "No single safe CLI mutation is offered because rule order, number and approved admin CIDRs are not finding evidence. Regions without non-default groups are NOT_APPLICABLE."
+          ],
+          "new": [
+            "No single safe CLI mutation is offered because rule order, number and approved admin CIDRs are not finding evidence. All collected ACLs are in scope."
+          ]
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+          "field": "source_proof.evaluated_field",
+          "old": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock / security_group.GroupName",
+          "new": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock"
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+          "field": "field_binding.path",
+          "old": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock / security_group.GroupName",
+          "new": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock"
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+          "field": "summary",
+          "old": "In a region with a non-default security group, ordered ACL ingress must not first allow TCP 3389 from 0.0.0.0/0 or ::/0.",
+          "new": "ordered ACL ingress must not first allow TCP 3389 from 0.0.0.0/0 or ::/0."
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+          "field": "caveats",
+          "old": [
+            "No single safe CLI mutation is offered because rule order, number and approved admin CIDRs are not finding evidence. Regions without non-default groups are NOT_APPLICABLE."
+          ],
+          "new": [
+            "No single safe CLI mutation is offered because rule order, number and approved admin CIDRs are not finding evidence. All collected ACLs are in scope."
+          ]
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+          "field": "source_proof.evaluated_field",
+          "old": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock / security_group.GroupName",
+          "new": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock"
+        },
+        {
+          "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+          "field": "field_binding.path",
+          "old": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock / security_group.GroupName",
+          "new": "Entries[].Egress,RuleNumber,RuleAction,Protocol,PortRange,CidrBlock,Ipv6CidrBlock"
+        },
+        {
+          "id": "aws.claude_a.vpc.sg_world_v4_only_80_443",
+          "field": "summary",
+          "old": "A security group has a 0.0.0.0/0 ingress rule whose FromPort is absent or is neither 80 nor 443.",
+          "new": "An IPv4 world ingress rule has a missing port, a port outside 80 or 443, or a range whose ToPort differs from FromPort."
+        },
+        {
+          "id": "aws.claude_a.vpc.sg_world_v4_only_80_443",
+          "field": "caveats",
+          "old": [
+            "The source tests FromPort only and does not inspect ToPort or IPv6, so an 80-to-65535 range could pass despite broad exposure. Public HTTP/HTTPS also requires application-layer controls; there is no safe generic revoke command without the exact rule and owner."
+          ],
+          "new": [
+            "The source checks both FromPort and ToPort for IPv4 world ingress, so an 80-to-65535 range fails. IPv6 is outside this predicate. Public HTTP/HTTPS also requires application-layer controls; there is no safe generic revoke command without the exact rule and owner."
+          ]
+        }
+      ]
+    }
+  },
+  "secondary": {
+    "path": "peaso/rulepacks/remediation_aws_reviewed.json",
+    "id": "aws.c2b.cloudfront.origin_traffic_encrypted",
+    "pre_sha256": "18be5648b8efd154bcd86a5b8f2e5063aef309109a097b849b34eecc6dbf5d2b",
+    "post_sha256": "16a32e58713bf646ca0aec3329260412b7974c1e1ebfd17c41b991cf7ca062a9",
+    "old": {
+      "caveats": [
+        "Prowler semantics: only the default behavior's viewer policy is considered; origins without CustomOriginConfig or S3OriginConfig have an empty protocol policy and fail.",
+        "CloudFront update-distribution replaces the full distribution config and requires the current ETag; preserve every unrelated behavior/origin and wait for deployment. Changing TLS, origins or certificate may interrupt viewers.",
+        "The replacement JSON/patch must be based on the current owner-approved configuration and preserve unrelated settings."
+      ],
+      "cli": [
+        {
+          "code": "aws cloudfront get-distribution-config --id <RESOURCE_ID>",
+          "label": "Inspect exact native resource and owner configuration (read only)",
+          "shell": "bash"
+        },
+        {
+          "code": "aws cloudfront update-distribution --id <RESOURCE_ID> --if-match <CURRENT_ETAG> --distribution-config file://<REVIEWED_DISTRIBUTION_JSON>",
+          "label": "Apply owner-reviewed change after impact review",
+          "shell": "bash"
+        }
+      ],
+      "field_binding": {
+        "evaluator_family": "peaso.checks.claude2_aws_b_edge",
+        "kind": "cloudfront_distribution",
+        "observed_fail_evidence": "unencrypted_origins, default_viewer_protocol_policy",
+        "path": "Config.DistributionConfig.Origins.Items[1].CustomOriginConfig.OriginProtocolPolicy",
+        "target": "resource"
+      },
+      "iac": {
+        "code": "In the owner-managed cloudfront distribution Terraform/CloudFormation declaration, make this exact change: Use https-only for custom origins (or match-viewer with HTTPS-only viewers) and do not allow plain HTTP viewers in front of S3 origins. CloudFront update-distribution replaces the full distribution config and requires the current ETag; preserve every unrelated behavior/origin and wait for deployment. Changing TLS, origins or certificate may interrupt viewers. Review the plan and dependent resources with the service owner before applying.",
+        "label": "Update the existing configuration owner",
+        "language": "text"
+      },
+      "references": [
+        {
+          "title": "AWS documentation for cloudfront distribution",
+          "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_Origin.html"
+        },
+        {
+          "title": "AWS documentation for cloudfront distribution",
+          "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+        }
+      ],
+      "review_status": "approved",
+      "steps": [
+        "Inspect the cloudfront distribution metadata and the evaluator fields Config.DistributionConfig.Origins.Items[1].CustomOriginConfig.OriginProtocolPolicy for the named resource; confirm the relevant response was fully collected.",
+        "Use https-only for custom origins (or match-viewer with HTTPS-only viewers) and do not allow plain HTTP viewers in front of S3 origins.",
+        "Recollect the source facts and rerun the aws.c2b.cloudfront.origin_traffic_encrypted check; if prerequisites or related inventory are missing, retain UNKNOWN or MANUAL rather than assuming compliance."
+      ],
+      "summary": "CloudFront origin traffic is encrypted for S3 and custom origins. Use https-only for custom origins (or match-viewer with HTTPS-only viewers) and do not allow plain HTTP viewers in front of S3 origins."
+    },
+    "new": {
+      "caveats": [
+        "A proven insecure directly targeted origin produces FAIL despite unrelated incomplete or unsupported behavior or origin-group evidence. Ambiguous target binding produces UNKNOWN. With no proven insecure route, incomplete, denied, malformed, or unsupported used evidence produces UNKNOWN; only complete secure used paths produce PASS. Unused origins do not affect the result. The S3 viewer-policy branch retains pinned source parity; OAC with SigningBehavior=always can use HTTPS even when HTTP viewers are allowed.",
+        "CloudFront update-distribution replaces the full distribution config and requires the current ETag; preserve every unrelated behavior/origin and wait for deployment. Changing TLS, origins or certificate may interrupt viewers.",
+        "The replacement JSON/patch must be based on the current owner-approved configuration and preserve unrelated settings."
+      ],
+      "cli": [
+        {
+          "code": "aws cloudfront get-distribution-config --id <RESOURCE_ID>",
+          "label": "Inspect exact native resource and owner configuration (read only)",
+          "shell": "bash"
+        },
+        {
+          "code": "aws cloudfront update-distribution --id <RESOURCE_ID> --if-match <CURRENT_ETAG> --distribution-config file://<REVIEWED_DISTRIBUTION_JSON>",
+          "label": "Apply owner-reviewed change after impact review",
+          "shell": "bash"
+        }
+      ],
+      "field_binding": {
+        "evaluator_family": "peaso.checks.claude2_aws_b_edge",
+        "kind": "cloudfront_distribution",
+        "observed_fail_evidence": "unencrypted_origins",
+        "path": "Config.DistributionConfig.DefaultCacheBehavior.TargetOriginId; CacheBehaviors.Items[].TargetOriginId; Origins.Items[].CustomOriginConfig.OriginProtocolPolicy",
+        "target": "resource"
+      },
+      "iac": {
+        "code": "In the owner-managed cloudfront distribution Terraform/CloudFormation declaration, make this exact change: For every used custom origin, set OriginProtocolPolicy to https-only, or use match-viewer only when every targeting cache behavior redirects or requires HTTPS. For a used S3 origin, disallow HTTP viewers on every targeting behavior. CloudFront update-distribution replaces the full distribution config and requires the current ETag; preserve every unrelated behavior/origin and wait for deployment. Changing TLS, origins or certificate may interrupt viewers. Review the plan and dependent resources with the service owner before applying.",
+        "label": "Update the existing configuration owner",
+        "language": "text"
+      },
+      "references": [
+        {
+          "title": "AWS CloudFront cache behavior API",
+          "url": "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_CacheBehavior.html"
+        },
+        {
+          "title": "AWS CloudFront custom origin request protocols",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html"
+        },
+        {
+          "title": "AWS CloudFront S3 origin HTTPS and OAC",
+          "url": "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html"
+        }
+      ],
+      "review_status": "approved",
+      "steps": [
+        "Inspect complete CloudFront Origins, DefaultCacheBehavior, CacheBehaviors, and any OriginGroups for the named distribution; match each behavior TargetOriginId to an exact origin ID.",
+        "For every used custom origin, set OriginProtocolPolicy to https-only, or use match-viewer only when every targeting cache behavior redirects or requires HTTPS. For a used S3 origin, disallow HTTP viewers on every targeting behavior.",
+        "Recollect the source facts and rerun the aws.c2b.cloudfront.origin_traffic_encrypted check; if prerequisites or related inventory are missing, retain UNKNOWN or MANUAL rather than assuming compliance."
+      ],
+      "summary": "Used CloudFront custom and S3 origins have encrypted origin traffic. For every used custom origin, set OriginProtocolPolicy to https-only, or use match-viewer only when every targeting cache behavior redirects or requires HTTPS. For a used S3 origin, disallow HTTP viewers on every targeting behavior."
+    }
+  },
+  "tertiary": {
+    "path": "peaso/rulepacks/remediation_aws_reviewed.json",
+    "id": "aws.htbp.cognito.client_no_writable_authorization_attributes",
+    "pre_sha256": "16a32e58713bf646ca0aec3329260412b7974c1e1ebfd17c41b991cf7ca062a9",
+    "post_sha256": "4168fa5be5df6a8094fd0fad5a790a0f7b7e8bfb50263e8c2bc7b2f811f55146",
+    "old": {
+      "caveats": [
+        "Attribute names are a heuristic, not proof the application uses them for authorization; omitted WriteAttributes means no custom attribute writable.",
+        "Where name or ID is not safely auto-bound, verify the exact collected identity before replacing the visible placeholder. No command is executed."
+      ],
+      "cli": [
+        {
+          "code": "aws cognito-idp list-user-pool-clients --user-pool-id <RESOURCE_ID> --region <REGION>",
+          "label": "Inspect owner-confirmed native resource identity",
+          "shell": "bash"
+        }
+      ],
+      "field_binding": {
+        "evaluator_family": "peaso.checks.hacktricks_bp_aws",
+        "kind": "cognito_user_pool",
+        "path": "Configuration.UserPool.SchemaAttributes[].Mutable and Clients.items[].Configuration.UserPoolClient.WriteAttributes",
+        "source_note": "Cognito app clients cannot write authorization-like custom attributes: evaluator target for Configuration.UserPool.SchemaAttributes[].Mutable and Clients.items[].Configuration.UserPoolClient.WriteAttributes is no mutable custom authorization-like attribute writable by any app client.",
+        "target": "resource"
+      },
+      "iac": {
+        "code": "Remove risky custom:role/admin/group/tenant-like names from affected app-client WriteAttributes or make them immutable; authorize using reviewed server-side policy. Review the Terraform/CloudFormation plan and dependent clients before application.",
+        "label": "Update the owning infrastructure declaration",
+        "language": "text"
+      },
+      "references": [
+        {
+          "title": "AWS CLI cognito-idp list-user-pool-clients response",
+          "url": "https://docs.aws.amazon.com/cli/latest/reference/cognito-idp/list-user-pool-clients.html"
+        }
+      ],
+      "review_status": "approved",
+      "steps": [
+        "Inspect Configuration.UserPool.SchemaAttributes[].Mutable and Clients.items[].Configuration.UserPoolClient.WriteAttributes for the exact collected resource; source target: no mutable custom authorization-like attribute writable by any app client.",
+        "Remove risky custom:role/admin/group/tenant-like names from affected app-client WriteAttributes or make them immutable; authorize using reviewed server-side policy.",
+        "Recollect native metadata and rerun aws.htbp.cognito.client_no_writable_authorization_attributes; preserve source UNKNOWN, MANUAL or NOT_APPLICABLE states."
+      ],
+      "summary": "Cognito app clients cannot write authorization-like custom attributes. Remove risky custom:role/admin/group/tenant-like names from affected app-client WriteAttributes or make them immutable; authorize using reviewed server-side policy."
+    },
+    "new": {
+      "caveats": [
+        "Omitted WriteAttributes is a broad default in the AWS Developer Guide, not an empty allowlist; attribute-name matches are a risk heuristic, not proof of application authorization. Immutable custom claims can be user-supplied at self-service signup. An explicit empty list has unverified API response semantics and cannot establish no-write by itself.",
+        "Where name or ID is not safely auto-bound, verify the exact collected identity before replacing the visible placeholder. No command is executed."
+      ],
+      "cli": [
+        {
+          "code": "aws cognito-idp list-user-pool-clients --user-pool-id <RESOURCE_ID> --region <REGION>",
+          "label": "Inspect owner-confirmed native resource identity",
+          "shell": "bash"
+        }
+      ],
+      "field_binding": {
+        "evaluator_family": "peaso.checks.hacktricks_bp_aws",
+        "kind": "cognito_user_pool",
+        "path": "Configuration.collection_status/UserPool.Id/SchemaAttributes[].Name/Mutable/AdminCreateUserConfig.AllowAdminCreateUserOnly, Clients.collection_status/items[].Configuration.collection_status/UserPoolClient.UserPoolId/ClientId/WriteAttributes",
+        "source_note": "The evaluator requires a complete successful pool detail and a complete matching DescribeUserPoolClient detail (collection_status=collected and matching UserPoolId/ClientId) before interpreting omitted WriteAttributes as broad default; an explicit empty list remains UNKNOWN. A definite risky authorization-like custom claim fails, while incomplete schema/list/detail evidence without one is UNKNOWN.",
+        "target": "resource"
+      },
+      "iac": {
+        "code": "In the owning client declaration, set an explicit WriteAttributes allowlist limited to reviewed profile fields, excluding authorization-like custom claims such as custom:plan. Preserve every other client setting during updates; review signup, profile and IdP mapping compatibility, then reconcile historical claims.",
+        "label": "Update the owning infrastructure declaration",
+        "language": "text"
+      },
+      "references": [
+        {
+          "title": "AWS Cognito: attributes for access control",
+          "url": "https://docs.aws.amazon.com/cognito/latest/developerguide/attributes-for-access-control.html"
+        },
+        {
+          "title": "AWS Cognito: user attribute permissions and immutable signup",
+          "url": "https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html"
+        },
+        {
+          "title": "AWS Cognito: update app client settings",
+          "url": "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UpdateUserPoolClient.html"
+        }
+      ],
+      "review_status": "approved",
+      "steps": [
+        "Inspect the complete user-pool schema, self-signup policy and every app-client detail; an omitted WriteAttributes list must not be read as an empty allowlist.",
+        "Review each authorization-like custom claim, including plan, all client write permissions and any IdP attribute mapping; configure explicit least-privilege write allowlists while preserving required signup and profile fields.",
+        "Treat an immutable custom claim as potentially self-supplied during signup; separately reassert existing claim values through a trusted administrator or use server-controlled authorization data.",
+        "Recollect the pool and rerun aws.htbp.cognito.client_no_writable_authorization_attributes; resolve missing or partial facts before claiming PASS."
+      ],
+      "summary": "Give each app client an explicit WriteAttributes allowlist excluding authorization-like custom claims, including plan, then validate self-signup, federation mappings, and existing claim provenance before trusting the pool."
+    }
+  },
+  "source_anchor_repin": {
+    "path": "peaso/rulepacks/remediation_aws_families_reviewed.json",
+    "source_path": "peaso/checks/claude_aws_a_iam.py",
+    "source_sha256": "84b8346563444a732479c1dd1a692c3fff79e7bc3253f16eecbcbe30c8793425",
+    "pre_sha256": "89b25e16374e8cd40140e96fb12fbda64615a135736b6a28d0f44d478e06ab0c",
+    "post_sha256": "6577458b6149df569672f777594f3c267a6a572bff2b63d88db0d9d60e545fda",
+    "fields": [
+      {
+        "id": "aws.claude_a.accessanalyzer.active_without_findings",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:557",
+        "new": "peaso/checks/claude_aws_a_iam.py:571",
+        "source_line_sha256": "a137331f2d6c4a46b71c8e24ec9a825331a8b707b5542b0b5db60dd1a0c86c7d"
+      },
+      {
+        "id": "aws.claude_a.iam.access_key_age_365",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:448",
+        "new": "peaso/checks/claude_aws_a_iam.py:462",
+        "source_line_sha256": "49845fb4e7165bf0c4439c971474ea5a69b8f76de969d1cac3b844427deb21c8"
+      },
+      {
+        "id": "aws.claude_a.iam.access_keys_rotated_90",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:640",
+        "new": "peaso/checks/claude_aws_a_iam.py:654",
+        "source_line_sha256": "2f912a6b4f3486dae73173af5300bfac8bb5f66469603d260105fb69568dd425"
+      },
+      {
+        "id": "aws.claude_a.iam.access_keys_used_45",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:657",
+        "new": "peaso/checks/claude_aws_a_iam.py:671",
+        "source_line_sha256": "fc0143810d73e3e73855a21e36e92083e8bf3debaf8892928071de59813da920"
+      },
+      {
+        "id": "aws.claude_a.iam.admin_user_has_mfa",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:467",
+        "new": "peaso/checks/claude_aws_a_iam.py:481",
+        "source_line_sha256": "34031865ea41f1a01f57fa58b40778a5e9673db715dbdf4ea374fce244032ef3"
+      },
+      {
+        "id": "aws.claude_a.iam.attached_policy_no_star_star",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:237",
+        "new": "peaso/checks/claude_aws_a_iam.py:251",
+        "source_line_sha256": "c3275f8c56f59a6dc9ab62f5f633362b8785c5d79bbe56d64a14f40871a55195"
+      },
+      {
+        "id": "aws.claude_a.iam.cloudshell_full_access_not_attached",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:896",
+        "new": "peaso/checks/claude_aws_a_iam.py:910",
+        "source_line_sha256": "90b2eb87b980f536cb46cdbc9be5609d530f1bfbb1522f417c0ef456f26ea11e"
+      },
+      {
+        "id": "aws.claude_a.iam.console_password_used_45",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:607",
+        "new": "peaso/checks/claude_aws_a_iam.py:621",
+        "source_line_sha256": "57c32751a5938de96d0f79900fd554437c6b805ff78a4cbd6f6f1c69dfeb57b1"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_attached_policy_no_star_star",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:214",
+        "new": "peaso/checks/claude_aws_a_iam.py:228",
+        "source_line_sha256": "61e9730a19e9c3ad4fdb1438ae40fde50fd635c8851ebccb4ec228eef409b313"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_attached_to_role",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:315",
+        "new": "peaso/checks/claude_aws_a_iam.py:329",
+        "source_line_sha256": "617d2401274e4b2d985e5ce70ca313839bccd559e64f2ca4d010f41b2a32db8e"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_attached_to_role",
+        "field": "source_proof.helper_evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:304",
+        "new": "peaso/checks/claude_aws_a_iam.py:318",
+        "source_line_sha256": "50dcc17923b04e08436895c1aa338d51bb87f5d5866a62edc2ad58284449f6e4"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_in_use",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:338",
+        "new": "peaso/checks/claude_aws_a_iam.py:352",
+        "source_line_sha256": "750f96f2fe76ee73f526472d1d1f49133f1c5e6e26e2c5cb426ef91975457bed"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_in_use",
+        "field": "source_proof.helper_evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:328",
+        "new": "peaso/checks/claude_aws_a_iam.py:342",
+        "source_line_sha256": "50dcc17923b04e08436895c1aa338d51bb87f5d5866a62edc2ad58284449f6e4"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_kms_decrypt_restricted",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:284",
+        "new": "peaso/checks/claude_aws_a_iam.py:298",
+        "source_line_sha256": "d43292f68ed81936b1fc528d6e0a056f45c16b000c1e1bea18d4b4da54c26786"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_no_blocked_kms_actions",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:271",
+        "new": "peaso/checks/claude_aws_a_iam.py:285",
+        "source_line_sha256": "e2f1e3dd3c68e63800b576a3c5e7679d990e00023d6ed6e46ac90f739f29438a"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_no_cloudtrail_star",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:265",
+        "new": "peaso/checks/claude_aws_a_iam.py:279",
+        "source_line_sha256": "89ba28efecede7bd667b36db718ddc1f6f0c1465fd322114651b131f736e907f"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_no_kms_star",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:268",
+        "new": "peaso/checks/claude_aws_a_iam.py:282",
+        "source_line_sha256": "c302639406e101b6f1852ca0b80bf0366ce3b3b49e39b979f74b857d2dab0fe8"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_no_service_wildcard",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:261",
+        "new": "peaso/checks/claude_aws_a_iam.py:275",
+        "source_line_sha256": "c1f68fe7bdaf1fe85464f25eb72ddfd4c55391119aff07c3d338e0a39af62de4"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_policy_no_star_star",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:197",
+        "new": "peaso/checks/claude_aws_a_iam.py:211",
+        "source_line_sha256": "bd9e33b3fc6ef3f832220a4a5f2c1998092b7976f3d71df75386eefe0cbfe879"
+      },
+      {
+        "id": "aws.claude_a.iam.custom_unattached_policy_no_star_star",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:227",
+        "new": "peaso/checks/claude_aws_a_iam.py:241",
+        "source_line_sha256": "7b0163b7f6352b0934c2670c30faefb9f213b2bda912bf24cdc27f95e9a76bbe"
+      },
+      {
+        "id": "aws.claude_a.iam.group_inline_kms_decrypt_restricted",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:358",
+        "new": "peaso/checks/claude_aws_a_iam.py:372",
+        "source_line_sha256": "a45069b8a9da934585a1ba951227b39163b30aded79830e3fca85067b1faf131"
+      },
+      {
+        "id": "aws.claude_a.iam.group_inline_no_admin",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:372",
+        "new": "peaso/checks/claude_aws_a_iam.py:386",
+        "source_line_sha256": "bdbe93e008cbdb1076496c6c1ac02c41498bdb725bf4f66e741af403895ed690"
+      },
+      {
+        "id": "aws.claude_a.iam.group_inline_no_blocked_kms_actions",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:348",
+        "new": "peaso/checks/claude_aws_a_iam.py:362",
+        "source_line_sha256": "cd2bc9d715159b4b6ceceb23c74efcb2dca457aabf29f625ecaebf4b663a513e"
+      },
+      {
+        "id": "aws.claude_a.iam.group_no_cloudshell_full_access",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:389",
+        "new": "peaso/checks/claude_aws_a_iam.py:403",
+        "source_line_sha256": "250d968b07f18150deb031ba3e49bec628c823a1e23d49f5cd48784d2f75256e"
+      },
+      {
+        "id": "aws.claude_a.iam.group_no_inline_policies",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:379",
+        "new": "peaso/checks/claude_aws_a_iam.py:393",
+        "source_line_sha256": "9bfc0beaddae38b972594be8620e514eed8656e0ff4a2ef2d37df1492719981b"
+      },
+      {
+        "id": "aws.claude_a.iam.group_not_empty",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:533",
+        "new": "peaso/checks/claude_aws_a_iam.py:547",
+        "source_line_sha256": "291073d9a32838d7555b9c554b35e0a9abe839397bf9e022212cbd9d5bd5e34a"
+      },
+      {
+        "id": "aws.claude_a.iam.no_unused_initial_access_key",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:674",
+        "new": "peaso/checks/claude_aws_a_iam.py:688",
+        "source_line_sha256": "4e24d6f53d2a906228ff9fd8346cc68bb98c35d7b081d7e549adc71660e25e65"
+      },
+      {
+        "id": "aws.claude_a.iam.not_two_active_keys",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:684",
+        "new": "peaso/checks/claude_aws_a_iam.py:698",
+        "source_line_sha256": "b091280dee4f9c2a365d4d106f2baa2261370686aa5c777d963a34dbf2b1fe4d"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_admin_group_members_mfa",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:792",
+        "new": "peaso/checks/claude_aws_a_iam.py:806",
+        "source_line_sha256": "f1cd24c73a232724129eaf3ba52b7cd1e846e7895e15d16e17166de5d08d4428"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_console_password_used_45",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:623",
+        "new": "peaso/checks/claude_aws_a_iam.py:637",
+        "source_line_sha256": "76b4877043f29767cf6b35e7a831780c26410e2fd9ab0b994b6d844af88c8d7e"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_group_no_administratoraccess",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:738",
+        "new": "peaso/checks/claude_aws_a_iam.py:752",
+        "source_line_sha256": "41d223d4128e9a82bc28d2e75912918704ac10dfd71761d66d53387fb178a017"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_role_no_administratoraccess",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:738",
+        "new": "peaso/checks/claude_aws_a_iam.py:752",
+        "source_line_sha256": "41d223d4128e9a82bc28d2e75912918704ac10dfd71761d66d53387fb178a017"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_role_readonly_not_cross_account",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:769",
+        "new": "peaso/checks/claude_aws_a_iam.py:783",
+        "source_line_sha256": "018c482b8eb475af3f8880c1424ba767a102d47d61c70276c658a82b8758e4ec"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_root_hardware_mfa",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:697",
+        "new": "peaso/checks/claude_aws_a_iam.py:711",
+        "source_line_sha256": "94a34cbfea4482092ff585a038d2aee183184e02400382748a6866b13f901d57"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_user_hardware_mfa",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:812",
+        "new": "peaso/checks/claude_aws_a_iam.py:826",
+        "source_line_sha256": "669ad9079fa6b48bdc65881ea2c3d8cd90ed9f9ee94fdc5b18d494b6f1c375ed"
+      },
+      {
+        "id": "aws.claude_a.iam.prowler_user_no_administratoraccess",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:738",
+        "new": "peaso/checks/claude_aws_a_iam.py:752",
+        "source_line_sha256": "41d223d4128e9a82bc28d2e75912918704ac10dfd71761d66d53387fb178a017"
+      },
+      {
+        "id": "aws.claude_a.iam.role_bedrock_access_not_stale",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:850",
+        "new": "peaso/checks/claude_aws_a_iam.py:864",
+        "source_line_sha256": "e8a37eb153b04b7e254ed73acdae1b39c12e61502fbb764634dfca3e1b4881b3"
+      },
+      {
+        "id": "aws.claude_a.iam.role_bedrock_access_not_stale",
+        "field": "source_proof.source_tuple_line",
+        "old": 874,
+        "new": 888,
+        "source_line_sha256": "45a67e515099e9d092c7c7999f9ad829e0f913cf6d0a3edbddc739681d9b5f53"
+      },
+      {
+        "id": "aws.claude_a.iam.role_inline_kms_decrypt_restricted",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:358",
+        "new": "peaso/checks/claude_aws_a_iam.py:372",
+        "source_line_sha256": "a45069b8a9da934585a1ba951227b39163b30aded79830e3fca85067b1faf131"
+      },
+      {
+        "id": "aws.claude_a.iam.role_inline_no_admin",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:372",
+        "new": "peaso/checks/claude_aws_a_iam.py:386",
+        "source_line_sha256": "bdbe93e008cbdb1076496c6c1ac02c41498bdb725bf4f66e741af403895ed690"
+      },
+      {
+        "id": "aws.claude_a.iam.role_inline_no_blocked_kms_actions",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:348",
+        "new": "peaso/checks/claude_aws_a_iam.py:362",
+        "source_line_sha256": "cd2bc9d715159b4b6ceceb23c74efcb2dca457aabf29f625ecaebf4b663a513e"
+      },
+      {
+        "id": "aws.claude_a.iam.role_no_administrator_access",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:480",
+        "new": "peaso/checks/claude_aws_a_iam.py:494",
+        "source_line_sha256": "a5d675a6de9e33f551f42826a34e7bd72600270ba7a745b1c64b21112eea7b4d"
+      },
+      {
+        "id": "aws.claude_a.iam.role_no_cloudshell_full_access",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:389",
+        "new": "peaso/checks/claude_aws_a_iam.py:403",
+        "source_line_sha256": "250d968b07f18150deb031ba3e49bec628c823a1e23d49f5cd48784d2f75256e"
+      },
+      {
+        "id": "aws.claude_a.iam.role_no_inline_policies",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:379",
+        "new": "peaso/checks/claude_aws_a_iam.py:393",
+        "source_line_sha256": "9bfc0beaddae38b972594be8620e514eed8656e0ff4a2ef2d37df1492719981b"
+      },
+      {
+        "id": "aws.claude_a.iam.role_readonly_not_cross_account",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:492",
+        "new": "peaso/checks/claude_aws_a_iam.py:506",
+        "source_line_sha256": "f6f9ab62e33d46a06bbcf18b93679e6c0101e906bf8c05b6e1513e83640893cf"
+      },
+      {
+        "id": "aws.claude_a.iam.role_trust_not_public",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:520",
+        "new": "peaso/checks/claude_aws_a_iam.py:534",
+        "source_line_sha256": "2d2f640c4d892c428c4a747e0ad39d595336898aa466cef82a0e571993247c7a"
+      },
+      {
+        "id": "aws.claude_a.iam.role_used_within_60_days",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:506",
+        "new": "peaso/checks/claude_aws_a_iam.py:520",
+        "source_line_sha256": "60f58418cd0d983484fb68efed30ef48eb590534222cf323b7b17e5484015a06"
+      },
+      {
+        "id": "aws.claude_a.iam.root_console_has_mfa",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:541",
+        "new": "peaso/checks/claude_aws_a_iam.py:555",
+        "source_line_sha256": "e67db068ddac6eff191da98f5d7f1b2bf7c829868d808cd5e9193b4bd87e97f1"
+      },
+      {
+        "id": "aws.claude_a.iam.root_credentials_management",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:920",
+        "new": "peaso/checks/claude_aws_a_iam.py:934",
+        "source_line_sha256": "1677283e717173fd195dc8f270457b47457f19f68f5f2738705ef9b574be111d"
+      },
+      {
+        "id": "aws.claude_a.iam.saml_provider_present",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:907",
+        "new": "peaso/checks/claude_aws_a_iam.py:921",
+        "source_line_sha256": "b8d666fda8b60f93274fdce76fe5d76092f84f3846c021abfa6cdc0fe6ef79b2"
+      },
+      {
+        "id": "aws.claude_a.iam.securityaudit_role_exists",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:891",
+        "new": "peaso/checks/claude_aws_a_iam.py:905",
+        "source_line_sha256": "b1ad19970be9e262d60505f28d649e65a47a2b8cb47211984bebe01caf75e3e2"
+      },
+      {
+        "id": "aws.claude_a.iam.server_certificate_not_expired_now",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:724",
+        "new": "peaso/checks/claude_aws_a_iam.py:738",
+        "source_line_sha256": "efe4bba3a20d5a9c527d2f4a7800c7b50b880833133c7215932d75791214cf98"
+      },
+      {
+        "id": "aws.claude_a.iam.support_role_exists",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:890",
+        "new": "peaso/checks/claude_aws_a_iam.py:904",
+        "source_line_sha256": "78473a891cd2ac5871bfa0ee718d51f8bced8ab18bba47bf6296c45868705d1e"
+      },
+      {
+        "id": "aws.claude_a.iam.user_bedrock_access_not_stale",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:850",
+        "new": "peaso/checks/claude_aws_a_iam.py:864",
+        "source_line_sha256": "e8a37eb153b04b7e254ed73acdae1b39c12e61502fbb764634dfca3e1b4881b3"
+      },
+      {
+        "id": "aws.claude_a.iam.user_bedrock_access_not_stale",
+        "field": "source_proof.source_tuple_line",
+        "old": 873,
+        "new": 887,
+        "source_line_sha256": "4625331181375c3e7fd3bc623ba0038748586e8f319916ea7218a3ffbf628cfc"
+      },
+      {
+        "id": "aws.claude_a.iam.user_in_group",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:416",
+        "new": "peaso/checks/claude_aws_a_iam.py:430",
+        "source_line_sha256": "8d665f89424464a7f72eacabed943a8b2ad7dcc667c1d84851fd1002db6f084d"
+      },
+      {
+        "id": "aws.claude_a.iam.user_inline_kms_decrypt_restricted",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:358",
+        "new": "peaso/checks/claude_aws_a_iam.py:372",
+        "source_line_sha256": "a45069b8a9da934585a1ba951227b39163b30aded79830e3fca85067b1faf131"
+      },
+      {
+        "id": "aws.claude_a.iam.user_inline_no_admin",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:372",
+        "new": "peaso/checks/claude_aws_a_iam.py:386",
+        "source_line_sha256": "bdbe93e008cbdb1076496c6c1ac02c41498bdb725bf4f66e741af403895ed690"
+      },
+      {
+        "id": "aws.claude_a.iam.user_inline_no_assume_role_text",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:406",
+        "new": "peaso/checks/claude_aws_a_iam.py:420",
+        "source_line_sha256": "496a598d293d61b049e30d1e2c15d64a4766ae203c4c18218d4d01fb65e42c25"
+      },
+      {
+        "id": "aws.claude_a.iam.user_inline_no_blocked_kms_actions",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:348",
+        "new": "peaso/checks/claude_aws_a_iam.py:362",
+        "source_line_sha256": "cd2bc9d715159b4b6ceceb23c74efcb2dca457aabf29f625ecaebf4b663a513e"
+      },
+      {
+        "id": "aws.claude_a.iam.user_long_lived_keys_only_iam_sts",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:835",
+        "new": "peaso/checks/claude_aws_a_iam.py:849",
+        "source_line_sha256": "b1f0f2374df4d685841c0a46f2e9526260dd8396811d8e66dcf6e497adf47f84"
+      },
+      {
+        "id": "aws.claude_a.iam.user_no_cloudshell_full_access",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:389",
+        "new": "peaso/checks/claude_aws_a_iam.py:403",
+        "source_line_sha256": "250d968b07f18150deb031ba3e49bec628c823a1e23d49f5cd48784d2f75256e"
+      },
+      {
+        "id": "aws.claude_a.iam.user_no_inline_policies",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:379",
+        "new": "peaso/checks/claude_aws_a_iam.py:393",
+        "source_line_sha256": "9bfc0beaddae38b972594be8620e514eed8656e0ff4a2ef2d37df1492719981b"
+      },
+      {
+        "id": "aws.claude_a.iam.user_one_active_key",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:429",
+        "new": "peaso/checks/claude_aws_a_iam.py:443",
+        "source_line_sha256": "e88139670b56adaa3d5d9a7cf65fd5493291f3220db9f53a3f0bec4448268ec8"
+      },
+      {
+        "id": "aws.claude_a.iam.user_sagemaker_access_not_stale",
+        "field": "source_proof.evaluator",
+        "old": "peaso/checks/claude_aws_a_iam.py:850",
+        "new": "peaso/checks/claude_aws_a_iam.py:864",
+        "source_line_sha256": "e8a37eb153b04b7e254ed73acdae1b39c12e61502fbb764634dfca3e1b4881b3"
+      },
+      {
+        "id": "aws.claude_a.iam.user_sagemaker_access_not_stale",
+        "field": "source_proof.source_tuple_line",
+        "old": 875,
+        "new": 889,
+        "source_line_sha256": "d9b5eb75d0e8aa70fcb36c57ba6a187fb35338377a88ca57cc3632d7d2b6bd18"
+      }
+    ]
+  }
+}

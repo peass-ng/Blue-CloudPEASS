@@ -1,0 +1,1316 @@
+{
+  "aws-compliance.control.cis_compute_service_v100_2_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.eni_in_use"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkInterface.html"
+    ],
+    "reason": "Exact status=available AND attached_instance_id ISNULL alarms; other states pass even when unattached, keeping narrower source semantics than generic usage/lifecycle recommendation.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ec2_network_interface_unused",
+    "reviewed_source": {
+      "evaluator_sha256": "459a64d637c7d73ccfd607191b3ebcdc8e7af3a4203cc54d83e2459ffe286917",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L300"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.stopped_instance_90_days"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html"
+    ],
+    "reason": "Full stopped/stopping WHERE applicability and derived state transition timestamp <= captured UTC CURRENT_DATE minus90days alarm; running skips, unavailable transition timestamp unknown.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ec2_stopped_instance_90_days",
+    "reviewed_source": {
+      "evaluator_sha256": "3e269bd6e6de3946ee3e7e4039e63c526f58be50181205a4c22603720f922da6",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L314"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_12": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_ebs_delete_on_termination"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_EbsInstanceBlockDevice.html"
+    ],
+    "reason": "Exact any Ebs.DeleteOnTermination=false mapping alarms; no instance state, currentattachment count or device count condition added. Full pinned aggregate source and native mappings inspected.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ec2_instance_attached_ebs_volume_delete_on_termination_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "54af4a3aaec3f752c174d25064a51176f7cd80222d7e62783a23df5eb9e1bd99",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L328"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ami_ebs_encrypted"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_BlockDeviceMapping.html"
+    ],
+    "reason": "Full cross-joined mappings and bool_and(COALESCE Ebs.Encrypted=false) predicate: no mappings emits no source row, non-EBS/absent encrypted flags countfalse. Native preserves no-mappings NOT_APPLICABLE rather than unconditionalPASS.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ec2_ami_ebs_encryption_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e799d9a1b29a05f34e15fcd23fc771e4ff641aba9bf311a1ad570613a8e7170c",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L74"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_1_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ami_not_older_than_90_days"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Image.html"
+    ],
+    "reason": "Full CreationDate >= captured UTC CURRENT_DATE minus90days; exact midnight inclusive cutoff and second-before failure verified, not rolling-clock age.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ec2_ami_not_older_than_90_days",
+    "reviewed_source": {
+      "evaluator_sha256": "d8fba37282238aa7adad951c527cfd2857bbda9b459015544f561d5c643d7cc6",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L102"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ami_not_public"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Image.html"
+    ],
+    "reason": "Exact native Public boolean source predicate; only self-owned inventory queried, no public/shared AMI dataset expansion.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ec2_ami_restrict_public_access",
+    "reviewed_source": {
+      "evaluator_sha256": "367198fbccdeca4e51c4aa7801876a52517504ae77c8b2d877d83f047f22340c",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L116"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L146"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_2_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ebs.snapshot_not_public"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateVolumePermission.html"
+    ],
+    "reason": "Exact CreateVolumePermissions Group=all/UserId=NULL source public-restorable marker; read-only describe attribute normalized with proof, unavailable attribute remains UNKNOWN independently of known Encrypted metadata.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ebs_snapshot_not_publicly_restorable",
+    "reviewed_source": {
+      "evaluator_sha256": "25d86f9c8b86ab438e8b9e937d5a6236a970a667181a2321755f2b744df63843",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L160"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_2_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ebs.snapshot_encrypted"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Snapshot.html"
+    ],
+    "reason": "Exact native Encrypted boolean source predicate for self-owned snapshot metadata; no snapshot content fetched.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ebs_snapshot_encryption_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "8f104d3d665171e9ecfd83b1e5a344cb31be08fb6b310597f37d39c4847c6046",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L174"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_2_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ebs.volume_in_use"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Volume.html"
+    ],
+    "reason": "Exact volume state in-use PASS, other native states alarm, independent of attachment count; source and existing native volume state predicate reviewed.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_volume_unused",
+    "reviewed_source": {
+      "evaluator_sha256": "742bc97f6ab3bc1a804f6031c0b887a8469c7041c54bdb311c57623f562c80a3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L188"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_not_older_than_180_days"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Instance.html"
+    ],
+    "reason": "Full LaunchTime >= captured UTC CURRENT_DATE minus180days for allinstances; no running-only filter. Strict second-before and exact inclusive cutoff verified.",
+    "review_notes": "Full pinned query/native predicate independently inspected and direct alias verified. Independent pass/fail/missing/denied/malformed/purity and exact-midnight/applicability/SDK Owner=self/fullpagination/detaildenial fixtures. No Claude-owned file modified; new collection declared SDK metadata only, no resource modification/secret values. Lead active integration pending.",
+    "reviewed_query_id": "ec2_instance_not_older_than_180_days",
+    "reviewed_source": {
+      "evaluator_sha256": "5a6e5105503444d023dc703dad32fbbf55f39ca670841fda8beb99d3d8795701",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L230"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_detailed_monitoring"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Monitoring.html"
+    ],
+    "reason": "Exact monitoring_state=enabled PASS, every other current native state alarms; no running-only applicability invented. Source and existing strict native Monitoring.State predicate individually reviewed.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ec2_instance_detailed_monitoring_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "77ba1088cc6773328f1fdd7062abf3568b99c44f668a9f2913cbb430b2bf9076",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L244"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L258"
+    }
+  },
+  "aws-compliance.control.cis_compute_service_v100_2_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_imdsv2_applied"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceMetadataOptionsResponse.html"
+    ],
+    "reason": "Exact HttpTokens=required AND metadata State=applied required for all source instances; endpoint disabled and termination do not skip. Differential required+pending FAIL versus applied PASS; narrower Prowler endpoint-disabled variant not merged.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ec2_instance_uses_imdsv2",
+    "reviewed_source": {
+      "evaluator_sha256": "e5bada0bfa0e7dc00b1c60ec4d48225fd0fe62170d0bee29b11e8eaf1ac8bf7f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_compute_service_v100/section_2.pp#L272"
+    }
+  },
+  "aws-compliance.control.cis_v120_2_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L139"
+    }
+  },
+  "aws-compliance.control.cis_v120_4_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v4_ssh"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "The pinned source has exact IPv4 world CIDR and numeric port-field conditions but no TCP filter. This existing native SSH alias intentionally detects only 0.0.0.0/0 TCP/6 covering port 22 or all-protocol -1, regardless of serialized port bounds. UDP/17 port 22 passes with complete facts; incomplete collection is UNKNOWN; a malformed permission is UNKNOWN unless another permission definitely fails. No host reachability is inferred.",
+    "review_notes": "The source evaluator revision and hash remain pinned. A private snapshot/MemoIndex regression covers TCP/6, UDP/17, -1, IPv4/IPv6, malformed rules, incomplete collection, and definite FAIL dominance in either rule order. The original pinned-query limitation is preserved as lineage; no mapping or status changed.",
+    "reviewed_query_id": "vpc_security_group_restrict_ingress_ssh_all",
+    "reviewed_source": {
+      "evaluator_sha256": "79bffa5443a99b8c90be75e908789bc9bf9b6923d17d06b1c96d870d1f81d102",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_4.pp#L23"
+    }
+  },
+  "aws-compliance.control.cis_v120_4_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v4_rdp"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress 0.0.0.0/0-only source and all-protocol-1 absentFromPort OR range3389. IPv6world-only rule doesnotalarm, narrowerIPscope preserved.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_restrict_ingress_rdp_all",
+    "reviewed_source": {
+      "evaluator_sha256": "0887c92c9f4acb7344795ea6a0a5d8bd305baa3676d955105cfbb84e455a6ec3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_4.pp#L37"
+    }
+  },
+  "aws-compliance.control.cis_v120_4_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_4.pp#L51"
+    }
+  },
+  "aws-compliance.control.cis_v130_2_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_2.pp#L84"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L141"
+    }
+  },
+  "aws-compliance.control.cis_v130_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_5.pp#L23"
+    }
+  },
+  "aws-compliance.control.cis_v130_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress worldv4ORv6, all-protocol-1 absentFromPort OR numeric range containing22/3389. No protocol-specific or in-use restriction added; configuration lint, not effective reachability.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "738ca9f134db821fe41fcf06c751732c32748ca98ae00bbbce090235e8d5ce39",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_5.pp#L37"
+    }
+  },
+  "aws-compliance.control.cis_v130_5_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_5.pp#L51"
+    }
+  },
+  "aws-compliance.control.cis_v140_2_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L133"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L141"
+    }
+  },
+  "aws-compliance.control.cis_v140_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_5.pp#L23"
+    }
+  },
+  "aws-compliance.control.cis_v140_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress worldv4ORv6, all-protocol-1 absentFromPort OR numeric range containing22/3389. No protocol-specific or in-use restriction added; configuration lint, not effective reachability.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "738ca9f134db821fe41fcf06c751732c32748ca98ae00bbbce090235e8d5ce39",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_5.pp#L37"
+    }
+  },
+  "aws-compliance.control.cis_v140_5_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_5.pp#L51"
+    }
+  },
+  "aws-compliance.control.cis_v150_2_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L137"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L141"
+    }
+  },
+  "aws-compliance.control.cis_v150_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_5.pp#L24"
+    }
+  },
+  "aws-compliance.control.cis_v150_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Despite source nameIPv4, full pinned WHERE also includes ::/0; independently verified same exact worldv4ORv6 and22/3389 literal condition as broader-named source. Semantic equivalence includesactualIPv6 branch, not names or normalizedhash alone.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv4",
+    "reviewed_source": {
+      "evaluator_sha256": "d8a954edb6e9cafdbd87116388314accfedaad808093c7e6ecee993b3038be4a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_5.pp#L38"
+    }
+  },
+  "aws-compliance.control.cis_v150_5_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v6_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress ::/0-only source; v4world doesnotalarm. All-protocol-1 absentFromPort OR range22/3389, no protocol-specific/in-use addition. Narrow IPv6 variant kept separate.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv6",
+    "reviewed_source": {
+      "evaluator_sha256": "8aa1d507a00ea2370070d6593c5f815d63ac9b9af22bdbb6078cfaced7f917a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_5.pp#L52"
+    }
+  },
+  "aws-compliance.control.cis_v150_5_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_5.pp#L66"
+    }
+  },
+  "aws-compliance.control.cis_v200_2_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L122"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L141"
+    }
+  },
+  "aws-compliance.control.cis_v200_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_5.pp#L25"
+    }
+  },
+  "aws-compliance.control.cis_v200_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Despite source nameIPv4, full pinned WHERE also includes ::/0; independently verified same exact worldv4ORv6 and22/3389 literal condition as broader-named source. Semantic equivalence includesactualIPv6 branch, not names or normalizedhash alone.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv4",
+    "reviewed_source": {
+      "evaluator_sha256": "d8a954edb6e9cafdbd87116388314accfedaad808093c7e6ecee993b3038be4a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_5.pp#L39"
+    }
+  },
+  "aws-compliance.control.cis_v200_5_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v6_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress ::/0-only source; v4world doesnotalarm. All-protocol-1 absentFromPort OR range22/3389, no protocol-specific/in-use addition. Narrow IPv6 variant kept separate.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv6",
+    "reviewed_source": {
+      "evaluator_sha256": "8aa1d507a00ea2370070d6593c5f815d63ac9b9af22bdbb6078cfaced7f917a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_5.pp#L53"
+    }
+  },
+  "aws-compliance.control.cis_v200_5_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_5.pp#L67"
+    }
+  },
+  "aws-compliance.control.cis_v200_5_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_imdsv2_applied"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceMetadataOptionsResponse.html"
+    ],
+    "reason": "Exact HttpTokens=required AND metadata State=applied required for all source instances; endpoint disabled and termination do not skip. Differential required+pending FAIL versus applied PASS; narrower Prowler endpoint-disabled variant not merged.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ec2_instance_uses_imdsv2",
+    "reviewed_source": {
+      "evaluator_sha256": "e5bada0bfa0e7dc00b1c60ec4d48225fd0fe62170d0bee29b11e8eaf1ac8bf7f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_5.pp#L95"
+    }
+  },
+  "aws-compliance.control.cis_v300_2_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L122"
+    }
+  },
+  "aws-compliance.control.cis_v300_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L111"
+    }
+  },
+  "aws-compliance.control.cis_v300_5_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_5.pp#L25"
+    }
+  },
+  "aws-compliance.control.cis_v300_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Despite source nameIPv4, full pinned WHERE also includes ::/0; independently verified same exact worldv4ORv6 and22/3389 literal condition as broader-named source. Semantic equivalence includesactualIPv6 branch, not names or normalizedhash alone.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv4",
+    "reviewed_source": {
+      "evaluator_sha256": "d8a954edb6e9cafdbd87116388314accfedaad808093c7e6ecee993b3038be4a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_5.pp#L39"
+    }
+  },
+  "aws-compliance.control.cis_v300_5_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v6_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress ::/0-only source; v4world doesnotalarm. All-protocol-1 absentFromPort OR range22/3389, no protocol-specific/in-use addition. Narrow IPv6 variant kept separate.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv6",
+    "reviewed_source": {
+      "evaluator_sha256": "8aa1d507a00ea2370070d6593c5f815d63ac9b9af22bdbb6078cfaced7f917a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_5.pp#L53"
+    }
+  },
+  "aws-compliance.control.cis_v300_5_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_5.pp#L67"
+    }
+  },
+  "aws-compliance.control.cis_v300_5_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_imdsv2_applied"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceMetadataOptionsResponse.html"
+    ],
+    "reason": "Exact HttpTokens=required AND metadata State=applied required for all source instances; endpoint disabled and termination do not skip. Differential required+pending FAIL versus applied PASS; narrower Prowler endpoint-disabled variant not merged.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ec2_instance_uses_imdsv2",
+    "reviewed_source": {
+      "evaluator_sha256": "e5bada0bfa0e7dc00b1c60ec4d48225fd0fe62170d0bee29b11e8eaf1ac8bf7f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_5.pp#L95"
+    }
+  },
+  "aws-compliance.control.cis_v400_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L111"
+    }
+  },
+  "aws-compliance.control.cis_v400_5_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L46"
+    }
+  },
+  "aws-compliance.control.cis_v400_5_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_cifs"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress v4worldORv6world and all-protocol-1 absentFromPort OR range445. Kept separate from TCP-only, in-use and single-IP-family Prowler scopes.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_restrict_ingress_cifs_port_all",
+    "reviewed_source": {
+      "evaluator_sha256": "2aaaa09c7c2a1eecda98509f43b86d09297e3ede35dbe79e515dfb8d970a6b2a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L60"
+    }
+  },
+  "aws-compliance.control.cis_v400_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L74"
+    }
+  },
+  "aws-compliance.control.cis_v400_5_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Despite source nameIPv4, full pinned WHERE also includes ::/0; independently verified same exact worldv4ORv6 and22/3389 literal condition as broader-named source. Semantic equivalence includesactualIPv6 branch, not names or normalizedhash alone.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv4",
+    "reviewed_source": {
+      "evaluator_sha256": "d8a954edb6e9cafdbd87116388314accfedaad808093c7e6ecee993b3038be4a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L88"
+    }
+  },
+  "aws-compliance.control.cis_v400_5_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v6_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress ::/0-only source; v4world doesnotalarm. All-protocol-1 absentFromPort OR range22/3389, no protocol-specific/in-use addition. Narrow IPv6 variant kept separate.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv6",
+    "reviewed_source": {
+      "evaluator_sha256": "8aa1d507a00ea2370070d6593c5f815d63ac9b9af22bdbb6078cfaced7f917a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L102"
+    }
+  },
+  "aws-compliance.control.cis_v400_5_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L116"
+    }
+  },
+  "aws-compliance.control.cis_v400_5_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_imdsv2_applied"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceMetadataOptionsResponse.html"
+    ],
+    "reason": "Exact HttpTokens=required AND metadata State=applied required for all source instances; endpoint disabled and termination do not skip. Differential required+pending FAIL versus applied PASS; narrower Prowler endpoint-disabled variant not merged.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ec2_instance_uses_imdsv2",
+    "reviewed_source": {
+      "evaluator_sha256": "e5bada0bfa0e7dc00b1c60ec4d48225fd0fe62170d0bee29b11e8eaf1ac8bf7f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_5.pp#L144"
+    }
+  },
+  "aws-compliance.control.cis_v500_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L111"
+    }
+  },
+  "aws-compliance.control.cis_v500_5_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L46"
+    }
+  },
+  "aws-compliance.control.cis_v500_5_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_cifs"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress v4worldORv6world and all-protocol-1 absentFromPort OR range445. Kept separate from TCP-only, in-use and single-IP-family Prowler scopes.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_restrict_ingress_cifs_port_all",
+    "reviewed_source": {
+      "evaluator_sha256": "2aaaa09c7c2a1eecda98509f43b86d09297e3ede35dbe79e515dfb8d970a6b2a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L60"
+    }
+  },
+  "aws-compliance.control.cis_v500_5_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L74"
+    }
+  },
+  "aws-compliance.control.cis_v500_5_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Despite source nameIPv4, full pinned WHERE also includes ::/0; independently verified same exact worldv4ORv6 and22/3389 literal condition as broader-named source. Semantic equivalence includesactualIPv6 branch, not names or normalizedhash alone.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv4",
+    "reviewed_source": {
+      "evaluator_sha256": "d8a954edb6e9cafdbd87116388314accfedaad808093c7e6ecee993b3038be4a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L88"
+    }
+  },
+  "aws-compliance.control.cis_v500_5_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v6_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress ::/0-only source; v4world doesnotalarm. All-protocol-1 absentFromPort OR range22/3389, no protocol-specific/in-use addition. Narrow IPv6 variant kept separate.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv6",
+    "reviewed_source": {
+      "evaluator_sha256": "8aa1d507a00ea2370070d6593c5f815d63ac9b9af22bdbb6078cfaced7f917a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L102"
+    }
+  },
+  "aws-compliance.control.cis_v500_5_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L116"
+    }
+  },
+  "aws-compliance.control.cis_v500_5_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_imdsv2_applied"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceMetadataOptionsResponse.html"
+    ],
+    "reason": "Exact HttpTokens=required AND metadata State=applied required for all source instances; endpoint disabled and termination do not skip. Differential required+pending FAIL versus applied PASS; narrower Prowler endpoint-disabled variant not merged.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ec2_instance_uses_imdsv2",
+    "reviewed_source": {
+      "evaluator_sha256": "e5bada0bfa0e7dc00b1c60ec4d48225fd0fe62170d0bee29b11e8eaf1ac8bf7f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_5.pp#L144"
+    }
+  },
+  "aws-compliance.control.cis_v600_4_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.flow_logs_active"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeFlowLogs.html"
+    ],
+    "reason": "Full source VPC-owner skip and LEFT JOIN resource_id status predicate reviewed; owned VPC with no flow logs alarms, ACTIVE row passes, every non-ACTIVE row alarms even alongside ACTIVE rows. Existing pure native predicate aggregates any source alarm row, shared VPC skips and complete-empty/denied remain distinct; no reachability assertion.",
+    "review_notes": "Retained IDs only; no Claude-owned file changed. Independent mixed ACTIVE/inactive, complete-empty FAIL, denied UNKNOWN/shared-VPC NAPP, purity/malformed source fixtures. New read-only flow_log inventory native ResourceId/FlowLogStatus; normal request budgets/cache/pagination preserved. Lead audit/active integration pending.",
+    "reviewed_query_id": "vpc_flow_logs_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "009c481adc56fcee149f7fdc2db1b3bef74a7cb4f964a8088a252719636122b1",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L111"
+    }
+  },
+  "aws-compliance.control.cis_v600_6_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.ebs_encryption_by_default"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_GetEbsEncryptionByDefault.html"
+    ],
+    "reason": "Exact regional setting predicate NOT default_ebs_encryption_enabled alarms; no existing-volume requirement. Full pinned SQL and existing scalar strict native EbsEncryptionByDefault reviewed; same source query aliases only.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ebs_encryption_by_default_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e663da603d3c2bad5657cd125cf871452bf4482b1e5d0f8b4a9a1df4fdf1a4e8",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L44"
+    }
+  },
+  "aws-compliance.control.cis_v600_6_1_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_cifs"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress v4worldORv6world and all-protocol-1 absentFromPort OR range445. Kept separate from TCP-only, in-use and single-IP-family Prowler scopes.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_restrict_ingress_cifs_port_all",
+    "reviewed_source": {
+      "evaluator_sha256": "2aaaa09c7c2a1eecda98509f43b86d09297e3ede35dbe79e515dfb8d970a6b2a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L58"
+    }
+  },
+  "aws-compliance.control.cis_v600_6_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.nacl_no_world_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_NetworkAclEntry.html"
+    ],
+    "reason": "Exact declared ingress allow, worldv4ORv6, either protocol-1 without PortRange or TCP/UDP range containing22/3389. Source deliberately ignores prior lower-numbered deny rules, preserved as configuration lint without effective reachability claim.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_network_acl_remote_administration",
+    "reviewed_source": {
+      "evaluator_sha256": "9be8a4e707fb0448639ca98080e3afe72f04891682ce4caa81e495fb6f2a468f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L72"
+    }
+  },
+  "aws-compliance.control.cis_v600_6_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_any_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Despite source nameIPv4, full pinned WHERE also includes ::/0; independently verified same exact worldv4ORv6 and22/3389 literal condition as broader-named source. Semantic equivalence includesactualIPv6 branch, not names or normalizedhash alone.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv4",
+    "reviewed_source": {
+      "evaluator_sha256": "d8a954edb6e9cafdbd87116388314accfedaad808093c7e6ecee993b3038be4a",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L86"
+    }
+  },
+  "aws-compliance.control.cis_v600_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.sg_world_v6_remote_admin"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IpPermission.html"
+    ],
+    "reason": "Exact ingress ::/0-only source; v4world doesnotalarm. All-protocol-1 absentFromPort OR range22/3389, no protocol-specific/in-use addition. Narrow IPv6 variant kept separate.",
+    "review_notes": "Full source/native predicate independently inspected, each alias directreference verified; differential per-IP-family/exactrange/UDP/allprotocol/egress/precedingdeny fixtures plus PASS/FAIL/missing/denied/malformed/purity. Literal source port-field/protocol limitations documented, not masked as complete native reachability. Existing collector SG/NACL configuration facts; no cloud probes/resources/secretvalues. Lead audit/active conservation pending; no Claude-owned files modified.",
+    "reviewed_query_id": "vpc_security_group_remote_administration_ipv6",
+    "reviewed_source": {
+      "evaluator_sha256": "8aa1d507a00ea2370070d6593c5f815d63ac9b9af22bdbb6078cfaced7f917a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L100"
+    }
+  },
+  "aws-compliance.control.cis_v600_6_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.vpc.default_sg_no_rules"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_SecurityGroup.html"
+    ],
+    "reason": "Source group_name=default filter preserved and BOTH inbound and outbound permission arrays must be empty. Any private/self or world rule fails; non-default groups skip; no in-use requirement. Full pinned WHERE/CASE and strict native array/count predicates individually verified.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "vpc_default_security_group_restricts_all_traffic",
+    "reviewed_source": {
+      "evaluator_sha256": "435853940e06d5bc21d18f85e623f9156f8316799e6e07e772be6a379e632eb9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L114"
+    }
+  },
+  "aws-compliance.control.cis_v600_6_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.claude_a.ec2.instance_imdsv2_applied"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceMetadataOptionsResponse.html"
+    ],
+    "reason": "Exact HttpTokens=required AND metadata State=applied required for all source instances; endpoint disabled and termination do not skip. Differential required+pending FAIL versus applied PASS; narrower Prowler endpoint-disabled variant not merged.",
+    "review_notes": "Retained IDs only; no Claude-owned code, reviews or tests modified. Independent pass/fail/unknown/denied/malformed/purity fixtures and narrowing/boundary truth cases in owned shared-alias tests; exact framework/version/control conservation through lead.",
+    "reviewed_query_id": "ec2_instance_uses_imdsv2",
+    "reviewed_source": {
+      "evaluator_sha256": "e5bada0bfa0e7dc00b1c60ec4d48225fd0fe62170d0bee29b11e8eaf1ac8bf7f",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_6.pp#L142"
+    }
+  },
+  "aws-compliance.control.cloudtrail_trail_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.cloudtrail.logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Full source per-trail LEFTJOIN home status CASE reviewed: home is_logging overrides shadow status; if no home row, native current status qualifies. Main collector always retrieves trail status in known HomeRegion (fallback currentregion onlywhenunknown), so Status.IsLogging is resolved source status; strict native bool equals source logging predicate. This source emits only existing-trail rows and has no account/region-table absence row: not falsely associated to the separate regional/account presence controls.",
+    "review_notes": "Full pinned query and canonical strict field predicate independentlyreviewed; actual all-source perresource pass/fail/missing/denied/malformed/purity fixtures plus existingSDKhome-status collectiontests. No scopeabsence coverageclaim; exact query/evaluatorrevision/IDs retained; lead masterintegration pending.",
+    "reviewed_query_id": "cloudtrail_trail_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "d828556d733348aad0d8a1a7bdc75b069d3ffc728917a367e89687dbede44216",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L169"
+    }
+  }
+}

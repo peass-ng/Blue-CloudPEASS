@@ -1,0 +1,390 @@
+{
+ "aws-compliance.control.ec2_instance_no_high_level_finding_in_inspector_scan": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The pinned query reads aws_inspector_finding (Amazon Inspector Classic, ListFindings v1). The Inspector Classic API reference is no longer published and current Inspector (inspector2) findings use a different model, so review Inspector findings for each instance manually.",
+   "question": "Do EC2 instances have no High severity findings in Amazon Inspector scans?",
+   "title": "EC2 instances high level findings should not be there in inspector scans"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/inspector/latest/user/what-is-inspector.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_query_id": "ec2_instance_no_high_level_finding_in_inspector_scan",
+  "reviewed_source": {
+   "evaluator_sha256": "c101b6331a39315ba8c86dbef4f33bd04bac9738039d2cbaa5081da1da976c3c",
+   "repository": "turbot/steampipe-mod-aws-compliance",
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ec2.pp#L140"
+  }
+ },
+ "aws-compliance.control.ec2_instance_user_data_no_secrets": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
+   "question": "Is EC2 instance user data free of secrets (passwords, tokens, keys)?",
+   "title": "EC2 instances user data should not have secrets"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_query_id": "ec2_instance_user_data_no_secrets",
+  "reviewed_source": {
+   "evaluator_sha256": "3295b13ecee8ecd067a5acc07d728ac95d4ef5b168b639643f7192ad3cede1a5",
+   "repository": "turbot/steampipe-mod-aws-compliance",
+   "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+   "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ec2.pp#L269"
+  }
+ },
+ "aws-perimeter.control.ebs_snapshot_shared_with_trusted_accounts": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+   "question": "Are EBS snapshots shared (createVolumePermission) only with trusted AWS accounts?",
+   "title": "EBS snapshots should only be shared with trusted accounts"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSnapshotAttribute.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "63e2d2dc2aa8ba737aa3aabff70af9d03979b8e9cdfb472083eebf9859ddbd1e",
+   "repository": "turbot/steampipe-mod-aws-perimeter",
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L746"
+  }
+ },
+ "aws-perimeter.control.ec2_ami_shared_with_trusted_accounts": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+   "question": "Are EC2 AMIs shared (launchPermission UserId) only with trusted AWS accounts?",
+   "title": "EC2 AMIs should only be shared with trusted accounts"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeImageAttribute.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "74222d41f9372bace5838630475cc53791e08feb23efa526cdfa12ae52bf02cd",
+   "repository": "turbot/steampipe-mod-aws-perimeter",
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L484"
+  }
+ },
+ "aws-perimeter.control.ec2_ami_shared_with_trusted_organization_units": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+   "question": "Are EC2 AMIs shared (launchPermission OrganizationalUnitArn) only with trusted organizational units?",
+   "title": "EC2 AMIs should only be shared with trusted OUs"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeImageAttribute.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "b92df7689b36a636dfc036c0463d13022a018d338cafde299b74f352e6aa4b4f",
+   "repository": "turbot/steampipe-mod-aws-perimeter",
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L660"
+  }
+ },
+ "aws-perimeter.control.ec2_ami_shared_with_trusted_organizations": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+   "question": "Are EC2 AMIs shared (launchPermission OrganizationArn) only with trusted organizations?",
+   "title": "EC2 AMIs should only be shared with trusted organizations"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeImageAttribute.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "277339cb5d85247e90ba2ffd6170a53e759de728a8d63f25ec690a00ff400aba",
+   "repository": "turbot/steampipe-mod-aws-perimeter",
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L575"
+  }
+ },
+ "aws-perimeter.control.guarduty_findings_shared_with_trusted_accounts": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+   "question": "Are GuardDuty findings shared only with a trusted administrator account?",
+   "title": "GuardDuty findings should only be shared with trusted accounts"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/guardduty/latest/APIReference/API_GetAdministratorAccount.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "55553c5106f1a5c8a64f58135caefb7056128bf0f84874710cf06d7b12bddbb0",
+   "repository": "turbot/steampipe-mod-aws-perimeter",
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L805"
+  }
+ },
+ "aws-perimeter.control.vpc_peering_connection_cross_account_shared": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The perimeter control compares against the operator-defined trusted_accounts / trusted_organizations / trusted_organization_units variables, which have no account-independent default; the trust list is an operator decision.",
+   "question": "Are VPCs peered only with trusted AWS accounts?",
+   "title": "VPCs should only be peered with trusted accounts"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVpcPeeringConnections.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "6b48eb8a47d3e55b0e8f8810c0bef8b18b962d77e833714276806a39ee9812e7",
+   "repository": "turbot/steampipe-mod-aws-perimeter",
+   "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+   "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/network_access.pp#L302"
+  }
+ },
+ "prowler.aws.ec2_elastic_ip_shodan": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "Requires a third-party Shodan API key and query; PEASO does not send account addresses to external services. Look the addresses up manually.",
+   "question": "Is no Elastic IP address of the account listed in Shodan?",
+   "title": "EC2 Elastic IP address is not listed in Shodan"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeAddresses.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "5db3dbdd4586d1cbefa9eb59d429ff91609acd5384aaa9cab429062937883c61",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_elastic_ip_shodan/ec2_elastic_ip_shodan.metadata.json"
+  }
+ },
+ "prowler.aws.ec2_instance_secrets_user_data": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
+   "question": "Does EC2 instance user data contain no secrets?",
+   "title": "EC2 instance user data contains no secrets"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "9ba7fec20f7f1ba0ab2b54b42e554fc0d0d540c4ba7e7a9570b6fdf22496a96b",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_instance_secrets_user_data/ec2_instance_secrets_user_data.metadata.json"
+  }
+ },
+ "prowler.aws.ec2_launch_template_no_secrets": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
+   "question": "Does every version of every EC2 launch template contain no secrets in user data?",
+   "title": "EC2 launch template user data contains no secrets in any version"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeLaunchTemplateVersions.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "a06b2efda81160cce341733d1008cbb0f8f49d5e924ea402cb47f7502de4e1a1",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_launch_template_no_secrets/ec2_launch_template_no_secrets.metadata.json"
+  }
+ },
+ "prowler.aws.kms_key_enclave_attestation_bypassable_path": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+   "question": "Does no authorization path in the KMS enclave key policy let principals use the key without kms:RecipientAttestation?",
+   "title": "kms_key_enclave_attestation_bypassable_path"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/kms/latest/developerguide/services-nitro-enclaves.html",
+   "https://docs.aws.amazon.com/kms/latest/developerguide/conditions-attestation.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "2a58e0a21f6d9b1f69f491e7c54750796f7a6d987e2f4798a9f0e8daa6df130c",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_bypassable_path/kms_key_enclave_attestation_bypassable_path.metadata.json"
+  }
+ },
+ "prowler.aws.kms_key_enclave_attestation_no_deployment_binding": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+   "question": "Does the KMS enclave key attestation bind a specific deployment context (instance/account/role), not only image PCRs?",
+   "title": "kms_key_enclave_attestation_no_deployment_binding"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/kms/latest/developerguide/services-nitro-enclaves.html",
+   "https://docs.aws.amazon.com/kms/latest/developerguide/conditions-attestation.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "87d26891de87e402456da7f69c0ceba9aca29cb57424620b836b5568aff74cdd",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_no_deployment_binding/kms_key_enclave_attestation_no_deployment_binding.metadata.json"
+  }
+ },
+ "prowler.aws.kms_key_enclave_attestation_not_enforced": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+   "question": "Do sensitive actions on the KMS enclave key require kms:RecipientAttestation conditions?",
+   "title": "kms_key_enclave_attestation_not_enforced"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/kms/latest/developerguide/services-nitro-enclaves.html",
+   "https://docs.aws.amazon.com/kms/latest/developerguide/conditions-attestation.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "5a694396ee010d852279c69f1e6c5d51f7f12652e19f5a84612d6a1aab08cd6e",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_not_enforced/kms_key_enclave_attestation_not_enforced.metadata.json"
+  }
+ },
+ "prowler.aws.kms_key_enclave_attestation_pcr_mismatch": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+   "question": "Do the KMS enclave key policy attestation PCRs match the customer's golden values?",
+   "title": "kms_key_enclave_attestation_pcr_mismatch"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/kms/latest/developerguide/services-nitro-enclaves.html",
+   "https://docs.aws.amazon.com/kms/latest/developerguide/conditions-attestation.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "10784e3e378d4495da4ae8bc641eb4f018bbcccbdb7625f93fbccbd4f500931d",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_pcr_mismatch/kms_key_enclave_attestation_pcr_mismatch.metadata.json"
+  }
+ },
+ "prowler.aws.kms_key_enclave_attestation_unknown_image": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+   "question": "Has no enclave with an unknown image identity called this KMS key?",
+   "title": "kms_key_enclave_attestation_unknown_image"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/kms/latest/developerguide/services-nitro-enclaves.html",
+   "https://docs.aws.amazon.com/kms/latest/developerguide/conditions-attestation.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "01a514aacc903765c70335522e384857bbf3e59dfa86cac1c9459e9f3e79cd7c",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_unknown_image/kms_key_enclave_attestation_unknown_image.metadata.json"
+  }
+ },
+ "prowler.aws.kms_key_enclave_debug_attestation_detected": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+   "question": "Has no Nitro Enclave debug-mode attestation been observed against this KMS key?",
+   "title": "kms_key_enclave_debug_attestation_detected"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/kms/latest/developerguide/services-nitro-enclaves.html",
+   "https://docs.aws.amazon.com/kms/latest/developerguide/conditions-attestation.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "e802b7fbf8ec85404b951b5742766b7e446e26ec22aaa0b9243111defa73d471",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_debug_attestation_detected/kms_key_enclave_debug_attestation_detected.metadata.json"
+  }
+ },
+ "prowler.aws.s3_bucket_object_public": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "Prowler samples objects and reads each object's ACL. Per-object reads are outside the bucket-level snapshot; sample objects with GetObjectAcl or rely on BucketOwnerEnforced/IgnorePublicAcls.",
+   "question": "Do spot-checked objects in each S3 bucket carry no public object ACL grants (AllUsers/AuthenticatedUsers)?",
+   "title": "Spot-check S3 bucket objects for public ACLs"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectAcl.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "0b483a90926f81e3b23b5559eb9efadfe4b0841cdc6b211f98b87e4d20b13eaa",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/s3/s3_bucket_object_public/s3_bucket_object_public.metadata.json"
+  }
+ },
+ "prowler.aws.s3_bucket_shadow_resource_vulnerability": {
+  "disposition": "rejected",
+  "manual_requirement": {
+   "guidance": "Prowler probes predictable bucket names in every Region and checks ownership; probing third-party bucket names is outside the read-only snapshot of this account. Review service buckets and use ExpectedBucketOwner.",
+   "question": "Are none of the service-pattern S3 bucket names used by this account (CloudFormation, Glue, EMR, SageMaker, Athena, ...) pre-claimed by another account?",
+   "title": "S3 bucket is not a known shadow resource owned by another account"
+  },
+  "native_checks": [],
+  "official_docs": [
+   "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-owner-condition.html"
+  ],
+  "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+  "review_classification": "manual_attestation",
+  "reviewed_source": {
+   "evaluator_sha256": "4ff9bc659a8dc53eae0bec92bafc0d621ed32ce1f146d360af8b688c832a6575",
+   "repository": "prowler-cloud/prowler",
+   "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+   "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/s3/s3_bucket_shadow_resource_vulnerability/s3_bucket_shadow_resource_vulnerability.metadata.json"
+  }
+ }
+}

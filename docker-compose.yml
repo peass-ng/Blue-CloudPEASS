@@ -1,0 +1,73 @@
+name: peaso
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.peaso
+      target: api
+    ports:
+      - "127.0.0.1:${PEASO_PORT:-8000}:8000"
+    environment:
+      PEASO_AUTH_MODE: local
+      PEASO_LOCAL_TOKEN: ${PEASO_LOCAL_TOKEN:-}
+      PEASO_SCAN_TIMEOUT_SECONDS: ${PEASO_SCAN_TIMEOUT_SECONDS:-900}
+      PEASO_ALLOWED_ORIGINS: ${PEASO_ALLOWED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000,http://localhost:5173,http://127.0.0.1:5173}
+    volumes:
+      - state:/var/lib/peaso/state
+      - identity:/var/lib/peaso/identity
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETUID, SETGID, DAC_OVERRIDE, FOWNER]
+    security_opt: [no-new-privileges:true]
+    init: true
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+    restart: unless-stopped
+  collector:
+    build:
+      context: .
+      dockerfile: Dockerfile.peaso
+      target: collector
+    environment:
+      PEASO_AUTH_MODE: local
+      PEASO_LOCAL_TOKEN: ${PEASO_LOCAL_TOKEN:-}
+      PEASO_SCAN_TIMEOUT_SECONDS: ${PEASO_SCAN_TIMEOUT_SECONDS:-900}
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - state:/var/lib/peaso/state
+      - identity:/var/lib/peaso/identity:ro
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    init: true
+    restart: unless-stopped
+  analyzer:
+    build:
+      context: .
+      dockerfile: Dockerfile.peaso
+      target: analyzer
+    depends_on:
+      api:
+        condition: service_healthy
+    network_mode: none
+    volumes:
+      - state:/var/lib/peaso/state
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    init: true
+    restart: unless-stopped
+volumes:
+  state:
+  identity:

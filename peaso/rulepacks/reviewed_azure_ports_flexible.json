@@ -1,0 +1,200 @@
+{
+  "azure-compliance.control.cis_v300_5_2_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.postgres_sql_flexible_server_ssl_enabled"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "postgres_sql_flexible_server_ssl_enabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 533,
+      "query_sha256": "63696f60518cacf099d7f4bb26e395ccbe0156f5dba22caac554e129ab4ca14d",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 173,
+      "arguments": [],
+      "pinned_sql": "with ssl_enabled as(\n      select\n        id\n      from\n        azure_postgresql_flexible_server,\n        jsonb_array_elements(flexible_server_configurations) as config\n      where\n        config ->> 'Name' = 'require_secure_transport' and config -> 'ConfigurationProperties' ->> 'value' = 'on'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.id is not null then s.title || ' SSL connection enabled.'\n        else s.title || ' SSL connection disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_postgresql_flexible_server as s\n      left join ssl_enabled as a on s.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_2_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.postgres_flexible_server_log_checkpoints_on"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "postgres_flexible_server_log_checkpoints_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 564,
+      "query_sha256": "2fe29754bf5179f29eecd1892e98bc6a33febc925211a1f899bade16c8c7a9c2",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 187,
+      "arguments": [],
+      "pinned_sql": "with log_checkpoints_on as(\n      select\n        id\n      from\n        azure_postgresql_flexible_server,\n        jsonb_array_elements(flexible_server_configurations) as config\n      where\n        config ->> 'Name' = 'log_checkpoints' and config -> 'ConfigurationProperties' ->> 'value' = 'on'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.id is not null then s.title || ' server parameter log_checkpoints on.'\n        else s.title || ' server parameter log_checkpoints off.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_postgresql_flexible_server as s\n      left join log_checkpoints_on as a on s.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_2_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.postgres_flexible_server_connection_throttling_on"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "postgres_flexible_server_connection_throttling_on",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 595,
+      "query_sha256": "e193981af1ca0effbfdb49876b5aa60fc0997409f3ddbe2185381a0bed04aa0c",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 201,
+      "arguments": [],
+      "pinned_sql": "with connection_throttling_on as(\n      select\n        id\n      from\n        azure_postgresql_flexible_server,\n        jsonb_array_elements(flexible_server_configurations) as config\n      where\n        config ->> 'Name' = 'connection_throttle.enable' and config -> 'ConfigurationProperties' ->> 'value' = 'on'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.id is not null then s.title || ' server parameter connection_throttling on.'\n        else s.title || ' server parameter connection_throttling off.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_postgresql_flexible_server as s\n      left join connection_throttling_on as a on s.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_2_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.postgres_flexible_server_log_retention_days_3"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "postgres_flexible_server_log_retention_days_3",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 626,
+      "query_sha256": "15a1f4c7a3e839a2da57fe6e1ceadf7e22d65a83ad7b1dbfb2164e8f1685846b",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 215,
+      "arguments": [],
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when (config -> 'ConfigurationProperties' ->> 'value')::integer <= 3 then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when (config -> 'ConfigurationProperties' ->> 'value')::integer <= 3 then s.name || ' log files are retained for 3 days or lesser.'\n        else s.name || ' log files are retained for more than 3 days.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_postgresql_flexible_server s\n      cross join lateral jsonb_array_elements(flexible_server_configurations) as config\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id\n    where\n      config ->> 'Name' = 'logfiles.retention_days';"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_2_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.postgres_flexible_server_allow_access_to_azure_services_disabled"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "postgres_flexible_server_allow_access_to_azure_services_disabled",
+      "query_path": "regulatory_compliance/postgres.pp",
+      "query_line": 650,
+      "query_sha256": "e847ade801e66abee68b03e442411dcb2afe023418351f9283027590ac958022",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 229,
+      "arguments": [],
+      "pinned_sql": "with postgres_flexible_server_with_allow_access_to_azure_services as (\n      select\n        id\n      from\n        azure_postgresql_flexible_server,\n        jsonb_array_elements(firewall_rules) as r\n      where\n        r -> 'properties' ->> 'endIpAddress' = '0.0.0.0'\n        or r -> 'properties' ->> 'startIpAddress' = '0.0.0.0'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when a.id is not null then s.title || ' does not restrict access to azure services.'\n        else s.title || ' restricts access to azure services.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_postgresql_flexible_server as s\n      left join postgres_flexible_server_with_allow_access_to_azure_services as a on a.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_3_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.mysql_flexible_server_ssl_enabled"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "mysql_flexible_server_ssl_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 442,
+      "query_sha256": "a05a13390c5ae66fa9f6f7400d34ddc714161c71cc48352c29b23e0b270b32bf",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 301,
+      "arguments": [],
+      "pinned_sql": "with ssl_enabled as(\n      select\n        id\n      from\n        azure_mysql_flexible_server,\n        jsonb_array_elements(flexible_server_configurations) as config\n      where\n        config ->> 'Name' = 'require_secure_transport' and config -> 'ConfigurationProperties' ->> 'value' = 'ON'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.id is not null then s.title || ' SSL connection enabled.'\n        else s.title || ' SSL connection disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_mysql_flexible_server as s\n      left join ssl_enabled as a on s.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.mysql_flexible_server_min_tls_1_2"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "mysql_flexible_server_min_tls_1_2",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 473,
+      "query_sha256": "2605a1860547fc59ab8f4d95c037a985cb063600d94b29e0c9d098b2ec2d667e",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 315,
+      "arguments": [],
+      "pinned_sql": "with tls_version as(\n      select\n        id\n      from\n        azure_mysql_flexible_server,\n        jsonb_array_elements(flexible_server_configurations) as config\n      where\n        config ->> 'Name' = 'tls_version'\n        and config -> 'ConfigurationProperties' ->> 'value' = 'TLSv1.2,TLSv1.3'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.id is not null then s.title || ' minimum TLS version set to TLSv1.2,TLSv1.3.'\n        else s.title || ' minimum TLS version not set to TLSv1.2,TLSv1.3.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_mysql_flexible_server as s\n      left join tls_version as a on s.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_3_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.mysql_flexible_server_audit_logging_enabled"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "mysql_flexible_server_audit_logging_enabled",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 505,
+      "query_sha256": "9b755cc0f20407ba4c49691e23af1e7373cfa4675aa2f0730ca71e5f45bf9a88",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 329,
+      "arguments": [],
+      "pinned_sql": "with audit_log_enabled as(\n      select\n        id\n      from\n        azure_mysql_flexible_server,\n        jsonb_array_elements(flexible_server_configurations) as config\n      where\n        config ->> 'Name' = 'audit_log_enabled'\n        and config -> 'ConfigurationProperties' ->> 'value' = 'ON'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.id is not null then s.title || ' audit logging enabled.'\n        else s.title || ' audit logging disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_mysql_flexible_server as s\n      left join audit_log_enabled as a on s.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_5_3_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.mysql_flexible_server_audit_logging_events_connection_set"
+    ],
+    "reason": "Inspected full source parameter/scope: exact ON/on equality, >3logfiles retention, TLS exact1.2+1.3 pair, exact CONNECTION-only audit event value, startORendzero firewalldeclaration. No broad mergewith version-absent skip, TLS>=1.2 set, audit includeCONNECTION, or publicnetworkdisabled inertness predicates. Missing/ambiguous/version-native contextUNKNOWN, no falseEMPTYrequiredconfig success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/how-to-connect-tls-ssl",
+      "https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-server-parameters"
+    ],
+    "review_notes": "Read-only parameter metadata, noSQL/query/connection/probe/change. Collector whitelistcorrected actuallogfiles.retention_days; literal source baselines explicitly named, not latest/runtime-enforcement claims.",
+    "source_review": {
+      "query_id": "mysql_flexible_server_audit_logging_events_connection_set",
+      "query_path": "regulatory_compliance/mysql.pp",
+      "query_line": 537,
+      "query_sha256": "12d7de6c50c354987d9af143a8e15abaa07a23b276334e8982c1fb6b20e9beab",
+      "control_path": "cis_v300/section_5.pp",
+      "control_line": 343,
+      "arguments": [],
+      "pinned_sql": "with audit_log_events as(\n      select\n        id\n      from\n        azure_mysql_flexible_server,\n        jsonb_array_elements(flexible_server_configurations) as config\n      where\n        config ->> 'Name' = 'audit_log_events'\n        and config -> 'ConfigurationProperties' ->> 'value' = 'CONNECTION'\n    )\n    select\n      s.id as resource,\n      case\n        when a.id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.id is not null then s.title || ' server parameter audit_log_events has connection set.'\n        else s.title || ' server parameter audit_log_events connection not set.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_mysql_flexible_server as s\n      left join audit_log_events as a on s.id = a.id\n      left join azure_subscription as sub on sub.subscription_id = s.subscription_id;"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+ "prowler.kubernetes.kubelet_event_record_qps": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Is the kubelet eventRecordQPS set to a level that ensures appropriate event capture?",
+   "title": "Kubelet eventRecordQPS is appropriate",
+   "guidance": "Review eventRecordQPS in the kubelet configuration: CIS accepts 0 (unlimited) or a level that still captures events; Prowler fails 0. Record the chosen value and rationale."
+  },
+  "reason": "Upstream sources disagree on whether 0 is acceptable and the Prowler implementation reads streamingConnectionIdleTimeout instead of eventRecordQPS; a deterministic native would produce false positives, so the question is kept as an attestation.",
+  "official_docs": [
+   "https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/",
+   "https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/"
+  ],
+  "source_review": {
+   "source_path": "prowler/providers/kubernetes/services/kubelet/kubelet_event_record_qps/kubelet_event_record_qps.py",
+   "source_sha256": "0ce35b94d1881d123bd328f798651275eceb346aa349e3b2a3915e4c83f7d815",
+   "native_unit": "Kubernetes object in the selected cluster/namespace"
+  }
+ }
+}

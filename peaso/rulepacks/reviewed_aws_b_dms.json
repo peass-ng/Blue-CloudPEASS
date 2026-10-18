@@ -1,0 +1,98 @@
+{
+  "aws-compliance.control.dms_replication_instance_automatic_minor_version_upgrade_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dms.automatic_minor_upgrade"
+    ],
+    "reason": "Exact pinned boolean replication-instance policy and native API field reviewed; no endpoint/data-content inspection or effective reachability is claimed. Missing/denied/malformed fields remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/dms.pp#L43",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d0b844b6141a22a9e4e38936f756f768f2fdbdcb4d5bc9e83d6bc1ce582f1697",
+      "query_id": "dms_replication_instance_automatic_minor_version_upgrade_enabled"
+    }
+  },
+  "aws-compliance.control.dms_replication_instance_multiple_az_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dms.multi_az"
+    ],
+    "reason": "Exact pinned boolean replication-instance policy and native API field reviewed; no endpoint/data-content inspection or effective reachability is claimed. Missing/denied/malformed fields remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/dms.pp#L105",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "6a8c0cbcba19cf74f6234aad88075f1cf6c020d51ee924a4b07826adecf25e33",
+      "query_id": "dms_replication_instance_multiple_az_enabled"
+    }
+  },
+  "aws-compliance.control.dms_replication_instance_not_publicly_accessible": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dms.no_public_instance"
+    ],
+    "reason": "Exact pinned boolean replication-instance policy and native API field reviewed; no endpoint/data-content inspection or effective reachability is claimed. Missing/denied/malformed fields remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/dms.pp#L7",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "62252d8c4fb9bb36b5baf7054f0f95a0aff919923dadb63308f9fc034daf2f0f",
+      "query_id": "dms_replication_instance_not_publicly_accessible"
+    }
+  },
+  "aws-compliance.control.foundational_security_dms_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dms.no_public_instance"
+    ],
+    "reason": "Exact pinned boolean replication-instance policy and native API field reviewed; no endpoint/data-content inspection or effective reachability is claimed. Missing/denied/malformed fields remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/dms.pp#L27",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "62252d8c4fb9bb36b5baf7054f0f95a0aff919923dadb63308f9fc034daf2f0f",
+      "query_id": "dms_replication_instance_not_publicly_accessible"
+    }
+  },
+  "aws-compliance.control.foundational_security_dms_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dms.multi_az"
+    ],
+    "reason": "Exact pinned boolean replication-instance policy and native API field reviewed; no endpoint/data-content inspection or effective reachability is claimed. Missing/denied/malformed fields remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/dms.pp#L131",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "6a8c0cbcba19cf74f6234aad88075f1cf6c020d51ee924a4b07826adecf25e33",
+      "query_id": "dms_replication_instance_multiple_az_enabled"
+    }
+  },
+  "aws-compliance.control.foundational_security_dms_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dms.automatic_minor_upgrade"
+    ],
+    "reason": "Exact pinned boolean replication-instance policy and native API field reviewed; no endpoint/data-content inspection or effective reachability is claimed. Missing/denied/malformed fields remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/dms.pp#L40",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "d0b844b6141a22a9e4e38936f756f768f2fdbdcb4d5bc9e83d6bc1ce582f1697",
+      "query_id": "dms_replication_instance_automatic_minor_version_upgrade_enabled"
+    }
+  }
+}

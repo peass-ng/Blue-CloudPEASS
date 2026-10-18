@@ -1,0 +1,19 @@
+{
+  "prowler.aws.cloudwatch_log_group_not_publicly_accessible": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_resource.html",
+      "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DescribeResourcePolicies.html"
+    ],
+    "reason": "Complete pinned execute reviewed: whole-policy is_policy_public makes every Statement.Resource a public loggroup without checking the individual statement Effect/principal/condition, so a Deny-only group in another statement is falselyflagged. Resource match is substring log_group.arn in resource or exact*, not IAMwildcard ARN matching: /aws/* publicgrant doesnotmatch actual /aws/inert ARN and falselyPASSes that scope. Concrete native-shaped policy/ARN input proves falseFAIL/falsePASS in claimed per-loggroup security predicate, not missingfacts or unavailablepolicylisting.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Inert deny-resource/ARNglob counterexamples in owned source_counterexamples tests; policygeneric/sourceSDKsemantics staticallyreviewed. Lead independentaudit/activeintegration pending, no cloudwrites/resourcepolicyvalidation or runtime imports; source/framework/control/version preserved.",
+    "reviewed_source": {
+      "evaluator_sha256": "54fe80a5da209dc8cfcd762cc65685c10796bbe449265ef596ec5c95c724687f",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_group_not_publicly_accessible/cloudwatch_log_group_not_publicly_accessible.metadata.json"
+    }
+  }
+}

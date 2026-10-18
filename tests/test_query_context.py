@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-spec = importlib.util.spec_from_file_location('query_context', Path('docker/query_context.py'))
+spec = importlib.util.spec_from_file_location('query_context', Path('scripts/hardening_catalog_context.py'))
 context = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(context)
 

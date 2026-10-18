@@ -1,0 +1,157 @@
+"""Normalize observed AWS security-control API writes without inferring intent or state."""
+
+from __future__ import annotations
+
+import re
+from collections.abc import Mapping
+from datetime import datetime
+from ipaddress import ip_address
+from typing import Any
+
+
+_REGION = re.compile(r"[a-z]{2}(?:-[a-z]+)+-\d+")
+_ACCOUNT = re.compile(r"\d{12}")
+_TRAIL_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{1,126}[A-Za-z0-9]")
+
+
+def _detector_id(value: Any) -> bool:
+    # The URI accepts a broad string length, but GuardDuty issues 32-hex IDs.
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{32}", value) is not None
+
+
+def _trail_name(value: str) -> bool:
+    if not _TRAIL_NAME.fullmatch(value) or re.search(r"[._-]{2}", value):
+        return False
+    try:
+        ip_address(value)
+    except ValueError:
+        return True
+    return False
+
+
+def _arn(value: Any) -> list[str] | None:
+    if not isinstance(value, str):
+        return None
+    parts = value.split(":", 5)
+    if (len(parts) != 6 or parts[0] != "arn" or parts[1] not in {"aws", "aws-us-gov", "aws-cn"}
+            or not _ACCOUNT.fullmatch(parts[4]) or not parts[5]):
+        return None
+    return parts
+
+
+def _event_time(value: Any) -> str | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return value if parsed.tzinfo is not None else None
+
+
+def _trail_reference(value: Any, account: str, region: str, partition: str) -> str | None:
+    if not isinstance(value, str):
+        return None
+    if value.startswith("arn:"):
+        parts = _arn(value)
+        if (parts is None or parts[1] != partition or parts[2] != "cloudtrail"
+                or parts[3] != region or parts[4] != account
+                or not parts[5].startswith("trail/")):
+            return None
+        value = parts[5][len("trail/"):]
+    return value if _trail_name(value) else None
+
+
+def _read_only_management_selector(value: Any) -> bool:
+    # A trail logs an event if *any* selector matches it. One complete basic
+    # selector is required, so another selector cannot retain write events.
+    if not isinstance(value, list) or len(value) != 1 or not isinstance(value[0], Mapping):
+        return False
+    selector = value[0]
+    return selector.get("readWriteType") == "ReadOnly" and selector.get("includeManagementEvents") is True
+
+
+def normalize_aws_security_control(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Return a canonical event only when the targeted API request is evidenced.
+
+    A successful API record proves the named request was accepted. It does not
+    establish prior configuration, current service state, or actor intent.
+    """
+    source = record.get("eventSource")
+    name = record.get("eventName")
+    if not isinstance(source, str) or not isinstance(name, str):
+        return None
+    if (source, name) not in {
+        ("cloudtrail.amazonaws.com", "StopLogging"),
+        ("cloudtrail.amazonaws.com", "DeleteTrail"),
+        ("cloudtrail.amazonaws.com", "PutEventSelectors"),
+        ("guardduty.amazonaws.com", "UpdateDetector"),
+        ("guardduty.amazonaws.com", "DeleteDetector"),
+    }:
+        return None
+    request = record.get("requestParameters")
+    response = record.get("responseElements")
+    identity = record.get("userIdentity")
+    if not isinstance(request, Mapping) or not isinstance(identity, Mapping) or "responseElements" not in record:
+        return None
+    if response is not None and not isinstance(response, Mapping):
+        return None
+    if (record.get("errorCode") or record.get("errorMessage")
+            or isinstance(response, Mapping) and (response.get("errorCode") or response.get("errorMessage"))):
+        return None
+    if (record.get("eventCategory") != "Management"
+            or (record.get("managementEvent") is not None and record.get("managementEvent") is not True)
+            or record.get("eventType") != "AwsApiCall"
+            or (record.get("readOnly") is not None and record.get("readOnly") is not False)):
+        return None
+    account = record.get("recipientAccountId")
+    region = record.get("awsRegion")
+    event_id = record.get("eventID")
+    event_time = _event_time(record.get("eventTime"))
+    actor_arn = _arn(identity.get("arn"))
+    if (not isinstance(account, str) or not _ACCOUNT.fullmatch(account)
+            or not isinstance(region, str) or not _REGION.fullmatch(region)
+            or not isinstance(event_id, str) or not event_id
+            or event_time is None or actor_arn is None
+            or identity.get("accountId") != actor_arn[4] or actor_arn[4] != account
+            or not isinstance(identity.get("type"), str) or not identity["type"]):
+        return None
+
+    result = {
+        "cloud.provider": "aws", "cloud.region": region,
+        "event.source": source, "event.name": name, "event.outcome": "success",
+        "event.id": event_id, "event.time": event_time,
+        "account.id": account, "actor.id": identity["arn"], "actor.kind": identity["type"],
+    }
+    if name in {"StopLogging", "DeleteTrail"}:
+        trail_ref = request.get("name")
+        trail_name = _trail_reference(trail_ref, account, region, actor_arn[1])
+        if trail_name is None:
+            return None
+        result.update({"target.id": trail_ref, "request.trail_name": trail_name,
+                       "request.stop_logging_observed": name == "StopLogging",
+                       "request.delete_trail_observed": name == "DeleteTrail"})
+    elif name == "PutEventSelectors":
+        trail_name = _trail_reference(request.get("trailName"), account, region, actor_arn[1])
+        if (trail_name is None or not isinstance(response, Mapping)
+                or request.get("advancedEventSelectors") or response.get("advancedEventSelectors")
+                or not _read_only_management_selector(request.get("eventSelectors"))
+                or not _read_only_management_selector(response.get("eventSelectors"))):
+            return None
+        response_arn = response.get("trailARN")
+        if (_trail_reference(response_arn, account, region, actor_arn[1]) != trail_name
+                or not isinstance(response_arn, str) or not response_arn.startswith("arn:")):
+            return None
+        result.update({"target.id": response_arn, "request.trail_name": trail_name,
+                       "request.read_only_management_selector_applied": True})
+    else:
+        detector_id = request.get("detectorId")
+        if not _detector_id(detector_id):
+            return None
+        if name == "UpdateDetector" and request.get("enable") is not False:
+            return None
+        result.update({"target.id": detector_id, "request.detector_id": detector_id,
+                       "request.enable": False if name == "UpdateDetector" else None,
+                       "request.detector_disable_requested": name == "UpdateDetector",
+                       "request.detector_delete_observed": name == "DeleteDetector"})
+    return result

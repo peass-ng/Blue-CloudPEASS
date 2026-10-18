@@ -1,0 +1,4910 @@
+{
+  "azure.cis.legacy_vhds_encrypted": {
+    "fail": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "fail_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "_cmkKeyAccess": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/",
+                  "principalId": "storage-principal",
+                  "status": "collected",
+                  "usable": true
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "identity": {
+                  "principalId": "storage-principal",
+                  "type": "SystemAssigned"
+                },
+                "name": "sa",
+                "properties": {
+                  "encryption": {
+                    "keySource": "Microsoft.Keyvault",
+                    "keyVaultProperties": {
+                      "keyName": "key",
+                      "keyVaultUri": "https://vault.vault.azure.net/"
+                    },
+                    "services": {
+                      "blob": {
+                        "enabled": false
+                      }
+                    }
+                  },
+                  "primaryEndpoints": {
+                    "blob": "https://sa.blob.core.windows.net/"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "representation": "full"
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "storageProfile": {
+                    "dataDisks": [],
+                    "osDisk": {
+                      "vhd": {
+                        "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "_cmkKeyAccess": {
+              "keyName": "key",
+              "keyVaultUri": "https://vault.vault.azure.net/",
+              "principalId": "storage-principal",
+              "status": "collected",
+              "usable": true
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "identity": {
+              "principalId": "storage-principal",
+              "type": "SystemAssigned"
+            },
+            "name": "sa",
+            "properties": {
+              "encryption": {
+                "keySource": "Microsoft.Keyvault",
+                "keyVaultProperties": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/"
+                },
+                "services": {
+                  "blob": {
+                    "enabled": false
+                  }
+                }
+              },
+              "primaryEndpoints": {
+                "blob": "https://sa.blob.core.windows.net/"
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_provenance": {
+              "representation": "full"
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "storageProfile": {
+                "dataDisks": [],
+                "osDisk": {
+                  "vhd": {
+                    "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                  }
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "vm"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "_cmkKeyAccess": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/",
+                  "principalId": "storage-principal",
+                  "status": "collected",
+                  "usable": true
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "identity": {
+                  "principalId": "storage-principal",
+                  "type": "SystemAssigned"
+                },
+                "name": "sa",
+                "properties": {
+                  "encryption": {
+                    "keySource": "Microsoft.Keyvault",
+                    "keyVaultProperties": {
+                      "keyName": "key",
+                      "keyVaultUri": "https://vault.vault.azure.net/"
+                    },
+                    "services": {
+                      "blob": {}
+                    }
+                  },
+                  "primaryEndpoints": {
+                    "blob": "https://sa.blob.core.windows.net/"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "representation": "full"
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "storageProfile": {
+                    "dataDisks": [],
+                    "osDisk": {
+                      "vhd": {
+                        "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "_cmkKeyAccess": {
+              "keyName": "key",
+              "keyVaultUri": "https://vault.vault.azure.net/",
+              "principalId": "storage-principal",
+              "status": "collected",
+              "usable": true
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "identity": {
+              "principalId": "storage-principal",
+              "type": "SystemAssigned"
+            },
+            "name": "sa",
+            "properties": {
+              "encryption": {
+                "keySource": "Microsoft.Keyvault",
+                "keyVaultProperties": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/"
+                },
+                "services": {
+                  "blob": {}
+                }
+              },
+              "primaryEndpoints": {
+                "blob": "https://sa.blob.core.windows.net/"
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_provenance": {
+              "representation": "full"
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "storageProfile": {
+                "dataDisks": [],
+                "osDisk": {
+                  "vhd": {
+                    "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                  }
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "vm"
+        }
+      ]
+    },
+    "malformed": null,
+    "missing": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "missing_index": {},
+    "pass": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "pass_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "_cmkKeyAccess": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/",
+                  "principalId": "storage-principal",
+                  "status": "collected",
+                  "usable": true
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "identity": {
+                  "principalId": "storage-principal",
+                  "type": "SystemAssigned"
+                },
+                "name": "sa",
+                "properties": {
+                  "encryption": {
+                    "keySource": "Microsoft.Keyvault",
+                    "keyVaultProperties": {
+                      "keyName": "key",
+                      "keyVaultUri": "https://vault.vault.azure.net/"
+                    },
+                    "services": {
+                      "blob": {
+                        "enabled": true
+                      }
+                    }
+                  },
+                  "primaryEndpoints": {
+                    "blob": "https://sa.blob.core.windows.net/"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "representation": "full"
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "storageProfile": {
+                    "dataDisks": [],
+                    "osDisk": {
+                      "vhd": {
+                        "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "_cmkKeyAccess": {
+              "keyName": "key",
+              "keyVaultUri": "https://vault.vault.azure.net/",
+              "principalId": "storage-principal",
+              "status": "collected",
+              "usable": true
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "identity": {
+              "principalId": "storage-principal",
+              "type": "SystemAssigned"
+            },
+            "name": "sa",
+            "properties": {
+              "encryption": {
+                "keySource": "Microsoft.Keyvault",
+                "keyVaultProperties": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/"
+                },
+                "services": {
+                  "blob": {
+                    "enabled": true
+                  }
+                }
+              },
+              "primaryEndpoints": {
+                "blob": "https://sa.blob.core.windows.net/"
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_provenance": {
+              "representation": "full"
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "storageProfile": {
+                "dataDisks": [],
+                "osDisk": {
+                  "vhd": {
+                    "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                  }
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "vm"
+        }
+      ]
+    },
+    "unknown": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "unknown_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "_cmkKeyAccess": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/",
+                  "principalId": "storage-principal",
+                  "status": "collected",
+                  "usable": true
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "identity": {
+                  "principalId": "storage-principal",
+                  "type": "SystemAssigned"
+                },
+                "name": "sa",
+                "properties": {
+                  "encryption": {
+                    "keySource": "Microsoft.Keyvault",
+                    "keyVaultProperties": {
+                      "keyName": "key",
+                      "keyVaultUri": "https://vault.vault.azure.net/"
+                    },
+                    "services": {
+                      "blob": {}
+                    }
+                  },
+                  "primaryEndpoints": {
+                    "blob": "https://sa.blob.core.windows.net/"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "_provenance": {
+                  "representation": "full"
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "storageProfile": {
+                    "dataDisks": [],
+                    "osDisk": {
+                      "vhd": {
+                        "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                      }
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "_cmkKeyAccess": {
+              "keyName": "key",
+              "keyVaultUri": "https://vault.vault.azure.net/",
+              "principalId": "storage-principal",
+              "status": "collected",
+              "usable": true
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "identity": {
+              "principalId": "storage-principal",
+              "type": "SystemAssigned"
+            },
+            "name": "sa",
+            "properties": {
+              "encryption": {
+                "keySource": "Microsoft.Keyvault",
+                "keyVaultProperties": {
+                  "keyName": "key",
+                  "keyVaultUri": "https://vault.vault.azure.net/"
+                },
+                "services": {
+                  "blob": {}
+                }
+              },
+              "primaryEndpoints": {
+                "blob": "https://sa.blob.core.windows.net/"
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_provenance": {
+              "representation": "full"
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "storageProfile": {
+                "dataDisks": [],
+                "osDisk": {
+                  "vhd": {
+                    "uri": "https://sa.blob.core.windows.net/vhds/os.vhd"
+                  }
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "vm"
+        }
+      ]
+    }
+  },
+  "azure.cis.resource_manager_delete_locks_applied_storage_accounts": {
+    "fail": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "fail_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "effectiveLockChain": {
+                  "managementGroupAncestorsComplete": true,
+                  "scopes": [
+                    {
+                      "locks": [],
+                      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                      "status": "empty"
+                    },
+                    {
+                      "locks": [],
+                      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg",
+                      "status": "empty"
+                    },
+                    {
+                      "locks": [],
+                      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+                      "status": "empty"
+                    }
+                  ],
+                  "status": "collected"
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "effectiveLockChain": {
+              "managementGroupAncestorsComplete": true,
+              "scopes": [
+                {
+                  "locks": [],
+                  "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                  "status": "empty"
+                },
+                {
+                  "locks": [],
+                  "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg",
+                  "status": "empty"
+                },
+                {
+                  "locks": [],
+                  "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+                  "status": "empty"
+                }
+              ],
+              "status": "collected"
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    },
+    "malformed": null,
+    "missing": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "missing_index": {},
+    "pass": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "pass_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "effectiveLockChain": {
+                  "managementGroupAncestorsComplete": true,
+                  "scopes": [
+                    {
+                      "locks": [
+                        {
+                          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa/providers/Microsoft.Authorization/locks/protect",
+                          "properties": {
+                            "level": "CanNotDelete"
+                          }
+                        }
+                      ],
+                      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                      "status": "collected"
+                    },
+                    {
+                      "locks": [],
+                      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg",
+                      "status": "empty"
+                    },
+                    {
+                      "locks": [],
+                      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+                      "status": "empty"
+                    }
+                  ],
+                  "status": "collected"
+                },
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "effectiveLockChain": {
+              "managementGroupAncestorsComplete": true,
+              "scopes": [
+                {
+                  "locks": [
+                    {
+                      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa/providers/Microsoft.Authorization/locks/protect",
+                      "properties": {
+                        "level": "CanNotDelete"
+                      }
+                    }
+                  ],
+                  "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                  "status": "collected"
+                },
+                {
+                  "locks": [],
+                  "scope": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg",
+                  "status": "empty"
+                },
+                {
+                  "locks": [],
+                  "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+                  "status": "empty"
+                }
+              ],
+              "status": "collected"
+            },
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    },
+    "unknown": {
+      "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+    },
+    "unknown_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected"
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa"
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    }
+  },
+  "azure.gap.compute_vm_attached_with_network": {
+    "fail": {
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+            }
+          ]
+        }
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "nic": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "properties": {
+                        "subnet": {
+                          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "virtualMachine": {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm"
+          }
+        ],
+        "vnet": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vnet"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "approvedVnetIds": [
+              "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/other"
+            ],
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "properties": {
+                    "subnet": {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "virtualMachine": {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "nic"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                  }
+                ]
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm"
+        }
+      ],
+      "vnet": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                }
+              ]
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vnet"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "nic": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "properties": {
+                        "subnet": {
+                          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "virtualMachine": {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "partial",
+            "type": "nic"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm"
+          }
+        ],
+        "vnet": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vnet"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "approvedVnetIds": [
+              "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1"
+            ],
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "properties": {
+                    "subnet": {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "virtualMachine": {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "nic"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                  }
+                ]
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm"
+        }
+      ],
+      "vnet": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                }
+              ]
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vnet"
+        }
+      ]
+    },
+    "malformed": null,
+    "missing": {
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+            }
+          ]
+        }
+      }
+    },
+    "missing_index": {},
+    "pass": {
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+            }
+          ]
+        }
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "nic": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "properties": {
+                        "subnet": {
+                          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "virtualMachine": {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm"
+          }
+        ],
+        "vnet": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vnet"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "approvedVnetIds": [
+              "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1"
+            ],
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "properties": {
+                    "subnet": {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "virtualMachine": {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "nic"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                  }
+                ]
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm"
+        }
+      ],
+      "vnet": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                }
+              ]
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vnet"
+        }
+      ]
+    },
+    "unknown": {
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+            }
+          ]
+        }
+      }
+    },
+    "unknown_index": {
+      "collections": {
+        "nic": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "properties": {
+                        "subnet": {
+                          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "virtualMachine": {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "partial",
+            "type": "nic"
+          }
+        ],
+        "vm": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm"
+          }
+        ],
+        "vnet": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+                "properties": {
+                  "subnets": [
+                    {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vnet"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "approvedVnetIds": [
+              "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1"
+            ],
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "properties": {
+                    "subnet": {
+                      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "virtualMachine": {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "nic"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic1"
+                  }
+                ]
+              }
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm"
+        }
+      ],
+      "vnet": [
+        {
+          "data": {
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1",
+            "properties": {
+              "subnets": [
+                {
+                  "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet1/subnets/default"
+                }
+              ]
+            }
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vnet"
+        }
+      ]
+    }
+  },
+  "azure.gap.compute_vm_remote_access_restricted_all_ports": {
+    "fail": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+                  },
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": [
+                    {
+                      "name": "rule100",
+                      "properties": {
+                        "access": "Allow",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 100,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_remote_access_restricted_all_ports": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+              },
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": [
+                {
+                  "name": "rule100",
+                  "properties": {
+                    "access": "Allow",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 100,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ]
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+                  },
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": []
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "partial",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_remote_access_restricted_all_ports": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+              },
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": []
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    },
+    "malformed": null,
+    "missing": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "missing_index": {},
+    "pass": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+                  },
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": []
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_remote_access_restricted_all_ports": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+              },
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": []
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    },
+    "unknown": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "unknown_index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+                  },
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": []
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "partial",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_remote_access_restricted_all_ports": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+              },
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": []
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    }
+  },
+  "azure.gap.compute_vm_scale_set_system_updates_installed": {
+    "fail": {
+      "_coverage": {
+        "instances": {
+          "status": "collected"
+        }
+      },
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+      "instances": [
+        {
+          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+          "patchAssessment": {
+            "_provenance": {
+              "latest": true,
+              "source": "ResourceGraph.patchassessmentresources.summary"
+            },
+            "availablePatchCountByClassification": {
+              "critical": 1,
+              "security": 0
+            },
+            "errorDetails": [],
+            "lastModifiedDateTime": "2026-10-11T00:00:00Z",
+            "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+            "status": "Succeeded",
+            "unresolvedClassification": false
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "collections": {
+        "vm_scale_set": [
+          {
+            "items": [
+              {
+                "_coverage": {
+                  "instances": {
+                    "status": "collected"
+                  }
+                },
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+                "instances": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                    "patchAssessment": {
+                      "_provenance": {
+                        "latest": true,
+                        "source": "ResourceGraph.patchassessmentresources.summary"
+                      },
+                      "availablePatchCountByClassification": {
+                        "critical": 1,
+                        "security": 0
+                      },
+                      "errorDetails": [],
+                      "lastModifiedDateTime": "2026-10-11T00:00:00Z",
+                      "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                      "status": "Succeeded",
+                      "unresolvedClassification": false
+                    }
+                  }
+                ]
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm_scale_set"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "maxAssessmentAgeSeconds": 172800,
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "vm_scale_set": [
+        {
+          "data": {
+            "_coverage": {
+              "instances": {
+                "status": "collected"
+              }
+            },
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+            "instances": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                "patchAssessment": {
+                  "_provenance": {
+                    "latest": true,
+                    "source": "ResourceGraph.patchassessmentresources.summary"
+                  },
+                  "availablePatchCountByClassification": {
+                    "critical": 1,
+                    "security": 0
+                  },
+                  "errorDetails": [],
+                  "lastModifiedDateTime": "2026-10-11T00:00:00Z",
+                  "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                  "status": "Succeeded",
+                  "unresolvedClassification": false
+                }
+              }
+            ]
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm_scale_set"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "vm_scale_set": [
+          {
+            "items": [
+              {
+                "_coverage": {
+                  "instances": {
+                    "status": "collected"
+                  }
+                },
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+                "instances": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                    "patchAssessment": {
+                      "_provenance": {
+                        "latest": true,
+                        "source": "ResourceGraph.patchassessmentresources.summary"
+                      },
+                      "availablePatchCountByClassification": {
+                        "critical": 0,
+                        "security": 0
+                      },
+                      "errorDetails": [],
+                      "lastModifiedDateTime": "2026-09-01T00:00:00Z",
+                      "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                      "status": "Succeeded",
+                      "unresolvedClassification": false
+                    }
+                  }
+                ]
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm_scale_set"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "maxAssessmentAgeSeconds": 172800,
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "vm_scale_set": [
+        {
+          "data": {
+            "_coverage": {
+              "instances": {
+                "status": "collected"
+              }
+            },
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+            "instances": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                "patchAssessment": {
+                  "_provenance": {
+                    "latest": true,
+                    "source": "ResourceGraph.patchassessmentresources.summary"
+                  },
+                  "availablePatchCountByClassification": {
+                    "critical": 0,
+                    "security": 0
+                  },
+                  "errorDetails": [],
+                  "lastModifiedDateTime": "2026-09-01T00:00:00Z",
+                  "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                  "status": "Succeeded",
+                  "unresolvedClassification": false
+                }
+              }
+            ]
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm_scale_set"
+        }
+      ]
+    },
+    "malformed": null,
+    "missing": {
+      "_coverage": {
+        "instances": {
+          "status": "collected"
+        }
+      },
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+      "instances": [
+        {
+          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+          "patchAssessment": {
+            "_provenance": {
+              "latest": true,
+              "source": "ResourceGraph.patchassessmentresources.summary"
+            },
+            "availablePatchCountByClassification": {
+              "critical": 0,
+              "security": 0
+            },
+            "errorDetails": [],
+            "lastModifiedDateTime": "2026-09-01T00:00:00Z",
+            "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+            "status": "Succeeded",
+            "unresolvedClassification": false
+          }
+        }
+      ]
+    },
+    "missing_index": {},
+    "pass": {
+      "_coverage": {
+        "instances": {
+          "status": "collected"
+        }
+      },
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+      "instances": [
+        {
+          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+          "patchAssessment": {
+            "_provenance": {
+              "latest": true,
+              "source": "ResourceGraph.patchassessmentresources.summary"
+            },
+            "availablePatchCountByClassification": {
+              "critical": 0,
+              "security": 0
+            },
+            "errorDetails": [],
+            "lastModifiedDateTime": "2026-10-11T00:00:00Z",
+            "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+            "status": "Succeeded",
+            "unresolvedClassification": false
+          }
+        }
+      ]
+    },
+    "pass_index": {
+      "collections": {
+        "vm_scale_set": [
+          {
+            "items": [
+              {
+                "_coverage": {
+                  "instances": {
+                    "status": "collected"
+                  }
+                },
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+                "instances": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                    "patchAssessment": {
+                      "_provenance": {
+                        "latest": true,
+                        "source": "ResourceGraph.patchassessmentresources.summary"
+                      },
+                      "availablePatchCountByClassification": {
+                        "critical": 0,
+                        "security": 0
+                      },
+                      "errorDetails": [],
+                      "lastModifiedDateTime": "2026-10-11T00:00:00Z",
+                      "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                      "status": "Succeeded",
+                      "unresolvedClassification": false
+                    }
+                  }
+                ]
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm_scale_set"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "maxAssessmentAgeSeconds": 172800,
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "vm_scale_set": [
+        {
+          "data": {
+            "_coverage": {
+              "instances": {
+                "status": "collected"
+              }
+            },
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+            "instances": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                "patchAssessment": {
+                  "_provenance": {
+                    "latest": true,
+                    "source": "ResourceGraph.patchassessmentresources.summary"
+                  },
+                  "availablePatchCountByClassification": {
+                    "critical": 0,
+                    "security": 0
+                  },
+                  "errorDetails": [],
+                  "lastModifiedDateTime": "2026-10-11T00:00:00Z",
+                  "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                  "status": "Succeeded",
+                  "unresolvedClassification": false
+                }
+              }
+            ]
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm_scale_set"
+        }
+      ]
+    },
+    "unknown": {
+      "_coverage": {
+        "instances": {
+          "status": "collected"
+        }
+      },
+      "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+      "instances": [
+        {
+          "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+          "patchAssessment": {
+            "_provenance": {
+              "latest": true,
+              "source": "ResourceGraph.patchassessmentresources.summary"
+            },
+            "availablePatchCountByClassification": {
+              "critical": 0,
+              "security": 0
+            },
+            "errorDetails": [],
+            "lastModifiedDateTime": "2026-09-01T00:00:00Z",
+            "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+            "status": "Succeeded",
+            "unresolvedClassification": false
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "collections": {
+        "vm_scale_set": [
+          {
+            "items": [
+              {
+                "_coverage": {
+                  "instances": {
+                    "status": "collected"
+                  }
+                },
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+                "instances": [
+                  {
+                    "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                    "patchAssessment": {
+                      "_provenance": {
+                        "latest": true,
+                        "source": "ResourceGraph.patchassessmentresources.summary"
+                      },
+                      "availablePatchCountByClassification": {
+                        "critical": 0,
+                        "security": 0
+                      },
+                      "errorDetails": [],
+                      "lastModifiedDateTime": "2026-09-01T00:00:00Z",
+                      "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                      "status": "Succeeded",
+                      "unresolvedClassification": false
+                    }
+                  }
+                ]
+              }
+            ],
+            "scope": "/subscriptions/sub1",
+            "status": "collected",
+            "type": "vm_scale_set"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "sw02": {
+            "maxAssessmentAgeSeconds": 172800,
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/sub1"
+      },
+      "vm_scale_set": [
+        {
+          "data": {
+            "_coverage": {
+              "instances": {
+                "status": "collected"
+              }
+            },
+            "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1",
+            "instances": [
+              {
+                "id": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                "patchAssessment": {
+                  "_provenance": {
+                    "latest": true,
+                    "source": "ResourceGraph.patchassessmentresources.summary"
+                  },
+                  "availablePatchCountByClassification": {
+                    "critical": 0,
+                    "security": 0
+                  },
+                  "errorDetails": [],
+                  "lastModifiedDateTime": "2026-09-01T00:00:00Z",
+                  "resourceId": "/subscriptions/sub1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachineScaleSets/ss1/virtualMachines/0",
+                  "status": "Succeeded",
+                  "unresolvedClassification": false
+                }
+              }
+            ]
+          },
+          "scope": "/subscriptions/sub1",
+          "type": "vm_scale_set"
+        }
+      ]
+    }
+  },
+  "azure.gap.compute_vm_tcp_udp_access_restricted_internet": {
+    "fail": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": null,
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": []
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_tcp_udp_access_restricted_internet": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": null,
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": []
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+                  },
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": []
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "partial",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_tcp_udp_access_restricted_internet": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+              },
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": []
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    },
+    "malformed": null,
+    "missing": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "missing_index": {},
+    "pass": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+                  },
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": []
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_tcp_udp_access_restricted_internet": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+              },
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": []
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    },
+    "unknown": {
+      "_coverage": {
+        "guestConfigurationAssignments": {
+          "_provenance": {
+            "observed_at": "2026-10-12T10:00:00Z",
+            "read_only": true,
+            "source_operation": "assignment LIST"
+          },
+          "status": "collected"
+        }
+      },
+      "guestConfigurationAssignments": [],
+      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+      "properties": {
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+            }
+          ]
+        },
+        "storageProfile": {
+          "osDisk": {
+            "osType": "Windows"
+          }
+        }
+      }
+    },
+    "unknown_index": {
+      "collections": {
+        "load_balancer": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "type": "load_balancer"
+          }
+        ],
+        "nic": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+                "properties": {
+                  "ipConfigurations": [
+                    {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                      "properties": {
+                        "privateIPAddress": "10.0.0.4",
+                        "publicIPAddress": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                        },
+                        "subnet": {
+                          "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                        }
+                      }
+                    }
+                  ],
+                  "networkSecurityGroup": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+                  },
+                  "virtualMachine": {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nic"
+          }
+        ],
+        "nsg": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+                "properties": {
+                  "defaultSecurityRules": [
+                    {
+                      "name": "rule65500",
+                      "properties": {
+                        "access": "Deny",
+                        "destinationAddressPrefix": "*",
+                        "destinationPortRange": "*",
+                        "direction": "Inbound",
+                        "priority": 65500,
+                        "protocol": "*",
+                        "sourceAddressPrefix": "*",
+                        "sourcePortRange": "*"
+                      }
+                    }
+                  ],
+                  "securityRules": []
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "nsg"
+          }
+        ],
+        "public_ip": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+                "properties": {
+                  "ipAddress": "8.8.8.8"
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "public_ip"
+          }
+        ],
+        "subnet": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+                "properties": {
+                  "networkSecurityGroup": null
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "type": "subnet"
+          }
+        ],
+        "vm": [
+          {
+            "_provenance": {
+              "observed_at": "2026-10-12T10:00:00Z",
+              "read_only": true,
+              "source_operation": "GET"
+            },
+            "items": [
+              {
+                "_coverage": {
+                  "guestConfigurationAssignments": {
+                    "_provenance": {
+                      "observed_at": "2026-10-12T10:00:00Z",
+                      "read_only": true,
+                      "source_operation": "assignment LIST"
+                    },
+                    "status": "collected"
+                  }
+                },
+                "guestConfigurationAssignments": [],
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+                "properties": {
+                  "networkProfile": {
+                    "networkInterfaces": [
+                      {
+                        "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                      }
+                    ]
+                  },
+                  "storageProfile": {
+                    "osDisk": {
+                      "osType": "Windows"
+                    }
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "partial",
+            "type": "vm"
+          }
+        ]
+      },
+      "context": {
+        "created_at": "2026-10-12T10:00:00Z",
+        "metadata": {
+          "compliance_policy": {
+            "checks": {
+              "azure.gap.compute_vm_tcp_udp_access_restricted_internet": {
+                "assignmentName": "baseline",
+                "configurationName": "approved-baseline",
+                "configurationVersion": "1.0",
+                "maxReportAgeSeconds": 3600
+              }
+            },
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected"
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "load_balancer": [],
+      "nic": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic",
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic/ipConfigurations/primary",
+                  "properties": {
+                    "privateIPAddress": "10.0.0.4",
+                    "publicIPAddress": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip"
+                    },
+                    "subnet": {
+                      "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default"
+                    }
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+              },
+              "virtualMachine": {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm"
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nic"
+        }
+      ],
+      "nsg": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg",
+            "properties": {
+              "defaultSecurityRules": [
+                {
+                  "name": "rule65500",
+                  "properties": {
+                    "access": "Deny",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "*",
+                    "direction": "Inbound",
+                    "priority": 65500,
+                    "protocol": "*",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*"
+                  }
+                }
+              ],
+              "securityRules": []
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "nsg"
+        }
+      ],
+      "public_ip": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/publicIPAddresses/pip",
+            "properties": {
+              "ipAddress": "8.8.8.8"
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "public_ip"
+        }
+      ],
+      "subnet": [
+        {
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/default",
+            "properties": {
+              "networkSecurityGroup": null
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "subnet"
+        }
+      ],
+      "vm": [
+        {
+          "data": {
+            "_coverage": {
+              "guestConfigurationAssignments": {
+                "_provenance": {
+                  "observed_at": "2026-10-12T10:00:00Z",
+                  "read_only": true,
+                  "source_operation": "assignment LIST"
+                },
+                "status": "collected"
+              }
+            },
+            "guestConfigurationAssignments": [],
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm",
+            "properties": {
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic"
+                  }
+                ]
+              },
+              "storageProfile": {
+                "osDisk": {
+                  "osType": "Windows"
+                }
+              }
+            }
+          },
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "type": "vm"
+        }
+      ]
+    }
+  },
+  "azure_storage_account_storage_blob_public_access_level_is_disabled_4211794": {
+    "fail": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+      "properties": {
+        "allowBlobPublicAccess": false,
+        "networkAcls": {
+          "defaultAction": "Deny"
+        },
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    "fail_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "properties": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls": {
+                    "defaultAction": "Deny"
+                  },
+                  "publicNetworkAccess": "Enabled"
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected",
+              "storageAccess": {
+                "expectedSettings": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls.defaultAction": "Deny",
+                  "publicNetworkAccess": "Disabled"
+                }
+              }
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "properties": {
+              "allowBlobPublicAccess": false,
+              "networkAcls": {
+                "defaultAction": "Deny"
+              },
+              "publicNetworkAccess": "Enabled"
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    },
+    "index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "properties": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls": {
+                    "defaultAction": "Deny"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected",
+              "storageAccess": {
+                "expectedSettings": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls.defaultAction": "Deny",
+                  "publicNetworkAccess": "Disabled"
+                }
+              }
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "properties": {
+              "allowBlobPublicAccess": false,
+              "networkAcls": {
+                "defaultAction": "Deny"
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    },
+    "malformed": null,
+    "missing": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+      "properties": {
+        "allowBlobPublicAccess": false,
+        "networkAcls": {
+          "defaultAction": "Deny"
+        }
+      }
+    },
+    "missing_index": {},
+    "pass": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+      "properties": {
+        "allowBlobPublicAccess": false,
+        "networkAcls": {
+          "defaultAction": "Deny"
+        },
+        "publicNetworkAccess": "Disabled"
+      }
+    },
+    "pass_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "properties": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls": {
+                    "defaultAction": "Deny"
+                  },
+                  "publicNetworkAccess": "Disabled"
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected",
+              "storageAccess": {
+                "expectedSettings": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls.defaultAction": "Deny",
+                  "publicNetworkAccess": "Disabled"
+                }
+              }
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "properties": {
+              "allowBlobPublicAccess": false,
+              "networkAcls": {
+                "defaultAction": "Deny"
+              },
+              "publicNetworkAccess": "Disabled"
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    },
+    "unknown": {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+      "properties": {
+        "allowBlobPublicAccess": false,
+        "networkAcls": {
+          "defaultAction": "Deny"
+        }
+      }
+    },
+    "unknown_index": {
+      "collections": {
+        "storage_account": [
+          {
+            "items": [
+              {
+                "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+                "properties": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls": {
+                    "defaultAction": "Deny"
+                  }
+                }
+              }
+            ],
+            "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+            "status": "collected",
+            "type": "storage_account"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "compliance_policy": {
+            "sw03": {
+              "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+              "status": "collected",
+              "storageAccess": {
+                "expectedSettings": {
+                  "allowBlobPublicAccess": false,
+                  "networkAcls.defaultAction": "Deny",
+                  "publicNetworkAccess": "Disabled"
+                }
+              }
+            }
+          }
+        },
+        "provider": "azure",
+        "scope": "/subscriptions/00000000-0000-0000-0000-000000000001"
+      },
+      "storage_account": [
+        {
+          "data": {
+            "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/sa",
+            "properties": {
+              "allowBlobPublicAccess": false,
+              "networkAcls": {
+                "defaultAction": "Deny"
+              }
+            }
+          },
+          "scope": "/subscriptions/00000000-0000-0000-0000-000000000001",
+          "type": "storage_account"
+        }
+      ]
+    }
+  }
+}

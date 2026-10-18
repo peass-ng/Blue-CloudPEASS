@@ -1,0 +1,410 @@
+{
+  "azure-compliance.control.cis_v130_2_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_k8s"
+    ],
+    "reason": "Inspected full pinned plan selector KubernetesService and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_k8s",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 624,
+      "query_sha256": "55f03e5cdc207d4ebf32e5fffb55034da419c950db42940bd7e83f85d6ccd9aa",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 104,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Kubernetes.'\n        else 'Azure Defender off for Kubernetes.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'KubernetesService';",
+      "pricing_plan": "KubernetesService",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v130_2_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v130/section_2.pp",
+      "control_line": 118,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_k8s"
+    ],
+    "reason": "Inspected full pinned plan selector KubernetesService and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_k8s",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 624,
+      "query_sha256": "55f03e5cdc207d4ebf32e5fffb55034da419c950db42940bd7e83f85d6ccd9aa",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 104,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Kubernetes.'\n        else 'Azure Defender off for Kubernetes.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'KubernetesService';",
+      "pricing_plan": "KubernetesService",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v140_2_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v140/section_2.pp",
+      "control_line": 118,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_dns"
+    ],
+    "reason": "Inspected full pinned plan selector Dns and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_dns",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 602,
+      "query_sha256": "7fea483f28b61d48d4c40ded516f6d282b9c419d88bdf092706b4b59ba4ebe0a",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 206,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for DNS.'\n        else 'Azure Defender off for DNS.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'Dns';",
+      "pricing_plan": "Dns",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v150_2_1_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v150/section_2.pp",
+      "control_line": 164,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_dns"
+    ],
+    "reason": "Inspected full pinned plan selector Dns and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_dns",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 602,
+      "query_sha256": "7fea483f28b61d48d4c40ded516f6d282b9c419d88bdf092706b4b59ba4ebe0a",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 209,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for DNS.'\n        else 'Azure Defender off for DNS.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'Dns';",
+      "pricing_plan": "Dns",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v200_2_1_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v200/section_2.pp",
+      "control_line": 167,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_dns"
+    ],
+    "reason": "Inspected full pinned plan selector Dns and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_dns",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 602,
+      "query_sha256": "7fea483f28b61d48d4c40ded516f6d282b9c419d88bdf092706b4b59ba4ebe0a",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 190,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for DNS.'\n        else 'Azure Defender off for DNS.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'Dns';",
+      "pricing_plan": "Dns",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v210_2_1_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v210/section_2.pp",
+      "control_line": 162,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_16": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_dns"
+    ],
+    "reason": "Inspected full pinned plan selector Dns and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_dns",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 602,
+      "query_sha256": "7fea483f28b61d48d4c40ded516f6d282b9c419d88bdf092706b4b59ba4ebe0a",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 511,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for DNS.'\n        else 'Azure Defender off for DNS.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'Dns';",
+      "pricing_plan": "Dns",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v300_3_1_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v300/section_3.pp",
+      "control_line": 205,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_17": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_dns"
+    ],
+    "reason": "Inspected full pinned plan selector Dns and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_dns",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 602,
+      "query_sha256": "7fea483f28b61d48d4c40ded516f6d282b9c419d88bdf092706b4b59ba4ebe0a",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 477,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for DNS.'\n        else 'Azure Defender off for DNS.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'Dns';",
+      "pricing_plan": "Dns",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected full pinned plan selector VirtualMachines and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "security_center_defender_for_servers_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 881,
+      "query_sha256": "5c49b6ba428250e5acabe51a8d547976eb83b52fa9da5ae4ea36d00c27d1a1fe",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 102,
+      "arguments": [],
+      "pinned_sql": "select\n      p.id as resource,\n      case\n        when p.name = 'VirtualMachines' and p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.name = 'VirtualMachines' and p.pricing_tier = 'Standard'\n          then 'Microsoft Defender for Servers is enabled with ' || p.pricing_tier || ' tier.'\n        when p.name = 'VirtualMachines'\n          then 'Microsoft Defender for Servers is disabled, current tier: ' || p.pricing_tier || '.'\n        else 'Microsoft Defender for Servers pricing not found.'\n      end as reason,\n      p.subscription_id,\n      p.cloud_environment\n    from\n      azure_security_center_subscription_pricing p\n    where\n      p.name = 'VirtualMachines';",
+      "pricing_plan": "VirtualMachines",
+      "status_case_sql": "case\n        when p.name = 'VirtualMachines' and p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v400/section_9.pp",
+      "control_line": 185,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected full pinned plan selector VirtualMachines and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "security_center_defender_for_servers_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 881,
+      "query_sha256": "5c49b6ba428250e5acabe51a8d547976eb83b52fa9da5ae4ea36d00c27d1a1fe",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 167,
+      "arguments": [],
+      "pinned_sql": "select\n      p.id as resource,\n      case\n        when p.name = 'VirtualMachines' and p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.name = 'VirtualMachines' and p.pricing_tier = 'Standard'\n          then 'Microsoft Defender for Servers is enabled with ' || p.pricing_tier || ' tier.'\n        when p.name = 'VirtualMachines'\n          then 'Microsoft Defender for Servers is disabled, current tier: ' || p.pricing_tier || '.'\n        else 'Microsoft Defender for Servers pricing not found.'\n      end as reason,\n      p.subscription_id,\n      p.cloud_environment\n    from\n      azure_security_center_subscription_pricing p\n    where\n      p.name = 'VirtualMachines';",
+      "pricing_plan": "VirtualMachines",
+      "status_case_sql": "case\n        when p.name = 'VirtualMachines' and p.pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containerregistry"
+    ],
+    "reason": "Inspected full pinned plan selector ContainerRegistry and exact Standard condition. Existing legacy subscriptions retain product access according to current Microsoft2026 docs, so blanket obsolete rejection is wrong; preserve a legacy-specific check without enabling it or claiming replacement equivalence. Missing legacy availability UNKNOWN; server predicate precisely reuses existing VirtualMachines selector.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01",
+      "https://learn.microsoft.com/en-us/azure/defender-for-cloud/release-notes"
+    ],
+    "review_notes": "July5,2026 blocks only new enrollment in five deprecated plans; Microsoft states existing subscriptions continue with no immediate change and no official retirement date. No new enrollment, modifications or remediation calls.",
+    "source_review": {
+      "query_id": "securitycenter_azure_defender_on_for_containerregistry",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 517,
+      "query_sha256": "64e497c5b02c945d014fe78002ca9603750cb03c5f44fd97c0dd666b6ba13488",
+      "control_path": "cis_v500/section_8.pp",
+      "control_line": 249,
+      "arguments": [],
+      "pinned_sql": "select\n      sub_pricing.id as resource,\n      case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when pricing_tier = 'Standard' then 'Azure Defender on for Container Registry.'\n        else 'Azure Defender off for Container Registry.'\n      end as reason\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"sub_pricing.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_security_center_subscription_pricing sub_pricing\n      right join azure_subscription sub on sub_pricing.subscription_id = sub.subscription_id\n    where\n      name = 'ContainerRegistry';",
+      "pricing_plan": "ContainerRegistry",
+      "status_case_sql": "case\n        when pricing_tier = 'Standard' then 'ok'\n        else 'alarm'\n      end"
+    }
+  }
+}

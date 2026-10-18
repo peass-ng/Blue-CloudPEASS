@@ -1,0 +1,644 @@
+{
+  "gcp_logging_detect_t1518": {
+    "pass": {
+      "scope": "projects/audit-fixture"
+    },
+    "fail": {
+      "scope": "projects/audit-fixture"
+    },
+    "unknown": {
+      "scope": "projects/audit-fixture"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/audit-fixture",
+        "metadata": {
+          "audit_detection_policy": {
+            "approved_list_rate": 1
+          }
+        }
+      },
+      "collections": {
+        "audit_log": [
+          {
+            "type": "audit_log",
+            "scope": "projects/audit-fixture",
+            "status": "collected",
+            "items": [
+              {
+                "insertId": "event-0",
+                "timestamp": "2026-10-13T00:00:00Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                  "serviceName": "osconfig.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              }
+            ],
+            "audit_coverage": {
+              "all_pages": true,
+              "start": "2026-10-13T00:00:00Z",
+              "end": "2026-10-13T01:00:00Z",
+              "classes": [
+                "data_access"
+              ],
+              "detector_methods": [
+                "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                "google.cloud.osconfig.v1alpha.OsConfigZonalService.GetInventory",
+                "v1.compute.regions.list",
+                "v1.compute.zones.list"
+              ]
+            }
+          }
+        ]
+      },
+      "audit_log": [
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-0",
+            "timestamp": "2026-10-13T00:00:00Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+              "serviceName": "osconfig.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/audit-fixture",
+        "metadata": {
+          "audit_detection_policy": {
+            "approved_list_rate": 1
+          }
+        }
+      },
+      "collections": {
+        "audit_log": [
+          {
+            "type": "audit_log",
+            "scope": "projects/audit-fixture",
+            "status": "collected",
+            "items": [
+              {
+                "insertId": "event-0",
+                "timestamp": "2026-10-13T00:00:00Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                  "serviceName": "osconfig.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              },
+              {
+                "insertId": "event-1",
+                "timestamp": "2026-10-13T00:00:01Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                  "serviceName": "osconfig.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              }
+            ],
+            "audit_coverage": {
+              "all_pages": true,
+              "start": "2026-10-13T00:00:00Z",
+              "end": "2026-10-13T01:00:00Z",
+              "classes": [
+                "data_access"
+              ],
+              "detector_methods": [
+                "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                "google.cloud.osconfig.v1alpha.OsConfigZonalService.GetInventory",
+                "v1.compute.regions.list",
+                "v1.compute.zones.list"
+              ]
+            }
+          }
+        ]
+      },
+      "audit_log": [
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-0",
+            "timestamp": "2026-10-13T00:00:00Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+              "serviceName": "osconfig.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        },
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-1",
+            "timestamp": "2026-10-13T00:00:01Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+              "serviceName": "osconfig.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/audit-fixture",
+        "metadata": {}
+      },
+      "collections": {
+        "audit_log": [
+          {
+            "type": "audit_log",
+            "scope": "projects/audit-fixture",
+            "status": "collected",
+            "items": [
+              {
+                "insertId": "event-0",
+                "timestamp": "2026-10-13T00:00:00Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                  "serviceName": "osconfig.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              }
+            ],
+            "audit_coverage": {
+              "all_pages": true,
+              "start": "2026-10-13T00:00:00Z",
+              "end": "2026-10-13T01:00:00Z",
+              "classes": [
+                "data_access"
+              ],
+              "detector_methods": [
+                "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                "google.cloud.osconfig.v1alpha.OsConfigZonalService.GetInventory",
+                "v1.compute.regions.list",
+                "v1.compute.zones.list"
+              ]
+            }
+          }
+        ]
+      },
+      "audit_log": [
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-0",
+            "timestamp": "2026-10-13T00:00:00Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+              "serviceName": "osconfig.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": null
+    }
+  },
+  "gcp_logging_detect_t1614": {
+    "pass": {
+      "scope": "projects/audit-fixture"
+    },
+    "fail": {
+      "scope": "projects/audit-fixture"
+    },
+    "unknown": {
+      "scope": "projects/audit-fixture"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/audit-fixture",
+        "metadata": {
+          "audit_detection_policy": {
+            "approved_list_rate": 1
+          }
+        }
+      },
+      "collections": {
+        "audit_log": [
+          {
+            "type": "audit_log",
+            "scope": "projects/audit-fixture",
+            "status": "collected",
+            "items": [
+              {
+                "insertId": "event-0",
+                "timestamp": "2026-10-13T00:00:00Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "v1.compute.regions.list",
+                  "serviceName": "compute.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              }
+            ],
+            "audit_coverage": {
+              "all_pages": true,
+              "start": "2026-10-13T00:00:00Z",
+              "end": "2026-10-13T01:00:00Z",
+              "classes": [
+                "data_access"
+              ],
+              "detector_methods": [
+                "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                "google.cloud.osconfig.v1alpha.OsConfigZonalService.GetInventory",
+                "v1.compute.regions.list",
+                "v1.compute.zones.list"
+              ]
+            }
+          }
+        ]
+      },
+      "audit_log": [
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-0",
+            "timestamp": "2026-10-13T00:00:00Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "v1.compute.regions.list",
+              "serviceName": "compute.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/audit-fixture",
+        "metadata": {
+          "audit_detection_policy": {
+            "approved_list_rate": 1
+          }
+        }
+      },
+      "collections": {
+        "audit_log": [
+          {
+            "type": "audit_log",
+            "scope": "projects/audit-fixture",
+            "status": "collected",
+            "items": [
+              {
+                "insertId": "event-0",
+                "timestamp": "2026-10-13T00:00:00Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "v1.compute.regions.list",
+                  "serviceName": "compute.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              },
+              {
+                "insertId": "event-1",
+                "timestamp": "2026-10-13T00:00:01Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "v1.compute.regions.list",
+                  "serviceName": "compute.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              }
+            ],
+            "audit_coverage": {
+              "all_pages": true,
+              "start": "2026-10-13T00:00:00Z",
+              "end": "2026-10-13T01:00:00Z",
+              "classes": [
+                "data_access"
+              ],
+              "detector_methods": [
+                "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                "google.cloud.osconfig.v1alpha.OsConfigZonalService.GetInventory",
+                "v1.compute.regions.list",
+                "v1.compute.zones.list"
+              ]
+            }
+          }
+        ]
+      },
+      "audit_log": [
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-0",
+            "timestamp": "2026-10-13T00:00:00Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "v1.compute.regions.list",
+              "serviceName": "compute.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        },
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-1",
+            "timestamp": "2026-10-13T00:00:01Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "v1.compute.regions.list",
+              "serviceName": "compute.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/audit-fixture",
+        "metadata": {}
+      },
+      "collections": {
+        "audit_log": [
+          {
+            "type": "audit_log",
+            "scope": "projects/audit-fixture",
+            "status": "collected",
+            "items": [
+              {
+                "insertId": "event-0",
+                "timestamp": "2026-10-13T00:00:00Z",
+                "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+                "resource": {
+                  "type": "audited_resource",
+                  "labels": {
+                    "project_id": "audit-fixture"
+                  }
+                },
+                "protoPayload": {
+                  "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                  "methodName": "v1.compute.regions.list",
+                  "serviceName": "compute.googleapis.com",
+                  "authenticationInfo": {
+                    "principalEmail": "user@example.com"
+                  },
+                  "status": {
+                    "code": 0
+                  }
+                }
+              }
+            ],
+            "audit_coverage": {
+              "all_pages": true,
+              "start": "2026-10-13T00:00:00Z",
+              "end": "2026-10-13T01:00:00Z",
+              "classes": [
+                "data_access"
+              ],
+              "detector_methods": [
+                "google.cloud.osconfig.v1.OsConfigZonalService.GetInventory",
+                "google.cloud.osconfig.v1alpha.OsConfigZonalService.GetInventory",
+                "v1.compute.regions.list",
+                "v1.compute.zones.list"
+              ]
+            }
+          }
+        ]
+      },
+      "audit_log": [
+        {
+          "provider": "gcp",
+          "type": "audit_log",
+          "scope": "projects/audit-fixture",
+          "data": {
+            "insertId": "event-0",
+            "timestamp": "2026-10-13T00:00:00Z",
+            "logName": "projects/audit-fixture/logs/cloudaudit.googleapis.com%2Fdata_access",
+            "resource": {
+              "type": "audited_resource",
+              "labels": {
+                "project_id": "audit-fixture"
+              }
+            },
+            "protoPayload": {
+              "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+              "methodName": "v1.compute.regions.list",
+              "serviceName": "compute.googleapis.com",
+              "authenticationInfo": {
+                "principalEmail": "user@example.com"
+              },
+              "status": {
+                "code": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": null
+    }
+  }
+}

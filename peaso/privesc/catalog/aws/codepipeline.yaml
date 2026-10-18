@@ -1,0 +1,77 @@
+# AWS privilege escalation catalog: include only a known principal gaining another
+# exact principal or new effective permissions through specified actions. A secret,
+# token, API key, or password read is an edge only after evidence proves its exact
+# credential subject, usability, and additional authority. Generic data disclosure,
+# application effects, and unknown targets are not privilege escalation paths.
+
+# AWS CodePipeline privilege escalation techniques.
+# Source: hacktricks-cloud aws-codepipeline-privesc/README.md.
+
+- id: aws-codepipeline-passrole-createpipeline-codebuild
+  provider: aws
+  service: codepipeline
+  title: Create a pipeline and CodeBuild project with passed roles and start it
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#iampassrole-codepipelinecreatepipeline-codebuildcreateproject-codepipelinestartpipelineexecution
+  source_revision: 171e422299
+  summary: The source can obtain the privileges of passable roles trusting codebuild.amazonaws.com by running a build it controls from a pipeline it creates.
+  requires:
+    all_of:
+      - action: iam:PassRole
+        resource: "{target.arn}"
+      - action: codepipeline:CreatePipeline
+        resource: "*"
+      - action: codebuild:CreateProject
+        resource: "*"
+      - action: codepipeline:StartPipelineExecution
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      trust_allows_service: codebuild.amazonaws.com
+    scope: same_account
+    aggregate_as: "Roles trusting codebuild.amazonaws.com in {account}"
+  conditions:
+    - id: passable_pipeline_role
+      description: iam:PassRole must also cover a role trusting codepipeline.amazonaws.com for the pipeline itself, and that role must be able to start the CodeBuild project.
+    - id: readable_source
+      description: The pipeline needs a source it can read (S3, ECR, connection).
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict iam:PassRole on CodeBuild and CodePipeline service roles.
+  references: []
+  notes: Roles trusting codepipeline.amazonaws.com are not targets (the pipeline role does not run arbitrary code itself).
+
+- id: aws-codepipeline-updatepipeline-codebuild-updateproject
+  provider: aws
+  service: codepipeline
+  title: Alter a pipeline's CodeBuild project and run the pipeline
+  source: src/pentesting-cloud/aws-security/aws-privilege-escalation/aws-codepipeline-privesc/README.md#codebuildupdateproject-codepipelineupdatepipeline-codepipelinestartpipelineexecution
+  source_revision: 171e422299
+  summary: The source can obtain the privileges of the service role of a CodeBuild project used by a pipeline by changing the project/action configuration and starting the pipeline.
+  requires:
+    all_of:
+      - action: codebuild:UpdateProject
+        resource: "{target.attached_resource_arn}"
+      - action: codepipeline:UpdatePipeline
+        resource: "*"
+      - action: codepipeline:StartPipelineExecution
+        resource: "*"
+  target:
+    kind: aws_role
+    selector:
+      attached_to_service: codebuild
+      attached_resource_covered_by: codebuild:UpdateProject
+    scope: same_account
+    aggregate_as: "Service roles of CodeBuild projects covered by codebuild:UpdateProject in {account}"
+  conditions:
+    - id: pipeline_can_start_project
+      description: The pipeline's service role must be allowed to start the covered project.
+  blockers:
+    - scp_or_boundary_deny
+  confidence: conditional
+  severity: critical
+  mitigation: Restrict codebuild:UpdateProject and codepipeline:UpdatePipeline to administrators.
+  references: []
+  notes: Pipelines cannot be assigned a different service role after creation.

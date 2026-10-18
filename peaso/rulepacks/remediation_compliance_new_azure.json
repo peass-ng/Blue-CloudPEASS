@@ -1,0 +1,164 @@
+{
+  "azure.cis.mysql_flexible_cmk": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure",
+      "kind": "mysql_flexible_server",
+      "path": "properties.dataEncryption.type, properties.dataEncryption.primaryKeyURI, properties.dataEncryption.primaryUserAssignedIdentityId",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "1a6271b94e9b48e06a901d3f8f937a4545af2dce5ff262edc2db4b9f1c2e1ba1",
+    "references": [
+      {
+        "title": "Azure MySQL Flexible Server GET schema",
+        "url": "https://learn.microsoft.com/en-us/rest/api/mysql/servers/get?view=rest-mysql-2023-12-30"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect dataEncryption.type, primaryKeyURI and primaryUserAssignedIdentityId; confirm server capability and the intended Key Vault key with the database owner.",
+      "Verify the selected identity can use the key and that key recovery, rotation and backup are planned before updating the owning IaC to AzureKeyVault with the approved key URI and identity.",
+      "Test database access and failover in staging, schedule the production change, and retain an owner-reviewed rollback/recovery plan because key loss can disrupt the database."
+    ],
+    "summary": "Configure a reviewed Key Vault CMK and user-assigned identity for the MySQL Flexible Server."
+  },
+  "azure.cis.public_network_access_should_mysql_servers": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure",
+      "kind": "mysql_flexible_server",
+      "path": "properties.network.publicNetworkAccess",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "94143bab966a9473cc92f4b331595f51ccf3b5d1ccb64ffdd2e3023c3544d829",
+    "references": [
+      {
+        "title": "Azure MySQL Flexible Server public networking",
+        "url": "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/concepts-networking-public"
+      },
+      {
+        "title": "Azure MySQL Flexible Server GET schema",
+        "url": "https://learn.microsoft.com/en-us/rest/api/mysql/servers/get?view=rest-mysql-2023-12-30"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect properties.network.publicNetworkAccess, firewall rules, private connectivity and all dependent clients with the database and network owners.",
+      "Provide and test a private path before setting publicNetworkAccess=Disabled in the owning IaC or Azure configuration.",
+      "Schedule the cutover, verify application connections, and restore the prior approved configuration if clients lose access."
+    ],
+    "summary": "Disable MySQL Flexible Server public network access after validating private connectivity."
+  },
+  "azure.cis.public_network_access_should_postgresql_servers": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure",
+      "kind": "postgresql_flexible_server",
+      "path": "properties.network.publicNetworkAccess",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "ad118902477d457f424e5ea7226ab14640fa52779441ead1182ad56e7fe42bc1",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/servers/get?view=rest-postgresql-2024-08-01"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect properties.network.publicNetworkAccess and inventory the server clients and current private connectivity.",
+      "Have the server/network owners provision and test a private access path before setting publicNetworkAccess=Disabled in the owning IaC or Azure configuration.",
+      "Plan a change window because disabling public access can disconnect clients; verify application connections and restore the prior configuration if cutover fails."
+    ],
+    "summary": "Disable public network access on the scoped PostgreSQL Flexible Server."
+  },
+  "azure.gap.postgres_db_server_log_duration_on": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure",
+      "kind": "postgresql_flexible_server",
+      "path": "configurations[].name, configurations[].properties.value, _coverage.configurations.status",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "18a169e036b5842b4caf1af0947db2ecb9d441e9ef4d68a8ae6eab0e393e922d",
+    "references": [
+      {
+        "title": "Azure PostgreSQL Flexible Server configurations list",
+        "url": "https://learn.microsoft.com/en-us/rest/api/postgresql/configurations/list-by-server?view=rest-postgresql-2024-08-01"
+      },
+      {
+        "title": "Azure PostgreSQL server parameters",
+        "url": "https://learn.microsoft.com/en-us/azure/postgresql/server-parameters/concepts-server-parameters"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the complete configurations child inventory for exactly one log_duration parameter and review existing log storage and retention with the database owner.",
+      "Set log_duration=on through the owning IaC or Azure server parameters after estimating logging volume and operational impact.",
+      "Verify statement-duration events and log delivery after rollout; restore the prior parameter value if the approved rollback criteria are met."
+    ],
+    "summary": "Enable the log_duration server parameter on the named PostgreSQL Flexible Server."
+  },
+  "azure_pci_1_2_8_39": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure",
+      "kind": "nsg",
+      "path": "properties.subnets[].id, properties.networkInterfaces[].id",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0770996f1470a9f1421144f883c91d9916c10a8097d297de67c19ab68a00fe3d",
+    "references": [
+      {
+        "title": "Official provider resource API",
+        "url": "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2023-09-01"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the NSG properties.subnets and properties.networkInterfaces association IDs and confirm the intended network placement with its owner.",
+      "If this NSG is required for a specific subnet or NIC, attach it through the owning IaC after reviewing effective rules and testing traffic in a change window.",
+      "Verify the association and workload traffic after rollout; revert the association if connectivity breaks."
+    ],
+    "summary": "Network security group has an observed subnet or NIC association."
+  },
+  "azure_search_service_3_5_1_19_a3c75c0": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure",
+      "kind": "search_service",
+      "path": "properties.encryptionWithCmk.enforcement, properties.encryptionWithCmk.encryptionComplianceStatus",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "d157361730e2b9559df67b60bea2fd744858376c563e50eec1d2f39210c47065",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/searchmanagement/services/get"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect properties.encryptionWithCmk.enforcement and encryptionComplianceStatus for the named Search service.",
+      "With the Search and Key Vault owners, inventory objects not encrypted by a customer-managed key and plan key access, migration, recovery and service-tier prerequisites.",
+      "After testing, configure enforcement=Enabled through the owning IaC or Azure configuration and verify Compliant; keep a tested rollback path because key loss or enforcement may disrupt queries."
+    ],
+    "summary": "Enforce customer-managed keys for Azure AI Search objects."
+  },
+  "azure_vm_app_function_identity_is_configured_bdb10d4": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure",
+      "kind": "vm",
+      "path": "identity.type, identity.principalId, identity.userAssignedIdentities",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0c3e3cd27c5eb9a08b1b4596ffa21af40b9a2c7f733e6cf424b326de82f295ce",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2023-09-01"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect identity.type, principalId and userAssignedIdentities on the named VM; UNKNOWN metadata requires recollection before a change.",
+      "With the workload owner, choose system- or user-assigned identity and minimum target permissions, then configure the identity in the owning IaC.",
+      "Migrate and test application authentication before retiring any existing secret; roll back the VM configuration and credential cutover if access fails."
+    ],
+    "summary": "Configure a managed identity reference for the scoped VM."
+  }
+}

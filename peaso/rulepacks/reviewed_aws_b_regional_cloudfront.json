@@ -1,0 +1,600 @@
+{
+  "aws-compliance.control.backup_plan_region_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.backup_plan.regional_presence"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_ListBackupPlans.html",
+      "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_ListReportPlans.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "7a38e34e656f51a549250055e738aeecc8a7be512be8e210fa109989f620f888",
+      "query_id": "backup_plan_region_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/backup.pp#L102"
+    }
+  },
+  "aws-compliance.control.backup_report_plan_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.backup.report_plan_presence"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_ListBackupPlans.html",
+      "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_ListReportPlans.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c06f3fc7f416cb3fcd619afc343f2a9bb29803f18d7e775b7b8a138ff8d43466",
+      "query_id": "backup_report_plan_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/backup.pp#L118"
+    }
+  },
+  "aws-compliance.control.backup_vault_region_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.backup_vault.regional_presence"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_ListBackupPlans.html",
+      "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_ListReportPlans.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "bd9284b3e61e0160d5c3eb158e59d8562c8301def3fe6f0d7bd04af652e36d1a",
+      "query_id": "backup_vault_region_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/backup.pp#L110"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_configured_with_origin_failover": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.origin_group_metadata"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "38efd4222dd49b4aefcb31ca1ab746185b9592184cd2c4faaa2e3dc31af36ce8",
+      "query_id": "cloudfront_distribution_configured_with_origin_failover",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L127"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_custom_origins_encryption_in_transit_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.custom_origin_encryption"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "5910c0463f73564716f1b4ab92a2ea1a29cd7624c8510b4b1ddcf4a6a9e6d820",
+      "query_id": "cloudfront_distribution_custom_origins_encryption_in_transit_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L75"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_default_root_object_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.default_root_object"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "69d06002a7c16906aa3b45f09d22f05d9c8bdc5363a73a8b743313986d316825",
+      "query_id": "cloudfront_distribution_default_root_object_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L137"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_encryption_in_transit_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.viewer_encryption"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "e5f597cdf1d283fe21b47fe268a38c48421f656252228833ee5c885f2d8dc3e3",
+      "query_id": "cloudfront_distribution_encryption_in_transit_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L21"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_field_level_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.field_level_encryption"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "8f1489789699eb9f1c22781959340782d1fc2a93590085eadf84cfb6863a6983",
+      "query_id": "cloudfront_distribution_field_level_encryption_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L170"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_geo_restrictions_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.geo_restrictions"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "68913f502f32b7d6778b69ee8973dd16b58b607f5efb8e0cfc7845bb9233a0c4",
+      "query_id": "cloudfront_distribution_geo_restrictions_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L37"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.access_logging"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2cdb6b42e7a3ff8a2baac54ff890035b5bb6beb4ae71d6c2e3c465ae9dd374a3",
+      "query_id": "cloudfront_distribution_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L89"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_no_deprecated_ssl_protocol": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.no_sslv3_origin"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1b0f2b354c94a6564e0fe3f890de032543f132ac959913f7042bb5defa9f42a9",
+      "query_id": "cloudfront_distribution_no_deprecated_ssl_protocol",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L61"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_sni_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.sni"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1e27af44b01f7b0e1d9c5abf3d6597635307b1a0adfa3c3209d8f3c0b9adcad3",
+      "query_id": "cloudfront_distribution_sni_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L105"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_use_custom_ssl_certificate": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.custom_acm_certificate"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "36a2f7a516ac86553d234c745fc4cf161bd98434f4125dcb9269ddea5033cc23",
+      "query_id": "cloudfront_distribution_use_custom_ssl_certificate",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L147"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_use_secure_cipher": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.origin_secure_protocols"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "921120e892fbbfb5c4b104dfc6dff430ee6d9ccaa520c03282479f19a94a7c9b",
+      "query_id": "cloudfront_distribution_use_secure_cipher",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L45"
+    }
+  },
+  "aws-compliance.control.cloudfront_distribution_waf_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.waf_reference"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef3f1551ac5188ab70bdc5429e0df47490ae3094c1164990ba0fc5845f99b1a9",
+      "query_id": "cloudfront_distribution_waf_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudfront.pp#L116"
+    }
+  },
+  "aws-compliance.control.dynamodb_table_encrypted_with_kms": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dynamodb.kms_description"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "80ef16c4ff302e2724f39eacfe9b8373c820fd24912e35a7a4e703e79962708f",
+      "query_id": "dynamodb_table_encrypted_with_kms",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/dynamodb.pp#L60"
+    }
+  },
+  "aws-compliance.control.dynamodb_table_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.dynamodb.encryption_type"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "964994bdb21d0d1fcff858d95af6a8fff760e9b724081b92393d2ba2284f3a14",
+      "query_id": "dynamodb_table_encryption_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/dynamodb.pp#L111"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.default_root_object"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "69d06002a7c16906aa3b45f09d22f05d9c8bdc5363a73a8b743313986d316825",
+      "query_id": "cloudfront_distribution_default_root_object_configured",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L30"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.no_sslv3_origin"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1b0f2b354c94a6564e0fe3f890de032543f132ac959913f7042bb5defa9f42a9",
+      "query_id": "cloudfront_distribution_no_deprecated_ssl_protocol",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L134"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.viewer_encryption"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "e5f597cdf1d283fe21b47fe268a38c48421f656252228833ee5c885f2d8dc3e3",
+      "query_id": "cloudfront_distribution_encryption_in_transit_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L43"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.origin_group_metadata"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "38efd4222dd49b4aefcb31ca1ab746185b9592184cd2c4faaa2e3dc31af36ce8",
+      "query_id": "cloudfront_distribution_configured_with_origin_failover",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L56"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.access_logging"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "2cdb6b42e7a3ff8a2baac54ff890035b5bb6beb4ae71d6c2e3c465ae9dd374a3",
+      "query_id": "cloudfront_distribution_logging_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L69"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.waf_reference"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "ef3f1551ac5188ab70bdc5429e0df47490ae3094c1164990ba0fc5845f99b1a9",
+      "query_id": "cloudfront_distribution_waf_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L82"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.custom_acm_certificate"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "36a2f7a516ac86553d234c745fc4cf161bd98434f4125dcb9269ddea5033cc23",
+      "query_id": "cloudfront_distribution_use_custom_ssl_certificate",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L95"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.sni"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "1e27af44b01f7b0e1d9c5abf3d6597635307b1a0adfa3c3209d8f3c0b9adcad3",
+      "query_id": "cloudfront_distribution_sni_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L108"
+    }
+  },
+  "aws-compliance.control.foundational_security_cloudfront_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cloudfront.custom_origin_encryption"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DistributionConfig.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "5910c0463f73564716f1b4ab92a2ea1a29cd7624c8510b4b1ddcf4a6a9e6d820",
+      "query_id": "cloudfront_distribution_custom_origins_encryption_in_transit_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/cloudfront.pp#L121"
+    }
+  },
+  "aws-compliance.control.foundational_security_inspector_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.ec2_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "47fe3b96b9241d47306ee0c1db247b3bc6e27bd3662df50285bd8af0b00667d9",
+      "query_id": "inspector_ec2_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/inspector.pp#L22"
+    }
+  },
+  "aws-compliance.control.foundational_security_inspector_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.ecr_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "db738a52a37c028b4d5079facb80c12945e091d8bffbb975d28fc6aa4065f7bd",
+      "query_id": "inspector_ecr_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/inspector.pp#L35"
+    }
+  },
+  "aws-compliance.control.foundational_security_inspector_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.lambda_code_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b82259a44ce21d9f970a7df4bb72ec65028bc368deb2fcfe35dca20329c70a7c",
+      "query_id": "inspector_lambda_code_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/inspector.pp#L48"
+    }
+  },
+  "aws-compliance.control.foundational_security_inspector_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.lambda_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c211c7826acd2e93cf8e1c7e6220c42d6eb8672d12f5efc937a0b699063afa34",
+      "query_id": "inspector_lambda_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/inspector.pp#L61"
+    }
+  },
+  "aws-compliance.control.foundational_security_ssm_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ssm.document_not_public"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeDocumentPermission.html",
+      "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_ParameterMetadata.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "dcdd3754cae856a0d5368612f11f89e5b6b7aac68fe61509ef30b0a2fb282020",
+      "query_id": "ssm_document_prohibit_public_access",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/foundational_security/ssm.pp#L63"
+    }
+  },
+  "aws-compliance.control.inspector_ec2_scanning_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.ec2_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "47fe3b96b9241d47306ee0c1db247b3bc6e27bd3662df50285bd8af0b00667d9",
+      "query_id": "inspector_ec2_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/inspector.pp#L7"
+    }
+  },
+  "aws-compliance.control.inspector_ecr_scanning_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.ecr_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "db738a52a37c028b4d5079facb80c12945e091d8bffbb975d28fc6aa4065f7bd",
+      "query_id": "inspector_ecr_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/inspector.pp#L15"
+    }
+  },
+  "aws-compliance.control.inspector_lambda_code_scanning_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.lambda_code_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "b82259a44ce21d9f970a7df4bb72ec65028bc368deb2fcfe35dca20329c70a7c",
+      "query_id": "inspector_lambda_code_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/inspector.pp#L23"
+    }
+  },
+  "aws-compliance.control.inspector_lambda_scanning_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.inspector.lambda_organization_auto_enable"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/inspector/v2/APIReference/API_DescribeOrganizationConfiguration.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "c211c7826acd2e93cf8e1c7e6220c42d6eb8672d12f5efc937a0b699063afa34",
+      "query_id": "inspector_lambda_scanning_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/inspector.pp#L31"
+    }
+  },
+  "aws-compliance.control.ssm_document_prohibit_public_access": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ssm.document_not_public"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeDocumentPermission.html",
+      "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_ParameterMetadata.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "dcdd3754cae856a0d5368612f11f89e5b6b7aac68fe61509ef30b0a2fb282020",
+      "query_id": "ssm_document_prohibit_public_access",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ssm.pp#L90"
+    }
+  },
+  "aws-compliance.control.ssm_parameter_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.ssm.parameter_secure_type"
+    ],
+    "reason": "Individually reviewed pinned query eligibility, joins, statuses and default/literal control parameters; native predicate preserves the configuration policy and explicit unavailable evidence. Scope controls evaluate each selected account/region once, complete empty service inventory fails required presence, partial/denied/missing inventory is unknown rather than absence. No hash-only equivalence or parameter coercion.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeDocumentPermission.html",
+      "https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_ParameterMetadata.html"
+    ],
+    "reviewed_source": {
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "sha256": "4bc31e2dc65fddc5106eca5add6685807ee30622f0481df199896ed92fe31bc0",
+      "query_id": "ssm_parameter_encryption_enabled",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ssm.pp#L107"
+    }
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "azure-compliance.control.appservice_web_app_register_with_active_directory_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source alarms only identity={} and therefore passes provider/adapter identity Type=None despite explicitly disabled managed identity. Current ARM None is a real accepted enum, not missing data; source measures nonempty object shape rather than enabled identity.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Full source + adapter identity transformation inspected; independent identity.type baselines remain separate, not mislabeled exact source equivalence.",
+    "source_review": {
+      "query_id": "appservice_web_app_register_with_active_directory_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1624,
+      "query_sha256": "85df1273a722eab6fd2285fa42477efea74e4a91de0c425b0a236384e6461d09",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 475,
+      "arguments": [],
+      "status_case_sql": "case\n        when identity = '{}' then 'alarm'\n        else 'ok'\n      end",
+      "counterexample": {
+        "provider_identity": {
+          "type": "None"
+        },
+        "adapter_identity": {
+          "Type": "None"
+        },
+        "source_status": "ok",
+        "requirement_truth": "managed_identity_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_9_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source alarms only identity={} and therefore passes provider/adapter identity Type=None despite explicitly disabled managed identity. Current ARM None is a real accepted enum, not missing data; source measures nonempty object shape rather than enabled identity.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Full source + adapter identity transformation inspected; independent identity.type baselines remain separate, not mislabeled exact source equivalence.",
+    "source_review": {
+      "query_id": "appservice_web_app_register_with_active_directory_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1624,
+      "query_sha256": "85df1273a722eab6fd2285fa42477efea74e4a91de0c425b0a236384e6461d09",
+      "control_path": "cis_v130/section_9.pp",
+      "control_line": 86,
+      "arguments": [],
+      "status_case_sql": "case\n        when identity = '{}' then 'alarm'\n        else 'ok'\n      end",
+      "counterexample": {
+        "provider_identity": {
+          "type": "None"
+        },
+        "adapter_identity": {
+          "Type": "None"
+        },
+        "source_status": "ok",
+        "requirement_truth": "managed_identity_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_9_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source alarms only identity={} and therefore passes provider/adapter identity Type=None despite explicitly disabled managed identity. Current ARM None is a real accepted enum, not missing data; source measures nonempty object shape rather than enabled identity.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Full source + adapter identity transformation inspected; independent identity.type baselines remain separate, not mislabeled exact source equivalence.",
+    "source_review": {
+      "query_id": "appservice_web_app_register_with_active_directory_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1624,
+      "query_sha256": "85df1273a722eab6fd2285fa42477efea74e4a91de0c425b0a236384e6461d09",
+      "control_path": "cis_v140/section_9.pp",
+      "control_line": 86,
+      "arguments": [],
+      "status_case_sql": "case\n        when identity = '{}' then 'alarm'\n        else 'ok'\n      end",
+      "counterexample": {
+        "provider_identity": {
+          "type": "None"
+        },
+        "adapter_identity": {
+          "Type": "None"
+        },
+        "source_status": "ok",
+        "requirement_truth": "managed_identity_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_9_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source alarms only identity={} and therefore passes provider/adapter identity Type=None despite explicitly disabled managed identity. Current ARM None is a real accepted enum, not missing data; source measures nonempty object shape rather than enabled identity.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Full source + adapter identity transformation inspected; independent identity.type baselines remain separate, not mislabeled exact source equivalence.",
+    "source_review": {
+      "query_id": "appservice_web_app_register_with_active_directory_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1624,
+      "query_sha256": "85df1273a722eab6fd2285fa42477efea74e4a91de0c425b0a236384e6461d09",
+      "control_path": "cis_v150/section_9.pp",
+      "control_line": 86,
+      "arguments": [],
+      "status_case_sql": "case\n        when identity = '{}' then 'alarm'\n        else 'ok'\n      end",
+      "counterexample": {
+        "provider_identity": {
+          "type": "None"
+        },
+        "adapter_identity": {
+          "Type": "None"
+        },
+        "source_status": "ok",
+        "requirement_truth": "managed_identity_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_9_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source alarms only identity={} and therefore passes provider/adapter identity Type=None despite explicitly disabled managed identity. Current ARM None is a real accepted enum, not missing data; source measures nonempty object shape rather than enabled identity.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Full source + adapter identity transformation inspected; independent identity.type baselines remain separate, not mislabeled exact source equivalence.",
+    "source_review": {
+      "query_id": "appservice_web_app_register_with_active_directory_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1624,
+      "query_sha256": "85df1273a722eab6fd2285fa42477efea74e4a91de0c425b0a236384e6461d09",
+      "control_path": "cis_v200/section_9.pp",
+      "control_line": 86,
+      "arguments": [],
+      "status_case_sql": "case\n        when identity = '{}' then 'alarm'\n        else 'ok'\n      end",
+      "counterexample": {
+        "provider_identity": {
+          "type": "None"
+        },
+        "adapter_identity": {
+          "Type": "None"
+        },
+        "source_status": "ok",
+        "requirement_truth": "managed_identity_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_9_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source alarms only identity={} and therefore passes provider/adapter identity Type=None despite explicitly disabled managed identity. Current ARM None is a real accepted enum, not missing data; source measures nonempty object shape rather than enabled identity.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Full source + adapter identity transformation inspected; independent identity.type baselines remain separate, not mislabeled exact source equivalence.",
+    "source_review": {
+      "query_id": "appservice_web_app_register_with_active_directory_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1624,
+      "query_sha256": "85df1273a722eab6fd2285fa42477efea74e4a91de0c425b0a236384e6461d09",
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 71,
+      "arguments": [],
+      "status_case_sql": "case\n        when identity = '{}' then 'alarm'\n        else 'ok'\n      end",
+      "counterexample": {
+        "provider_identity": {
+          "type": "None"
+        },
+        "adapter_identity": {
+          "Type": "None"
+        },
+        "source_status": "ok",
+        "requirement_truth": "managed_identity_not_enabled"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_9_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source alarms only identity={} and therefore passes provider/adapter identity Type=None despite explicitly disabled managed identity. Current ARM None is a real accepted enum, not missing data; source measures nonempty object shape rather than enabled identity.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Full source + adapter identity transformation inspected; independent identity.type baselines remain separate, not mislabeled exact source equivalence.",
+    "source_review": {
+      "query_id": "appservice_web_app_register_with_active_directory_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1624,
+      "query_sha256": "85df1273a722eab6fd2285fa42477efea74e4a91de0c425b0a236384e6461d09",
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 87,
+      "arguments": [],
+      "status_case_sql": "case\n        when identity = '{}' then 'alarm'\n        else 'ok'\n      end",
+      "counterexample": {
+        "provider_identity": {
+          "type": "None"
+        },
+        "adapter_identity": {
+          "Type": "None"
+        },
+        "source_status": "ok",
+        "requirement_truth": "managed_identity_not_enabled"
+      }
+    }
+  },
+  "prowler.azure.app_function_access_keys_configured": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "intrusive_unsuitable",
+    "reason": "Source collects host keys through listHostKeys, whose response contains master/function/system secret key values. The literal key-map cardinality security definition has no source metadata-only list operation; executing its required value-returning API violates the explicit collection boundary. No key retrieval performed and no unsupported UNKNOWN stub counted as a port.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-host-keys?view=rest-appservice-2025-03-01"
+    ],
+    "review_notes": "This is a source operation/privacy incompatibility, not lack of implementation/facts. Authentication-module and HTTP-trigger auth-level settings are different questions and not substituted as exact equivalents.",
+    "source_review": {
+      "query_id": "app_function_access_keys_configured",
+      "query_path": "prowler/providers/azure/services/app/app_function_access_keys_configured/app_function_access_keys_configured.py",
+      "query_sha256": "79036d1d23bc74de114be2ee96b5c0b47c77fb488afae356845820f4eb818c6e",
+      "source_service_path": "prowler/providers/azure/services/app/app_service.py",
+      "arguments": [],
+      "operation": "POST {site}/host/default/listkeys",
+      "response_secret_fields": [
+        "masterKey",
+        "functionKeys",
+        "systemKeys"
+      ]
+    }
+  },
+  "prowler.azure.app_client_certificates_on": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source checks only clientCertMode Required, omitting clientCertEnabled. Current ARM template example explicitly permits Required mode with the enable flag false, so this can falsely certify required certificates. Rejecting wrong measured configuration, not absent facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Literal source evaluator and pinned SDK service projection inspected; explicit provider fields/booleans counterexample retained. Correct stronger independent baseline would need both required mode and enabled flag, or valid identity.type.",
+    "source_review": {
+      "query_id": "app_client_certificates_on",
+      "query_path": "prowler/providers/azure/services/app/app_client_certificates_on/app_client_certificates_on.py",
+      "query_sha256": "1cd42e73f4f00eb3c2817ca18787aeea2bd9345e931c449da2fd57caa3b9210a",
+      "arguments": [],
+      "counterexample": {
+        "clientCertEnabled": false,
+        "clientCertMode": "Required",
+        "source_status": "PASS",
+        "requirement_truth": "client_certificate_flag_disabled"
+      }
+    }
+  },
+  "prowler.azure.app_register_with_identity": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source checks only truthiness of the raw identity object. Provider identity type None is a nonempty object but explicitly disables identity; the predicate falsely passes that actual enum. Rejecting wrong measured configuration, not absent facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.web/2025-03-01/sites"
+    ],
+    "review_notes": "Literal source evaluator and pinned SDK service projection inspected; explicit provider fields/booleans counterexample retained. Correct stronger independent baseline would need both required mode and enabled flag, or valid identity.type.",
+    "source_review": {
+      "query_id": "app_register_with_identity",
+      "query_path": "prowler/providers/azure/services/app/app_register_with_identity/app_register_with_identity.py",
+      "query_sha256": "9551977e225aaeeed381621f80a027e1b387f68520de0d982f1d561cf2cc322c",
+      "arguments": [],
+      "counterexample": {
+        "identity": {
+          "type": "None"
+        },
+        "source_status": "PASS",
+        "requirement_truth": "managed_identity_disabled"
+      }
+    }
+  }
+}

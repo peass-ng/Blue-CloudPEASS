@@ -1,0 +1,66 @@
+{
+  "prowler.aws.awslambda_function_no_secrets_in_code": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "intrusive_unsuitable",
+    "reason": "Source retrieves deployment ZIP contents, extracts files and scans plaintext with an external secret scanner; optional credential validation can add non-metadata requests. Function code and literal secrets are outside this collector/evaluator data-access contract; configuration names or metadata are not equivalent.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/awslambda/awslambda_function_no_secrets_in_code/awslambda_function_no_secrets_in_code.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "04100a02f56417b63d50e3f1d1e7ba648f897c3980f558b81a8681b0f09e10b8",
+      "source_path": "prowler/providers/aws/services/awslambda/awslambda_function_no_secrets_in_code/awslambda_function_no_secrets_in_code.py"
+    },
+    "review_notes": "Individually inspected source acquisition and payload generation. An owner-managed external code/content audit may supply human evidence, but no fake snapshot check or clean result is invented."
+  },
+  "prowler.aws.awslambda_function_no_secrets_in_variables": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "intrusive_unsuitable",
+    "reason": "Source serializes actual function environment variable VALUES into a secret-scanner payload. This metadata-only snapshot engine deliberately discards those literals; a names-only heuristic cannot faithfully replace that content inspection.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/awslambda/awslambda_function_no_secrets_in_variables/awslambda_function_no_secrets_in_variables.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "4b9613e2fe1dc06ba442e87b39c08b0f83bbc3c725766b4ed17d022b91f7bb35",
+      "source_path": "prowler/providers/aws/services/awslambda/awslambda_function_no_secrets_in_variables/awslambda_function_no_secrets_in_variables.py"
+    },
+    "review_notes": "Individually inspected source acquisition and payload generation. An owner-managed external code/content audit may supply human evidence, but no fake snapshot check or clean result is invented."
+  },
+  "prowler.aws.awslambda_layer_no_secrets_in_content": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "intrusive_unsuitable",
+    "reason": "Source downloads layer archives, extracts and reads every file to scan plaintext contents with an external scanner. Layer contents/secret literals are prohibited by this configuration-only collection contract; this is an intrusive content-inspection exclusion, not missing facts marked rejected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/awslambda/awslambda_layer_no_secrets_in_content/awslambda_layer_no_secrets_in_content.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "6981f74363ad419de07818aba6538a508311c86d093072503fb4c8d1ba165936",
+      "source_path": "prowler/providers/aws/services/awslambda/awslambda_layer_no_secrets_in_content/awslambda_layer_no_secrets_in_content.py"
+    },
+    "review_notes": "Individually inspected source acquisition and payload generation. An owner-managed external code/content audit may supply human evidence, but no fake snapshot check or clean result is invented."
+  },
+  "prowler.aws.ecr_repository_image_no_secrets": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "intrusive_unsuitable",
+    "reason": "Source resolves and downloads image manifests/configuration/filesystem layers, reads environment/history/file contents and runs a secret scanner. The contract excludes image/object contents and literal secret validation; image metadata alone is not an equivalent assessment.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ecr/ecr_repository_image_no_secrets/ecr_repository_image_no_secrets.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "0bf55a8808f33f5a2091c8d685e1fb65395b1d5df49733190a9770910817fe99",
+      "source_path": "prowler/providers/aws/services/ecr/ecr_repository_image_no_secrets/ecr_repository_image_no_secrets.py"
+    },
+    "review_notes": "Individually inspected source acquisition and payload generation. An owner-managed external code/content audit may supply human evidence, but no fake snapshot check or clean result is invented."
+  }
+}

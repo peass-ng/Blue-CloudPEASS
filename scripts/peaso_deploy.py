@@ -1,0 +1,1871 @@
+#!/usr/bin/env python3
+"""Build CSPM artifacts and apply only a coordinator-reviewed, dedicated plan."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import subprocess
+import sys
+import time
+import zipfile
+
+try:
+    import peaso_deploy_current_update as current_update
+except ModuleNotFoundError:
+    from scripts import peaso_deploy_current_update as current_update
+try:
+    import peaso_deploy_successor_update as successor_update
+except ModuleNotFoundError:
+    from scripts import peaso_deploy_successor_update as successor_update
+try:
+    import peaso_deploy_artifact_update as artifact_update
+except ModuleNotFoundError:
+    from scripts import peaso_deploy_artifact_update as artifact_update
+
+ROOT = Path(__file__).resolve().parents[1]
+INFRA = ROOT / "infra" / "aws"
+BUILD = INFRA / "build"
+TF = os.environ.get("PEASO_TERRAFORM", "terraform")
+ACCOUNT = "202533532952"
+REPOSITORY = f"{ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker"
+ZERO_IMAGE = REPOSITORY + "@sha256:" + "0" * 64
+CUSTOMER_ROLE_DOWNLOAD_KEY = "aws/customer-role.json"
+# Exact public inputs needed to reproduce the shipped compiler, provenance and
+# tests. Explicit paths/globs only: no .work drafts, caches or private files.
+REPRODUCTION_INPUT_PATTERNS = (
+    "docs/compliance-ledgers/*.json", "docs/compliance-ledgers/*.md",
+    "docs/compliance-ledgers/descriptions/*.json", "docs/compliance-ledgers/descriptions/*.md",
+    "docs/compliance-ledgers/inputs/*.json", "docs/compliance-ledgers/provenance/*.json",
+    "docs/compliance-ledgers/inputs/compliance-requirements-matrix.json.gz", "docs/compliance-ledgers/inputs/compliance-requirements-summary.json",
+    "docs/compliance-ledgers/inputs/compliance-runtime-coverage.json",
+    "docs/collectors/azure-certificate-issuance-native.md",
+    "docs/cli-iam.md", "docs/permission-severity-policy.md", "docs/permission-categorization-sync.md",
+    "tests/fixtures/native-kind-network-v27.json",
+    "tests/conftest.py", "tests/compliance_draft_isolation.py", "tests/compliance_source_conservation.py",
+    "tests/test_combined_release_gate.py", "tests/fixtures/remediation_aws_reviewed_overlay.json",
+    "tests/fixtures/markdown_anchor_expected.json",
+    "tests/test_next20_aws.py",
+    "tests/fixtures/next20_aws.json",
+    "tests/test_secret_rotation_collector.py",
+    "tests/test_azure_apim_native.py",
+    "tests/test_gcp_audit_native.py",
+    'tests/test_post_dfaf_aws.py',
+    'tests/test_post_dfaf_azure.py',
+    'tests/fixtures/post_dfaf_aws.json',
+    'tests/fixtures/post_dfaf_azure/cases.json',
+    'tests/fixtures/post_dfaf_integration/conservation.json',
+    'tests/fixtures/post_dfaf_integration/contract.json',
+    'tests/fixtures/post_dfaf_integration/derived-row-preimages.json',
+    "tests/fixtures/batch_remaining_gcp_k8s/central-fixture-fragment.json",
+    "tests/fixtures/batch_remaining_gcp_k8s/full-id-disposition.json",
+    "tests/fixtures/batch_remaining_azure_vm_storage/central-fixture-fragment.json",
+    "tests/fixtures/batch_remaining_azure_vm_storage/full-id-disposition.json",
+    "Blue-AWSPEAS.py", "tests/test_blue_awspeas_access_analyzer_read_only.py",
+    "tests/fixtures/privesc/synthetic_aws.py", "tests/fixtures/privesc/catalog/*/fixture.yaml",
+    "tests/release_successor_history.py", "tests/aws_tag_policy_fixture.py",
+    "tests/archived_check_contract.py", "tests/backup_c5_fixture_data.py",
+    "tests/elb_native_policy_fixture.py", "tests/nsg_service_observation_fixture.py",
+    "tests/release_test_inputs.py", "tests/fixtures/release-test-inputs.json.xz",
+    "tests/fixtures/hacktricks-source-revisions.json",
+    "tests/fixtures/post_dfaf_integration/pre_bulk_views.json.gz",
+    "tests/fixtures/post_dfaf_integration/sprint_source_changes.json",
+    "tests/fixtures/post_dfaf_integration/*",
+    "tests/fixtures/privesc_scoped/*.yaml",
+    "docs/privesc-ledgers/source-validation-*.json.gz",
+    "docs/privesc-ledgers/scoped-live-validation-20261014.json",
+    "scripts/__init__.py", "scripts/check_test_skips.py",
+)
+# This opt-in contract is only for the reviewed, failed initial CSPM deployment.
+RECOVERY_FAILED_PLAN_SHA256 = "6abd03527bca42c00cb9ea2ebf8b0c43e912270f9e317c9a04fb0a2f2d0ad409"
+RECOVERY_FAILED_JSON_SHA256 = "f9f99e434927dae2683cc286af761d2e507874e1bd343ad8f194264db7ea6141"
+RECOVERY_ENRICHMENT_SHA256 = "15c0fb3193c6ac22299802c6866ff689a85f7af374a483d169dcc4a00cfb9c71"
+RECOVERY_ENRICHMENT_APPROVAL = "msg_89daa0d2fb65"
+RECOVERY_BACKEND = {"bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate",
+                    "region": "us-east-1", "encrypt": True, "use_lockfile": True}
+RECOVERY_MISSING = {"aws_cloudfront_distribution.cspm", "aws_s3_bucket_policy.frontend",
+                    'aws_route53_record.cspm["A"]', 'aws_route53_record.cspm["AAAA"]'}
+RECOVERY_ACTIONS = {
+    "aws_lambda_function.api": (["update"], "source-runtime-lambda"),
+    "aws_lambda_function.scheduler": (["update"], "source-runtime-lambda"),
+    'aws_ecs_task_definition.tasks["collector"]': (["delete", "create"], "immutable-task-revision"),
+    'aws_ecs_task_definition.tasks["analyzer"]': (["delete", "create"], "immutable-task-revision"),
+    "aws_sfn_state_machine.scan": (["update"], "workflow-task-references"),
+    "aws_iam_role_policy.workflow": (["update"], "workflow-iam-task-references"),
+}
+# Reviewed expressions used by deployment_expectations; changing these inputs
+# requires reviewing that contract, not silently deferring additional values.
+RUNTIME_CONFIG_SHA256 = {
+    "outputs.tf": "e83fb597d6cb6f4b42e57b44480a1bd7eb7acfce961102c4504640ab0ac8b54d",
+    "storage.tf": "3111ecc01f83ce0c18db03f0d9e6abee2a8158f4394edc3d742ab84a79707312",
+    "iam.tf": "c72d692391bf44bbe1aae71f596874e25810645e7733705559047275b1a6b21a",
+    "api.tf": "097836750e780a7ffb53412e658e17088c9a4bcae630e1773ebb3b06a3c60630",
+    "workflow.tf": "ea2dfdd8c2db23ad0f3bae77c750fa8c745ae28f020c6a34d9ea4449c3ce8512",
+    "variables.tf": "6068cb0ab96d4dec23d8220c4991ee0bb0793383f8bc7e76cdc9a2a6fa35717c",
+    "versions.tf": "74b39a076ba00ab16a834c1d0b0d40c9d258e2c908428c9519033718f20c248b",
+}
+ALLOWED_RESOURCES = set("""
+aws_cloudwatch_log_group.api aws_cloudwatch_log_group.scheduler aws_apigatewayv2_stage.api
+aws_budgets_budget.cspm aws_route53_record.cspm aws_ecs_task_definition.tasks
+aws_cloudfront_distribution.cspm aws_iam_role_policy.analyzer aws_iam_role.workflow
+aws_cloudfront_function.spa aws_vpc_endpoint.dynamodb aws_apigatewayv2_api.cspm
+aws_cloudwatch_event_target.schedules aws_s3_bucket_policy.frontend
+aws_cloudfront_origin_access_control.frontend aws_s3_bucket_public_access_block.private
+aws_route_table.tasks aws_s3_bucket.artifacts aws_internet_gateway.cspm
+aws_kms_alias.connectors aws_lambda_function.scheduler aws_cloudfront_response_headers_policy.security
+aws_ecs_cluster.cspm aws_s3_bucket_policy.tls aws_iam_role.execution
+aws_cloudwatch_metric_alarm.api_errors aws_vpc.cspm aws_sfn_state_machine.scan
+aws_s3_bucket.frontend aws_lambda_permission.api aws_s3_bucket_lifecycle_configuration.artifacts
+aws_s3_bucket.templates aws_s3_bucket_ownership_controls.templates aws_s3_bucket_versioning.templates
+aws_s3_bucket_server_side_encryption_configuration.templates aws_s3_bucket_public_access_block.templates
+aws_s3_bucket_policy.templates aws_s3_object.customer_role_template aws_s3_object.customer_role_download
+aws_s3_bucket_ownership_controls.private aws_apigatewayv2_integration.api aws_iam_role_policy.api
+aws_secretsmanager_secret.credentials aws_security_group.tasks aws_iam_role.collector
+aws_lambda_function.api aws_kms_key.connectors aws_iam_role_policy.workflow
+aws_iam_role.analyzer aws_iam_role_policy.execution aws_dynamodb_table.metadata
+aws_cloudwatch_event_rule.schedules aws_s3_bucket_server_side_encryption_configuration.private
+aws_s3_bucket_cors_configuration.artifacts
+random_bytes.credential_key aws_cloudwatch_log_group.tasks aws_subnet.tasks
+aws_secretsmanager_secret_version.credentials aws_vpc_endpoint.s3 aws_ecr_repository.worker
+aws_route_table_association.tasks aws_apigatewayv2_route.api aws_lambda_permission.schedules
+aws_iam_role_policy.collector aws_ecr_lifecycle_policy.worker aws_iam_role.api
+aws_iam_role.customer_trust aws_iam_role_policy.customer_trust
+""".split())
+
+# The hosted Python 3.12 manylinux package has 4,671 members after optional
+# installer markers are removed. Historical approval contracts retain their
+# own 4,600-member limit; this bound applies to the current package build.
+CURRENT_API_MEMBER_LIMIT = 4800
+# Current corresponding source has grown beyond the historical artifact-update
+# contract. Keep these bounds aligned with the GitHub Actions release reviewer;
+# historical artifact-update approvals retain their original measured limits.
+CURRENT_SOURCE_MEMBER_LIMIT = 2601  # Includes release.json; independently bounds the current release.
+CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 275_000_000
+
+
+def checked_member(root, name):
+    """Resolve no symlinks and permit only portable relative member names."""
+    relative = Path(name)
+    if not name or "\\" in name or relative.is_absolute() or any(
+            part in {"", ".", ".."} for part in name.split("/")):
+        raise RuntimeError(f"Unsafe generated member path: {name}")
+    path = root
+    for part in (None, *relative.parts):
+        if part is not None:
+            path = path / part
+        if path.is_symlink():
+            raise RuntimeError(f"Cannot use symlinks or external paths: {path}")
+    return path
+
+
+def generated_path(name):
+    """Validate helper outputs without changing enclosing build/cache modes."""
+    build = BUILD.absolute()
+    root = ROOT.absolute()
+    if build == root or root.is_relative_to(build):
+        raise RuntimeError("Generated build directory must not enclose authored ROOT")
+    if build.is_relative_to(root):
+        checked_member(root, build.relative_to(root).as_posix())
+    path = checked_member(build, name)
+    if path.exists():
+        metadata = path.stat()
+        if metadata.st_uid != os.getuid() or not (stat.S_ISDIR(metadata.st_mode) or (
+                stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 1)):
+            raise RuntimeError(f"Generated output must be owned and unlinked: {path}")
+    return path
+
+
+def public_tree_entries(tree):
+    """Preflight every API-stage entry before any chmod or ZIP write."""
+    if tree != generated_path("api-package"):
+        raise RuntimeError("Public permissions apply only to generated code trees")
+    if not tree.is_dir():
+        raise RuntimeError(f"Missing generated public code tree: {tree}")
+    entries = [tree, *sorted(tree.rglob("*"))]
+    for path in entries:
+        if path != tree:
+            checked_member(tree, path.relative_to(tree).as_posix())
+        metadata = path.stat()
+        if metadata.st_uid != os.getuid() or not (stat.S_ISDIR(metadata.st_mode) or (
+                stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 1)):
+            raise RuntimeError(f"Public code must contain owned directories or unlinked regular files: {path}")
+    return entries
+
+
+def public_mode(path):
+    return 0o755 if path.is_dir() or path.stat().st_mode & 0o111 else 0o644
+
+
+def normalize_public_tree(tree):
+    # Validate every entry first: a late symlink/hardlink must not chmod its target.
+    for path in public_tree_entries(tree):
+        path.chmod(public_mode(path))
+
+
+def verify_public_tree(tree):
+    entries = public_tree_entries(tree)
+    for path in entries:
+        if stat.S_IMODE(path.stat().st_mode) != public_mode(path):
+            raise RuntimeError(f"Generated public code has nonportable permissions: {path}")
+    return entries
+
+
+def frozen_source_entries(snapshot, names):
+    # Frontend builds add node_modules/dist to this context; only the frozen
+    # members and their traversal directories are public corresponding source.
+    if snapshot != generated_path("source-snapshot"):
+        raise RuntimeError("Frozen permissions apply only to the generated source snapshot")
+    paths = {snapshot}
+    for name in names:
+        path = checked_member(snapshot, name)
+        paths.add(path)
+        paths.update(parent for parent in path.parents if parent == snapshot or parent.is_relative_to(snapshot))
+    for path in paths:
+        if not path.exists():
+            raise RuntimeError(f"Frozen source changed: {path}; freeze and rebuild")
+        metadata = path.stat()
+        if metadata.st_uid != os.getuid() or not (stat.S_ISDIR(metadata.st_mode) or (
+                stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 1)):
+            raise RuntimeError(f"Frozen public source must be owned and unlinked: {path}")
+    return sorted(paths)
+
+
+def normalize_frozen_permissions(snapshot, names):
+    for path in frozen_source_entries(snapshot, names):
+        path.chmod(public_mode(path))
+
+
+def verify_frozen_permissions(snapshot, names):
+    for path in frozen_source_entries(snapshot, names):
+        if stat.S_IMODE(path.stat().st_mode) != public_mode(path):
+            raise RuntimeError(f"Frozen public source has nonportable permissions: {path}")
+
+
+def source_root():
+    snapshot = generated_path("source-snapshot")
+    manifest_path = checked_member(snapshot, "release.json")
+    manifest = generated_path("release.json")
+    if not manifest_path.is_file() or not manifest.is_file():
+        raise RuntimeError("Freeze the complete current working source before building")
+    release = json.loads(manifest_path.read_text())
+    if release != json.loads(manifest.read_text()):
+        raise RuntimeError("Release manifest and source snapshot differ; freeze again")
+    if not any(name.startswith("peaso/privesc/") for name in release["files"]):
+        raise RuntimeError("Release must include the complete supplied peaso/privesc package")
+    verify_frozen_permissions(snapshot, ["release.json", *release["files"]])
+    for name, expected in release["files"].items():
+        path = checked_member(snapshot, name)
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise RuntimeError(f"Frozen source changed: {name}; freeze and rebuild")
+    return snapshot
+
+
+def _omit_verified_duplicate_manifest(source, root=None):
+    """Keep the complete canonical manifest; omit only its byte-identical gzip copy.
+
+    Neither inputs nor history are removed from the working repository. A
+    mismatched compressed companion is an integrity error, never discarded.
+    """
+    plain = "peaso/rulepacks/upstream_manifest.json"
+    compressed = plain + ".gz"
+    if plain not in source or compressed not in source:
+        return
+    if root is not None:
+        for name in (plain, compressed):
+            path = checked_member(root, name)
+            if path.is_symlink() or path.stat().st_nlink != 1 or path.read_bytes() != source[name]:
+                raise RuntimeError("Upstream manifest changed during freeze")
+    import gzip
+    import io
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(source[compressed])) as stream:
+            identical = stream.read(len(source[plain]) + 1) == source[plain]
+    except (OSError, EOFError, ValueError) as error:
+        raise RuntimeError("Invalid redundant upstream manifest gzip") from error
+    if not identical:
+        raise RuntimeError("Redundant upstream manifest gzip differs from canonical JSON")
+    del source[compressed]
+
+
+def freeze_release(release_source=None):
+    """Freeze exact corresponding source without Git, credentials, or caches."""
+    import shutil
+    release_root = Path(release_source).resolve() if release_source else ROOT
+    if release_root != ROOT.resolve():
+        raise RuntimeError("Hosted releases must freeze the complete current working source")
+    files = set()
+    for folder in ["peaso", "risk_rules", "frontend/src", "frontend/public", "frontend/tests", "frontend/e2e"]:
+        directory = checked_member(release_root, folder)
+        for path in directory.rglob("*"):
+            if path.is_symlink() and not any(part.startswith(".") for part in path.relative_to(release_root).parts):
+                raise RuntimeError("Source archive cannot include symlinks or external files")
+            if path.is_file():
+                files.add(path)
+    for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json", "infra/aws/customer-role-d7f7b815628bb270f4bd40f985d70de7ba1bbd50cefa4f429031ea0a74e08bcd.json", "infra/aws/customer-role-7e6fc610eee9021025ffd498c8dc924d740975a34c56f291bc7317a7db182dbe.json", "infra/aws/customer-role-04fbe795580c205cb86e6ad71a73c52935628bd43c5d5ee398b4333b2155748a.json", "infra/aws/customer-role-25b895c00a3fad47f390e4946c83f6e47487c8e52e8342cf136d1a1eb1c1ea17.json", "infra/aws/customer-role-9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f.json", "infra/aws/customer-role-ccd97a3b24443ee6556e59f23ab0d3bf42b7b2013481047b5c586932d0570c14.json", "infra/aws/customer-role-6d31b087d5542e740af07fa1e05ede2c7faca0b712ffdb8dba43c19d2cb2ce21.json", "infra/aws/customer-role-95e70cc9e033643bb3d7e0a400246f7ee392c5d3301319027482bc4350c09a25.json", "infra/aws/customer-role-e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d.json", "infra/aws/customer-role-f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c.json", "infra/aws/customer-role-2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf.json", "infra/aws/customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json", "infra/aws/customer-role-0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d.json", "infra/aws/customer-role-2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f.json", "infra/aws/customer-role-7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6.json", "infra/aws/customer-role-a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873.json", "infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json", "infra/aws/customer-role-fef2efcc028af51f48a4fa6d883b4ce959dba3691b0b9de3872971a9aac94c82.json", "infra/aws/customer-role-3e692bf06dc4af76517d6838f28fc5bcdbd890fd2029045b33a2262570cf13ee.json", "infra/aws/customer-role-1d8b49e45753dc7cba7069d772ad5286b5d033b294dacf6bea3a4ffd1c2aa2b1.json", "infra/aws/customer-role-96369f6236d3d2d803c75f8c982e9828c6ce5eda4697d5c39f91451478350cb2.json", "infra/aws/customer-role-c6549e16bbd36c1a7bd66aaf2a620906832097af64b244e6d999d456c594baed.json", "infra/aws/customer-role-4ea77d8e8f9ec707db8536313086cac740a37083280085054de0cf93b8420794.json", "infra/aws/customer-role-a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02.json", "infra/aws/customer-role-b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535.json",
+                    "infra/aws/.terraform.lock.hcl", "infra/aws/sdk-constraints.txt", "scripts/peaso*.py", "scripts/peaso_test_resources/*.py",
+                    "docs/peaso*.md", "docs/checks/*.md", "docs/privesc-ledgers/*.md", "tests/test_peaso*.py", "frontend/package*.json", "frontend/*config*",
+                    "frontend/index.html", "scripts/sync_hacktricks_permissions.py",
+                    "scripts/fetch_hacktricks_permissions.py", ".github/workflows/sync-permission-categorizations.yml", ".github/workflows/tests.yml",
+                    "tests/test_permission_sync_supplement.py", "tests/test_canonical_permissions.py",
+                    "tests/test_permission_source_fetch.py", "scripts/sync_hacktricks_privesc.py",
+                    "scripts/export_privesc_catalog.py", "tests/test_privesc_sync.py",
+                    # Public compliance research ledgers and pinned inputs the
+                    # shipped compiler/tests read; .work drafts stay excluded.
+                    *REPRODUCTION_INPUT_PATTERNS]:
+        files.update(release_root.glob(pattern))
+    files.update(release_root / name for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py"])
+    files.update(release_root / f for f in ["LICENSE", "README.md", "pyproject.toml", "Dockerfile.peaso",
+                                         "docker-compose.yml", ".dockerignore", ".env.example"])
+    paths = {str(path.relative_to(release_root)): path for path in files}
+    for pattern in ["infra/aws/*.tf", "infra/aws/Dockerfile.worker", "infra/aws/customer-role.json", "infra/aws/customer-role-d7f7b815628bb270f4bd40f985d70de7ba1bbd50cefa4f429031ea0a74e08bcd.json", "infra/aws/customer-role-7e6fc610eee9021025ffd498c8dc924d740975a34c56f291bc7317a7db182dbe.json", "infra/aws/customer-role-04fbe795580c205cb86e6ad71a73c52935628bd43c5d5ee398b4333b2155748a.json", "infra/aws/customer-role-25b895c00a3fad47f390e4946c83f6e47487c8e52e8342cf136d1a1eb1c1ea17.json", "infra/aws/customer-role-9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f.json", "infra/aws/customer-role-ccd97a3b24443ee6556e59f23ab0d3bf42b7b2013481047b5c586932d0570c14.json", "infra/aws/customer-role-6d31b087d5542e740af07fa1e05ede2c7faca0b712ffdb8dba43c19d2cb2ce21.json", "infra/aws/customer-role-95e70cc9e033643bb3d7e0a400246f7ee392c5d3301319027482bc4350c09a25.json", "infra/aws/customer-role-e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d.json", "infra/aws/customer-role-f46db717efb93db136ec5893e819904b0fb931f4ba512f52d6cdb907a6e6a04c.json", "infra/aws/customer-role-2204d577d48f10958947199b840d0989b88bbeee4e4b396193cc427b59f39ccf.json", "infra/aws/customer-role-a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980.json", "infra/aws/customer-role-0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d.json", "infra/aws/customer-role-2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f.json", "infra/aws/customer-role-7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6.json", "infra/aws/customer-role-a4c004efe171a0c94977fefc31fbc30c0d879b7c4e98875862aa498aa4d7a873.json", "infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json", "infra/aws/customer-role-fef2efcc028af51f48a4fa6d883b4ce959dba3691b0b9de3872971a9aac94c82.json", "infra/aws/customer-role-3e692bf06dc4af76517d6838f28fc5bcdbd890fd2029045b33a2262570cf13ee.json", "infra/aws/customer-role-1d8b49e45753dc7cba7069d772ad5286b5d033b294dacf6bea3a4ffd1c2aa2b1.json", "infra/aws/customer-role-96369f6236d3d2d803c75f8c982e9828c6ce5eda4697d5c39f91451478350cb2.json", "infra/aws/customer-role-c6549e16bbd36c1a7bd66aaf2a620906832097af64b244e6d999d456c594baed.json", "infra/aws/customer-role-4ea77d8e8f9ec707db8536313086cac740a37083280085054de0cf93b8420794.json", "infra/aws/customer-role-a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02.json", "infra/aws/customer-role-b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535.json",
+                    "infra/aws/.terraform.lock.hcl", "infra/aws/sdk-constraints.txt", "scripts/peaso_deploy*.py", "docs/peaso-aws.md"]:
+        for path in ROOT.glob(pattern):
+            paths[str(path.relative_to(ROOT))] = path
+    source = {}
+    for relative_name, path in sorted(paths.items()):
+        relative = Path(relative_name)
+        if not path.is_file() or "__pycache__" in path.parts or path.suffix in {".pyc", ".tsbuildinfo", ".db", ".sqlite", ".sqlite3", ".key", ".pem", ".log"}:
+            continue
+        if relative.name.lower().startswith("untitled"):
+            continue
+        if relative_name not in {".github/workflows/sync-permission-categorizations.yml", ".github/workflows/tests.yml", ".dockerignore", ".env.example"} and any(
+                part.startswith(".") and part != ".terraform.lock.hcl" for part in relative.parts):
+            continue
+        if str(relative).startswith(("tests/", "frontend/tests/", "frontend/e2e/")) and path.suffix not in {
+                ".py", ".ts", ".tsx", ".js", ".mjs"} and not str(relative).startswith("tests/fixtures/"):
+            continue
+        checked_member(release_root, relative_name)
+        if path.is_symlink() or not any(path.resolve().is_relative_to(base.resolve()) for base in (ROOT, release_root)):
+            raise RuntimeError("Source archive cannot include symlinks or external files")
+        if path.stat().st_nlink != 1:
+            raise RuntimeError("Source archive cannot include hardlinked files")
+        content = path.read_bytes()
+        if path.suffix == ".json":
+            try:
+                json.loads(content)
+            except (ValueError, UnicodeDecodeError) as error:
+                raise RuntimeError(f"Source JSON changing or invalid: {relative}; retry after its owner finishes") from error
+        if path.suffix == ".py":
+            try:
+                compile(content, str(relative), "exec")
+            except SyntaxError as error:
+                raise RuntimeError(f"Source Python changing or invalid: {relative}; retry after its owner finishes") from error
+        source[str(relative)] = content
+    _omit_verified_duplicate_manifest(source, release_root)
+    manifest = {name: hashlib.sha256(value).hexdigest() for name, value in source.items()}
+    version = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    release = {"source_version": version, "source_url": f"https://cspm.hacktricks.wiki/source/peaso-source-{version}.zip",
+               "license": "AGPL-3.0", "files": manifest}
+    snapshot = generated_path("source-snapshot")
+    release_path = generated_path("release.json")
+    archive_path = generated_path(f"peaso-source-{version}.zip")
+    BUILD.mkdir(parents=True, exist_ok=True)
+    if snapshot.exists():
+        # The owned snapshot may contain npm symlinks/hardlinks after a frontend
+        # build. Unlink them with fd-based rmtree; never chmod or follow them.
+        if not shutil.rmtree.avoids_symlink_attacks:
+            raise RuntimeError("Refreeze requires symlink-safe generated snapshot removal")
+        shutil.rmtree(snapshot)
+    for name, value in source.items():
+        destination = snapshot / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(value)
+        if paths[name].stat().st_mode & 0o111:
+            destination.chmod(0o755)
+    (snapshot / "release.json").write_text(json.dumps(release, indent=2) + "\n")
+    normalize_frozen_permissions(snapshot, ["release.json", *source])
+    release_path.write_text(json.dumps(release, indent=2) + "\n")
+    with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name, value in sorted(source.items()):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            archive.writestr(info, value, compresslevel=9)
+        info = zipfile.ZipInfo("release.json", date_time=(1980, 1, 1, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o644 << 16
+        archive.writestr(info, json.dumps(release, indent=2), compresslevel=9)
+    if archive_path.stat().st_size > artifact_update.MAX_SOURCE_ARCHIVE_BYTES:
+        try:
+            from peaso_source_archive import optimize_source_archive
+        except ModuleNotFoundError:
+            from scripts.peaso_source_archive import optimize_source_archive
+        compression = optimize_source_archive(
+            archive_path, max_members=CURRENT_SOURCE_MEMBER_LIMIT,
+            max_member_bytes=artifact_update.MAX_SOURCE_MEMBER_BYTES,
+            max_uncompressed_bytes=CURRENT_SOURCE_UNCOMPRESSED_LIMIT)
+        (BUILD / "source-compression.json").write_text(json.dumps(compression, indent=2) + "\n")
+        if archive_path.stat().st_size > artifact_update.MAX_SOURCE_ARCHIVE_BYTES:
+            raise RuntimeError("Frozen source ZIP exceeds the unchanged archive byte limit")
+    print(f"Frozen source {version}: {len(source)} files; {archive_path}")
+    return release
+
+
+def verify_api_source():
+    """Verify portable ZIP/staging permissions and complete frozen runtime source."""
+    source_root()
+    release = json.loads((BUILD / "release.json").read_text())
+    runtime_files = {name: digest for name, digest in release["files"].items()
+                     if name.startswith(("peaso/", "risk_rules/")) or name in {
+                         "bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py",
+                         "scripts/cloud_permission_risks.py"}}
+    target = generated_path("api-package")
+    entries = verify_public_tree(target)
+    staged = {path.relative_to(target).as_posix(): path for path in entries if path.is_file()}
+    with zipfile.ZipFile(generated_path("api.zip")) as package:
+        for name, expected in runtime_files.items():
+            try:
+                content = package.read(name)
+            except KeyError:
+                raise RuntimeError(f"API ZIP omits supplied source: {name}") from None
+            if hashlib.sha256(content).hexdigest() != expected:
+                raise RuntimeError(f"API ZIP source differs from frozen release: {name}")
+        members = package.infolist()
+        if len(members) != len({info.filename for info in members}):
+            raise RuntimeError("API ZIP has duplicate members")
+        for info in members:
+            path = checked_member(target, info.filename)
+            if info.create_system != 3 or info.external_attr >> 16 not in {
+                    stat.S_IFREG | 0o644, stat.S_IFREG | 0o755}:
+                raise RuntimeError(f"API ZIP has nonportable member permissions: {info.filename}")
+            if not path.is_file() or stat.S_IMODE(info.external_attr >> 16) != public_mode(path):
+                raise RuntimeError(f"API ZIP member differs from verification directory: {info.filename}")
+            if hashlib.sha256(package.read(info)).digest() != hashlib.sha256(path.read_bytes()).digest():
+                raise RuntimeError(f"API verification directory differs from ZIP: {info.filename}")
+        if set(staged) != {info.filename for info in members}:
+            raise RuntimeError("API ZIP members differ from verification directory")
+    for name, expected in runtime_files.items():
+        path = BUILD / "api-package" / name
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise RuntimeError(f"API verification directory differs from ZIP: {name}")
+    print(f"Verified {len(runtime_files)} frozen runtime source files in API ZIP and directory")
+
+
+def run(args, **kwargs):
+    return subprocess.run([str(x) for x in args], check=True, **kwargs)
+
+
+def verify_backend():
+    """Fail closed if this checkout was initialized against another state key."""
+    metadata = INFRA / ".terraform" / "terraform.tfstate"
+    if not metadata.is_file():
+        raise RuntimeError("Initialize the dedicated CSPM backend before deployment")
+    backend = json.loads(metadata.read_text()).get("backend", {})
+    config = backend.get("config", {})
+    expected = {"bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate",
+                "region": "us-east-1", "encrypt": True, "use_lockfile": True}
+    if backend.get("type") != "s3" or any(config.get(k) != v for k, v in expected.items()):
+        raise RuntimeError("Deployment requires the encrypted, locked cspm/terraform.tfstate backend")
+
+
+def terraform(*args, capture=False):
+    verify_backend()
+    return run([TF, f"-chdir={INFRA}", *args], capture_output=capture, text=True)
+
+
+def aws_identity():
+    import boto3
+    session = boto3.Session(region_name="us-east-1")
+    identity = session.client("sts").get_caller_identity()
+    if identity["Account"] != ACCOUNT:
+        raise RuntimeError("Deployment requires the existing wiki account 202533532952")
+    print(f"Verified wiki account {identity['Account']}; caller {identity['Arn']}")
+    return session
+
+
+def omit_empty_api_installation_markers(target):
+    """Omit optional pip request markers; preserve dependency code and metadata."""
+    # Preflight the entire installer tree before deleting anything, including
+    # a marker that sorts before an unsafe symlink or hardlink.
+    entries = public_tree_entries(target)
+    removed = []
+    for path in entries:
+        relative = path.relative_to(target)
+        if (len(relative.parts) == 2 and relative.parts[0].endswith(".dist-info")
+                and relative.parts[0] != ".dist-info" and relative.name == "REQUESTED"
+                and path.is_file() and path.stat().st_size == 0):
+            path.unlink()
+            removed.append(relative.as_posix())
+    return sorted(removed)
+
+
+def package_api():
+    import shutil
+    source = source_root()
+    target = generated_path("api-package")
+    package = generated_path("api.zip")
+    BUILD.mkdir(parents=True, exist_ok=True)
+    if target.exists():
+        public_tree_entries(target)
+        shutil.rmtree(target)
+    target.mkdir()
+    run([sys.executable, "-m", "pip", "install", "--target", target,
+         "--constraint", source / "infra/aws/sdk-constraints.txt",
+         "--platform", "manylinux2014_x86_64", "--implementation", "cp",
+         "--python-version", "3.12", "--abi", "cp312", "--only-binary=:all:",
+         "fastapi>=0.115", "uvicorn>=0.30", "cryptography>=43", "PyYAML>=6",
+         "PyJWT[crypto]>=2.10", "mangum>=0.19", "boto3==1.43.38", "requests>=2"])
+    # Reject installer-created links before copying any source into its tree.
+    omitted = omit_empty_api_installation_markers(target)
+    if omitted:
+        print(f"Omitted {len(omitted)} optional empty API installation markers")
+    shutil.copytree(source / "peaso", target / "peaso", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    shutil.copytree(source / "risk_rules", target / "risk_rules", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    for name in ["bluepeass/__init__.py", "bluepeass/k8s.py", "bluepeass/k8s_risks.py", "scripts/cloud_permission_risks.py"]:
+        destination = target / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source / name, destination)
+    if (BUILD / "release.json").is_file():
+        shutil.copyfile(BUILD / "release.json", target / "peaso_release.json")
+    normalize_public_tree(target)
+    members = [path for path in sorted(target.rglob("*")) if path.is_file()]
+    if len(members) > CURRENT_API_MEMBER_LIMIT:
+        raise RuntimeError("API member limit exceeded after optional metadata omission: "
+                           f"{len(members)} > {CURRENT_API_MEMBER_LIMIT}")
+    with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in members:
+            info = zipfile.ZipInfo(path.relative_to(target).as_posix(), date_time=(1980, 1, 1, 0, 0, 0))
+            info.create_system = 3
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = (stat.S_IFREG | public_mode(path)) << 16
+            archive.writestr(info, path.read_bytes())
+    verify_api_source()
+    print(f"API package: {package}; {package.stat().st_size} bytes")
+    return package
+
+
+def build_worker(tag):
+    context = source_root()
+    release = json.loads((BUILD / "release.json").read_text())
+    run(["docker", "build", "--platform", "linux/amd64", "-f", context / "infra/aws/Dockerfile.worker",
+         "--label", f"org.opencontainers.image.revision={release['source_version']}",
+         "-t", f"peaso-worker:{tag}", context])
+    code = """
+import hashlib,json,os
+from pathlib import Path
+from peaso.engine import get_catalog
+import peaso.privesc
+assert os.getuid()==10001 and os.getgid()==10001
+release=json.loads(Path('/release.json').read_text())
+count=0
+for name,digest in release['files'].items():
+    if name.startswith(('peaso/','risk_rules/')) or name in {'bluepeass/__init__.py','bluepeass/k8s.py','bluepeass/k8s_risks.py','scripts/cloud_permission_risks.py'}:
+        path=Path('/app')/name
+        assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==digest,name
+        count+=1
+constraints=Path('/app/infra/aws/sdk-constraints.txt')
+assert constraints.is_file() and hashlib.sha256(constraints.read_bytes()).hexdigest()==release['files']['infra/aws/sdk-constraints.txt']
+print('Worker frozen runtime files:',count)
+print('Worker native catalog checks:',len(get_catalog()['checks']))
+"""
+    run(["docker", "run", "--rm", "--platform", "linux/amd64", "--network", "none", "--read-only",
+         "--tmpfs", "/tmp", "--entrypoint", "python", "-v", f"{context / 'release.json'}:/release.json:ro",
+         f"peaso-worker:{tag}", "-c", code])
+
+
+def build_frontend():
+    frontend = source_root() / "frontend"
+    run(["npm", "ci"], cwd=frontend)
+    run(["npm", "run", "build"], cwd=frontend)
+    release = json.loads((BUILD / "release.json").read_text())
+    manifest = {str(path.relative_to(frontend / "dist")): hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in (frontend / "dist").rglob("*") if path.is_file()}
+    (BUILD / "frontend-build.json").write_text(json.dumps({"source_version": release["source_version"], "files": manifest}, indent=2) + "\n")
+    print(f"Built frontend from {release['source_version']}: {len(manifest)} files")
+
+
+def frontend_sync_command(frontend, bucket):
+    """Keep the frozen source and Terraform-owned download during --delete."""
+    return ["aws", "s3", "sync", frontend / "dist", f"s3://{bucket}/", "--delete",
+            "--exclude", "source/*", "--exclude", CUSTOMER_ROLE_DOWNLOAD_KEY,
+            "--cache-control", "public,max-age=300"]
+
+
+def write_vars(image, api_zip):
+    if not api_zip.is_file():
+        raise RuntimeError("Build the API ZIP before planning")
+    variables = {"api_zip": str(api_zip.resolve()), "worker_image": image}
+    if (BUILD / "release.json").is_file():
+        variables["source_version"] = json.loads((BUILD / "release.json").read_text())["source_version"]
+    # Preserve reviewed sizing and budget overrides between builds.
+    existing = INFRA / "deployment.auto.tfvars.json"
+    if existing.exists():
+        variables.update({k: v for k, v in json.loads(existing.read_text()).items()
+                          if k in {"enable_public_customer_role_template", "gcp_platform_sa_secret_arn", "worker_resources", "scan_runtime_limits", "budget_email", "monthly_budget_usd"}})
+    if "worker_resources" in variables:
+        verify_worker_resources(variables["worker_resources"])
+    existing.write_text(json.dumps(variables, indent=2) + "\n")
+    existing.chmod(0o600)
+
+
+def verify_worker_resources(resources):
+    """Reject stale deployment overrides before writing variables or reviewing plans."""
+    supported = {512: {1024, 2048, 3072, 4096}, 1024: {2048, 3072, 4096, 5120, 6144, 7168, 8192}}
+    if set(resources) != {"collector", "analyzer"}:
+        raise RuntimeError("Worker sizing requires collector and analyzer only")
+    for stage, minimum in [("collector", 6144), ("analyzer", 4096)]:
+        try:
+            cpu, memory = resources[stage]["cpu"], resources[stage]["memory"]
+            valid = memory in supported.get(cpu, set()) and memory >= minimum
+        except (KeyError, TypeError):
+            valid = False
+        if not valid:
+            raise RuntimeError(f"Invalid {stage} sizing: use supported Fargate CPU/memory with at least {minimum} MiB")
+
+
+def deployment_expectations(data, plan):
+    """Bind deferred runtime fields to reviewed configuration and built source."""
+    import base64
+    variables = {key: value.get("value") for key, value in data.get("variables", {}).items()}
+    image = variables.get("worker_image")
+    if image == ZERO_IMAGE:
+        raise RuntimeError("Placeholder worker image cannot be reviewed/applied")
+    if not isinstance(image, str) or not re.fullmatch(re.escape(REPOSITORY) + r"@sha256:[a-f0-9]{64}", image):
+        raise RuntimeError("Saved worker image variable must be a dedicated immutable digest")
+    sizes = variables.get("worker_resources") or {}
+    verify_worker_resources(sizes)
+    verify_api_source()
+    snapshot = source_root()
+    release = json.loads((BUILD / "release.json").read_text())
+    source = hashlib.sha256(json.dumps(release["files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    if variables.get("source_version") != source or release["source_version"] != source:
+        raise RuntimeError("Saved source variable differs from frozen release")
+    current = json.loads((INFRA / "deployment.auto.tfvars.json").read_text())
+    for key in ("worker_image", "source_version", "api_zip"):
+        if current.get(key) != variables.get(key):
+            raise RuntimeError(f"Saved {key} variable differs from reviewed deployment variables")
+    for key in ("enable_public_customer_role_template", "worker_resources", "scan_runtime_limits"):
+        if key in current and current[key] != variables.get(key):
+            raise RuntimeError(f"Saved {key} variable differs from reviewed deployment variables")
+    tf_files = {Path(name).name: digest for name, digest in release["files"].items()
+                if name.startswith("infra/aws/") and name.endswith(".tf")}
+    try:
+        with zipfile.ZipFile(plan) as archive:
+            members = [name for name in archive.namelist() if name.startswith("tfconfig/") and name != "tfconfig/modules.json"]
+            if len(members) != len(set(members)) or set(members) != {f"tfconfig/m-/{name}" for name in tf_files}:
+                raise RuntimeError("Saved plan configuration differs from frozen dedicated root")
+            for name, digest in tf_files.items():
+                if (hashlib.sha256(archive.read(f"tfconfig/m-/{name}")).hexdigest() != digest or
+                        hashlib.sha256((INFRA / name).read_bytes()).hexdigest() != digest or
+                        hashlib.sha256((snapshot / "infra/aws" / name).read_bytes()).hexdigest() != digest):
+                    raise RuntimeError("Saved plan configuration differs from frozen source")
+    except zipfile.BadZipFile:
+        raise RuntimeError("Cannot verify configuration embedded in saved plan") from None
+    if any(tf_files.get(name) != digest for name, digest in RUNTIME_CONFIG_SHA256.items()):
+        raise RuntimeError("Runtime configuration requires a new explicit contract review")
+    if variables.get("api_zip") != str((BUILD / "api.zip").resolve()):
+        raise RuntimeError("Saved API ZIP variable differs from verified package")
+    if variables.get("region") != "us-east-1":
+        raise RuntimeError("Saved deployment region differs from dedicated account region")
+    limits = variables.get("scan_runtime_limits") or {}
+    if not isinstance(limits.get("workflow_seconds"), int) or not 900 <= limits["workflow_seconds"] <= 3600:
+        raise RuntimeError("Saved scan runtime limit is missing or unsupported")
+    public_template_enabled = variables.get("enable_public_customer_role_template", False)
+    if not isinstance(public_template_enabled, bool):
+        raise RuntimeError("Public customer-role template opt-in must be a boolean")
+    template_sha256 = hashlib.sha256((INFRA / "customer-role.json").read_bytes()).hexdigest()
+    public_template_url = (f"https://hacktricks-cspm-templates-{ACCOUNT}.s3.us-east-1.amazonaws.com/customer-role-{template_sha256}.json"
+                           if public_template_enabled else "")
+    common = {
+        "PEASO_AUTH_MODE": "cognito", "PEASO_COGNITO_ISSUER": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7rbhezdKX",
+        "PEASO_COGNITO_CLIENT_ID": "3g2u5ilb7kbte92lra40ji2ht0", "PEASO_STORAGE": "dynamodb",
+        "PEASO_DYNAMODB_TABLE": "hacktricks-cspm", "PEASO_ARTIFACT_BUCKET": f"hacktricks-cspm-artifacts-{ACCOUNT}",
+        "PEASO_SCAN_TIMEOUT_SECONDS": str(limits["workflow_seconds"]),
+        "PEASO_STATE_DIR": "/tmp/peaso/state", "PEASO_IDENTITY_DIR": "/tmp/peaso/identity",
+        "PEASO_SOURCE_VERSION": source,
+    }
+    for stage, size in sizes.items():
+        common[f"PEASO_{stage.upper()}_VCPU"] = str(size["cpu"] / 1024)
+        common[f"PEASO_{stage.upper()}_MEMORY_GIB"] = str(size["memory"] / 1024)
+    secret = {"arn_pattern": f"arn:aws:secretsmanager:us-east-1:{ACCOUNT}:secret:hacktricks-cspm-credential-key-[A-Za-z0-9]{{6}}"}
+    api = dict(common, PEASO_CREDENTIAL_SECRET_ARN=secret,
+               PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL=public_template_url,
+               PEASO_WORKFLOW_ARN=f"arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:hacktricks-cspm",
+               PEASO_STRIPE_SECRET_ARN="arn:aws:secretsmanager:us-east-1:202533532952:secret:hacktricks-tools-stripe-secret-key-zoewPl",
+               PEASO_STRIPE_PRICE_ID="price_1TLm63Io7pPswHK23F4vZFvW", PEASO_ALLOWED_ORIGINS="https://cspm.hacktricks.wiki",
+               PEASO_SOURCE_URL=f"https://cspm.hacktricks.wiki/source/peaso-source-{source}.zip")
+    workers = {stage: dict(common, AWS_DEFAULT_REGION="us-east-1", PEASO_TASK_VCPU=str(size["cpu"] / 1024),
+                           PEASO_TASK_MEMORY_GIB=str(size["memory"] / 1024)) for stage, size in sizes.items()}
+    workers["collector"]["PEASO_CREDENTIAL_SECRET_ARN"] = secret
+    return {"worker_image": image, "worker_resources": sizes, "source_version": source, "api_zip": variables["api_zip"],
+            "api_code_sha256": base64.b64encode(hashlib.sha256((BUILD / "api.zip").read_bytes()).digest()).decode(),
+            "api_environment": api, "worker_environments": workers}
+
+
+def check_environment(environment, expected, unknown=None):
+    if not isinstance(environment, dict):
+        raise RuntimeError("Runtime environment is missing or malformed")
+    for key, value in expected.items():
+        if key not in environment and (unknown is True or isinstance(unknown, dict) and unknown.get(key) is True):
+            continue
+        actual = environment.get(key)
+        try:
+            matches = (isinstance(actual, str) and re.fullmatch(value["arn_pattern"], actual) is not None if isinstance(value, dict) else
+                       float(actual) == float(value) if key.endswith(("_VCPU", "_MEMORY_GIB")) else
+                       actual == value)
+        except (ValueError, TypeError):
+            matches = False
+        if not matches:
+            raise RuntimeError(f"Runtime telemetry differs or configured value missing: {key}")
+
+
+def container_environment(container):
+    items = container.get("environment", [])
+    if (not isinstance(items, list) or any(not isinstance(item, dict) or not isinstance(item.get("name"), str) or
+                                          not isinstance(item.get("value"), str) for item in items) or
+            len({item["name"] for item in items}) != len(items)):
+        raise RuntimeError("Worker environment is malformed or contains duplicate keys")
+    return {item["name"]: item["value"] for item in items}
+
+
+def recovery_artifact(entry):
+    path = Path(entry.get("path", ""))
+    if not path.is_absolute() or path.is_symlink() or not path.is_file():
+        raise RuntimeError("Recovery artifact must be an absolute regular file")
+    content = path.read_bytes()
+    if hashlib.sha256(content).hexdigest() != entry.get("sha256"):
+        raise RuntimeError("Recovery artifact digest changed")
+    return content
+
+
+def recovery_state_resources(state):
+    resources = {}
+    if not state.get("lineage") or not isinstance(state.get("serial"), int):
+        raise RuntimeError("Recovery state lineage/serial missing")
+    for resource in state.get("resources", []):
+        if resource.get("mode") != "managed":
+            continue
+        if resource.get("module"):
+            raise RuntimeError("Recovery state contains a child module")
+        for instance in resource.get("instances", []):
+            address = resource["type"] + "." + resource["name"]
+            if "index_key" in instance:
+                address += "[" + json.dumps(instance["index_key"], separators=(",", ":")) + "]"
+            attributes = instance.get("attributes")
+            if (address in resources or instance.get("deposed") or instance.get("status") == "tainted" or
+                    not isinstance(attributes, dict) or not recovery_identity(address, attributes)):
+                raise RuntimeError("Recovery state identity is unknown, tainted, deposed or duplicated")
+            resources[address] = attributes
+    return resources
+
+
+def recovery_identity(address, attributes):
+    if address == "random_bytes.credential_key":
+        # random_bytes has no provider id attribute; its complete, immutable
+        # secret bytes remain private and bound by the state/artifact hashes.
+        import base64
+        try:
+            return (attributes.get("length") == 32 and len(bytes.fromhex(attributes["hex"])) == 32 and
+                    base64.b64decode(attributes["base64"], validate=True) == bytes.fromhex(attributes["hex"]))
+        except (KeyError, ValueError, TypeError):
+            return False
+    return isinstance(attributes.get("id"), str) and bool(attributes["id"])
+
+
+def recovery_refreshed_resources(document, raw_resources):
+    prior = document.get("prior_state", {}).get("values", {}).get("root_module", {})
+    rows = [r for r in prior.get("resources", []) if r.get("mode") == "managed"]
+    refreshed = {r["address"]: r["values"] for r in rows}
+    if prior.get("child_modules") or len(rows) != len(refreshed) or set(refreshed) != set(raw_resources):
+        raise RuntimeError("Recovery refresh inventory differs from the raw baseline")
+    changes = document.get("resource_drift", [])
+    if len(changes) != len({r["address"] for r in changes}):
+        raise RuntimeError("Recovery refresh contains duplicate drift identities")
+    for row in changes:
+        address, change = row["address"], row["change"]
+        if (address not in raw_resources or change.get("actions") != ["update"] or
+                change.get("before") != raw_resources[address] or change.get("after") != refreshed[address] or
+                change["before"].get("id") != change["after"].get("id")):
+            raise RuntimeError("Recovery recorded read enrichment changed an exact before/identity")
+    changed = {address for address in refreshed if refreshed[address] != raw_resources[address]}
+    if changed != {r["address"] for r in changes}:
+        raise RuntimeError("Recovery refresh contains unrecorded value changes")
+    return refreshed
+
+
+def recovery_context(path, reviewed_sha256):
+    """Read only content-addressed supervisor evidence; never infer ownership by name."""
+    verify_backend()
+    content = recovery_artifact({"path": str(path), "sha256": reviewed_sha256})
+    baseline = json.loads(content)
+    if (baseline.get("schema") != "peaso-cloudfront-recovery-v1" or baseline.get("account") != ACCOUNT or
+            baseline.get("backend") != RECOVERY_BACKEND):
+        raise RuntimeError("Recovery baseline account/backend/schema differs")
+    failed = recovery_artifact(baseline["failed_plan"])
+    initial_raw = recovery_artifact(baseline["failed_plan_json"])
+    if (hashlib.sha256(failed).hexdigest() != RECOVERY_FAILED_PLAN_SHA256 or
+            hashlib.sha256(initial_raw).hexdigest() != RECOVERY_FAILED_JSON_SHA256):
+        raise RuntimeError("Recovery requires the exact approved failed initial plan")
+    initial = json.loads(initial_raw)
+    owned, bootstrap = set(), set()
+    for resource in initial["resource_changes"]:
+        if resource.get("mode") != "managed":
+            continue
+        address, change = resource["address"], resource["change"]
+        if change["actions"] == ["create"] and change.get("before") is None:
+            owned.add(address)
+        elif address in {"aws_ecr_repository.worker", "aws_ecr_lifecycle_policy.worker"} and change["actions"] == ["no-op"]:
+            bootstrap.add(address)
+        else:
+            raise RuntimeError("Recovery initial plan has an unexpected action")
+    state = json.loads(recovery_artifact(baseline["state"]))
+    resources = recovery_state_resources(state)
+    if set(resources) != (owned - RECOVERY_MISSING) | bootstrap or owned - set(resources) != RECOVERY_MISSING:
+        raise RuntimeError("Recovery state does not contain exactly the initial creates minus missing four")
+    drift = json.loads(recovery_artifact(baseline["drift"]))
+    if any(r["change"]["actions"] != ["no-op"]
+            for r in drift.get("resource_changes", []) if r.get("mode") == "managed"):
+        raise RuntimeError("Recovery preflight contains drift")
+    enrichment = baseline.get("read_enrichment_approval")
+    if drift.get("resource_drift"):
+        if baseline["drift"]["sha256"] != RECOVERY_ENRICHMENT_SHA256 or enrichment != {
+                "message_id": RECOVERY_ENRICHMENT_APPROVAL, "document_sha256": RECOVERY_ENRICHMENT_SHA256}:
+            raise RuntimeError("Recovery drift requires the exact supervisor-approved read-enrichment document")
+    elif enrichment:
+        raise RuntimeError("Recovery enrichment approval does not match recorded rows")
+    raw_resources = resources
+    resources = recovery_refreshed_resources(drift, raw_resources)
+    preflight = json.loads(recovery_artifact(baseline["orphans_and_jobs"]))
+    if (preflight.get("account") != ACCOUNT or preflight.get("backend") != RECOVERY_BACKEND or
+            preflight.get("orphan_resources") != [] or preflight.get("active_hosted_jobs") != []):
+        raise RuntimeError("Recovery orphan/job preflight is missing or not clear")
+    approved = baseline.get("approved_actions", {})
+    for address, approval in approved.items():
+        if (address not in RECOVERY_ACTIONS or address not in owned or address not in resources or
+                (approval.get("actions"), approval.get("reason")) != RECOVERY_ACTIONS[address]):
+            raise RuntimeError("Recovery approval contains an unrelated address/action/reason")
+    return {"path": str(path), "sha256": reviewed_sha256, "baseline": baseline, "state": state,
+            "resources": resources, "raw_resources": raw_resources, "drift_rows": drift.get("resource_drift", []),
+            "owned": owned, "bootstrap": bootstrap, "approved": approved}
+
+
+def recovery_terraform_delta(plan, recovery):
+    """Only the named CloudFront lookup repair may differ from the failed TF."""
+    import io
+    original = recovery_artifact(recovery["baseline"]["failed_plan"])
+    try:
+        with zipfile.ZipFile(io.BytesIO(original)) as old, zipfile.ZipFile(plan) as new:
+            old_names = [n for n in old.namelist() if n.startswith("tfconfig/") and n != "tfconfig/modules.json"]
+            new_names = [n for n in new.namelist() if n.startswith("tfconfig/") and n != "tfconfig/modules.json"]
+            if (set(old_names) != set(new_names) or len(old_names) != len(set(old_names)) or
+                    len(new_names) != len(set(new_names))):
+                raise RuntimeError("Recovery embedded Terraform inventory differs")
+            if any(old.read(name) != new.read(name) for name in old_names if name != "tfconfig/m-/frontend.tf"):
+                raise RuntimeError("Recovery Terraform delta may change only frontend.tf")
+    except zipfile.BadZipFile:
+        raise RuntimeError("Recovery failed/new binary must embed exact Terraform source") from None
+
+
+def recovery_plan_inventory(data, recovery):
+    if data.get("resource_drift", []) != recovery["drift_rows"]:
+        raise RuntimeError("Recovery plan drift differs from the exact recorded read enrichments")
+    prior = data.get("prior_state", {}).get("values", {}).get("root_module", {})
+    if prior.get("child_modules"):
+        raise RuntimeError("Recovery plan contains unrelated prior modules")
+    prior_resources = {r["address"]: r["values"] for r in prior.get("resources", []) if r.get("mode") == "managed"}
+    if prior_resources != recovery["resources"]:
+        raise RuntimeError("Recovery plan before state differs from the exact baseline")
+    managed = [r for r in data.get("resource_changes", []) if r.get("mode") == "managed"]
+    if len(managed) != len({r["address"] for r in managed}) or {r["address"] for r in managed} != recovery["owned"] | recovery["bootstrap"]:
+        raise RuntimeError("Recovery plan inventory differs from original initial plan")
+    used = {r["address"] for r in managed if r["change"]["actions"] not in (["no-op"], ["create"])}
+    if used != set(recovery["approved"]):
+        raise RuntimeError("Recovery actions differ from the exact approved action inventory")
+
+
+def recovery_unknown(marker):
+    """Terraform unknown trees contain only literal booleans and containers."""
+    if type(marker) is bool:
+        return marker
+    if isinstance(marker, dict) and all(isinstance(key, str) for key in marker):
+        return any([recovery_unknown(value) for value in marker.values()])
+    if isinstance(marker, list):
+        return any([recovery_unknown(value) for value in marker])
+    raise RuntimeError("Malformed recovery unknown marker")
+
+
+def recovery_scratch_volume(volume):
+    return volume == [{"name": "scratch", "configure_at_launch": False, "host_path": "",
+        "docker_volume_configuration": [], "efs_volume_configuration": [],
+        "fsx_windows_file_server_volume_configuration": [], "s3files_volume_configuration": []}] and (
+            volume[0]["configure_at_launch"] is False)
+
+
+def recovery_ecs_default_settings(before):
+    return (before.get("enable_fault_injection") is False and
+            recovery_scratch_volume(before.get("volume")) and
+            before.get("ipc_mode") == "" and before.get("pid_mode") == "")
+
+
+def recovery_container_settings_match(before, after):
+    old, new = json.loads(json.dumps(before)), json.loads(json.dumps(after))
+    # ECS returns container-level cpu=0 when Terraform omits that setting.
+    # Limit this equivalence to an absent key and a literal integer zero.
+    for absent, present in ((old, new), (new, old)):
+        if "cpu" not in absent and type(present.get("cpu")) is int and present["cpu"] == 0:
+            present.pop("cpu")
+    for key in ("portMappings", "volumesFrom", "systemControls"):
+        if (type(old.get(key)) is list and old[key] == [] and
+                (key not in new or type(new[key]) is list and new[key] == [])):
+            old.pop(key)
+            new.pop(key, None)
+    old_caps = old.get("linuxParameters", {}).get("capabilities", {})
+    new_caps = new.get("linuxParameters", {}).get("capabilities", {})
+    if (type(old_caps.get("add")) is list and old_caps["add"] == [] and
+            ("add" not in new_caps or type(new_caps["add"]) is list and new_caps["add"] == [])):
+        old_caps.pop("add")
+        new_caps.pop("add", None)
+    for container in (old, new):
+        container.pop("image", None)
+        container["environment"] = sorted((e for e in container.get("environment", [])
+            if e.get("name") != "PEASO_SOURCE_VERSION"), key=lambda e: e["name"])
+    return old == new
+
+
+def recovery_action(resource, recovery):
+    address, change = resource["address"], resource["change"]
+    actions, before, after = change["actions"], change.get("before"), change.get("after")
+    unknown = change.get("after_unknown", {})
+    if not isinstance(unknown, dict):
+        raise RuntimeError("Malformed recovery unknown marker root")
+    has_unknown = recovery_unknown(unknown)
+    if resource.get("module_address") or resource["type"] + "." + resource["name"] not in ALLOWED_RESOURCES:
+        raise RuntimeError("Recovery resource is outside the dedicated root")
+    if actions == ["create"]:
+        if address not in RECOVERY_MISSING or before is not None:
+            raise RuntimeError("Recovery create is outside the original missing four")
+        return "original-missing-create"
+    if before != recovery["resources"].get(address) or not isinstance(before, dict) or not recovery_identity(address, before):
+        raise RuntimeError("Recovery before identity/values differ from baseline")
+    if actions == ["no-op"]:
+        if before != after or has_unknown:
+            raise RuntimeError("Recovery no-op must be completely known and unchanged")
+        return "bootstrap-no-op" if address in recovery["bootstrap"] else "baseline-no-op"
+    approval = recovery["approved"].get(address)
+    if not approval or actions != approval["actions"]:
+        raise RuntimeError("Recovery action is not approved for this exact owned identity")
+    allowed_fields = {
+        "source-runtime-lambda": {"filename", "source_code_hash", "source_code_size", "environment", "last_modified",
+                                  "version", "qualified_arn", "qualified_invoke_arn"},
+        "immutable-task-revision": {"container_definitions", "arn", "arn_without_revision", "id", "revision"},
+        "workflow-task-references": {"definition"},
+        "workflow-iam-task-references": {"policy"},
+    }[approval["reason"]]
+    if not isinstance(after, dict):
+        raise RuntimeError("Recovery after values must be known objects")
+    after, unknown = dict(after), dict(unknown)
+    if approval["reason"] == "immutable-task-revision":
+        # The exact baseline and byte-identical workflow.tf are checked first.
+        # Normalize only the provider's observed empty/default consequences.
+        for key, empty in (("ipc_mode", ""), ("pid_mode", ""), ("tags", {})):
+            if key in before and before[key] == empty and key in after and after[key] is None:
+                after[key] = before[key]
+        if (recovery_ecs_default_settings(before) and
+                after.get("enable_fault_injection") is None and
+                unknown.get("enable_fault_injection") is True):
+            after["enable_fault_injection"] = False
+            unknown.pop("enable_fault_injection")
+        volumes, markers = before.get("volume"), unknown.get("volume")
+        if (recovery_ecs_default_settings(before) and
+                after.get("volume") == [{k: v for k, v in volumes[0].items() if k != "configure_at_launch"}] and
+                isinstance(markers, list) and len(markers) == 1 and isinstance(markers[0], dict) and
+                markers[0].get("configure_at_launch") is True):
+            after["volume"] = volumes
+            unknown["volume"] = [{k: v for k, v in markers[0].items() if k != "configure_at_launch"}]
+    if any(before.get(key) != after.get(key) or recovery_unknown(unknown.get(key, False))
+            for key in (set(before) | set(after) | set(unknown)) - allowed_fields):
+        raise RuntimeError("Recovery changes fields outside the approved source/reference consequence")
+    if approval["reason"] == "source-runtime-lambda":
+        old_env = before.get("environment", [{}])[0].get("variables", {})
+        new_env = after.get("environment", [{}])[0].get("variables", {})
+        if recovery_unknown(unknown.get("environment", False)) or any(old_env.get(k) != new_env.get(k)
+                for k in (set(old_env) | set(new_env)) - {"PEASO_SOURCE_VERSION", "PEASO_SOURCE_URL"}):
+            raise RuntimeError("Recovery Lambda environment changes unrelated keys or defers known values")
+    if approval["reason"] == "immutable-task-revision":
+        if recovery_unknown(unknown.get("container_definitions", False)):
+            raise RuntimeError("Recovery task container definitions must be known")
+        old = json.loads(before.get("container_definitions", "[]"))
+        new = json.loads(after.get("container_definitions", "[]"))
+        if len(old) != 1 or len(new) != 1:
+            raise RuntimeError("Recovery task container definitions missing")
+        if not recovery_container_settings_match(old[0], new[0]):
+            raise RuntimeError("Recovery task changes unrelated container settings")
+    if approval["reason"] in {"workflow-task-references", "workflow-iam-task-references"}:
+        field = "definition" if approval["reason"] == "workflow-task-references" else "policy"
+        # Exact pinned workflow.tf governs unknown revision ARNs. Known values may
+        # change only revision suffixes on the two owned CSPM task families.
+        pattern = rf"arn:aws:ecs:us-east-1:{ACCOUNT}:task-definition/hacktricks-cspm-(collector|analyzer):[1-9][0-9]*"
+        if field in unknown and type(unknown[field]) is not bool:
+            raise RuntimeError("Malformed recovery reference unknown marker")
+        if not unknown.get(field, False) and json.loads(re.sub(pattern, r"owned-task-\1", before.get(field, ""))) != json.loads(re.sub(pattern, r"owned-task-\1", after.get(field, ""))):
+            raise RuntimeError("Recovery workflow/policy changes unrelated references")
+    return approval["reason"]
+
+
+def recovery_live_state_matches(current, baseline):
+    """Allow only top-level validation-row ordering in native state pull."""
+    from collections import Counter
+    if not isinstance(current, dict) or not isinstance(baseline, dict):
+        return False
+    canonical = lambda value: json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    try:
+        if canonical(current) == canonical(baseline):
+            return True
+        if canonical({k: v for k, v in current.items() if k != "check_results"}) != canonical(
+                {k: v for k, v in baseline.items() if k != "check_results"}):
+            return False
+        current_rows, baseline_rows = current.get("check_results"), baseline.get("check_results")
+        if not isinstance(current_rows, list) or not isinstance(baseline_rows, list):
+            return False
+        return Counter(canonical(row) for row in current_rows) == Counter(canonical(row) for row in baseline_rows)
+    except (TypeError, ValueError):
+        return False
+
+
+def successor_live_state_matches(current, baseline):
+    """Preserve full state and validation rows; accept one proven two-object order."""
+    if recovery_live_state_matches(current, baseline):
+        return True
+    if not isinstance(current, dict) or not isinstance(baseline, dict):
+        return False
+    target = ("resource", "aws_s3_object.customer_role_template")
+    def normalized(state):
+        rows = state.get("check_results")
+        if not isinstance(rows, list) or len(rows) != 7:
+            return None
+        matches = [row for row in rows if isinstance(row, dict) and
+                   (row.get("object_kind"), row.get("config_addr")) == target]
+        if len(matches) != 1 or not isinstance(matches[0].get("objects"), list) or len(matches[0]["objects"]) != 2:
+            return None
+        from copy import deepcopy
+        value = deepcopy(state)
+        for row in value["check_results"]:
+            if (row.get("object_kind"), row.get("config_addr")) == target:
+                row["objects"] = sorted(row["objects"], key=current_update.canonical)
+        return value
+    left, right = normalized(current), normalized(baseline)
+    return left is not None and right is not None and recovery_live_state_matches(left, right)
+
+
+def verify_recovery_live(recovery, session):
+    """Host-only read checks immediately before apply; no state write here."""
+    if session.client("sts").get_caller_identity().get("Account") != ACCOUNT:
+        raise RuntimeError("Recovery live account differs")
+    current = json.loads(terraform("state", "pull", capture=True).stdout)
+    if not recovery_live_state_matches(current, recovery["state"]):
+        raise RuntimeError("Recovery live baseline changed; apply refused")
+    workflow = f"arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:hacktricks-cspm"
+    if session.client("stepfunctions").list_executions(stateMachineArn=workflow, statusFilter="RUNNING", maxResults=1).get("executions"):
+        raise RuntimeError("Recovery has active hosted workflow jobs")
+    cluster = f"arn:aws:ecs:us-east-1:{ACCOUNT}:cluster/hacktricks-cspm"
+    if session.client("ecs").list_tasks(cluster=cluster, desiredStatus="RUNNING", maxResults=1).get("taskArns"):
+        raise RuntimeError("Recovery has active hosted ECS jobs")
+    # A fresh read-only refresh catches provider-side drift that has not changed
+    # the backend serial. Never apply this temporary refresh-only plan.
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="peaso-recovery-preapply-", dir=BUILD) as folder:
+        refresh = Path(folder) / "never-apply-refresh.tfplan"
+        terraform("plan", "-refresh-only", "-input=false", f"-out={refresh}")
+        fresh = json.loads(terraform("show", "-json", refresh, capture=True).stdout)
+        prior = fresh.get("prior_state", {}).get("values", {}).get("root_module", {})
+        if fresh.get("resource_drift", []) != recovery["drift_rows"] or prior.get("child_modules") or {
+                r["address"]: r["values"] for r in prior.get("resources", []) if r.get("mode") == "managed"} != recovery["resources"]:
+            raise RuntimeError("Recovery fresh provider drift/before values differ from baseline")
+    current = json.loads(terraform("state", "pull", capture=True).stdout)
+    if not recovery_live_state_matches(current, recovery["state"]):
+        raise RuntimeError("Recovery live baseline changed during preflight")
+
+
+def verify_current_update_live(plan, contract_path, approved_sha256, session, *, successor=False, artifact=False):
+    """Read-only account, state, drift and active-work guard before one saved apply."""
+    import tempfile
+    if session.client("sts").get_caller_identity().get("Account") != ACCOUNT:
+        raise RuntimeError("Current-update live AWS account differs")
+    verify_backend()
+    raw = terraform("show", "-json", plan, capture=True).stdout
+    if successor and artifact:
+        raise RuntimeError("Artifact and successor live guards are mutually exclusive")
+    update = artifact_update if artifact else (successor_update if successor else current_update)
+    context = update.load_context(plan, raw.encode(), json.loads(raw),
+                                  Path(contract_path), approved_sha256, INFRA, BUILD)
+    current = json.loads(terraform("state", "pull", capture=True).stdout)
+    state_matches = (artifact_update.state_pull_matches if artifact else
+                     successor_live_state_matches if successor else recovery_live_state_matches)
+    if not state_matches(current, context["state"]):
+        raise RuntimeError("Current-update live state changed after plan review")
+    workflow = f"arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:hacktricks-cspm"
+    if session.client("stepfunctions").list_executions(
+            stateMachineArn=workflow, statusFilter="RUNNING", maxResults=1).get("executions"):
+        raise RuntimeError("Current-update has an active owned workflow")
+    cluster = f"arn:aws:ecs:us-east-1:{ACCOUNT}:cluster/hacktricks-cspm"
+    ecs = session.client("ecs")
+    for status in ("RUNNING", "PENDING"):
+        if ecs.list_tasks(cluster=cluster, desiredStatus=status, maxResults=1).get("taskArns"):
+            raise RuntimeError("Current-update has an active owned ECS task")
+    table = "hacktricks-cspm"
+    dynamodb = session.client("dynamodb")
+    lock = dynamodb.get_item(TableName=table, Key={"PK": {"S": "GLOBAL"}, "SK": {"S": "SCAN_LOCK"}},
+                             ConsistentRead=True).get("Item")
+    if lock:
+        if "expires_at" not in lock or int(lock["expires_at"]["N"]) > time.time():
+            raise RuntimeError("Current-update has an active or malformed global scan lock")
+    arguments = current_update.active_owned_jobs_query(table, int(time.time()))
+    for _ in range(100):
+        page = dynamodb.scan(**arguments)
+        if page.get("Count", 0):
+            raise RuntimeError("Current-update has an unexpired owned scan job")
+        if not page.get("LastEvaluatedKey"):
+            break
+        arguments["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+    else:
+        raise RuntimeError("Current-update owned job page bound exceeded")
+    with tempfile.TemporaryDirectory(prefix="peaso-current-update-refresh-", dir=BUILD) as folder:
+        refresh = Path(folder) / "never-apply-refresh.tfplan"
+        terraform("plan", "-refresh-only", "-lock=false", "-input=false", f"-out={refresh}")
+        fresh = json.loads(terraform("show", "-json", refresh, capture=True).stdout)
+        prior = fresh.get("prior_state", {}).get("values", {}).get("root_module", {})
+        before = {row["address"]: row.get("values") for row in prior.get("resources", [])
+                  if row.get("mode") == "managed"}
+        if (fresh.get("resource_drift", []) != context["drift_rows"] or
+                prior.get("child_modules") or before != context["resources"]):
+            raise RuntimeError("Current-update fresh provider values or exact reviewed drift changed")
+    current = json.loads(terraform("state", "pull", capture=True).stdout)
+    if not state_matches(current, context["state"]):
+        raise RuntimeError("Current-update live state changed during preapply guard")
+    contract = json.loads(current_update.private_artifact(Path(contract_path), approved_sha256))
+    approved_plan = contract["review"]["plan"] if artifact else contract["plan"]
+    if hashlib.sha256(plan.read_bytes()).hexdigest() != approved_plan["sha256"]:
+        raise RuntimeError("Current-update saved plan changed during preapply guard")
+
+
+def verify_current_update_resolved(session, plan, contract_path, approved_sha256, definition, revisions,
+                                   *, successor=False, artifact=False):
+    """Read exact resolved owned policies and immutable role bytes after apply."""
+    raw = terraform("show", "-json", plan, capture=True).stdout
+    data = json.loads(raw)
+    if successor and artifact:
+        raise RuntimeError("Artifact and successor resolved guards are mutually exclusive")
+    update = artifact_update if artifact else (successor_update if successor else current_update)
+    context = update.load_context(plan, raw.encode(), data, Path(contract_path),
+                                  approved_sha256, INFRA, BUILD)
+    resources = context["resources"]
+    planned = {row["address"]: row for row in data["resource_changes"] if row.get("mode") == "managed"}
+    iam = session.client("iam")
+    def role_policy(address):
+        before = resources[address]
+        value = iam.get_role_policy(RoleName=before["role"], PolicyName=before["name"])["PolicyDocument"]
+        if not isinstance(value, dict):
+            raise RuntimeError("Resolved owned IAM policy is malformed")
+        return value
+    workflow_policy = role_policy("aws_iam_role_policy.workflow")
+    api_policy = role_policy("aws_iam_role_policy.api")
+    s3 = session.client("s3")
+    template_bucket = resources["aws_s3_bucket.templates[0]"]["id"]
+    policy = json.loads(s3.get_bucket_policy(Bucket=template_bucket)["Policy"])
+    update.check_resolved_documents(resources, planned, definition, workflow_policy,
+                                    api_policy, policy, revisions)
+    def exact_object(bucket, key, expected_sha256, *, template, new_object=False):
+        response = s3.get_object(Bucket=bucket, Key=key, **(
+            {"ChecksumMode": "ENABLED"} if new_object else {}))
+        body = response["Body"]
+        try:
+            if not isinstance(response.get("ContentLength"), int) or response["ContentLength"] > 1_000_000:
+                raise RuntimeError("Resolved customer-role object exceeds the reviewed read bound")
+            content = body.read(1_000_001)
+        finally:
+            body.close()
+        if len(content) != response["ContentLength"] or hashlib.sha256(content).hexdigest() != expected_sha256:
+            raise RuntimeError("Resolved customer-role object bytes differ from signed content")
+        if (response.get("ContentType") != "application/json" or
+                response.get("ContentDisposition") != 'attachment; filename="customer-role.json"'):
+            raise RuntimeError("Resolved customer-role object headers differ")
+        if template and (response.get("Metadata") != {"sha256": expected_sha256} or
+                         response.get("CacheControl") != "public,max-age=31536000,immutable"):
+            raise RuntimeError("Resolved immutable customer-role metadata differs")
+        if new_object:
+            current_update.check_reviewed_object_checksum(response, content, expected_sha256)
+            acl = s3.get_object_acl(Bucket=bucket, Key=key)
+            owner = (acl.get("Owner") or {}).get("ID")
+            grants = acl.get("Grants")
+            grantee = grants[0].get("Grantee") if isinstance(grants, list) and len(grants) == 1 else None
+            if (not isinstance(owner, str) or not owner or not isinstance(grantee, dict) or
+                    grantee.get("ID") != owner or grantee.get("Type") != "CanonicalUser" or
+                    set(grantee) - {"ID", "Type", "DisplayName"} or
+                    grants[0].get("Permission") != "FULL_CONTROL"):
+                raise RuntimeError("Resolved immutable object ACL differs from bucket-owner-only access")
+    old_templates = (
+        "d7f7b815628bb270f4bd40f985d70de7ba1bbd50cefa4f429031ea0a74e08bcd",
+        "7e6fc610eee9021025ffd498c8dc924d740975a34c56f291bc7317a7db182dbe",
+    )
+    for item in (*old_templates, *current_update.TEMPLATE_HASHES):
+        exact_object(template_bucket, f"customer-role-{item}.json", item, template=True,
+                     new_object=item in current_update.TEMPLATE_HASHES)
+    frontend_bucket = resources["aws_s3_bucket.frontend"]["id"]
+    exact_object(frontend_bucket, CUSTOMER_ROLE_DOWNLOAD_KEY,
+                 current_update.TEMPLATE_HASHES[-1], template=False)
+
+
+def check_current_api_policy_identity(before, after):
+    """Allow only the existing generated API inline-policy identity on update."""
+    role = "hacktricks-cspm-api"
+    name = before.get("name") if isinstance(before, dict) else None
+    if (not isinstance(name, str) or not re.fullmatch(r"terraform-[a-f0-9]{26}", name) or
+            before.get("role") != role or before.get("id") != f"{role}:{name}" or
+            not isinstance(after, dict) or after.get("name") != name or
+            after.get("role") != role or after.get("id") != before["id"]):
+        raise RuntimeError("Current-update API inline-policy name/role/id binding differs")
+
+
+def plan_summary(plan, bootstrap=False, recovery_baseline=None, recovery_sha256=None,
+                 current_update_contract=None, current_update_sha256=None,
+                 successor_update_contract=None, successor_update_sha256=None,
+                 artifact_update_contract=None, artifact_update_sha256=None):
+    digest = hashlib.sha256(plan.read_bytes()).hexdigest()
+    raw = terraform("show", "-json", plan, capture=True).stdout
+    data = json.loads(raw)
+    if bool(recovery_baseline) != bool(recovery_sha256) or bootstrap and recovery_baseline:
+        raise RuntimeError("Recovery requires baseline plus approved digest and cannot bootstrap ECR")
+    if (bool(current_update_contract) != bool(current_update_sha256) or
+            current_update_contract and (bootstrap or recovery_baseline or successor_update_contract or
+                                         artifact_update_contract)):
+        raise RuntimeError("Current update requires its own paired approval and cannot use bootstrap or recovery")
+    if (bool(successor_update_contract) != bool(successor_update_sha256) or
+            successor_update_contract and (bootstrap or recovery_baseline or current_update_contract or
+                                           artifact_update_contract)):
+        raise RuntimeError("Successor update requires its own paired approval and cannot use another update mode")
+    if (bool(artifact_update_contract) != bool(artifact_update_sha256) or
+            artifact_update_contract and (bootstrap or recovery_baseline or current_update_contract or
+                                          successor_update_contract)):
+        raise RuntimeError("Artifact update requires its own paired approval and cannot use another update mode")
+    recovery = recovery_context(recovery_baseline, recovery_sha256) if recovery_baseline else None
+    approved_update = current_update.load_context(
+        plan, raw.encode(), data, Path(current_update_contract), current_update_sha256, INFRA, BUILD
+    ) if current_update_contract else None
+    if successor_update_contract:
+        approved_update = successor_update.load_context(
+            plan, raw.encode(), data, Path(successor_update_contract), successor_update_sha256, INFRA, BUILD)
+    if artifact_update_contract:
+        approved_update = artifact_update.load_context(
+            plan, raw.encode(), data, Path(artifact_update_contract), artifact_update_sha256, INFRA, BUILD)
+    if recovery:
+        recovery_terraform_delta(plan, recovery)
+        recovery_plan_inventory(data, recovery)
+    changes, task_sizes, api_environments, required_checks = [], {}, [], []
+    runtime = any(r.get("mode") == "managed" and r.get("type") in {"aws_ecs_task_definition", "aws_lambda_function"}
+                  for r in data.get("resource_changes", []))
+    expected = deployment_expectations(data, plan) if runtime and not bootstrap else None
+    bootstrap_allowed = {"aws_ecr_repository.worker", "aws_ecr_lifecycle_policy.worker"}
+    for resource in data.get("resource_changes", []):
+        if resource.get("mode") != "managed":
+            continue
+        actions = resource["change"]["actions"]
+        reason = recovery_action(resource, recovery) if recovery else None
+        if actions == ["no-op"]:
+            if resource["type"] in {"aws_ecs_task_definition", "aws_lambda_function"} and not (recovery or approved_update):
+                raise RuntimeError("Runtime review requires create actions; unknowns cannot be deferred on no-op")
+            if not (recovery or approved_update) or resource["type"] not in {"aws_ecs_task_definition", "aws_lambda_function"}:
+                continue
+        if "delete" in actions and not (recovery or approved_update):
+            raise RuntimeError(f"Destructive plan refused: {resource['address']}")
+        if resource.get("module_address"):
+            raise RuntimeError("Unexpected child module in the dedicated CSPM root")
+        if resource["type"] + "." + resource["name"] not in ALLOWED_RESOURCES:
+            raise RuntimeError(f"Resource outside the dedicated CSPM inventory: {resource['address']}")
+        if not (recovery or approved_update) and (actions != ["create"] or resource["change"].get("before") is not None):
+            raise RuntimeError(f"Non-additive plan refused: {resource['address']} ({','.join(actions)})")
+        if bootstrap and resource["address"] not in bootstrap_allowed:
+            raise RuntimeError("Bootstrap plan contains a resource outside dedicated ECR")
+        # Every managed before/after must belong to CSPM. IAM policies, route
+        # associations, and secret versions inherit that scope through references.
+        values = resource["change"].get("after") or {}
+        owned_workflow_policy_name = False
+        owned_api_policy_name = False
+        if (resource["address"] == "aws_iam_role_policy.workflow" and
+                (recovery and reason == "workflow-iam-task-references" or approved_update)):
+            before = resource["change"]["before"]
+            policy_name = before.get("name")
+            role_name = before.get("role")
+            if (not isinstance(policy_name, str) or not policy_name or
+                    values.get("name") != policy_name or
+                    role_name != "hacktricks-cspm-workflow" or values.get("role") != role_name or
+                    before.get("id") != f"{role_name}:{policy_name}" or values.get("id") != before["id"]):
+                raise RuntimeError("Recovery workflow inline-policy name/role/id binding differs from baseline")
+            # The approved action already proved the exact owned before values
+            # and reference-only delta. Its provider-generated name is unchanged.
+            owned_workflow_policy_name = True
+        if resource["address"] == "aws_iam_role_policy.api" and approved_update:
+            check_current_api_policy_identity(resource["change"]["before"], values)
+            owned_api_policy_name = True
+        for name in ("name", "bucket", "function_name", "family", "alarm_name", "repository"):
+            value = values.get(name)
+            if resource["type"] == "aws_apigatewayv2_stage" and name == "name" and value == "$default":
+                continue
+            if name == "name" and (owned_workflow_policy_name or owned_api_policy_name):
+                continue
+            if value and not (str(value).startswith("hacktricks-cspm") or
+                              str(value).startswith("/ecs/hacktricks-cspm") or
+                              str(value).startswith("/aws/lambda/hacktricks-cspm") or
+                              str(value).startswith("alias/hacktricks-cspm") or
+                              str(value) == "cspm.hacktricks.wiki"):
+                # S3 bucket policies contain generated bucket IDs, not wiki IDs.
+                raise RuntimeError(f"Unrelated named resource refused: {resource['address']}")
+        if resource["type"] == "aws_route53_record" and values.get("name") != "cspm.hacktricks.wiki":
+            raise RuntimeError("DNS plan must address only cspm.hacktricks.wiki")
+        if resource["type"] == "aws_ecs_task_definition":
+            stage = resource.get("index")
+            if stage not in {"collector", "analyzer"}:
+                raise RuntimeError("Unexpected worker stage in saved plan")
+            task_sizes[stage] = {key: int(values[key]) for key in ["cpu", "memory"]}
+            if task_sizes[stage] != expected["worker_resources"][stage]:
+                raise RuntimeError("Saved task sizing differs from reviewed worker_resources variable")
+            definitions = values.get("container_definitions")
+            declared_unknown = resource["change"].get("after_unknown", {}).get("container_definitions") is True
+            if definitions is None and declared_unknown:
+                required_checks.append({"address": resource["address"], "field": "container_definitions", "stage": stage})
+                containers = []
+            else:
+                containers = json.loads(definitions or "[]")
+                if not isinstance(containers, list) or len(containers) != 1:
+                    raise RuntimeError("Saved worker container definitions missing without apply-time unknown marker")
+            for container in containers:
+                if container.get("image") != expected["worker_image"]:
+                    raise RuntimeError("Saved worker image differs from immutable image variable")
+                environment = container_environment(container)
+                check_environment(environment, expected["worker_environments"][stage])
+                for key, value in {"PEASO_TASK_VCPU": task_sizes[stage]["cpu"] / 1024,
+                                   "PEASO_TASK_MEMORY_GIB": task_sizes[stage]["memory"] / 1024}.items():
+                    if float(environment.get(key, -1)) != value:
+                        raise RuntimeError("Worker cost telemetry differs from saved task sizing")
+                api_environments.append(environment)
+        if resource["type"] == "aws_lambda_function":
+            if resource["name"] not in {"api", "scheduler"}:
+                raise RuntimeError("Unexpected Lambda in runtime review")
+            if values.get("filename") != expected["api_zip"]:
+                raise RuntimeError("Saved Lambda filename differs from verified API ZIP variable")
+            blocks = values.get("environment")
+            markers = resource["change"].get("after_unknown", {}).get("environment")
+            if not isinstance(blocks, list) or len(blocks) != 1 or not isinstance(blocks[0], dict):
+                raise RuntimeError("Saved Lambda environment block missing or malformed")
+            marker = markers[0].get("variables") if isinstance(markers, list) and len(markers) == 1 and isinstance(markers[0], dict) else None
+            environment = blocks[0].get("variables", {})
+            check_environment(environment, expected["api_environment"], marker)
+            if marker is True or isinstance(marker, dict) and any(v is True for v in marker.values()):
+                required_checks.append({"address": resource["address"], "field": "environment.variables", "function": resource["name"]})
+            else:
+                api_environments.append(environment)
+        if resource["type"] == "aws_lambda_function" and values.get("filename"):
+            import base64
+            package = Path(values["filename"])
+            current_hash = base64.b64encode(hashlib.sha256(package.read_bytes()).digest()).decode()
+            if current_hash != values.get("source_code_hash"):
+                raise RuntimeError("API ZIP changed after planning; recreate the plan and obtain review")
+        changes.append(dict({"address": resource["address"], "actions": actions}, **({"reason": reason} if recovery else {})))
+    if task_sizes:
+        verify_worker_resources(task_sizes)
+        for environment in api_environments:
+            for stage, size in task_sizes.items():
+                for suffix, value in {"VCPU": size["cpu"] / 1024, "MEMORY_GIB": size["memory"] / 1024}.items():
+                    if float(environment.get(f"PEASO_{stage.upper()}_{suffix}", -1)) != value:
+                        raise RuntimeError("API/worker cost telemetry differs from saved task sizing")
+    if bootstrap and any(c["actions"] != ["create"] for c in changes):
+        raise RuntimeError("ECR bootstrap must be create-only")
+    if hashlib.sha256(plan.read_bytes()).hexdigest() != digest:
+        raise RuntimeError("Saved plan changed during review")
+    summary = {"plan": str(plan), "sha256": digest, "resources": changes,
+               "json_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+               "required_resolved_checks": required_checks,
+               "counts": {action: sum(action in c["actions"] for c in changes)
+                          for action in ["create", "update", "delete"]}}
+    report = plan.with_suffix(".review.json")
+    if recovery:
+        summary["recovery"] = {"baseline_path": str(recovery_baseline), "baseline_sha256": recovery_sha256,
+            "failed_plan_sha256": RECOVERY_FAILED_PLAN_SHA256, "failed_plan_json_sha256": RECOVERY_FAILED_JSON_SHA256,
+            "state_sha256": recovery["baseline"]["state"]["sha256"], "lineage": recovery["state"]["lineage"],
+            "serial": recovery["state"]["serial"], "approved_actions": recovery["approved"]}
+        if recovery["baseline"].get("read_enrichment_approval"):
+            summary["recovery"]["read_enrichment_approval"] = recovery["baseline"]["read_enrichment_approval"]
+    if approved_update:
+        summary["artifact_update" if artifact_update_contract else
+                "successor_update" if successor_update_contract else "current_update"] = {
+            "contract_path": approved_update["contract_path"],
+            "contract_sha256": approved_update["contract_sha256"],
+            "state_sha256": approved_update["state_sha256"],
+            "lineage": approved_update["lineage"], "serial": approved_update["serial"],
+            "approved_addresses": sorted(approved_update["approved_changes"]),
+            "release": approved_update["release"],
+        }
+    if expected:
+        if recovery:
+            expected["recovery_ecs_defaults"] = [r["index"] for r in data["resource_changes"]
+                if r.get("type") == "aws_ecs_task_definition" and
+                recovery_ecs_default_settings(r["change"].get("before") or {})]
+            expected["recovery_ecs_containers"] = {r["index"]: json.loads(r["change"]["before"]["container_definitions"])[0]
+                for r in data["resource_changes"] if r.get("type") == "aws_ecs_task_definition"}
+            required_checks.extend({"stage": stage, "field": "ecs_recovery_defaults"}
+                                   for stage in expected["recovery_ecs_defaults"])
+        if approved_update:
+            expected["current_ecs_containers"] = {
+                r["index"]: json.loads(r["change"]["before"]["container_definitions"])[0]
+                for r in data["resource_changes"] if r.get("type") == "aws_ecs_task_definition"
+                and r.get("address") in approved_update["approved_changes"]}
+            expected["current_ecs_defaults"] = [
+                r["index"] for r in data["resource_changes"]
+                if r.get("type") == "aws_ecs_task_definition"
+                and r.get("address") in approved_update["approved_changes"]]
+        summary["resolved_contract"] = expected
+        summary["resolved_validation_required"] = True
+        summary["lambda_configuration"] = {
+            r["name"]: {key: r["change"]["after"].get(key) for key in
+                        ("function_name", "source_code_hash", "memory_size", "timeout", "runtime", "handler", "architectures")}
+            for r in data["resource_changes"] if r.get("type") == "aws_lambda_function" and r.get("mode") == "managed"}
+    private_json(report, summary)
+    print(json.dumps({key: value for key, value in summary.items() if key != "resolved_contract"}, indent=2))
+    return digest
+
+
+def private_json(path, value):
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, "w") as stream:
+        metadata = os.fstat(stream.fileno())
+        if metadata.st_uid != os.getuid() or not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+            raise RuntimeError("Private receipt must be owned and unlinked")
+        os.fchmod(stream.fileno(), 0o600)
+        os.ftruncate(stream.fileno(), 0)
+        json.dump(value, stream, indent=2)
+        stream.write("\n")
+
+
+def private_bytes_once(path, content):
+    """Preserve the exact Terraform JSON bytes as a new private review input."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, "wb") as stream:
+        metadata = os.fstat(stream.fileno())
+        if (metadata.st_uid != os.getuid() or not stat.S_ISREG(metadata.st_mode) or
+                metadata.st_nlink != 1 or stat.S_IMODE(metadata.st_mode) != 0o600):
+            raise RuntimeError("Saved plan JSON must be a new owned mode-0600 file")
+        stream.write(content)
+
+
+def verify_resolved_deployment(session, plan, reviewed_sha256, recovery_baseline=None, recovery_sha256=None,
+                               current_update_contract=None, current_update_sha256=None,
+                               successor_update_contract=None, successor_update_sha256=None,
+                               artifact_update_contract=None, artifact_update_sha256=None):
+    """Read actual workflow-selected revisions and functions; disclose no environments."""
+    if hashlib.sha256(plan.read_bytes()).hexdigest() != reviewed_sha256:
+        raise RuntimeError("Plan changed after coordinator review; resolved validation refused")
+    verify_backend()
+    if session.client("sts").get_caller_identity().get("Account") != ACCOUNT:
+        raise RuntimeError("Resolved validation requires the dedicated wiki account")
+    previous_review = json.loads(plan.with_suffix(".review.json").read_text()) if (
+        recovery_baseline or current_update_contract or successor_update_contract or artifact_update_contract) else None
+    if plan_summary(plan, recovery_baseline=recovery_baseline, recovery_sha256=recovery_sha256,
+                    current_update_contract=current_update_contract,
+                    current_update_sha256=current_update_sha256,
+                    successor_update_contract=successor_update_contract,
+                    successor_update_sha256=successor_update_sha256,
+                    artifact_update_contract=artifact_update_contract,
+                    artifact_update_sha256=artifact_update_sha256) != reviewed_sha256:
+        raise RuntimeError("Saved plan changed during resolved validation")
+    review = json.loads(plan.with_suffix(".review.json").read_text())
+    if previous_review is not None and previous_review != review:
+        raise RuntimeError("Approved review changed during resolved validation")
+    required = {'aws_ecs_task_definition.tasks["collector"]', 'aws_ecs_task_definition.tasks["analyzer"]',
+                "aws_lambda_function.api", "aws_lambda_function.scheduler"}
+    if not required.issubset({r["address"] for r in review["resources"]}) or not review.get("resolved_validation_required"):
+        raise RuntimeError("Resolved validation requires the complete reviewed runtime deployment")
+    contract = review["resolved_contract"]
+    output = json.loads(terraform("output", "-json", capture=True).stdout)
+    def value(key):
+        result = output.get(key, {}).get("value")
+        if not isinstance(result, str) or not result:
+            raise RuntimeError(f"Missing resolved deployment output: {key}")
+        return result
+    workflow = value("workflow_arn")
+    if workflow != f"arn:aws:states:us-east-1:{ACCOUNT}:stateMachine:hacktricks-cspm":
+        raise RuntimeError("Resolved workflow is outside the dedicated deployment")
+    secret = value("credential_secret_arn")
+    if not re.fullmatch(contract["api_environment"]["PEASO_CREDENTIAL_SECRET_ARN"]["arn_pattern"], secret):
+        raise RuntimeError("Resolved credential secret is outside the dedicated deployment")
+    bucket, table = value("artifact_bucket"), value("metadata_table")
+    if bucket != contract["api_environment"]["PEASO_ARTIFACT_BUCKET"] or table != "hacktricks-cspm":
+        raise RuntimeError("Resolved storage is outside the dedicated deployment")
+    if value("api_function") != "hacktricks-cspm-api":
+        raise RuntimeError("Resolved API function is outside the dedicated deployment")
+    definition = json.loads(session.client("stepfunctions").describe_state_machine(stateMachineArn=workflow)["definition"])
+    ecs = session.client("ecs")
+    revisions = {}
+    for stage, state in (("collector", "Collect"), ("analyzer", "Analyze")):
+        parameters = definition.get("States", {}).get(state, {}).get("Parameters", {})
+        arn = parameters.get("TaskDefinition")
+        if not isinstance(arn, str) or not re.fullmatch(f"arn:aws:ecs:us-east-1:{ACCOUNT}:task-definition/hacktricks-cspm-{stage}:[1-9][0-9]*", arn):
+            raise RuntimeError(f"Workflow has no dedicated resolved {stage} task revision")
+        expected_overrides = {"ContainerOverrides": [{"Name": stage,
+            "Command.$": f"States.Array('{stage}', '--once', '--tenant-id', $.tenant_id, '--scan-id', $.scan_id)"}]}
+        if parameters.get("Overrides") != expected_overrides:
+            raise RuntimeError("Workflow overrides differ from reviewed commands or override sizing/environment")
+        task_response = ecs.describe_task_definition(taskDefinition=arn, **(
+            {"include": ["TAGS"]} if (current_update_contract or successor_update_contract or artifact_update_contract) else {}))
+        task = task_response["taskDefinition"]
+        if stage in contract.get("recovery_ecs_defaults", []) or stage in contract.get("current_ecs_defaults", []):
+            volumes = task.get("volumes")
+            # ECS documents fault injection as opt-in, default false. The
+            # recovery contract already proves the baseline and pinned source.
+            if (task.get("enableFaultInjection", False) is not False or
+                    task.get("ipcMode") not in (None, "") or task.get("pidMode") not in (None, "") or
+                    not isinstance(volumes, list) or len(volumes) != 1 or not isinstance(volumes[0], dict) or
+                    volumes[0].get("name") != "scratch" or
+                    volumes[0].get("configureAtLaunch", False) is not False or
+                    volumes[0].get("host", {}) != {} or
+                    set(volumes[0]) - {"name", "host", "configureAtLaunch"}):
+                raise RuntimeError(f"Resolved {stage} ECS default-false/scratch/IPC/PID settings differ")
+        if stage in contract.get("current_ecs_defaults", []):
+            actual_tags = task_response.get("tags")
+            expected_tags = {"Application": "hacktricks-cspm", "ManagedBy": "Terraform"}
+            if (not isinstance(actual_tags, list) or len(actual_tags) != 2 or
+                    any(not isinstance(item, dict) or set(item) != {"key", "value"}
+                        for item in actual_tags) or
+                    {item["key"]: item["value"] for item in actual_tags} != expected_tags):
+                raise RuntimeError(f"Resolved {stage} ECS tags differ from the reviewed defaults")
+        size = contract["worker_resources"][stage]
+        if (task.get("taskDefinitionArn") != arn or task.get("status") != "ACTIVE" or
+                task.get("family") != f"hacktricks-cspm-{stage}" or
+                any(str(task.get(key)) != str(size[key]) for key in ("cpu", "memory"))):
+            raise RuntimeError(f"Resolved {stage} task sizing/revision differs from reviewed plan")
+        containers = task.get("containerDefinitions")
+        if not isinstance(containers, list) or len(containers) != 1:
+            raise RuntimeError(f"Resolved {stage} task containers missing or ambiguous")
+        container = containers[0]
+        baseline_container = (contract.get("recovery_ecs_containers", {}).get(stage) or
+                              contract.get("current_ecs_containers", {}).get(stage))
+        if baseline_container is not None and not recovery_container_settings_match(baseline_container, container):
+            raise RuntimeError(f"Resolved {stage} container security/settings differ from the owned baseline")
+        if container.get("name") != stage or container.get("image") != contract["worker_image"]:
+            raise RuntimeError(f"Resolved {stage} image differs from reviewed immutable image")
+        environment = container_environment(container)
+        expected = dict(contract["worker_environments"][stage], PEASO_ARTIFACT_BUCKET=bucket, PEASO_DYNAMODB_TABLE=table)
+        if stage == "collector":
+            expected["PEASO_CREDENTIAL_SECRET_ARN"] = secret
+        check_environment(environment, expected)
+        if set(environment) != set(expected):
+            raise RuntimeError(f"Resolved {stage} environment has unreviewed keys")
+        revisions[stage] = arn
+    lambdas = session.client("lambda")
+    for function in ("api", "scheduler"):
+        actual = lambdas.get_function_configuration(FunctionName=f"hacktricks-cspm-{function}")
+        planned = review["lambda_configuration"][function]
+        for saved_key, actual_key in (("function_name", "FunctionName"), ("source_code_hash", "CodeSha256"),
+                                      ("memory_size", "MemorySize"), ("timeout", "Timeout"), ("runtime", "Runtime"),
+                                      ("handler", "Handler"), ("architectures", "Architectures")):
+            if planned.get(saved_key) is None or actual.get(actual_key) != planned[saved_key]:
+                raise RuntimeError(f"Resolved {function} configuration differs: {actual_key}")
+        if (actual.get("CodeSha256") != contract["api_code_sha256"] or actual.get("State") != "Active" or
+                actual.get("LastUpdateStatus") != "Successful" or actual.get("Environment", {}).get("Error")):
+            raise RuntimeError(f"Resolved {function} source/state/environment is not verified")
+        environment = actual.get("Environment", {}).get("Variables")
+        expected = dict(contract["api_environment"], PEASO_ARTIFACT_BUCKET=bucket, PEASO_DYNAMODB_TABLE=table,
+                        PEASO_CREDENTIAL_SECRET_ARN=secret, PEASO_WORKFLOW_ARN=workflow)
+        check_environment(environment, expected)
+        if set(environment) != set(expected):
+            raise RuntimeError(f"Resolved {function} environment has unreviewed keys")
+    if current_update_contract:
+        verify_current_update_resolved(session, plan, current_update_contract,
+                                       current_update_sha256, definition, revisions)
+    if successor_update_contract:
+        verify_current_update_resolved(session, plan, successor_update_contract,
+                                       successor_update_sha256, definition, revisions, successor=True)
+    if artifact_update_contract:
+        verify_current_update_resolved(session, plan, artifact_update_contract,
+                                       artifact_update_sha256, definition, revisions, artifact=True)
+    receipt = {"status": "passed", "plan_sha256": reviewed_sha256, "plan_json_sha256": review["json_sha256"],
+               "source_version": contract["source_version"], "task_revisions": revisions,
+               "functions": ["hacktricks-cspm-api", "hacktricks-cspm-scheduler"]}
+    if hashlib.sha256(plan.read_bytes()).hexdigest() != reviewed_sha256:
+        raise RuntimeError("Saved plan changed during resolved validation")
+    private_json(plan.with_suffix(".resolved.json"), receipt)
+    print(json.dumps(receipt, indent=2))
+    return receipt
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("package-api")
+    sub.add_parser("build-frontend")
+    sub.add_parser("verify-package")
+    sub.add_parser("validate-workflow")
+    freeze = sub.add_parser("freeze-release")
+    freeze.add_argument("--source-root", type=Path,
+                        help="Optional current repository path; alternate exports are refused")
+    build = sub.add_parser("build-worker")
+    build.add_argument("--tag", default=f"release-{int(time.time())}")
+    push = sub.add_parser("push-worker")
+    push.add_argument("--tag", required=True)
+    plan = sub.add_parser("plan")
+    plan.add_argument("--image")
+    plan.add_argument("--bootstrap-ecr", action="store_true")
+    plan.add_argument("--output", type=Path, default=BUILD / "cspm.tfplan")
+    plan.add_argument("--save-for-review", action="store_true",
+                      help="Save exact full plan and private JSON without authorizing an update")
+    current_review = sub.add_parser("review-current-plan")
+    current_review.add_argument("--plan", type=Path, required=True)
+    successor_review = sub.add_parser("review-successor-plan")
+    successor_review.add_argument("--plan", type=Path, required=True)
+    artifact_review = sub.add_parser("review-artifact-plan")
+    artifact_review.add_argument("--plan", type=Path, required=True)
+    apply = sub.add_parser("apply")
+    apply.add_argument("--plan", type=Path, required=True)
+    apply.add_argument("--reviewed-sha256", required=True,
+                       help="Exact plan digest approved by the coordinator")
+    apply.add_argument("--bootstrap-ecr", action="store_true")
+    recovery_commands = [plan, apply]
+    for command in ("verify-resolved", "publish-frontend"):
+        resolved = sub.add_parser(command)
+        resolved.add_argument("--plan", type=Path, required=True)
+        resolved.add_argument("--reviewed-sha256", required=True)
+        recovery_commands.append(resolved)
+    for command in recovery_commands:
+        command.add_argument("--recovery-baseline", type=Path,
+                             help="Private approved baseline for the exact failed initial CSPM plan")
+        command.add_argument("--recovery-sha256",
+                             help="Exact supervisor-reviewed baseline bytes SHA256; never a general update exception")
+    for command in (current_review, apply, *recovery_commands[2:]):
+        command.add_argument("--current-update-contract", type=Path)
+        command.add_argument("--current-update-sha256")
+    for command in (successor_review, apply, *recovery_commands[2:]):
+        command.add_argument("--successor-update-contract", type=Path)
+        command.add_argument("--successor-update-sha256")
+    for command in (artifact_review, apply, *recovery_commands[2:]):
+        command.add_argument("--artifact-update-contract", type=Path)
+        command.add_argument("--artifact-update-sha256")
+    verify = sub.add_parser("verify-host")
+    verify.add_argument("--url", default="https://cspm.hacktricks.wiki")
+    args = parser.parse_args()
+    if hasattr(args, "recovery_baseline") and (bool(args.recovery_baseline) != bool(args.recovery_sha256) or
+            getattr(args, "bootstrap_ecr", False) and args.recovery_baseline):
+        parser.error("Recovery requires both baseline flags and cannot be combined with ECR bootstrap")
+    if hasattr(args, "current_update_contract") and (
+            bool(args.current_update_contract) != bool(args.current_update_sha256) or
+            args.current_update_contract and (getattr(args, "recovery_baseline", None) or
+                                              getattr(args, "bootstrap_ecr", False) or
+                                              getattr(args, "successor_update_contract", None) or
+                                              getattr(args, "artifact_update_contract", None))):
+        parser.error("Current-update approval requires both exact flags and cannot use recovery or bootstrap")
+    if hasattr(args, "successor_update_contract") and (
+            bool(args.successor_update_contract) != bool(args.successor_update_sha256) or
+            args.successor_update_contract and (getattr(args, "recovery_baseline", None) or
+                                                getattr(args, "bootstrap_ecr", False) or
+                                                getattr(args, "current_update_contract", None) or
+                                                getattr(args, "artifact_update_contract", None))):
+        parser.error("Successor-update approval requires both exact flags and its own update mode")
+    if hasattr(args, "artifact_update_contract") and (
+            bool(args.artifact_update_contract) != bool(args.artifact_update_sha256) or
+            args.artifact_update_contract and (getattr(args, "recovery_baseline", None) or
+                                               getattr(args, "bootstrap_ecr", False) or
+                                               getattr(args, "current_update_contract", None) or
+                                               getattr(args, "successor_update_contract", None))):
+        parser.error("Artifact-update approval requires both exact flags and its own update mode")
+    if args.command == "package-api":
+        package_api()
+        return
+    if args.command == "build-frontend":
+        build_frontend()
+        return
+    if args.command == "freeze-release":
+        freeze_release(args.source_root)
+        return
+    if args.command == "verify-package":
+        verify_api_source()
+        code = """
+import json
+import importlib.util
+from bluepeass.k8s import KubernetesApi
+from bluepeass.k8s_risks import PermissionKey
+from scripts.cloud_permission_risks import classify_permission
+from peaso.engine import get_catalog
+from peaso.server.lambda_handler import handler
+assert importlib.util.find_spec('peaso.privesc') is not None
+from peaso.privesc import analyze
+print('Native catalog checks:',len(get_catalog()['checks']))
+for path, expected in [('/api/health',200),('/api/me',401),('/api/connectors',401)]:
+    event={'version':'2.0','routeKey':'$default','rawPath':path,'rawQueryString':'',
+           'headers':{'host':'localhost'},'requestContext':{'stage':'$default',
+           'domainName':'localhost','http':{'method':'GET','path':path,
+           'sourceIp':'127.0.0.1','protocol':'HTTP/1.1'}},'isBase64Encoded':False}
+    result=handler(event,None)
+    assert result['statusCode']==expected,(path,result['statusCode'])
+    print(path,result['statusCode'])
+"""
+        run(["docker", "run", "--rm", "--platform", "linux/amd64", "--network", "none",
+             "-v", f"{BUILD / 'api-package'}:/opt:ro", "-e", "PYTHONPATH=/opt",
+             "-e", "PEASO_STATE_DIR=/tmp/state", "-e", "PEASO_IDENTITY_DIR=/tmp/identity",
+             "python:3.12-slim", "python", "-c", code])
+        return
+    if args.command == "build-worker":
+        build_worker(args.tag)
+        return
+    if args.command == "verify-host":
+        import urllib.request
+        import urllib.error
+        results = []
+        for path, expected in [("/", 200), ("/api/health", 200), ("/api/me", 401),
+                               ("/api/connectors", 401), ("/api/scans", 401), ("/api/schedules", 401)]:
+            request = urllib.request.Request(args.url.rstrip("/") + path)
+            try:
+                response = urllib.request.urlopen(request, timeout=30)
+            except urllib.error.HTTPError as error:
+                response = error
+            with response:
+                actual = response.status
+                body = response.read()
+                if actual != expected:
+                    raise RuntimeError(f"Hosted check {path}: expected HTTP {expected}, got {actual}")
+                if path == "/api/health":
+                    payload = json.loads(body)
+                    if not isinstance(payload, dict):
+                        raise RuntimeError("Hosted health must be a JSON object")
+                results.append({"path": path, "status": actual})
+        print(json.dumps({"url": args.url, "https_checks": results}, indent=2))
+        return
+    if args.command == "review-current-plan":
+        if not args.current_update_contract:
+            parser.error("Current-update saved-plan review requires the exact approved contract")
+        verify_backend()
+        plan_summary(args.plan.resolve(), current_update_contract=args.current_update_contract,
+                     current_update_sha256=args.current_update_sha256)
+        return
+    if args.command == "review-successor-plan":
+        if not args.successor_update_contract:
+            parser.error("Successor saved-plan review requires the exact approved contract")
+        verify_backend()
+        plan_summary(args.plan.resolve(), successor_update_contract=args.successor_update_contract,
+                     successor_update_sha256=args.successor_update_sha256)
+        return
+    if args.command == "review-artifact-plan":
+        if not args.artifact_update_contract:
+            parser.error("Artifact saved-plan review requires the exact approved contract")
+        verify_backend()
+        plan_summary(args.plan.resolve(), artifact_update_contract=args.artifact_update_contract,
+                     artifact_update_sha256=args.artifact_update_sha256)
+        return
+    session = aws_identity()
+    if args.command == "validate-workflow":
+        from peaso_deploy_validate_workflow import validate
+        validate(ROOT, TF, session)
+    elif args.command == "push-worker":
+        ecr = session.client("ecr")
+        auth = ecr.get_authorization_token()["authorizationData"][0]
+        import base64
+        username, password = base64.b64decode(auth["authorizationToken"]).decode().split(":", 1)
+        run(["docker", "login", "--username", username, "--password-stdin", auth["proxyEndpoint"]],
+            input=password, text=True)
+        run(["docker", "tag", f"peaso-worker:{args.tag}", f"{REPOSITORY}:{args.tag}"])
+        run(["docker", "push", f"{REPOSITORY}:{args.tag}"])
+        digest = ecr.describe_images(repositoryName="hacktricks-cspm-worker",
+                                     imageIds=[{"imageTag": args.tag}])["imageDetails"][0]["imageDigest"]
+        image = f"{REPOSITORY}@{digest}"
+        write_vars(image, BUILD / "api.zip")
+        print(f"Published immutable image: {image}")
+    elif args.command == "plan":
+        BUILD.mkdir(parents=True, exist_ok=True)
+        if args.save_for_review and (args.bootstrap_ecr or args.recovery_baseline):
+            parser.error("Save-for-review requires a full, untargeted plan without historical recovery")
+        if args.save_for_review and args.output.exists():
+            raise RuntimeError("Saved plan path exists; choose a new unique output path")
+        if args.bootstrap_ecr:
+            write_vars(ZERO_IMAGE, BUILD / "api.zip")
+        elif args.image:
+            write_vars(args.image, BUILD / "api.zip")
+        elif not (INFRA / "deployment.auto.tfvars.json").exists():
+            raise RuntimeError("Publish an image or provide its digest before the full plan")
+        if not args.bootstrap_ecr and json.loads((INFRA / "deployment.auto.tfvars.json").read_text())["worker_image"] == ZERO_IMAGE:
+            raise RuntimeError("Publish the built native worker before the full plan")
+        command = ["plan", "-input=false", f"-out={args.output.resolve()}"]
+        if args.bootstrap_ecr:
+            command += ["-target=aws_ecr_repository.worker", "-target=aws_ecr_lifecycle_policy.worker"]
+        terraform(*command)
+        args.output.chmod(0o600)
+        if args.save_for_review:
+            raw = terraform("show", "-json", args.output.resolve(), capture=True).stdout
+            json.loads(raw)
+            private_bytes_once(args.output.with_suffix(".unreviewed.json"), raw.encode())
+            print(json.dumps({"status": "unreviewed_saved_plan", "plan": str(args.output.resolve()),
+                              "sha256": hashlib.sha256(args.output.read_bytes()).hexdigest(),
+                              "json_path": str(args.output.with_suffix(".unreviewed.json").resolve()),
+                              "json_sha256": hashlib.sha256(raw.encode()).hexdigest()}, indent=2))
+            return
+        plan_summary(args.output.resolve(), args.bootstrap_ecr, args.recovery_baseline, args.recovery_sha256)
+    elif args.command == "apply":
+        actual = hashlib.sha256(args.plan.read_bytes()).hexdigest()
+        if actual != args.reviewed_sha256:
+            raise RuntimeError("Plan changed after coordinator review; apply refused")
+        previous_review = json.loads(args.plan.with_suffix(".review.json").read_text()) if (
+            args.recovery_baseline or args.current_update_contract or args.successor_update_contract or
+            args.artifact_update_contract) else None
+        if plan_summary(args.plan.resolve(), args.bootstrap_ecr, args.recovery_baseline, args.recovery_sha256,
+                        args.current_update_contract, args.current_update_sha256,
+                        args.successor_update_contract, args.successor_update_sha256,
+                        args.artifact_update_contract, args.artifact_update_sha256) != args.reviewed_sha256:
+            raise RuntimeError("Plan changed during review; apply refused")
+        if args.recovery_baseline or args.current_update_contract or args.successor_update_contract or args.artifact_update_contract:
+            if previous_review != json.loads(args.plan.with_suffix(".review.json").read_text()):
+                raise RuntimeError("Approved binary/JSON/action/source review changed; apply refused")
+        if args.recovery_baseline:
+            recovery = recovery_context(args.recovery_baseline, args.recovery_sha256)
+            verify_recovery_live(recovery, session)
+            # Recheck every content-addressed evidence file immediately before the write.
+            recovery_context(args.recovery_baseline, args.recovery_sha256)
+            if hashlib.sha256(args.plan.read_bytes()).hexdigest() != args.reviewed_sha256:
+                raise RuntimeError("Recovery plan changed before apply")
+        if args.current_update_contract:
+            verify_current_update_live(args.plan.resolve(), args.current_update_contract,
+                                       args.current_update_sha256, session)
+        if args.successor_update_contract:
+            verify_current_update_live(args.plan.resolve(), args.successor_update_contract,
+                                       args.successor_update_sha256, session, successor=True)
+        if args.artifact_update_contract:
+            verify_current_update_live(args.plan.resolve(), args.artifact_update_contract,
+                                       args.artifact_update_sha256, session, artifact=True)
+        terraform("apply", "-input=false", args.plan.resolve())
+    elif args.command in {"verify-resolved", "publish-frontend"}:
+        verify_resolved_deployment(session, args.plan.resolve(), args.reviewed_sha256,
+                                   args.recovery_baseline, args.recovery_sha256,
+                                   args.current_update_contract, args.current_update_sha256,
+                                   args.successor_update_contract, args.successor_update_sha256,
+                                   args.artifact_update_contract, args.artifact_update_sha256)
+        if args.command == "verify-resolved":
+            return
+        frontend = source_root() / "frontend"
+        manifest_path = BUILD / "frontend-build.json"
+        if not manifest_path.is_file():
+            raise RuntimeError("Build the frozen frontend before publication")
+        manifest = json.loads(manifest_path.read_text())
+        release = json.loads((BUILD / "release.json").read_text())
+        if manifest["source_version"] != release["source_version"]:
+            raise RuntimeError("Frontend was built from another source release")
+        files = {str(path.relative_to(frontend / "dist")): hashlib.sha256(path.read_bytes()).hexdigest()
+                 for path in (frontend / "dist").rglob("*") if path.is_file()}
+        if files != manifest["files"] or "index.html" not in files:
+            raise RuntimeError("Built frontend changed; rebuild before publication")
+        output = json.loads(terraform("output", "-json", capture=True).stdout)
+        if args.artifact_update_contract:
+            artifact_update.check_publish_target(output)
+        bucket = output["frontend_bucket"]["value"]
+        run(frontend_sync_command(frontend, bucket))
+        run(["aws", "s3", "cp", frontend / "dist" / "index.html", f"s3://{bucket}/index.html",
+             "--cache-control", "no-cache", "--content-type", "text/html"])
+        filename = f"peaso-source-{release['source_version']}.zip"
+        run(["aws", "s3", "cp", BUILD / filename, f"s3://{bucket}/source/{filename}",
+             "--cache-control", "public,max-age=31536000,immutable", "--content-type", "application/zip"])
+        run(["aws", "s3", "cp", BUILD / "release.json", f"s3://{bucket}/source/release.json",
+             "--cache-control", "no-cache", "--content-type", "application/json"])
+        session.client("cloudfront").create_invalidation(
+            DistributionId=output["cloudfront_distribution_id"]["value"],
+            InvalidationBatch={"Paths": {"Quantity": 1, "Items": ["/*"]}, "CallerReference": str(time.time_ns())})
+
+
+if __name__ == "__main__":
+    main()

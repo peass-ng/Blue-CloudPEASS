@@ -1,0 +1,62 @@
+{
+ "prowler.azure.network_public_ip_shodan": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Have the subscription's public IP addresses been reviewed in an internet-exposure scanner (e.g. Shodan/Censys) for unexpected open services?",
+   "title": "Public IP internet-scanner exposure review",
+   "guidance": "Export public IPs (az network public-ip list), look each up in an authorized exposure-scanning service and confirm only intended services are reachable."
+  },
+  "reason": "Prowler queries the third-party Shodan API for each public IP; PEASO is read-only against the cloud provider and does not call third-party internet scanners, so this becomes a reviewer question.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses"
+  ],
+  "review_notes": "Use the native NSG exposure checks for configuration-level evidence.",
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/network/network_public_ip_shodan/network_public_ip_shodan.py",
+   "source_sha256": "e4f16e2b58ae2aebd282000c2fd42674a13216b201992844f8fdb3e8fb972053",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.vm_desired_sku_size": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Are all virtual machines using a desired (approved) VM SKU size?",
+   "title": "VMs use approved SKU sizes",
+   "guidance": "Compare each VM hardwareProfile.vmSize with the organisation's approved size list, ideally enforced by the 'Allowed virtual machine size SKUs' Azure Policy."
+  },
+  "reason": "The desired VM size list is organisation-specific (prowler config desired_vm_sku_sizes, default Standard_A8_v2/Standard_DS3_v2/Standard_D4s_v3 placeholders), so it cannot be decided natively without an approved list.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/governance/policy/samples/built-in-policies#compute"
+  ],
+  "review_notes": "Use the Azure Policy 'Allowed virtual machine size SKUs' assignment as evidence.",
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/vm/vm_desired_sku_size/vm_desired_sku_size.py",
+   "source_sha256": "2008df896edca0c6016ec7f2432df6aa26ad60388118d152df7e24e65975e680",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ },
+ "prowler.azure.vm_ensure_using_approved_images": {
+  "disposition": "rejected",
+  "native_checks": [],
+  "review_classification": "manual_attestation",
+  "manual_requirement": {
+   "question": "Are all virtual machines created from organisation-approved machine images?",
+   "title": "VMs use approved images",
+   "guidance": "Check storageProfile.imageReference (managed image, Compute Gallery image version or Marketplace offer) against the approved golden image catalogue, ideally enforced by the 'Allowed images'/'Approved VM images' Azure Policy."
+  },
+  "reason": "Prowler counts any managed image id (/providers/Microsoft.Compute/images/) as approved and fails Compute Gallery and Marketplace images, even though its own remediation recommends Compute Gallery golden images. Approval is organisation-specific.",
+  "official_docs": [
+   "https://learn.microsoft.com/en-us/azure/virtual-machines/shared-image-galleries"
+  ],
+  "review_notes": "Porting prowler literally would FAIL gallery-based golden images.",
+  "source_review": {
+   "source_path": "prowler/providers/azure/services/vm/vm_ensure_using_approved_images/vm_ensure_using_approved_images.py",
+   "source_sha256": "a76063d2b2c2766f97fb3670f534f2dcb7de8ff4a0b137dfba24c2487fabf37c",
+   "native_unit": "provider resource in the selected subscription"
+  }
+ }
+}

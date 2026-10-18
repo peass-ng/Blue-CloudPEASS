@@ -1,0 +1,1209 @@
+{
+  "gcp-compliance.control.cis_v120_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_corporate_domain_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source treats organization.display_name (the primary Workspace domain) as an exhaustive corporate-domain directory. Valid customer secondary domains and aliases are corporate identities but fail this join. Replacement evaluates an explicit approved domain declaration, never treats absent organization visibility as compliance, and records its operator-policy applicability."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_uses_corporate_login_credentials",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "47384af24a96150c4240a69e61f4d44d3d7b731e60fdd03d1e0a75835a6dfb6d",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L33"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_uses_corporate_login_credentials",
+      "target_native_checks": [
+        "gcp.ports.iam_corporate_domain_declaration"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].members user:<email> domain vs operator trusted_domains",
+      "pass_condition": "PASS iff every user: principal belongs to an operator-approved corporate domain",
+      "upstream_defect_only": "Source equates organization display_name (primary domain) with the full corporate domain set.",
+      "native_deviations": "Without an explicit operator trusted_domains policy the result is UNKNOWN (source emits info)."
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_separation_of_duties_enforced"
+    ],
+    "reason": "Reviewed same-project user role assignment separation criterion for KMS admin plus the three named usage roles. Conditional assignments remain individual declarations in evidence, not simultaneous effective permissions; custom-role equivalence, inheritance, deny and PAB are separate evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_separation_of_duties_enforced",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "58405e9027b8b07be319299ed06e53495ce1cdaf9aa63a46d188e711ac8833db",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L173"
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.iam_user_managed_sa_no_admin_roles (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_without_admin_privilege",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "fb9949f86937aa9882c640a4441ff9b7f8a5d121a2886b1c755c1b2366238054",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L89"
+    },
+    "replacement_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "former_native_checks": [
+      "gcp.ports.service_account_mutating_role_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_service_account_without_admin_privilege",
+      "target_native_checks": [
+        "gcp.gap.iam_user_managed_sa_no_admin_roles"
+      ],
+      "resource": "Each IAM service account (kind service_account) joined to its project-root and complete folder/organization IAM policies (kinds project, iam_policy)",
+      "property": "email/projectId (user-managed = *@<projectId>.iam.gserviceaccount.com); bindings[].role for serviceAccount:<email>",
+      "pass_condition": "FAIL iff a user-managed service account is bound to roles/editor, roles/owner, or a role whose id ends with Admin/admin (CIS GCP 1.5 *Admin/*admin); Google-managed accounts are NOT_APPLICABLE",
+      "upstream_defect_only": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only.",
+      "native_deviations": "Folder/organization root bindings are included (CIS audits the project policy); incomplete ancestor/project policy evidence is UNKNOWN; IAM conditions are carried as evidence, not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.service_account_mutating_role_declarations",
+          "reason": "FAILs any bound role with a create/update/delete/setIamPolicy permission (e.g. roles/logging.logWriter); broader than the CIS admin-role criteria."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_user_not_assigned_service_account_user_role_project_level"
+    ],
+    "reason": "Reviewed exact project-root assignment of the two named identity roles to principals not ending iam.gserviceaccount.com; the source suffix criterion remains explicit rather than relabeling all those principals as human users. Resource/ancestor policies are outside this source declaration scope, and no impersonation capability is inferred.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_not_assigned_service_account_user_role_project_level",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "1b341dafe6cd8d330405a96abe45a158bbffafd137f8681d07656edda816f639",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L103"
+    }
+  },
+  "gcp-compliance.control.cis_v120_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_user_separation_of_duty_scoped. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL uses global user_name IN account_users/admin_users without project relation. Counterexample: same user has Admin only in p and User only in q; source alarms although neither project declares both roles. Scoped replacement evaluates role assignments separately per root and preserves each condition; this is a substantive false-positive, not missing data."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_separation_of_duty_enforced",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "461e059aaa8c07b835749a49d6c2fa9ac1276d7f46503a50b1ec4f962a3a3bc5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L131"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_separation_of_duty_enforced",
+      "target_native_checks": [
+        "gcp.ports.iam_user_separation_of_duty_scoped"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].role roles/iam.serviceAccountAdmin and roles/iam.serviceAccountUser per user principal",
+      "pass_condition": "FAIL iff one user principal holds both roles in the same project-root policy",
+      "upstream_defect_only": "Source correlates user_name globally across projects (cross-project false alarm); Prowler flags either role.",
+      "native_deviations": "Conditions are carried as evidence, not evaluated."
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_corporate_domain_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source treats organization.display_name (the primary Workspace domain) as an exhaustive corporate-domain directory. Valid customer secondary domains and aliases are corporate identities but fail this join. Replacement evaluates an explicit approved domain declaration, never treats absent organization visibility as compliance, and records its operator-policy applicability."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_uses_corporate_login_credentials",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "47384af24a96150c4240a69e61f4d44d3d7b731e60fdd03d1e0a75835a6dfb6d",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L36"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_uses_corporate_login_credentials",
+      "target_native_checks": [
+        "gcp.ports.iam_corporate_domain_declaration"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].members user:<email> domain vs operator trusted_domains",
+      "pass_condition": "PASS iff every user: principal belongs to an operator-approved corporate domain",
+      "upstream_defect_only": "Source equates organization display_name (primary domain) with the full corporate domain set.",
+      "native_deviations": "Without an explicit operator trusted_domains policy the result is UNKNOWN (source emits info)."
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_separation_of_duties_enforced"
+    ],
+    "reason": "Reviewed same-project user role assignment separation criterion for KMS admin plus the three named usage roles. Conditional assignments remain individual declarations in evidence, not simultaneous effective permissions; custom-role equivalence, inheritance, deny and PAB are separate evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_separation_of_duties_enforced",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "58405e9027b8b07be319299ed06e53495ce1cdaf9aa63a46d188e711ac8833db",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L176"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.iam_user_managed_sa_no_admin_roles (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_without_admin_privilege",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "fb9949f86937aa9882c640a4441ff9b7f8a5d121a2886b1c755c1b2366238054",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L92"
+    },
+    "replacement_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "former_native_checks": [
+      "gcp.ports.service_account_mutating_role_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_service_account_without_admin_privilege",
+      "target_native_checks": [
+        "gcp.gap.iam_user_managed_sa_no_admin_roles"
+      ],
+      "resource": "Each IAM service account (kind service_account) joined to its project-root and complete folder/organization IAM policies (kinds project, iam_policy)",
+      "property": "email/projectId (user-managed = *@<projectId>.iam.gserviceaccount.com); bindings[].role for serviceAccount:<email>",
+      "pass_condition": "FAIL iff a user-managed service account is bound to roles/editor, roles/owner, or a role whose id ends with Admin/admin (CIS GCP 1.5 *Admin/*admin); Google-managed accounts are NOT_APPLICABLE",
+      "upstream_defect_only": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only.",
+      "native_deviations": "Folder/organization root bindings are included (CIS audits the project policy); incomplete ancestor/project policy evidence is UNKNOWN; IAM conditions are carried as evidence, not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.service_account_mutating_role_declarations",
+          "reason": "FAILs any bound role with a create/update/delete/setIamPolicy permission (e.g. roles/logging.logWriter); broader than the CIS admin-role criteria."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_user_not_assigned_service_account_user_role_project_level"
+    ],
+    "reason": "Reviewed exact project-root assignment of the two named identity roles to principals not ending iam.gserviceaccount.com; the source suffix criterion remains explicit rather than relabeling all those principals as human users. Resource/ancestor policies are outside this source declaration scope, and no impersonation capability is inferred.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_not_assigned_service_account_user_role_project_level",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "1b341dafe6cd8d330405a96abe45a158bbffafd137f8681d07656edda816f639",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L106"
+    }
+  },
+  "gcp-compliance.control.cis_v130_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_user_separation_of_duty_scoped. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL uses global user_name IN account_users/admin_users without project relation. Counterexample: same user has Admin only in p and User only in q; source alarms although neither project declares both roles. Scoped replacement evaluates role assignments separately per root and preserves each condition; this is a substantive false-positive, not missing data."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_separation_of_duty_enforced",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "461e059aaa8c07b835749a49d6c2fa9ac1276d7f46503a50b1ec4f962a3a3bc5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L134"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_separation_of_duty_enforced",
+      "target_native_checks": [
+        "gcp.ports.iam_user_separation_of_duty_scoped"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].role roles/iam.serviceAccountAdmin and roles/iam.serviceAccountUser per user principal",
+      "pass_condition": "FAIL iff one user principal holds both roles in the same project-root policy",
+      "upstream_defect_only": "Source correlates user_name globally across projects (cross-project false alarm); Prowler flags either role.",
+      "native_deviations": "Conditions are carried as evidence, not evaluated."
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_corporate_domain_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source treats organization.display_name (the primary Workspace domain) as an exhaustive corporate-domain directory. Valid customer secondary domains and aliases are corporate identities but fail this join. Replacement evaluates an explicit approved domain declaration, never treats absent organization visibility as compliance, and records its operator-policy applicability."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_uses_corporate_login_credentials",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "47384af24a96150c4240a69e61f4d44d3d7b731e60fdd03d1e0a75835a6dfb6d",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L36"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_uses_corporate_login_credentials",
+      "target_native_checks": [
+        "gcp.ports.iam_corporate_domain_declaration"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].members user:<email> domain vs operator trusted_domains",
+      "pass_condition": "PASS iff every user: principal belongs to an operator-approved corporate domain",
+      "upstream_defect_only": "Source equates organization display_name (primary domain) with the full corporate domain set.",
+      "native_deviations": "Without an explicit operator trusted_domains policy the result is UNKNOWN (source emits info)."
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_separation_of_duties_enforced"
+    ],
+    "reason": "Reviewed same-project user role assignment separation criterion for KMS admin plus the three named usage roles. Conditional assignments remain individual declarations in evidence, not simultaneous effective permissions; custom-role equivalence, inheritance, deny and PAB are separate evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_separation_of_duties_enforced",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "58405e9027b8b07be319299ed06e53495ce1cdaf9aa63a46d188e711ac8833db",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L176"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.iam_user_managed_sa_no_admin_roles (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_without_admin_privilege",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "fb9949f86937aa9882c640a4441ff9b7f8a5d121a2886b1c755c1b2366238054",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L92"
+    },
+    "replacement_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "former_native_checks": [
+      "gcp.ports.service_account_mutating_role_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_service_account_without_admin_privilege",
+      "target_native_checks": [
+        "gcp.gap.iam_user_managed_sa_no_admin_roles"
+      ],
+      "resource": "Each IAM service account (kind service_account) joined to its project-root and complete folder/organization IAM policies (kinds project, iam_policy)",
+      "property": "email/projectId (user-managed = *@<projectId>.iam.gserviceaccount.com); bindings[].role for serviceAccount:<email>",
+      "pass_condition": "FAIL iff a user-managed service account is bound to roles/editor, roles/owner, or a role whose id ends with Admin/admin (CIS GCP 1.5 *Admin/*admin); Google-managed accounts are NOT_APPLICABLE",
+      "upstream_defect_only": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only.",
+      "native_deviations": "Folder/organization root bindings are included (CIS audits the project policy); incomplete ancestor/project policy evidence is UNKNOWN; IAM conditions are carried as evidence, not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.service_account_mutating_role_declarations",
+          "reason": "FAILs any bound role with a create/update/delete/setIamPolicy permission (e.g. roles/logging.logWriter); broader than the CIS admin-role criteria."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_user_not_assigned_service_account_user_role_project_level"
+    ],
+    "reason": "Reviewed exact project-root assignment of the two named identity roles to principals not ending iam.gserviceaccount.com; the source suffix criterion remains explicit rather than relabeling all those principals as human users. Resource/ancestor policies are outside this source declaration scope, and no impersonation capability is inferred.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_not_assigned_service_account_user_role_project_level",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "1b341dafe6cd8d330405a96abe45a158bbffafd137f8681d07656edda816f639",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L106"
+    }
+  },
+  "gcp-compliance.control.cis_v200_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_user_separation_of_duty_scoped. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL uses global user_name IN account_users/admin_users without project relation. Counterexample: same user has Admin only in p and User only in q; source alarms although neither project declares both roles. Scoped replacement evaluates role assignments separately per root and preserves each condition; this is a substantive false-positive, not missing data."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_separation_of_duty_enforced",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "461e059aaa8c07b835749a49d6c2fa9ac1276d7f46503a50b1ec4f962a3a3bc5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L134"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_separation_of_duty_enforced",
+      "target_native_checks": [
+        "gcp.ports.iam_user_separation_of_duty_scoped"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].role roles/iam.serviceAccountAdmin and roles/iam.serviceAccountUser per user principal",
+      "pass_condition": "FAIL iff one user principal holds both roles in the same project-root policy",
+      "upstream_defect_only": "Source correlates user_name globally across projects (cross-project false alarm); Prowler flags either role.",
+      "native_deviations": "Conditions are carried as evidence, not evaluated."
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_corporate_domain_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source treats organization.display_name (the primary Workspace domain) as an exhaustive corporate-domain directory. Valid customer secondary domains and aliases are corporate identities but fail this join. Replacement evaluates an explicit approved domain declaration, never treats absent organization visibility as compliance, and records its operator-policy applicability."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_uses_corporate_login_credentials",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "47384af24a96150c4240a69e61f4d44d3d7b731e60fdd03d1e0a75835a6dfb6d",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L35"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_uses_corporate_login_credentials",
+      "target_native_checks": [
+        "gcp.ports.iam_corporate_domain_declaration"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].members user:<email> domain vs operator trusted_domains",
+      "pass_condition": "PASS iff every user: principal belongs to an operator-approved corporate domain",
+      "upstream_defect_only": "Source equates organization display_name (primary domain) with the full corporate domain set.",
+      "native_deviations": "Without an explicit operator trusted_domains policy the result is UNKNOWN (source emits info)."
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_separation_of_duties_enforced"
+    ],
+    "reason": "Reviewed same-project user role assignment separation criterion for KMS admin plus the three named usage roles. Conditional assignments remain individual declarations in evidence, not simultaneous effective permissions; custom-role equivalence, inheritance, deny and PAB are separate evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_separation_of_duties_enforced",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "58405e9027b8b07be319299ed06e53495ce1cdaf9aa63a46d188e711ac8833db",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L175"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.iam_user_managed_sa_no_admin_roles (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_without_admin_privilege",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "fb9949f86937aa9882c640a4441ff9b7f8a5d121a2886b1c755c1b2366238054",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L91"
+    },
+    "replacement_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "former_native_checks": [
+      "gcp.ports.service_account_mutating_role_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_service_account_without_admin_privilege",
+      "target_native_checks": [
+        "gcp.gap.iam_user_managed_sa_no_admin_roles"
+      ],
+      "resource": "Each IAM service account (kind service_account) joined to its project-root and complete folder/organization IAM policies (kinds project, iam_policy)",
+      "property": "email/projectId (user-managed = *@<projectId>.iam.gserviceaccount.com); bindings[].role for serviceAccount:<email>",
+      "pass_condition": "FAIL iff a user-managed service account is bound to roles/editor, roles/owner, or a role whose id ends with Admin/admin (CIS GCP 1.5 *Admin/*admin); Google-managed accounts are NOT_APPLICABLE",
+      "upstream_defect_only": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only.",
+      "native_deviations": "Folder/organization root bindings are included (CIS audits the project policy); incomplete ancestor/project policy evidence is UNKNOWN; IAM conditions are carried as evidence, not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.service_account_mutating_role_declarations",
+          "reason": "FAILs any bound role with a create/update/delete/setIamPolicy permission (e.g. roles/logging.logWriter); broader than the CIS admin-role criteria."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_user_not_assigned_service_account_user_role_project_level"
+    ],
+    "reason": "Reviewed exact project-root assignment of the two named identity roles to principals not ending iam.gserviceaccount.com; the source suffix criterion remains explicit rather than relabeling all those principals as human users. Resource/ancestor policies are outside this source declaration scope, and no impersonation capability is inferred.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_not_assigned_service_account_user_role_project_level",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "1b341dafe6cd8d330405a96abe45a158bbffafd137f8681d07656edda816f639",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L105"
+    }
+  },
+  "gcp-compliance.control.cis_v300_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_user_separation_of_duty_scoped. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL uses global user_name IN account_users/admin_users without project relation. Counterexample: same user has Admin only in p and User only in q; source alarms although neither project declares both roles. Scoped replacement evaluates role assignments separately per root and preserves each condition; this is a substantive false-positive, not missing data."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_separation_of_duty_enforced",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "461e059aaa8c07b835749a49d6c2fa9ac1276d7f46503a50b1ec4f962a3a3bc5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L133"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_separation_of_duty_enforced",
+      "target_native_checks": [
+        "gcp.ports.iam_user_separation_of_duty_scoped"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].role roles/iam.serviceAccountAdmin and roles/iam.serviceAccountUser per user principal",
+      "pass_condition": "FAIL iff one user principal holds both roles in the same project-root policy",
+      "upstream_defect_only": "Source correlates user_name globally across projects (cross-project false alarm); Prowler flags either role.",
+      "native_deviations": "Conditions are carried as evidence, not evaluated."
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_corporate_domain_declaration. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source treats organization.display_name (the primary Workspace domain) as an exhaustive corporate-domain directory. Valid customer secondary domains and aliases are corporate identities but fail this join. Replacement evaluates an explicit approved domain declaration, never treats absent organization visibility as compliance, and records its operator-policy applicability."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_uses_corporate_login_credentials",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "47384af24a96150c4240a69e61f4d44d3d7b731e60fdd03d1e0a75835a6dfb6d",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L35"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_corporate_domain_declaration"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_uses_corporate_login_credentials",
+      "target_native_checks": [
+        "gcp.ports.iam_corporate_domain_declaration"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].members user:<email> domain vs operator trusted_domains",
+      "pass_condition": "PASS iff every user: principal belongs to an operator-approved corporate domain",
+      "upstream_defect_only": "Source equates organization display_name (primary domain) with the full corporate domain set.",
+      "native_deviations": "Without an explicit operator trusted_domains policy the result is UNKNOWN (source emits info)."
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.kms_key_separation_of_duties_enforced"
+    ],
+    "reason": "Reviewed same-project user role assignment separation criterion for KMS admin plus the three named usage roles. Conditional assignments remain individual declarations in evidence, not simultaneous effective permissions; custom-role equivalence, inheritance, deny and PAB are separate evidence.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "kms_key_separation_of_duties_enforced",
+      "source_path": [
+        "policy_bundle/kms.pp"
+      ],
+      "source_query_sha256": "58405e9027b8b07be319299ed06e53495ce1cdaf9aa63a46d188e711ac8833db",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L175"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11, re-verified against the benchmark recommendation): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; the control requirement is implemented by gcp.gap.iam_user_managed_sa_no_admin_roles (see native_equivalence_verification).",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_service_account_without_admin_privilege",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "fb9949f86937aa9882c640a4441ff9b7f8a5d121a2886b1c755c1b2366238054",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L91"
+    },
+    "replacement_checks": [
+      "gcp.gap.iam_user_managed_sa_no_admin_roles"
+    ],
+    "former_native_checks": [
+      "gcp.ports.service_account_mutating_role_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_service_account_without_admin_privilege",
+      "target_native_checks": [
+        "gcp.gap.iam_user_managed_sa_no_admin_roles"
+      ],
+      "resource": "Each IAM service account (kind service_account) joined to its project-root and complete folder/organization IAM policies (kinds project, iam_policy)",
+      "property": "email/projectId (user-managed = *@<projectId>.iam.gserviceaccount.com); bindings[].role for serviceAccount:<email>",
+      "pass_condition": "FAIL iff a user-managed service account is bound to roles/editor, roles/owner, or a role whose id ends with Admin/admin (CIS GCP 1.5 *Admin/*admin); Google-managed accounts are NOT_APPLICABLE",
+      "upstream_defect_only": "Source matches role suffixes %editor/%Editor/%owner/%Owner, so a custom role whose id merely ends in editor/owner alarms although CIS names only roles/editor and roles/owner; source reads project policies only.",
+      "native_deviations": "Folder/organization root bindings are included (CIS audits the project policy); incomplete ancestor/project policy evidence is UNKNOWN; IAM conditions are carried as evidence, not evaluated.",
+      "rejected_similar_natives": [
+        {
+          "native_check": "gcp.ports.service_account_mutating_role_declarations",
+          "reason": "FAILs any bound role with a create/update/delete/setIamPolicy permission (e.g. roles/logging.logWriter); broader than the CIS admin-role criteria."
+        }
+      ]
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.iam_user_not_assigned_service_account_user_role_project_level"
+    ],
+    "reason": "Reviewed exact project-root assignment of the two named identity roles to principals not ending iam.gserviceaccount.com; the source suffix criterion remains explicit rather than relabeling all those principals as human users. Resource/ancestor policies are outside this source declaration scope, and no impersonation capability is inferred.",
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_not_assigned_service_account_user_role_project_level",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "1b341dafe6cd8d330405a96abe45a158bbffafd137f8681d07656edda816f639",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L105"
+    }
+  },
+  "gcp-compliance.control.cis_v400_1_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.iam_user_separation_of_duty_scoped. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL uses global user_name IN account_users/admin_users without project relation. Counterexample: same user has Admin only in p and User only in q; source alarms although neither project declares both roles. Scoped replacement evaluates role assignments separately per root and preserves each condition; this is a substantive false-positive, not missing data."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "iam_user_separation_of_duty_enforced",
+      "source_path": [
+        "policy_bundle/iam.pp"
+      ],
+      "source_query_sha256": "461e059aaa8c07b835749a49d6c2fa9ac1276d7f46503a50b1ec4f962a3a3bc5",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L133"
+    },
+    "replacement_checks": [
+      "gcp.ports.iam_user_separation_of_duty_scoped"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "iam_user_separation_of_duty_enforced",
+      "target_native_checks": [
+        "gcp.ports.iam_user_separation_of_duty_scoped"
+      ],
+      "resource": "Each project-root IAM policy (collector kind iam_policy) bindings",
+      "property": "bindings[].role roles/iam.serviceAccountAdmin and roles/iam.serviceAccountUser per user principal",
+      "pass_condition": "FAIL iff one user principal holds both roles in the same project-root policy",
+      "upstream_defect_only": "Source correlates user_name globally across projects (cross-project false alarm); Prowler flags either role.",
+      "native_deviations": "Conditions are carried as evidence, not evaluated."
+    }
+  },
+  "gcp-compliance.control.cloudfunction_function_no_deployments_manager_permission": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.function_legacy_deployment_role_declarations"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.function_legacy_deployment_role_declarations. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL CASE tests function identity presence, not joined Deployment Manager role evidence, so ungranted identities alarm. This is a substantive predicate defect independent of collection availability; Deployment Manager support also ended in 2026. Replacement reviews declared legacy service role metadata without deployment actions and preserves migration guidance."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_no_deployments_manager_permission",
+      "source_path": [
+        "policy_bundle/cloudfunction.pp"
+      ],
+      "source_query_sha256": "6464152d1327f40c81ee79f3e828d2b6a06914c929e200afb30d2aa25459f4bc",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cloudfunction_function_no_deployments_manager_permission",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/cloudfunction.pp#L41"
+    },
+    "replacement_checks": [
+      "gcp.ports.function_legacy_deployment_role_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cloudfunction_function_no_deployments_manager_permission",
+      "target_native_checks": [
+        "gcp.ports.function_legacy_deployment_role_declarations"
+      ],
+      "resource": "Each Cloud Functions v2 function (kind function) serviceConfig.serviceAccountEmail joined to project-root IAM bindings and iam_role definitions",
+      "property": "role includedPermissions deploymentmanager.*.{create,update}",
+      "pass_condition": "PASS iff no bound role of the function identity grants a deploymentmanager create/update permission",
+      "upstream_defect_only": "CASE tests identity presence, not the joined Deployment Manager role evidence.",
+      "native_deviations": "Missing role definitions are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cloudfunction_function_no_disrupt_logging_permission": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.function_logging_mutation_declarations"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.function_logging_mutation_declarations. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL CASE tests function service-account-email presence, not the joined logging role/permission record, so every configured identity alarms even if it has read-only metadata grants. Replacement evaluates actual role definitions and declared root/ancestor binding conditions without logging actions or effective-permission claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_no_disrupt_logging_permission",
+      "source_path": [
+        "policy_bundle/cloudfunction.pp"
+      ],
+      "source_query_sha256": "65ff117347c721324b7cd4df8f8338b6544e97f15400c8ebbc19e44e8bbd9c5b",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cloudfunction_function_no_disrupt_logging_permission",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/cloudfunction.pp#L49"
+    },
+    "replacement_checks": [
+      "gcp.ports.function_logging_mutation_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cloudfunction_function_no_disrupt_logging_permission",
+      "target_native_checks": [
+        "gcp.ports.function_logging_mutation_declarations"
+      ],
+      "resource": "Each Cloud Functions v2 function (kind function) serviceConfig.serviceAccountEmail joined to project-root IAM bindings and iam_role definitions",
+      "property": "role includedPermissions logging.*.{delete,update}",
+      "pass_condition": "PASS iff no bound role of the function identity grants a logging delete/update permission",
+      "upstream_defect_only": "CASE tests identity presence, not the joined logging role evidence.",
+      "native_deviations": "Missing role definitions are UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cloudfunction_function_restricted_permission": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.function_basic_role_declarations"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.function_basic_role_declarations. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "SQL LEFT JOINs policy evidence but CASE tests f.service_account_email rather than the joined binding. Any ordinary configured function identity alarms even with no owner/editor declaration. Replacement inspects actual identity role assignments with root/ancestor coverage; source identity presence is not permission evidence."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/iam/docs/reference/rest/v1/roles",
+      "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "https://developers.google.com/workspace/admin/directory/reference/rest/v1/domains",
+      "https://docs.cloud.google.com/compute/docs/oslogin/set-up-oslogin",
+      "https://docs.cloud.google.com/load-balancing/docs/ssl-policies-concepts",
+      "https://docs.cloud.google.com/compute/docs/disks/view-disk-details",
+      "https://docs.cloud.google.com/assured-workloads/access-approval/docs/reference/rest/v1/AccessApprovalSettings",
+      "https://docs.cloud.google.com/resource-manager/docs/managing-notification-contacts"
+    ],
+    "review_notes": {
+      "predicate": "cloudfunction_function_restricted_permission",
+      "source_path": [
+        "policy_bundle/cloudfunction.pp"
+      ],
+      "source_query_sha256": "7fe492fa97a7bb2ba582e7fe308076a97a0b125049cfb9651b03808342ee6df4",
+      "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "counterexample_fixture": "tests/test_peaso_checks_gcp_ports_iam.py",
+      "source_row_id": "gcp-compliance.control.cloudfunction_function_restricted_permission",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/cloudfunction.pp#L25"
+    },
+    "replacement_checks": [
+      "gcp.ports.function_basic_role_declarations"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "cloudfunction_function_restricted_permission",
+      "target_native_checks": [
+        "gcp.ports.function_basic_role_declarations"
+      ],
+      "resource": "Each Cloud Functions v2 function (kind function) serviceConfig.serviceAccountEmail joined to project-root IAM bindings and iam_role definitions",
+      "property": "bindings[].role in roles/editor, roles/owner for serviceAccount:<function identity>",
+      "pass_condition": "PASS iff the function identity has no owner/editor binding in its project roots",
+      "upstream_defect_only": "CASE tests service_account_email presence, not the joined binding (every identity alarms).",
+      "native_deviations": "none"
+    }
+  }
+}

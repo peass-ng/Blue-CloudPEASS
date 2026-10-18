@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hacktricks-cspm"
+version = "0.1.0"
+description = "PEASS'o CSPM: read-only cloud posture, IAM and RBAC security review"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6", "fastapi>=0.115", "uvicorn>=0.30", "cryptography>=43", "PyJWT[crypto]>=2.10"]
+
+[project.optional-dependencies]
+hosted = ["boto3==1.43.38", "botocore==1.43.38", "mangum>=0.19", "requests>=2"]
+cloud = ["boto3==1.43.38", "botocore==1.43.38", "google-auth>=2", "azure-identity>=1.17", "azure-mgmt-resource", "azure-mgmt-subscription", "azure-mgmt-authorization", "azure-mgmt-monitor", "requests>=2", "termcolor", "tqdm", "kubernetes>=34,<36"]
+analytics = ["duckdb>=1.3"]
+test = ["pytest>=8", "httpx>=0.27", "jsonschema>=4", "setuptools>=68", "wheel"]
+release-build = ["zopfli==0.4.3"]
+
+[project.urls]
+Homepage = "https://cspm.hacktricks.wiki"
+Repository = "https://github.com/peass-ng/PEASSo-CSPM"
+Issues = "https://github.com/peass-ng/PEASSo-CSPM/issues"
+
+[project.scripts]
+hacktricks-cspm = "peaso.cli:main"
+peaso = "peaso.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["peaso*", "bluepeass*", "scripts*", "risk_rules*"]
+
+[tool.setuptools.package-data]
+peaso = ["*.yaml", "rulepacks/*.json", "rulepacks/licenses/*.txt", "risk_catalog/*.yaml", "checks/*.json", "collectors/*.json", "privesc/*.json", "privesc/*.yaml", "privesc/catalog_versions/*.json", "privesc/catalog_versions/*.tar.gz", "privesc/catalog/*/*.yaml"]
+bluepeass = ["*.yaml", "*.json"]
+
+risk_rules = ["*.yaml", "*.json"]

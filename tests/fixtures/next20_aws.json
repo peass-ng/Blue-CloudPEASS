@@ -1,0 +1,1547 @@
+{
+  "fixtures": {
+    "aws_backup_plan_rule_required_frequency": {
+      "denied": {
+        "index": {
+          "backup_plan": [
+            {
+              "data": {
+                "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                "Plan": {
+                  "collection_status": "denied"
+                },
+                "Selections": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "backup_plan"
+            }
+          ],
+          "collections": {
+            "backup_plan": [
+              {
+                "items": [
+                  {
+                    "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                    "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                    "Plan": {
+                      "collection_status": "denied"
+                    },
+                    "Selections": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "backup_plan"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          }
+        },
+        "item": {
+          "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+          "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+          "Plan": {
+            "collection_status": "denied"
+          },
+          "Selections": {
+            "collection_status": "empty",
+            "items": []
+          }
+        },
+        "producer": "peaso.collectors.aws_b_services._enricher(backup_plan) -> backup:GetBackupPlan"
+      },
+      "fail": {
+        "index": {
+          "backup_plan": [
+            {
+              "data": {
+                "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                "Plan": {
+                  "BackupPlan": {
+                    "Rules": [
+                      {
+                        "EnableContinuousBackup": false,
+                        "RuleName": "daily",
+                        "ScheduleExpression": "cron(0 12 ? * MON *)"
+                      }
+                    ]
+                  },
+                  "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                  "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                  "collection_status": "collected"
+                },
+                "Selections": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "backup_plan"
+            }
+          ],
+          "collections": {
+            "backup_plan": [
+              {
+                "items": [
+                  {
+                    "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                    "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                    "Plan": {
+                      "BackupPlan": {
+                        "Rules": [
+                          {
+                            "EnableContinuousBackup": false,
+                            "RuleName": "daily",
+                            "ScheduleExpression": "cron(0 12 ? * MON *)"
+                          }
+                        ]
+                      },
+                      "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                      "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                      "collection_status": "collected"
+                    },
+                    "Selections": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "backup_plan"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          }
+        },
+        "item": {
+          "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+          "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+          "Plan": {
+            "BackupPlan": {
+              "Rules": [
+                {
+                  "EnableContinuousBackup": false,
+                  "RuleName": "daily",
+                  "ScheduleExpression": "cron(0 12 ? * MON *)"
+                }
+              ]
+            },
+            "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+            "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+            "collection_status": "collected"
+          },
+          "Selections": {
+            "collection_status": "empty",
+            "items": []
+          }
+        },
+        "producer": "peaso.collectors.aws_b_services._enricher(backup_plan) -> backup:GetBackupPlan"
+      },
+      "foreign_scope": {
+        "index": {
+          "backup_plan": [
+            {
+              "data": {
+                "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                "Plan": {
+                  "BackupPlan": {
+                    "Rules": [
+                      {
+                        "EnableContinuousBackup": false,
+                        "RuleName": "daily",
+                        "ScheduleExpression": "cron(0 12 * * ? *)"
+                      }
+                    ]
+                  },
+                  "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                  "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                  "collection_status": "collected"
+                },
+                "Selections": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "backup_plan"
+            }
+          ],
+          "collections": {
+            "backup_plan": [
+              {
+                "items": [
+                  {
+                    "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                    "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                    "Plan": {
+                      "BackupPlan": {
+                        "Rules": [
+                          {
+                            "EnableContinuousBackup": false,
+                            "RuleName": "daily",
+                            "ScheduleExpression": "cron(0 12 * * ? *)"
+                          }
+                        ]
+                      },
+                      "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                      "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                      "collection_status": "collected"
+                    },
+                    "Selections": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "backup_plan"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "210987654321/eu-west-1"
+          }
+        },
+        "item": {
+          "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+          "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+          "Plan": {
+            "BackupPlan": {
+              "Rules": [
+                {
+                  "EnableContinuousBackup": false,
+                  "RuleName": "daily",
+                  "ScheduleExpression": "cron(0 12 * * ? *)"
+                }
+              ]
+            },
+            "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+            "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+            "collection_status": "collected"
+          },
+          "Selections": {
+            "collection_status": "empty",
+            "items": []
+          }
+        },
+        "producer": "peaso.collectors.aws_b_services._enricher(backup_plan) -> backup:GetBackupPlan"
+      },
+      "malformed": {
+        "index": {
+          "backup_plan": [
+            {
+              "data": {
+                "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                "Plan": {
+                  "BackupPlan": {
+                    "Rules": [
+                      {
+                        "EnableContinuousBackup": false,
+                        "RuleName": "daily",
+                        "ScheduleExpression": 42
+                      }
+                    ]
+                  },
+                  "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                  "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                  "collection_status": "collected"
+                },
+                "Selections": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "backup_plan"
+            }
+          ],
+          "collections": {
+            "backup_plan": [
+              {
+                "items": [
+                  {
+                    "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                    "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                    "Plan": {
+                      "BackupPlan": {
+                        "Rules": [
+                          {
+                            "EnableContinuousBackup": false,
+                            "RuleName": "daily",
+                            "ScheduleExpression": 42
+                          }
+                        ]
+                      },
+                      "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                      "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                      "collection_status": "collected"
+                    },
+                    "Selections": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "backup_plan"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          }
+        },
+        "item": {
+          "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+          "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+          "Plan": {
+            "BackupPlan": {
+              "Rules": [
+                {
+                  "EnableContinuousBackup": false,
+                  "RuleName": "daily",
+                  "ScheduleExpression": 42
+                }
+              ]
+            },
+            "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+            "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+            "collection_status": "collected"
+          },
+          "Selections": {
+            "collection_status": "empty",
+            "items": []
+          }
+        },
+        "producer": "peaso.collectors.aws_b_services._enricher(backup_plan) -> backup:GetBackupPlan"
+      },
+      "partial": {
+        "index": {
+          "backup_plan": [
+            {
+              "data": {
+                "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                "Plan": {
+                  "BackupPlan": {
+                    "Rules": [
+                      {
+                        "EnableContinuousBackup": false,
+                        "RuleName": "daily",
+                        "ScheduleExpression": "cron(0 12 * * ? *)"
+                      }
+                    ]
+                  },
+                  "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                  "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                  "collection_status": "collected"
+                },
+                "Selections": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "backup_plan"
+            }
+          ],
+          "collections": {
+            "backup_plan": [
+              {
+                "items": [
+                  {
+                    "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                    "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                    "Plan": {
+                      "BackupPlan": {
+                        "Rules": [
+                          {
+                            "EnableContinuousBackup": false,
+                            "RuleName": "daily",
+                            "ScheduleExpression": "cron(0 12 * * ? *)"
+                          }
+                        ]
+                      },
+                      "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                      "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                      "collection_status": "collected"
+                    },
+                    "Selections": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "partial",
+                "type": "backup_plan"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          }
+        },
+        "item": {
+          "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+          "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+          "Plan": {
+            "BackupPlan": {
+              "Rules": [
+                {
+                  "EnableContinuousBackup": false,
+                  "RuleName": "daily",
+                  "ScheduleExpression": "cron(0 12 * * ? *)"
+                }
+              ]
+            },
+            "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+            "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+            "collection_status": "collected"
+          },
+          "Selections": {
+            "collection_status": "empty",
+            "items": []
+          }
+        },
+        "producer": "peaso.collectors.aws_b_services._enricher(backup_plan) -> backup:GetBackupPlan"
+      },
+      "pass": {
+        "index": {
+          "backup_plan": [
+            {
+              "data": {
+                "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                "Plan": {
+                  "BackupPlan": {
+                    "Rules": [
+                      {
+                        "EnableContinuousBackup": false,
+                        "RuleName": "daily",
+                        "ScheduleExpression": "cron(0 12 * * ? *)"
+                      }
+                    ]
+                  },
+                  "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                  "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                  "collection_status": "collected"
+                },
+                "Selections": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "backup_plan"
+            }
+          ],
+          "collections": {
+            "backup_plan": [
+              {
+                "items": [
+                  {
+                    "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                    "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                    "Plan": {
+                      "BackupPlan": {
+                        "Rules": [
+                          {
+                            "EnableContinuousBackup": false,
+                            "RuleName": "daily",
+                            "ScheduleExpression": "cron(0 12 * * ? *)"
+                          }
+                        ]
+                      },
+                      "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                      "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                      "collection_status": "collected"
+                    },
+                    "Selections": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "backup_plan"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          }
+        },
+        "item": {
+          "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+          "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+          "Plan": {
+            "BackupPlan": {
+              "Rules": [
+                {
+                  "EnableContinuousBackup": false,
+                  "RuleName": "daily",
+                  "ScheduleExpression": "cron(0 12 * * ? *)"
+                }
+              ]
+            },
+            "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+            "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+            "collection_status": "collected"
+          },
+          "Selections": {
+            "collection_status": "empty",
+            "items": []
+          }
+        },
+        "producer": "peaso.collectors.aws_b_services._enricher(backup_plan) -> backup:GetBackupPlan"
+      },
+      "unknown": {
+        "index": {
+          "backup_plan": [
+            {
+              "data": {
+                "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                "Plan": {
+                  "BackupPlan": {
+                    "Rules": [
+                      {
+                        "EnableContinuousBackup": true,
+                        "RuleName": "daily",
+                        "ScheduleExpression": "cron(0 12 ? * MON *)"
+                      }
+                    ]
+                  },
+                  "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                  "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                  "collection_status": "collected"
+                },
+                "Selections": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "backup_plan"
+            }
+          ],
+          "collections": {
+            "backup_plan": [
+              {
+                "items": [
+                  {
+                    "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                    "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                    "Plan": {
+                      "BackupPlan": {
+                        "Rules": [
+                          {
+                            "EnableContinuousBackup": true,
+                            "RuleName": "daily",
+                            "ScheduleExpression": "cron(0 12 ? * MON *)"
+                          }
+                        ]
+                      },
+                      "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+                      "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+                      "collection_status": "collected"
+                    },
+                    "Selections": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "backup_plan"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          }
+        },
+        "item": {
+          "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+          "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+          "Plan": {
+            "BackupPlan": {
+              "Rules": [
+                {
+                  "EnableContinuousBackup": true,
+                  "RuleName": "daily",
+                  "ScheduleExpression": "cron(0 12 ? * MON *)"
+                }
+              ]
+            },
+            "BackupPlanArn": "arn:aws:backup:eu-west-1:123456789012:plan:22222222-2222-2222-2222-222222222222",
+            "BackupPlanId": "22222222-2222-2222-2222-222222222222",
+            "collection_status": "collected"
+          },
+          "Selections": {
+            "collection_status": "empty",
+            "items": []
+          }
+        },
+        "producer": "peaso.collectors.aws_b_services._enricher(backup_plan) -> backup:GetBackupPlan"
+      }
+    },
+    "aws_cis_elbv2_only_tls_listeners": {
+      "denied": {
+        "index": {
+          "collections": {
+            "load_balancer": [
+              {
+                "items": [
+                  {
+                    "Attributes": {
+                      "Attributes": [],
+                      "collection_status": "collected"
+                    },
+                    "Listeners": {
+                      "collection_status": "denied"
+                    },
+                    "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                    "Scheme": "internet-facing",
+                    "Type": "application"
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "load_balancer"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          },
+          "load_balancer": [
+            {
+              "data": {
+                "Attributes": {
+                  "Attributes": [],
+                  "collection_status": "collected"
+                },
+                "Listeners": {
+                  "collection_status": "denied"
+                },
+                "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                "Scheme": "internet-facing",
+                "Type": "application"
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "load_balancer"
+            }
+          ]
+        },
+        "item": {
+          "Attributes": {
+            "Attributes": [],
+            "collection_status": "collected"
+          },
+          "Listeners": {
+            "collection_status": "denied"
+          },
+          "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+          "Scheme": "internet-facing",
+          "Type": "application"
+        },
+        "producer": "peaso.collectors.aws._enrich(load_balancer) -> elbv2:DescribeListeners"
+      },
+      "fail": {
+        "index": {
+          "collections": {
+            "load_balancer": [
+              {
+                "items": [
+                  {
+                    "Attributes": {
+                      "Attributes": [],
+                      "collection_status": "collected"
+                    },
+                    "Listeners": {
+                      "collection_status": "collected",
+                      "items": [
+                        {
+                          "DefaultActions": [
+                            {
+                              "Type": "forward"
+                            }
+                          ],
+                          "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                          "Protocol": "HTTP"
+                        }
+                      ]
+                    },
+                    "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                    "Scheme": "internet-facing",
+                    "Type": "application"
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "load_balancer"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          },
+          "load_balancer": [
+            {
+              "data": {
+                "Attributes": {
+                  "Attributes": [],
+                  "collection_status": "collected"
+                },
+                "Listeners": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "DefaultActions": [
+                        {
+                          "Type": "forward"
+                        }
+                      ],
+                      "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                      "Protocol": "HTTP"
+                    }
+                  ]
+                },
+                "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                "Scheme": "internet-facing",
+                "Type": "application"
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "load_balancer"
+            }
+          ]
+        },
+        "item": {
+          "Attributes": {
+            "Attributes": [],
+            "collection_status": "collected"
+          },
+          "Listeners": {
+            "collection_status": "collected",
+            "items": [
+              {
+                "DefaultActions": [
+                  {
+                    "Type": "forward"
+                  }
+                ],
+                "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                "Protocol": "HTTP"
+              }
+            ]
+          },
+          "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+          "Scheme": "internet-facing",
+          "Type": "application"
+        },
+        "producer": "peaso.collectors.aws._enrich(load_balancer) -> elbv2:DescribeListeners"
+      },
+      "foreign_scope": {
+        "index": {
+          "collections": {
+            "load_balancer": [
+              {
+                "items": [
+                  {
+                    "Attributes": {
+                      "Attributes": [],
+                      "collection_status": "collected"
+                    },
+                    "Listeners": {
+                      "collection_status": "collected",
+                      "items": [
+                        {
+                          "DefaultActions": [
+                            {
+                              "Type": "forward"
+                            }
+                          ],
+                          "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                          "Protocol": "HTTPS"
+                        }
+                      ]
+                    },
+                    "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                    "Scheme": "internet-facing",
+                    "Type": "application"
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "load_balancer"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "210987654321/eu-west-1"
+          },
+          "load_balancer": [
+            {
+              "data": {
+                "Attributes": {
+                  "Attributes": [],
+                  "collection_status": "collected"
+                },
+                "Listeners": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "DefaultActions": [
+                        {
+                          "Type": "forward"
+                        }
+                      ],
+                      "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                      "Protocol": "HTTPS"
+                    }
+                  ]
+                },
+                "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                "Scheme": "internet-facing",
+                "Type": "application"
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "load_balancer"
+            }
+          ]
+        },
+        "item": {
+          "Attributes": {
+            "Attributes": [],
+            "collection_status": "collected"
+          },
+          "Listeners": {
+            "collection_status": "collected",
+            "items": [
+              {
+                "DefaultActions": [
+                  {
+                    "Type": "forward"
+                  }
+                ],
+                "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                "Protocol": "HTTPS"
+              }
+            ]
+          },
+          "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+          "Scheme": "internet-facing",
+          "Type": "application"
+        },
+        "producer": "peaso.collectors.aws._enrich(load_balancer) -> elbv2:DescribeListeners"
+      },
+      "malformed": {
+        "index": {
+          "collections": {
+            "load_balancer": [
+              {
+                "items": [
+                  {
+                    "Attributes": {
+                      "Attributes": [],
+                      "collection_status": "collected"
+                    },
+                    "Listeners": {
+                      "collection_status": "collected",
+                      "items": [
+                        {
+                          "DefaultActions": [
+                            {
+                              "Type": "forward"
+                            }
+                          ],
+                          "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                          "Protocol": 42
+                        }
+                      ]
+                    },
+                    "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                    "Scheme": "internet-facing",
+                    "Type": "application"
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "load_balancer"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          },
+          "load_balancer": [
+            {
+              "data": {
+                "Attributes": {
+                  "Attributes": [],
+                  "collection_status": "collected"
+                },
+                "Listeners": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "DefaultActions": [
+                        {
+                          "Type": "forward"
+                        }
+                      ],
+                      "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                      "Protocol": 42
+                    }
+                  ]
+                },
+                "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                "Scheme": "internet-facing",
+                "Type": "application"
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "load_balancer"
+            }
+          ]
+        },
+        "item": {
+          "Attributes": {
+            "Attributes": [],
+            "collection_status": "collected"
+          },
+          "Listeners": {
+            "collection_status": "collected",
+            "items": [
+              {
+                "DefaultActions": [
+                  {
+                    "Type": "forward"
+                  }
+                ],
+                "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                "Protocol": 42
+              }
+            ]
+          },
+          "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+          "Scheme": "internet-facing",
+          "Type": "application"
+        },
+        "producer": "peaso.collectors.aws._enrich(load_balancer) -> elbv2:DescribeListeners"
+      },
+      "partial": {
+        "index": {
+          "collections": {
+            "load_balancer": [
+              {
+                "items": [
+                  {
+                    "Attributes": {
+                      "Attributes": [],
+                      "collection_status": "collected"
+                    },
+                    "Listeners": {
+                      "collection_status": "collected",
+                      "items": [
+                        {
+                          "DefaultActions": [
+                            {
+                              "Type": "forward"
+                            }
+                          ],
+                          "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                          "Protocol": "HTTPS"
+                        }
+                      ]
+                    },
+                    "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                    "Scheme": "internet-facing",
+                    "Type": "application"
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "partial",
+                "type": "load_balancer"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          },
+          "load_balancer": [
+            {
+              "data": {
+                "Attributes": {
+                  "Attributes": [],
+                  "collection_status": "collected"
+                },
+                "Listeners": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "DefaultActions": [
+                        {
+                          "Type": "forward"
+                        }
+                      ],
+                      "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                      "Protocol": "HTTPS"
+                    }
+                  ]
+                },
+                "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                "Scheme": "internet-facing",
+                "Type": "application"
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "load_balancer"
+            }
+          ]
+        },
+        "item": {
+          "Attributes": {
+            "Attributes": [],
+            "collection_status": "collected"
+          },
+          "Listeners": {
+            "collection_status": "collected",
+            "items": [
+              {
+                "DefaultActions": [
+                  {
+                    "Type": "forward"
+                  }
+                ],
+                "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                "Protocol": "HTTPS"
+              }
+            ]
+          },
+          "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+          "Scheme": "internet-facing",
+          "Type": "application"
+        },
+        "producer": "peaso.collectors.aws._enrich(load_balancer) -> elbv2:DescribeListeners"
+      },
+      "pass": {
+        "index": {
+          "collections": {
+            "load_balancer": [
+              {
+                "items": [
+                  {
+                    "Attributes": {
+                      "Attributes": [],
+                      "collection_status": "collected"
+                    },
+                    "Listeners": {
+                      "collection_status": "collected",
+                      "items": [
+                        {
+                          "DefaultActions": [
+                            {
+                              "Type": "forward"
+                            }
+                          ],
+                          "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                          "Protocol": "HTTPS"
+                        }
+                      ]
+                    },
+                    "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                    "Scheme": "internet-facing",
+                    "Type": "application"
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "load_balancer"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          },
+          "load_balancer": [
+            {
+              "data": {
+                "Attributes": {
+                  "Attributes": [],
+                  "collection_status": "collected"
+                },
+                "Listeners": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "DefaultActions": [
+                        {
+                          "Type": "forward"
+                        }
+                      ],
+                      "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                      "Protocol": "HTTPS"
+                    }
+                  ]
+                },
+                "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                "Scheme": "internet-facing",
+                "Type": "application"
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "load_balancer"
+            }
+          ]
+        },
+        "item": {
+          "Attributes": {
+            "Attributes": [],
+            "collection_status": "collected"
+          },
+          "Listeners": {
+            "collection_status": "collected",
+            "items": [
+              {
+                "DefaultActions": [
+                  {
+                    "Type": "forward"
+                  }
+                ],
+                "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                "Protocol": "HTTPS"
+              }
+            ]
+          },
+          "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+          "Scheme": "internet-facing",
+          "Type": "application"
+        },
+        "producer": "peaso.collectors.aws._enrich(load_balancer) -> elbv2:DescribeListeners"
+      },
+      "unknown": {
+        "index": {
+          "collections": {
+            "load_balancer": [
+              {
+                "items": [
+                  {
+                    "Attributes": {
+                      "Attributes": [],
+                      "collection_status": "collected"
+                    },
+                    "Listeners": {
+                      "collection_status": "collected",
+                      "items": [
+                        {
+                          "DefaultActions": [
+                            {
+                              "RedirectConfig": {
+                                "Port": "443",
+                                "Protocol": "HTTPS",
+                                "StatusCode": "HTTP_301"
+                              },
+                              "Type": "redirect"
+                            }
+                          ],
+                          "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                          "Protocol": "HTTP"
+                        }
+                      ]
+                    },
+                    "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                    "Scheme": "internet-facing",
+                    "Type": "application"
+                  }
+                ],
+                "scope": "123456789012/eu-west-1",
+                "status": "collected",
+                "type": "load_balancer"
+              }
+            ]
+          },
+          "context": {
+            "Account": "123456789012",
+            "metadata": {
+              "caller_identities": [
+                {
+                  "Account": "123456789012",
+                  "Arn": "arn:aws:sts::123456789012:assumed-role/Audit/session"
+                }
+              ],
+              "compliance_policy": {
+                "aws_backup_plan": {
+                  "applies_to": [
+                    "123456789012/eu-west-1"
+                  ],
+                  "required_frequency_hours": 24,
+                  "source": "operator-supplied",
+                  "status": "collected"
+                }
+              }
+            },
+            "provider": "aws",
+            "scope": "123456789012/eu-west-1"
+          },
+          "load_balancer": [
+            {
+              "data": {
+                "Attributes": {
+                  "Attributes": [],
+                  "collection_status": "collected"
+                },
+                "Listeners": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "DefaultActions": [
+                        {
+                          "RedirectConfig": {
+                            "Port": "443",
+                            "Protocol": "HTTPS",
+                            "StatusCode": "HTTP_301"
+                          },
+                          "Type": "redirect"
+                        }
+                      ],
+                      "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                      "Protocol": "HTTP"
+                    }
+                  ]
+                },
+                "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+                "Scheme": "internet-facing",
+                "Type": "application"
+              },
+              "provider": "aws",
+              "scope": "123456789012/eu-west-1",
+              "type": "load_balancer"
+            }
+          ]
+        },
+        "item": {
+          "Attributes": {
+            "Attributes": [],
+            "collection_status": "collected"
+          },
+          "Listeners": {
+            "collection_status": "collected",
+            "items": [
+              {
+                "DefaultActions": [
+                  {
+                    "RedirectConfig": {
+                      "Port": "443",
+                      "Protocol": "HTTPS",
+                      "StatusCode": "HTTP_301"
+                    },
+                    "Type": "redirect"
+                  }
+                ],
+                "ListenerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:listener/app/sample/1111111111111111/2222222222222222",
+                "Protocol": "HTTP"
+              }
+            ]
+          },
+          "LoadBalancerArn": "arn:aws:elasticloadbalancing:eu-west-1:123456789012:loadbalancer/app/sample/1111111111111111",
+          "Scheme": "internet-facing",
+          "Type": "application"
+        },
+        "producer": "peaso.collectors.aws._enrich(load_balancer) -> elbv2:DescribeListeners"
+      }
+    }
+  },
+  "provenance": "actual repository collector enricher with deterministic read-only response stub; no cloud API calls"
+}

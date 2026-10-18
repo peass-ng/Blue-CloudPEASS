@@ -1,0 +1,2388 @@
+{
+ "gcp-compliance.control.cis_v120_1_9": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.kms.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/kms/docs/iam",
+   "https://cloud.google.com/iam/docs/overview#all-users"
+  ],
+  "reason": "Same predicate: the CryptoKey IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 145,
+   "control_path": "cis_v120/section_1.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "kms_key_not_publicly_accessible",
+   "query_line": 97,
+   "query_path": "policy_bundle/kms.pp",
+   "query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+   "status_case_sql": "case\n        when p.self_link is null then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_10": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_bucket_iam_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for storage.setIamPermissions on gcs_bucket; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 156,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_storage_iam_permission_changes",
+   "query_line": 465,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_11": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for cloudsql.instances.update; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 170,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_sql_instance_configuration_changes",
+   "query_line": 429,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_12": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.network.dns_logging"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/monitoring",
+   "https://cloud.google.com/dns/docs/reference/v1/policies"
+  ],
+  "reason": "Same predicate: each VPC network must be attached to a Cloud DNS server policy with enableLogging=true (project-qualified network join).",
+  "source_review": {
+   "arguments": [],
+   "control_line": 184,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "compute_network_dns_logging_enabled",
+   "query_line": 1357,
+   "query_path": "policy_bundle/compute.pp",
+   "query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+   "status_case_sql": "case\n        when p.network_name is null then 'alarm'\n        when not p.enable_logging then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_2": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.sink_all_log_entries"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/export/configure_export_v2",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+   "https://cloud.google.com/resource-manager/reference/rest/v1/projects/getAncestry"
+  ],
+  "reason": "Corrected port: PASS for an enabled same-project sink with an empty filter, a destination and no active exclusions (or, when collected, an ancestor includeChildren sink of that form). Projects with folder/organization ancestors whose aggregated sinks were not collected are MANUAL, empty-filter sinks with active exclusions are MANUAL, and FAIL requires proven-empty ancestry and a complete sink inventory. Upstream alarms on every project without a local empty-filter sink even when an organization aggregated sink exports everything.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 44,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_sink_configured_for_all_resource",
+   "query_line": 501,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+   "status_case_sql": "case\n        when s.no_of_sink > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.bucket.log_sink_retention_locked"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/bucket-lock",
+   "https://cloud.google.com/logging/docs/export/configure_export_v2"
+  ],
+  "reason": "Same predicate as the upstream query: Cloud Storage buckets that are destinations of same-scope log sinks must declare a locked retention policy (Bucket Lock); non-destination buckets NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 58,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_bucket_retention_policy_enabled",
+   "query_line": 144,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+   "status_case_sql": "case\n        when b.retention_policy is not null and b.retention_policy ->> 'isLocked' = 'true' then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_4": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_project_ownership_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for roles/owner ADD and REMOVE binding deltas and the project ownership invite; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 72,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_project_ownership_assignment",
+   "query_line": 393,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+   "status_case_sql": "case\n        when d.metric_name > 0  then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_5": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_audit_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for SetIamPolicy with auditConfigDeltas; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 86,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_audit_configuration_changes",
+   "query_line": 177,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_6": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_custom_role_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for google.iam.admin.v1 CreateRole, DeleteRole and UpdateRole on iam_role; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 100,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_custom_role_changes",
+   "query_line": 249,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_7": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_firewall_rule_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.firewalls insert, patch and delete on gce_firewall_rule; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 114,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_firewall_rule_changes",
+   "query_line": 285,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_8": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_route_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.routes insert and delete on gce_route; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 128,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_route_changes",
+   "query_line": 357,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_2_9": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_network_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.networks insert, patch, delete, addPeering and removePeering on gce_network; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 142,
+   "control_path": "cis_v120/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_changes",
+   "query_line": 321,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_3_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.dnssec_enabled"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-config",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: public managed zones must declare dnssecConfig.state=on; private zones NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 56,
+   "control_path": "cis_v120/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_dnssec_enabled",
+   "query_line": 94,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+   "status_case_sql": "case\n        when visibility = 'private' then 'skip'\n        when visibility = 'public' and (dnssec_config_state is null or dnssec_config_state = 'off') then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_3_4": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.ksk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC key-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 70,
+   "control_path": "cis_v120/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_key_signing_not_using_rsasha1",
+   "query_line": 42,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"keySigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_3_5": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.zsk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC zone-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 84,
+   "control_path": "cis_v120/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_zone_signing_not_using_rsasha1",
+   "query_line": 68,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"zoneSigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_5_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.storage.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/access-control/iam",
+   "https://cloud.google.com/storage/docs/public-access-prevention"
+  ],
+  "reason": "Same predicate: the bucket IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 21,
+   "control_path": "cis_v120/section_5.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "storage_bucket_not_publicly_accessible",
+   "query_line": 113,
+   "query_path": "policy_bundle/storage.pp",
+   "query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+   "status_case_sql": "case\n        when iam_policy ->> 'bindings' like any (array ['%allAuthenticatedUsers%','%allUsers%']) then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_6_6": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.sql_instance.second_gen_no_public_ip"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/configure-ip",
+   "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+  ],
+  "reason": "Same predicate: second-generation Cloud SQL instances must not have a PRIMARY (public) IP address; other backends NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 487,
+   "control_path": "cis_v120/section_6.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "sql_instance_with_no_public_ips",
+   "query_line": 402,
+   "query_path": "policy_bundle/sql.pp",
+   "query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+   "status_case_sql": "case\n        when ip_addresses @> '[{\"type\": \"PRIMARY\"}]' and backend_type = 'SECOND_GEN' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v120_7_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.bigquery.no_public_acl"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/bigquery/docs/control-access-to-resources-iam",
+   "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+  ],
+  "reason": "Same predicate: dataset access entries must not grant allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 22,
+   "control_path": "cis_v120/section_7.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "bigquery_dataset_not_publicly_accessible",
+   "query_line": 73,
+   "query_path": "policy_bundle/bigquery.pp",
+   "query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+   "status_case_sql": "case\n        when access @> '[{\"specialGroup\": \"allAuthenticatedUsers\"}]' or access @> '[{\"iamMember\": \"allUsers\"}]' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_1_9": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.kms.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/kms/docs/iam",
+   "https://cloud.google.com/iam/docs/overview#all-users"
+  ],
+  "reason": "Same predicate: the CryptoKey IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 148,
+   "control_path": "cis_v130/section_1.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "kms_key_not_publicly_accessible",
+   "query_line": 97,
+   "query_path": "policy_bundle/kms.pp",
+   "query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+   "status_case_sql": "case\n        when p.self_link is null then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_10": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_bucket_iam_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for storage.setIamPermissions on gcs_bucket; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 159,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_storage_iam_permission_changes",
+   "query_line": 465,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_11": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for cloudsql.instances.update; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 173,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_sql_instance_configuration_changes",
+   "query_line": 429,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_12": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.network.dns_logging"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/monitoring",
+   "https://cloud.google.com/dns/docs/reference/v1/policies"
+  ],
+  "reason": "Same predicate: each VPC network must be attached to a Cloud DNS server policy with enableLogging=true (project-qualified network join).",
+  "source_review": {
+   "arguments": [],
+   "control_line": 187,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "compute_network_dns_logging_enabled",
+   "query_line": 1357,
+   "query_path": "policy_bundle/compute.pp",
+   "query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+   "status_case_sql": "case\n        when p.network_name is null then 'alarm'\n        when not p.enable_logging then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_2": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.sink_all_log_entries"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/export/configure_export_v2",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+   "https://cloud.google.com/resource-manager/reference/rest/v1/projects/getAncestry"
+  ],
+  "reason": "Corrected port: PASS for an enabled same-project sink with an empty filter, a destination and no active exclusions (or, when collected, an ancestor includeChildren sink of that form). Projects with folder/organization ancestors whose aggregated sinks were not collected are MANUAL, empty-filter sinks with active exclusions are MANUAL, and FAIL requires proven-empty ancestry and a complete sink inventory. Upstream alarms on every project without a local empty-filter sink even when an organization aggregated sink exports everything.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 47,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_sink_configured_for_all_resource",
+   "query_line": 501,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+   "status_case_sql": "case\n        when s.no_of_sink > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.bucket.log_sink_retention_locked"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/bucket-lock",
+   "https://cloud.google.com/logging/docs/export/configure_export_v2"
+  ],
+  "reason": "Same predicate as the upstream query: Cloud Storage buckets that are destinations of same-scope log sinks must declare a locked retention policy (Bucket Lock); non-destination buckets NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 61,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_bucket_retention_policy_enabled",
+   "query_line": 144,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+   "status_case_sql": "case\n        when b.retention_policy is not null and b.retention_policy ->> 'isLocked' = 'true' then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_4": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_project_ownership_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for roles/owner ADD and REMOVE binding deltas and the project ownership invite; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 75,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_project_ownership_assignment",
+   "query_line": 393,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+   "status_case_sql": "case\n        when d.metric_name > 0  then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_5": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_audit_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for SetIamPolicy with auditConfigDeltas; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 89,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_audit_configuration_changes",
+   "query_line": 177,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_6": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_custom_role_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for google.iam.admin.v1 CreateRole, DeleteRole and UpdateRole on iam_role; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 103,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_custom_role_changes",
+   "query_line": 249,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_7": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_firewall_rule_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.firewalls insert, patch and delete on gce_firewall_rule; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 117,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_firewall_rule_changes",
+   "query_line": 285,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_8": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_route_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.routes insert and delete on gce_route; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 131,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_route_changes",
+   "query_line": 357,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_2_9": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_network_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.networks insert, patch, delete, addPeering and removePeering on gce_network; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 145,
+   "control_path": "cis_v130/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_changes",
+   "query_line": 321,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_3_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.dnssec_enabled"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-config",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: public managed zones must declare dnssecConfig.state=on; private zones NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 56,
+   "control_path": "cis_v130/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_dnssec_enabled",
+   "query_line": 94,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+   "status_case_sql": "case\n        when visibility = 'private' then 'skip'\n        when visibility = 'public' and (dnssec_config_state is null or dnssec_config_state = 'off') then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_3_4": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.ksk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC key-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 70,
+   "control_path": "cis_v130/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_key_signing_not_using_rsasha1",
+   "query_line": 42,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"keySigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_3_5": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.zsk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC zone-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 84,
+   "control_path": "cis_v130/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_zone_signing_not_using_rsasha1",
+   "query_line": 68,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"zoneSigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_5_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.storage.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/access-control/iam",
+   "https://cloud.google.com/storage/docs/public-access-prevention"
+  ],
+  "reason": "Same predicate: the bucket IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 21,
+   "control_path": "cis_v130/section_5.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "storage_bucket_not_publicly_accessible",
+   "query_line": 113,
+   "query_path": "policy_bundle/storage.pp",
+   "query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+   "status_case_sql": "case\n        when iam_policy ->> 'bindings' like any (array ['%allAuthenticatedUsers%','%allUsers%']) then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_6_6": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.sql_instance.second_gen_no_public_ip"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/configure-ip",
+   "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+  ],
+  "reason": "Same predicate: second-generation Cloud SQL instances must not have a PRIMARY (public) IP address; other backends NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 382,
+   "control_path": "cis_v130/section_6.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "sql_instance_with_no_public_ips",
+   "query_line": 402,
+   "query_path": "policy_bundle/sql.pp",
+   "query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+   "status_case_sql": "case\n        when ip_addresses @> '[{\"type\": \"PRIMARY\"}]' and backend_type = 'SECOND_GEN' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v130_7_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.bigquery.no_public_acl"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/bigquery/docs/control-access-to-resources-iam",
+   "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+  ],
+  "reason": "Same predicate: dataset access entries must not grant allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 22,
+   "control_path": "cis_v130/section_7.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "bigquery_dataset_not_publicly_accessible",
+   "query_line": 73,
+   "query_path": "policy_bundle/bigquery.pp",
+   "query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+   "status_case_sql": "case\n        when access @> '[{\"specialGroup\": \"allAuthenticatedUsers\"}]' or access @> '[{\"iamMember\": \"allUsers\"}]' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_1_9": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.kms.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/kms/docs/iam",
+   "https://cloud.google.com/iam/docs/overview#all-users"
+  ],
+  "reason": "Same predicate: the CryptoKey IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 148,
+   "control_path": "cis_v200/section_1.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "kms_key_not_publicly_accessible",
+   "query_line": 97,
+   "query_path": "policy_bundle/kms.pp",
+   "query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+   "status_case_sql": "case\n        when p.self_link is null then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_10": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_bucket_iam_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for storage.setIamPermissions on gcs_bucket; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 160,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_storage_iam_permission_changes",
+   "query_line": 465,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_11": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for cloudsql.instances.update; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 174,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_sql_instance_configuration_changes",
+   "query_line": 429,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_12": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.network.dns_logging"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/monitoring",
+   "https://cloud.google.com/dns/docs/reference/v1/policies"
+  ],
+  "reason": "Same predicate: each VPC network must be attached to a Cloud DNS server policy with enableLogging=true (project-qualified network join).",
+  "source_review": {
+   "arguments": [],
+   "control_line": 188,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "compute_network_dns_logging_enabled",
+   "query_line": 1357,
+   "query_path": "policy_bundle/compute.pp",
+   "query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+   "status_case_sql": "case\n        when p.network_name is null then 'alarm'\n        when not p.enable_logging then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_2": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.sink_all_log_entries"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/export/configure_export_v2",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+   "https://cloud.google.com/resource-manager/reference/rest/v1/projects/getAncestry"
+  ],
+  "reason": "Corrected port: PASS for an enabled same-project sink with an empty filter, a destination and no active exclusions (or, when collected, an ancestor includeChildren sink of that form). Projects with folder/organization ancestors whose aggregated sinks were not collected are MANUAL, empty-filter sinks with active exclusions are MANUAL, and FAIL requires proven-empty ancestry and a complete sink inventory. Upstream alarms on every project without a local empty-filter sink even when an organization aggregated sink exports everything.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 48,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_sink_configured_for_all_resource",
+   "query_line": 501,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+   "status_case_sql": "case\n        when s.no_of_sink > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.bucket.log_sink_retention_locked"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/bucket-lock",
+   "https://cloud.google.com/logging/docs/export/configure_export_v2"
+  ],
+  "reason": "Same predicate as the upstream query: Cloud Storage buckets that are destinations of same-scope log sinks must declare a locked retention policy (Bucket Lock); non-destination buckets NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 62,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_bucket_retention_policy_enabled",
+   "query_line": 144,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+   "status_case_sql": "case\n        when b.retention_policy is not null and b.retention_policy ->> 'isLocked' = 'true' then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_4": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_project_ownership_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for roles/owner ADD and REMOVE binding deltas and the project ownership invite; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 76,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_project_ownership_assignment",
+   "query_line": 393,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+   "status_case_sql": "case\n        when d.metric_name > 0  then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_5": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_audit_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for SetIamPolicy with auditConfigDeltas; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 90,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_audit_configuration_changes",
+   "query_line": 177,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_6": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_custom_role_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for google.iam.admin.v1 CreateRole, DeleteRole and UpdateRole on iam_role; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 104,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_custom_role_changes",
+   "query_line": 249,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_7": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_firewall_rule_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.firewalls insert, patch and delete on gce_firewall_rule; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 118,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_firewall_rule_changes",
+   "query_line": 285,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_8": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_route_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.routes insert and delete on gce_route; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 132,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_route_changes",
+   "query_line": 357,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_2_9": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_network_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.networks insert, patch, delete, addPeering and removePeering on gce_network; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 146,
+   "control_path": "cis_v200/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_changes",
+   "query_line": 321,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_3_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.dnssec_enabled"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-config",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: public managed zones must declare dnssecConfig.state=on; private zones NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 56,
+   "control_path": "cis_v200/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_dnssec_enabled",
+   "query_line": 94,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+   "status_case_sql": "case\n        when visibility = 'private' then 'skip'\n        when visibility = 'public' and (dnssec_config_state is null or dnssec_config_state = 'off') then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_3_4": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.ksk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC key-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 70,
+   "control_path": "cis_v200/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_key_signing_not_using_rsasha1",
+   "query_line": 42,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"keySigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_3_5": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.zsk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC zone-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 84,
+   "control_path": "cis_v200/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_zone_signing_not_using_rsasha1",
+   "query_line": 68,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"zoneSigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_5_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.storage.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/access-control/iam",
+   "https://cloud.google.com/storage/docs/public-access-prevention"
+  ],
+  "reason": "Same predicate: the bucket IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 21,
+   "control_path": "cis_v200/section_5.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "storage_bucket_not_publicly_accessible",
+   "query_line": 113,
+   "query_path": "policy_bundle/storage.pp",
+   "query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+   "status_case_sql": "case\n        when iam_policy ->> 'bindings' like any (array ['%allAuthenticatedUsers%','%allUsers%']) then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_6_2_9": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.sql_instance.private_ip_only"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/configure-private-ip"
+  ],
+  "reason": "CIS 6.2.9 (instance IP assignment is set to private): the instance must have a PRIVATE address on a private network and no PRIMARY address; same as the existing reviewed predicate.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 229,
+   "control_path": "cis_v200/section_6.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "sql_instance_not_publicly_accessible",
+   "query_line": 514,
+   "query_path": "policy_bundle/sql.pp",
+   "query_sha256": "5d43bab922cb776815d49565bf25a5307b091437008ae94da797faaaa3f50790",
+   "status_case_sql": "case\n        when (ip_addresses @> '[{\"type\": \"PRIVATE\"}]' and ip_configuration ->> 'privateNetwork' is not null) and not (ip_addresses @> '[{\"type\": \"PRIMARY\"}]') then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_6_6": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.sql_instance.second_gen_no_public_ip"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/configure-ip",
+   "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+  ],
+  "reason": "Same predicate: second-generation Cloud SQL instances must not have a PRIMARY (public) IP address; other backends NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 379,
+   "control_path": "cis_v200/section_6.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "sql_instance_with_no_public_ips",
+   "query_line": 402,
+   "query_path": "policy_bundle/sql.pp",
+   "query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+   "status_case_sql": "case\n        when ip_addresses @> '[{\"type\": \"PRIMARY\"}]' and backend_type = 'SECOND_GEN' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v200_7_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.bigquery.no_public_acl"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/bigquery/docs/control-access-to-resources-iam",
+   "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+  ],
+  "reason": "Same predicate: dataset access entries must not grant allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 22,
+   "control_path": "cis_v200/section_7.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "bigquery_dataset_not_publicly_accessible",
+   "query_line": 73,
+   "query_path": "policy_bundle/bigquery.pp",
+   "query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+   "status_case_sql": "case\n        when access @> '[{\"specialGroup\": \"allAuthenticatedUsers\"}]' or access @> '[{\"iamMember\": \"allUsers\"}]' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_1_12": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.project.no_api_keys"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/docs/authentication/api-keys",
+   "https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+  ],
+  "reason": "Same predicate: the complete API key inventory of the project must contain no non-deleted key.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 189,
+   "control_path": "cis_v300/section_1.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "project_no_api_key",
+   "query_line": 97,
+   "query_path": "policy_bundle/project.pp",
+   "query_sha256": "e7c7c52a6abfcdc55cd1230ac4d76756b995f2e0bf4b07cdc22307483f8b8169",
+   "status_case_sql": "case\n        when k.api_key_count > 0  then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_1_9": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.kms.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/kms/docs/iam",
+   "https://cloud.google.com/iam/docs/overview#all-users"
+  ],
+  "reason": "Same predicate: the CryptoKey IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 147,
+   "control_path": "cis_v300/section_1.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "kms_key_not_publicly_accessible",
+   "query_line": 97,
+   "query_path": "policy_bundle/kms.pp",
+   "query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+   "status_case_sql": "case\n        when p.self_link is null then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_10": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_bucket_iam_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for storage.setIamPermissions on gcs_bucket; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 160,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_storage_iam_permission_changes",
+   "query_line": 465,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_11": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for cloudsql.instances.update; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 174,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_sql_instance_configuration_changes",
+   "query_line": 429,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_12": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.network.dns_logging"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/monitoring",
+   "https://cloud.google.com/dns/docs/reference/v1/policies"
+  ],
+  "reason": "Same predicate: each VPC network must be attached to a Cloud DNS server policy with enableLogging=true (project-qualified network join).",
+  "source_review": {
+   "arguments": [],
+   "control_line": 188,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "compute_network_dns_logging_enabled",
+   "query_line": 1357,
+   "query_path": "policy_bundle/compute.pp",
+   "query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+   "status_case_sql": "case\n        when p.network_name is null then 'alarm'\n        when not p.enable_logging then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_2": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.sink_all_log_entries"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/export/configure_export_v2",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+   "https://cloud.google.com/resource-manager/reference/rest/v1/projects/getAncestry"
+  ],
+  "reason": "Corrected port: PASS for an enabled same-project sink with an empty filter, a destination and no active exclusions (or, when collected, an ancestor includeChildren sink of that form). Projects with folder/organization ancestors whose aggregated sinks were not collected are MANUAL, empty-filter sinks with active exclusions are MANUAL, and FAIL requires proven-empty ancestry and a complete sink inventory. Upstream alarms on every project without a local empty-filter sink even when an organization aggregated sink exports everything.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 48,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_sink_configured_for_all_resource",
+   "query_line": 501,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+   "status_case_sql": "case\n        when s.no_of_sink > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.bucket.log_sink_retention_locked"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/bucket-lock",
+   "https://cloud.google.com/logging/docs/export/configure_export_v2"
+  ],
+  "reason": "Same predicate as the upstream query: Cloud Storage buckets that are destinations of same-scope log sinks must declare a locked retention policy (Bucket Lock); non-destination buckets NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 62,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_bucket_retention_policy_enabled",
+   "query_line": 144,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+   "status_case_sql": "case\n        when b.retention_policy is not null and b.retention_policy ->> 'isLocked' = 'true' then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_4": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_project_ownership_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for roles/owner ADD and REMOVE binding deltas and the project ownership invite; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 76,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_project_ownership_assignment",
+   "query_line": 393,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+   "status_case_sql": "case\n        when d.metric_name > 0  then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_5": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_audit_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for SetIamPolicy with auditConfigDeltas; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 90,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_audit_configuration_changes",
+   "query_line": 177,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_6": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_custom_role_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for google.iam.admin.v1 CreateRole, DeleteRole and UpdateRole on iam_role; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 104,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_custom_role_changes",
+   "query_line": 249,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "0507dd599ffea703548b7349b3a410f75f3fdecc9e4ef9446dbb44aba096ac6c",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_7": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_firewall_rule_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.firewalls insert, patch and delete on gce_firewall_rule; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 118,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_firewall_rule_changes",
+   "query_line": 285,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_8": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_route_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.routes insert and delete on gce_route; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 132,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_route_changes",
+   "query_line": 357,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_2_9": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_network_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.networks insert, patch, delete, addPeering and removePeering on gce_network; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 146,
+   "control_path": "cis_v300/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_changes",
+   "query_line": 321,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_3_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.dnssec_enabled"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-config",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: public managed zones must declare dnssecConfig.state=on; private zones NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 56,
+   "control_path": "cis_v300/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_dnssec_enabled",
+   "query_line": 94,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+   "status_case_sql": "case\n        when visibility = 'private' then 'skip'\n        when visibility = 'public' and (dnssec_config_state is null or dnssec_config_state = 'off') then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_3_4": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.ksk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC key-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 70,
+   "control_path": "cis_v300/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_key_signing_not_using_rsasha1",
+   "query_line": 42,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"keySigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_3_5": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.zsk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC zone-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 84,
+   "control_path": "cis_v300/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_zone_signing_not_using_rsasha1",
+   "query_line": 68,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"zoneSigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_5_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.storage.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/access-control/iam",
+   "https://cloud.google.com/storage/docs/public-access-prevention"
+  ],
+  "reason": "Same predicate: the bucket IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 21,
+   "control_path": "cis_v300/section_5.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "storage_bucket_not_publicly_accessible",
+   "query_line": 113,
+   "query_path": "policy_bundle/storage.pp",
+   "query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+   "status_case_sql": "case\n        when iam_policy ->> 'bindings' like any (array ['%allAuthenticatedUsers%','%allUsers%']) then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_6_6": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.sql_instance.second_gen_no_public_ip"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/configure-ip",
+   "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+  ],
+  "reason": "Same predicate: second-generation Cloud SQL instances must not have a PRIMARY (public) IP address; other backends NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 363,
+   "control_path": "cis_v300/section_6.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "sql_instance_with_no_public_ips",
+   "query_line": 402,
+   "query_path": "policy_bundle/sql.pp",
+   "query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+   "status_case_sql": "case\n        when ip_addresses @> '[{\"type\": \"PRIMARY\"}]' and backend_type = 'SECOND_GEN' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_7_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.bigquery.no_public_acl"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/bigquery/docs/control-access-to-resources-iam",
+   "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+  ],
+  "reason": "Same predicate: dataset access entries must not grant allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 23,
+   "control_path": "cis_v300/section_7.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "bigquery_dataset_not_publicly_accessible",
+   "query_line": 73,
+   "query_path": "policy_bundle/bigquery.pp",
+   "query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+   "status_case_sql": "case\n        when access @> '[{\"specialGroup\": \"allAuthenticatedUsers\"}]' or access @> '[{\"iamMember\": \"allUsers\"}]' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v300_8_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.ports.dataproc_cluster_encryption_with_cmek"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/customer-managed-encryption"
+  ],
+  "reason": "Upstream mapping error corrected: the CIS 8.1 control (Dataproc cluster encrypted with a customer-managed key) points at the bigquery_dataset_not_publicly_accessible query. Merged onto the native Dataproc predicate that requires config.encryptionConfig.gcePdKmsKeyName; missing configuration is UNKNOWN.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 20,
+   "control_path": "cis_v300/section_8.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "bigquery_dataset_not_publicly_accessible",
+   "query_line": 73,
+   "query_path": "policy_bundle/bigquery.pp",
+   "query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+   "status_case_sql": "case\n        when access @> '[{\"specialGroup\": \"allAuthenticatedUsers\"}]' or access @> '[{\"iamMember\": \"allUsers\"}]' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_1_12": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.project.no_api_keys"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/docs/authentication/api-keys",
+   "https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+  ],
+  "reason": "Same predicate: the complete API key inventory of the project must contain no non-deleted key.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 189,
+   "control_path": "cis_v400/section_1.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "project_no_api_key",
+   "query_line": 97,
+   "query_path": "policy_bundle/project.pp",
+   "query_sha256": "e7c7c52a6abfcdc55cd1230ac4d76756b995f2e0bf4b07cdc22307483f8b8169",
+   "status_case_sql": "case\n        when k.api_key_count > 0  then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_1_9": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.kms.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/kms/docs/iam",
+   "https://cloud.google.com/iam/docs/overview#all-users"
+  ],
+  "reason": "Same predicate: the CryptoKey IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 147,
+   "control_path": "cis_v400/section_1.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "kms_key_not_publicly_accessible",
+   "query_line": 97,
+   "query_path": "policy_bundle/kms.pp",
+   "query_sha256": "5eddda03f99386e03b2c3769845811df0af06cd4bfcbd4cb878fd7f8de0c9eb7",
+   "status_case_sql": "case\n        when p.self_link is null then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_10": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_bucket_iam_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for storage.setIamPermissions on gcs_bucket; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 160,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_storage_iam_permission_changes",
+   "query_line": 465,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "6a73c9f671359893cd43f538f271aad275ef61a935beac6af622f05554ea8ee6",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_11": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for cloudsql.instances.update; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 174,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_sql_instance_configuration_changes",
+   "query_line": 429,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "fca378bd2604c9ca4f1280648b88fb02e228fc1f4850366bb3a33a57cad5bf94",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_12": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.network.dns_logging"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/monitoring",
+   "https://cloud.google.com/dns/docs/reference/v1/policies"
+  ],
+  "reason": "Same predicate: each VPC network must be attached to a Cloud DNS server policy with enableLogging=true (project-qualified network join).",
+  "source_review": {
+   "arguments": [],
+   "control_line": 188,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "compute_network_dns_logging_enabled",
+   "query_line": 1357,
+   "query_path": "policy_bundle/compute.pp",
+   "query_sha256": "fb11676b37a5e52028fd35a47334c78054c9e55464a96a71ecb55868d9aeac45",
+   "status_case_sql": "case\n        when p.network_name is null then 'alarm'\n        when not p.enable_logging then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_2": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.sink_all_log_entries"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/export/configure_export_v2",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks",
+   "https://cloud.google.com/resource-manager/reference/rest/v1/projects/getAncestry"
+  ],
+  "reason": "Corrected port: PASS for an enabled same-project sink with an empty filter, a destination and no active exclusions (or, when collected, an ancestor includeChildren sink of that form). Projects with folder/organization ancestors whose aggregated sinks were not collected are MANUAL, empty-filter sinks with active exclusions are MANUAL, and FAIL requires proven-empty ancestry and a complete sink inventory. Upstream alarms on every project without a local empty-filter sink even when an organization aggregated sink exports everything.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 48,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_sink_configured_for_all_resource",
+   "query_line": 501,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "106e97ae785f6591b49726f1e4f93945ba07e632dc463cc57c19fbd68848cadb",
+   "status_case_sql": "case\n        when s.no_of_sink > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.bucket.log_sink_retention_locked"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/bucket-lock",
+   "https://cloud.google.com/logging/docs/export/configure_export_v2"
+  ],
+  "reason": "Same predicate as the upstream query: Cloud Storage buckets that are destinations of same-scope log sinks must declare a locked retention policy (Bucket Lock); non-destination buckets NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 62,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_bucket_retention_policy_enabled",
+   "query_line": 144,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbdfafe5e8765be8663b74deca08fe903b06afcc7edd9aeebfa86a0749fe87ba",
+   "status_case_sql": "case\n        when b.retention_policy is not null and b.retention_policy ->> 'isLocked' = 'true' then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_4": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_project_ownership_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for roles/owner ADD and REMOVE binding deltas and the project ownership invite; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 76,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_project_ownership_assignment",
+   "query_line": 393,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "5b2ff745a1b81ce9e9043f5528f37f415c04230dd0faabec5e6b3c281dbc0204",
+   "status_case_sql": "case\n        when d.metric_name > 0  then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_5": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_audit_configuration_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for SetIamPolicy with auditConfigDeltas; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 90,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_audit_configuration_changes",
+   "query_line": 177,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "4dbbf0c537e8a30bcbf8aab204622bdb6e781f9974e4249abbb55ddb77c3d9ba",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_6": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_custom_role_changes_with_undelete"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for google.iam.admin.v1 CreateRole, DeleteRole, UpdateRole and UndeleteRole on iam_role; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 104,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_custom_role_changes_with_iam_admin_undelete_role",
+   "query_line": 213,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "458c474d3a4d62ef9a0cbf80ea21d24d8090338a58d2ff7057bc6b1f7abac549",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_7": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_firewall_rule_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.firewalls insert, patch and delete on gce_firewall_rule; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 118,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_firewall_rule_changes",
+   "query_line": 285,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "2a19c0f3d47ca3bb74b7c3c7539ff23836407597c116620ed510d6bfd1f9947f",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_8": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_route_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.routes insert and delete on gce_route; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 132,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_route_changes",
+   "query_line": 357,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "726975737fb20b7386439a24ab4095745675243a87570978f45a058ec76a03cf",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_2_9": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.logging.metric_alert_network_changes"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/logging/docs/view/logging-query-language",
+   "https://cloud.google.com/logging/docs/logs-based-metrics",
+   "https://cloud.google.com/monitoring/alerts/using-alerting-ui",
+   "https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels",
+   "https://cloud.google.com/logging/docs/export/aggregated_sinks"
+  ],
+  "reason": "Semantic port of the CIS log-metric control: every non-disabled same-project log-based metric filter is evaluated with the Cloud Logging query language (NOT > OR > AND precedence, implicit AND, ':' substring, value groups, repeated-field any-match) against synthetic Admin Activity entries for v1 and beta compute.networks insert, patch, delete, addPeering and removePeering on gce_network; it must provably match all of them. PASS needs an enabled alert policy with a metric.type threshold condition on that metric and at least one enabled notification channel (channel inventory missing -> UNKNOWN). Undecidable filters, MQL/PromQL references, AND-combined conditions and log-match alerts are MANUAL. FAIL only when folder/organization ancestry is proven empty (or ancestor sinks are collected and route nothing to a log bucket), no project sink routes to another project's log bucket and, when a local metric exists, the Monitoring metrics scope is proven local; otherwise MANUAL. Replaces Steampipe's literal regex, which misses equivalent filters and ignores notification channels.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 146,
+   "control_path": "cis_v400/section_2.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "logging_metric_alert_network_changes",
+   "query_line": 321,
+   "query_path": "policy_bundle/logging.pp",
+   "query_sha256": "dbb410302f44f16888594e50421e03629c4b8be17272319b280a7c1fd61b646e",
+   "status_case_sql": "case\n        when d.metric_name > 0 then 'ok'\n        else 'alarm'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_3_3": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.dnssec_enabled"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-config",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: public managed zones must declare dnssecConfig.state=on; private zones NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 56,
+   "control_path": "cis_v400/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_dnssec_enabled",
+   "query_line": 94,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "02200a323b20081f67eaf2b37fd74426aa94baebafe4da33be95d4d63f516571",
+   "status_case_sql": "case\n        when visibility = 'private' then 'skip'\n        when visibility = 'public' and (dnssec_config_state is null or dnssec_config_state = 'off') then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_3_4": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.ksk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC key-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 70,
+   "control_path": "cis_v400/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_key_signing_not_using_rsasha1",
+   "query_line": 42,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "dfea197bcd31a4fa90457b5d38ec880031aedf6d4cfd3ac8ea1b09ee3119caf9",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"keySigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_3_5": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.dns_zone.zsk_not_rsasha1"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/dns/docs/dnssec-advanced",
+   "https://cloud.google.com/dns/docs/reference/v1/managedZones"
+  ],
+  "reason": "Same predicate: DNSSEC zone-signing key specs must not use RSASHA1.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 84,
+   "control_path": "cis_v400/section_3.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "dns_managed_zone_zone_signing_not_using_rsasha1",
+   "query_line": 68,
+   "query_path": "policy_bundle/dns.pp",
+   "query_sha256": "54d6c7ac8ad05e0594c88c185ee307926433f15194f64fd74654c77bc0150fad",
+   "status_case_sql": "case\n      when visibility = 'private' then 'skip'\n      when dnssec_config_state is null then 'alarm'\n      when dnssec_config_default_key_specs @> '[{\"keyType\": \"zoneSigning\", \"algorithm\": \"rsasha1\"}]' then 'alarm'\n      else 'ok'\n    end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_5_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.storage.no_public_iam"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/storage/docs/access-control/iam",
+   "https://cloud.google.com/storage/docs/public-access-prevention"
+  ],
+  "reason": "Same predicate: the bucket IAM policy must not bind allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 21,
+   "control_path": "cis_v400/section_5.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "storage_bucket_not_publicly_accessible",
+   "query_line": 113,
+   "query_path": "policy_bundle/storage.pp",
+   "query_sha256": "857418dd2a8132136bb04365f14acf7a58fa9ace108af5c139a928303cac8ad5",
+   "status_case_sql": "case\n        when iam_policy ->> 'bindings' like any (array ['%allAuthenticatedUsers%','%allUsers%']) then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_6_6": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.sql_instance.second_gen_no_public_ip"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/configure-ip",
+   "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+  ],
+  "reason": "Same predicate: second-generation Cloud SQL instances must not have a PRIMARY (public) IP address; other backends NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 363,
+   "control_path": "cis_v400/section_6.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "sql_instance_with_no_public_ips",
+   "query_line": 402,
+   "query_path": "policy_bundle/sql.pp",
+   "query_sha256": "71a05002798afaf6c60a2735340170be573c9599fb736c19ef0b011b524f5e33",
+   "status_case_sql": "case\n        when ip_addresses @> '[{\"type\": \"PRIMARY\"}]' and backend_type = 'SECOND_GEN' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cis_v400_7_1": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.reviewed.bigquery.no_public_acl"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/bigquery/docs/control-access-to-resources-iam",
+   "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+  ],
+  "reason": "Same predicate: dataset access entries must not grant allUsers or allAuthenticatedUsers.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 23,
+   "control_path": "cis_v400/section_7.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "bigquery_dataset_not_publicly_accessible",
+   "query_line": 73,
+   "query_path": "policy_bundle/bigquery.pp",
+   "query_sha256": "b0eac7b8c7d7a255c3d7d25b9117ab10a11093bcd30c01ab2d0e39f39a6c4ff5",
+   "status_case_sql": "case\n        when access @> '[{\"specialGroup\": \"allAuthenticatedUsers\"}]' or access @> '[{\"iamMember\": \"allUsers\"}]' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cloudfunction_function_no_ingress_settings_allow_all": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.function.ingress_not_allow_all"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/functions/docs/networking/network-settings",
+   "https://cloud.google.com/functions/docs/reference/rest/v2/projects.locations.functions"
+  ],
+  "reason": "FAIL iff serviceConfig.ingressSettings is ALLOW_ALL; unspecified or unrecognized values UNKNOWN; deleting functions NOT_APPLICABLE.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 17,
+   "control_path": "policy_bundle/cloudfunction.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "cloudfunction_function_no_ingress_settings_allow_all",
+   "query_line": 76,
+   "query_path": "policy_bundle/cloudfunction.pp",
+   "query_sha256": "d9ae25668862bd24d8c5a48703cd2522a1e5e4f69068aa888d847eb69b5a8e94",
+   "status_case_sql": "case\n        when ingress_settings  = 'ALLOW_ALL' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cloudfunction_function_restrict_public_access": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.function.not_publicly_accessible"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/functions/docs/securing/managing-access-iam",
+   "https://cloud.google.com/run/docs/securing/managing-access"
+  ],
+  "reason": "FAIL when the function IAM policy binds allUsers/allAuthenticatedUsers unconditionally, or, for 2nd-gen functions, when the backing Cloud Run service (serviceConfig.service, unique join) grants roles/run.invoker publicly or disables invoker IAM. Conditional or non-invoker public bindings are MANUAL; a missing join is UNKNOWN.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 33,
+   "control_path": "policy_bundle/cloudfunction.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "cloudfunction_function_restrict_public_access",
+   "query_line": 127,
+   "query_path": "policy_bundle/cloudfunction.pp",
+   "query_sha256": "84da6b777300412985a180d2014d3404e6d01c1e32969d868771ba2c3429951b",
+   "status_case_sql": "case\n        when b.self_link is not null then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cloudfunction_function_vpc_connector_enabled": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.function.vpc_connector_configured"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/functions/docs/networking/connecting-vpc"
+  ],
+  "reason": "FAIL iff serviceConfig.vpcConnector is empty; Direct VPC egress or VPC access declared on the backing Cloud Run service is MANUAL.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 7,
+   "control_path": "policy_bundle/cloudfunction.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "cloudfunction_function_vpc_connector_enabled",
+   "query_line": 57,
+   "query_path": "policy_bundle/cloudfunction.pp",
+   "query_sha256": "20d06daff4070d8c69c27ff8e12fa551ce69b3a79937da750cbf852ad7648579",
+   "status_case_sql": "case\n        when vpc_connector is null or vpc_connector = '' then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "gcp-compliance.control.cloudrun_service_restrict_public_access": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.cloudrun_service.invoker_not_public"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/run/docs/securing/managing-access",
+   "https://cloud.google.com/run/docs/authenticating/public"
+  ],
+  "reason": "FAIL when roles/run.invoker (or roles/run.servicesInvoker) is bound unconditionally to allUsers/allAuthenticatedUsers, or invokerIamDisabled=true; other or conditional public bindings MANUAL.",
+  "source_review": {
+   "arguments": [],
+   "control_line": 7,
+   "control_path": "policy_bundle/cloudrun.pp",
+   "native_unit": "provider resource in the selected project",
+   "query_id": "cloudrun_service_restrict_public_access",
+   "query_line": 15,
+   "query_path": "policy_bundle/cloudrun.pp",
+   "query_sha256": "7ce67f68941577d094907a0305ebade1bfcfbccd1089e1c39d755e0588ee8d98",
+   "status_case_sql": "case\n        when b.self_link is not null then 'alarm'\n        else 'ok'\n      end"
+  }
+ },
+ "prowler.gcp.apikeys_key_exists": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.project.no_api_keys"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/docs/authentication/api-keys"
+  ],
+  "reason": "Same predicate as Prowler: FAIL when the project's complete API key inventory contains any non-deleted key.",
+  "source_review": {
+   "native_unit": "provider resource in the selected project",
+   "source_path": "prowler/providers/gcp/services/apikeys/apikeys_key_exists/apikeys_key_exists.py",
+   "source_sha256": "daa8ab108cb1fc29d0b6da42f1375d9cb1004932c9c89cf744050624e37d1e41"
+  }
+ },
+ "prowler.gcp.apikeys_key_rotated_in_90_days": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.api_key.created_within_90_days"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/docs/authentication/api-keys-best-practices",
+   "https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"
+  ],
+  "reason": "Prowler semantics: FAIL when the whole days since createTime exceed 90 (age >= 91 days) at snapshot capture time; deleted keys NOT_APPLICABLE; malformed timestamps UNKNOWN. Not merged onto gcp.ports.iam_api_key_age_90, whose calendar cutoff differs at the boundary.",
+  "source_review": {
+   "native_unit": "provider resource in the selected project",
+   "source_path": "prowler/providers/gcp/services/apikeys/apikeys_key_rotated_in_90_days/apikeys_key_rotated_in_90_days.py",
+   "source_sha256": "9376011069c96c4f96f4faf0f9d69394ebc2c17d48a94e090f111ce9d3905321"
+  }
+ },
+ "prowler.gcp.bigquery_dataset_cmk_encryption": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.bigquery_dataset.default_cmek"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/bigquery/docs/customer-managed-encryption",
+   "https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets"
+  ],
+  "reason": "FAIL when datasets.get details are collected and defaultEncryptionConfiguration.kmsKeyName is absent; UNKNOWN when details were not collected (the list response never carries the field).",
+  "source_review": {
+   "native_unit": "provider resource in the selected project",
+   "source_path": "prowler/providers/gcp/services/bigquery/bigquery_dataset_cmk_encryption/bigquery_dataset_cmk_encryption.py",
+   "source_sha256": "2da2972ce77ddb9286edc23022739de148bd1bb4c04269f78afed5c33c8e6490"
+  },
+  "supersedes": "prowler.gcp.bigquery_dataset_cmk_encryption"
+ },
+ "prowler.gcp.cloudfunction_function_inside_vpc": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.function.vpc_connector_configured"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/functions/docs/networking/connecting-vpc"
+  ],
+  "reason": "Same predicate as the Steampipe VPC connector control: FAIL iff serviceConfig.vpcConnector is empty; Direct VPC or service-level VPC access MANUAL.",
+  "source_review": {
+   "native_unit": "provider resource in the selected project",
+   "source_path": "prowler/providers/gcp/services/cloudfunction/cloudfunction_function_inside_vpc/cloudfunction_function_inside_vpc.py",
+   "source_sha256": "7d0331c9eb1f5530164b1b90562fa05437513a179e11a9d987a2327c33c32beb"
+  }
+ },
+ "prowler.gcp.cloudfunction_function_not_publicly_accessible": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.function.not_publicly_accessible"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/functions/docs/securing/managing-access-iam"
+  ],
+  "reason": "Same predicate as Prowler: function IAM for 1st gen and the backing Cloud Run service IAM for 2nd gen must not bind allUsers/allAuthenticatedUsers for invocation.",
+  "source_review": {
+   "native_unit": "provider resource in the selected project",
+   "source_path": "prowler/providers/gcp/services/cloudfunction/cloudfunction_function_not_publicly_accessible/cloudfunction_function_not_publicly_accessible.py",
+   "source_sha256": "0eb120f99ab07813ba543774b95924f477064ad71bc7d2c3f6ecc1606a2ac1b5"
+  }
+ },
+ "prowler.gcp.cloudsql_instance_private_ip_assignment": {
+  "disposition": "ported",
+  "native_checks": [
+   "gcp.claude2.sql_instance.only_private_ip_addresses"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances#ipmapping"
+  ],
+  "reason": "Prowler semantics: FAIL when any ipAddresses entry has a type other than PRIVATE (PRIMARY or OUTGOING); EXTERNAL source representations NOT_APPLICABLE.",
+  "source_review": {
+   "native_unit": "provider resource in the selected project",
+   "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_private_ip_assignment/cloudsql_instance_private_ip_assignment.py",
+   "source_sha256": "6b62050e0adcb3b91ab002bfdc1acf402b238030a8b540a935271263d67b5681"
+  }
+ },
+ "prowler.gcp.cloudsql_instance_public_ip": {
+  "disposition": "merged",
+  "native_checks": [
+   "gcp.claude.sql_instance.second_gen_no_public_ip"
+  ],
+  "official_docs": [
+   "https://cloud.google.com/sql/docs/mysql/configure-ip"
+  ],
+  "reason": "Prowler fails when any ipAddresses entry is PRIMARY; the native applies that to second-generation instances (EXTERNAL source representations carry no assigned address and are NOT_APPLICABLE).",
+  "source_review": {
+   "native_unit": "provider resource in the selected project",
+   "source_path": "prowler/providers/gcp/services/cloudsql/cloudsql_instance_public_ip/cloudsql_instance_public_ip.py",
+   "source_sha256": "e542d0c5ba4d9ec2e5b754190c49e71ab40ed5f060d1957cea6669cc3d461c71"
+  }
+ }
+}

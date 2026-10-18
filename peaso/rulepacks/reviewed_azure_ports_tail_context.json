@@ -1,0 +1,448 @@
+{
+  "azure-compliance.control.ad_disabled_user_no_role_assignments": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.ad_disabled_user_no_role_assignments"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "ad_disabled_user_no_role_assignments",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 290,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    ), disabled_accounts_with_roles as (\n      select\n        distinct\n        u.display_name,\n        u.tenant_id,\n        u.id,\n        u.account_enabled,\n        u.user_principal_name\n      from\n        azuread_user as u\n        left join azure_role_assignment as a on a.principal_id = u.id\n      where\n      not u.account_enabled  and\n      a.principal_id is not null\n    )\n    select\n      u.user_principal_name as resource,\n      case\n        when u.account_enabled then 'skip'\n        when not u.account_enabled and d.display_name is not null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when u.account_enabled then u.display_name || ' is enabled account.'\n        when not u.account_enabled and d.display_name is not null then u.display_name || ' is disabled and has roles assigned.'\n        else u.display_name || ' account is disabled with no roles assigned.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      azuread_user as u\n      left join disabled_accounts_with_roles as d on u.id =  d.id\n      left join distinct_tenant as t on t.tenant_id = d.tenant_id",
+      "query_sha256": "a56c1a2ca06dba1a7964dfbc6ec6b3589fc6ed46a6ca9586d3f2d6443d82e2a6",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "128e6b964bf7d924c4dd3bc5bdd8890c92eb6e792edbee0a631e9b1f063f921f",
+      "upstream_evaluator_sha256": "a56c1a2ca06dba1a7964dfbc6ec6b3589fc6ed46a6ca9586d3f2d6443d82e2a6",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": true
+    }
+  },
+  "azure-compliance.control.appservice_api_app_uses_managed_identity": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_api_app_uses_managed_identity"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "appservice_api_app_uses_managed_identity",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 933,
+      "pinned_sql": "with all_api_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like '%api'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when\n          configuration -> 'properties' ->> 'xManagedServiceIdentityId' is not null\n          or configuration -> 'properties' ->> 'managedServiceIdentityId' is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when\n          configuration -> 'properties' ->> 'xManagedServiceIdentityId' is not null\n          or configuration -> 'properties' ->> 'managedServiceIdentityId' is not null\n          then a.name || ' uses managed identity.'\n        else a.name || ' not uses managed identity'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_api_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "7b06c2f866e85fd35322684a8ae4372a891458ed879e468345a71691a617f832",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "e4e75b841020f8c250b32a78972b41c0385d9cdbacb4259a35a91ced784b003a",
+      "upstream_evaluator_sha256": "7b06c2f866e85fd35322684a8ae4372a891458ed879e468345a71691a617f832",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "azure-compliance.control.appservice_function_app_uses_managed_identity": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_function_app_uses_managed_identity"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "appservice_function_app_uses_managed_identity",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 976,
+      "pinned_sql": "with all_function_app as (\n      select\n        id\n      from\n        azure_app_service_function_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'functionapp%'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when\n          configuration -> 'properties' ->> 'xManagedServiceIdentityId' is not null\n          or configuration -> 'properties' ->> 'managedServiceIdentityId' is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when\n          configuration -> 'properties' ->> 'xManagedServiceIdentityId' is not null\n          or configuration -> 'properties' ->> 'managedServiceIdentityId' is not null\n          then a.name || ' uses managed identity.'\n        else a.name || ' does not use managed identity'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app as a\n      left join all_function_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "a97151c2224696f8dc51c33fa34735a64bda84386f603b6c05bf326cad2fa4f8",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "27ba96080bdbfbe2f4e6a89359834229f532ccf3e77d72190aa06336adfc3b99",
+      "upstream_evaluator_sha256": "a97151c2224696f8dc51c33fa34735a64bda84386f603b6c05bf326cad2fa4f8",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "azure-compliance.control.appservice_web_app_use_virtual_service_endpoint": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_use_virtual_service_endpoint"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "appservice_web_app_use_virtual_service_endpoint",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 656,
+      "pinned_sql": "select\n      a.id as resource,\n      case\n        when vnet_connection -> 'properties' -> 'vnetResourceId' is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when vnet_connection -> 'properties' -> 'vnetResourceId' is not null then a.name || ' configured with virtual network service endpoint.'\n        else a.name || ' not configured with virtual network service endpoint.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join azure_subscription sub on a.subscription_id = sub.subscription_id;",
+      "query_sha256": "a50a7d2116f12f4b204ff68a491924ce648d84cad8f368a8dadfc496a44eabca",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "6e5c63b97bd3b9fa6a5241a5b4cff83914b81148d296e0c2b1554d17b886525c",
+      "upstream_evaluator_sha256": "a50a7d2116f12f4b204ff68a491924ce648d84cad8f368a8dadfc496a44eabca",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "azure-compliance.control.appservice_web_app_uses_managed_identity": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_uses_managed_identity"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "appservice_web_app_uses_managed_identity",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 890,
+      "pinned_sql": "with all_web_app as (\n      select\n        id\n      from\n        azure_app_service_web_app\n      where\n        exists (\n          select\n          from\n            unnest(regexp_split_to_array(kind, ',')) elem\n          where\n            elem like 'app%'\n      )\n    )\n    select\n      a.id as resource,\n      case\n        when b.id is null then 'skip'\n        when\n          configuration -> 'properties' ->> 'xManagedServiceIdentityId' is not null\n          or configuration -> 'properties' ->> 'managedServiceIdentityId' is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when b.id is null then a.title || ' is ' || a.kind || ' kind.'\n        when\n          configuration -> 'properties' ->> 'xManagedServiceIdentityId' is not null\n          or configuration -> 'properties' ->> 'managedServiceIdentityId' is not null\n          then a.name || ' uses managed identity.'\n        else a.name || ' not uses managed identity'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_web_app as a\n      left join all_web_app as b on a.id = b.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "375b5a01cbf7d2bf6b04dcf77518b7ece527f4daa193dda30a2ab7850193aa16",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "d30a80c2c6fef0f882605a429bef63ed3e4598be5e19141be6a83ba9d74bef21",
+      "upstream_evaluator_sha256": "375b5a01cbf7d2bf6b04dcf77518b7ece527f4daa193dda30a2ab7850193aa16",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "azure-compliance.control.appservice_web_app_worker_more_than_one": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_worker_more_than_one"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "appservice_web_app_worker_more_than_one",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1727,
+      "pinned_sql": "select\n      p ->> 'ID' as resource,\n      case\n        when (p -> 'SiteProperties' -> 'siteConfig' ->> 'numberOfWorkers')::int > 1 then 'ok'\n        else 'alarm'\n      end as status,\n        a.name || ' has ' || (p -> 'SiteProperties' -> 'siteConfig' ->> 'numberOfWorkers') || ' no of worker(s).' as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_plan as a\n      cross join lateral jsonb_array_elements(a.apps) as p\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;",
+      "query_sha256": "3a14c15e7a3615b09e91dc4d5c2ab78df243da784a7f0af3d174a705eaaba9b1",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "b84726fbe6072f496b011d0b56d173475bf0bbdd55f83ce8032f234cbb929463",
+      "upstream_evaluator_sha256": "3a14c15e7a3615b09e91dc4d5c2ab78df243da784a7f0af3d174a705eaaba9b1",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "azure-compliance.control.cis_v400_9_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.security_center_attack_path_alerts_enabled"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "security_center_attack_path_alerts_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 905,
+      "pinned_sql": "with contact_info as (\n      select\n        subscription_id,\n        count(*) filter (where alert_notifications = 'On') as notification_alert_count\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n    )\n    select\n      c.id as resource,\n      case\n        when c.name = 'AttackPath' and c.enabled and ci.notification_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when c.name = 'AttackPath' and c.enabled and ci.notification_alert_count > 0 then 'Attack path notifications are enabled.'\n        when c.name = 'AttackPath' and not c.enabled then 'Attack path notifications are disabled.'\n        when ci.notification_alert_count = 0 then 'Security alert notifications are disabled.'\n        else 'Attack path notifications not configured.'\n      end as reason,\n      c.subscription_id,\n      c.cloud_environment\n    from\n      azure_security_center_setting c\n      left join contact_info ci on c.subscription_id = ci.subscription_id\n    where\n      c.name = 'AttackPath';",
+      "query_sha256": "48de26fc49800b69bc423aba6d3eb51bd3590f93b34da4627041beb2f0e0e0cc",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "51b1c0f5c3c589c7a5ff9bebf0e8b4cce612f079774fecbc81a74db3888fa898",
+      "upstream_evaluator_sha256": "48de26fc49800b69bc423aba6d3eb51bd3590f93b34da4627041beb2f0e0e0cc",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256.",
+      "native_scope": "Selected subscription with exactly one authoritative legacy AttackPath setting; absence/ambiguity is UNKNOWN, never EMPTY/NOT_APPLICABLE success."
+    },
+    "runtime_provider_supported": false,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege. Current availability of the legacy named AttackPath setting is not verified by current official settings documentation; genuine captured predicate is retained, but native runtime coverage is not claimed until that provider context is proven.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false,
+      "current_provider_constraint_unproven": true
+    }
+  },
+  "azure-compliance.control.cis_v500_5_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.ad_disabled_user_no_role_assignments"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "ad_disabled_user_no_role_assignments",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 290,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    ), disabled_accounts_with_roles as (\n      select\n        distinct\n        u.display_name,\n        u.tenant_id,\n        u.id,\n        u.account_enabled,\n        u.user_principal_name\n      from\n        azuread_user as u\n        left join azure_role_assignment as a on a.principal_id = u.id\n      where\n      not u.account_enabled  and\n      a.principal_id is not null\n    )\n    select\n      u.user_principal_name as resource,\n      case\n        when u.account_enabled then 'skip'\n        when not u.account_enabled and d.display_name is not null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when u.account_enabled then u.display_name || ' is enabled account.'\n        when not u.account_enabled and d.display_name is not null then u.display_name || ' is disabled and has roles assigned.'\n        else u.display_name || ' account is disabled with no roles assigned.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      azuread_user as u\n      left join disabled_accounts_with_roles as d on u.id =  d.id\n      left join distinct_tenant as t on t.tenant_id = d.tenant_id",
+      "query_sha256": "a56c1a2ca06dba1a7964dfbc6ec6b3589fc6ed46a6ca9586d3f2d6443d82e2a6",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "128e6b964bf7d924c4dd3bc5bdd8890c92eb6e792edbee0a631e9b1f063f921f",
+      "upstream_evaluator_sha256": "a56c1a2ca06dba1a7964dfbc6ec6b3589fc6ed46a6ca9586d3f2d6443d82e2a6",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": true
+    }
+  },
+  "azure-compliance.control.cis_v500_8_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.security_center_attack_path_alerts_enabled"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "security_center_attack_path_alerts_enabled",
+      "query_path": "regulatory_compliance/securitycenter.pp",
+      "query_line": 905,
+      "pinned_sql": "with contact_info as (\n      select\n        subscription_id,\n        count(*) filter (where alert_notifications = 'On') as notification_alert_count\n      from\n        azure_security_center_contact\n      group by\n        subscription_id\n    )\n    select\n      c.id as resource,\n      case\n        when c.name = 'AttackPath' and c.enabled and ci.notification_alert_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when c.name = 'AttackPath' and c.enabled and ci.notification_alert_count > 0 then 'Attack path notifications are enabled.'\n        when c.name = 'AttackPath' and not c.enabled then 'Attack path notifications are disabled.'\n        when ci.notification_alert_count = 0 then 'Security alert notifications are disabled.'\n        else 'Attack path notifications not configured.'\n      end as reason,\n      c.subscription_id,\n      c.cloud_environment\n    from\n      azure_security_center_setting c\n      left join contact_info ci on c.subscription_id = ci.subscription_id\n    where\n      c.name = 'AttackPath';",
+      "query_sha256": "48de26fc49800b69bc423aba6d3eb51bd3590f93b34da4627041beb2f0e0e0cc",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "pinned_sql_sha256": "51b1c0f5c3c589c7a5ff9bebf0e8b4cce612f079774fecbc81a74db3888fa898",
+      "upstream_evaluator_sha256": "48de26fc49800b69bc423aba6d3eb51bd3590f93b34da4627041beb2f0e0e0cc",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256.",
+      "native_scope": "Selected subscription with exactly one authoritative legacy AttackPath setting; absence/ambiguity is UNKNOWN, never EMPTY/NOT_APPLICABLE success."
+    },
+    "runtime_provider_supported": false,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege. Current availability of the legacy named AttackPath setting is not verified by current official settings documentation; genuine captured predicate is retained, but native runtime coverage is not claimed until that provider context is proven.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false,
+      "current_provider_constraint_unproven": true
+    }
+  },
+  "prowler.azure.app_ensure_java_version_is_latest": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_ensure_java_version_is_latest"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_ensure_java_version_is_latest/app_ensure_java_version_is_latest.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_ensure_java_version_is_latest(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for (\n            subscription_id,\n            apps,\n        ) in app_client.apps.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for app in apps.values():\n                linux_framework = getattr(app.configurations, \"linux_fx_version\", \"\")\n                windows_framework_version = getattr(\n                    app.configurations, \"java_version\", None\n                )\n\n                if \"java\" in linux_framework.lower() or windows_framework_version:\n                    report = Check_Report_Azure(metadata=self.metadata(), resource=app)\n                    report.subscription = subscription_id\n                    report.status = \"FAIL\"\n                    java_latest_version = app_client.audit_config.get(\n                        \"java_latest_version\", \"17\"\n                    )\n                    report.status_extended = f\"Java version is set to '{f'java{windows_framework_version}' if windows_framework_version else linux_framework}', but should be set to 'java {java_latest_version}' for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                    if (\n                        f\"java{java_latest_version}\" in linux_framework\n                        or java_latest_version == windows_framework_version\n                    ):\n                        report.status = \"PASS\"\n                        report.status_extended = f\"Java version is set to 'java {java_latest_version}' for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                    findings.append(report)\n\n        return findings\n",
+      "source_sha256": "6ff5cf74082d6feac1910e58373f0087ff912db1551dc2fd0ca5abf4ecb4e5a8",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_ensure_java_version_is_latest"
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "prowler.azure.app_ensure_php_version_is_latest": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_ensure_php_version_is_latest"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_ensure_php_version_is_latest/app_ensure_php_version_is_latest.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_ensure_php_version_is_latest(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for (\n            subscription_id,\n            apps,\n        ) in app_client.apps.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for app in apps.values():\n                framework = getattr(app.configurations, \"linux_fx_version\", \"\")\n\n                if \"php\" in framework.lower() or getattr(\n                    app.configurations, \"php_version\", \"\"\n                ):\n                    report = Check_Report_Azure(metadata=self.metadata(), resource=app)\n                    report.subscription = subscription_id\n                    report.status = \"FAIL\"\n\n                    php_latest_version = app_client.audit_config.get(\n                        \"php_latest_version\", \"8.2\"\n                    )\n\n                    report.status_extended = f\"PHP version is set to '{framework}', the latest version that you could use is the '{php_latest_version}' version, for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                    if (\n                        php_latest_version in framework\n                        or getattr(app.configurations, \"php_version\", None)\n                        == php_latest_version\n                    ):\n                        report.status = \"PASS\"\n                        report.status_extended = f\"PHP version is set to '{php_latest_version}' for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                    findings.append(report)\n\n        return findings\n",
+      "source_sha256": "85fb55380e2cbd73715d00501bb88d2b1956a77b6ae5b74d7b62ef87430db83a",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_ensure_php_version_is_latest"
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "prowler.azure.app_ensure_python_version_is_latest": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_ensure_python_version_is_latest"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_ensure_python_version_is_latest/app_ensure_python_version_is_latest.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_ensure_python_version_is_latest(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for (\n            subscription_id,\n            apps,\n        ) in app_client.apps.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for app in apps.values():\n                framework = getattr(app.configurations, \"linux_fx_version\", \"\")\n\n                if \"python\" in framework.lower() or getattr(\n                    app.configurations, \"python_version\", \"\"\n                ):\n                    report = Check_Report_Azure(metadata=self.metadata(), resource=app)\n                    report.subscription = subscription_id\n                    report.status = \"FAIL\"\n                    python_latest_version = app_client.audit_config.get(\n                        \"python_latest_version\", \"3.12\"\n                    )\n                    report.status_extended = f\"Python version is '{framework}', the latest version that you could use is the '{python_latest_version}' version, for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                    if (\n                        python_latest_version in framework\n                        or getattr(app.configurations, \"python_version\", None)\n                        == python_latest_version\n                    ):\n                        report.status = \"PASS\"\n                        report.status_extended = f\"Python version is set to '{python_latest_version}' for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                    findings.append(report)\n\n        return findings\n",
+      "source_sha256": "7407a8c5ebe42996f5e1f294a0029187033af02d9de3e70ae43a1d5f4c3b954b",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_ensure_python_version_is_latest"
+    },
+    "runtime_provider_supported": true,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": false,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "prowler.azure.app_function_application_insights_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_function_application_insights_enabled"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_application_insights_enabled/app_function_application_insights_enabled.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_function_application_insights_enabled(Check):\n    def execute(self):\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                if function.environment_variables is not None:\n                    report = Check_Report_Azure(\n                        metadata=self.metadata(), resource=function\n                    )\n                    report.subscription = subscription_id\n                    report.status = \"FAIL\"\n                    report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) is not using Application Insights.\"\n\n                    if function.environment_variables.get(\n                        \"APPINSIGHTS_INSTRUMENTATIONKEY\", None\n                    ) or function.environment_variables.get(\n                        \"APPLICATIONINSIGHTS_CONNECTION_STRING\", None\n                    ):\n                        report.status = \"PASS\"\n                        report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) is using Application Insights.\"\n\n                    findings.append(report)\n\n        return findings\n",
+      "source_sha256": "8b52f76c4096ae224e5771b007d8dda19eb6c29826dc733c997eb721a3b4bc28",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_function_application_insights_enabled"
+    },
+    "runtime_provider_supported": false,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": true,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  },
+  "prowler.azure.app_function_latest_runtime_version": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.app_function_latest_runtime_version"
+    ],
+    "reason": "Inspected full pinned source and current native field contracts. Genuine snapshot predicate has pass/fail/unknown paths; literal legacy ID/runtime and conditional VA criteria, selected scopes, exact plan/native ID joins and source applicability preserved. Missing/admin/provider/version context remains UNKNOWN, never false scalar-empty success.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_latest_runtime_version/app_function_latest_runtime_version.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_function_latest_runtime_version(Check):\n    def execute(self):\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                if function.environment_variables is not None:\n                    report = Check_Report_Azure(\n                        metadata=self.metadata(), resource=function\n                    )\n                    report.subscription = subscription_id\n                    report.status = \"PASS\"\n                    report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) is using the latest runtime.\"\n\n                    if (\n                        function.environment_variables.get(\n                            \"FUNCTIONS_EXTENSION_VERSION\", \"\"\n                        )\n                        != \"~4\"\n                    ):\n                        report.status = \"FAIL\"\n                        report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) is not using the latest runtime. The current runtime is '{function.environment_variables.get('FUNCTIONS_EXTENSION_VERSION', '')}' and should be '~4'.\"\n\n                    findings.append(report)\n\n        return findings\n",
+      "source_sha256": "3af2f21791dc581a99a7893e11e057c1dc125a0d780978b0e862e0ee2ad4369c",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "query_id": "app_function_latest_runtime_version"
+    },
+    "runtime_provider_supported": false,
+    "review_notes": "Captured-only app setting evidence is nonsecret flags/extension-version metadata; native collector never calls secret-bearing appsettings/list. It is not counted as supported native collection. Legacy SQL VA null storage requires known enabled express context; otherwise UNKNOWN, and no email or periodic flag is invented. Disabled-user assignments are only complete captured same-tenant ARM scopes, not inaccessible/global/effective privilege.",
+    "fact_requirements": {
+      "captured_only": true,
+      "legacy_sql_va_mode_required": false,
+      "same_tenant_complete_assignment_inventory_required": false
+    }
+  }
+}

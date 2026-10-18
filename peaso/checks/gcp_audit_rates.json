@@ -1,0 +1,46 @@
+{
+  "gcp_logging_detect_t1518": {
+    "id": "gcp_logging_detect_t1518",
+    "provider": "gcp",
+    "resource_kind": "audit_log",
+    "data_source": "new read-only Cloud Logging entries.list for the project audit log with timestamp,protoPayload.methodName,protoPayload.authenticationInfo.principalEmail,protoPayload.status.code",
+    "predicate": "FAIL when successful google.cloud.osconfig.v1.OsConfigZonalService.GetInventory or google.cloud.osconfig.v1alpha.OsConfigZonalService.GetInventory audit events for one principalEmail exceed the explicitly supplied approved_list_rate within 300 seconds. PASS describes only observed matching events in the selected complete log window. UNKNOWN without matching entries, the supplied rate, readable identities/status, or complete selected pages; no event absence or Data Access logging enablement is inferred.",
+    "severity": "medium",
+    "category": "threat_detection",
+    "title": "Suspicious software discovery",
+    "description": "On audit log resources, detects when successful osconfig.inventories.get events for one principalEmail exceed approved_list_rate within 300 seconds; this matters because it can lead to suspicious activity that needs investigation.",
+    "remediation_hint": "Investigate inventory reads over approved_list_rate; remove OS Config inventory access from unauthorized principals.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "mitre_attack_gcp",
+        "requirement_id": "T1518"
+      }
+    ],
+    "needs_new_collection": true,
+    "review_status": "native_rpc_names_verified",
+    "api_ref": "https://docs.cloud.google.com/compute/vm-manager/docs/audit-logging"
+  },
+  "gcp_logging_detect_t1614": {
+    "id": "gcp_logging_detect_t1614",
+    "provider": "gcp",
+    "resource_kind": "audit_log",
+    "data_source": "new read-only Cloud Logging entries.list for the project audit log with timestamp,protoPayload.methodName,protoPayload.authenticationInfo.principalEmail,protoPayload.status.code",
+    "predicate": "FAIL when successful v1.compute.regions.list or v1.compute.zones.list AuditLog methodName events for one principalEmail exceed explicitly supplied approved_list_rate within 300 seconds. PASS describes only observed matching events in the selected complete log window. UNKNOWN without matching entries, the supplied rate, readable identities/status, or complete selected pages; no event absence or Data Access logging enablement is inferred.",
+    "severity": "medium",
+    "category": "threat_detection",
+    "title": "Suspicious region discovery",
+    "description": "On audit log resources, detects when successful compute.regions.list or compute.zones.list events for one principalEmail exceed approved_list_rate within 300 seconds; this matters because it can lead to suspicious activity that needs investigation.",
+    "remediation_hint": "Investigate Compute region/zone listing bursts and narrow the caller's discovery permissions.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "mitre_attack_gcp",
+        "requirement_id": "T1614"
+      }
+    ],
+    "needs_new_collection": true,
+    "review_status": "native_rpc_names_verified",
+    "api_ref": "https://docs.cloud.google.com/compute/docs/logging/audit-logging"
+  }
+}

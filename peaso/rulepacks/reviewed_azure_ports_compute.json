@@ -1,0 +1,742 @@
+{
+  "azure-compliance.control.cis_v130_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_utilizing_managed_disk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_utilizing_managed_disk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2581,
+      "query_sha256": "4f92706faad91ea5a3d017a43671ddb232295168ba6d95e620ec30744625d7e0",
+      "control_path": "cis_v130/section_7.pp",
+      "control_line": 26,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when managed_disk_id is null then vm.name || ' VM not utilizing managed disks.'\n        else vm.name || ' VM utilizing managed disks.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine as vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v130_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_os_and_data_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_os_and_data_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 914,
+      "query_sha256": "a2610472441dddab4a39dcb669bdbcc6a3df46f76e35bdd66a2162508b4e1f78",
+      "control_path": "cis_v130/section_7.pp",
+      "control_line": 40,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state = 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v130_7_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_unattached_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_unattached_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1001,
+      "query_sha256": "332f7ed6a095848a4e1f258aa50689d29de927b719e1a2e650e68f587cc7920a",
+      "control_path": "cis_v130/section_7.pp",
+      "control_line": 54,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state != 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_utilizing_managed_disk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_utilizing_managed_disk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2581,
+      "query_sha256": "4f92706faad91ea5a3d017a43671ddb232295168ba6d95e620ec30744625d7e0",
+      "control_path": "cis_v140/section_7.pp",
+      "control_line": 26,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when managed_disk_id is null then vm.name || ' VM not utilizing managed disks.'\n        else vm.name || ' VM utilizing managed disks.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine as vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_os_and_data_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_os_and_data_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 914,
+      "query_sha256": "a2610472441dddab4a39dcb669bdbcc6a3df46f76e35bdd66a2162508b4e1f78",
+      "control_path": "cis_v140/section_7.pp",
+      "control_line": 40,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state = 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_7_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_unattached_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_unattached_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1001,
+      "query_sha256": "332f7ed6a095848a4e1f258aa50689d29de927b719e1a2e650e68f587cc7920a",
+      "control_path": "cis_v140/section_7.pp",
+      "control_line": 54,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state != 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_7_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_utilizing_managed_disk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_utilizing_managed_disk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2581,
+      "query_sha256": "4f92706faad91ea5a3d017a43671ddb232295168ba6d95e620ec30744625d7e0",
+      "control_path": "cis_v150/section_7.pp",
+      "control_line": 25,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when managed_disk_id is null then vm.name || ' VM not utilizing managed disks.'\n        else vm.name || ' VM utilizing managed disks.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine as vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_os_and_data_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_os_and_data_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 914,
+      "query_sha256": "a2610472441dddab4a39dcb669bdbcc6a3df46f76e35bdd66a2162508b4e1f78",
+      "control_path": "cis_v150/section_7.pp",
+      "control_line": 39,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state = 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_7_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_unattached_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_unattached_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1001,
+      "query_sha256": "332f7ed6a095848a4e1f258aa50689d29de927b719e1a2e650e68f587cc7920a",
+      "control_path": "cis_v150/section_7.pp",
+      "control_line": 53,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state != 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_utilizing_managed_disk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_utilizing_managed_disk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2581,
+      "query_sha256": "4f92706faad91ea5a3d017a43671ddb232295168ba6d95e620ec30744625d7e0",
+      "control_path": "cis_v200/section_7.pp",
+      "control_line": 40,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when managed_disk_id is null then vm.name || ' VM not utilizing managed disks.'\n        else vm.name || ' VM utilizing managed disks.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine as vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_7_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_os_and_data_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_os_and_data_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 914,
+      "query_sha256": "a2610472441dddab4a39dcb669bdbcc6a3df46f76e35bdd66a2162508b4e1f78",
+      "control_path": "cis_v200/section_7.pp",
+      "control_line": 54,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state = 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_7_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_unattached_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_unattached_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1001,
+      "query_sha256": "332f7ed6a095848a4e1f258aa50689d29de927b719e1a2e650e68f587cc7920a",
+      "control_path": "cis_v200/section_7.pp",
+      "control_line": 68,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state != 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_7_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_utilizing_managed_disk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_utilizing_managed_disk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2581,
+      "query_sha256": "4f92706faad91ea5a3d017a43671ddb232295168ba6d95e620ec30744625d7e0",
+      "control_path": "cis_v210/section_7.pp",
+      "control_line": 42,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when managed_disk_id is null then vm.name || ' VM not utilizing managed disks.'\n        else vm.name || ' VM utilizing managed disks.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine as vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_7_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_os_and_data_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_os_and_data_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 914,
+      "query_sha256": "a2610472441dddab4a39dcb669bdbcc6a3df46f76e35bdd66a2162508b4e1f78",
+      "control_path": "cis_v210/section_7.pp",
+      "control_line": 56,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state = 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_7_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_unattached_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_unattached_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1001,
+      "query_sha256": "332f7ed6a095848a4e1f258aa50689d29de927b719e1a2e650e68f587cc7920a",
+      "control_path": "cis_v210/section_7.pp",
+      "control_line": 70,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state != 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_7_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_trust_launch_enabled"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_trust_launch_enabled",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2824,
+      "query_sha256": "635c35847d9110ba1663e9c447cd93b276ae3860461b368d35d972a1cff0e202",
+      "control_path": "cis_v210/section_7.pp",
+      "control_line": 140,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then 'skip'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then 'skip'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then vm.name || ' not using trust launch security type.'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then vm.name || ' trusted launch enabled.'\n        else vm.name || ' trusted launch disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_8_11": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_trust_launch_enabled"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_trust_launch_enabled",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2824,
+      "query_sha256": "635c35847d9110ba1663e9c447cd93b276ae3860461b368d35d972a1cff0e202",
+      "control_path": "cis_v300/section_8.pp",
+      "control_line": 170,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then 'skip'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then 'skip'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then vm.name || ' not using trust launch security type.'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then vm.name || ' trusted launch enabled.'\n        else vm.name || ' trusted launch disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_8_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_utilizing_managed_disk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_utilizing_managed_disk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2581,
+      "query_sha256": "4f92706faad91ea5a3d017a43671ddb232295168ba6d95e620ec30744625d7e0",
+      "control_path": "cis_v300/section_8.pp",
+      "control_line": 44,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when managed_disk_id is null then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when managed_disk_id is null then vm.name || ' VM not utilizing managed disks.'\n        else vm.name || ' VM utilizing managed disks.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine as vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_8_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_os_and_data_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_os_and_data_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 914,
+      "query_sha256": "a2610472441dddab4a39dcb669bdbcc6a3df46f76e35bdd66a2162508b4e1f78",
+      "control_path": "cis_v300/section_8.pp",
+      "control_line": 58,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state = 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_8_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_unattached_disk_encrypted_with_cmk"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_unattached_disk_encrypted_with_cmk",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1001,
+      "query_sha256": "332f7ed6a095848a4e1f258aa50689d29de927b719e1a2e650e68f587cc7920a",
+      "control_path": "cis_v300/section_8.pp",
+      "control_line": 72,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when encryption_type = 'EncryptionAtRestWithCustomerKey' then disk.name || ' encrypted with CMK.'\n        else disk.name || ' not encrypted with CMK.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk,\n      azure_subscription sub\n    where\n      disk_state != 'Attached'\n      and sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_8_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.disk.private_export"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_disk_public_access_disabled",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2782,
+      "query_sha256": "f508a9f46bd3c7f2228b47dfc02eae1868ac1f421d1cc30604dc34b818991539",
+      "control_path": "cis_v300/section_8.pp",
+      "control_line": 86,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when network_access_policy in ('DenyAll','AllowPrivate') and public_network_access = 'Disabled' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when network_access_policy in ('DenyAll','AllowPrivate') and public_network_access = 'Disabled' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when network_access_policy in ('DenyAll','AllowPrivate') and public_network_access = 'Disabled' then disk.name || ' network access disabled.'\n        else disk.name || ' network access enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk\n      left join azure_subscription as sub on sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v300_8_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.disk.entra_export_auth"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_disk_data_access_auth_mode_enabled",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2803,
+      "query_sha256": "487152e4d3e77ed13a293a9100c0c44ba5a9702ba5dbf1d7e945b17461c196da",
+      "control_path": "cis_v300/section_8.pp",
+      "control_line": 100,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when data_access_auth_mode = 'AzureActiveDirectory' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_disk",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      disk.id as resource,\n      case\n        when data_access_auth_mode = 'AzureActiveDirectory' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when data_access_auth_mode = 'AzureActiveDirectory' then disk.name || ' data authentication mode enabled.'\n        else disk.name || ' data authentication mode disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"disk.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_disk disk\n      left join azure_subscription as sub on sub.subscription_id = disk.subscription_id;"
+    }
+  },
+  "azure-compliance.control.compute_vm_and_sacle_set_encryption_at_host_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.vm.encryption_at_host",
+      "azure.port.vmss_encryption_at_host"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_and_sacle_set_encryption_at_host_enabled",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2371,
+      "query_sha256": "a4886d1168a79a90afdd3e4384fb81935bae7a2101c0fc5c27a8ef7d745226a9",
+      "control_path": "regulatory_compliance/compute.pp",
+      "control_line": 600,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when security_profile -> 'encryptionAtHost' = 'true' then 'ok'\n          else 'alarm'\n        end",
+        "case\n          when virtual_machine_security_profile -> 'encryptionAtHost' = 'true' then 'ok'\n          else 'alarm'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_compute_virtual_machine_scale_set",
+        "azure_subscription"
+      ],
+      "pinned_sql": "(\n      select\n        a.id as resource,\n        case\n          when security_profile -> 'encryptionAtHost' = 'true' then 'ok'\n          else 'alarm'\n        end as status,\n        case\n          when security_profile -> 'encryptionAtHost' = 'true' then a.name || ' encryption at host enabled.'\n          else a.name || ' encryption at host disabled.'\n        end as reason\n        ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n        ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n        ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n      from\n        azure_compute_virtual_machine as a\n        left join azure_subscription as sub on sub.subscription_id = a.subscription_id\n    )\n    union\n    (\n      select\n        a.id as resource,\n        case\n          when virtual_machine_security_profile -> 'encryptionAtHost' = 'true' then 'ok'\n          else 'alarm'\n        end as status,\n        case\n          when virtual_machine_security_profile -> 'encryptionAtHost' = 'true' then a.name || ' encryption at host enabled.'\n          else a.name || ' encryption at host disabled.'\n        end as reason\n        ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n        ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n        ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n      from\n        azure_compute_virtual_machine_scale_set as a\n        left join azure_subscription as sub on sub.subscription_id = a.subscription_id\n    )"
+    }
+  },
+  "azure-compliance.control.compute_vm_ssh_key_authentication_linux": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_ssh_key_authentication_linux"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_ssh_key_authentication_linux",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 1789,
+      "query_sha256": "45724c1f59f5753bc59b06b53059e16154748422ebb253f8899c19ddf724f66b",
+      "control_path": "regulatory_compliance/compute.pp",
+      "control_line": 386,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when a.os_type <> 'Linux' then 'skip'\n        when b.vm_id is not null then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine"
+      ],
+      "pinned_sql": "with vm_ssh_key_auth as (\n      select\n        distinct a.vm_id\n      from\n        azure_compute_virtual_machine as a,\n        jsonb_array_elements(guest_configuration_assignments) as b\n      where\n        b -> 'guestConfiguration' ->> 'name'= 'LinuxNoPasswordForSSH'\n        and b ->> 'complianceStatus' = 'Compliant'\n    )\n    select\n      a.vm_id as resource,\n      case\n        when a.os_type <> 'Linux' then 'skip'\n        when b.vm_id is not null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when a.os_type <> 'Linux' then a.title || ' is of ' || a.os_type || ' operating system.'\n        when b.vm_id is not null then a.title || ' have SSH keys authentication.'\n        else a.title || ' does not have SSH keys authentication.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine as a\n      left join vm_ssh_key_auth as b on a.vm_id = b.vm_id,\n      azure_subscription as sub\n    where\n      sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.compute_vm_trust_launch_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.compute_vm_trust_launch_enabled"
+    ],
+    "reason": "Inspected complete pinned query and no-argument delegation. Preserve literal Attached equality/complement (Reserved distinction), exact customer-only encryption (double encryption distinct), OS managed ID presence (ephemeral not skipped), TrustedLaunch-only eligibility and twoUEFIflags, observed Linux guest-assignment compliance, and VM/VMSS union targets. Reuse only exact disk network/auth scalars and VM encryption-host half; no broad merge with differently scoped Claude predicates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/compute/disks/get?view=rest-compute-2026-03-02",
+      "https://learn.microsoft.com/en-us/rest/api/compute/virtual-machines/get?view=rest-compute-2025-04-01",
+      "https://learn.microsoft.com/en-us/rest/api/guestconfiguration/guest-configuration-assignments/get?view=rest-guestconfiguration-2024-04-05"
+    ],
+    "review_notes": "Predicates are metadata assertions, no guestexec/logs, diskcontents/exports, privatekeys or writes. Knownomission versus deniedcoverage guarded; missing/malformed requiredfactsUNKNOWN. Literal source targeteligibility preserved even where independentbroader baseline is stronger.",
+    "source_review": {
+      "query_id": "compute_vm_trust_launch_enabled",
+      "query_path": "regulatory_compliance/compute.pp",
+      "query_line": 2824,
+      "query_sha256": "635c35847d9110ba1663e9c447cd93b276ae3860461b368d35d972a1cff0e202",
+      "control_path": "regulatory_compliance/compute.pp",
+      "control_line": 890,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then 'skip'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_compute_virtual_machine",
+        "azure_subscription"
+      ],
+      "pinned_sql": "select\n      vm.id as resource,\n      case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then 'skip'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (security_profile ->> 'securityType') is null or (security_profile ->> 'securityType') <> 'TrustedLaunch' then vm.name || ' not using trust launch security type.'\n        when (security_profile -> 'uefiSettings' -> 'secureBootEnabled')::bool\n          and (security_profile -> 'uefiSettings' -> 'vTpmEnabled')::bool then vm.name || ' trusted launch enabled.'\n        else vm.name || ' trusted launch disabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"vm.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_compute_virtual_machine vm\n      left join azure_subscription as sub on sub.subscription_id = vm.subscription_id;"
+    }
+  }
+}

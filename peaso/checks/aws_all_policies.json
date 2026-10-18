@@ -1,0 +1,146 @@
+{
+  "aws.nist.all_managed_policies_no_service_wildcard": {
+    "id": "aws.nist.all_managed_policies_no_service_wildcard",
+    "provider": "aws",
+    "resource_kind": "iam_policy",
+    "data_source": "iam:ListPolicies Scope=All; iam:GetPolicyVersion default version document",
+    "predicate": "FAIL iff any customer-managed or AWS-managed policy default version has an Allow statement with Action=* or service:* and Resource=*; PASS iff all managed policies were read and none match; UNKNOWN on incomplete inventory or unparsed policy documents.",
+    "severity": "medium",
+    "category": "hardening",
+    "title": "Managed IAM policies avoid service-wide wildcard grants",
+    "description": "Detects failure of managed iam policies avoid service-wide wildcard grants.",
+    "remediation_hint": "Replace service-wide wildcard actions with required actions and resources.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.ffiec",
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_171_rev_2",
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws.nist.all_iam_policies_no_star_star": {
+    "id": "aws.nist.all_iam_policies_no_star_star",
+    "provider": "aws",
+    "resource_kind": "iam_policy",
+    "data_source": "iam:ListPolicies/GetPolicyVersion; iam:ListUserPolicies/GetUserPolicy; iam:ListRolePolicies/GetRolePolicy; iam:ListGroupPolicies/GetGroupPolicy",
+    "predicate": "FAIL iff any managed or inline IAM policy has an Allow statement whose Action is * or *:* and Resource is *; PASS iff all policy documents were read and none match; UNKNOWN on incomplete collection or unparsed policy documents.",
+    "severity": "medium",
+    "category": "hardening",
+    "title": "IAM managed and inline policies avoid full administrator grants",
+    "description": "Detects failure of iam managed and inline policies avoid full administrator grants.",
+    "remediation_hint": "Remove Allow Action=* Resource=* statements from IAM policy documents.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.ffiec",
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_171_rev_2",
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws_nist_iam_policy_no_star_star": {
+    "id": "aws_nist_iam_policy_no_star_star",
+    "provider": "aws",
+    "resource_kind": "iam_policy",
+    "data_source": "iam:ListPolicies/GetPolicyVersion, ListUserPolicies/GetUserPolicy, ListRolePolicies/GetRolePolicy, ListGroupPolicies/GetGroupPolicy and attached policy versions",
+    "predicate": "For every in-scope managed or inline policy statement with Effect=Allow, FAIL if Action contains * and Resource contains *; expand lists and policy versions, and report UNKNOWN on incomplete policy inventory.",
+    "severity": "medium",
+    "category": "compliance",
+    "title": "IAM policy should not have statements with admin access",
+    "description": "Inline and AWS-managed policies remain outside the customer-managed evaluator.",
+    "remediation_hint": "Configure the resource to satisfy the stated predicate and review missing inventory or policy inputs.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_53_rev_4",
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_53_rev_5",
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_csf",
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws_nist_iam_all_policy_no_service_wild_card": {
+    "id": "aws_nist_iam_all_policy_no_service_wild_card",
+    "provider": "aws",
+    "resource_kind": "iam_policy",
+    "data_source": "iam:ListPolicies/GetPolicyVersion and ListUserPolicies/GetUserPolicy, ListRolePolicies/GetRolePolicy, ListGroupPolicies/GetGroupPolicy",
+    "predicate": "For every managed or inline policy Allow statement, FAIL if any Action is of the form service:* with Resource=* or another resource pattern granting all of that service; UNKNOWN on incomplete policy inventory.",
+    "severity": "medium",
+    "category": "compliance",
+    "title": "Ensure IAM policy should not grant full access to service",
+    "description": "AWS-managed and inline policies remain outside the customer-managed evaluator.",
+    "remediation_hint": "Configure the resource to satisfy the stated predicate and review missing inventory or policy inputs.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.nist_800_53_rev_5",
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nist_csf",
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws_g6_iam_all_policy_star_star": {
+    "id": "aws_g6_iam_all_policy_star_star",
+    "provider": "aws",
+    "resource_kind": "iam_policy",
+    "data_source": "iam:GetAccountAuthorizationDetails user, group, role inline policies and managed policy default versions, including AWS-managed policies",
+    "predicate": "FAIL iff any Allow statement in any collected policy default document has Action containing * or *:* and Resource containing *; PASS only when all inline and managed policy documents are collected and none matches; UNKNOWN for incomplete policy inventory.",
+    "severity": "high",
+    "category": "least_privilege",
+    "title": "IAM policies avoid full administrator statements",
+    "description": "Read-only assessment of iAM policies avoid full administrator statements.",
+    "remediation_hint": "Remove unrestricted Action and Resource wildcard grants or scope them to least privilege.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.nist_csf_v2",
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star"
+      },
+      {
+        "framework_id": "aws-compliance.benchmark.nydfs_23",
+        "requirement_id": "aws-compliance.control.iam_policy_no_star_star"
+      }
+    ],
+    "needs_new_collection": true
+  },
+  "aws_g6_iam_all_policy_service_wildcard": {
+    "id": "aws_g6_iam_all_policy_service_wildcard",
+    "provider": "aws",
+    "resource_kind": "iam_policy",
+    "data_source": "iam:GetAccountAuthorizationDetails all user, group and role inline policy documents and all customer/AWS managed default policy versions",
+    "predicate": "FAIL iff any Allow statement in an in-scope identity policy grants a service-wide Action such as service:* to a concrete individual Resource ARN, including equivalent NotAction semantics; PASS only after complete policy inventory with no matching statement; UNKNOWN for incomplete or unparseable documents.",
+    "severity": "high",
+    "category": "least_privilege",
+    "title": "All IAM policy types avoid service-wide grants to resources",
+    "description": "Read-only assessment of all IAM policy types avoid service-wide grants to resources.",
+    "remediation_hint": "Replace service-wide action grants with the minimum required actions.",
+    "aliases": [],
+    "requirements": [
+      {
+        "framework_id": "aws-compliance.benchmark.nist_csf_v2",
+        "requirement_id": "aws-compliance.control.iam_all_policy_no_service_wild_card"
+      }
+    ],
+    "needs_new_collection": true
+  }
+}

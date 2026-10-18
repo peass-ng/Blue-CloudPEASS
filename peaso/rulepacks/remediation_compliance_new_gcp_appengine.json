@@ -1,0 +1,20 @@
+{
+  "gcp.appengine.service_version_count": {
+    "summary": "Bring the App Engine service within its owner-approved installed and serving version limits.",
+    "steps": [
+      "Confirm the project-bound approved installed and SERVING maxima with the service owner, and inspect which versions currently serve traffic or are needed for rollback.",
+      "For a serving count over its limit, shift traffic and stop reviewed older versions only after confirming the desired active release and rollback plan.",
+      "For an installed count over its limit, remove a version only after the owner confirms it is no longer needed and its code and rollback requirements are covered elsewhere; then verify the version inventory again."
+    ],
+    "cli": [],
+    "caveats": ["Stopping or deleting a version can disrupt traffic or rollback. The check does not prove which version is safe to stop or delete.", "Missing or incomplete inventories and absent owner maxima remain UNKNOWN."],
+    "references": [
+      {"title": "App Engine services list", "url": "https://docs.cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services/list"},
+      {"title": "App Engine versions list", "url": "https://docs.cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions/list"},
+      {"title": "App Engine Version resource and serving status", "url": "https://docs.cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_gcp_appengine", "kind": "app_engine_service", "target": "resource", "path": "app_engine_service.name; app_engine_version.serviceName; app_engine_version.servingStatus; snapshot.metadata.appengine_version_policy", "observed_fail_evidence": "service; installed_versions; serving_versions; approved_installed_maximum; approved_serving_maximum"},
+    "proposed_spec_sha256": "4d10a031bbecda0476874e4e369c16db1dc068d17c3fc7eaa9a0421f85585029",
+    "review_status": "source_bound_pending_review"
+  }
+}

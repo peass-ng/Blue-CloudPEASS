@@ -178,7 +178,7 @@ def group_hardening_targets(targets, provider):
     if len(states) == 1 and next(iter(states)) in {"disabled", "skipped", "unavailable", "error"}:
         status = next(iter(states))
     report = {
-        "schema_version": 2, "engine": "steampipe-powerpipe", "status": status,
+        "schema_version": 2, "engine": "peaso-native", "status": status,
         "services": ordered_services, "targets": scoped_targets, "errors": errors,
         "versions": {name: sorted(values) for name, values in sorted(versions.items())},
         "summary": {"targets": len(scoped_targets), "states": dict(sorted(states.items())),

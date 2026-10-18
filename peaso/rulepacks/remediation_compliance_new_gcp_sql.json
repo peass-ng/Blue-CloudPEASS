@@ -1,0 +1,22 @@
+{
+  "gcp.sql.deletion_protection": {
+    "summary": "Enable deletion protection on the affected Cloud SQL instance after reviewing its lifecycle owner.",
+    "steps": [
+      "Confirm the instance name and project from the finding, and review whether its owner intends to protect it from accidental deletion.",
+      "Enable the Cloud SQL instance's deletion protection setting using the approved console or infrastructure configuration workflow.",
+      "Read back settings.deletionProtectionEnabled, confirm it is true, then recollect Cloud SQL facts and rerun the check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Deletion protection blocks deletion attempts but does not replace backups or control who may change the protection setting.",
+      "An intentional deletion later requires an explicit approved change to disable protection first."
+    ],
+    "references": [
+      {"title": "Cloud SQL instance deletion protection", "url": "https://docs.cloud.google.com/sql/docs/mysql/deletion-protection"},
+      {"title": "Cloud SQL Admin API instance settings", "url": "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_gcp_sql", "kind": "sql_instance", "target": "resource", "path": "collections.sql_instance; sql_instance.name; sql_instance.settings.deletionProtectionEnabled", "observed_fail_evidence": "sql_instance; deletion_protection_enabled; field"},
+    "proposed_spec_sha256": "3312dae281bd908967b447c0e1638fff7022a4b60426ec23eb5b2e2cf573ace9",
+    "review_status": "source_bound_pending_review"
+  }
+}

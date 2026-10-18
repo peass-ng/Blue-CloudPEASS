@@ -1,0 +1,128 @@
+{
+  "aws-compliance.control.cis_v140_2_1_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/macie2/client/describe_classification_job.html",
+      "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+    ],
+    "reason": "Full source expands only S3JobDefinition.BucketDefinitions.Buckets. Current official Macie jobs use either BucketCriteria OR BucketDefinitions, neverboth: a valid RUNNING criteria job with includes S3_BUCKET_NAME EQ audit protects the bucket but has no BucketDefinitions, so complete source input falsely alarms. Conversely a CANCELLED job retaining explicit bucket definition passes with no active analysis. These substantive falseFAIL/falsePASS configurations prove outdated security predicate, not missing collector facts or an API permission issue.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full query and allaliases separately inspected, current official mutuallyexclusive criteria/definitions semantics verified. Inert criteria-running and cancelled-definition truth cases in owned source_counterexamples tests; no job creation, enablement, sensitive data findings or object reads. Lead independent audit required before activation; exact source/framework/control/version conserved.",
+    "reviewed_query_id": "s3_bucket_protected_by_macie",
+    "reviewed_source": {
+      "evaluator_sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_2.pp#L92"
+    }
+  },
+  "aws-compliance.control.cis_v150_2_1_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/macie2/client/describe_classification_job.html",
+      "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+    ],
+    "reason": "Full source expands only S3JobDefinition.BucketDefinitions.Buckets. Current official Macie jobs use either BucketCriteria OR BucketDefinitions, neverboth: a valid RUNNING criteria job with includes S3_BUCKET_NAME EQ audit protects the bucket but has no BucketDefinitions, so complete source input falsely alarms. Conversely a CANCELLED job retaining explicit bucket definition passes with no active analysis. These substantive falseFAIL/falsePASS configurations prove outdated security predicate, not missing collector facts or an API permission issue.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full query and allaliases separately inspected, current official mutuallyexclusive criteria/definitions semantics verified. Inert criteria-running and cancelled-definition truth cases in owned source_counterexamples tests; no job creation, enablement, sensitive data findings or object reads. Lead independent audit required before activation; exact source/framework/control/version conserved.",
+    "reviewed_query_id": "s3_bucket_protected_by_macie",
+    "reviewed_source": {
+      "evaluator_sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_2.pp#L96"
+    }
+  },
+  "aws-compliance.control.cis_v200_2_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/macie2/client/describe_classification_job.html",
+      "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+    ],
+    "reason": "Full source expands only S3JobDefinition.BucketDefinitions.Buckets. Current official Macie jobs use either BucketCriteria OR BucketDefinitions, neverboth: a valid RUNNING criteria job with includes S3_BUCKET_NAME EQ audit protects the bucket but has no BucketDefinitions, so complete source input falsely alarms. Conversely a CANCELLED job retaining explicit bucket definition passes with no active analysis. These substantive falseFAIL/falsePASS configurations prove outdated security predicate, not missing collector facts or an API permission issue.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full query and allaliases separately inspected, current official mutuallyexclusive criteria/definitions semantics verified. Inert criteria-running and cancelled-definition truth cases in owned source_counterexamples tests; no job creation, enablement, sensitive data findings or object reads. Lead independent audit required before activation; exact source/framework/control/version conserved.",
+    "reviewed_query_id": "s3_bucket_protected_by_macie",
+    "reviewed_source": {
+      "evaluator_sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_2.pp#L81"
+    }
+  },
+  "aws-compliance.control.cis_v300_2_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/macie2/client/describe_classification_job.html",
+      "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+    ],
+    "reason": "Full source expands only S3JobDefinition.BucketDefinitions.Buckets. Current official Macie jobs use either BucketCriteria OR BucketDefinitions, neverboth: a valid RUNNING criteria job with includes S3_BUCKET_NAME EQ audit protects the bucket but has no BucketDefinitions, so complete source input falsely alarms. Conversely a CANCELLED job retaining explicit bucket definition passes with no active analysis. These substantive falseFAIL/falsePASS configurations prove outdated security predicate, not missing collector facts or an API permission issue.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full query and allaliases separately inspected, current official mutuallyexclusive criteria/definitions semantics verified. Inert criteria-running and cancelled-definition truth cases in owned source_counterexamples tests; no job creation, enablement, sensitive data findings or object reads. Lead independent audit required before activation; exact source/framework/control/version conserved.",
+    "reviewed_query_id": "s3_bucket_protected_by_macie",
+    "reviewed_source": {
+      "evaluator_sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_2.pp#L81"
+    }
+  },
+  "aws-compliance.control.cis_v400_2_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/macie2/client/describe_classification_job.html",
+      "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+    ],
+    "reason": "Full source expands only S3JobDefinition.BucketDefinitions.Buckets. Current official Macie jobs use either BucketCriteria OR BucketDefinitions, neverboth: a valid RUNNING criteria job with includes S3_BUCKET_NAME EQ audit protects the bucket but has no BucketDefinitions, so complete source input falsely alarms. Conversely a CANCELLED job retaining explicit bucket definition passes with no active analysis. These substantive falseFAIL/falsePASS configurations prove outdated security predicate, not missing collector facts or an API permission issue.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full query and allaliases separately inspected, current official mutuallyexclusive criteria/definitions semantics verified. Inert criteria-running and cancelled-definition truth cases in owned source_counterexamples tests; no job creation, enablement, sensitive data findings or object reads. Lead independent audit required before activation; exact source/framework/control/version conserved.",
+    "reviewed_query_id": "s3_bucket_protected_by_macie",
+    "reviewed_source": {
+      "evaluator_sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_2.pp#L77"
+    }
+  },
+  "aws-compliance.control.cis_v500_2_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/macie2/client/describe_classification_job.html",
+      "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+    ],
+    "reason": "Full source expands only S3JobDefinition.BucketDefinitions.Buckets. Current official Macie jobs use either BucketCriteria OR BucketDefinitions, neverboth: a valid RUNNING criteria job with includes S3_BUCKET_NAME EQ audit protects the bucket but has no BucketDefinitions, so complete source input falsely alarms. Conversely a CANCELLED job retaining explicit bucket definition passes with no active analysis. These substantive falseFAIL/falsePASS configurations prove outdated security predicate, not missing collector facts or an API permission issue.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full query and allaliases separately inspected, current official mutuallyexclusive criteria/definitions semantics verified. Inert criteria-running and cancelled-definition truth cases in owned source_counterexamples tests; no job creation, enablement, sensitive data findings or object reads. Lead independent audit required before activation; exact source/framework/control/version conserved.",
+    "reviewed_query_id": "s3_bucket_protected_by_macie",
+    "reviewed_source": {
+      "evaluator_sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_2.pp#L77"
+    }
+  },
+  "aws-compliance.control.cis_v600_3_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/macie2/client/describe_classification_job.html",
+      "https://docs.aws.amazon.com/macie/latest/user/discovery-jobs-manage.html"
+    ],
+    "reason": "Full source expands only S3JobDefinition.BucketDefinitions.Buckets. Current official Macie jobs use either BucketCriteria OR BucketDefinitions, neverboth: a valid RUNNING criteria job with includes S3_BUCKET_NAME EQ audit protects the bucket but has no BucketDefinitions, so complete source input falsely alarms. Conversely a CANCELLED job retaining explicit bucket definition passes with no active analysis. These substantive falseFAIL/falsePASS configurations prove outdated security predicate, not missing collector facts or an API permission issue.",
+    "review_classification": "invalid_predicate",
+    "review_notes": "Full query and allaliases separately inspected, current official mutuallyexclusive criteria/definitions semantics verified. Inert criteria-running and cancelled-definition truth cases in owned source_counterexamples tests; no job creation, enablement, sensitive data findings or object reads. Lead independent audit required before activation; exact source/framework/control/version conserved.",
+    "reviewed_query_id": "s3_bucket_protected_by_macie",
+    "reviewed_source": {
+      "evaluator_sha256": "e9601ad6ea17a7e5f278e317e644cf92040f51cd2b516d965ca1083431678dd3",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_3.pp#L106"
+    }
+  }
+}

@@ -1,0 +1,2080 @@
+{
+  "gcp-compliance.control.cis_v120_1_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L187"
+    },
+    "manual_requirement": {
+      "question": "1.12 Ensure API keys are not created for a project",
+      "rationale": "Keys are insecure because they can be viewed publicly, such as from within a browser, or they can be accessed on a device where the key resides. It is recommended to use standard authentication flow instead.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L187",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_1_12",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_1"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v120_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L47"
+    },
+    "manual_requirement": {
+      "question": "1.2 Ensure that multi-factor authentication is enabled for all non-service accounts",
+      "rationale": "Setup multi-factor authentication for Google Cloud Platform accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L47",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_1_2",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_1"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v120_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L61"
+    },
+    "manual_requirement": {
+      "question": "1.3 Ensure that Security Key Enforcement is enabled for all admin accounts",
+      "rationale": "Setup Security Key Enforcement for Google Cloud Platform admin accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_1.pp#L61",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_1_3",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_1"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v120_4_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L155"
+    },
+    "manual_requirement": {
+      "question": "4.10 Ensure that App Engine applications enforce HTTPS connections",
+      "rationale": "In order to maintain the highest level of security all connections to an application should be secure by default.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L155",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/AppEngine",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_4_10",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_4"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v120_6_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L59"
+    },
+    "manual_requirement": {
+      "question": "6.1.1 Ensure that a MySQL database instance does not allow anyone to connect with administrative privileges",
+      "rationale": "It is recommended to set a password for the administrative user (root by default) to prevent unauthorized access to the SQL database instances. This recommendation is applicable only for MySQL Instances. PostgreSQL does not offer any setting for No Password from the cloud console.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_6_1_1",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_6",
+            "gcp-compliance.benchmark.cis_v120_6_1"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v120_6_2_13": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_13",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L297"
+    },
+    "manual_requirement": {
+      "question": "6.2.13 Ensure that the 'log_min_messages' database flag for Cloud SQL PostgreSQL instance is set appropriately",
+      "rationale": "The log_min_messages flag defines the minimum message severity level that is considered as an error statement. Messages for error statements are logged with the SQL statement. Valid values include DEBUG5, DEBUG4, DEBUG3, DEBUG2, DEBUG1, INFO, NOTICE, WARNING, ERROR, LOG, FATAL, and PANIC. Each severity level includes the subsequent levels mentioned above.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L297",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "unknown",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_6_2_13",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_6",
+            "gcp-compliance.benchmark.cis_v120_6_2"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v120_6_2_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L143"
+    },
+    "manual_requirement": {
+      "question": "6.2.2 Ensure 'log_error_verbosity' database flag for Cloud SQL PostgreSQL instance is set to 'DEFAULT' or stricter",
+      "rationale": "The log_error_verbosity flag controls the verbosity/details of messages logged. Valid values are: 'TERSE', 'DEFAULT', and 'VERBOSE'.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L143",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_6_2_2",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_6",
+            "gcp-compliance.benchmark.cis_v120_6_2"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v120_6_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_2_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L213"
+    },
+    "manual_requirement": {
+      "question": "6.2.7 Ensure 'log_statement' database flag for Cloud SQL PostgreSQL instance is set appropriately",
+      "rationale": "The value of log_statement flag determined the SQL statements that are logged. Valid values are: 'none', 'ddl', 'mod', and 'all'.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L213",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.2.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v120",
+          "control_id": "gcp-compliance.control.cis_v120_6_2_7",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v120",
+            "gcp-compliance.benchmark.cis_v120_6",
+            "gcp-compliance.benchmark.cis_v120_6_2"
+          ],
+          "version": "1.2.0",
+          "declared_version": "1.2.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v120/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_1_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L190"
+    },
+    "manual_requirement": {
+      "question": "1.12 Ensure API keys are not created for a project",
+      "rationale": "Keys are insecure because they can be viewed publicly, such as from within a browser, or they can be accessed on a device where the key resides. It is recommended to use standard authentication flow instead.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L190",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_1_12",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_1"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_1_18": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_18",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L274"
+    },
+    "manual_requirement": {
+      "question": "1.18 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
+      "rationale": "Google Cloud Functions allow you to host serverless code that is executed when an event is triggered, without the requiring the management a host operating system. These functions can also store environment variables to be used by the code that may contain authentication or other information that needs to remain confidential.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L274",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Dataproc",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_1_18",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_1"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L50"
+    },
+    "manual_requirement": {
+      "question": "1.2 Ensure that multi-factor authentication is enabled for all non-service accounts",
+      "rationale": "Setup multi-factor authentication for Google Cloud Platform accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L50",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_1_2",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_1"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L64"
+    },
+    "manual_requirement": {
+      "question": "1.3 Ensure that Security Key Enforcement is enabled for all admin accounts",
+      "rationale": "Setup Security Key Enforcement for Google Cloud Platform admin accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_1.pp#L64",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_1_3",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_1"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_2_14": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L215"
+    },
+    "manual_requirement": {
+      "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
+      "rationale": "GCP Access Transparency provides audit logs for all actions that Google personnel take in your Google Cloud resources.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L215",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Project",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_2_14",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_2"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_4_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L156"
+    },
+    "manual_requirement": {
+      "question": "4.10 Ensure that App Engine applications enforce HTTPS connections",
+      "rationale": "In order to maintain the highest level of security all connections to an application should be secure by default.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L156",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/AppEngine",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_4_10",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_4"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_4_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L184"
+    },
+    "manual_requirement": {
+      "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Projects",
+      "rationale": "For the virtual machines where you manage the operating system in Infrastructure as a Service (IaaS), you are responsible for keeping these operating systems and programs up to date. There are multiple ways to manage updates yourself that would be difficult to fit into one recommendation. Check the CIS Benchmarks for each of your Operating Systems as well for potential solutions there. In this recommendation we will use a feature in Google Cloud via its VM manager API to manage updates called Operating System Patch Management (referred to OS Patch Management from here on out). This may requires installing the OS Config API if it is not already installed. Also if you install custom operating systems, they may not functionally support the local OS config agent required to gather operating system patch information and issue update commands. These update commands are the default Linux and Windows commands to install updates such as yum or apt. This feature allows for a central management to issue those commands. OS Patch management also does not host the updates itself, so your VMs will need to be public or be able to access the internet. This is not the only Patch Management solution available to your organization and you should weigh your needs before committing to using this.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L184",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Compute",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_4_12",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_4"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_6_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L59"
+    },
+    "manual_requirement": {
+      "question": "6.1.1 Ensure that a MySQL database instance does not allow anyone to connect with administrative privileges",
+      "rationale": "It is recommended to set a password for the administrative user (root by default) to prevent unauthorized access to the SQL database instances. This recommendation is applicable only for MySQL Instances. PostgreSQL does not offer any setting for No Password from the cloud console.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_6_1_1",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_6",
+            "gcp-compliance.benchmark.cis_v130_6_1"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_6_2_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L122"
+    },
+    "manual_requirement": {
+      "question": "6.2.1 Ensure 'log_error_verbosity' database flag for Cloud SQL PostgreSQL instance is set to 'DEFAULT' or stricter",
+      "rationale": "The log_error_verbosity flag controls the verbosity/details of messages logged. Valid values are: 'TERSE', 'DEFAULT', and 'VERBOSE'.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L122",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_6_2_1",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_6",
+            "gcp-compliance.benchmark.cis_v130_6_2"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_6_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L164"
+    },
+    "manual_requirement": {
+      "question": "6.2.4 Ensure 'log_statement' database flag for Cloud SQL PostgreSQL instance is set appropriately",
+      "rationale": "The value of log_statement flag determined the SQL statements that are logged. Valid values are: 'none', 'ddl', 'mod', and 'all'.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L164",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_6_2_4",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_6",
+            "gcp-compliance.benchmark.cis_v130_6_2"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v130_6_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_2_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L192"
+    },
+    "manual_requirement": {
+      "question": "6.2.6 Ensure that the 'log_min_messages' database flag for Cloud SQL PostgreSQL instance is set appropriately",
+      "rationale": "The log_min_messages flag defines the minimum message severity level that is considered as an error statement. Messages for error statements are logged with the SQL statement. Valid values include DEBUG5, DEBUG4, DEBUG3, DEBUG2, DEBUG1, INFO, NOTICE, WARNING, ERROR, LOG, FATAL, and PANIC. Each severity level includes the subsequent levels mentioned above.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L192",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "unknown",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v1.3.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v130",
+          "control_id": "gcp-compliance.control.cis_v130_6_2_6",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v130",
+            "gcp-compliance.benchmark.cis_v130_6",
+            "gcp-compliance.benchmark.cis_v130_6_2"
+          ],
+          "version": "1.3.0",
+          "declared_version": "1.3.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v130/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_1_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L190"
+    },
+    "manual_requirement": {
+      "question": "1.12 Ensure API Keys Only Exist for Active Services",
+      "rationale": "API Keys should only be used for services in cases where other authentication methods are unavailable. Unused keys with their permissions in tact may still exist within a project. Keys are insecure because they can be viewed publicly, such as from within a browser, or they can be accessed on a device where the key resides. It is recommended to use standard authentication flow instead.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L190",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_1_12",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_1"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_1_18": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_18",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L274"
+    },
+    "manual_requirement": {
+      "question": "1.18 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
+      "rationale": "Google Cloud Functions allow you to host serverless code that is executed when an event is triggered, without the requiring the management a host operating system. These functions can also store environment variables to be used by the code that may contain authentication or other information that needs to remain confidential.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L274",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Dataproc",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_1_18",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_1"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L50"
+    },
+    "manual_requirement": {
+      "question": "1.2 Ensure that multi-factor authentication is enabled for all non-service accounts",
+      "rationale": "Setup multi-factor authentication for Google Cloud Platform accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L50",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_1_2",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_1"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L64"
+    },
+    "manual_requirement": {
+      "question": "1.3 Ensure that Security Key Enforcement is enabled for all admin accounts",
+      "rationale": "Setup Security Key Enforcement for Google Cloud Platform admin accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_1.pp#L64",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_1_3",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_1"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_2_14": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L216"
+    },
+    "manual_requirement": {
+      "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
+      "rationale": "GCP Access Transparency provides audit logs for all actions that Google personnel take in your Google Cloud resources.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L216",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Project",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_2_14",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_2"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_4_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L156"
+    },
+    "manual_requirement": {
+      "question": "4.10 Ensure that App Engine applications enforce HTTPS connections",
+      "rationale": "In order to maintain the highest level of security all connections to an application should be secure by default.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L156",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/AppEngine",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_4_10",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_4"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_4_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L184"
+    },
+    "manual_requirement": {
+      "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Projects",
+      "rationale": "For the virtual machines where you manage the operating system in Infrastructure as a Service (IaaS), you are responsible for keeping these operating systems and programs up to date. There are multiple ways to manage updates yourself that would be difficult to fit into one recommendation. Check the CIS Benchmarks for each of your Operating Systems as well for potential solutions there. In this recommendation we will use a feature in Google Cloud via its VM manager API to manage updates called Operating System Patch Management (referred to OS Patch Management from here on out). This may requires installing the OS Config API if it is not already installed. Also if you install custom operating systems, they may not functionally support the local OS config agent required to gather operating system patch information and issue update commands. These update commands are the default Linux and Windows commands to install updates such as yum or apt. This feature allows for a central management to issue those commands. OS Patch management also does not host the updates itself, so your VMs will need to be public or be able to access the internet. This is not the only Patch Management solution available to your organization and you should weigh your needs before committing to using this.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L184",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Compute",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_4_12",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_4"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v200_6_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L59"
+    },
+    "manual_requirement": {
+      "question": "6.1.1 Ensure that a MySQL database instance does not allow anyone to connect with administrative privileges",
+      "rationale": "It is recommended to set a password for the administrative user (root by default) to prevent unauthorized access to the SQL database instances. This recommendation is applicable only for MySQL Instances. PostgreSQL does not offer any setting for No Password from the cloud console.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v2.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v200",
+          "control_id": "gcp-compliance.control.cis_v200_6_1_1",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v200",
+            "gcp-compliance.benchmark.cis_v200_6",
+            "gcp-compliance.benchmark.cis_v200_6_1"
+          ],
+          "version": "2.0.0",
+          "declared_version": "2.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v200/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_17",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L259"
+    },
+    "manual_requirement": {
+      "question": "1.17 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
+      "rationale": "Google Cloud Functions allow you to host serverless code that is executed when an event is triggered, without the requiring the management a host operating system. These functions can also store environment variables to be used by the code that may contain authentication or other information that needs to remain confidential.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L259",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Dataproc",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_1_17",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_1"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L49"
+    },
+    "manual_requirement": {
+      "question": "1.2 Ensure that Multi-Factor Authentication is 'Enabled' for All Non-Service Accounts",
+      "rationale": "Setup multi-factor authentication for Google Cloud Platform accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L49",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_1_2",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_1"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L63"
+    },
+    "manual_requirement": {
+      "question": "1.3 Ensure that Security Key Enforcement is Enabled for All Admin Accounts",
+      "rationale": "Setup Security Key Enforcement for Google Cloud Platform admin accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_1.pp#L63",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_1_3",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_1"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_2_14": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L216"
+    },
+    "manual_requirement": {
+      "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
+      "rationale": "GCP Access Transparency provides audit logs for all actions that Google personnel take in your Google Cloud resources.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L216",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Project",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_2_14",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_2"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_4_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L156"
+    },
+    "manual_requirement": {
+      "question": "4.10 Ensure That App Engine Applications Enforce HTTPS Connections",
+      "rationale": "In order to maintain the highest level of security all connections to an application should be secure by default.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L156",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/AppEngine",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_4_10",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_4"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_4_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L184"
+    },
+    "manual_requirement": {
+      "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Project",
+      "rationale": "Google Cloud Virtual Machines have the ability via an OS Config agent API to periodically (about every 10 minutes) report OS inventory data. A patch compliance API periodically reads this data, and cross references metadata to determine if the latest updates are installed.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L184",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Compute",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_4_12",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_4"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_6_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L59"
+    },
+    "manual_requirement": {
+      "question": "6.1.1 Ensure That a MySQL Database Instance Does Not Allow Anyone To Connect With Administrative Privileges",
+      "rationale": "It is recommended to set a password for the administrative user (root by default) to prevent unauthorized access to the SQL database instances. This recommendation is applicable only for MySQL Instances. PostgreSQL does not offer any setting for No Password from the cloud console.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_6_1_1",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_6",
+            "gcp-compliance.benchmark.cis_v300_6_1"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v300_7_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v300_7_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_7.pp#L65"
+    },
+    "manual_requirement": {
+      "question": "7.4 Ensure all data in BigQuery has been classified",
+      "rationale": "BigQuery tables can contain sensitive data that for security purposes should be discovered, monitored, classified, and protected. Google Cloud's Sensitive Data Protection tools can automatically provide data classification of all BigQuery data across an organization.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_7.pp#L65",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/BigQuery",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v3.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v300",
+          "control_id": "gcp-compliance.control.cis_v300_7_4",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v300",
+            "gcp-compliance.benchmark.cis_v300_7"
+          ],
+          "version": "3.0.0",
+          "declared_version": "3.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v300/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_1_17": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_17",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L259"
+    },
+    "manual_requirement": {
+      "question": "1.17 Ensure Secrets are Not Stored in Cloud Functions Environment Variables by Using Secret Manager",
+      "rationale": "Google Cloud Functions allow you to host serverless code that is executed when an event is triggered, without the requiring the management a host operating system. These functions can also store environment variables to be used by the code that may contain authentication or other information that needs to remain confidential.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L259",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Dataproc",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_1_17",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_1"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_1_2": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L49"
+    },
+    "manual_requirement": {
+      "question": "1.2 Ensure that Multi-Factor Authentication is 'Enabled' for All Non-Service Accounts",
+      "rationale": "Setup multi-factor authentication for Google Cloud Platform accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L49",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_1_2",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_1"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_1_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_1_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L63"
+    },
+    "manual_requirement": {
+      "question": "1.3 Ensure that Security Key Enforcement is Enabled for All Admin Accounts",
+      "rationale": "Setup Security Key Enforcement for Google Cloud Platform admin accounts.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_1.pp#L63",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/IAM",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_1_3",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_1"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_2_14": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_14",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L216"
+    },
+    "manual_requirement": {
+      "question": "2.14 Ensure 'Access Transparency' is 'Enabled'",
+      "rationale": "GCP Access Transparency provides audit logs for all actions that Google personnel take in your Google Cloud resources.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L216",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Project",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_2_14",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_2"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_4_10": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_10",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L156"
+    },
+    "manual_requirement": {
+      "question": "4.10 Ensure That App Engine Applications Enforce HTTPS Connections",
+      "rationale": "In order to maintain the highest level of security all connections to an application should be secure by default.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L156",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/AppEngine",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_4_10",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_4"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_4_12": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_12",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L184"
+    },
+    "manual_requirement": {
+      "question": "4.12 Ensure the Latest Operating System Updates Are Installed On Your Virtual Machines in All Projects",
+      "rationale": "Google Cloud Virtual Machines have the ability via an OS Config agent API to periodically (about every 10 minutes) report OS inventory data. A patch compliance API periodically reads this data, and cross references metadata to determine if the latest updates are installed.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L184",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/Compute",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_4_12",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_4"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_6_1_1": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_1_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L59"
+    },
+    "manual_requirement": {
+      "question": "6.1.1 Ensure That a MySQL Database Instance Does Not Allow Anyone To Connect With Administrative Privileges",
+      "rationale": "It is recommended to set a password for the administrative user (root by default) to prevent unauthorized access to the SQL database instances. This recommendation is applicable only for MySQL Instances. PostgreSQL does not offer any setting for No Password from the cloud console.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L59",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/SQL",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_6_1_1",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_6",
+            "gcp-compliance.benchmark.cis_v400_6_1"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.cis_v400_7_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.cis_v400_7_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_7.pp#L65"
+    },
+    "manual_requirement": {
+      "question": "7.4 Ensure all data in BigQuery has been classified",
+      "rationale": "BigQuery tables can contain sensitive data that for security purposes should be discovered, monitored, classified, and protected. Google Cloud's Sensitive Data Protection tools can automatically provide data classification of all BigQuery data across an organization.",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_7.pp#L65",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "GCP/BigQuery",
+      "frameworks": [
+        {
+          "framework": "GCP CIS v4.0.0",
+          "framework_family": "CIS",
+          "framework_id": "gcp-compliance.benchmark.cis_v400",
+          "control_id": "gcp-compliance.control.cis_v400_7_4",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cis_v400",
+            "gcp-compliance.benchmark.cis_v400_7"
+          ],
+          "version": "4.0.0",
+          "declared_version": "4.0.0",
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cis_v400/cis.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  },
+  "gcp-compliance.control.service_versions": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Manual attestation requirement: the exact upstream query emits constant INFO and a manual-verification message for projects, with no automated security condition; do not convert this wrapper into PASS/FAIL. Preserve this individually reviewed requirement in the manual requirements catalog.",
+    "official_docs": [
+      "https://docs.cloud.google.com/security/overview"
+    ],
+    "review_notes": {
+      "classification": "manual_only",
+      "query_id": "manual_control",
+      "query_sha256": "0f3705e6b76f76e935de585e02d2f5db2da0f64cee89d432deee4d414342600e",
+      "source_path": "policy_bundle/manual.pp",
+      "source_line": 1,
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "source_row_id": "gcp-compliance.control.service_versions",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/appengine.pp#L7"
+    },
+    "manual_requirement": {
+      "question": "Limit the number of App Engine application versions simultaneously running or installed",
+      "rationale": "",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/appengine.pp#L7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "provider": "gcp",
+      "service": "unknown",
+      "frameworks": [
+        {
+          "framework": "GCP CFT Scorecard v1",
+          "framework_family": "GCP CFT Scorecard v1",
+          "framework_id": "gcp-compliance.benchmark.cft_scorecard_v1",
+          "control_id": "gcp-compliance.control.service_versions",
+          "benchmark_ids": [
+            "gcp-compliance.benchmark.cft_scorecard_v1"
+          ],
+          "version": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "declared_version": null,
+          "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+          "source": "cft_scorecard_v1/cft_scorecard.pp"
+        }
+      ],
+      "dependencies": [
+        "gcp_project"
+      ],
+      "status": "MANUAL"
+    },
+    "review_classification": "manual_attestation"
+  }
+}

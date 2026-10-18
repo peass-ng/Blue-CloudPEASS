@@ -1,0 +1,18 @@
+{
+  "azure_application_gateway_app_ensure_http_is_redirected_to_https_1099ad7": {
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_azure_network_monitoring", "kind": "application_gateway", "path": "properties.httpListeners/requestRoutingRules/urlPathMaps/redirectConfigurations", "target": "resource"},
+    "proposed_spec_sha256": "534c443c51714dc9f5809b6828abb7f68b9b6f1d6f2230bb7bda18facb890f51",
+    "references": [{"title": "Azure Application Gateways Get REST API", "url": "https://learn.microsoft.com/en-us/rest/api/application-gateway/application-gateways/get?view=rest-application-gateway-2023-09-01"}, {"title": "Application Gateway redirect overview", "url": "https://learn.microsoft.com/en-us/azure/application-gateway/redirect-overview"}],
+    "review_status": "draft",
+    "steps": ["Inspect each HTTP listener and its basic or path-based routing rule, including default and every path rule; resolve the target redirect configuration and HTTPS listener or URL.", "With the gateway owner, change the affected rule in the owning IaC or Azure Application Gateway Rules configuration to use a supported HTTPS redirect. Review redirect type, client methods, caching and target certificate before rollout.", "Re-read the gateway declaration and validate expected client routing after deployment; revert the approved IaC revision if routes or clients regress."],
+    "summary": "Configure an HTTPS redirect for each observed HTTP Application Gateway route."
+  },
+  "azure_vm_monitor_diagnostic_setting_with_appropriate_categories_4e20679": {
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_azure_network_monitoring", "kind": "vm", "path": "diagnosticSettings[].properties.metrics[].category/enabled", "target": "resource"},
+    "proposed_spec_sha256": "a158d957e805b1b4d39ea41fbf6278c111d3351bd4295bd0367ee8300fcd7a33",
+    "references": [{"title": "Azure Monitor Diagnostic Settings List REST API", "url": "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"}, {"title": "Monitor Azure Virtual Machines", "url": "https://learn.microsoft.com/en-us/azure/virtual-machines/monitor-vm"}],
+    "review_status": "draft",
+    "steps": ["Inspect the VM diagnosticSettings collection, enabled AllMetrics category and approved destination with the VM and monitoring owners; check which platform metrics are supported for this VM type.", "Use the owning IaC or Azure Monitor Diagnostic settings for the VM to enable export of supported platform metrics to the approved workspace, storage account or event hub after cost and retention review. Treat guest OS metrics as a separate AMA/DCR design.", "Re-read the VM setting and verify metric ingestion at the destination after rollout; revert the approved configuration revision if cost or monitoring behavior regresses."],
+    "summary": "Export supported Azure VM platform metrics to the approved monitoring destination."
+  }
+}

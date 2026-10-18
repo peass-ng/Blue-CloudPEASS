@@ -1,0 +1,18 @@
+{
+  "requirement_id": "3.9",
+  "name": "",
+  "decision": "NEW_CHECK",
+  "runtime_status": "not_assessed",
+  "native_checks": [],
+  "declared_check_ids": [
+    "gcp.network.private_service_connect_google_apis"
+  ],
+  "pending_checks": [
+    "gcp.network.private_service_connect_google_apis"
+  ],
+  "removed_checks": [],
+  "reason": "The requirement calls for Ensure Private Service Connect is Used for Access to Google APIs; the proposed read-only predicate tests the corresponding cloud configuration.",
+  "evidence": [
+    "prowler/compliance/gcp/cis_5.0_gcp.json"
+  ]
+}

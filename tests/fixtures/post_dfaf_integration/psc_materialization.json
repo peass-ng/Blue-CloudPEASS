@@ -1,0 +1,41 @@
+{
+  "baseline_source_version": "e022caf8ffd81b18571939a12313dfd9afa60c8f2095239cf3ad25e3002a31b7",
+  "files": {
+    "docs/compliance-ledgers/manifest.json": {
+      "baseline_sha256": "d5bcf2525ad2a4b0dc974d2bb2269e5486201f229d6f4a1833c7052460d4ec32",
+      "sha256": "c80fbd6f61b794f6926949e2773c84d53f5bc6fd895da06c81e9cd663e463b49"
+    },
+    "frontend/src/frameworkCatalog.json": {
+      "baseline_sha256": "a4f89b9c3321d2c7c99b702677c00eabf848fe4c1696e604d27a2882a61ecb89",
+      "sha256": "1b98419ae17b3b7c486a597eee7048b5728e0cc82fac0699fae7c52fce7883a1"
+    },
+    "peaso/rulepacks/check_descriptions.json": {
+      "baseline_sha256": "b45c3a13ea0fe6ef085f52fd03078561cbebe477ba398d941f255d74315d80a2",
+      "sha256": "e58fff92f5cd9fd8ef2c646ee788265f71aff8d65e6e08861d4ecac7bcff6409"
+    },
+    "peaso/rulepacks/catalog_summary.json": {
+      "baseline_sha256": "b90f7860fb08b076e933c8469993888255dbb4963a5540422fd82067d4912439",
+      "sha256": "0a4338745c9d0517721e90fc937238f757e63f97dac7dc1aeb868e799c1614ba"
+    },
+    "peaso/rulepacks/runtime_metadata.json": {
+      "baseline_sha256": "da3623f3e9c2f3e39fb5375ba7835be29fdfa00d750f28beab2f699b7c3e53ed",
+      "sha256": "2a528fafc345323a393cbe20daf434c3a42feab67292406079d41cce9e0b70c3"
+    },
+    "peaso/rulepacks/compliance_lookup.json": {
+      "baseline_sha256": "a8406177d03a050ed0f057e39d050a871a3823a519357751829a4423f56bab62",
+      "sha256": "fa5d9d0cf13d9c1f0f38244f2885af5fae70e40da56118ebd0410b1b0648b530"
+    },
+    "peaso/rulepacks/compliance_requirements.json": {
+      "baseline_sha256": "7eacec75a219e90a59578613f30ebe367f4b7d97b47b6dee3a5883dc35545a26",
+      "sha256": "74c9961902b6af925911956c9ba383c468929ddd75fec49135ae01bb274dd1c4"
+    },
+    "peaso/rulepacks/native_catalog.json": {
+      "baseline_sha256": "c383dad30bc5da4429bddd25103487dc17593df70eee548f586e81cbb7c2380b",
+      "sha256": "887d428bf6ad5403ed3cdd516f0b0ec670a55e3983c5d7095ec5bf2c49bebf2f"
+    },
+    "peaso/rulepacks/framework_catalog.json": {
+      "baseline_sha256": "b991f8f65b92298da941b4761188e8a6c66bc4d9b2afd43553aa6ce6a6dd6e4a",
+      "sha256": "cffca9040e905045a0f783e20b62e9cba393833832106966895c815ba49db1ec"
+    }
+  }
+}

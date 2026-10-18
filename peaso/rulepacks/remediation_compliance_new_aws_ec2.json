@@ -1,0 +1,42 @@
+{
+  "aws_cis_ec2_default_security_group_not_attached": {
+    "summary": "Replace the attached default security group with approved application groups.",
+    "steps": [
+      "Inspect the reported instance and every attached network interface; identify the exact same-VPC group ID whose GroupName is default.",
+      "Review required application traffic and prepare approved replacement groups with only the needed ingress and egress rules.",
+      "Apply the reviewed group association change to each affected interface, validate application connectivity, then recollect the instance and security-group inventory."
+    ],
+    "cli": [],
+    "caveats": [
+      "Removing a group before approved replacement rules are ready can interrupt traffic; coordinate the change with the workload owner.",
+      "The group name is only a configuration label; this check does not prove that the default group permits public ingress."
+    ],
+    "references": [
+      {"title": "EC2 instance network interfaces", "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceNetworkInterface.html"},
+      {"title": "Security groups for your VPC", "url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_ec2", "kind": "instance", "target": "resource", "path": "State.Name; VpcId; NetworkInterfaces[].Groups[].GroupId; security_group[].VpcId/GroupId/GroupName", "observed_fail_evidence": "instance_id; vpc_id; default_group_ids"},
+    "proposed_spec_sha256": "a5a0753535977f5c63f5e5bca81c10e07346bec471204090ef2c8ed4da0482bf",
+    "review_status": "source_bound_pending_review"
+  },
+  "aws_g6_ec2_instance_no_public_ipv6": {
+    "summary": "Review and remove unneeded globally routable IPv6 assignments from the instance.",
+    "steps": [
+      "Identify the reported attached network interface and exact globally routable IPv6 address, and check whether the workload requires that address.",
+      "Review traffic, DNS records, route tables, and security-group rules with the workload owner before changing the assignment.",
+      "Remove an unneeded IPv6 assignment through the approved interface change, verify required connectivity, and recollect the instance."
+    ],
+    "cli": [],
+    "caveats": [
+      "An assigned global IPv6 address does not prove public reachability; effective exposure also depends on routes, security groups, and a listening service.",
+      "Removing an address can disrupt traffic or DNS clients; preserve required connectivity during the change."
+    ],
+    "references": [
+      {"title": "EC2 instance network interface IPv6 addresses", "url": "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceNetworkInterface.html"},
+      {"title": "EC2 IPv6 addressing", "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_ec2", "kind": "instance", "target": "resource", "path": "State.Name; _provenance.native_response_complete; NetworkInterfaces[].NetworkInterfaceId/Ipv6Addresses[].Ipv6Address", "observed_fail_evidence": "instance_id; globally_routable_ipv6"},
+    "proposed_spec_sha256": "26422ae179b8c73304ccd2fce8d1add5c3a7a9dcbfee8c6c40ab62c7818ad936",
+    "review_status": "source_bound_pending_review"
+  }
+}

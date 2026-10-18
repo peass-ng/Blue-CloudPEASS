@@ -1,0 +1,1388 @@
+{
+  "aws.nist.all_managed_policies_no_service_wildcard": {
+    "pass": {
+      "scope": "123456789012/global"
+    },
+    "fail": {
+      "scope": "123456789012/global"
+    },
+    "unknown": {
+      "scope": "123456789012/global"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:*",
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:*",
+                    "Resource": "*"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "partial",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": []
+    }
+  },
+  "aws.nist.all_iam_policies_no_star_star": {
+    "pass": {
+      "scope": "123456789012/global"
+    },
+    "fail": {
+      "scope": "123456789012/global"
+    },
+    "unknown": {
+      "scope": "123456789012/global"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "*",
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "*",
+                    "Resource": "*"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "partial",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": []
+    }
+  },
+  "aws_nist_iam_policy_no_star_star": {
+    "pass": {
+      "scope": "123456789012/global"
+    },
+    "fail": {
+      "scope": "123456789012/global"
+    },
+    "unknown": {
+      "scope": "123456789012/global"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "*",
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "*",
+                    "Resource": "*"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "partial",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": []
+    }
+  },
+  "aws_nist_iam_all_policy_no_service_wild_card": {
+    "pass": {
+      "scope": "123456789012/global"
+    },
+    "fail": {
+      "scope": "123456789012/global"
+    },
+    "unknown": {
+      "scope": "123456789012/global"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:*",
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:*",
+                    "Resource": "*"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "partial",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": []
+    }
+  },
+  "aws_g6_iam_all_policy_star_star": {
+    "pass": {
+      "scope": "123456789012/global"
+    },
+    "fail": {
+      "scope": "123456789012/global"
+    },
+    "unknown": {
+      "scope": "123456789012/global"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "*",
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "*",
+                    "Resource": "*"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "partial",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": []
+    }
+  },
+  "aws_g6_iam_all_policy_service_wildcard": {
+    "pass": {
+      "scope": "123456789012/global"
+    },
+    "fail": {
+      "scope": "123456789012/global"
+    },
+    "unknown": {
+      "scope": "123456789012/global"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:*",
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:*",
+                    "Resource": "*"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "iam_customer_policy": [
+          {
+            "type": "iam_customer_policy",
+            "scope": "123456789012/global",
+            "status": "partial",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
+                "DefaultVersionId": "v1",
+                "DefaultDocument": {
+                  "collection_status": "collected",
+                  "VersionId": "v1",
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": "s3:GetObject",
+                        "Resource": "arn:aws:s3:::bucket/object"
+                      }
+                    ]
+                  }
+                },
+                "_provenance": {
+                  "operation": "iam:ListPolicies",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "iam_customer_policy": [
+        {
+          "type": "iam_customer_policy",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
+            "DefaultVersionId": "v1",
+            "DefaultDocument": {
+              "collection_status": "collected",
+              "VersionId": "v1",
+              "Document": {
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::bucket/object"
+                  }
+                ]
+              }
+            },
+            "_provenance": {
+              "operation": "iam:ListPolicies",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": {
+      "scope": []
+    }
+  }
+}

@@ -1,0 +1,455 @@
+{
+  "aws-compliance.benchmark.nist_800_53_rev_4::aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days": {
+    "decision": "PARTIAL",
+    "declared_check_ids": [
+      "aws.c2b.elasticache.rg_backup_retention_15",
+      "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days"
+    ],
+    "evidence": [
+      "peaso/checks/claude2_aws_b_data.py:1008"
+    ],
+    "name": "ElastiCache Redis cluster automatic backup should be enabled with retention period of 15 days or greater",
+    "native_checks": [
+      "aws.c2b.elasticache.rg_backup_retention_15"
+    ],
+    "pending_checks": [
+      "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days"
+    ],
+    "reason": "An omitted retention limit is treated as passing by the evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+    "removed_checks": [],
+    "requirement_id": "aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days",
+    "runtime_status": "partial"
+  },
+  "aws-compliance.benchmark.nist_800_53_rev_5::aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days": {
+    "decision": "PARTIAL",
+    "declared_check_ids": [
+      "aws.c2b.elasticache.rg_backup_retention_15",
+      "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days"
+    ],
+    "evidence": [
+      "peaso/checks/claude2_aws_b_data.py:1008"
+    ],
+    "name": "ElastiCache Redis cluster automatic backup should be enabled with retention period of 15 days or greater",
+    "native_checks": [
+      "aws.c2b.elasticache.rg_backup_retention_15"
+    ],
+    "pending_checks": [
+      "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days"
+    ],
+    "reason": "An omitted retention limit is treated as passing by the evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+    "removed_checks": [],
+    "requirement_id": "aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days",
+    "runtime_status": "partial"
+  },
+  "aws-compliance.benchmark.nist_csf::aws-compliance.control.autoscaling_use_multiple_instance_types_in_multiple_az": {
+    "decision": "PARTIAL",
+    "declared_check_ids": [
+      "aws.c2b.autoscaling.mixed_policy_multiple_types",
+      "aws_nist_autoscaling_use_multiple_instance_types_in_multiple_az"
+    ],
+    "evidence": [
+      "peaso/checks/claude2_aws_b_compute.py:848"
+    ],
+    "name": "EC2 auto scaling groups should use multiple instance types in multiple availability zones",
+    "native_checks": [
+      "aws.c2b.autoscaling.mixed_policy_multiple_types"
+    ],
+    "pending_checks": [
+      "aws_nist_autoscaling_use_multiple_instance_types_in_multiple_az"
+    ],
+    "reason": "Multiple Availability Zones are not tested by the instance-type evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+    "removed_checks": [],
+    "requirement_id": "aws-compliance.control.autoscaling_use_multiple_instance_types_in_multiple_az",
+    "runtime_status": "partial"
+  },
+  "aws-compliance.benchmark.nist_csf::aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days": {
+    "decision": "PARTIAL",
+    "declared_check_ids": [
+      "aws.c2b.elasticache.rg_backup_retention_15",
+      "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days"
+    ],
+    "evidence": [
+      "peaso/checks/claude2_aws_b_data.py:1008"
+    ],
+    "name": "ElastiCache Redis cluster automatic backup should be enabled with retention period of 15 days or greater",
+    "native_checks": [
+      "aws.c2b.elasticache.rg_backup_retention_15"
+    ],
+    "pending_checks": [
+      "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days"
+    ],
+    "reason": "An omitted retention limit is treated as passing by the evaluator. Proposed read-only check covers the automatable remainder; it is not a native pass.",
+    "removed_checks": [],
+    "requirement_id": "aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days",
+    "runtime_status": "partial"
+  },
+  "aws-compliance.benchmark.nist_csf_v2::aws-compliance.control.elb_application_network_lb_use_ssl_certificate": {
+    "decision": "PARTIAL",
+    "declared_check_ids": [
+      "aws.c2b.elbv2.listeners_acm_certificate",
+      "aws_g6_elbv2_only_https_tls_listeners"
+    ],
+    "evidence": [
+      "peaso/checks/claude2_aws_b_edge.py:759"
+    ],
+    "name": "ELB application and network load balancers should only use SSL or HTTPS listeners",
+    "native_checks": [
+      "aws.c2b.elbv2.listeners_acm_certificate"
+    ],
+    "pending_checks": [
+      "aws_g6_elbv2_only_https_tls_listeners"
+    ],
+    "reason": "The native check requires ACM certificates on listeners, which is a useful certificate signal. It does not accept every valid HTTPS/TLS certificate source and is not an exact test that all ALB and NLB listeners use only encrypted protocols.",
+    "removed_checks": [],
+    "requirement_id": "aws-compliance.control.elb_application_network_lb_use_ssl_certificate",
+    "runtime_status": "partial"
+  },
+  "aws-compliance.benchmark.nydfs_23::aws-compliance.control.apigateway_rest_api_stage_use_ssl_certificate": {
+    "decision": "PARTIAL",
+    "declared_check_ids": [
+      "aws.b.apigateway.client_certificate",
+      "aws_g6_api_stage_valid_client_certificate"
+    ],
+    "evidence": [
+      "peaso/checks/aws_b_apigateway.py:61"
+    ],
+    "name": "API Gateway stage should uses SSL certificate",
+    "native_checks": [
+      "aws.b.apigateway.client_certificate"
+    ],
+    "pending_checks": [
+      "aws_g6_api_stage_valid_client_certificate"
+    ],
+    "reason": "The native evaluator tests only the presence of clientCertificateId on a REST API stage. It does not resolve the referenced client certificate or verify that it is active and unexpired.",
+    "removed_checks": [],
+    "requirement_id": "aws-compliance.control.apigateway_rest_api_stage_use_ssl_certificate",
+    "runtime_status": "partial"
+  },
+  "aws-compliance.benchmark.nydfs_23::aws-compliance.control.elb_application_network_lb_use_ssl_certificate": {
+    "decision": "PARTIAL",
+    "declared_check_ids": [
+      "aws.c2b.elbv2.listeners_acm_certificate",
+      "aws_g6_elbv2_only_https_tls_listeners"
+    ],
+    "evidence": [
+      "peaso/checks/claude2_aws_b_edge.py:759"
+    ],
+    "name": "ELB application and network load balancers should only use SSL or HTTPS listeners",
+    "native_checks": [
+      "aws.c2b.elbv2.listeners_acm_certificate"
+    ],
+    "pending_checks": [
+      "aws_g6_elbv2_only_https_tls_listeners"
+    ],
+    "reason": "The native check requires ACM certificates on listeners, which is a useful certificate signal. It does not accept every valid HTTPS/TLS certificate source and is not an exact test that all ALB and NLB listeners use only encrypted protocols.",
+    "removed_checks": [],
+    "requirement_id": "aws-compliance.control.elb_application_network_lb_use_ssl_certificate",
+    "runtime_status": "partial"
+  },
+  "aws_account_security_onboarding_aws::Configure R53 health checks for all protected resources": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws_shield_protection_health_checks"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/aws_account_security_onboarding_aws.json"
+    ],
+    "name": "",
+    "native_checks": [],
+    "pending_checks": [
+      "aws_shield_protection_health_checks"
+    ],
+    "reason": "HealthCheckIds are on Shield protections; Route 53 checks validate referenced IDs.",
+    "removed_checks": [],
+    "requirement_id": "Configure R53 health checks for all protected resources",
+    "runtime_status": "not_assessed"
+  },
+  "aws_account_security_onboarding_aws::Enable Shield Advanced automatic application layer DDoS mitigation": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws_shield_automatic_application_layer_response"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/aws_account_security_onboarding_aws.json"
+    ],
+    "name": "",
+    "native_checks": [],
+    "pending_checks": [
+      "aws_shield_automatic_application_layer_response"
+    ],
+    "reason": "Activate automatic application layer Distributed Denial of Service (DDoS) mitigation within Shield Advanced requires the configuration stated here; no existing evaluator tests it, but the proposed read-only AWS fields can.",
+    "removed_checks": [],
+    "requirement_id": "Enable Shield Advanced automatic application layer DDoS mitigation",
+    "runtime_status": "not_assessed"
+  },
+  "aws_account_security_onboarding_aws::Use strictly AWS VPC DNS resolver": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws_vpc_uses_amazonprovided_dns"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/aws_account_security_onboarding_aws.json"
+    ],
+    "name": "",
+    "native_checks": [],
+    "pending_checks": [
+      "aws_vpc_uses_amazonprovided_dns"
+    ],
+    "reason": "Exclusively Employ Amazon Web Services (AWS) Virtual Private Cloud (VPC) DNS Resolver requires the configuration stated here; no existing evaluator tests it, but the proposed read-only AWS fields can.",
+    "removed_checks": [],
+    "requirement_id": "Use strictly AWS VPC DNS resolver",
+    "runtime_status": "not_assessed"
+  },
+  "azure-compliance.benchmark.nist_sp_800_53_rev_5::azure-compliance.control.web_pub_sub_private_link_used": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure.gap.web_pub_sub_private_link_used"
+    ],
+    "evidence": [
+      "regulatory_compliance/webpubsub.pp#L7"
+    ],
+    "name": "Azure Web PubSub Service should use private link",
+    "native_checks": [],
+    "pending_checks": [
+      "azure.gap.web_pub_sub_private_link_used"
+    ],
+    "reason": "Azure Web PubSub Service should use private link. No indexed evaluator tests the required resource field; the proposed read-only predicate does.",
+    "removed_checks": [],
+    "requirement_id": "azure-compliance.control.web_pub_sub_private_link_used",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_aws::1.2.8.40": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/pci_4.0_aws.json"
+    ],
+    "name": "vpc",
+    "native_checks": [],
+    "pending_checks": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "reason": "Checks if DNS resolution from accepter/requester VPC to private IP is enabled. The existing predicates do not test this; read-only AWS configuration data can test the remaining condition.",
+    "removed_checks": [],
+    "requirement_id": "1.2.8.40",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_aws::1.3.1.44": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/pci_4.0_aws.json"
+    ],
+    "name": "vpc",
+    "native_checks": [],
+    "pending_checks": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "reason": "Checks if DNS resolution from accepter/requester VPC to private IP is enabled. The existing predicates do not test this; read-only AWS configuration data can test the remaining condition.",
+    "removed_checks": [],
+    "requirement_id": "1.3.1.44",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_aws::1.3.2.44": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/pci_4.0_aws.json"
+    ],
+    "name": "vpc",
+    "native_checks": [],
+    "pending_checks": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "reason": "Checks if DNS resolution from accepter/requester VPC to private IP is enabled. The existing predicates do not test this; read-only AWS configuration data can test the remaining condition.",
+    "removed_checks": [],
+    "requirement_id": "1.3.2.44",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_aws::1.4.1.9": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/pci_4.0_aws.json"
+    ],
+    "name": "vpc",
+    "native_checks": [],
+    "pending_checks": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "reason": "Checks if DNS resolution from accepter/requester VPC to private IP is enabled. The existing predicates do not test this; read-only AWS configuration data can test the remaining condition.",
+    "removed_checks": [],
+    "requirement_id": "1.4.1.9",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_aws::1.4.2.42": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/pci_4.0_aws.json"
+    ],
+    "name": "vpc",
+    "native_checks": [],
+    "pending_checks": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "reason": "Checks if DNS resolution from accepter/requester VPC to private IP is enabled. The existing predicates do not test this; read-only AWS configuration data can test the remaining condition.",
+    "removed_checks": [],
+    "requirement_id": "1.4.2.42",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_aws::1.4.4.9": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "evidence": [
+      "prowler/compliance/aws/pci_4.0_aws.json"
+    ],
+    "name": "vpc",
+    "native_checks": [],
+    "pending_checks": [
+      "aws.pci.vpc.peering_dns_resolution"
+    ],
+    "reason": "Checks if DNS resolution from accepter/requester VPC to private IP is enabled. The existing predicates do not test this; read-only AWS configuration data can test the remaining condition.",
+    "removed_checks": [],
+    "requirement_id": "1.4.4.9",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_azure::1.2.8.23": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "evidence": [
+      "prowler/compliance/azure/pci_4.0_azure.json"
+    ],
+    "name": "Azure Network",
+    "native_checks": [],
+    "pending_checks": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "reason": "The requirement asks for an Azure Firewall Policy is associated with stateful or stateless rule collections. No reviewed native Azure evaluator tests this exact resource setting; the proposed read-only predicate covers it.",
+    "removed_checks": [],
+    "requirement_id": "1.2.8.23",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_azure::1.3.1.26": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "evidence": [
+      "prowler/compliance/azure/pci_4.0_azure.json"
+    ],
+    "name": "Azure Network",
+    "native_checks": [],
+    "pending_checks": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "reason": "The requirement asks for an Azure Firewall Policy is associated with stateful or stateless rule collections. No reviewed native Azure evaluator tests this exact resource setting; the proposed read-only predicate covers it.",
+    "removed_checks": [],
+    "requirement_id": "1.3.1.26",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_azure::1.3.2.26": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "evidence": [
+      "prowler/compliance/azure/pci_4.0_azure.json"
+    ],
+    "name": "Azure Network",
+    "native_checks": [],
+    "pending_checks": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "reason": "The requirement asks for an Azure Firewall Policy is associated with stateful or stateless rule collections. No reviewed native Azure evaluator tests this exact resource setting; the proposed read-only predicate covers it.",
+    "removed_checks": [],
+    "requirement_id": "1.3.2.26",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_azure::1.4.2.24": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "evidence": [
+      "prowler/compliance/azure/pci_4.0_azure.json"
+    ],
+    "name": "Azure Network",
+    "native_checks": [],
+    "pending_checks": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "reason": "The requirement asks for an Azure Firewall Policy is associated with stateful or stateless rule collections. No reviewed native Azure evaluator tests this exact resource setting; the proposed read-only predicate covers it.",
+    "removed_checks": [],
+    "requirement_id": "1.4.2.24",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_azure::1.4.3.3": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "evidence": [
+      "prowler/compliance/azure/pci_4.0_azure.json"
+    ],
+    "name": "Azure Network",
+    "native_checks": [],
+    "pending_checks": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "reason": "The requirement asks for an Azure Firewall Policy is associated with stateful or stateless rule collections. No reviewed native Azure evaluator tests this exact resource setting; the proposed read-only predicate covers it.",
+    "removed_checks": [],
+    "requirement_id": "1.4.3.3",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_azure::1.5.1.23": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "evidence": [
+      "prowler/compliance/azure/pci_4.0_azure.json"
+    ],
+    "name": "Azure Network",
+    "native_checks": [],
+    "pending_checks": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "reason": "The requirement asks for an Azure Firewall Policy is associated with stateful or stateless rule collections. No reviewed native Azure evaluator tests this exact resource setting; the proposed read-only predicate covers it.",
+    "removed_checks": [],
+    "requirement_id": "1.5.1.23",
+    "runtime_status": "not_assessed"
+  },
+  "pci_4.0_azure::A1.1.3.23": {
+    "decision": "NEW_CHECK",
+    "declared_check_ids": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "evidence": [
+      "prowler/compliance/azure/pci_4.0_azure.json"
+    ],
+    "name": "Azure Network",
+    "native_checks": [],
+    "pending_checks": [
+      "azure_firewall_policy_1_2_8_23_59ad733"
+    ],
+    "reason": "The requirement asks for an Azure Firewall Policy is associated with stateful or stateless rule collections. No reviewed native Azure evaluator tests this exact resource setting; the proposed read-only predicate covers it.",
+    "removed_checks": [],
+    "requirement_id": "A1.1.3.23",
+    "runtime_status": "not_assessed"
+  }
+}

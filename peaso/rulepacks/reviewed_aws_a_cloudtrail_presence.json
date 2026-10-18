@@ -1,0 +1,55 @@
+{
+  "aws-compliance.control.cloudtrail_multi_region_trail_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.account_has_logging_multiregion"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_GetTrailStatus.html"
+    ],
+    "reason": "Full ordered CASE/home multi-trail count and joined organization rows preserved: qualifying home logging multi-region trail overrides every joined row; otherwise any failing organization row remains FAIL, logging-unknown multi-region organization produces MANUAL only with positive org metadata. Complete account-empty FAIL; no existential shortcut that hides failing joined rows.",
+    "review_notes": "Full pinned query/check and CloudTrail service statically inspected; collected-empty regional/account FAIL, denied/partial/malformed/missing/purity and home/shadow/org/manual/join-row differential fixtures plus SDK all-enabled discovery/explicit-narrow no-fake-completeness tests. New global fact uses exact current schema/cache/budgets, preserves SourceRegion before global envelope projection; lead registry activation still pending. No cloud writes/probes/secret values or source runtime imports.",
+    "reviewed_query_id": "cloudtrail_multi_region_trail_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "e9098f008910dba164ec98cabd937fb2f5e5a76a89efb58518b9c31635d975a9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L112"
+    }
+  },
+  "aws-compliance.control.cloudtrail_trail_enabled_account": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.account_has_home_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Full account LEFT JOIN zero-trail count source, only observed-home region logging trails qualify. Native global account inventory enumerates all enabled regions before complete-empty FAIL; explicit region subset has not_collected full-account fact, never fabricated absence.",
+    "review_notes": "Full pinned query/check and CloudTrail service statically inspected; collected-empty regional/account FAIL, denied/partial/malformed/missing/purity and home/shadow/org/manual/join-row differential fixtures plus SDK all-enabled discovery/explicit-narrow no-fake-completeness tests. New global fact uses exact current schema/cache/budgets, preserves SourceRegion before global envelope projection; lead registry activation still pending. No cloud writes/probes/secret values or source runtime imports.",
+    "reviewed_query_id": "cloudtrail_trail_enabled_account",
+    "reviewed_source": {
+      "evaluator_sha256": "14e64d67445d29c9dd8ea55fc863bf45a61a4aefa2c23d424bb3108c3f836cd9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudtrail.pp#L273"
+    }
+  },
+  "prowler.aws.cloudtrail_multi_region_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudtrail.region_has_logging"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html"
+    ],
+    "reason": "Full source loops every enabled/audited region and accepts associated local logging trail OR logging multi-region trail; no actual multi-region-only condition. Native regional DescribeTrails(includeShadowTrails=true) associated inventory and home-authoritative IsLogging preserves any associated logging success; complete regional-empty FAIL, unavailable/partial UNKNOWN. Kept separate from account-wide source scopes.",
+    "review_notes": "Full pinned query/check and CloudTrail service statically inspected; collected-empty regional/account FAIL, denied/partial/malformed/missing/purity and home/shadow/org/manual/join-row differential fixtures plus SDK all-enabled discovery/explicit-narrow no-fake-completeness tests. New global fact uses exact current schema/cache/budgets, preserves SourceRegion before global envelope projection; lead registry activation still pending. No cloud writes/probes/secret values or source runtime imports.",
+    "reviewed_source": {
+      "evaluator_sha256": "995a27c7534d42ea9ed46350bf6b75ed3287ac6ccf8b1444726d3cbd61a0bc75",
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_multi_region_enabled/cloudtrail_multi_region_enabled.metadata.json"
+    }
+  }
+}

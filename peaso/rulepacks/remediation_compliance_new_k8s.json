@@ -1,0 +1,454 @@
+{
+  "k8s.cis.avoid_use_of_system_masters_group": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_next_k8s",
+      "kind": "clusterrolebinding",
+      "path": "complete clusterrolebinding and rolebinding subjects.kind/name",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "889fa81459bc8e70895673a3e4f0a61fdc4ae8496de8faf1fb16ce642ee50c72",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "approved",
+    "summary": "Review and remove observed system:masters Group subjects from owned RBAC bindings; separately review unobserved certificate and provider group memberships.",
+    "steps": [
+      "Confirm the affected binding IDs in the complete collected RBAC inventory.",
+      "Remove the system:masters Group subject from owned RoleBindings and ClusterRoleBindings and assign scoped roles to named groups as approved.",
+      "Review certificate and provider group memberships separately; this declaration check does not establish their absence."
+    ]
+  },
+  "k8s.cis.cronjob_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "cronjob",
+      "path": "spec.jobTemplate.spec.template.spec.os.name, spec.jobTemplate.spec.template.spec.securityContext.seccompProfile.type, spec.jobTemplate.spec.template.spec.containers[].securityContext.seccompProfile.type, spec.jobTemplate.spec.template.spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "5202bc53b4d403784b6b68928daa4f71b8ce9bdad533f10c18673d955e094fbb",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed cronjob_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux cronjob_effective_runtime_default_seccomp containers."
+  },
+  "k8s.cis.daemonset_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "daemonset",
+      "path": "spec.template.spec.os.name, spec.template.spec.securityContext.seccompProfile.type, spec.template.spec.containers[].securityContext.seccompProfile.type, spec.template.spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "133bd29a6ee42ba1ba3d56ed97767afb5275b13108b1f4e729421b31e880294e",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed daemonset_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux daemonset_effective_runtime_default_seccomp containers."
+  },
+  "k8s.cis.deployment_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "deployment",
+      "path": "spec.template.spec.os.name, spec.template.spec.securityContext.seccompProfile.type, spec.template.spec.containers[].securityContext.seccompProfile.type, spec.template.spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "fefb83d1b62b5dadd93d209281962a47195401c87e0ce64ca8b9a37a76655f95",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed deployment_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux deployment_effective_runtime_default_seccomp containers."
+  },
+  "k8s.cis.job_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "job",
+      "path": "spec.template.spec.os.name, spec.template.spec.securityContext.seccompProfile.type, spec.template.spec.containers[].securityContext.seccompProfile.type, spec.template.spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "8ada8476aa82c0a97ff54f54fa31e480877ac2d06de9a94b98469da869c30acd",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed job_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux job_effective_runtime_default_seccomp containers."
+  },
+  "k8s.cis.networkpolicy_no_default_allow_egress": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "networkpolicy",
+      "path": "spec.podSelector, spec.policyTypes, spec.egress[].to",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "255c9d36f757742557a2891a82c989fcb73986bd20a553fa857c1ef82451d5ff",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/network-policy-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect spec.podSelector, effective policyTypes, and each spec.egress[].to; identify rules with an omitted or empty peer list.",
+      "With the namespace owner, replace each unrestricted egress peer with reviewed Pod/namespace selectors or bounded CIDRs in the owned NetworkPolicy manifest.",
+      "Test required service paths before rollout because NetworkPolicy restrictions can interrupt workloads; deploy and verify traffic, then revert the manifest if a required path fails."
+    ],
+    "summary": "Narrow namespace-wide egress NetworkPolicy peers."
+  },
+  "k8s.cis.networkpolicy_no_default_allow_ingress": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "networkpolicy",
+      "path": "spec.podSelector, spec.policyTypes, spec.ingress[].from",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "3e179cb6119dd2d21a89838b136ee8e62720f84365010554a7c9b43e573251cf",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/network-policy-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect spec.podSelector, effective policyTypes, and each spec.ingress[].from; identify rules with an omitted or empty peer list.",
+      "With the namespace owner, replace each unrestricted ingress peer with reviewed Pod/namespace selectors or bounded CIDRs in the owned NetworkPolicy manifest.",
+      "Test required service paths before rollout because NetworkPolicy restrictions can interrupt workloads; deploy and verify traffic, then revert the manifest if a required path fails."
+    ],
+    "summary": "Narrow namespace-wide ingress NetworkPolicy peers."
+  },
+  "k8s.cis.pod_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "pod",
+      "path": "spec.os.name, spec.securityContext.seccompProfile.type, spec.containers[].securityContext.seccompProfile.type, spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "7f8ceb584bbfb1281f987531dcf1fd46b28a3d96f82c24a61fadd0a2be4abcc7",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed pod_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux pod_effective_runtime_default_seccomp containers."
+  },
+  "k8s.cis.replicaset_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "replicaset",
+      "path": "spec.template.spec.os.name, spec.template.spec.securityContext.seccompProfile.type, spec.template.spec.containers[].securityContext.seccompProfile.type, spec.template.spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "1ef7525baa0c50a647fcebafb8470f7f708c90fa36fb576e42996591b4692b8f",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed replicaset_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux replicaset_effective_runtime_default_seccomp containers."
+  },
+  "k8s.cis.replicationcontroller_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "replicationcontroller",
+      "path": "spec.template.spec.os.name, spec.template.spec.securityContext.seccompProfile.type, spec.template.spec.containers[].securityContext.seccompProfile.type, spec.template.spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "f5767cf862d75fe810ebe5e4ffd197744b93d9a8fae4827b34d6d4133df0a150",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed replicationcontroller_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux replicationcontroller_effective_runtime_default_seccomp containers."
+  },
+  "k8s.cis.statefulset_effective_runtime_default_seccomp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "statefulset",
+      "path": "spec.template.spec.os.name, spec.template.spec.securityContext.seccompProfile.type, spec.template.spec.containers[].securityContext.seccompProfile.type, spec.template.spec.initContainers[].securityContext.seccompProfile.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "e5317ac107bd5136475da560d5c540d67f7dbfe3fffa459d7a4d8a7f5a1d933b",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/node/seccomp/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the observed statefulset_effective_runtime_default_seccomp PodSpec and each regular/init container securityContext.seccompProfile.type; a container value overrides the Pod-level value.",
+      "Test the workload with RuntimeDefault in a staging environment; seccomp may block system calls required by this image.",
+      "Update the owning manifest or controller template at Pod or container level, roll out in a maintenance window, and verify readiness and the new declaration.",
+      "If workloads fail, revert the owned manifest and redeploy the prior revision while the service owner investigates blocked calls."
+    ],
+    "summary": "Set effective RuntimeDefault seccomp for Linux statefulset_effective_runtime_default_seccomp containers."
+  },
+  "k8s_deployment_available_condition": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "deployment",
+      "path": "spec.replicas, status.availableReplicas, status.conditions[].type, status.conditions[].status",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "fb69f5bdbc82ccf1f6dd9b0a292e5104ee178d576dff930a08b66f36bdf4d4cc",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the Deployment Available condition, desired and available replica counts, and controller events for the named workload.",
+      "Correct the workload image, scheduling, probes, or capacity issue in the owning manifest after an operator review; avoid scaling or rollout changes without a recovery plan.",
+      "Verify Available=True and availableReplicas >= spec.replicas after rollout; revert the prior release if availability worsens."
+    ],
+    "summary": "Restore the observed Deployment replica availability."
+  },
+  "k8s_ingress_sni_hosts": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "ingress",
+      "path": "spec.rules[].host, spec.tls[].hosts, spec.tls[].secretName",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "17ac71764775ab20bb6665902cd1ff482de0a7573ca5f129c10f1f4782da77de",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/networking/ingress-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Review spec.rules[].host and spec.tls[].hosts/secretName for the affected Ingress.",
+      "Update the owning Ingress manifest so each rule host has a matching TLS host and an existing same-namespace TLS Secret; verify certificate coverage separately.",
+      "Roll out through the Ingress owner, verify controller configuration and client TLS behavior, and revert the manifest if traffic fails."
+    ],
+    "summary": "Bind each declared Ingress rule host to a TLS Secret name."
+  },
+  "k8s_ingress_tls_configured": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "ingress",
+      "path": "metadata.namespace, spec.rules[].host, spec.tls[].hosts, spec.tls[].secretName, secret_metadata.metadata.{name,namespace}, secret_metadata.type",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "0f40297dca06ac9111f6b613cea52a392e89985cdcbdb6e7030146368fb8c733",
+    "references": [
+      {
+        "title": "Kubernetes Ingress TLS",
+        "url": "https://kubernetes.io/docs/concepts/services-networking/ingress/#tls"
+      },
+      {
+        "title": "Kubernetes Secret API",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/secret-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the Ingress rule hosts, TLS host lists and Secret names, and confirm a complete metadata-only Secret inventory for the same namespace.",
+      "Have the workload owner provision or rotate a kubernetes.io/tls Secret through the approved secret manager, then update the owned Ingress manifest so every required host names that Secret.",
+      "Roll out with the Ingress controller owner, verify certificate selection and application connectivity, and restore the prior manifest if cutover fails."
+    ],
+    "summary": "Declare matching Ingress TLS hosts and an existing same-namespace TLS Secret."
+  },
+  "k8s_node_nodes_publicly_accessible_rule_non_8250b02a65": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "node",
+      "path": "status.addresses[].type, status.addresses[].address",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "8c9cd719b673fe8d7147b04b9d26ede32bae48d822e0ec0cb1bfef6a400f44e8",
+    "references": [
+      {
+        "title": "Official provider resource API",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/node-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect Node status.addresses for ExternalIP and confirm its assigned cloud network address; this result does not establish a reachable endpoint.",
+      "With the cluster/network owner, plan private node pool replacement or approved exposure controls and migrate workloads before changing the address.",
+      "Verify Node addresses and workload health after migration; retain a tested rollback to the prior pool if services fail."
+    ],
+    "summary": "Review globally routable ExternalIP advertised by the Node."
+  },
+  "k8s_pod_direct_internet_access_disabled_pod_0a30afe8f2": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "pod",
+      "path": "status.podIP, status.podIPs[].ip",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "7d9ea35b078c2ecb733ee4f3bc7637884f2adbf1f3695804d0e450d318f5126c",
+    "references": [
+      {
+        "title": "Official provider resource API",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/pod-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect status.podIP and podIPs and confirm the CNI address allocation; this result does not prove a route or inbound reachability.",
+      "With the network owner, design private Pod CIDR allocation and safe workload rescheduling before changing CNI settings.",
+      "Test application communication and verify Pod IPs after migration; revert the approved network change if connectivity fails."
+    ],
+    "summary": "Review globally routable Pod IP advertised in Pod status."
+  },
+  "k8s_pod_pod_deployed_within_specific_namespace_0daa0bd46b": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_next_k8s",
+      "kind": "pod",
+      "path": "complete Pod inventory, metadata.namespace, current cluster-bound approved_namespaces",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "aaaa1cf499d98c402aba9b2c1217e03f5eff22b062fbc2430c23ac3267c5cd26",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/"
+      }
+    ],
+    "review_status": "approved",
+    "summary": "Declare the Pod or controller in an owner-approved namespace and review tenant isolation separately.",
+    "steps": [
+      "Confirm the current Pod namespace and the fresh owner-approved namespace set.",
+      "Update the owned Pod or controller manifest to an approved namespace and roll out through the normal change process.",
+      "Recollect placement evidence and review tenant isolation separately; namespace membership alone is not isolation proof."
+    ]
+  },
+  "k8s_response_team_required_binding": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_next_k8s",
+      "kind": "rolebinding",
+      "path": "complete rolebinding and clusterrolebinding inventory, current cluster-bound required subject and role policy",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "83117937c7c76e56eb5e93482f2e03782bd9576002f144881b3fb728db4c7b66",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      }
+    ],
+    "review_status": "approved",
+    "summary": "Declare the owner-required User or Group RBAC binding in an allowed namespace, then verify response access separately.",
+    "steps": [
+      "Confirm the required User or Group, role, and allowed namespace in the fresh cluster-bound owner policy.",
+      "Create or correct the matching RBAC binding with the Kubernetes RBAC API group and verify its subject identity.",
+      "Validate effective response access separately; ServiceAccount requirements remain UNKNOWN until trusted policy can identify a namespace."
+    ]
+  },
+  "k8s_secret_no_deletion_timestamp": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "secret_metadata",
+      "path": "metadata.deletionTimestamp",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "31aabee2fc97534fb830a369b52ad12cb49cf66929044040389a1b385e43e593",
+    "references": [
+      {
+        "title": "Kubernetes ObjectMeta deletionTimestamp",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/definitions/object-meta-v1-meta/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect metadata.deletionTimestamp and finalizers for the named Secret; do not read or print Secret data.",
+      "Confirm whether deletion is intended and whether workloads still reference the Secret; Kubernetes does not allow deletionTimestamp to be unset.",
+      "If still needed, arrange safe recreation through the approved secret manager and update dependent workload references, then verify availability; reverse any changed workload manifest if cutover fails."
+    ],
+    "summary": "Review the Secret pending-deletion state with its owner."
+  },
+  "k8s_service_service_uses_ftp_endpoint_connection_e9b0a5f836": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_k8s",
+      "kind": "service",
+      "path": "spec.type, spec.ports[].protocol, spec.ports[].port",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6e43c5e57026a34ff1d38b6975205299d893ddc06c4249418008d75fd6b060f6",
+    "references": [
+      {
+        "title": "Official provider API or configuration reference",
+        "url": "https://kubernetes.io/docs/reference/kubernetes-api/core/service-v1/"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the Service spec.ports entry and confirm with the application owner whether it actually carries FTP or another protocol.",
+      "If FTP is used, plan an approved encrypted replacement and client migration; then update the owning Service and workload manifests to remove TCP port 21.",
+      "Verify authorized clients after rollout and revert the manifest if a required dependency breaks."
+    ],
+    "summary": "Review ClusterIP Service TCP port 21 declaration."
+  }
+}

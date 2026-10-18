@@ -4,12 +4,14 @@ Adapted from Blue-PEASS for CloudPEASS integration.
 Uses bundled audited rules; network/cache is a fallback for missing bundles.
 
 Note: The Blue-CloudPEASS repository must be publicly accessible at:
-https://github.com/peass-ng/Blue-CloudPEASS
+https://github.com/peass-ng/PEASSo-CSPM
 """
 
 from __future__ import annotations
 
 import ast
+from contextvars import ContextVar
+from contextlib import contextmanager
 from functools import lru_cache
 import fnmatch
 import os
@@ -19,8 +21,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
-import requests
 import yaml
+
+
+_OFFLINE_RULES = ContextVar("bluepeass_offline_rules", default=False)
+
+@contextmanager
+def offline_rules():
+    token = _OFFLINE_RULES.set(True)
+    try:
+        yield
+    finally:
+        _OFFLINE_RULES.reset(token)
 
 
 RISK_ORDER = {"low": 0, "medium": 1, "high": 2, "critical": 3}
@@ -28,7 +40,7 @@ RISK_LEVELS = ("low", "medium", "high", "critical")
 
 # Blue-CloudPEASS GitHub repository base URL
 # Note: Update this to match your Blue-CloudPEASS repository name and branch
-BLUEPEASS_RISK_RULES_BASE_URL = "https://raw.githubusercontent.com/peass-ng/Blue-CloudPEASS/refs/heads/main/risk_rules"
+BLUEPEASS_RISK_RULES_BASE_URL = "https://raw.githubusercontent.com/peass-ng/PEASSo-CSPM/refs/heads/main/risk_rules"
 RISK_RULES_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60  # 7 days
 
 
@@ -46,7 +58,7 @@ def _parse_rules_yaml(yaml_text: Optional[str], provider: str, source: str) -> d
     if not yaml_text:
         return {}
     try:
-        data = yaml.safe_load(yaml_text) or {}
+        data = yaml.load(yaml_text, Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader)) or {}
     except Exception as e:
         print(f"Warning: Couldn't parse {source} risk rules for {provider}: {e}")
         return {}
@@ -70,6 +82,7 @@ def _download_risk_rules(provider: str) -> Optional[str]:
     """Download risk rules YAML from Blue-PEASS repo."""
     url = f"{BLUEPEASS_RISK_RULES_BASE_URL}/{provider}.yaml"
     try:
+        import requests
         resp = requests.get(url, timeout=45)
     except Exception as e:
         print(f"Warning: Couldn't download risk rules for {provider}: {e}")
@@ -81,11 +94,22 @@ def _download_risk_rules(provider: str) -> Optional[str]:
     return resp.text
 
 
+@lru_cache(maxsize=3)
+def _offline_yaml(provider: str, path: str, modified_ns: int, size: int) -> dict:
+    data = _parse_rules_yaml(Path(path).read_text(encoding="utf-8"), provider, "bundled offline")
+    if not data or data.get("provider") != provider or data.get("version") != 1:
+        raise ValueError("bundled offline rules invalid for " + provider)
+    return data
+
+
 def _load_yaml(provider: str) -> dict:
     """Use the shipped audit deterministically; external rules are a fallback."""
     if provider not in {"aws", "gcp", "azure"}:
         raise ValueError(f"Unknown provider: {provider}")
     bundled_path = _bundled_rules_path(provider)
+    if _OFFLINE_RULES.get():
+        status = bundled_path.stat()
+        return _offline_yaml(provider, str(bundled_path), status.st_mtime_ns, status.st_size)
     try:
         bundled_text = bundled_path.read_text(encoding="utf-8")
     except OSError:
@@ -93,6 +117,9 @@ def _load_yaml(provider: str) -> dict:
     bundled = _parse_rules_yaml(bundled_text, provider, "bundled")
     if bundled:
         return bundled
+
+    if _OFFLINE_RULES.get():
+        raise ValueError("bundled offline rules unavailable for " + provider)
 
     cache_path = _cache_dir() / f"{provider}.yaml"
     if _should_refresh_cache(cache_path):
@@ -2156,7 +2183,7 @@ def _catalog_severities(provider: str) -> dict[str, str]:
             for permission in permissions}
 
 
-def classify_permission(provider: str, permission: str, *, unknown_default: str = "high") -> str:
+def classify_permission(provider: str, permission: str, *, unknown_default: str = "high", offline: bool = False) -> str:
     """
     Classify a single permission by risk level.
     
@@ -2168,6 +2195,14 @@ def classify_permission(provider: str, permission: str, *, unknown_default: str 
     Returns:
         Risk level: "low", "medium", "high", or "critical"
     """
+    if offline:
+        token = _OFFLINE_RULES.set(True)
+        try:
+            # Validate the local bundle even when derived classification caches are warm.
+            _load_yaml(provider)
+            return classify_permission(provider, permission, unknown_default=unknown_default)
+        finally:
+            _OFFLINE_RULES.reset(token)
     provider = provider.lower().strip()
     permission = (permission or "").strip()
     if unknown_default not in RISK_LEVELS:

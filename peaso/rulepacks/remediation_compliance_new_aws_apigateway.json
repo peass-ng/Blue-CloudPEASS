@@ -1,0 +1,58 @@
+{
+  "aws.pci.apigateway.all_methods_logging": {
+    "summary": "Set ERROR or INFO execution logging for the reviewed REST API stage and its method overrides.",
+    "steps": [
+      "Read the stage methodSettings and identify the wildcard setting and every explicit method override whose loggingLevel is OFF or unavailable.",
+      "Confirm the owner-approved logging level and review log content, access, retention, and the CloudWatch Logs role before changing settings.",
+      "Set ERROR or INFO on the stage wildcard and each affected method override, then read back GetStages and verify log delivery with an approved test request."
+    ],
+    "cli": [],
+    "caveats": [
+      "GetStages settings do not prove that logs reach CloudWatch; account logging permissions and delivery must be verified separately.",
+      "An absent wildcard or omitted loggingLevel in an override remains UNKNOWN because deployed-route coverage and field inheritance are unproven.",
+      "Avoid request or response data tracing unless separately approved because it may record sensitive data."
+    ],
+    "references": [
+      {"title": "API Gateway stage settings", "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-stages.html"},
+      {"title": "API Gateway REST execution logging", "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-execution-logging.html"},
+      {"title": "API Gateway GetStage API", "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_GetStage.html"}
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws_apigateway",
+      "kind": "rest_api_stage",
+      "target": "resource",
+      "path": "id; ParentApiId; stageName; _provenance.source_operation; complete rest_api_stage scope; methodSettings['*/*'].loggingLevel; methodSettings[method override].loggingLevel",
+      "observed_fail_evidence": "stage_arn; unsafe_method_overrides"
+    },
+    "proposed_spec_sha256": "e9aa2380393b6fc8c69c68b574b2e0a2baed8bd4e9b5cc6aa4d254af5a42a5f3",
+    "review_status": "source_bound_pending_review"
+  },
+  "aws.pci.apigateway.all_methods_cache_encrypted": {
+    "summary": "Enable encryption for each reviewed method cache that is already approved for use.",
+    "steps": [
+      "Read cacheClusterEnabled, cacheClusterStatus, and all methodSettings; identify explicitly enabled method caches with cacheDataEncrypted=false.",
+      "Confirm that caching is required for each affected method and review cached data sensitivity, TTL, cost, and operational impact with the API owner.",
+      "Enable Encrypt cache data on each approved affected method, then read back GetStages and verify cache behavior with an approved test request."
+    ],
+    "cli": [],
+    "caveats": [
+      "A disabled stage cache or disabled method caching is outside this encryption predicate; do not enable hourly-billed caching solely to clear the finding.",
+      "A wildcard with encryption disabled does not prove an active deployed method exists; absent route proof remains UNKNOWN unless an explicit enabled unencrypted override is present.",
+      "Changing cache encryption settings can flush or alter cache behavior; plan the change with the API owner."
+    ],
+    "references": [
+      {"title": "API Gateway REST cache settings", "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html"},
+      {"title": "API Gateway GetStage API", "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_GetStage.html"},
+      {"title": "API Gateway MethodSetting API", "url": "https://docs.aws.amazon.com/apigateway/latest/api/API_MethodSetting.html"}
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws_apigateway",
+      "kind": "rest_api_stage",
+      "target": "resource",
+      "path": "id; ParentApiId; stageName; _provenance.source_operation; complete rest_api_stage scope; cacheClusterEnabled; cacheClusterStatus; methodSettings['*/*'].cachingEnabled/cacheDataEncrypted; methodSettings[method override].cachingEnabled/cacheDataEncrypted",
+      "observed_fail_evidence": "stage_arn; unencrypted_enabled_overrides"
+    },
+    "proposed_spec_sha256": "38d3fa49e17972ee0d4d0b00c89debfb863a76f72d30e7a165af7332702fa029",
+    "review_status": "source_bound_pending_review"
+  }
+}

@@ -1,0 +1,56 @@
+schema_version: '1.0'
+title: Defensive IAM and network risk review catalog
+authoring_license: AGPL-3.0-only
+coverage_statement: Four provider review themes; not exhaustive control coverage, effective-access analysis, technique mapping, or chain discovery.
+sources:
+  - id: hacktricks-criticality
+    repository: HackTricks-wiki/hacktricks-cloud
+    revision: cfaea7fce524b2ebfe99d91f55821069d171d0a1
+    reference: https://github.com/HackTricks-wiki/hacktricks-cloud/tree/cfaea7fce524b2ebfe99d91f55821069d171d0a1/src/permission-categorizations
+    title: HackTricks Cloud permission criticality provenance
+    license_status: unverified
+    license_reference: https://github.com/HackTricks-wiki/hacktricks-cloud/tree/cfaea7fce524b2ebfe99d91f55821069d171d0a1
+    imported_text: false
+    note: Original review descriptions below; source license is not asserted or relicensed. Runtime standalone criticality uses existing bundled repository data and retains its provenance.
+reviews:
+  - id: aws.identity-and-network-review
+    provider: aws
+    title: Review declared identity authority and network exposure
+    description: Review broad or high-impact identity grants, public or external trust declarations, and unrestricted network rule candidates with resource owners.
+    source: hacktricks-criticality
+    coverage: manual-review
+    supported: Native identity policy declarations, membership, managed and inline attachment evidence, trust policy statements, VPC associations, and security-group ingress candidates.
+    missing_context: Effective denies, service control policies, permission boundaries, runtime conditions, activity outside the observed window, NACLs, routing, and business need.
+    mitigation: Confirm legitimate owners and narrow authority or public scope after impact review, with tested rollback and monitored observation windows.
+  - id: gcp.identity-and-network-review
+    provider: gcp
+    title: Review inherited bindings and shared network associations
+    description: Review broad bindings, public members, service-account authority declarations, native shared-network references, and ingress firewall candidates.
+    source: hacktricks-criticality
+    coverage: manual-review
+    supported: Native policy bindings and conditions, collected custom-role permissions, network and subnetwork references including host projects, and firewall rule evidence.
+    missing_context: Uncollected inherited or predefined role permissions, IAM deny and principal access boundaries, conditions, group expansion, logging visibility, hierarchy policy and target selection.
+    mitigation: Validate project and domain allowlists with owners, review inherited authority, and narrow binding and source selectors after application impact review.
+  - id: azure.identity-and-network-review
+    provider: azure
+    title: Review tenant authority and network security associations
+    description: Review native assignments and role definitions separately from computed access, retaining control and data-plane exclusions and network-security priorities.
+    source: hacktricks-criticality
+    coverage: manual-review
+    supported: Collected role assignments and definitions, principal references, VNet and NIC relationships, and native NSG inbound rule candidates.
+    missing_context: Unknown object tenant affiliation, directory and management-group visibility, deny assignments, condition evaluation, just-in-time activation, telemetry coverage, and combined NIC/subnet enforcement.
+    mitigation: Confirm tenant affiliation and role ownership, assess exclusions and denies, and narrow assignment scope and network sources with owner approval.
+  - id: k8s.identity-and-network-review
+    provider: k8s
+    title: Review cluster RBAC and workload policy boundaries
+    description: Review native RBAC declarations and broad subject sets, preserving namespace and cluster distinction and additive network-policy evidence.
+    source: hacktricks-criticality
+    coverage: manual-review
+    supported: Native role and cluster-role rules, role-binding subjects and references, namespaces, workload containment, and ingress-policy selector declarations.
+    missing_context: Admission controls, aggregated cluster-role expansion, authentication configuration, runtime authorization, CNI enforcement, selector matching, and retained audit visibility.
+    mitigation: Confirm workload owners and intended subject sets, narrow RBAC and policy selectors after reviewing cluster scope and application dependencies.
+unsupported:
+  - Effective access calculation across every provider control plane
+  - Proven routed or telemetry-confirmed network reachability
+  - Privilege escalation prerequisite or technique-to-permission target catalogs
+  - Technique chains or shortest-path exploitation proofs

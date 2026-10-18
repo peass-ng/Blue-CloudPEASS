@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "reviewed_at": "2026-10-10",
+  "sources": [
+    {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "license": "Apache-2.0",
+      "source": "https://github.com/prowler-cloud/prowler/tree/61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "reference_tree_sha256": "34c5c4c24ae22e4cab0acebb5f09f4760e4ebb8e069d133bc16b2125751b5860",
+      "license_sha256": "a0666bd9911fb4b653372b3721c500fdbd097ed1ca83466adb07e7ae7afb82e0",
+      "license_text_path": "licenses/prowler.txt"
+    },
+    {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "license": "Apache-2.0",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/tree/803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "reference_tree_sha256": "2ab787db3e788315c60e96fbc0832a0d6a9887d1287b4af26c57fdd6cbc0b907",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_text_path": "licenses/steampipe-mod-aws-compliance.txt"
+    },
+    {
+      "repository": "turbot/steampipe-mod-gcp-compliance",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "license": "Apache-2.0",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-compliance/tree/3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "reference_tree_sha256": "d51a0571a498f46bb6b802e1360721aada42a6b461c8637af83befebb5eee6ac",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_text_path": "licenses/steampipe-mod-gcp-compliance.txt"
+    },
+    {
+      "repository": "turbot/steampipe-mod-azure-compliance",
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "license": "Apache-2.0",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/tree/464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "reference_tree_sha256": "55fb623324b31de19db5d31541df06aa772dbfcff0bc940f3d911aaa7840a47a",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_text_path": "licenses/steampipe-mod-azure-compliance.txt"
+    },
+    {
+      "repository": "turbot/steampipe-mod-kubernetes-compliance",
+      "revision": "4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "license": "Apache-2.0",
+      "source": "https://github.com/turbot/steampipe-mod-kubernetes-compliance/tree/4a387a1a4e1adc7e4314216f499b0b42d710be89",
+      "reference_tree_sha256": "2ceb761c315badb591054543f06198b93f37bf62b3128562f7d25be205a5b143",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_text_path": "licenses/steampipe-mod-kubernetes-compliance.txt"
+    },
+    {
+      "repository": "turbot/steampipe-mod-aws-perimeter",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/tree/2fe878449fb0d83b23333e373ee73849b0049364",
+      "reference_tree_sha256": "42459f2691cb07f86e32404f4bfc220b588071caf807af920efdad141943001c",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_text_path": "licenses/steampipe-mod-aws-perimeter.txt"
+    },
+    {
+      "repository": "turbot/steampipe-mod-gcp-perimeter",
+      "revision": "e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "license": "Apache-2.0",
+      "source": "https://github.com/turbot/steampipe-mod-gcp-perimeter/tree/e2c5a299d1927a41fe8bbd748bdffd295237937c",
+      "reference_tree_sha256": "9e858ab449ce9fe3c891c6fa1675fb93be76cfa4d06769e878468f0b6e93e90c",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_text_path": "licenses/steampipe-mod-gcp-perimeter.txt"
+    },
+    {
+      "repository": "turbot/steampipe-mod-azure-perimeter",
+      "revision": "397b1d63e80e6a948b457cd523ce8b56fb0a5295",
+      "license": "Apache-2.0",
+      "source": "https://github.com/turbot/steampipe-mod-azure-perimeter/tree/397b1d63e80e6a948b457cd523ce8b56fb0a5295",
+      "reference_tree_sha256": "8c5a3f05ab8ea90db5ef1e6cafc77e26a00ed64c82905854b4179576512a12bf",
+      "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "license_text_path": "licenses/steampipe-mod-azure-perimeter.txt"
+    }
+  ],
+  "catalog_scope": {
+    "prowler_providers": "all source catalog providers",
+    "turbot_suites": "AWS/GCP/Azure compliance and perimeter, Kubernetes compliance",
+    "runtime_providers": [
+      "aws",
+      "gcp",
+      "azure",
+      "k8s"
+    ]
+  }
+}

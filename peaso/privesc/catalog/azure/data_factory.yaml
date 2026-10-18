@@ -1,0 +1,37 @@
+# catalog_description: Active Azure entries require an identified source principal or intrinsic credential foothold,
+# X permission or capability enabling a stated action, and an exact target principal credential, token,
+# role/group membership, or additional permissions granted to the caller. Secret/config reads alone
+# are excluded unless verified content establishes a usable credential for a named target principal.
+# Canonical policy: peaso/privesc/catalog_policy.yaml
+# Azure Data Factory techniques (declarative only).
+# Source: hacktricks-cloud az-data-factory-privesc.md (rev 171e422).
+
+- id: azure-datafactory-dataplane-access-token
+  provider: azure
+  service: data_factory
+  title: Use a factory data-plane token to execute as one exact managed identity
+  source: src/pentesting-cloud/azure-security/az-privilege-escalation/az-data-factory-privesc.md#mint-a-factory-data-plane-access-token-with-factoriesgetdataplaneaccessaction
+  source_revision: 171e422
+  summary: A scoped factory data-plane token reaches a particular factory managed identity only after a verified runnable activity executes and returns that identity's token.
+  requires:
+    all_of:
+      - action: Microsoft.DataFactory/factories/getDataPlaneAccess/action
+        scope: '{target.scope}'
+  target:
+    kind: azure_managed_identity
+    selector:
+      azure_challenge_fact: azure-datafactory-dataplane-access-token
+    scope: inherited_scope
+    outcome: credentials
+    aggregate_as: Exact Data Factory identity reached by a verified token and pipeline run
+  conditions:
+    - id: exact_token_pipeline_identity_join
+      description: Reviewed evidence must bind the scoped usable data-plane token, executable pipeline or debug activity, successful run, exact system-assigned identity or user-assigned factory credential, and obtained managed-identity token.
+  blockers:
+    - azure_deny_assignment
+  confidence: conditional
+  severity: high
+  mitigation: Restrict getDataPlaneAccess/action and review data-plane token scopes and pipeline execution.
+  references:
+    - https://learn.microsoft.com/en-us/rest/api/datafactory/factories/get-data-plane-access
+  notes: Generic token issuance, even with an attached identity, cannot create an edge. The typed azure_datafactory_identity evidence contract must validate every step.

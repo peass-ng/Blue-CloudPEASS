@@ -1,0 +1,29 @@
+{
+  "aws_inspector2_ec2_no_high_critical_findings": {
+    "summary": "Investigate and remediate the active HIGH or CRITICAL Amazon Inspector findings for EC2 resources.",
+    "steps": [
+      "Open the reported finding ARNs and confirm the affected EC2 instances, package or configuration evidence, and current Inspector EC2 scan coverage in the assessed Region.",
+      "Prioritize the owner-approved remediation for each finding and schedule changes according to the workload's maintenance process.",
+      "After remediation and a new Inspector assessment, verify that no matching ACTIVE HIGH or CRITICAL EC2 findings remain and that account-level EC2 coverage is enabled."
+    ],
+    "cli": [],
+    "caveats": [
+      "A clean finding list is inconclusive when Inspector EC2 coverage is disabled, denied, or incomplete; the evaluator returns UNKNOWN in that case.",
+      "Account-level EC2 coverage does not prove every instance is currently scanned; inspect per-resource coverage for that assurance.",
+      "Do not suppress a finding solely to clear this check; record the risk disposition separately."
+    ],
+    "references": [
+      {"title": "Inspector ListFindings API", "url": "https://docs.aws.amazon.com/inspector/v2/APIReference/API_ListFindings.html"},
+      {"title": "Inspector BatchGetAccountStatus API", "url": "https://docs.aws.amazon.com/inspector/v2/APIReference/API_BatchGetAccountStatus.html"}
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws_inspector_ec2",
+      "kind": "inspector2_finding",
+      "target": "scope",
+      "path": "context.scope/created_at; complete scoped inspector2_finding.findingArn/awsAccountId/status/severity/resources[].type; complete scoped inspector2_account_status.State.status/ResourceState.ec2.status",
+      "observed_fail_evidence": "scope; active_high_critical_ec2_findings"
+    },
+    "proposed_spec_sha256": "19e3708f8d4caadf3c96f39850def20bc39256bb7aa3cdf7955e76cd4cd52bf1",
+    "review_status": "source_bound_pending_review"
+  }
+}

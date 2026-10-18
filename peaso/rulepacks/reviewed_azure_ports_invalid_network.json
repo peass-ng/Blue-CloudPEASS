@@ -1,0 +1,1742 @@
+{
+  "azure-compliance.control.cis_v130_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v130/section_6.pp",
+      "control_line": 25,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_6_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v130/section_6.pp",
+      "control_line": 39,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v130_6_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v130/section_6.pp",
+      "control_line": 95,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v140/section_6.pp",
+      "control_line": 25,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_6_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v140/section_6.pp",
+      "control_line": 39,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v140_6_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v140/section_6.pp",
+      "control_line": 95,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v150/section_6.pp",
+      "control_line": 25,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_6_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v150/section_6.pp",
+      "control_line": 39,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_6_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v150/section_6.pp",
+      "control_line": 53,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_http"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_http implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_https_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_http"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP (Any also counted), destination port spec covering 80; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_https_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 822,
+      "query_sha256": "40759d17403ccd12ab4b7bb5da06bc2b0ca2e5c76cc8832048b21a2d1b9e0924",
+      "control_path": "cis_v150/section_6.pp",
+      "control_line": 67,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select distinct\n        name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' ilike 'TCP'\n        and sip in\n        (\n          '*',\n          '0.0.0.0',\n          '0.0.0.0/0',\n          'Internet',\n          'any',\n          '<nw>/0',\n          '/0'\n        )\n        and\n        (\n          dport in\n          (\n            '80',\n            '*'\n          )\n          or\n          (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 80\n            and split_part(dport, '-', 2) :: integer >= 80\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null then sg.title || ' restricts HTTPS access from internet.'\n        else sg.title || ' allows HTTPS access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v200/section_6.pp",
+      "control_line": 26,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_6_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v200/section_6.pp",
+      "control_line": 40,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_6_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v200/section_6.pp",
+      "control_line": 54,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_http"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_http implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_https_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_http"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP (Any also counted), destination port spec covering 80; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_https_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 822,
+      "query_sha256": "40759d17403ccd12ab4b7bb5da06bc2b0ca2e5c76cc8832048b21a2d1b9e0924",
+      "control_path": "cis_v200/section_6.pp",
+      "control_line": 68,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select distinct\n        name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' ilike 'TCP'\n        and sip in\n        (\n          '*',\n          '0.0.0.0',\n          '0.0.0.0/0',\n          'Internet',\n          'any',\n          '<nw>/0',\n          '/0'\n        )\n        and\n        (\n          dport in\n          (\n            '80',\n            '*'\n          )\n          or\n          (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 80\n            and split_part(dport, '-', 2) :: integer >= 80\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null then sg.title || ' restricts HTTPS access from internet.'\n        else sg.title || ' allows HTTPS access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_6_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v210/section_6.pp",
+      "control_line": 26,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_6_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v210/section_6.pp",
+      "control_line": 40,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_6_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v210/section_6.pp",
+      "control_line": 54,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_http_https"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_http_https implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_http_https"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP (Any also counted), destination port spec covering 80 or 443; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also required one range to cover both 80 and 443 (corrected to either)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 881,
+      "query_sha256": "05cc12da3b7bd6f84909ce5649fc85588c5f819c932b2ea8531a9f93e0564400",
+      "control_path": "cis_v210/section_6.pp",
+      "control_line": 68,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select distinct\n        name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' ilike 'TCP'\n        and sip in\n        (\n          '*',\n          '0.0.0.0',\n          '0.0.0.0/0',\n          'Internet',\n          'any',\n          '<nw>/0',\n          '/0'\n        )\n        and\n        (\n          dport in\n          (\n            '80',\n            '443',\n            '*'\n          )\n          or\n          (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 80\n            and split_part(dport, '-', 2) :: integer >= 80\n            and split_part(dport, '-', 1) :: integer <= 443\n            and split_part(dport, '-', 2) :: integer >= 443\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null then sg.title || ' restricts HTTPS access from internet.'\n        else sg.title || ' allows HTTPS access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_7_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v300/section_7.pp",
+      "control_line": 26,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_7_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v300/section_7.pp",
+      "control_line": 40,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v300/section_7.pp",
+      "control_line": 54,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_7_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_http_https"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_http_https implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_http_https"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP (Any also counted), destination port spec covering 80 or 443; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also required one range to cover both 80 and 443 (corrected to either)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 881,
+      "query_sha256": "05cc12da3b7bd6f84909ce5649fc85588c5f819c932b2ea8531a9f93e0564400",
+      "control_path": "cis_v300/section_7.pp",
+      "control_line": 68,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select distinct\n        name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' ilike 'TCP'\n        and sip in\n        (\n          '*',\n          '0.0.0.0',\n          '0.0.0.0/0',\n          'Internet',\n          'any',\n          '<nw>/0',\n          '/0'\n        )\n        and\n        (\n          dport in\n          (\n            '80',\n            '443',\n            '*'\n          )\n          or\n          (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 80\n            and split_part(dport, '-', 2) :: integer >= 80\n            and split_part(dport, '-', 1) :: integer <= 443\n            and split_part(dport, '-', 2) :: integer >= 443\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null then sg.title || ' restricts HTTPS access from internet.'\n        else sg.title || ' allows HTTPS access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_8_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v400/section_8.pp",
+      "control_line": 27,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_8_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v400/section_8.pp",
+      "control_line": 41,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_8_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v400/section_8.pp",
+      "control_line": 55,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_8_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_http_https"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_http_https implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_http_https"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP (Any also counted), destination port spec covering 80 or 443; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also required one range to cover both 80 and 443 (corrected to either)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 881,
+      "query_sha256": "05cc12da3b7bd6f84909ce5649fc85588c5f819c932b2ea8531a9f93e0564400",
+      "control_path": "cis_v400/section_8.pp",
+      "control_line": 69,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select distinct\n        name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' ilike 'TCP'\n        and sip in\n        (\n          '*',\n          '0.0.0.0',\n          '0.0.0.0/0',\n          'Internet',\n          'any',\n          '<nw>/0',\n          '/0'\n        )\n        and\n        (\n          dport in\n          (\n            '80',\n            '443',\n            '*'\n          )\n          or\n          (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 80\n            and split_part(dport, '-', 2) :: integer >= 80\n            and split_part(dport, '-', 1) :: integer <= 443\n            and split_part(dport, '-', 2) :: integer >= 443\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null then sg.title || ' restricts HTTPS access from internet.'\n        else sg.title || ' allows HTTPS access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_7_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_rdp"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_rdp implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_rdp_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_rdp"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 3389; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_rdp_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 502,
+      "query_sha256": "715a918187a47a32a8ac924aab67fab94d93756e3d3c801ca3a50d6514d0429a",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 35,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('3389', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 3389\n            and split_part(dport, '-', 2) :: integer >= 3389\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts RDP access from internet.'\n        else sg.title || ' allows RDP access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_7_2": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_ssh"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_ssh implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_ssh_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_ssh"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP or Any, destination port spec covering 22; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_ssh_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 943,
+      "query_sha256": "cb5ee6146c375ae52978082e22019423eeba5df097eb72a73c3e3c46597a244f",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 49,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and (sg -> 'properties' ->> 'protocol' ilike 'TCP' or sg -> 'properties' ->> 'protocol' = '*')\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport in ('22', '*')\n          or (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 22\n            and split_part(dport, '-', 2) :: integer >= 22\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts SSH access from internet.'\n        else sg.title || ' allows SSH access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_7_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_udp_services"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_udp_services implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_udp_service_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_udp_services"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), UDP (Any also counted), destination port spec covering 53/123/161/389/1900; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also omitted exact single-port declarations (corrected)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_udp_service_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 988,
+      "query_sha256": "e610a33687259b14278787fb230da93cc65f71376e02e6a1a862cb44e3b30bd5",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 63,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select\n        distinct name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' = 'UDP'\n        and sip in ('*', '0.0.0.0', '0.0.0.0/0', 'Internet', 'any', '<nw>/0', '/0')\n        and (\n          dport = '*'\n          or (\n            dport like '%-%'\n            and (\n              53 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 123 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 161 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 389 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n              or 1900 between split_part(dport, '-', 1) :: integer and split_part(dport, '-', 2) :: integer\n            )\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null\n          then sg.title || ' restricts UDP services from internet.'\n        else sg.title || ' allows UDP services from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_7_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.gap.nsg_declared_internet_http_https"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed; native_equivalence_verification records that azure.gap.nsg_declared_internet_http_https implements the same control requirement (same resource, property and pass condition) and that the defect is confined to the upstream query. This control's framework associations attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "The full pinned query joins risky-rule CTE to NSGs by name alone. Azure NSG names are unique only within a resource group, so two different full ARM IDs with the same name cause a safe NSG to inherit another group\u2019s alarm. Reject demonstrated wrong scope measurement, not unavailable facts or implementation. Existing independent priority-aware native NSG checks remain distinct and are not mislabeled exact source equivalents."
+    },
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "target_native_checks": [
+        "azure.gap.nsg_declared_internet_http_https"
+      ],
+      "resource": "Each Microsoft.Network/networkSecurityGroups item by full ARM id (collector kind nsg), custom properties.securityRules",
+      "property": "access, direction, protocol, sourceAddressPrefix(es), destinationPortRange(s)",
+      "pass_condition": "FAIL iff any inbound Allow rule has an internet source (*, 0.0.0.0, 0.0.0.0/0, Internet, any, <nw>/0, /0), TCP (Any also counted), destination port spec covering 80 or 443; priority/Deny ignored",
+      "upstream_defect_only": "Risky-rule CTE is joined to NSGs by name only, so a same-named NSG in another resource group inherits the alarm (scope defect only).; source also required one range to cover both 80 and 443 (corrected to either)",
+      "native_deviations": "protocol * (Any) counted where the source matched TCP/UDP only; malformed rules UNKNOWN",
+      "rejected_similar_natives": "azure.claude.nsg_internet_* natives are priority-aware (a higher-priority internet Deny shadows the Allow and PASSes), a different pass condition from the CIS/source declaration audit; not merged."
+    },
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules",
+      "https://learn.microsoft.com/en-us/rest/api/virtualnetwork/network-security-groups/get?view=rest-virtualnetwork-2025-05-01"
+    ],
+    "review_notes": "Executed pinned final status/name join against two same-name NSGs in one subscription/different resource groups. Includes UDP exact-port omission and HTTP dual-port range-AND counterexamples independently; source also omits priority evaluation, so priority-aware Claude definitions are not exact query replacements.",
+    "source_review": {
+      "query_id": "network_security_group_https_port_80_443_access_restricted",
+      "query_path": "regulatory_compliance/network.pp",
+      "query_line": 881,
+      "query_sha256": "05cc12da3b7bd6f84909ce5649fc85588c5f819c932b2ea8531a9f93e0564400",
+      "control_path": "cis_v500/section_7.pp",
+      "control_line": 77,
+      "arguments": [],
+      "pinned_sql": "with network_sg as (\n      select distinct\n        name sg_name\n      from\n        azure_network_security_group nsg,\n        jsonb_array_elements(security_rules) sg,\n        jsonb_array_elements_text(sg -> 'properties' -> 'destinationPortRanges' || (sg -> 'properties' -> 'destinationPortRange') :: jsonb) dport,\n        jsonb_array_elements_text(sg -> 'properties' -> 'sourceAddressPrefixes' || (sg -> 'properties' -> 'sourceAddressPrefix') :: jsonb) sip\n      where\n        sg -> 'properties' ->> 'access' = 'Allow'\n        and sg -> 'properties' ->> 'direction' = 'Inbound'\n        and sg -> 'properties' ->> 'protocol' ilike 'TCP'\n        and sip in\n        (\n          '*',\n          '0.0.0.0',\n          '0.0.0.0/0',\n          'Internet',\n          'any',\n          '<nw>/0',\n          '/0'\n        )\n        and\n        (\n          dport in\n          (\n            '80',\n            '443',\n            '*'\n          )\n          or\n          (\n            dport like '%-%'\n            and split_part(dport, '-', 1) :: integer <= 80\n            and split_part(dport, '-', 2) :: integer >= 80\n            and split_part(dport, '-', 1) :: integer <= 443\n            and split_part(dport, '-', 2) :: integer >= 443\n          )\n        )\n    )\n    select\n      sg.id resource,\n      case\n        when nsg.sg_name is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when nsg.sg_name is null then sg.title || ' restricts HTTPS access from internet.'\n        else sg.title || ' allows HTTPS access from internet.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sg.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_network_security_group sg\n      left join network_sg nsg on nsg.sg_name = sg.name\n      left join azure_subscription sub on sub.subscription_id = sg.subscription_id;",
+      "counterexample": {
+        "name": "same",
+        "risky_id": "/subscriptions/sub/resourceGroups/open/providers/Microsoft.Network/networkSecurityGroups/same",
+        "safe_id": "/subscriptions/sub/resourceGroups/closed/providers/Microsoft.Network/networkSecurityGroups/same",
+        "risky_cte_names": [
+          "same"
+        ],
+        "source_statuses": [
+          "alarm",
+          "alarm"
+        ],
+        "required_declaration_statuses": [
+          "alarm",
+          "ok"
+        ],
+        "fault": "Unqualified name join across resource groups"
+      }
+    }
+  }
+}

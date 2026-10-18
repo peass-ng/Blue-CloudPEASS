@@ -49,28 +49,13 @@ BOTO3_CONFIG = Config(
     max_pool_connections=50
 )
 
-# Global tracking for analyzer cleanup on interrupt (for parallel processing)
-_ALL_ANALYZERS = []  # List of (accessanalyzer_client, analyzer_name) tuples
-_ALL_ANALYZERS_LOCK = threading.Lock()
-
 MIN_UNUSED_DAYS = 90
 
 MAX_PERMS_TO_PRINT = 15
 
 def signal_handler(signum, frame):
-    """Handle Ctrl+C gracefully by cleaning up all analyzers across all accounts"""
-    global _ALL_ANALYZERS
-    print(f"\n{colored('[*] ', 'yellow')}Interrupt received. Cleaning up analyzers...")
-    
-    with _ALL_ANALYZERS_LOCK:
-        if _ALL_ANALYZERS:
-            for accessanalyzer_client, analyzer_name in _ALL_ANALYZERS:
-                try:
-                    accessanalyzer_client.delete_analyzer(analyzerName=analyzer_name)
-                    print(f"{colored('[+] ', 'green')}Analyzer {analyzer_name} deleted.")
-                except Exception as e:
-                    print(f"{colored('[-] ', 'red')}Failed to delete {analyzer_name}: {str(e)}")
-            _ALL_ANALYZERS.clear()
+    """Handle Ctrl+C without changing pre-existing analyzer resources."""
+    print(f"\n{colored('[*] ', 'yellow')}Interrupt received. Stopping...")
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -1770,8 +1755,7 @@ def process_account(
     # Track missing permissions for this account
     permission_errors = []
     
-    # Initialize variables that might be used in cleanup
-    created_analyzers = []
+    # Keep the read-only analyzer client available to existing findings paths.
     accessanalyzer = None
     account_id = "unknown"
     
@@ -1841,117 +1825,34 @@ def process_account(
         except (NoCredentialsError, ClientError) as e:
             return (False, None, [{"operation": "GetCallerIdentity", "error": str(e)}])
         
-        # Access Analyzer setup (optional)
+        # Reuse existing Access Analyzers only. Creating one can incur charges.
         analyzer_arn = None
         analyzer_arn_exposed = None
         accessanalyzer = None
-        created_analyzers = []
-        
+
         if not no_access_analyzer:
             if progress_cb:
                 progress_cb("access_analyzer")
-            already_created_analyzers = True
             accessanalyzer = session.client("accessanalyzer", access_analyzer_region, config=BOTO3_CONFIG)
-
-            # Try to create or find unused access analyzer
-            try:
-                analyzer_arn = accessanalyzer.create_analyzer(
-                    analyzerName="iam_analyzer_unused", type="ACCOUNT_UNUSED_ACCESS", archiveRules=[]
-                )["arn"]
-                created_analyzers.append("iam_analyzer_unused")
-                with _ALL_ANALYZERS_LOCK:
-                    _ALL_ANALYZERS.append((accessanalyzer, "iam_analyzer_unused"))
-                print(f"{colored('[+] ', 'green')}Analyzer iam_analyzer_unused created successfully.")
-                already_created_analyzers = False
-            except ClientError as e:
-                code = (e.response or {}).get("Error", {}).get("Code")
-                if code == "ResourceNotFoundException":
-                    print(
-                        f"{colored('[!] ', 'yellow')}IAM Access Analyzer not available in this account/region. Continuing without analyzer..."
-                    )
-                    permission_errors.append({"operation": "AccessAnalyzer", "error": "IAM Access Analyzer not available"})
-                elif code in ["AccessDeniedException", "AccessDenied"]:
-                    permission_errors.append({"operation": "CreateAnalyzer", "error": "Access denied to create analyzer"})
-                if verbose:
-                    print(f"{colored('[*] ', 'yellow')}Could not create analyzer: {e}")
-                analyzer_arn = ""
+            for analyzer_type, error_operation in (
+                ("ACCOUNT_UNUSED_ACCESS", "ListAnalyzers"),
+                ("ACCOUNT", "ListExposedAnalyzers"),
+            ):
                 try:
-                    analyzers = accessanalyzer.list_analyzers(type="ACCOUNT_UNUSED_ACCESS")
-                    if analyzers.get("analyzers"):
-                        analyzer_arn = analyzers["analyzers"][-1]["arn"]
-                except ClientError as e2:
-                    permission_errors.append({"operation": "ListAnalyzers", "error": str(e2)})
-
-            # Try to create or find exposed assets analyzer
-            try:
-                analyzer_arn_exposed = accessanalyzer.create_analyzer(
-                    analyzerName="iam_analyzer_exposed", type="ACCOUNT", archiveRules=[]
-                )["arn"]
-                created_analyzers.append("iam_analyzer_exposed")
-                with _ALL_ANALYZERS_LOCK:
-                    _ALL_ANALYZERS.append((accessanalyzer, "iam_analyzer_exposed"))
-                print(f"{colored('[+] ', 'green')}Analyzer iam_analyzer_exposed created successfully.")
-                already_created_analyzers = False
-            except ClientError as e:
-                code = (e.response or {}).get("Error", {}).get("Code")
-                if code in ["AccessDeniedException", "AccessDenied"]:
-                    permission_errors.append(
-                        {"operation": "CreateExposedAnalyzer", "error": "Access denied to create exposed analyzer"}
-                    )
-                if verbose:
-                    print(f"{colored('[*] ', 'yellow')}Could not create exposed analyzer: {e}")
-                analyzer_arn_exposed = ""
-                try:
-                    analyzers = accessanalyzer.list_analyzers(type="ACCOUNT")
-                    if analyzers.get("analyzers"):
-                        analyzer_arn_exposed = analyzers["analyzers"][-1]["arn"]
-                except ClientError as e2:
-                    permission_errors.append({"operation": "ListExposedAnalyzers", "error": str(e2)})
-
-            # Wait for analyzers if just created
-            if not already_created_analyzers:
-                print(f"{colored('[+] ', 'grey')}Waiting 3 minutes for analyzers to collect data...")
-                time.sleep(180)
-                print(f"{colored('[+] ', 'grey')}Checking analyzer status...")
-                # Poll analyzer status after initial wait
-                max_wait_seconds = 60  # extra 1 minute max
-                poll_interval = 10  # Check every 10 seconds
-                start_time = time.time()
-                
-                analyzers_to_check = []
-                if analyzer_arn:
-                    analyzers_to_check.append(("iam_analyzer_unused", analyzer_arn))
-                if analyzer_arn_exposed:
-                    analyzers_to_check.append(("iam_analyzer_exposed", analyzer_arn_exposed))
-                
-                all_active = False
-                while (time.time() - start_time) < max_wait_seconds and not all_active:
-                    time.sleep(poll_interval)
-                    all_active = True
-                    for analyzer_name, analyzer_arn_to_check in analyzers_to_check:
-                        try:
-                            analyzer_info = accessanalyzer.get_analyzer(analyzerName=analyzer_name)
-                            status = analyzer_info.get("analyzer", {}).get("status")
-                            if status != "ACTIVE":
-                                all_active = False
-                                if verbose:
-                                    print(f"{colored('[*] ', 'cyan')}Analyzer {analyzer_name} status: {status}")
-                            elif verbose:
-                                print(f"{colored('[+] ', 'green')}Analyzer {analyzer_name} is ACTIVE")
-                        except Exception as e:
-                            all_active = False
-                            if verbose:
-                                print(f"{colored('[-] ', 'yellow')}Error checking analyzer {analyzer_name}: {e}")
-                
-                if all_active:
-                    elapsed = int(time.time() - start_time)
-                    print(f"{colored('[+] ', 'green')}All analyzers are active (waited {elapsed}s)")
-                else:
-                    print(f"{colored('[!] ', 'yellow')}Timeout waiting for analyzers (waited {max_wait_seconds}s). Proceeding anyway...")
-
-
+                    analyzers = accessanalyzer.list_analyzers(type=analyzer_type).get("analyzers") or []
+                    arn = analyzers[-1].get("arn") if analyzers else None
+                    if analyzer_type == "ACCOUNT_UNUSED_ACCESS":
+                        analyzer_arn = arn
+                    else:
+                        analyzer_arn_exposed = arn
+                except ClientError as error:
+                    permission_errors.append({"operation": error_operation, "error": str(error)})
+                    if verbose:
+                        print(f"{colored('[*] ', 'yellow')}Could not list existing {analyzer_type} analyzers: {error}")
             if analyzer_arn or analyzer_arn_exposed:
-                print(f"{colored('[+] ', 'green')}Fetching findings from analyzers...")
+                print(f"{colored('[+] ', 'green')}Fetching findings from existing analyzers...")
+            else:
+                print(f"{colored('[*] ', 'yellow')}No existing Access Analyzer found; continuing without analyzer findings.")
 
             # Fetch unused permission findings once (batch optimization)
             unused_permission_findings_map = {}
@@ -2201,29 +2102,13 @@ def process_account(
             unused_custom_policies=UNUSED_CUSTOM_POLICIES,
             all_access_keys=ALL_ACCESS_KEYS,
             external_trust_roles=EXTERNAL_TRUST_ROLES,
-            access_analyzer_enabled=not no_access_analyzer,
+            access_analyzer_enabled=bool(analyzer_arn or analyzer_arn_exposed),
             user_permissions=USER_PERMISSIONS,
             role_permissions=ROLE_PERMISSIONS,
             group_memberships=USER_GROUP_MEMBERSHIPS,
             min_unused_days=min_unused_days,
             verbose=verbose,
         )
-
-        # Cleanup: Remove created analyzers
-        for analyzer_name in created_analyzers:
-            try:
-                if accessanalyzer is not None:
-                    accessanalyzer.delete_analyzer(analyzerName=analyzer_name)
-                with _ALL_ANALYZERS_LOCK:
-                    _ALL_ANALYZERS[:] = [
-                        (client, name)
-                        for client, name in _ALL_ANALYZERS
-                        if not (client == accessanalyzer and name == analyzer_name)
-                    ]
-                print(f"{colored('[+] ', 'green')}Analyzer {analyzer_name} deleted successfully.")
-            except Exception as e:
-                if verbose:
-                    print(f"{colored('[-] ', 'red')}Failed to delete analyzer {analyzer_name}: {str(e)}")
 
         # Add permission errors to result if any
         if permission_errors and result and isinstance(result, dict):
@@ -2237,20 +2122,6 @@ def process_account(
         return (True, result, permission_errors)
         
     except Exception as e:
-        # Cleanup analyzers on error
-        try:
-            if accessanalyzer is not None and created_analyzers:
-                for analyzer_name in created_analyzers:
-                    try:
-                        accessanalyzer.delete_analyzer(analyzerName=analyzer_name)
-                        # Remove from global tracking (filter by both client and name)
-                        with _ALL_ANALYZERS_LOCK:
-                            _ALL_ANALYZERS[:] = [(client, name) for client, name in _ALL_ANALYZERS if not (client == accessanalyzer and name == analyzer_name)]
-                    except:
-                        pass
-        except:
-            pass
-        
         error_msg = f"Error in account: {str(e)}"
         if verbose:
             traceback.print_exc()

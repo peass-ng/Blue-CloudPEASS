@@ -1,0 +1,658 @@
+{
+  "azure-compliance.control.appservice_ftp_deployment_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_ftp_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_ftp_deployment_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1584,
+      "query_sha256": "83b186aeaf3dc3a6e46982b63be1231f1bfef8e723a3796417d926bdf6e4fdfe",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 467,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end",
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_diagnostic_log_category_http_log_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_diagnostic_log_category_http_log_enabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_diagnostic_log_category_http_log_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1881,
+      "query_sha256": "49c706a66a01b3e29143df574a10f554dd5a08d4e4c2c0a8863e70275ae0f36e",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 499,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ds.id is not null then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_incoming_client_cert_on": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_incoming_client_cert_on"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_incoming_client_cert_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 528,
+      "query_sha256": "99c776117e1839842c4b48f3017f4916c7c1b61a15ec96adb39b65422ea8543b",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 449,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when not client_cert_enabled then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.appservice_web_app_remote_debugging_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_remote_debugging_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_remote_debugging_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 549,
+      "query_sha256": "c1b5e709dd4832d458aa4129f5aede9ecfa34f2639ba89b52fdf5353348fc958",
+      "control_path": "regulatory_compliance/appservice.pp",
+      "control_line": 50,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when kind = 'api' then 'skip'\n        when configuration -> 'properties' ->> 'remoteDebuggingEnabled' = 'false' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v130_9_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_ftp_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_ftp_deployment_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1584,
+      "query_sha256": "83b186aeaf3dc3a6e46982b63be1231f1bfef8e723a3796417d926bdf6e4fdfe",
+      "control_path": "cis_v130/section_9.pp",
+      "control_line": 156,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end",
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v130_9_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_incoming_client_cert_on"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_incoming_client_cert_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 528,
+      "query_sha256": "99c776117e1839842c4b48f3017f4916c7c1b61a15ec96adb39b65422ea8543b",
+      "control_path": "cis_v130/section_9.pp",
+      "control_line": 72,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when not client_cert_enabled then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v140_9_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_ftp_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_ftp_deployment_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1584,
+      "query_sha256": "83b186aeaf3dc3a6e46982b63be1231f1bfef8e723a3796417d926bdf6e4fdfe",
+      "control_path": "cis_v140/section_9.pp",
+      "control_line": 156,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end",
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v140_9_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_incoming_client_cert_on"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_incoming_client_cert_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 528,
+      "query_sha256": "99c776117e1839842c4b48f3017f4916c7c1b61a15ec96adb39b65422ea8543b",
+      "control_path": "cis_v140/section_9.pp",
+      "control_line": 72,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when not client_cert_enabled then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v150_9_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_ftp_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_ftp_deployment_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1584,
+      "query_sha256": "83b186aeaf3dc3a6e46982b63be1231f1bfef8e723a3796417d926bdf6e4fdfe",
+      "control_path": "cis_v150/section_9.pp",
+      "control_line": 156,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end",
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v150_9_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_incoming_client_cert_on"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_incoming_client_cert_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 528,
+      "query_sha256": "99c776117e1839842c4b48f3017f4916c7c1b61a15ec96adb39b65422ea8543b",
+      "control_path": "cis_v150/section_9.pp",
+      "control_line": 72,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when not client_cert_enabled then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v200_5_1_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_diagnostic_log_category_http_log_enabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_diagnostic_log_category_http_log_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1881,
+      "query_sha256": "49c706a66a01b3e29143df574a10f554dd5a08d4e4c2c0a8863e70275ae0f36e",
+      "control_path": "cis_v200/section_5.pp",
+      "control_line": 137,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ds.id is not null then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v200_9_10": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_ftp_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_ftp_deployment_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1584,
+      "query_sha256": "83b186aeaf3dc3a6e46982b63be1231f1bfef8e723a3796417d926bdf6e4fdfe",
+      "control_path": "cis_v200/section_9.pp",
+      "control_line": 156,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end",
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v200_9_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_incoming_client_cert_on"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_incoming_client_cert_on",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 528,
+      "query_sha256": "99c776117e1839842c4b48f3017f4916c7c1b61a15ec96adb39b65422ea8543b",
+      "control_path": "cis_v200/section_9.pp",
+      "control_line": 72,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when not client_cert_enabled then 'alarm'\n        else 'ok'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v210_5_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_diagnostic_log_category_http_log_enabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_diagnostic_log_category_http_log_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1881,
+      "query_sha256": "49c706a66a01b3e29143df574a10f554dd5a08d4e4c2c0a8863e70275ae0f36e",
+      "control_path": "cis_v210/section_5.pp",
+      "control_line": 122,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ds.id is not null then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v210_9_9": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_ftp_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_ftp_deployment_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1584,
+      "query_sha256": "83b186aeaf3dc3a6e46982b63be1231f1bfef8e723a3796417d926bdf6e4fdfe",
+      "control_path": "cis_v210/section_9.pp",
+      "control_line": 141,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end",
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v300_6_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_diagnostic_log_category_http_log_enabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_diagnostic_log_category_http_log_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1881,
+      "query_sha256": "49c706a66a01b3e29143df574a10f554dd5a08d4e4c2c0a8863e70275ae0f36e",
+      "control_path": "cis_v300/section_6.pp",
+      "control_line": 122,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ds.id is not null then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v300_9_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_remote_debugging_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_remote_debugging_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 549,
+      "query_sha256": "c1b5e709dd4832d458aa4129f5aede9ecfa34f2639ba89b52fdf5353348fc958",
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 185,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when kind = 'api' then 'skip'\n        when configuration -> 'properties' ->> 'remoteDebuggingEnabled' = 'false' then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v300_9_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_ftp_deployment_disabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_ftp_deployment_disabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1584,
+      "query_sha256": "83b186aeaf3dc3a6e46982b63be1231f1bfef8e723a3796417d926bdf6e4fdfe",
+      "control_path": "cis_v300/section_9.pp",
+      "control_line": 59,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end",
+        "case\n          when configuration -> 'properties' ->> 'ftpsState' = 'AllAllowed' then 'alarm'\n          else 'ok'\n        end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_function_app",
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v400_7_1_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_diagnostic_log_category_http_log_enabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_diagnostic_log_category_http_log_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1881,
+      "query_sha256": "49c706a66a01b3e29143df574a10f554dd5a08d4e4c2c0a8863e70275ae0f36e",
+      "control_path": "cis_v400/section_7.pp",
+      "control_line": 143,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ds.id is not null then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "azure-compliance.control.cis_v500_6_1_1_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.appservice_web_app_diagnostic_log_category_http_log_enabled"
+    ],
+    "reason": "Inspected complete pinned query, exact source adapter table boundary and no-argument delegation. Preserve exact functionapp exclusion for web table, exact api skip for debugging, web/function union for FTPS AllAllowed-only alarm, clientCertEnabled flag and exactenabled AppServiceHTTPLogs category. Parent configuration/diagnostics are knowncomplete native metadata with fullIDs; missing/denied/malformed UNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-configuration?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get?view=rest-appservice-2025-03-01",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "No broad merge with all-app or child-config targets: exact kind=api and kind=functionapp differ from comma-token variants. FTPS-only is valid sourcePASS; clientcertflag doesnotestablishRequire-mode; HTTPlogging is category declaration notsite requestlogging/delivery. No appsettings, connectionstrings, authsecret/listkeys or networkprobes.",
+    "source_review": {
+      "query_id": "appservice_web_app_diagnostic_log_category_http_log_enabled",
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1881,
+      "query_sha256": "49c706a66a01b3e29143df574a10f554dd5a08d4e4c2c0a8863e70275ae0f36e",
+      "control_path": "cis_v500/section_6.pp",
+      "control_line": 146,
+      "arguments": [],
+      "status_case_sql": [
+        "case\n        when ds.id is not null then 'ok'\n        else 'alarm'\n      end"
+      ],
+      "source_dependencies": [
+        "azure_app_service_web_app",
+        "azure_subscription"
+      ],
+      "adapter_source": "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_app_service_web_app.go",
+      "scope": "source-specific AppService table/kind boundary"
+    }
+  },
+  "prowler.azure.app_ensure_auth_is_set_up": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.prowler_app_auth_platform_enabled"
+    ],
+    "reason": "Inspected pinned source service and evaluator: app-kind prefix selection, exact authSettingsV2 platform.enabled boolean controls result. Safe current GETauthsettingsV2 withoutsecrets exposes the same metadata flag, so no private auth/listkeys operation is imported or executed.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/get-auth-settings-v-2-without-secrets?view=rest-appservice-2025-03-01"
+    ],
+    "review_notes": "Distinct from legacyv1 enabled/sourcewholewebtable and from globalrequireAuthentication enforcement. Missing/denied/malformed platform flagUNKNOWN, non-appkindNOT_APPLICABLE; stronger authentication enforcement is a separate security baseline.",
+    "source_review": {
+      "query_id": "app_ensure_auth_is_set_up",
+      "query_path": "prowler/providers/azure/services/app/app_ensure_auth_is_set_up/app_ensure_auth_is_set_up.py",
+      "query_sha256": "a0e678fca7ce21db87b5eea0364814ee4d99366176ec569ac623a6490de8415c",
+      "source_service_path": "prowler/providers/azure/services/app/app_service.py",
+      "source_service_sha256": "2f366c4c9ebf07213b99629b50d10e31b318fe4bf99b005c3ae19af7fb4c07f1",
+      "arguments": [],
+      "kind_selector": "startswith(app)",
+      "field": "authSettingsV2.properties.platform.enabled",
+      "pinned_evaluator": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_ensure_auth_is_set_up(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for (\n            subscription_id,\n            apps,\n        ) in app_client.apps.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for app in apps.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=app)\n                report.subscription = subscription_id\n                report.status = \"PASS\"\n                report.status_extended = f\"Authentication is set up for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                if not app.auth_enabled:\n                    report.status = \"FAIL\"\n                    report.status_extended = f\"Authentication is not set up for app '{app.name}' in subscription '{subscription_name} ({subscription_id})'.\"\n\n                findings.append(report)\n\n        return findings\n"
+    }
+  }
+}

@@ -1,0 +1,463 @@
+{
+  "cloudwatch_metric_identity_join": {
+    "review": "Independently inspected all fifteen literal query definitions; query-name groups never substitute for semantic review.",
+    "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+    "official_docs": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html",
+    "counterexample": {
+      "filter": {
+        "metric_name": "RootUsage",
+        "namespace": "SecurityAudit",
+        "account": "111111111111",
+        "region": "us-east-1"
+      },
+      "alarm": {
+        "metric_name": "RootUsage",
+        "namespace": "Unrelated",
+        "account": "111111111111",
+        "region": "us-east-1",
+        "sns_subscription": true
+      },
+      "source_match_by_name": true,
+      "same_actual_metric": false
+    },
+    "queries": {
+      "log_metric_filter_unauthorized_api": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 444,
+        "sha256": "aae56ad8d0a5861989e1088f901f18f7abc5a7be4f7d2ff0bf283c700abe5dde",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_console_login_mfa": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 526,
+        "sha256": "74aca90206d4bda6b79c5eba26e04c8f734ddc59760bea6bf63018554da58fa7",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_root_login": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 608,
+        "sha256": "d52a92f600782cf8923e7a806aeb5ad5d50d3ffa8760ea87674d335e0088c202",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_iam_policy": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 690,
+        "sha256": "176d0a4051d776d989389b6b0de6ba4b21a5de5e60817daeceee4bc958db37c6",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_vpc": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 772,
+        "sha256": "71dec724da123455efd0842ab38dd1794cfe962937e83556bb7cb0ec5b3e3f60",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_route_table": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 854,
+        "sha256": "3c6107dee9162a4c2d71f0ebc8c412875b9b786f02ab0c74bfb4e58e02ef45d3",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_network_gateway": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 936,
+        "sha256": "cbeb39b32edb045a1c7fef67a8abd41c2badd13246bd6f1c29b47c65fde8079f",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_network_acl": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1018,
+        "sha256": "a2a00a9ebaca753c681fcacfb5ac3d81ba077480df1c54ebe164decb54e5cf06",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_security_group": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1100,
+        "sha256": "63de503c6b8d3c12bfb0d59128434443f0e94dca406156b894d1cabfa3f664c2",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_config_configuration": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1182,
+        "sha256": "854d5ad3c831409c991b653e8e000d97ddcd3520342933dbf20f33afe409b8b9",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_bucket_policy": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1264,
+        "sha256": "0eb6bf2a65a4f0b427dcc4d6d6bcfce606daeaac0db51413b66380b2593e44cf",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_disable_or_delete_cmk": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1346,
+        "sha256": "acec7d16daa5cd734c61626808eaa5cc1bee331fa3d47f2bb8998c8d2859e84d",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_console_authentication_failure": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1428,
+        "sha256": "dfadefe4943571e74b6c64b269a148bdeaa4d109ca395f9029109fcad486dcb3",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_cloudtrail_configuration": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1510,
+        "sha256": "b03ec3fda537113cf19dd3741d3f0f509a0d7a425cdb9adfa70fa658528f8b48",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      },
+      "log_metric_filter_organization": {
+        "source_path": "conformance_pack/cloudwatch.pp",
+        "source_line": 1592,
+        "sha256": "c3eed4508018f0eec7592101cd6dfa17afaaf5dfdcb249f96718d5d8c6741d24",
+        "alarm_projection": "select\n        metric_name,\n        action_arn as topic_arn\n      from\n        aws_cloudwatch_alarm,\n        jsonb_array_elements_text(aws_cloudwatch_alarm.alarm_actions) as action_arn\n      order by\n        metric_name",
+        "alarm_join": [
+          "alarm.metric_name = f.metric_transformation_name"
+        ],
+        "namespace_projected": false,
+        "account_region_projected": false
+      }
+    }
+  },
+  "cloudtrail_advanced_selector_false_pass": {
+    "review": "Independent static inspection of exact pinned source branches; no upstream runtime execution or cloud calls.",
+    "repository": "prowler-cloud/prowler",
+    "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+    "official_docs": [
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedFieldSelector.html",
+      "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_AdvancedEventSelector.html"
+    ],
+    "source_sha256": {
+      "cloudtrail_s3_dataevents_read_enabled": "0c12a0724aeb4eb326306696980ff961b1572056cee69f3d2d47615a2bce51d4",
+      "cloudtrail_s3_dataevents_write_enabled": "fb3cb55faac3cf20e9f9dc04064d9d48302bf648bd0145c43448bac79a07e2cd",
+      "cloudtrail_multi_region_enabled_logging_management_events": "7ff5fc5ecffe6d8c25cc802d85b5d54915a15a08b86f9adce71be795cff22545"
+    },
+    "counterexamples": {
+      "read_check_write_only": {
+        "Name": "Write only",
+        "FieldSelectors": [
+          {
+            "Field": "eventCategory",
+            "Equals": [
+              "Data"
+            ]
+          },
+          {
+            "Field": "resources.type",
+            "Equals": [
+              "AWS::S3::Object"
+            ]
+          },
+          {
+            "Field": "readOnly",
+            "Equals": [
+              "false"
+            ]
+          }
+        ]
+      },
+      "write_check_read_only": {
+        "Name": "Read only",
+        "FieldSelectors": [
+          {
+            "Field": "eventCategory",
+            "Equals": [
+              "Data"
+            ]
+          },
+          {
+            "Field": "resources.type",
+            "Equals": [
+              "AWS::S3::Object"
+            ]
+          },
+          {
+            "Field": "readOnly",
+            "Equals": [
+              "true"
+            ]
+          }
+        ]
+      },
+      "all_buckets_check_single_bucket": {
+        "Name": "One bucket",
+        "FieldSelectors": [
+          {
+            "Field": "eventCategory",
+            "Equals": [
+              "Data"
+            ]
+          },
+          {
+            "Field": "resources.type",
+            "Equals": [
+              "AWS::S3::Object"
+            ]
+          },
+          {
+            "Field": "resources.ARN",
+            "StartsWith": [
+              "arn:aws:s3:::example-only/"
+            ]
+          }
+        ]
+      },
+      "management_check_data_named_management": {
+        "Name": "Management events selector",
+        "FieldSelectors": [
+          {
+            "Field": "eventCategory",
+            "Equals": [
+              "Data"
+            ]
+          },
+          {
+            "Field": "resources.type",
+            "Equals": [
+              "AWS::S3::Object"
+            ]
+          }
+        ]
+      }
+    },
+    "source_branch_result": "PASS",
+    "required_semantic_result": "The selected opposing read/write/category or narrow resource constraint does not satisfy the stated required coverage."
+  },
+  "root_last_used_reversed_key_dates": {
+    "query_id": "iam_root_last_used",
+    "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+    "official_docs": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_getting-report.html",
+    "captured_clock": "2026-10-10T12:00:00Z",
+    "cutoff": "2026-07-12T00:00:00Z",
+    "counterexamples": [
+      {
+        "password_last_used": null,
+        "access_key_1_last_used_date": "2026-10-09T12:00:00Z",
+        "access_key_2_last_used_date": null,
+        "source_status": "ok",
+        "requirement_truth": "recent_root_key_usage"
+      },
+      {
+        "password_last_used": null,
+        "access_key_1_last_used_date": "2026-06-12T12:00:00Z",
+        "access_key_2_last_used_date": null,
+        "source_status": "alarm",
+        "requirement_truth": "no_recent_root_key_usage"
+      }
+    ],
+    "review": "Literal query uses >= for password but <= for key latest-use timestamps, reversing the stated recent-use check. No credential contents or cloud calls."
+  },
+  "iam_server_certificate_not_expired": {
+    "review": "Lead independently inspected the full query and every invoking control; none overrides the predicate or supplies parameters. Inert counterexamples use complete valid synthetic facts, no upstream runtime or cloud calls.",
+    "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+    "source_path": "conformance_pack/iam.pp",
+    "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ServerCertificateMetadata.html"
+    ],
+    "counterexamples": [
+      {
+        "captured_at": "2026-10-10T12:00:00+00:00",
+        "expiration": "2026-10-10T09:00:00+00:00",
+        "source_status": "PASS",
+        "requirement_status": "FAIL"
+      },
+      {
+        "captured_at": "2026-10-10T12:00:00+00:00",
+        "expiration": "2026-10-09T23:59:59+00:00",
+        "source_status": "PASS",
+        "requirement_status": "FAIL"
+      }
+    ],
+    "source_check_ids": [
+      "aws-compliance.control.cis_v130_1_19",
+      "aws-compliance.control.cis_v140_1_19",
+      "aws-compliance.control.cis_v150_1_19",
+      "aws-compliance.control.cis_v200_1_19",
+      "aws-compliance.control.cis_v300_1_19",
+      "aws-compliance.control.cis_v400_1_19",
+      "aws-compliance.control.cis_v500_1_18",
+      "aws-compliance.control.cis_v600_2_18",
+      "aws-compliance.control.iam_server_certificate_not_expired"
+    ],
+    "framework_mapping_sha256": {
+      "aws-compliance.control.cis_v130_1_19": "eb7c3e8c517a1f1cf31b60ea29c97cfa9ecd6bf62530cbf4bafa8a6e56599366",
+      "aws-compliance.control.cis_v140_1_19": "8475cddd5ecb8446a4edc55ed0734554708313fd3ce4da9a7a5a85d450d135ce",
+      "aws-compliance.control.cis_v150_1_19": "cf020093b1a07786274c5f7e7d57689281ee11ef964d5d7d721530689f4b477d",
+      "aws-compliance.control.cis_v200_1_19": "bbf66a767ad6d9949547c2336feca37d423ae5db3dba77660b33dac1a08341ea",
+      "aws-compliance.control.cis_v300_1_19": "9ef27b16ebb4e26ec2bc59839800531db11bcfb98b010cae0ef7786337c8ac2e",
+      "aws-compliance.control.cis_v400_1_19": "61ba676e7ff059f6bd411eb3425c848395f1034fe0d1c6b67188f2e0cf0252d0",
+      "aws-compliance.control.cis_v500_1_18": "2ea0ef8d302c3cfe3149c3d2de8839c339d6f4664c8a161dd00e52ef6639a051",
+      "aws-compliance.control.cis_v600_2_18": "eecb5e3e3f1c278040ebae4ebbb0b91b897e0bfaa7ba806c5ccad1acc34c0cb1",
+      "aws-compliance.control.iam_server_certificate_not_expired": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "iam_support_role": {
+    "review": "Lead independently inspected the full query and every invoking control; none overrides the predicate or supplies parameters. Inert counterexamples use complete valid synthetic facts, no upstream runtime or cloud calls.",
+    "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+    "source_path": "conformance_pack/iam.pp",
+    "evaluator_sha256": "0b79ddd43b228126ebb650fde1b4d9ebb2ecda43bd3a7fd58f85b03e89885420",
+    "official_docs": [
+      "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSSupportAccess.html",
+      "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html"
+    ],
+    "counterexamples": [
+      {
+        "account_id": "123456789012",
+        "attached_policy_arns": [
+          "arn:aws:iam::aws:policy/ReadOnlyAccess"
+        ],
+        "source_status": "NO_RESULT",
+        "requirement_status": "FAIL"
+      },
+      {
+        "account_id": "123456789012",
+        "attached_policy_arns": [
+          "arn:aws:iam::123456789012:policy/AWSSupportAccess"
+        ],
+        "source_status": "PASS",
+        "requirement_status": "FAIL",
+        "customer_policy_support_permissions": false
+      }
+    ],
+    "source_check_ids": [
+      "aws-compliance.control.cis_v120_1_20",
+      "aws-compliance.control.cis_v130_1_17",
+      "aws-compliance.control.cis_v140_1_17",
+      "aws-compliance.control.cis_v150_1_17",
+      "aws-compliance.control.cis_v200_1_17",
+      "aws-compliance.control.cis_v300_1_17",
+      "aws-compliance.control.cis_v400_1_17",
+      "aws-compliance.control.cis_v500_1_16",
+      "aws-compliance.control.cis_v600_2_16",
+      "aws-compliance.control.iam_support_role"
+    ],
+    "framework_mapping_sha256": {
+      "aws-compliance.control.cis_v120_1_20": "170da8e31ae17859c46fae3cb0afc1a0b83020985b2519ba774db33815951ab8",
+      "aws-compliance.control.cis_v130_1_17": "2055256e6e8ebd06cc8ba32b8035aa7e860193fe80f7ff1eb536e0eb3cce6733",
+      "aws-compliance.control.cis_v140_1_17": "d5d5b394e369774886c3586172c455914a5eb079b024f0a502b3c9b777117b6d",
+      "aws-compliance.control.cis_v150_1_17": "42e06fce7338bdaf96ee8913a9e8ccc9d06a1996c1fdae26f77568a3f9ff3bc4",
+      "aws-compliance.control.cis_v200_1_17": "01dc2da501f67cf23ca480459051ea54dd691da90b0836268cade8726911d894",
+      "aws-compliance.control.cis_v300_1_17": "5fbb0c4a1fd4ca490b758dd55edd78bb47dd9688065cb153d2ea7ebdd951ece5",
+      "aws-compliance.control.cis_v400_1_17": "9b427cb6bf56d31cf0650700516e02152b05e3ac771e39a60c3dc85675b0e22b",
+      "aws-compliance.control.cis_v500_1_16": "9148bc81f974581985cd9e6da0998d15b052f2b6c02694350e6e7786a2cf6ccf",
+      "aws-compliance.control.cis_v600_2_16": "5da2f50a73bea30e90ed0958146110aa9d3a36e3f2560bc25d19717e02549d8b",
+      "aws-compliance.control.iam_support_role": "8dc79d7014922528ed84760f66694382bfe970d4465abb5ac055d5b996e37176"
+    }
+  },
+  "deferred_azure_policy_reviews": {
+    "azure-compliance.control.network_sg_flowlog_enabled": {
+      "disposition": "pending",
+      "native_checks": [],
+      "reason": "Official documentation places retirement of existing NSG flow logs at 2027-09-30, after the 2026-10-10 review date. Discontinued new creation does not establish that current existing enabled, retention, or analytics predicates are invalid. Full literal predicate and applicability still require corrected review; no support or invalidity is claimed.",
+      "official_docs": [
+        "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+      ],
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/network.pp#L354",
+      "evaluator_sha256": "f262a3adfc77ad59472c81302b81206c5ac5d820230fb906f1e30593c320d2f7"
+    },
+    "azure-compliance.control.network_sg_flowlog_retention_period_greater_than_90": {
+      "disposition": "pending",
+      "native_checks": [],
+      "reason": "Official documentation places retirement of existing NSG flow logs at 2027-09-30, after the 2026-10-10 review date. Discontinued new creation does not establish that current existing enabled, retention, or analytics predicates are invalid. Full literal predicate and applicability still require corrected review; no support or invalidity is claimed.",
+      "official_docs": [
+        "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+      ],
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/network.pp#L178",
+      "evaluator_sha256": "59b550cc6582b6e650d0e4ae1af03c55ab51646b527864e7e9f1f80453456a22"
+    },
+    "azure-compliance.control.nsg_network_watcher_flow_log_send_to_log_analytics": {
+      "disposition": "pending",
+      "native_checks": [],
+      "reason": "Official documentation places retirement of existing NSG flow logs at 2027-09-30, after the 2026-10-10 review date. Discontinued new creation does not establish that current existing enabled, retention, or analytics predicates are invalid. Full literal predicate and applicability still require corrected review; no support or invalidity is claimed.",
+      "official_docs": [
+        "https://learn.microsoft.com/en-us/azure/network-watcher/nsg-flow-logs-overview"
+      ],
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/network.pp#L394",
+      "evaluator_sha256": "41e3011ac2bcd8e16cb4021b240dff521dc282a0abb37154987889d251693596"
+    },
+    "azure-compliance.control.storage_account_encryption_at_rest_using_mmk": {
+      "disposition": "pending",
+      "native_checks": [],
+      "reason": "Microsoft-managed keys remain a documented supported default for Storage encryption. A preference for customer-managed keys does not invalidate a framework policy requiring the supported Microsoft-managed configuration. Full literal predicate still requires review; no support or invalidity is claimed.",
+      "official_docs": [
+        "https://learn.microsoft.com/en-us/azure/storage/common/storage-service-encryption"
+      ],
+      "revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "source": "https://github.com/turbot/steampipe-mod-azure-compliance/blob/464a8efe3c4bb5eb208e00e7369bd0b4577ac834/regulatory_compliance/storage.pp#L218",
+      "evaluator_sha256": "1947c9f9183c4c967fc0d5551c8890366cc740c5758aaaf218095b3419ca04ab"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "aws_backup_cross_region_copy": {
+    "summary": "Configure an approved cross-Region copy destination for each backup rule in this plan.",
+    "steps": ["Inspect the named backup plan and every rule's configured CopyActions and destination vault ARN; identify the rules without a proven destination in another Region.", "Review destination Region, vault ownership, encryption, resource support, retention, data residency, and added copy cost with the recovery owner.", "Add an approved cross-Region copy action to each affected rule under change control, then read back the plan and verify actual copy-job outcomes separately."],
+    "cli": [],
+    "caveats": ["This check verifies declared copy actions only. It does not prove backup job execution, completed copies, retention, or successful restore.", "Cross-Region copy availability and encryption behavior vary by resource and Region; validate the workload before changing the plan.", "A missing caller partition, malformed or unreadable destination vault ARN, or malformed empty rule list remains UNKNOWN unless another valid rule has a definite missing cross-Region action."],
+    "references": [{"title": "AWS Backup cross-Region copies", "url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/cross-region-backup.html"}, {"title": "AWS Backup CopyAction API", "url": "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_CopyAction.html"}, {"title": "AWS Backup GetBackupPlan API", "url": "https://docs.aws.amazon.com/aws-backup/latest/APIReference/API_GetBackupPlan.html"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_backup", "kind": "backup_plan", "target": "resource", "path": "BackupPlanArn; context.scope/Account/metadata.caller_identities[].Arn partition; complete backup_plan collection; Plan.BackupPlan.Rules[].CopyActions[].DestinationBackupVaultArn", "observed_fail_evidence": "backup_plan_arn; rule_count; missing_cross_region_rules; uncertain_rules"},
+    "proposed_spec_sha256": "e8632ed80accd4885f32076cf5de0d78c6fb0c942066c0e0ede53e90d88d0a47",
+    "review_status": "source_bound_pending_review"
+  }
+}

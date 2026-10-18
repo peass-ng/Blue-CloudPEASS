@@ -1,0 +1,803 @@
+{
+  "aws-compliance.control.cis_v120_1_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L222"
+    }
+  },
+  "aws-compliance.control.cis_v120_1_16": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.user_no_managed_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned attached_policy_arns NULL alone passes; inline policies do not affect this distinct source variant. Verified plugin nil list for no managed attachments; complete native empty attachment list maps to absence.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "ef3e66da1c262d89aacfb4d82322ba866e8f20bafcc9d4ee8e1ae09ef56c9c0e",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L250"
+    }
+  },
+  "aws-compliance.control.cis_v120_1_21": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L320"
+    }
+  },
+  "aws-compliance.control.cis_v120_1_4": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L82"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L180"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L222"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_15": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L236"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_19": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L292"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L110"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L179"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L221"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L235"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L291"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L109"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L179"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L221"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L235"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L291"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L109"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L180"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L222"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L236"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L292"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L110"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L180"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L222"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L236"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L292"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L110"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L180"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L222"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_15": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L236"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_19": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L292"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L110"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L165"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L207"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L221"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L277"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L95"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.console_key_created_at_setup"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetCredentialReport.html"
+    ],
+    "reason": "Console-enabled credential report firstkey rotation minus user_creation_time signed seconds <10 alarms; NULL rotation or disabled password passes. No activekey prerequisite/sourcekey2 added.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_keys_and_password_at_setup",
+    "reviewed_source": {
+      "evaluator_sha256": "cccee7376ec3c3598faf0617e0bac35764d4fb8dd855f82c482ecf88ba52ce9b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L165"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_13": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.active_key_age_90"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListAccessKeys.html"
+    ],
+    "reason": "Active keys create_date <= captured UTC CURRENT_DATE minus90days alarms; inactive keys skip. Inclusive cutoff preserved, not rolling90hours/day-floor.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_access_key_age_90",
+    "reviewed_source": {
+      "evaluator_sha256": "b001a432696537388e2bc153cf38e4f2b7d7f2e37c3b6b432e022b6af43823f9",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L207"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_14": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.user_no_direct_policies"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html",
+      "https://github.com/turbot/steampipe-plugin-aws/blob/main/aws/table_aws_iam_user.go"
+    ],
+    "reason": "Pinned both inline_policies and attached_policy_arns NULL means no direct policies; verified plugin builds nil lists for empty attachments/inline lists. Successful native authorization details empty lists map to this configured absence; missing/denied lists unknown. Group grants are not conflated.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_user_no_inline_attached_policies",
+    "reviewed_source": {
+      "evaluator_sha256": "01a5d42785a0f97e9de472f18e8cdcc1bdc87db9ac34d6339dbf33d249feac2b",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L221"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.server_certificate_expiry_date"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListServerCertificates.html"
+    ],
+    "reason": "Certificate expiration strictly before captured UTC CURRENT_DATE minus1second alarms; source date boundary preserved rather than wallclock expiry.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_server_certificate_not_expired",
+    "reviewed_source": {
+      "evaluator_sha256": "7ef0f7714c3ed3c2987f44f3c0925adb99b43a8bd0dd8d77898bc6b1288e4958",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L277"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.root_hardware_mfa"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/IAM/latest/APIReference/API_ListVirtualMFADevices.html"
+    ],
+    "reason": "Exact same-account account MFA summary true and absence of assigned root virtualMFAdevice passes. Complete collected-empty virtual inventory proves absence; otheruser/unassigned devices cannot satisfy rootjoin; denied/partial inventory unknown. Hardware status is source-derived exclusion, not active factor testing.",
+    "review_notes": "Individually inspected full pinned query and each referencing control; pure pass/fail/missing/denied/malformed, exact boundary/applicability/join/purity fixtures. Every automatic native check has HackTricks Cloud Best Practices mapping through lead.",
+    "reviewed_query_id": "iam_root_user_hardware_mfa_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "604151155f1213c9fa18a46afc4b5503ae44a23131fe3fb4dd5c9703fb7486a5",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L95"
+    }
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "aws-compliance.control.cis_v120_1_19": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L292"
+    }
+  },
+  "aws-compliance.control.cis_v130_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L278"
+    }
+  },
+  "aws-compliance.control.cis_v140_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L277"
+    }
+  },
+  "aws-compliance.control.cis_v150_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L277"
+    }
+  },
+  "aws-compliance.control.cis_v200_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L278"
+    }
+  },
+  "aws-compliance.control.cis_v300_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L278"
+    }
+  },
+  "aws-compliance.control.cis_v400_1_18": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L278"
+    }
+  },
+  "aws-compliance.control.cis_v500_1_17": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L263"
+    }
+  },
+  "aws-compliance.control.cis_v600_2_17": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.ec2.instance_profile_arn"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_IamInstanceProfile.html",
+      "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html"
+    ],
+    "reason": "Full source iam_instance_profile_arn IS NOT NULL predicate for all instances preserved. API-proven optional profile omission fails; missing/unavailable/partially specified profile staysUNKNOWN. Kept as explicit ARN-field variant: a profile-object/ID existence check cannot substitute for ARN when complete equivalence is not proven. No running/termination filter added or effective role-permission claim.",
+    "review_notes": "Full pinned SQL and each directalias reviewed; strict ARN-vs-object/id, successful optional API omission, malformed/denied/unavailable/pass/fail/purity fixtures; metadata-only source operation provenance. Lead dedup/registry activation pending; no Claude-owned module or shared helper modified.",
+    "reviewed_query_id": "ec2_instance_using_iam_instance_role",
+    "reviewed_source": {
+      "evaluator_sha256": "b51eae1e06ea9cf13fba90086a7141ebe041975c617233b0623d242b051039f4",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L263"
+    }
+  }
+}

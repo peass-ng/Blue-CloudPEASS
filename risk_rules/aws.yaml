@@ -1,4 +1,3 @@
-# Canonical HackTricks Cloud permission classifications. Edit here; consumers synchronize weekly.
 version: 1
 provider: aws
 critical_exact:
@@ -2385,6 +2384,7 @@ non_permission_identifiers:
 - redshift:AllowWrites
 - sesv2:PutEmailIdentityPolicy
 - sso-admin:CreateTrustedTokenIssuer
+- SNS:Receive
 permission_categories:
   low:
   - a2c:GetContainerizationJobDetails
@@ -2448,6 +2448,7 @@ permission_categories:
   - acm:GetCertificate
   - acm:ListCertificates
   - acm:ListTagsForCertificate
+  - acm:SearchCertificates
   - aco-automation:GetAutomationEvent
   - aco-automation:GetAutomationRule
   - aco-automation:GetEnrollmentConfiguration
@@ -4482,6 +4483,7 @@ permission_categories:
   - datazone:ListTagsForResource
   - datazone:ListTimeSeriesDataPoints
   - datazone:ListWarehouseMetadata
+  - datazone:QueryGraph
   - dax:DescribeClusters
   - dax:DescribeDefaultParameters
   - dax:DescribeEvents
@@ -13138,6 +13140,7 @@ permission_categories:
   - datazone:BatchDeleteLinkedTypes
   - datazone:BatchPutAttributesMetadata
   - datazone:BatchPutLinkedTypes
+  - datazone:BatchUpdateNotifications
   - datazone:CancelMetadataGenerationRun
   - datazone:CancelSubscription
   - datazone:CreateAccountPool
@@ -15233,6 +15236,7 @@ permission_categories:
   - glue:GlueNotebookAuthorize
   - glue:GlueNotebookRefreshCredentials
   - glue:ImportCatalogToGlue
+  - glue:ManagedConnector
   - glue:ModifyIntegration
   - glue:NotifyEvent
   - glue:PublishDataQuality
@@ -21859,6 +21863,7 @@ permission_categories:
   - ecs:UpdateService
   - ecs:UpdateServicePrimaryTaskSet
   - eks:AccessKubernetesApi
+  - eks:ActivateCertificateAuthority
   - eks:CreateFargateProfile
   - eks:CreateNodegroup
   - eks:CreatePodIdentityAssociation
@@ -22390,6 +22395,7 @@ permission_categories:
   - sqs:PurgeQueue
   - sqs:ReceiveMessage
   - sqs:SendMessage
+  - sqs:SendMessageBatch
   - sqs:StartMessageMoveTask
   - sqs:TagQueue
   - sqs:UntagQueue

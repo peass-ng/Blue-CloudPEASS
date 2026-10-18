@@ -1,0 +1,156 @@
+{
+  "aws-compliance.control.cloudwatch_alarm_action_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.any_state_actions"
+    ],
+    "reason": "Complete predicate: FAIL only when ALARM, OK and INSUFFICIENT_DATA action arrays all have length zero; any nonempty state-action array passes. This is distinct from ALARM-only action presence and ActionsEnabled. Missing/denied/malformed evidence stays unavailable; this is not a narrower substitute.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudwatch/client/describe_alarms.html"
+    ],
+    "review_notes": "Complete pinned query CASE branches and exact source identities reviewed, no upstream execution.",
+    "reviewed_query_id": "cloudwatch_alarm_action_enabled",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "e2af1f48db2eca1cbc57d364c99900eeb89211845499b705ff3db8ca8a88e626",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L15"
+    }
+  },
+  "aws-compliance.control.cloudwatch_alarm_action_enabled_check": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.cloudwatch.alarm_actions_enabled"
+    ],
+    "reason": "Exact native ActionsEnabled boolean predicate; directly verified same truth cases and applicability as reviewed Prowler cloudwatch_alarm_actions_enabled, not merged with action-list existence. Missing/denied/malformed evidence stays unavailable; this is not a narrower substitute.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudwatch/client/describe_alarms.html"
+    ],
+    "review_notes": "Complete pinned query CASE branches and exact source identities reviewed, no upstream execution.",
+    "reviewed_query_id": "cloudwatch_alarm_action_enabled_check",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "a5806cfd0161188b8a567e6cfedca13feb06a870a5f0148985ff32e5172988b0",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L38"
+    }
+  },
+  "prowler.aws.cloudwatch_alarm_actions_alarm_state_configured": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.alarm_state_actions"
+    ],
+    "reason": "Exact nonempty AlarmActions predicate, independent from ActionsEnabled. Full pinned predicate/applicability/defaults reviewed; missing/denied/malformed facts remain unavailable instead of invented safe configuration.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudwatch/client/describe_alarms.html"
+    ],
+    "review_notes": "Pure immutable snapshot configuration predicate; scoped joins are complete and account-verified. Configurable upstream audit options use documented pinned defaults in this native rule.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "ec71a4c000c1b7d12f30a14d8c52f2b9e558ae43613e195b99700ebf4a44782f",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_alarm_actions_alarm_state_configured/cloudwatch_alarm_actions_alarm_state_configured.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_alarm_actions_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.alarm_actions_enabled"
+    ],
+    "reason": "Exact ActionsEnabled native boolean predicate. Full pinned predicate/applicability/defaults reviewed; missing/denied/malformed facts remain unavailable instead of invented safe configuration.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudwatch/client/describe_alarms.html"
+    ],
+    "review_notes": "Pure immutable snapshot configuration predicate; scoped joins are complete and account-verified. Configurable upstream audit options use documented pinned defaults in this native rule.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "eefabadd9ac196ad9194bbadf9bb308f3e509c00783de091ab9397abbfd29a93",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_alarm_actions_enabled/cloudwatch_alarm_actions_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_cross_account_sharing_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.cross_account_role_absent"
+    ],
+    "reason": "Complete same-account IAM role inventory: CloudWatch-CrossAccountSharingRole existence fails, exact role absence passes. No effective trust/access inference. Full pinned predicate/applicability/defaults reviewed; missing/denied/malformed facts remain unavailable instead of invented safe configuration.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_authorization_details.html"
+    ],
+    "review_notes": "Pure immutable snapshot configuration predicate; scoped joins are complete and account-verified. Configurable upstream audit options use documented pinned defaults in this native rule.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "c4b61cd7f3d08878e8786179aafa996760ff383908495e4e3a98b4ab3abb89b0",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_cross_account_sharing_disabled/cloudwatch_cross_account_sharing_disabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_group_agentcore_data_protection_policy_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.agentcore_data_protection"
+    ],
+    "reason": "Pinned default two-prefix AgentCore applicability; ACTIVATED local status OR inherited ACCOUNT_DATA_PROTECTION passes, recognized inactive/known omitted masking fails. No log values are read. Full pinned predicate/applicability/defaults reviewed; missing/denied/malformed facts remain unavailable instead of invented safe configuration.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/logs/client/describe_log_groups.html"
+    ],
+    "review_notes": "Pure immutable snapshot configuration predicate; scoped joins are complete and account-verified. Configurable upstream audit options use documented pinned defaults in this native rule.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "a4fea18cbabc3dfe6c115519cf05593854afdde77da65807ae371dee9472f59d",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_group_agentcore_data_protection_policy_enabled/cloudwatch_log_group_agentcore_data_protection_policy_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_group_kms_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.log_kms_encryption"
+    ],
+    "reason": "Native kmsKeyId nonempty; documented optional omission is known absent only with complete DescribeLogGroups provenance. Full pinned predicate/applicability/defaults reviewed; missing/denied/malformed facts remain unavailable instead of invented safe configuration.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/logs/client/describe_log_groups.html"
+    ],
+    "review_notes": "Pure immutable snapshot configuration predicate; scoped joins are complete and account-verified. Configurable upstream audit options use documented pinned defaults in this native rule.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "a63f5a11842cabb412b7b393ae77443d75db2323fbada5e4d80a166f2d3d7371",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_group_kms_encryption_enabled/cloudwatch_log_group_kms_encryption_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_group_no_secrets_in_logs": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "intrusive_unsuitable",
+    "reason": "Individually reviewed source retrieves actual CloudWatch log event messages and feeds their plaintext content to a secrets scanner; optional secrets_validate may attempt credential validation. This violates the authorized declared-configuration snapshot boundary, which forbids log/secret values and active probes. Rejection is for the source runtime/data requirement, not missing implementation or collector permissions; no partial metadata-only surrogate is claimed.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/logs/client/get_log_events.html"
+    ],
+    "review_notes": "No log events or credential validation are collected/executed. Data-protection configuration has a separate native check and does not establish absence of secrets in log content.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "b3a651f3371008872c5a263a004be3bf37124f0a26fbcf5523e17fd2538f32ee",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_group_no_secrets_in_logs/cloudwatch_log_group_no_secrets_in_logs.metadata.json"
+    }
+  },
+  "prowler.aws.cloudwatch_log_group_retention_policy_specific_days_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.cloudwatch.log_retention_at_least_365"
+    ],
+    "reason": "Pinned default threshold365: finite retention below365 fails, >=365 passes, documented infinite retention passes. Not merged with finite-retention-presence predicate. Full pinned predicate/applicability/defaults reviewed; missing/denied/malformed facts remain unavailable instead of invented safe configuration.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/logs/client/describe_log_groups.html"
+    ],
+    "review_notes": "Pure immutable snapshot configuration predicate; scoped joins are complete and account-verified. Configurable upstream audit options use documented pinned defaults in this native rule.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "625dcd8ee2bf9396d6ba9aa141fb9450fcc0f3bfe35ca0a0a5f6063e07185f88",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudwatch/cloudwatch_log_group_retention_policy_specific_days_enabled/cloudwatch_log_group_retention_policy_specific_days_enabled.metadata.json"
+    }
+  }
+}

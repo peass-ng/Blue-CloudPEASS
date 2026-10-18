@@ -1,0 +1,30 @@
+{
+  "gcp_api_keys_active_services_only": {
+    "summary": "Add explicit API restrictions to the active Google Cloud API key.",
+    "steps": [
+      "Identify the key by its resource name and ask the application owner which Google APIs the key actually needs.",
+      "In APIs & Services > Credentials, set API restrictions to those specific services and review client restrictions separately.",
+      "Read back the key metadata and verify restrictions.apiTargets lists the intended services; test the application with the owner before retiring any previous access."
+    ],
+    "cli": [],
+    "caveats": [
+      "Changing restrictions can interrupt callers that use APIs outside the approved list; review usage first.",
+      "This check establishes the presence of API targets, not whether the listed services are approved or whether client restrictions are set.",
+      "Deleted keys are not applicable; denied or malformed restriction facts remain UNKNOWN."
+    ],
+    "references": [
+      {"title": "Add restrictions to API keys", "url": "https://docs.cloud.google.com/api-keys/docs/add-restrictions-api-keys"},
+      {"title": "API Keys v2 Key and Restrictions resource", "url": "https://docs.cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys"}
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp_api_keys",
+      "kind": "api_key",
+      "target": "resource",
+      "path": "complete scoped api_key.name/deleteTime/restrictions.apiTargets[].service from keys.list",
+      "observed_fail_evidence": "api_key; restricted_services",
+      "source_note": "Signed proposal category identity and spec SHA256 3e6da3ff5ec3b72360ab8946e7e512c035aeb332a3bf70613fd0913f01c10202; native category hardening describes this declared API-key configuration predicate."
+    },
+    "proposed_spec_sha256": "3e6da3ff5ec3b72360ab8946e7e512c035aeb332a3bf70613fd0913f01c10202",
+    "review_status": "source_bound_pending_review"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "aws-audit-use-existing-parameterized-automation-runbook-with-runtime-passrole": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "exact_verified_prerequisites"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "ssm:StartAutomationExecution",
+          "resource": "*"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "*"
+        }
+      ]
+    }
+  },
+  "aws-codebuild-ssm-debug-session-role": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "live_breakpoint",
+      "verified_collector_fact"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "ssm:StartSession",
+          "resource": "*"
+        }
+      ]
+    }
+  },
+  "aws-devicefarm-schedulerun-existing-test-spec-passrole": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "condition_1",
+      "condition_2",
+      "verified_collector_fact"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "devicefarm:ScheduleRun",
+          "resource": "*"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "*"
+        }
+      ]
+    }
+  },
+  "aws-iot-byo-certificate-existing-rolealias": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "active_certificate_existing_alias",
+      "verified_collector_fact"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "iot:RegisterCertificateWithoutCA",
+          "resource": "*"
+        },
+        {
+          "action": "iot:AttachPolicy",
+          "resource": "*"
+        }
+      ]
+    }
+  },
+  "aws-iot-provisioning-claim-existing-rolealias": {
+    "provider": "aws",
+    "target_kind": "aws_role",
+    "conditions": [
+      "existing_alias_chain",
+      "verified_collector_fact"
+    ],
+    "requires": {
+      "all_of": [
+        {
+          "action": "iot:CreateProvisioningTemplate",
+          "resource": "*"
+        },
+        {
+          "action": "iot:CreateProvisioningClaim",
+          "resource": "*"
+        },
+        {
+          "action": "iam:PassRole",
+          "resource": "*"
+        }
+      ]
+    }
+  },
+  "gcp-audit-s01-00-steal-a-service-account-key": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "effective_scope_delta",
+      "exact_target_evidence"
+    ],
+    "requires": {
+      "all_of": []
+    }
+  },
+  "gcp-audit-s01-39-escape-workstation-container": {
+    "provider": "gcp",
+    "target_kind": "gcp_service_account",
+    "conditions": [
+      "exact_target_evidence",
+      "host_configuration"
+    ],
+    "requires": {
+      "all_of": []
+    }
+  }
+}

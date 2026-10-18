@@ -1,0 +1,458 @@
+{
+  "azure-compliance.control.cis_v130_4_2_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_periodic_scan_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 701,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then s.name || ' VA setting periodic recurring scans disabled.'\n        else s.name || ' VA setting periodic recurring scans enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "f4ec6ea53c32747c7c4aaeb906c6e614b43e5e18b66a063524eac6c8966fc722",
+      "upstream_evaluator_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v130_4_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_scan_reports_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 779,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n        then s.name || ' VA scan reports and alerts not configured send email.'\n        else s.name || ' VA scan reports and alerts configured to send email.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "9c233d38faf90626dd8d379e7fb400120f58ad8d781e1fbcee5968e4fc560643",
+      "upstream_evaluator_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v130_4_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_reports_notify_admins",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 740,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then s.name || ' VA setting not configured to send email notifications to subscription admins and owners.'\n        else s.name || ' VA setting configured to send email notifications to subscription admins and owners.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "3cde5f8c9f94b60ac66e81da68e7ce608a0f0e1401357e79ddd7c0362760fe8e",
+      "upstream_evaluator_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v140_4_2_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_periodic_scan_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 701,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then s.name || ' VA setting periodic recurring scans disabled.'\n        else s.name || ' VA setting periodic recurring scans enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "f4ec6ea53c32747c7c4aaeb906c6e614b43e5e18b66a063524eac6c8966fc722",
+      "upstream_evaluator_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v140_4_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_scan_reports_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 779,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n        then s.name || ' VA scan reports and alerts not configured send email.'\n        else s.name || ' VA scan reports and alerts configured to send email.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "9c233d38faf90626dd8d379e7fb400120f58ad8d781e1fbcee5968e4fc560643",
+      "upstream_evaluator_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v140_4_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_reports_notify_admins",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 740,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then s.name || ' VA setting not configured to send email notifications to subscription admins and owners.'\n        else s.name || ' VA setting configured to send email notifications to subscription admins and owners.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "3cde5f8c9f94b60ac66e81da68e7ce608a0f0e1401357e79ddd7c0362760fe8e",
+      "upstream_evaluator_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v150_4_2_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_periodic_scan_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 701,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then s.name || ' VA setting periodic recurring scans disabled.'\n        else s.name || ' VA setting periodic recurring scans enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "f4ec6ea53c32747c7c4aaeb906c6e614b43e5e18b66a063524eac6c8966fc722",
+      "upstream_evaluator_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v150_4_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_scan_reports_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 779,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n        then s.name || ' VA scan reports and alerts not configured send email.'\n        else s.name || ' VA scan reports and alerts configured to send email.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "9c233d38faf90626dd8d379e7fb400120f58ad8d781e1fbcee5968e4fc560643",
+      "upstream_evaluator_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v150_4_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_reports_notify_admins",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 740,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then s.name || ' VA setting not configured to send email notifications to subscription admins and owners.'\n        else s.name || ' VA setting configured to send email notifications to subscription admins and owners.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "3cde5f8c9f94b60ac66e81da68e7ce608a0f0e1401357e79ddd7c0362760fe8e",
+      "upstream_evaluator_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v200_4_2_3": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_periodic_scan_enabled",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 701,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'isEnabled' = 'false'\n          )\n          then s.name || ' VA setting periodic recurring scans disabled.'\n        else s.name || ' VA setting periodic recurring scans enabled.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "f4ec6ea53c32747c7c4aaeb906c6e614b43e5e18b66a063524eac6c8966fc722",
+      "upstream_evaluator_sha256": "afd9e404898560afcf3701f04bd8c9dfe78d7dbfab37de1b9c03fb4bf6033295",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v200_4_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_scan_reports_configured",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 779,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emails' = '[]'\n          )\n        then s.name || ' VA scan reports and alerts not configured send email.'\n        else s.name || ' VA scan reports and alerts configured to send email.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "9c233d38faf90626dd8d379e7fb400120f58ad8d781e1fbcee5968e4fc560643",
+      "upstream_evaluator_sha256": "bdf3006c3d2d516867dd4be0cba4f3826fcfac1ca8c25a3498e7140b1ff5b4a9",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  },
+  "azure-compliance.control.cis_v200_4_2_5": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "reason": "Source gates every negative recurring flag/email-list test on non-null storageContainerPath. Current official GET response explicitly documents recurringScans with no storage path; such a response with the flag false/emails empty is incorrectly OK. It also permits missing flags to fall through OK. This is a real wrong-condition counterexample, not a missing native implementation rejection.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-vnet-connections?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/sql/server-vulnerability-assessments/get?view=rest-sql-2023-08-01",
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/security-contacts/get?view=rest-defenderforcloud-composite-preview",
+      "https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_id": "sql_server_va_setting_reports_notify_admins",
+      "query_path": "regulatory_compliance/sql.pp",
+      "query_line": 740,
+      "pinned_sql": "select\n      s.id as resource,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when\n          security -> 'properties' ->> 'state' = 'Disabled'\n          or\n          (\n            security -> 'properties' ->> 'state' = 'Enabled'\n            and assessment -> 'properties' ->> 'storageContainerPath' is not null\n            and assessment -> 'properties' -> 'recurringScans' ->> 'emailSubscriptionAdmins' = 'false'\n          )\n          then s.name || ' VA setting not configured to send email notifications to subscription admins and owners.'\n        else s.name || ' VA setting configured to send email notifications to subscription admins and owners.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"s.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_sql_server s\n      cross join lateral jsonb_array_elements(server_security_alert_policy) security\n      cross join lateral jsonb_array_elements(server_vulnerability_assessment) assessment\n      left join azure_subscription sub on sub.subscription_id = s.subscription_id;",
+      "query_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "security_policy_state": "Enabled",
+        "storageContainerPath": "omitted",
+        "recurringScans": {
+          "isEnabled": false,
+          "emailSubscriptionAdmins": false,
+          "emails": []
+        },
+        "pinned_status": "ok",
+        "required_status": "alarm",
+        "documented_response_omits_storage_path": true
+      },
+      "pinned_sql_sha256": "3cde5f8c9f94b60ac66e81da68e7ce608a0f0e1401357e79ddd7c0362760fe8e",
+      "upstream_evaluator_sha256": "c7ba0f257fc347e146c38ddf10e956c521a71cd083f6aed6821136d1c5b01fae",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Independent strict metadata baselines may remain, but are not an exact source association. Preserve original query/framework/revision and do not replace it by express-mode or current native constraint approximations.",
+    "review_classification": "invalid_predicate"
+  }
+}

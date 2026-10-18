@@ -1,0 +1,173 @@
+{
+  "aws-compliance.control.cis_v120_2_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_2.pp#L125"
+    }
+  },
+  "aws-compliance.control.cis_v130_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_3.pp#L127"
+    }
+  },
+  "aws-compliance.control.cis_v140_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_3.pp#L127"
+    }
+  },
+  "aws-compliance.control.cis_v150_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_3.pp#L127"
+    }
+  },
+  "aws-compliance.control.cis_v200_3_8": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_3.pp#L127"
+    }
+  },
+  "aws-compliance.control.cis_v300_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_3.pp#L97"
+    }
+  },
+  "aws-compliance.control.cis_v400_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_3.pp#L97"
+    }
+  },
+  "aws-compliance.control.cis_v500_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_3.pp#L97"
+    }
+  },
+  "aws-compliance.control.cis_v600_4_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.kms.rotation_source_eligibility"
+    ],
+    "official_docs": [
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_GetKeyRotationStatus.html",
+      "https://docs.aws.amazon.com/kms/latest/APIReference/API_KeyMetadata.html"
+    ],
+    "reason": "Full customer-managed WHERE and ordered exclusions preserved: importedEXTERNAL, non-SYMMETRIC_DEFAULT, PendingDeletion, Disabled skip; remaining state requires actual boolean rotation metadata. Kept separate from prior AWS_KMS-only origin variant; no automatic eligibility/default fact inferred for unavailable/unsupported custom-store read.",
+    "review_notes": "Individually reviewed full pinnedSQL and each directquery alias; eight focused pass/fail/unknown/denied/malformed/exclusion/custom-store/current-state fixtures. Evaluator offline and no resource operation; HackTricks mapping by native registry lead.",
+    "reviewed_query_id": "kms_cmk_rotation_enabled",
+    "reviewed_source": {
+      "evaluator_sha256": "2cc39fe9a2d226c3291c1a96f66252538df00e458770bbd014d40b2df4e5b8a2",
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_4.pp#L97"
+    }
+  }
+}

@@ -1,0 +1,331 @@
+{
+  "pass": {
+    "scope": "projects/demo"
+  },
+  "pass_index": {
+    "context": {
+      "provider": "gcp",
+      "scope": "projects/demo",
+      "created_at": "2026-10-14T01:00:00Z",
+      "metadata": {
+        "gcp_psc_dns_policy": {
+          "status": "approved",
+          "scope": "projects/demo",
+          "source_ref": "owner-test-scope",
+          "observed_at": "2026-10-14T00:00:00Z",
+          "max_age_seconds": 86400,
+          "required_vpcs": [
+            "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private"
+          ],
+          "required_google_api_hostnames": [
+            "*.googleapis.com"
+          ]
+        }
+      }
+    },
+    "collections": {
+      "forwarding_rule": [
+        {
+          "type": "forwarding_rule",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "psc",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "target": "all-apis",
+              "IPAddress": "10.0.0.1"
+            }
+          ]
+        }
+      ],
+      "dns_record": [
+        {
+          "type": "dns_record",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "*.googleapis.com.",
+              "type": "A",
+              "managed_zone": "googleapis",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "rrdatas": [
+                "10.0.0.1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "forwarding_rule": [
+      {
+        "provider": "gcp",
+        "type": "forwarding_rule",
+        "scope": "projects/demo",
+        "data": {
+          "name": "psc",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "target": "all-apis",
+          "IPAddress": "10.0.0.1"
+        }
+      }
+    ],
+    "dns_record": [
+      {
+        "provider": "gcp",
+        "type": "dns_record",
+        "scope": "projects/demo",
+        "data": {
+          "name": "*.googleapis.com.",
+          "type": "A",
+          "managed_zone": "googleapis",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "rrdatas": [
+            "10.0.0.1"
+          ]
+        }
+      }
+    ]
+  },
+  "fail": {
+    "scope": "projects/demo"
+  },
+  "fail_index": {
+    "context": {
+      "provider": "gcp",
+      "scope": "projects/demo",
+      "created_at": "2026-10-14T01:00:00Z",
+      "metadata": {
+        "gcp_psc_dns_policy": {
+          "status": "approved",
+          "scope": "projects/demo",
+          "source_ref": "owner-test-scope",
+          "observed_at": "2026-10-14T00:00:00Z",
+          "max_age_seconds": 86400,
+          "required_vpcs": [
+            "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private"
+          ],
+          "required_google_api_hostnames": [
+            "*.googleapis.com"
+          ]
+        }
+      }
+    },
+    "collections": {
+      "forwarding_rule": [
+        {
+          "type": "forwarding_rule",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "psc",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "target": "all-apis",
+              "IPAddress": "10.0.0.1"
+            }
+          ]
+        }
+      ],
+      "dns_record": [
+        {
+          "type": "dns_record",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "*.googleapis.com.",
+              "type": "A",
+              "managed_zone": "googleapis",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "rrdatas": [
+                "10.0.0.2"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "forwarding_rule": [
+      {
+        "provider": "gcp",
+        "type": "forwarding_rule",
+        "scope": "projects/demo",
+        "data": {
+          "name": "psc",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "target": "all-apis",
+          "IPAddress": "10.0.0.1"
+        }
+      }
+    ],
+    "dns_record": [
+      {
+        "provider": "gcp",
+        "type": "dns_record",
+        "scope": "projects/demo",
+        "data": {
+          "name": "*.googleapis.com.",
+          "type": "A",
+          "managed_zone": "googleapis",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "rrdatas": [
+            "10.0.0.2"
+          ]
+        }
+      }
+    ]
+  },
+  "unknown": {
+    "scope": "projects/demo"
+  },
+  "unknown_index": {
+    "context": {
+      "provider": "gcp",
+      "scope": "projects/demo",
+      "created_at": "2026-10-14T01:00:00Z",
+      "metadata": {}
+    },
+    "collections": {
+      "forwarding_rule": [
+        {
+          "type": "forwarding_rule",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "psc",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "target": "all-apis",
+              "IPAddress": "10.0.0.1"
+            }
+          ]
+        }
+      ],
+      "dns_record": [
+        {
+          "type": "dns_record",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "*.googleapis.com.",
+              "type": "A",
+              "managed_zone": "googleapis",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "rrdatas": [
+                "10.0.0.1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "forwarding_rule": [
+      {
+        "provider": "gcp",
+        "type": "forwarding_rule",
+        "scope": "projects/demo",
+        "data": {
+          "name": "psc",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "target": "all-apis",
+          "IPAddress": "10.0.0.1"
+        }
+      }
+    ],
+    "dns_record": [
+      {
+        "provider": "gcp",
+        "type": "dns_record",
+        "scope": "projects/demo",
+        "data": {
+          "name": "*.googleapis.com.",
+          "type": "A",
+          "managed_zone": "googleapis",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "rrdatas": [
+            "10.0.0.1"
+          ]
+        }
+      }
+    ]
+  },
+  "missing": {},
+  "malformed": {
+    "scope": 1
+  },
+  "index": {
+    "context": {
+      "provider": "gcp",
+      "scope": "projects/demo",
+      "created_at": "2026-10-14T01:00:00Z",
+      "metadata": {}
+    },
+    "collections": {
+      "forwarding_rule": [
+        {
+          "type": "forwarding_rule",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "psc",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "target": "all-apis",
+              "IPAddress": "10.0.0.1"
+            }
+          ]
+        }
+      ],
+      "dns_record": [
+        {
+          "type": "dns_record",
+          "scope": "projects/demo",
+          "status": "collected",
+          "items": [
+            {
+              "name": "*.googleapis.com.",
+              "type": "A",
+              "managed_zone": "googleapis",
+              "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+              "rrdatas": [
+                "10.0.0.1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "forwarding_rule": [
+      {
+        "provider": "gcp",
+        "type": "forwarding_rule",
+        "scope": "projects/demo",
+        "data": {
+          "name": "psc",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "target": "all-apis",
+          "IPAddress": "10.0.0.1"
+        }
+      }
+    ],
+    "dns_record": [
+      {
+        "provider": "gcp",
+        "type": "dns_record",
+        "scope": "projects/demo",
+        "data": {
+          "name": "*.googleapis.com.",
+          "type": "A",
+          "managed_zone": "googleapis",
+          "network": "https://www.googleapis.com/compute/v1/projects/demo/global/networks/private",
+          "rrdatas": [
+            "10.0.0.1"
+          ]
+        }
+      }
+    ]
+  }
+}

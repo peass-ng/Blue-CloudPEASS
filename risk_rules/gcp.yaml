@@ -1,4 +1,3 @@
-# Canonical HackTricks Cloud permission classifications. Edit here; consumers synchronize weekly.
 version: 1
 provider: gcp
 critical_suffixes:
@@ -1270,6 +1269,7 @@ permission_categories:
   - aiplatform.agentExamples.list
   - aiplatform.agents.get
   - aiplatform.agents.list
+  - aiplatform.analyzedSessions.aggregate
   - aiplatform.annotationSpecs.get
   - aiplatform.annotationSpecs.list
   - aiplatform.annotations.get
@@ -1666,6 +1666,11 @@ permission_categories:
   - apphub.workloads.list
   - applianceactivation.rttCommands.get
   - applianceactivation.rttCommands.list
+  - apptopology.applicationTopologies.generate
+  - apptopology.devOpsDomainTopologies.generate
+  - apptopology.discoveredResourcesTopologies.generate
+  - apptopology.securityDomainTopologies.generate
+  - apptopology.sreDomainTopologies.generate
   - artifactregistry.dockerimages.get
   - artifactregistry.dockerimages.list
   - artifactregistry.files.get
@@ -1698,6 +1703,7 @@ permission_categories:
   - assuredoss.metadata.list
   - assuredoss.operations.get
   - assuredoss.operations.list
+  - assuredworkloads.dbFrameworkComplianceReports.aggregate
   - assuredworkloads.operations.get
   - assuredworkloads.operations.list
   - assuredworkloads.violations.get
@@ -1965,6 +1971,7 @@ permission_categories:
   - blockchainnodeengine.locations.list
   - blockchainnodeengine.operations.get
   - blockchainnodeengine.operations.list
+  - businessaicode.locations.sendTelemetry
   - capacityplanner.forecasts.list
   - capacityplanner.usageHistories.list
   - carestudio.patients.get
@@ -2016,12 +2023,14 @@ permission_categories:
   - chronicle.dataAccessScopes.list
   - chronicle.dataExports.fetchLogTypesAvailableForExport
   - chronicle.dataExports.get
+  - chronicle.dataTableRows.bulkGet
   - chronicle.dataTableRows.get
   - chronicle.dataTableRows.list
   - chronicle.dataTables.get
   - chronicle.dataTables.list
   - chronicle.dataTaps.get
   - chronicle.dataTaps.list
+  - chronicle.entities.findEntityAlerts
   - chronicle.entities.get
   - chronicle.entities.list
   - chronicle.entities.queryEntityRiskScoreModifications
@@ -2050,12 +2059,18 @@ permission_categories:
   - chronicle.ingestionLogNamespaces.get
   - chronicle.ingestionLogNamespaces.list
   - chronicle.instances.get
+  - chronicle.instances.suggestQueryFields
   - chronicle.iocMatches.get
   - chronicle.iocMatches.list
   - chronicle.iocState.get
   - chronicle.iocs.batchGet
+  - chronicle.iocs.findIocs
   - chronicle.iocs.get
   - chronicle.iocs.searchCuratedDetectionsForIoc
+  - chronicle.legacies.legacyBatchGetCollections
+  - chronicle.legacySoarAudits.legacySoarAudit
+  - chronicle.legacySystemMetadata.placeholders
+  - chronicle.logProcessingPipelines.testPipeline
   - chronicle.logTypeSchemas.list
   - chronicle.logTypes.list
   - chronicle.logs.get
@@ -2073,6 +2088,7 @@ permission_categories:
   - chronicle.parsers.list
   - chronicle.parsingErrors.list
   - chronicle.preferenceSets.get
+  - chronicle.queries.suggestSql
   - chronicle.referenceLists.get
   - chronicle.referenceLists.list
   - chronicle.referenceLists.verifyReferenceList
@@ -2108,6 +2124,20 @@ permission_categories:
   - cloudaicompanion.repositoryGroups.get
   - cloudaicompanion.repositoryGroups.getIamPolicy
   - cloudaicompanion.repositoryGroups.list
+  - cloudaicompanion.settingBindings.aiDevToolsSettingsGet
+  - cloudaicompanion.settingBindings.aiDevToolsSettingsList
+  - cloudaicompanion.settingBindings.codeToolsSettingsGet
+  - cloudaicompanion.settingBindings.codeToolsSettingsList
+  - cloudaicompanion.settingBindings.dataSharingWithGoogleSettingsGet
+  - cloudaicompanion.settingBindings.dataSharingWithGoogleSettingsList
+  - cloudaicompanion.settingBindings.geminiGcpEnablementSettingsGet
+  - cloudaicompanion.settingBindings.geminiGcpEnablementSettingsList
+  - cloudaicompanion.settingBindings.gibqObservabilitySettingsGet
+  - cloudaicompanion.settingBindings.gibqObservabilitySettingsList
+  - cloudaicompanion.settingBindings.loggingSettingsGet
+  - cloudaicompanion.settingBindings.loggingSettingsList
+  - cloudaicompanion.settingBindings.releaseChannelSettingsGet
+  - cloudaicompanion.settingBindings.releaseChannelSettingsList
   - cloudasset.assets.listAccessLevel
   - cloudasset.assets.listAccessPolicy
   - cloudasset.assets.listAiplatformBatchPredictionJobs
@@ -2481,6 +2511,7 @@ permission_categories:
   - cloudkms.ekmConnections.getIamPolicy
   - cloudkms.ekmConnections.list
   - cloudkms.ekmConnections.verifyConnectivity
+  - cloudkms.folders.showEffectiveAutokeyConfig
   - cloudkms.importJobs.get
   - cloudkms.importJobs.getIamPolicy
   - cloudkms.importJobs.list
@@ -2494,6 +2525,8 @@ permission_categories:
   - cloudkms.locations.get
   - cloudkms.locations.list
   - cloudkms.operations.get
+  - cloudkms.projects.showEffectiveKajEnrollmentConfig
+  - cloudkms.projects.showEffectiveKajPolicyConfig
   - cloudkms.protectedResources.search
   - cloudnotifications.activities.list
   - cloudonefs.isiloncloud.com-clusters.get
@@ -2520,6 +2553,7 @@ permission_categories:
   - cloudquotas.quotas.get
   - cloudscheduler.locations.get
   - cloudscheduler.locations.list
+  - cloudsecuritycompliance.frameworkComplianceReports.aggregate
   - cloudsecurityscanner.crawledurls.list
   - cloudsecurityscanner.results.get
   - cloudsecurityscanner.results.list
@@ -2538,6 +2572,7 @@ permission_categories:
   - cloudsql.instances.listEffectiveTags
   - cloudsql.instances.listServerCas
   - cloudsql.instances.listTagBindings
+  - cloudsql.instances.preCheckMajorVersionUpgrade
   - cloudsql.schemas.view
   - cloudsql.sslCerts.get
   - cloudsql.sslCerts.list
@@ -2654,6 +2689,9 @@ permission_categories:
   - compute.acceleratorTypes.list
   - compute.addresses.get
   - compute.addresses.list
+  - compute.advice.calendarMode
+  - compute.advice.capacity
+  - compute.advice.capacityHistory
   - compute.autoscalers.get
   - compute.autoscalers.list
   - compute.backendBuckets.get
@@ -2983,6 +3021,7 @@ permission_categories:
   - configdelivery.rollouts.get
   - configdelivery.rollouts.list
   - connectors.actions.list
+  - connectors.connections.generateOpenAPISpec
   - connectors.connections.get
   - connectors.connections.getConnectionSchemaMetadata
   - connectors.connections.getIamPolicy
@@ -3031,6 +3070,7 @@ permission_categories:
   - consumerprocurement.events.list
   - consumerprocurement.freeTrials.get
   - consumerprocurement.freeTrials.list
+  - consumerprocurement.licensePools.enumerateLicensedUsers
   - consumerprocurement.orderAttributions.get
   - consumerprocurement.orderAttributions.list
   - consumerprocurement.orders.get
@@ -3262,9 +3302,12 @@ permission_categories:
   - databaseinsights.aggregatedEvents.query
   - databaseinsights.aggregatedStats.query
   - databaseinsights.clusterEvents.query
+  - databaseinsights.databaseIssues.troubleshoot
   - databaseinsights.instanceEvents.query
   - databaseinsights.locations.get
   - databaseinsights.locations.list
+  - databaseinsights.performanceIssues.detect
+  - databaseinsights.performanceIssues.investigate
   - databaseinsights.recommendations.query
   - databaseinsights.resourceRecommendations.query
   - databaseinsights.timeSeries.query
@@ -3412,6 +3455,7 @@ permission_categories:
   - dataplex.dataAttributes.get
   - dataplex.dataAttributes.getIamPolicy
   - dataplex.dataAttributes.list
+  - dataplex.dataDomains.discover
   - dataplex.dataTaxonomies.get
   - dataplex.dataTaxonomies.getIamPolicy
   - dataplex.dataTaxonomies.list
@@ -3514,6 +3558,7 @@ permission_categories:
   - datastore.operations.list
   - datastore.statistics.get
   - datastore.statistics.list
+  - datastream.connectionProfiles.deriveDestinationSchema
   - datastream.connectionProfiles.get
   - datastream.connectionProfiles.getIamPolicy
   - datastream.connectionProfiles.list
@@ -3673,6 +3718,9 @@ permission_categories:
   - discoveryengine.evaluations.get
   - discoveryengine.evaluations.list
   - discoveryengine.groundingConfigs.check
+  - discoveryengine.immersiveArtifacts.navigate
+  - discoveryengine.locations.buildAuthorizationUrl
+  - discoveryengine.locations.completeExternalIdentities
   - discoveryengine.models.get
   - discoveryengine.models.list
   - discoveryengine.operations.get
@@ -3688,6 +3736,7 @@ permission_categories:
   - discoveryengine.servingConfigs.list
   - discoveryengine.sessions.get
   - discoveryengine.sessions.list
+  - discoveryengine.sessions.recommendQuestions
   - discoveryengine.siteSearchEngines.fetchDomainVerificationStatus
   - discoveryengine.siteSearchEngines.get
   - discoveryengine.targetSites.get
@@ -3774,6 +3823,7 @@ permission_categories:
   - domains.registrations.list
   - domains.registrations.listEffectiveTags
   - domains.registrations.listTagBindings
+  - dspm.locations.computeAggregation
   - earthengine.assets.get
   - earthengine.assets.getIamPolicy
   - earthengine.assets.list
@@ -3942,7 +3992,10 @@ permission_categories:
   - firebasedataconnect.schemaRevisions.list
   - firebasedataconnect.schemas.get
   - firebasedataconnect.schemas.list
+  - firebasedataconnect.services.generateQuery
+  - firebasedataconnect.services.generateSchema
   - firebasedataconnect.services.get
+  - firebasedataconnect.services.introspectGraphql
   - firebasedataconnect.services.list
   - firebasedynamiclinks.destinations.list
   - firebasedynamiclinks.domains.get
@@ -4160,6 +4213,7 @@ permission_categories:
   - iam.googleapis.com-workloadIdentityPools.get
   - iam.googleapis.com-workloadIdentityPools.list
   - iam.googleapis.com-workspacePools.searchPolicyBindings
+  - iam.googleapis.com/workforcePoolProviders.computeUserAttributes
   - iam.operations.get
   - iam.policybindings.get
   - iam.policybindings.list
@@ -4223,6 +4277,7 @@ permission_categories:
   - integrations.executions.list
   - integrations.integrationVersions.get
   - integrations.integrationVersions.list
+  - integrations.integrations.generateOpenApiSpec
   - integrations.integrations.get
   - integrations.integrations.list
   - integrations.securityAuthConfigs.get
@@ -4261,6 +4316,7 @@ permission_categories:
   - krmapihosting.locations.list
   - krmapihosting.operations.get
   - krmapihosting.operations.list
+  - licensemanager.configurations.aggregateUsage
   - lifesciences.operations.get
   - lifesciences.operations.list
   - livestream.assets.get
@@ -4350,6 +4406,7 @@ permission_categories:
   - managedkafka.operations.list
   - managedkafka.topics.get
   - managedkafka.topics.list
+  - managedkafka.versions.referencedby
   - mandiant.genericAttackSurfaceManagements.get
   - mandiant.genericDigitalThreatMonitorings.get
   - mandiant.genericExpertiseOnDemands.get
@@ -4464,6 +4521,13 @@ permission_categories:
   - ml.trials.list
   - ml.versions.get
   - ml.versions.list
+  - modelarmor.floorSettings.computeEffectiveFloorSetting
+  - modelarmor.templates.useToSanitizeInput
+  - modelarmor.templates.useToSanitizeModelResponse
+  - modelarmor.templates.useToSanitizeOutput
+  - modelarmor.templates.useToSanitizeUserPrompt
+  - modelarmor.templates.useToStreamSanitizeModelResponse
+  - modelarmor.templates.useToStreamSanitizeUserPrompt
   - monitoring.alertPolicies.get
   - monitoring.alertPolicies.list
   - monitoring.dashboards.get
@@ -4511,6 +4575,7 @@ permission_categories:
   - netapp.snapshots.list
   - netapp.storagePools.get
   - netapp.storagePools.list
+  - netapp.volumes.findValidCRRRegions
   - netapp.volumes.get
   - netapp.volumes.list
   - networkconnectivity.groups.get
@@ -5069,6 +5134,8 @@ permission_categories:
   - retail.experiments.get
   - retail.experiments.list
   - retail.experiments.queryTrafficMetrics
+  - retail.merchantControls.creatorGet
+  - retail.merchantControls.creatorList
   - retail.models.get
   - retail.models.list
   - retail.operations.get
@@ -5171,6 +5238,8 @@ permission_categories:
   - securitycenter.findings.list
   - securitycenter.findings.listFindingPropertyNames
   - securitycenter.integratedvulnerabilityscannersettings.get
+  - securitycenter.issues.group
+  - securitycenter.issues.retrieve
   - securitycenter.muteconfigs.get
   - securitycenter.muteconfigs.list
   - securitycenter.notificationconfig.get
@@ -5274,6 +5343,7 @@ permission_categories:
   - servicesecurityinsights.securityViews.get
   - servicesecurityinsights.workloadPolicies.list
   - servicesecurityinsights.workloadSecurityInfo.get
+  - serviceusage.consumerpolicy.analyze
   - serviceusage.quotas.get
   - serviceusage.services.get
   - serviceusage.services.list
@@ -5649,11 +5719,13 @@ permission_categories:
   - actions.agentVersions.delete
   - actions.agentVersions.deploy
   - advisorynotifications.settings.update
+  - agentidentity.authProviders.revokeAuthorizations
   - aiplatform.agentExamples.create
   - aiplatform.agentExamples.delete
   - aiplatform.agentExamples.update
   - aiplatform.agents.create
   - aiplatform.agents.delete
+  - aiplatform.agents.unsuspend
   - aiplatform.agents.update
   - aiplatform.annotationSpecs.create
   - aiplatform.annotationSpecs.delete
@@ -5729,6 +5801,7 @@ permission_categories:
   - aiplatform.featureOnlineStores.update
   - aiplatform.featureViews.create
   - aiplatform.featureViews.delete
+  - aiplatform.featureViews.directWrite
   - aiplatform.featureViews.sync
   - aiplatform.featureViews.update
   - aiplatform.features.create
@@ -5755,6 +5828,8 @@ permission_categories:
   - aiplatform.indexes.create
   - aiplatform.indexes.delete
   - aiplatform.indexes.update
+  - aiplatform.locations.evaluateInstances
+  - aiplatform.memories.generate
   - aiplatform.metadataSchemas.create
   - aiplatform.metadataSchemas.delete
   - aiplatform.metadataStores.create
@@ -5775,6 +5850,7 @@ permission_categories:
   - aiplatform.modelMonitors.update
   - aiplatform.models.delete
   - aiplatform.models.update
+  - aiplatform.monitoredAgents.clearTrainingData
   - aiplatform.nasJobs.cancel
   - aiplatform.nasJobs.create
   - aiplatform.nasJobs.delete
@@ -5792,12 +5868,15 @@ permission_categories:
   - aiplatform.persistentResources.delete
   - aiplatform.pipelineJobs.cancel
   - aiplatform.pipelineJobs.delete
+  - aiplatform.provisionedThroughputs.changeScope
+  - aiplatform.provisionedThroughputs.split
   - aiplatform.reasoningEngines.delete
   - aiplatform.reasoningEngines.update
   - aiplatform.schedules.create
   - aiplatform.schedules.delete
   - aiplatform.schedules.update
   - aiplatform.semanticGovernancePolicies.delete
+  - aiplatform.sessionEvents.append
   - aiplatform.sessions.run
   - aiplatform.specialistPools.create
   - aiplatform.specialistPools.delete
@@ -5831,6 +5910,7 @@ permission_categories:
   - aiplatform.tuningJobs.cancel
   - aiplatform.tuningJobs.create
   - aiplatform.tuningJobs.delete
+  - aiplatform.tuningJobs.optimizePrompt
   - aiplatform.tuningJobs.vertexTune
   - alloydb.backups.create
   - alloydb.backups.createTagBinding
@@ -5884,6 +5964,7 @@ permission_categories:
   - apigee.appgroupapps.create
   - apigee.appgroupapps.delete
   - apigee.appgroupapps.manage
+  - apigee.appgroupbalances.adjust
   - apigee.appgroups.create
   - apigee.appgroups.delete
   - apigee.appgroups.update
@@ -6037,6 +6118,7 @@ permission_categories:
   - apigeeregistry.versions.create
   - apigeeregistry.versions.delete
   - apigeeregistry.versions.update
+  - apihub.addons.manage
   - apihub.apiHubInstances.create
   - apihub.apiHubInstances.delete
   - apihub.apiOperations.update
@@ -6061,8 +6143,11 @@ permission_categories:
   - apihub.hostProjectRegistrations.register
   - apihub.llmEnablements.deregister
   - apihub.llmEnablements.register
+  - apihub.locations.collectApiData
   - apihub.operations.cancel
   - apihub.operations.delete
+  - apihub.plugininstances.applyConfig
+  - apihub.plugininstances.managePluginInstanceSourceData
   - apihub.plugins.disable
   - apihub.plugins.enable
   - apihub.runTimeProjectAttachments.attach
@@ -6200,6 +6285,11 @@ permission_categories:
   - backupdr.backupPlanAssociations.create
   - backupdr.backupPlanAssociations.delete
   - backupdr.backupPlanAssociations.triggerBackup
+  - backupdr.backupPlanAssociations.triggerBackupForAlloydbCluster
+  - backupdr.backupPlanAssociations.triggerBackupForCloudSqlInstance
+  - backupdr.backupPlanAssociations.triggerBackupForComputeDisk
+  - backupdr.backupPlanAssociations.triggerBackupForComputeInstance
+  - backupdr.backupPlanAssociations.triggerBackupForFilestoreInstance
   - backupdr.backupPlans.create
   - backupdr.backupPlans.delete
   - backupdr.backupPlans.useComputeInstanceOnly
@@ -6248,6 +6338,9 @@ permission_categories:
   - backupdr.managementServers.testFailOvers
   - backupdr.operations.cancel
   - backupdr.operations.delete
+  - backupdr.serviceConfig.initialize
+  - backupdr.trial.end
+  - backupdr.trial.subscribe
   - baremetalsolution.instances.attachNetwork
   - baremetalsolution.instances.attachVolume
   - baremetalsolution.instances.create
@@ -6263,6 +6356,7 @@ permission_categories:
   - baremetalsolution.luns.create
   - baremetalsolution.luns.delete
   - baremetalsolution.luns.evict
+  - baremetalsolution.luns.onDemandEvict
   - baremetalsolution.luns.update
   - baremetalsolution.maintenanceevents.addProposal
   - baremetalsolution.maintenanceevents.approve
@@ -6281,6 +6375,7 @@ permission_categories:
   - baremetalsolution.volumes.create
   - baremetalsolution.volumes.delete
   - baremetalsolution.volumes.evict
+  - baremetalsolution.volumes.onDemandEvict
   - baremetalsolution.volumes.rename
   - baremetalsolution.volumes.resize
   - baremetalsolution.volumes.update
@@ -6329,6 +6424,7 @@ permission_categories:
   - biglake.tables.create
   - biglake.tables.delete
   - biglake.tables.lock
+  - biglake.tables.register
   - biglake.tables.updateData
   - bigquery.bireservations.update
   - bigquery.capacityCommitments.create
@@ -6361,6 +6457,7 @@ permission_categories:
   - bigquery.reservations.create
   - bigquery.reservations.delete
   - bigquery.reservations.update
+  - bigquery.reservations.use
   - bigquery.routines.delete
   - bigquery.routines.updateTag
   - bigquery.rowAccessPolicies.create
@@ -6411,6 +6508,7 @@ permission_categories:
   - bigtable.instances.executeQuery
   - bigtable.instances.ping
   - bigtable.instances.update
+  - bigtable.materializedViews.sampleRowKeys
   - bigtable.tables.delete
   - bigtable.tables.generateConsistencyToken
   - bigtable.tables.sampleRowKeys
@@ -6424,11 +6522,14 @@ permission_categories:
   - billing.accounts.update
   - billing.accounts.updatePaymentInfo
   - billing.accounts.updateUsageExportSpec
+  - billing.anomalies.submitFeedback
+  - billing.budgets.configureSpendCap
   - billing.budgets.create
   - billing.budgets.delete
   - billing.budgets.update
   - billing.resourceAssociations.create
   - billing.resourceAssociations.delete
+  - billing.resourcebudgets.configureSpendCap
   - billing.resourcebudgets.write
   - billing.subscriptions.create
   - billing.subscriptions.update
@@ -6445,6 +6546,9 @@ permission_categories:
   - blockchainnodeengine.blockchainNodes.update
   - blockchainnodeengine.operations.cancel
   - blockchainnodeengine.operations.delete
+  - businessaicode.locations.generateContent
+  - businessaicode.locations.selfAssignLicense
+  - capacityplanner.messages.generate
   - capacityplanner.usageHistories.summarize
   - certificatemanager.certissuanceconfigs.create
   - certificatemanager.certissuanceconfigs.delete
@@ -6463,16 +6567,23 @@ permission_categories:
   - certificatemanager.operations.delete
   - certificatemanager.trustconfigs.delete
   - ces.guardrails.delete
+  - ces.sessions.bidiRunSession
   - chat.bots.update
   - chronicle.ais.createFeedback
   - chronicle.ais.translateUdmQuery
   - chronicle.ais.translateYlRule
   - chronicle.bigQueryAccess.provide
+  - chronicle.bigQueryExport.provision
+  - chronicle.caseAlerts.metadataUpdate
   - chronicle.cases.close
   - chronicle.cases.countPriorities
+  - chronicle.cases.generateReport
+  - chronicle.cases.reopen
+  - chronicle.chatMessages.pin
   - chronicle.collectors.create
   - chronicle.collectors.delete
   - chronicle.collectors.update
+  - chronicle.contentPacks.install
   - chronicle.conversations.create
   - chronicle.conversations.delete
   - chronicle.conversations.update
@@ -6481,6 +6592,8 @@ permission_categories:
   - chronicle.curatedRuleSetDeployments.update
   - chronicle.curatedRuleSets.countCuratedRuleSetDetections
   - chronicle.dashboardQueries.execute
+  - chronicle.dashboardScheduledReports.duplicate
+  - chronicle.dashboardScheduledReports.trigger
   - chronicle.dashboards.copy
   - chronicle.dashboards.create
   - chronicle.dashboards.delete
@@ -6495,10 +6608,13 @@ permission_categories:
   - chronicle.dataAccessScopes.update
   - chronicle.dataExports.cancel
   - chronicle.dataExports.create
+  - chronicle.dataTableRows.asyncBulkAppend
   - chronicle.dataTableRows.asyncBulkCreate
+  - chronicle.dataTableRows.asyncBulkDelete
   - chronicle.dataTableRows.asyncBulkReplace
   - chronicle.dataTableRows.asyncBulkUpdate
   - chronicle.dataTableRows.bulkCreate
+  - chronicle.dataTableRows.bulkDelete
   - chronicle.dataTableRows.bulkReplace
   - chronicle.dataTableRows.bulkUpdate
   - chronicle.dataTableRows.create
@@ -6528,6 +6644,9 @@ permission_categories:
   - chronicle.events.findUdmFieldValues
   - chronicle.events.import
   - chronicle.events.udmSearch
+  - chronicle.featuredContentNativeDashboards.install
+  - chronicle.featuredContentPlaybooks.install
+  - chronicle.featuredContentSearchQueries.install
   - chronicle.feeds.create
   - chronicle.feeds.delete
   - chronicle.feeds.disable
@@ -6549,16 +6668,22 @@ permission_categories:
   - chronicle.globalDataAccessScopes.permit
   - chronicle.instances.generateCollectionAgentAuth
   - chronicle.instances.generateSoarAuthJwt
+  - chronicle.instances.generateSoarChatMessage
   - chronicle.instances.generateWorkspaceConnectionToken
+  - chronicle.instances.graduatePocInstance
   - chronicle.instances.logTypeClassifier
+  - chronicle.instances.permitFederationAccess
   - chronicle.instances.report
   - chronicle.instances.soarAdmin
   - chronicle.instances.soarThreatManager
   - chronicle.instances.soarVulnerabilityManager
+  - chronicle.investigations.transitionReviewState
+  - chronicle.investigations.trigger
   - chronicle.iocState.update
   - chronicle.iocs.findFirstAndLastSeen
   - chronicle.legacies.legacyBatchGetCases
   - chronicle.legacies.legacyCalculateAlertStats
+  - chronicle.legacies.legacyCreateSoarAlert
   - chronicle.legacies.legacyFetchAlertsView
   - chronicle.legacies.legacyFetchUdmSearchCsv
   - chronicle.legacies.legacyFetchUdmSearchView
@@ -6597,11 +6722,22 @@ permission_categories:
   - chronicle.legacies.legacyTestRuleStreaming
   - chronicle.legacies.legacyUpdateAlert
   - chronicle.legacies.legacyUpdateFinding
+  - chronicle.legacyCases.ingest
+  - chronicle.legacyCases.ingestAlertTestCase
+  - chronicle.legacyFederatedCases.batchPatchFederatedCases
+  - chronicle.legacySoarAdvancedReports.share
+  - chronicle.logProcessingPipelines.associateStreams
+  - chronicle.logProcessingPipelines.dissociateStreams
   - chronicle.logs.export
   - chronicle.logs.import
+  - chronicle.marketplaceIntegrations.install
+  - chronicle.marketplaceIntegrations.uninstall
   - chronicle.messages.create
   - chronicle.messages.delete
   - chronicle.messages.update
+  - chronicle.moduleSettings.modifyCaseList
+  - chronicle.moduleSettings.rebranding
+  - chronicle.moduleSettingsProperties.testSettings
   - chronicle.nativeDashboards.create
   - chronicle.nativeDashboards.delete
   - chronicle.nativeDashboards.duplicate
@@ -6632,6 +6768,7 @@ permission_categories:
   - chronicle.ruleDeployments.update
   - chronicle.rules.create
   - chronicle.rules.delete
+  - chronicle.rules.modifyRules
   - chronicle.rules.update
   - chronicle.searchQueries.create
   - chronicle.searchQueries.delete
@@ -6661,12 +6798,41 @@ permission_categories:
   - cloudaicompanion.instances.completeTask
   - cloudaicompanion.instances.generateCode
   - cloudaicompanion.instances.generateText
+  - cloudaicompanion.licenses.selfAssign
   - cloudaicompanion.operations.cancel
   - cloudaicompanion.operations.delete
   - cloudaicompanion.repositoryGroups.create
   - cloudaicompanion.repositoryGroups.delete
   - cloudaicompanion.repositoryGroups.update
   - cloudaicompanion.repositoryGroups.use
+  - cloudaicompanion.settingBindings.aiDevToolsSettingsCreate
+  - cloudaicompanion.settingBindings.aiDevToolsSettingsDelete
+  - cloudaicompanion.settingBindings.aiDevToolsSettingsUpdate
+  - cloudaicompanion.settingBindings.aiDevToolsSettingsUse
+  - cloudaicompanion.settingBindings.codeToolsSettingsCreate
+  - cloudaicompanion.settingBindings.codeToolsSettingsDelete
+  - cloudaicompanion.settingBindings.codeToolsSettingsUpdate
+  - cloudaicompanion.settingBindings.codeToolsSettingsUse
+  - cloudaicompanion.settingBindings.dataSharingWithGoogleSettingsCreate
+  - cloudaicompanion.settingBindings.dataSharingWithGoogleSettingsDelete
+  - cloudaicompanion.settingBindings.dataSharingWithGoogleSettingsUpdate
+  - cloudaicompanion.settingBindings.dataSharingWithGoogleSettingsUse
+  - cloudaicompanion.settingBindings.geminiGcpEnablementSettingsCreate
+  - cloudaicompanion.settingBindings.geminiGcpEnablementSettingsDelete
+  - cloudaicompanion.settingBindings.geminiGcpEnablementSettingsUpdate
+  - cloudaicompanion.settingBindings.geminiGcpEnablementSettingsUse
+  - cloudaicompanion.settingBindings.gibqObservabilitySettingsCreate
+  - cloudaicompanion.settingBindings.gibqObservabilitySettingsDelete
+  - cloudaicompanion.settingBindings.gibqObservabilitySettingsUpdate
+  - cloudaicompanion.settingBindings.gibqObservabilitySettingsUse
+  - cloudaicompanion.settingBindings.loggingSettingsCreate
+  - cloudaicompanion.settingBindings.loggingSettingsDelete
+  - cloudaicompanion.settingBindings.loggingSettingsUpdate
+  - cloudaicompanion.settingBindings.loggingSettingsUse
+  - cloudaicompanion.settingBindings.releaseChannelSettingsCreate
+  - cloudaicompanion.settingBindings.releaseChannelSettingsDelete
+  - cloudaicompanion.settingBindings.releaseChannelSettingsUpdate
+  - cloudaicompanion.settingBindings.releaseChannelSettingsUse
   - cloudasset.assets.analyzeIamPolicy
   - cloudasset.assets.analyzeMove
   - cloudasset.assets.analyzeOrgPolicy
@@ -7001,6 +7167,7 @@ permission_categories:
   - cloudfunctions.functions.create
   - cloudfunctions.functions.delete
   - cloudfunctions.functions.generateUploadUrl
+  - cloudfunctions.functions.generationUpgrade
   - cloudfunctions.functions.sourceCodeSet
   - cloudfunctions.functions.update
   - cloudiottoken.tokensettings.update
@@ -7039,6 +7206,7 @@ permission_categories:
   - cloudkms.locations.generateRandomBytes
   - cloudkms.locations.optOutKeyDeletionMsa
   - cloudkms.projects.showEffectiveAutokeyConfig
+  - cloudkms.singleTenantHsmInstances.use
   - cloudmessaging.messages.create
   - cloudmigration.velostrataendpoints.connect
   - cloudonefs.isiloncloud.com-clusters.create
@@ -7074,7 +7242,10 @@ permission_categories:
   - cloudscheduler.jobs.enable
   - cloudscheduler.jobs.fullView
   - cloudscheduler.jobs.pause
+  - cloudsecuritycompliance.auditReports.generate
+  - cloudsecuritycompliance.auditScopeReports.generate
   - cloudsecuritycompliance.frameworkDeployments.delete
+  - cloudsecuritycompliance.locations.enrollResource
   - cloudsecurityscanner.scanruns.stop
   - cloudsecurityscanner.scans.create
   - cloudsecurityscanner.scans.delete
@@ -7082,6 +7253,7 @@ permission_categories:
   - cloudsecurityscanner.scans.update
   - cloudsql.backupRuns.create
   - cloudsql.backupRuns.delete
+  - cloudsql.blueGreenDeployments.switchover
   - cloudsql.databases.create
   - cloudsql.databases.delete
   - cloudsql.databases.update
@@ -7095,6 +7267,7 @@ permission_categories:
   - cloudsql.instances.executeSql
   - cloudsql.instances.failover
   - cloudsql.instances.import
+  - cloudsql.instances.manageEncryption
   - cloudsql.instances.migrate
   - cloudsql.instances.performDiskShrink
   - cloudsql.instances.promoteReplica
@@ -7185,6 +7358,10 @@ permission_categories:
   - cloudvolumesgcp-api.netapp.com-volumes.create
   - cloudvolumesgcp-api.netapp.com-volumes.delete
   - cloudvolumesgcp-api.netapp.com-volumes.update
+  - cloudvolumesgcp-api.netapp.com/volumereplication.authorize
+  - cloudvolumesgcp-api.netapp.com/volumereplication.break
+  - cloudvolumesgcp-api.netapp.com/volumereplication.release
+  - cloudvolumesgcp-api.netapp.com/volumereplication.resync
   - commerceagreementpublishing.agreements.create
   - commerceagreementpublishing.agreements.delete
   - commerceagreementpublishing.agreements.update
@@ -7225,6 +7402,8 @@ permission_categories:
   - commerceprice.privateoffers.publish
   - commerceprice.privateoffers.sendEmail
   - commerceprice.privateoffers.update
+  - commerceproducer.privateOffers.publish
+  - commerceproducer.releases.publish
   - composer.dags.execute
   - composer.environments.create
   - composer.environments.delete
@@ -7384,6 +7563,7 @@ permission_categories:
   - compute.instances.deleteAccessConfig
   - compute.instances.deleteTagBinding
   - compute.instances.detachDisk
+  - compute.instances.performMaintenance
   - compute.instances.pscInterfaceCreate
   - compute.instances.removeResourcePolicies
   - compute.instances.reset
@@ -7406,6 +7586,7 @@ permission_categories:
   - compute.instances.startWithEncryptionKey
   - compute.instances.stop
   - compute.instances.suspend
+  - compute.instances.troubleshoot
   - compute.instances.update
   - compute.instances.updateAccessConfig
   - compute.instances.updateDisplayDevice
@@ -7443,6 +7624,7 @@ permission_categories:
   - compute.networkAttachments.create
   - compute.networkAttachments.delete
   - compute.networkAttachments.update
+  - compute.networkAttachments.use
   - compute.networkEdgeSecurityServices.create
   - compute.networkEdgeSecurityServices.delete
   - compute.networkEdgeSecurityServices.update
@@ -7494,11 +7676,14 @@ permission_categories:
   - compute.publicAdvertisedPrefixes.update
   - compute.publicAdvertisedPrefixes.updatePolicy
   - compute.publicAdvertisedPrefixes.use
+  - compute.publicDelegatedPrefixes.announce
   - compute.publicDelegatedPrefixes.create
   - compute.publicDelegatedPrefixes.delete
   - compute.publicDelegatedPrefixes.update
   - compute.publicDelegatedPrefixes.updatePolicy
   - compute.publicDelegatedPrefixes.use
+  - compute.publicDelegatedPrefixes.withdraw
+  - compute.regionBackendBuckets.use
   - compute.regionBackendServices.create
   - compute.regionBackendServices.createTagBinding
   - compute.regionBackendServices.delete
@@ -7531,6 +7716,7 @@ permission_categories:
   - compute.regionNetworkEndpointGroups.deleteTagBinding
   - compute.regionNetworkEndpointGroups.detachNetworkEndpoints
   - compute.regionNetworkEndpointGroups.use
+  - compute.regionNetworkPolicies.use
   - compute.regionNotificationEndpoints.create
   - compute.regionNotificationEndpoints.delete
   - compute.regionNotificationEndpoints.update
@@ -7576,8 +7762,12 @@ permission_categories:
   - compute.regionUrlMaps.update
   - compute.regionUrlMaps.use
   - compute.regionUrlMaps.validate
+  - compute.reservationBlocks.performMaintenance
+  - compute.reservationSubBlocks.performMaintenance
+  - compute.reservationSubBlocks.reportFaulty
   - compute.reservations.create
   - compute.reservations.delete
+  - compute.reservations.performMaintenance
   - compute.reservations.resize
   - compute.reservations.update
   - compute.resourcePolicies.create
@@ -7714,6 +7904,7 @@ permission_categories:
   - compute.zoneOperations.delete
   - confidentialcomputing.challenges.create
   - config.artifacts.import
+  - config.deploymentgroups.deprovision
   - config.deployments.delete
   - config.deployments.deleteState
   - config.deployments.lock
@@ -7773,6 +7964,8 @@ permission_categories:
   - consumerprocurement.consents.grant
   - consumerprocurement.consents.revoke
   - consumerprocurement.freeTrials.create
+  - consumerprocurement.licensePools.assign
+  - consumerprocurement.licensePools.unassign
   - consumerprocurement.orderAttributions.update
   - consumerprocurement.orders.cancel
   - consumerprocurement.orders.modify
@@ -7781,12 +7974,23 @@ permission_categories:
   - contactcenteraiplatform.contactCenters.delete
   - contactcenteraiplatform.contactCenters.program
   - contactcenteraiplatform.contactCenters.update
+  - contactcenteraiplatform.locations.generateShifts
   - contactcenteraiplatform.operations.cancel
   - contactcenteraiplatform.operations.delete
   - contactcenterinsights.analyses.create
   - contactcenterinsights.analyses.delete
+  - contactcenterinsights.assessments.appeal
+  - contactcenterinsights.assessments.finalize
+  - contactcenterinsights.assessments.publish
+  - contactcenterinsights.authorizedAssessments.appeal
+  - contactcenterinsights.authorizedAssessments.finalize
+  - contactcenterinsights.authorizedAssessments.publish
+  - contactcenterinsights.authorizedFeedbackLabels.download
   - contactcenterinsights.conversations.delete
   - contactcenterinsights.conversations.update
+  - contactcenterinsights.datasetFeedbackLabels.download
+  - contactcenterinsights.discoveries.generate
+  - contactcenterinsights.encryptionSpecs.initialize
   - contactcenterinsights.faqEntries.delete
   - contactcenterinsights.faqEntries.update
   - contactcenterinsights.faqModels.create
@@ -7813,6 +8017,7 @@ permission_categories:
   - contactcenterinsights.qaQuestions.create
   - contactcenterinsights.qaQuestions.delete
   - contactcenterinsights.qaQuestions.update
+  - contactcenterinsights.qaScorecardRevisions.bulkUpdateQaQuestions
   - contactcenterinsights.qaScorecardRevisions.create
   - contactcenterinsights.qaScorecardRevisions.delete
   - contactcenterinsights.qaScorecardRevisions.deploy
@@ -8066,6 +8271,12 @@ permission_categories:
   - contentwarehouse.synonymSets.delete
   - contentwarehouse.synonymSets.update
   - databaseinsights.activeQuery.terminate
+  - databaseinsights.genUiAgent.saveBlueprint
+  - databaseinsights.goals.applyTaskRemediation
+  - databaseinsights.goals.dismissTask
+  - databaseinsights.goals.fixTask
+  - databaseinsights.goals.markTaskAsDone
+  - databaseinsights.goals.restoreTask
   - datacatalog.categories.fineGrainedGet
   - datacatalog.entries.create
   - datacatalog.entries.createGlossary
@@ -8185,8 +8396,10 @@ permission_categories:
   - datalabeling.operations.cancel
   - datalineage.events.create
   - datalineage.events.delete
+  - datalineage.locations.processOpenLineageMessage
   - datalineage.processes.create
   - datalineage.processes.delete
+  - datalineage.processes.markAsDeleted
   - datalineage.processes.update
   - datalineage.runs.create
   - datalineage.runs.delete
@@ -8231,6 +8444,8 @@ permission_categories:
   - dataplex.assets.ownData
   - dataplex.assets.update
   - dataplex.assets.writeData
+  - dataplex.changeRequests.adminDelete
+  - dataplex.changeRequests.use
   - dataplex.content.create
   - dataplex.content.delete
   - dataplex.content.update
@@ -8241,6 +8456,7 @@ permission_categories:
   - dataplex.dataAttributes.create
   - dataplex.dataAttributes.delete
   - dataplex.dataAttributes.update
+  - dataplex.dataDomains.modifyEntry
   - dataplex.dataTaxonomies.configureDataAccess
   - dataplex.dataTaxonomies.configureResourceAccess
   - dataplex.dataTaxonomies.create
@@ -8255,16 +8471,51 @@ permission_categories:
   - dataplex.entities.update
   - dataplex.entries.create
   - dataplex.entries.delete
+  - dataplex.entries.link
   - dataplex.entries.update
   - dataplex.entryGroups.create
   - dataplex.entryGroups.delete
   - dataplex.entryGroups.import
+  - dataplex.entryGroups.requestChanges
   - dataplex.entryGroups.update
   - dataplex.entryGroups.useContactsAspect
+  - dataplex.entryGroups.useContextAspect
+  - dataplex.entryGroups.useContextEntry
+  - dataplex.entryGroups.useContextEntryLink
+  - dataplex.entryGroups.useDataProfileAspect
+  - dataplex.entryGroups.useDataQualityRuleTemplateAspect
+  - dataplex.entryGroups.useDataQualityRuleTemplateEntry
+  - dataplex.entryGroups.useDataQualityScorecardAspect
+  - dataplex.entryGroups.useDataRulesAspect
+  - dataplex.entryGroups.useDatabaseDataPolicyAspect
+  - dataplex.entryGroups.useDefinitionEntryLink
+  - dataplex.entryGroups.useDescriptionsAspect
+  - dataplex.entryGroups.useDocumentAspect
+  - dataplex.entryGroups.useDocumentEntry
   - dataplex.entryGroups.useGenericAspect
   - dataplex.entryGroups.useGenericEntry
+  - dataplex.entryGroups.useGraphProfileAspect
+  - dataplex.entryGroups.useManagedConnectorTypes
+  - dataplex.entryGroups.useMySQLConnectorTypes
+  - dataplex.entryGroups.useOracleConnectorTypes
   - dataplex.entryGroups.useOverviewAspect
+  - dataplex.entryGroups.usePostgreSQLConnectorTypes
+  - dataplex.entryGroups.useQueriesAspect
+  - dataplex.entryGroups.useReferenceEntryLink
+  - dataplex.entryGroups.useRefreshCadenceAspect
+  - dataplex.entryGroups.useRelatedEntryLink
+  - dataplex.entryGroups.useSQLAccessAspect
+  - dataplex.entryGroups.useSQLServerConnectorTypes
+  - dataplex.entryGroups.useSQLTriggersAspect
   - dataplex.entryGroups.useSchemaAspect
+  - dataplex.entryGroups.useSchemaJoinAspect
+  - dataplex.entryGroups.useSchemaJoinEntryLink
+  - dataplex.entryGroups.useSecondaryIndexesAspect
+  - dataplex.entryGroups.useStorageAspect
+  - dataplex.entryGroups.useSynonymEntryLink
+  - dataplex.entryGroups.useUsageAspect
+  - dataplex.entryLinkTypes.use
+  - dataplex.entryLinks.reference
   - dataplex.entryTypes.create
   - dataplex.entryTypes.delete
   - dataplex.entryTypes.update
@@ -8273,6 +8524,8 @@ permission_categories:
   - dataplex.environments.delete
   - dataplex.environments.execute
   - dataplex.environments.update
+  - dataplex.glossaries.requestChanges
+  - dataplex.glossaryTerms.use
   - dataplex.lakes.create
   - dataplex.lakes.delete
   - dataplex.lakes.update
@@ -8300,8 +8553,12 @@ permission_categories:
   - dataproc.autoscalingPolicies.use
   - dataproc.batches.analyze
   - dataproc.batches.cancel
+  - dataproc.batches.computeTuningConfig
   - dataproc.batches.delete
+  - dataproc.batches.sparkApplicationRead
+  - dataproc.batches.sparkApplicationWrite
   - dataproc.clusters.delete
+  - dataproc.clusters.repair
   - dataproc.clusters.start
   - dataproc.clusters.stop
   - dataproc.clusters.update
@@ -8317,6 +8574,8 @@ permission_categories:
   - dataproc.sessionTemplates.delete
   - dataproc.sessionTemplates.update
   - dataproc.sessions.delete
+  - dataproc.sessions.sparkApplicationRead
+  - dataproc.sessions.sparkApplicationWrite
   - dataproc.sessions.terminate
   - dataproc.tasks.lease
   - dataproc.tasks.reportStatus
@@ -8423,6 +8682,7 @@ permission_categories:
   - developerconnect.operations.cancel
   - developerconnect.operations.delete
   - developerconnect.users.fetchAccessToken
+  - developerconnect.users.finishOAuth
   - dialogflow.agents.create
   - dialogflow.agents.delete
   - dialogflow.agents.export
@@ -8486,6 +8746,7 @@ permission_categories:
   - dialogflow.intents.create
   - dialogflow.intents.delete
   - dialogflow.intents.update
+  - dialogflow.interactionMonitoringAlerts.ack
   - dialogflow.knowledgeBases.create
   - dialogflow.knowledgeBases.delete
   - dialogflow.knowledgeBases.update
@@ -8535,8 +8796,14 @@ permission_categories:
   - dialogflow.webhooks.create
   - dialogflow.webhooks.delete
   - discoveryengine.aclConfigs.update
+  - discoveryengine.agents.manage
+  - discoveryengine.agents.requestReview
   - discoveryengine.analytics.acquireDashboardSession
   - discoveryengine.analytics.refreshDashboardSessionTokens
+  - discoveryengine.audioOverviews.sendSdpOffer
+  - discoveryengine.authorizations.storeUserAuthorization
+  - discoveryengine.billingAccountLicenseConfigs.distribute
+  - discoveryengine.billingAccountLicenseConfigs.retract
   - discoveryengine.cmekConfigs.update
   - discoveryengine.collections.delete
   - discoveryengine.completionConfigs.completeQuery
@@ -8548,6 +8815,7 @@ permission_categories:
   - discoveryengine.conversations.create
   - discoveryengine.conversations.delete
   - discoveryengine.conversations.update
+  - discoveryengine.dataConnectors.buildActionInvocation
   - discoveryengine.dataStores.completeQuery
   - discoveryengine.dataStores.create
   - discoveryengine.dataStores.delete
@@ -8559,11 +8827,14 @@ permission_categories:
   - discoveryengine.documents.purge
   - discoveryengine.engines.create
   - discoveryengine.engines.delete
+  - discoveryengine.engines.generateMemories
+  - discoveryengine.engines.generatePersonalContext
   - discoveryengine.engines.pause
   - discoveryengine.engines.resume
   - discoveryengine.engines.tune
   - discoveryengine.engines.update
   - discoveryengine.evaluations.create
+  - discoveryengine.identityMappingStores.purgeIdentityMappings
   - discoveryengine.locations.estimateDataSize
   - discoveryengine.models.create
   - discoveryengine.models.delete
@@ -8571,6 +8842,9 @@ permission_categories:
   - discoveryengine.models.resume
   - discoveryengine.models.tune
   - discoveryengine.models.update
+  - discoveryengine.notebooks.generateGuide
+  - discoveryengine.notebooks.interactSources
+  - discoveryengine.notificationMessages.ackAll
   - discoveryengine.projects.provision
   - discoveryengine.projects.reportConsentChange
   - discoveryengine.rankingConfigs.rank
@@ -8592,11 +8866,15 @@ permission_categories:
   - discoveryengine.servingConfigs.update
   - discoveryengine.sessions.create
   - discoveryengine.sessions.delete
+  - discoveryengine.sessions.generateSummary
+  - discoveryengine.sessions.selectContextFiles
   - discoveryengine.sessions.update
   - discoveryengine.siteSearchEngines.batchVerifyTargetSites
   - discoveryengine.siteSearchEngines.disableAdvancedSiteSearch
   - discoveryengine.siteSearchEngines.enableAdvancedSiteSearch
   - discoveryengine.siteSearchEngines.recrawlUris
+  - discoveryengine.sources.generateDocumentGuide
+  - discoveryengine.sources.refresh
   - discoveryengine.suggestionDenyListEntries.import
   - discoveryengine.suggestionDenyListEntries.purge
   - discoveryengine.targetSites.batchCreate
@@ -8605,6 +8883,7 @@ permission_categories:
   - discoveryengine.userEvents.create
   - discoveryengine.userEvents.import
   - discoveryengine.userEvents.purge
+  - discoveryengine.userStores.batchUpdateUserLicenses
   - discoveryengine.widgetConfigs.update
   - dlp.analyzeRiskTemplates.create
   - dlp.analyzeRiskTemplates.delete
@@ -8612,6 +8891,7 @@ permission_categories:
   - dlp.connections.create
   - dlp.connections.delete
   - dlp.connections.update
+  - dlp.contentPolicies.apply
   - dlp.deidentifyTemplates.create
   - dlp.deidentifyTemplates.delete
   - dlp.estimates.cancel
@@ -8672,6 +8952,7 @@ permission_categories:
   - documentai.processors.processBatch
   - documentai.processors.processOnline
   - documentai.processors.update
+  - documentai.rules.generate
   - domains.operations.cancel
   - domains.registrations.create
   - domains.registrations.createTagBinding
@@ -8753,6 +9034,7 @@ permission_categories:
   - eventarc.events.receiveEvent
   - eventarc.googleChannelConfigs.update
   - eventarc.messageBuses.publish
+  - eventarc.multiProjectSources.collectGoogleApiEvents
   - eventarc.operations.cancel
   - eventarc.operations.delete
   - eventarc.triggers.delete
@@ -8788,6 +9070,8 @@ permission_categories:
   - financialservices.v1instances.exportRegisteredParties
   - financialservices.v1instances.importRegisteredParties
   - financialservices.v1instances.update
+  - financialservices.v1models.copyFrom
+  - financialservices.v1models.copyTo
   - financialservices.v1models.create
   - financialservices.v1models.delete
   - financialservices.v1models.exportMetadata
@@ -8848,6 +9132,7 @@ permission_categories:
   - firebasedataconnect.schemaRevisions.delete
   - firebasedataconnect.schemas.create
   - firebasedataconnect.schemas.delete
+  - firebasedataconnect.schemas.migrate
   - firebasedataconnect.schemas.update
   - firebasedataconnect.services.create
   - firebasedataconnect.services.delete
@@ -8909,6 +9194,7 @@ permission_categories:
   - fleetengine.vehicles.create
   - fleetengine.vehicles.update
   - fleetengine.vehicles.updateLocation
+  - fpnv.phoneNumberTokens.generateTestNumberToken
   - gcp.redisenterprise.com-databases.create
   - gcp.redisenterprise.com-databases.delete
   - gcp.redisenterprise.com-databases.update
@@ -8933,6 +9219,9 @@ permission_categories:
   - gdchardwaremanagement.zones.create
   - gdchardwaremanagement.zones.delete
   - gdchardwaremanagement.zones.update
+  - geminidataanalytics.dataAgents.chat
+  - geminidataanalytics.locations.chat
+  - geminidataanalytics.locations.useDataEngineeringAgent
   - genomics.datasets.create
   - genomics.datasets.delete
   - genomics.datasets.update
@@ -9134,6 +9423,7 @@ permission_categories:
   - iam.googleapis.com-workspacePools.createPolicyBinding
   - iam.googleapis.com-workspacePools.deletePolicyBinding
   - iam.googleapis.com-workspacePools.updatePolicyBinding
+  - iam.googleapis.com/workforcePoolSubjects.revokeSessions
   - iam.principalaccessboundarypolicies.bind
   - iam.principalaccessboundarypolicies.create
   - iam.principalaccessboundarypolicies.delete
@@ -9156,7 +9446,9 @@ permission_categories:
   - iam.workloadIdentityPools.createPolicyBinding
   - iam.workloadIdentityPools.deletePolicyBinding
   - iam.workloadIdentityPools.updatePolicyBinding
+  - iamconnectors.connectors.revokeAuthorizations
   - iap.projects.updateSettings
+  - iap.resources.egressViaIAP
   - iap.tunnelDestGroups.accessViaIAP
   - iap.tunnelDestGroups.create
   - iap.tunnelDestGroups.delete
@@ -9227,6 +9519,9 @@ permission_categories:
   - integrations.sfdcInstances.delete
   - integrations.sfdcInstances.update
   - integrations.suspensions.lift
+  - integrations.templates.share
+  - integrations.templates.unshare
+  - integrations.templates.use
   - issuerswitch.accountManagerTransactions.update
   - issuerswitch.complaints.create
   - issuerswitch.disputes.create
@@ -9297,6 +9592,7 @@ permission_categories:
   - looker.operations.cancel
   - looker.operations.delete
   - lookerstudio.pro.manage
+  - lustre.instances.rescheduleMaintenance
   - managedflink.deployments.delete
   - managedflink.deployments.update
   - managedflink.jobs.delete
@@ -9391,6 +9687,7 @@ permission_categories:
   - memorystore.instances.connect
   - memorystore.instances.create
   - memorystore.instances.delete
+  - memorystore.instances.finishMigration
   - memorystore.instances.update
   - memorystore.operations.cancel
   - memorystore.operations.delete
@@ -9522,6 +9819,7 @@ permission_categories:
   - netapp.replications.resume
   - netapp.replications.reverse
   - netapp.replications.stop
+  - netapp.replications.sync
   - netapp.replications.update
   - netapp.snapshots.delete
   - netapp.snapshots.update
@@ -9532,7 +9830,9 @@ permission_categories:
   - netapp.volumes.delete
   - netapp.volumes.revert
   - networkconnectivity.groups.acceptSpoke
+  - networkconnectivity.groups.acceptSpokeUpdate
   - networkconnectivity.groups.rejectSpoke
+  - networkconnectivity.groups.rejectSpokeUpdate
   - networkconnectivity.groups.use
   - networkconnectivity.hubs.delete
   - networkconnectivity.hubs.update
@@ -9556,11 +9856,13 @@ permission_categories:
   - networkconnectivity.serviceConnectionPolicies.update
   - networkconnectivity.spokes.delete
   - networkconnectivity.spokes.update
+  - networkconnectivity.spokes.use
   - networkmanagement.connectivitytests.create
   - networkmanagement.connectivitytests.delete
   - networkmanagement.connectivitytests.list
   - networkmanagement.connectivitytests.rerun
   - networkmanagement.connectivitytests.update
+  - networkmanagement.monitoringpoints.downloadConfig
   - networkmanagement.operations.cancel
   - networkmanagement.operations.delete
   - networkmanagement.vpcflowlogsconfigs.create
@@ -9573,6 +9875,7 @@ permission_categories:
   - networksecurity.authorizationPolicies.delete
   - networksecurity.authorizationPolicies.use
   - networksecurity.authzPolicies.delete
+  - networksecurity.backendAuthenticationConfigs.use
   - networksecurity.clientTlsPolicies.delete
   - networksecurity.clientTlsPolicies.use
   - networksecurity.dnsThreatDetectors.update
@@ -9581,8 +9884,10 @@ permission_categories:
   - networksecurity.firewallEndpointAssociations.update
   - networksecurity.firewallEndpoints.create
   - networksecurity.firewallEndpoints.delete
+  - networksecurity.firewallEndpoints.submitVerdictChangeRequest
   - networksecurity.firewallEndpoints.update
   - networksecurity.firewallEndpoints.use
+  - networksecurity.firewallEndpoints.useWildfire
   - networksecurity.gatewaySecurityPolicies.create
   - networksecurity.gatewaySecurityPolicies.delete
   - networksecurity.gatewaySecurityPolicies.update
@@ -9605,6 +9910,7 @@ permission_categories:
   - networksecurity.urlLists.delete
   - networksecurity.urlLists.update
   - networksecurity.urlLists.use
+  - networkservices.agentGateways.use
   - networkservices.authzExtensions.delete
   - networkservices.authzExtensions.update
   - networkservices.endpointPolicies.delete
@@ -9682,6 +9988,15 @@ permission_categories:
   - ondemandscanning.scans.analyzePackages
   - ondemandscanning.scans.scan
   - opsconfigmonitoring.resourceMetadata.write
+  - oracledatabase.autonomousDatabases.failover
+  - oracledatabase.autonomousDatabases.refresh
+  - oracledatabase.autonomousDatabases.switchover
+  - oracledatabase.cloudExadataInfrastructures.use
+  - oracledatabase.exascaleDbStorageVaults.use
+  - oracledatabase.goldenGateConnections.use
+  - oracledatabase.goldenGateDeployments.use
+  - oracledatabase.odbNetworks.use
+  - oracledatabase.odbSubnets.use
   - orgpolicy.customConstraints.delete
   - osconfig.guestPolicies.delete
   - osconfig.osPolicyAssignments.delete
@@ -9694,6 +10009,7 @@ permission_categories:
   - paymentsresellersubscription.subscriptions.extend
   - paymentsresellersubscription.subscriptions.provision
   - paymentsresellersubscription.subscriptions.undoCancel
+  - paymentsresellersubscription.userSessions.generate
   - policyremediatormanager.operations.cancel
   - policyremediatormanager.operations.delete
   - policyremediatormanager.remediatorServices.disable
@@ -9901,6 +10217,7 @@ permission_categories:
   - recommender.usageCommitmentRecommendations.update
   - redis.clusters.create
   - redis.clusters.delete
+  - redis.clusters.rescheduleMaintenance
   - redis.clusters.update
   - redis.instances.create
   - redis.instances.createTagBinding
@@ -9929,6 +10246,7 @@ permission_categories:
   - remotebuildexecution.workerpools.create
   - remotebuildexecution.workerpools.delete
   - remotebuildexecution.workerpools.update
+  - resourcemanager.boundaries.associateToCapabilityConfig
   - resourcemanager.folders.create
   - resourcemanager.folders.createPolicyBinding
   - resourcemanager.folders.delete
@@ -9940,6 +10258,7 @@ permission_categories:
   - resourcemanager.organizations.createPolicyBinding
   - resourcemanager.organizations.deletePolicyBinding
   - resourcemanager.organizations.updatePolicyBinding
+  - resourcemanager.projects.associateToCapabilityConfig
   - resourcemanager.projects.create
   - resourcemanager.projects.createBillingAssignment
   - resourcemanager.projects.createPolicyBinding
@@ -9978,6 +10297,10 @@ permission_categories:
   - retail.experiments.delete
   - retail.experiments.loadExperimentLookerDashboard
   - retail.experiments.update
+  - retail.merchantControls.creatorCreate
+  - retail.merchantControls.creatorDelete
+  - retail.merchantControls.creatorSubmit
+  - retail.merchantControls.creatorUpdate
   - retail.models.create
   - retail.models.delete
   - retail.models.pause
@@ -9992,6 +10315,7 @@ permission_categories:
   - retail.products.purge
   - retail.products.setSponsorship
   - retail.products.update
+  - retail.retailProjects.acceptDataTerms
   - retail.servingConfigs.create
   - retail.servingConfigs.delete
   - retail.servingConfigs.predict
@@ -10015,6 +10339,9 @@ permission_categories:
   - rma.collectors.update
   - rma.operations.cancel
   - rma.operations.delete
+  - roads.selectedRoutes.batchCreate
+  - roads.selectedRoutes.batchDelete
+  - roads.selectedRoutes.batchUpdate
   - routeoptimization.locations.use
   - routeoptimization.operations.create
   - run.executions.cancel
@@ -10065,8 +10392,13 @@ permission_categories:
   - securesourcemanager.instances.create
   - securesourcemanager.instances.createRepository
   - securesourcemanager.instances.delete
+  - securesourcemanager.issues.close
+  - securesourcemanager.issues.open
   - securesourcemanager.operations.cancel
   - securesourcemanager.operations.delete
+  - securesourcemanager.prcomments.unresolve
+  - securesourcemanager.pullRequests.close
+  - securesourcemanager.pullRequests.open
   - securesourcemanager.repositories.create
   - securesourcemanager.repositories.delete
   - securesourcemanager.repositories.push
@@ -10096,6 +10428,7 @@ permission_categories:
   - securitycenter.findingsecuritymarks.update
   - securitycenter.integratedvulnerabilityscannersettings.calculate
   - securitycenter.integratedvulnerabilityscannersettings.update
+  - securitycenter.issues.mute
   - securitycenter.muteconfigs.create
   - securitycenter.muteconfigs.delete
   - securitycenter.muteconfigs.update
@@ -10125,6 +10458,7 @@ permission_categories:
   - securitycentermanagement.eventThreatDetectionCustomModules.delete
   - securitycentermanagement.eventThreatDetectionCustomModules.update
   - securitycentermanagement.eventThreatDetectionCustomModules.validate
+  - securitycentermanagement.securityCenter.migrate
   - securitycentermanagement.securityCenterServices.update
   - securitycentermanagement.securityCommandCenter.activate
   - securitycentermanagement.securityCommandCenter.generateServiceAccounts
@@ -10207,6 +10541,7 @@ permission_categories:
   - spanner.databaseOperations.cancel
   - spanner.databaseOperations.delete
   - spanner.databaseRoles.use
+  - spanner.databases.adapt
   - spanner.databases.beginOrRollbackReadWriteTransaction
   - spanner.databases.beginPartitionedDmlTransaction
   - spanner.databases.beginReadOnlyTransaction
@@ -10342,6 +10677,7 @@ permission_categories:
   - timeseriesinsights.datasets.update
   - tpu.nodes.create
   - tpu.nodes.delete
+  - tpu.nodes.performMaintenance
   - tpu.nodes.reimage
   - tpu.nodes.reset
   - tpu.nodes.simulateMaintenanceEvent
@@ -10367,6 +10703,7 @@ permission_categories:
   - translationhub.portals.create
   - translationhub.portals.delete
   - translationhub.portals.update
+  - universalledger.endpoints.submit
   - videostitcher.cdnKeys.create
   - videostitcher.cdnKeys.delete
   - videostitcher.cdnKeys.update
@@ -10509,6 +10846,8 @@ permission_categories:
   - vmmigration.utilizationReports.delete
   - vmwareengine.clusters.create
   - vmwareengine.clusters.delete
+  - vmwareengine.clusters.mountDatastore
+  - vmwareengine.clusters.unmountDatastore
   - vmwareengine.clusters.update
   - vmwareengine.dnsBindPermission.grant
   - vmwareengine.dnsBindPermission.revoke
@@ -10536,6 +10875,8 @@ permission_categories:
   - vmwareengine.operations.delete
   - vmwareengine.privateClouds.create
   - vmwareengine.privateClouds.delete
+  - vmwareengine.privateClouds.migrateManagementVms
+  - vmwareengine.privateClouds.privateCloudDeletionNow
   - vmwareengine.privateClouds.undelete
   - vmwareengine.privateClouds.update
   - vmwareengine.privateConnections.create
@@ -10607,6 +10948,7 @@ permission_categories:
   - aiplatform.featureViews.fetchFeatureValues
   - aiplatform.featureViews.searchNearestEntities
   - aiplatform.hyperparameterTuningJobs.create
+  - aiplatform.memories.retrieve
   - aiplatform.models.export
   - aiplatform.models.upload
   - aiplatform.notebookExecutionJobs.create
@@ -10647,11 +10989,20 @@ permission_categories:
   - artifactregistry.repositories.update
   - artifactregistry.repositories.uploadArtifacts
   - artifactregistry.tags.update
+  - backupdr.appliedAutoProtectionPolicies.authorize
   - backupdr.autoProtectionBindings.create
   - backupdr.autoProtectionPolicies.create
+  - backupdr.backupPlans.useForAlloydbCluster
+  - backupdr.backupPlans.useForCloudSqlInstance
   - backupdr.backupPlans.useForComputeDisk
   - backupdr.backupPlans.useForComputeInstance
+  - backupdr.backupPlans.useForFilestoreInstance
   - backupdr.bvbackups.restore
+  - backupdr.bvbackups.useReadOnlyForAlloydbCluster
+  - backupdr.bvbackups.useReadOnlyForCloudSqlInstance
+  - backupdr.bvbackups.useReadOnlyForFilestoreInstance
+  - backupdr.bvdataSources.useReadOnlyForAlloydbCluster
+  - backupdr.bvdataSources.useReadOnlyForCloudSqlInstance
   - backupdr.compute.restoreFromBackupVault
   - baremetalsolution.instances.enableInteractiveSerialConsole
   - baremetalsolution.nfsshares.update
@@ -10722,6 +11073,8 @@ permission_categories:
   - cloudfunctions.functions.invoke
   - cloudfunctions.functions.sourceCodeGet
   - cloudkms.autokeyConfigs.update
+  - cloudkms.cryptoKeyVersions.managePqcSign
+  - cloudkms.cryptoKeyVersions.trustedImportExport
   - cloudkms.cryptoKeyVersions.update
   - cloudkms.cryptoKeyVersions.useToDecapsulate
   - cloudkms.cryptoKeyVersions.useToDecrypt
@@ -10792,6 +11145,7 @@ permission_categories:
   - compute.oslogin.updateExternalUser
   - compute.packetMirrorings.create
   - compute.projects.get
+  - compute.recoverableSnapshots.recover
   - compute.routers.create
   - compute.routers.update
   - compute.routes.create
@@ -10802,9 +11156,11 @@ permission_categories:
   - compute.subnetworks.update
   - compute.subnetworks.use
   - compute.subnetworks.useExternalIp
+  - compute.subnetworks.usePeerMigration
   - compute.targetHttpsProxies.update
   - compute.targetSslProxies.update
   - compute.urlMaps.update
+  - config.deploymentgroups.provision
   - config.deployments.create
   - configdelivery.fleetPackages.update
   - connectors.actions.execute
@@ -10812,12 +11168,14 @@ permission_categories:
   - connectors.connections.listenEvent
   - contactcenterinsights.analyses.get
   - contactcenterinsights.analyses.list
+  - contactcenterinsights.authorizedConversations.generateSignedAudio
   - contactcenterinsights.conversations.create
   - contactcenterinsights.conversations.export
   - contactcenterinsights.conversations.generateSignedAudio
   - contactcenterinsights.conversations.get
   - contactcenterinsights.conversations.list
   - contactcenterinsights.conversations.upload
+  - contactcenterinsights.datasetConversations.generateSignedAudio
   - contactcenterinsights.datasetConversations.list
   - container.clusters.create
   - container.clusters.get
@@ -10839,6 +11197,8 @@ permission_categories:
   - datacatalog.taxonomies.update
   - dataform.compilationResults.create
   - dataform.repositories.create
+  - dataform.repositories.scheduleRelease
+  - dataform.repositories.scheduleWorkflow
   - dataform.workflowInvocations.create
   - dataform.workspaces.create
   - dataform.workspaces.writeFile
@@ -10855,6 +11215,7 @@ permission_categories:
   - dataproc.sessionTemplates.create
   - dataproc.sessions.create
   - dataproc.workflowTemplates.create
+  - datastore.databases.clone
   - datastore.databases.export
   - datastore.entities.create
   - datastore.entities.delete
@@ -10869,17 +11230,29 @@ permission_categories:
   - datastream.streams.create
   - datastream.streams.update
   - deploymentmanager.manifests.get
+  - developerconnect.accountConnectors.gitProxyRead
+  - developerconnect.accountConnectors.gitProxyWrite
+  - developerconnect.accountConnectors.httpProxyRead
+  - developerconnect.accountConnectors.httpProxyWrite
+  - developerconnect.connections.httpProxyRead
+  - developerconnect.connections.httpProxyWrite
   - developerconnect.gitRepositoryLinks.fetchReadToken
   - developerconnect.gitRepositoryLinks.fetchReadWriteToken
+  - developerconnect.gitRepositoryLinks.gitProxyRead
+  - developerconnect.gitRepositoryLinks.gitProxyWrite
   - dialogflow.webhooks.update
+  - discoveryengine.agentFiles.download
+  - discoveryengine.assistants.assist
   - discoveryengine.documents.create
   - discoveryengine.documents.get
   - discoveryengine.documents.import
   - discoveryengine.documents.list
   - discoveryengine.documents.update
   - discoveryengine.identityMappingStores.importIdentityMappings
+  - discoveryengine.memories.retrieve
   - discoveryengine.servingConfigs.answer
   - discoveryengine.servingConfigs.search
+  - discoveryengine.sessions.downloadFile
   - discoveryengine.targetSites.create
   - dlp.contentPolicies.update
   - dlp.deidentifyTemplates.get
@@ -10903,10 +11276,12 @@ permission_categories:
   - domains.registrations.configureDns
   - domains.registrations.configureManagement
   - domains.registrations.update
+  - edgecontainer.serviceaccounts.generatekey
   - errorreporting.errorEvents.list
   - errorreporting.groups.list
   - essentialcontacts.contacts.create
   - eventarc.enrollments.update
+  - eventarc.messageBuses.use
   - eventarc.pipelines.create
   - eventarc.triggers.create
   - eventarc.triggers.update
@@ -10914,13 +11289,17 @@ permission_categories:
   - file.backups.useReadOnly
   - file.instances.create
   - file.instances.update
+  - firebaseappcheck.tokens.mint
   - firebaseapphosting.backends.update
   - firebaseapphosting.builds.create
   - firebaseapphosting.rollouts.create
   - firebaseauth.configs.update
+  - firebasedataconnect.connectors.impersonateMutation
+  - firebasedataconnect.connectors.impersonateQuery
   - firebaserules.releases.create
   - firebaserules.releases.update
   - firebaserules.rulesets.create
+  - fpnv.phoneNumberTokens.mintPhoneNumberToken
   - geminicloudassist.investigationRevisions.get
   - geminicloudassist.investigationRevisions.list
   - geminicloudassist.investigations.get
@@ -10937,6 +11316,7 @@ permission_categories:
   - healthcare.datasets.create
   - healthcare.dicomStores.dicomWebDelete
   - healthcare.dicomStores.dicomWebRead
+  - healthcare.dicomStores.dicomWebUpdate
   - healthcare.dicomStores.dicomWebWrite
   - healthcare.dicomStores.export
   - healthcare.fhirResources.create
@@ -10944,6 +11324,7 @@ permission_categories:
   - healthcare.fhirResources.get
   - healthcare.fhirResources.patch
   - healthcare.fhirResources.update
+  - healthcare.fhirStores.bulkDelete
   - healthcare.fhirStores.export
   - healthcare.fhirStores.searchResources
   - healthcare.fhirStores.update
@@ -10953,6 +11334,8 @@ permission_categories:
   - healthcare.hl7V2Messages.ingest
   - healthcare.hl7V2Stores.export
   - hypercomputecluster.clusters.update
+  - iam.accesspolicies.unbind
+  - iam.googleapis.com/workforcePoolProviderScimUsers.put
   - iam.serviceAccounts.getOpenIdToken
   - iam.serviceAccounts.undelete
   - iap.tunnelInstances.accessViaIAP
@@ -10984,6 +11367,7 @@ permission_categories:
   - managedkafka.clusters.connect
   - managedkafka.connectors.create
   - managedkafka.connectors.update
+  - memorystore.instances.backup
   - modelarmor.floorSettings.update
   - modelarmor.templates.update
   - monitoring.alertPolicies.create
@@ -10992,6 +11376,8 @@ permission_categories:
   - monitoring.uptimeCheckConfigs.create
   - netapp.backups.create
   - netapp.backups.useReadOnly
+  - netapp.ontap.post
+  - netapp.replications.establishPeering
   - netapp.snapshots.create
   - netapp.volumes.create
   - netapp.volumes.createCrossProjectBackup
@@ -11032,12 +11418,15 @@ permission_categories:
   - networkservices.lbTrafficExtensions.create
   - networkservices.meshes.use
   - networkservices.wasmPlugins.create
+  - networkservices.wasmPlugins.use
   - notebooks.instances.create
   - notebooks.instances.reset
   - notebooks.instances.update
   - notebooks.instances.use
   - observability.links.create
   - observability.views.access
+  - oracledatabase.autonomousDatabaseBackups.clone
+  - oracledatabase.autonomousDatabases.clone
   - oracledatabase.autonomousDatabases.generateWallet
   - orgpolicy.customConstraints.create
   - orgpolicy.customConstraints.update
@@ -11048,6 +11437,8 @@ permission_categories:
   - osconfig.patchDeployments.update
   - parallelstore.instances.exportData
   - parallelstore.instances.importData
+  - parametermanager.parameterVersions.render
+  - parametermanager.templateVersions.render
   - privateca.caPools.update
   - privateca.certificateAuthorities.create
   - privateca.certificateAuthorities.update
@@ -11066,6 +11457,7 @@ permission_categories:
   - recaptchaenterprise.keys.retrievelegacysecretkey
   - recaptchaenterprise.keys.update
   - recaptchaenterprise.policies.update
+  - redis.clusters.backup
   - redis.clusters.connect
   - redis.instances.export
   - redis.instances.getAuthString
@@ -11104,6 +11496,8 @@ permission_categories:
   - secretmanager.versions.add
   - securesourcemanager.branchRules.create
   - securesourcemanager.hooks.create
+  - securesourcemanager.instances.linkDeveloperConnect
+  - securesourcemanager.pullRequests.merge
   - securesourcemanager.repositories.approvePullRequests
   - securesourcemanager.repositories.fetch
   - securesourcemanager.repositories.readPullRequests
@@ -11121,8 +11515,10 @@ permission_categories:
   - spanner.databases.updateDdl
   - storage.buckets.create
   - storage.buckets.delete
+  - storage.buckets.relocate
   - storage.buckets.restore
   - storage.buckets.update
+  - storage.folders.rename
   - storage.objects.create
   - storage.objects.delete
   - storage.objects.get
@@ -11372,6 +11768,7 @@ permission_categories:
   - healthcare.fhirStores.setIamPolicy
   - healthcare.hl7V2Stores.setIamPolicy
   - iam.googleapis.com-workforcePools.setIamPolicy
+  - iam.googleapis.com/workforcePoolProviderScimGroups.put
   - iam.roles.update
   - iam.serviceAccountKeys.create
   - iam.serviceAccounts.actAs

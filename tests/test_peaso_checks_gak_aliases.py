@@ -1,0 +1,71 @@
+"""Retired exact-duplicate native ids stay resolvable as aliases of their surviving native."""
+import pytest
+
+from peaso.checks import CHECK_ALIASES, CHECKS, alias_check, evaluate_check, register, resolve_check_id
+from peaso.checks.catalog import framework_ids_for
+from peaso.engine import _selection, diff_reports
+from peaso.snapshot import digest
+
+EXPECTED = {"gcp.compute.os_login": "gcp.ports.compute_oslogin_metadata_precedence",
+            "gcp.sql.require_tls": "gcp.ports.sql_instance_require_ssl_enabled",
+            "aws_g6_redshift_automatic_version_upgrade": "aws.cb.redshift.allow_version_upgrade",
+            "aws.pci.cloudtrail.authentication_events": "aws.gap.cloudtrail.region_logging_management_events",
+            "aws_fedramp_rds_cluster_members_enhanced_monitoring": "aws.nist.rds_cluster_member_enhanced_monitoring"}
+IDS = {c.id for c in CHECKS}
+
+
+def test_aliases_are_retired_and_survivors_are_registered_with_upstream_frameworks():
+    assert CHECK_ALIASES == EXPECTED
+    for retired, survivor in EXPECTED.items():
+        assert retired not in IDS and survivor in IDS
+        assert resolve_check_id(retired) == survivor
+        assert len(framework_ids_for(survivor)) > 1  # upstream frameworks land on the survivor
+
+
+def test_alias_and_register_reject_collisions():
+    with pytest.raises(ValueError):
+        alias_check("gcp.compute.os_login", "gcp.ports.compute_oslogin_metadata_precedence")
+    with pytest.raises(ValueError):
+        alias_check(next(iter(IDS)), "gcp.ports.sql_instance_require_ssl_enabled")
+    with pytest.raises(ValueError):
+        register("gcp.sql.require_tls", "gcp", "hardening", "sql_instance", "t", "low", "CM-6", "r")(lambda item, index: None)
+
+
+def test_evaluate_check_resolves_alias():
+    item = {"settings": {"ipConfiguration": {"sslMode": "ALLOW_UNENCRYPTED_AND_ENCRYPTED"}}}
+    assert evaluate_check("gcp.sql.require_tls", item, {})[0] == evaluate_check("gcp.ports.sql_instance_require_ssl_enabled", item, {})[0] == "FAIL"
+
+
+def test_selection_accepts_retired_ids_and_emits_one_check():
+    _, selected = _selection("gcp", None, ["gcp.compute.os_login", "gcp.ports.compute_oslogin_metadata_precedence"], None)
+    assert [c.id for c in selected] == ["gcp.ports.compute_oslogin_metadata_precedence"]
+
+
+def _finding(cid, status="FAIL", rid="projects/p/instances/i"):
+    return {"id": digest(["gcp", "projects/p", rid, cid]), "check_id": cid, "provider": "gcp", "scope": "projects/p",
+            "resource_id": rid, "status": status, "evidence": {}, "frameworks": []}
+
+
+def _report(findings):
+    return {"provider": "gcp", "scopes": ["projects/p"], "findings": findings}
+
+
+def test_diff_of_stored_scan_with_retired_ids_has_no_spurious_removals():
+    survivor = "gcp.ports.compute_oslogin_metadata_precedence"
+    old = _report([_finding("gcp.compute.os_login"), _finding(survivor)])
+    new = _report([_finding(survivor)])
+    assert diff_reports(old, new)["stats"] == {"added": 0, "removed": 0, "changed": 0}
+    only_retired = _report([_finding("gcp.compute.os_login")])
+    assert diff_reports(only_retired, new)["stats"] == {"added": 0, "removed": 0, "changed": 0}
+    fixed = _report([_finding(survivor, status="PASS")])
+    assert diff_reports(only_retired, fixed)["stats"] == {"added": 0, "removed": 0, "changed": 1}
+
+
+def test_api_selector_index_accepts_retired_ids():
+    from peaso.server.validation import _selector_index
+    gcp_aliases = {key for key in EXPECTED if key.startswith("gcp.")}
+    aws_aliases = {key for key in EXPECTED if key.startswith("aws_") or key.startswith("aws.")}
+    assert gcp_aliases <= _selector_index("gcp")[1]
+    assert aws_aliases <= _selector_index("aws")[1]
+    assert not gcp_aliases & _selector_index("aws")[1]
+    assert not aws_aliases & _selector_index("gcp")[1]

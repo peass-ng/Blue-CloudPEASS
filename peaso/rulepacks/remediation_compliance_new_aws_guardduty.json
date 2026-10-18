@@ -1,0 +1,22 @@
+{
+  "aws_guardduty_no_active_high_findings": {
+    "summary": "Investigate and resolve each active high-severity GuardDuty finding in the affected account and Region.",
+    "steps": [
+      "Open each finding ID reported for the exact account and Region, confirm the affected resource and incident status with the security owner.",
+      "Investigate the finding and apply the response appropriate to its type, such as containing the affected resource or rotating exposed credentials under the incident process.",
+      "After the issue is resolved and the response is recorded, archive the reviewed finding if appropriate, then recollect GuardDuty facts and rerun this check."
+    ],
+    "cli": [],
+    "caveats": [
+      "Archiving a finding is a workflow action, not proof that the underlying issue is fixed; investigate and remediate first.",
+      "This check covers only unarchived GuardDuty Severity 7.0 through below 9.0 for the selected account and Region. Critical findings at 9.0 and above require separate review."
+    ],
+    "references": [
+      {"title": "GuardDuty finding severity ranges", "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings-severity.html"},
+      {"title": "GuardDuty finding response guidance", "url": "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_remediate.html"}
+    ],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_guardduty", "kind": "guardduty_finding", "target": "scope", "path": "collections.guardduty_detector; guardduty_detector[].Configuration.Status; FindingIds.collection_status; FindingIds.items; collections.guardduty_finding; guardduty_finding[].Id; Severity; Service.Archived; Service.DetectorId; AccountId; Region", "observed_fail_evidence": "enabled_detector_ids; active_high_finding_ids; high_severity_range"},
+    "proposed_spec_sha256": "2b8b4d2e57b0620586b63f8712ef254e028618d8347492e80caf8cd6ba8a30bc",
+    "review_status": "source_bound_pending_review"
+  }
+}

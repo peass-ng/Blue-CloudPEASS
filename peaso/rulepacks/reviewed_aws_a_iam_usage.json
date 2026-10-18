@@ -1,0 +1,300 @@
+{
+  "aws-compliance.control.cis_v120_1_3": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_90",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "d46b2edec89159e0650e0e0b261de208c9345c20ff9f40383914236176a5f639",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v120/section_1.pp#L68"
+    },
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_90_days"
+    ],
+    "reason": "Full pinned90-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus90days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v130_1_12": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_90",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "d46b2edec89159e0650e0e0b261de208c9345c20ff9f40383914236176a5f639",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L194"
+    },
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_90_days"
+    ],
+    "reason": "Full pinned90-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus90days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v130_1_7": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v130/section_1.pp#L124"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  },
+  "aws-compliance.control.cis_v140_1_12": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_45",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "cb76437c26ca78ca9944ee6260a4a2147973336363e17fe6e643fb78771474f9",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L193"
+    },
+    "disposition": "ported",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_45_days"
+    ],
+    "reason": "Full pinned45-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus45days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v140_1_7": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v140/section_1.pp#L123"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  },
+  "aws-compliance.control.cis_v150_1_12": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_45",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "cb76437c26ca78ca9944ee6260a4a2147973336363e17fe6e643fb78771474f9",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L193"
+    },
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_45_days"
+    ],
+    "reason": "Full pinned45-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus45days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v150_1_7": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v150/section_1.pp#L123"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  },
+  "aws-compliance.control.cis_v200_1_12": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_45",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "cb76437c26ca78ca9944ee6260a4a2147973336363e17fe6e643fb78771474f9",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L194"
+    },
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_45_days"
+    ],
+    "reason": "Full pinned45-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus45days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v200_1_7": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v200/section_1.pp#L124"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  },
+  "aws-compliance.control.cis_v300_1_12": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_45",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "cb76437c26ca78ca9944ee6260a4a2147973336363e17fe6e643fb78771474f9",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L194"
+    },
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_45_days"
+    ],
+    "reason": "Full pinned45-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus45days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v300_1_7": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v300/section_1.pp#L124"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  },
+  "aws-compliance.control.cis_v400_1_12": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_45",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "cb76437c26ca78ca9944ee6260a4a2147973336363e17fe6e643fb78771474f9",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L194"
+    },
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_45_days"
+    ],
+    "reason": "Full pinned45-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus45days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v400_1_7": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v400/section_1.pp#L124"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  },
+  "aws-compliance.control.cis_v500_1_11": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_45",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "cb76437c26ca78ca9944ee6260a4a2147973336363e17fe6e643fb78771474f9",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L179"
+    },
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_45_days"
+    ],
+    "reason": "Full pinned45-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus45days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v500_1_6": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v500/section_1.pp#L109"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  },
+  "aws-compliance.control.cis_v600_2_11": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_user_unused_credentials_45",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "cb76437c26ca78ca9944ee6260a4a2147973336363e17fe6e643fb78771474f9",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L179"
+    },
+    "disposition": "merged",
+    "native_checks": [
+      "aws.a.iam.unused_credentials_45_days"
+    ],
+    "reason": "Full pinned45-day predicate preserved: root is manual; for enabled password/key, last use strictly before captured UTC CURRENT_DATE minus45days fails, or null last-use with creation/rotation strictly before cutoff fails; disabled credentials skip. Real credential-report unavailable dates normalized only from documented N/A/no_information/not_supported values. Distinct45and90 thresholds and exact boundary preserved; no wall clock/cloud calls.",
+    "review_notes": "Native pass/fail/manual/missing/denied/malformed and cutoff/null/disabled fixtures, no actual key IDs/secret values; all source aliases invoke exact reviewed query."
+  },
+  "aws-compliance.control.cis_v600_2_6": {
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_credential_report.html"
+    ],
+    "reviewed_query_id": "iam_root_last_used",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4231d094e16dfde662e398eb0fde260277364a59934b04788f7debaa22bc1a53",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/cis_v600/section_2.pp#L109"
+    },
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Individually inspected exact CASE: password latest-use >=90-day cutoff alarms, but key1/key2 latest-use <=90-day cutoff alarms. Root key used yesterday with NULL other dates produces ok falsely; root key last observed120days ago alarms despite no recent use. Official credential-report fields are latest-use timestamps, not expiry; this comparator inversion is a substantive security-condition defect independently verified by lead. No missing-fact rejection or corrected-but-different source port claimed.",
+    "review_notes": "Two inert captured-clock counterexamples retained; exact source/framework/control/version IDs remain auditable."
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "aws_nist_s3_bucket_cross_region_replication_enabled": {
+    "summary": "Configure and verify an approved S3 replication rule to a bucket in a different Region.",
+    "steps": [
+      "Inspect the source bucket's replication rules and the source and destination bucket Regions; confirm which data must be replicated and the owner-approved destination.",
+      "Review destination ownership, data residency, replication role permissions, encryption, versioning, retention, and cost with the data owner before changing configuration.",
+      "Configure an enabled rule for the approved destination under change control, then read back the rule and both bucket Regions and verify replication of a permitted test object."
+    ],
+    "cli": [],
+    "caveats": [
+      "Both source and destination buckets require versioning for operational replication. This check tests the signed rule/Region predicate only and does not prove object delivery or include pre-existing objects.",
+      "A destination outside the same-account, same-partition collected inventory or with unreadable Location remains UNKNOWN. Obtain authorized destination-Region evidence before claiming PASS or FAIL.",
+      "Replication can add storage, request, and data transfer charges; apply only after workload and residency review."
+    ],
+    "references": [
+      {"title": "Amazon S3 GetBucketReplication API", "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketReplication.html"},
+      {"title": "Amazon S3 replication requirements", "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication-requirements.html"},
+      {"title": "Amazon S3 live replication overview", "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication-how-setup.html"}
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_aws_s3",
+      "kind": "bucket",
+      "target": "resource",
+      "path": "Name; AccountId; context.scope/Account/metadata.caller_identities[].Arn partition; complete bucket envelope scope/account_id/global; Replication.ReplicationConfiguration.Rules[].Status; Rules[].Destination.Bucket; Location.LocationConstraint",
+      "observed_fail_evidence": "source_bucket; enabled_rules; same_region_rules"
+    },
+    "proposed_spec_sha256": "9cc20340eadea08aa2b5a59921ed766ce20170a854564e7a05658ef1274aa8a9",
+    "review_status": "source_bound_pending_review"
+  }
+}

@@ -75,7 +75,7 @@ def test_sync_checks_all_inputs_before_writing(tmp_path):
     assert not (tmp_path / 'target').exists()
 
 
-def test_sync_ignores_unrelated_source_revision(tmp_path):
+def test_sync_ignores_unrelated_source_revision(tmp_path, monkeypatch):
     book = tmp_path / 'book'
     source = book / 'src/permission-categorizations'
     source.mkdir(parents=True)
@@ -83,7 +83,21 @@ def test_sync_ignores_unrelated_source_revision(tmp_path):
         (source / f'{provider}.yaml').write_bytes((RULES / f'{provider}.yaml').read_bytes())
     # This fixture is deliberately not a git checkout: unchanged hashes must
     # avoid consulting a newer source revision, and --check must write nothing.
-    syncer.sync(book, ROOT, check=True)
+    target = tmp_path / 'target'
+    engine_path = target / ('src/CloudPEASS/permission_risk_classifier.py' if CLOUD else 'scripts/cloud_permission_risks.py')
+    engine_path.parent.mkdir(parents=True)
+    engine_path.touch()
+    if CLOUD:
+        folder = target / 'src/sensitive_permissions'
+        folder.mkdir()
+        for provider in syncer.PROVIDERS[:3]:
+            (folder / f'{provider}.py').write_text('very_sensitive_combinations = []\nsensitive_combinations = []\n')
+    monkeypatch.setattr(syncer.subprocess, 'check_output', lambda *a, **kw: 'a' * 40)
+    syncer.sync(book, target)
+    def unexpected_git(*args, **kwargs):
+        pytest.fail('Unchanged canonical hashes must not consult a newer book revision')
+    monkeypatch.setattr(syncer.subprocess, 'check_output', unexpected_git)
+    syncer.sync(book, target, check=True)
 
 
 def test_rejects_conflicting_case_aliases():

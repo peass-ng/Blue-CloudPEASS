@@ -1,0 +1,22 @@
+{
+  "aws_cis_lambda_execution_role_exists": {
+    "summary": "Restore or assign an existing, approved IAM execution role to the named Lambda function.",
+    "steps": ["Inspect the function's declared Role ARN and confirm its account and AWS partition, then verify whether that exact IAM role exists.", "If the role was removed or replaced, coordinate an approved function configuration update to an existing execution role scoped to the function's needs.", "Read back the function configuration and role identity, then separately verify the required trust policy, permissions, and authorized invocation behavior."],
+    "cli": [],
+    "caveats": ["An exact role ARN match proves declared existence only. This check does not establish role trust, effective permissions, or a successful function invocation.", "Changing a function's execution role can alter runtime access. Review the least-privilege policy and service trust before applying any update.", "Missing or denied IAM inventory, malformed account/partition authority, or a cross-account role ARN remains UNKNOWN."],
+    "references": [{"title": "Lambda function configuration", "url": "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"}, {"title": "IAM GetAccountAuthorizationDetails", "url": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_GetAccountAuthorizationDetails.html"}, {"title": "Lambda execution role", "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_lambda", "kind": "lambda_function", "target": "resource", "path": "FunctionArn; Role; context.scope/Account/metadata.caller_identities[].Arn; complete regional lambda_function and account-global iam_role[].Arn", "observed_fail_evidence": "function_arn; execution_role_arn"},
+    "proposed_spec_sha256": "3cfeead5ea67f0cc0a1b1612792f69c0b43beeceba74e58a5da6e78a81162c1f",
+    "review_status": "source_bound_pending_review"
+  },
+  "aws_cis_lambda_execution_role_unique": {
+    "summary": "Give each active Lambda function an approved execution role that is not shared with another active function.",
+    "steps": ["Inspect the function's exact Role ARN and the active functions identified as sharing it across the collected account Regions.", "With each workload owner, design a dedicated least-privilege execution role, including the Lambda service trust policy and only the permissions that function needs.", "Update one function at a time to use its approved role, test its intended behavior, then recollect all enabled Regions and confirm the shared-role finding is cleared."],
+    "cli": [],
+    "caveats": ["A shared role is observed configuration, not proof of effective privilege escalation or excess permissions. Changing a role can interrupt a function, so review trust and runtime permissions before deployment.", "A clean result requires complete enabled-Region function inventory and collected function State; partial account coverage remains UNKNOWN for unobserved reuse."],
+    "references": [{"title": "Lambda execution roles", "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html"}, {"title": "Lambda function configuration", "url": "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"}, {"title": "ListFunctions response", "url": "https://docs.aws.amazon.com/lambda/latest/api/API_ListFunctions.html"}],
+    "field_binding": {"evaluator_family": "peaso.checks.compliance_new_aws_lambda", "kind": "lambda_function", "target": "resource", "path": "FunctionArn; Role; Configuration.State; context.metadata.lambda_execution_role_usage.accounts[].shared_active_roles; complete enabled-Region account coverage for PASS", "observed_fail_evidence": "function_arn; execution_role_arn; active_function_count; account_coverage"},
+    "proposed_spec_sha256": "bca9cbe5089c56b59603ce17e98b5bf4db1369ec71274b35fc6a24dbb1433d5c",
+    "review_status": "source_bound_pending_review"
+  }
+}

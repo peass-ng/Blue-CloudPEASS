@@ -1,0 +1,170 @@
+{
+  "prowler.azure.defender_ensure_defender_cspm_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.security_center_defender_for_cloudposture_enabled"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_app_services_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_appservice"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_arm_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_resource_manager"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_azure_sql_databases_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqldb"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_containers_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_containers"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_cosmosdb_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_cosmosdb"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_keyvault_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_keyvault"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_os_relational_databases_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_opensource_relational_db"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_server_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_server"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_defender_for_sql_servers_is_on": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.port.securitycenter_azure_defender_on_for_sqlservervm"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/pricings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_mcas_is_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.defender_required_mcas"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_notify_alerts_severity_is_high": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.defender_alert_severity_contact"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.security/2023-12-01-preview/securitycontacts"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_notify_emails_to_owners": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.defender_notify_owner_contact"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/templates/microsoft.security/2023-12-01-preview/securitycontacts"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  },
+  "prowler.azure.defender_ensure_wdatp_is_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.defender_required_wdatp"
+    ],
+    "reason": "Inspected the pinned Python definition and provider normalization; known declared pricing/setting/notification conditions are reproduced over native fields, with explicit complete-scope gating and missing/denied/malformed UNKNOWN. Original per-contact rules remain separate from subscription aggregates.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/defenderforcloud-composite/settings/list?view=rest-defenderforcloud-composite-stable"
+    ],
+    "review_notes": "Prowler missing named MCAS/WDATP setting explicitly fails; these use distinct native predicates from SQL filtered-row queries. Role state normalization On/Off and last non-null Alert severity selection are retained, without asserting delivery.",
+    "ownership_note": "Previously accepted source decision preserved when active worker partition transferred; no semantic change or duplicate implementation."
+  }
+}

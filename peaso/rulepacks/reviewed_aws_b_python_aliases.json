@@ -1,0 +1,82 @@
+{
+  "prowler.aws.dms_instance_minor_version_upgrade_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.dms.automatic_minor_upgrade"
+    ],
+    "reason": "Individually inspected pinned Python program: resource iteration and boolean/enum predicate have no extra eligibility or parameter override. Native API projection preserves the exact criterion; missing/denied/malformed data are unknown. ECR Prowler criterion fails only wholly MUTABLE, deliberately separate from stronger all-tags IMMUTABLE policy.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/dms/dms_instance_minor_version_upgrade_enabled/dms_instance_minor_version_upgrade_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "ce922b988cf17c855f3632c68b2a6c850747bb34f02983658a6c7ae6ca60047c",
+      "source_path": "prowler/providers/aws/services/dms/dms_instance_minor_version_upgrade_enabled/dms_instance_minor_version_upgrade_enabled.py"
+    }
+  },
+  "prowler.aws.dms_instance_multi_az_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.dms.multi_az"
+    ],
+    "reason": "Individually inspected pinned Python program: resource iteration and boolean/enum predicate have no extra eligibility or parameter override. Native API projection preserves the exact criterion; missing/denied/malformed data are unknown. ECR Prowler criterion fails only wholly MUTABLE, deliberately separate from stronger all-tags IMMUTABLE policy.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/dms/dms_instance_multi_az_enabled/dms_instance_multi_az_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "d578f8e452c35a5d198daf2d58f54965df7ae0f84fa9817e57dba08c9b285c6e",
+      "source_path": "prowler/providers/aws/services/dms/dms_instance_multi_az_enabled/dms_instance_multi_az_enabled.py"
+    }
+  },
+  "prowler.aws.dynamodb_table_deletion_protection_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.dynamodb.deletion_protection"
+    ],
+    "reason": "Individually inspected pinned Python program: resource iteration and boolean/enum predicate have no extra eligibility or parameter override. Native API projection preserves the exact criterion; missing/denied/malformed data are unknown. ECR Prowler criterion fails only wholly MUTABLE, deliberately separate from stronger all-tags IMMUTABLE policy.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TableDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/dynamodb/dynamodb_table_deletion_protection_enabled/dynamodb_table_deletion_protection_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "24d24d814d30a9e83eb3ddf8d1560bedaca0983bd6aaaf8f607e5d63150e09fe",
+      "source_path": "prowler/providers/aws/services/dynamodb/dynamodb_table_deletion_protection_enabled/dynamodb_table_deletion_protection_enabled.py"
+    }
+  },
+  "prowler.aws.dynamodb_tables_pitr_enabled": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.dynamodb.point_in_time_recovery"
+    ],
+    "reason": "Individually inspected pinned Python program: resource iteration and boolean/enum predicate have no extra eligibility or parameter override. Native API projection preserves the exact criterion; missing/denied/malformed data are unknown. ECR Prowler criterion fails only wholly MUTABLE, deliberately separate from stronger all-tags IMMUTABLE policy.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TableDescription.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/dynamodb/dynamodb_tables_pitr_enabled/dynamodb_tables_pitr_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "ac9bd44c120a1bd0971f7886bfd1e56319d79549ad70f1439bca346fac42183d",
+      "source_path": "prowler/providers/aws/services/dynamodb/dynamodb_tables_pitr_enabled/dynamodb_tables_pitr_enabled.py"
+    }
+  },
+  "prowler.aws.ecr_repositories_tag_immutability": {
+    "disposition": "merged",
+    "native_checks": [
+      "aws.b.ecr.source_some_immutability"
+    ],
+    "reason": "Individually inspected pinned Python program: resource iteration and boolean/enum predicate have no extra eligibility or parameter override. Native API projection preserves the exact criterion; missing/denied/malformed data are unknown. ECR Prowler criterion fails only wholly MUTABLE, deliberately separate from stronger all-tags IMMUTABLE policy.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_Repository.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ecr/ecr_repositories_tag_immutability/ecr_repositories_tag_immutability.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "03ce3bcc037838af0b3cb3318d5fbf0fd93395baf0f9dae565de444ee0bfc067",
+      "source_path": "prowler/providers/aws/services/ecr/ecr_repositories_tag_immutability/ecr_repositories_tag_immutability.py"
+    }
+  }
+}

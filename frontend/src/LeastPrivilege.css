@@ -1,0 +1,31 @@
+.least-panel { padding: 0; overflow: hidden; }
+.least-toolbar { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border, #293c52); }
+.least-toolbar .search-field { max-width: 32rem; }
+.least-list { display: grid; }
+.least-row { width: 100%; display: flex; align-items: center; gap: 1.25rem; padding: 1rem 1.25rem; color: inherit; background: transparent; border: 0; border-bottom: 1px solid var(--border, #293c52); text-align: left; cursor: pointer; font: inherit; }
+.least-row:hover, .least-row:focus-visible { background: rgba(126, 174, 224, .09); }
+.least-identity { display: grid; gap: .25rem; min-width: 0; flex: 1; }
+.least-identity strong { overflow-wrap: anywhere; font-size: 1rem; }
+.least-identity small { color: var(--muted, #a8b7c8); font-size: .87rem; }
+.least-row-count { color: var(--muted, #a8b7c8); font-size: .9rem; white-space: nowrap; }
+.least-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; padding: 1rem 1.25rem; }
+.least-empty { padding: 3rem 1.5rem; text-align: center; }
+.least-empty svg { margin: auto; }
+.least-empty h3 { font-size: 1.1rem; margin: .65rem 0 .35rem; }
+.least-empty p, .least-coverage p { color: var(--muted, #a8b7c8); }
+.least-coverage { margin-top: 1rem; padding: 1rem 1.25rem; font-size: .9rem; }
+.least-coverage p { margin: .45rem 0 0; }
+.least-detail { padding: 1.5rem; }
+.least-detail h2 { font-size: 1.25rem; overflow-wrap: anywhere; margin: 0 0 .45rem; }
+.least-detail > p { color: var(--muted, #a8b7c8); overflow-wrap: anywhere; }
+.least-detail > h3 { font-size: 1rem; margin: 1.6rem 0 .7rem; }
+.least-suggestions { display: grid; gap: .75rem; }
+.least-suggestions article { padding: 1rem; border: 1px solid var(--border, #293c52); border-radius: .75rem; }
+.least-source { font-size: .8rem; color: var(--muted, #a8b7c8); }
+.least-suggestions h4 { font-size: 1rem; margin: .45rem 0; overflow-wrap: anywhere; }
+.least-suggestions p { margin: .5rem 0; }
+.least-suggestions dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem .8rem; margin: .8rem 0 0; font-size: .85rem; }
+.least-suggestions dt { color: var(--muted, #a8b7c8); }
+.least-suggestions dd { margin: 0; overflow-wrap: anywhere; }
+.least-detail .least-caution { margin-top: 1.4rem; font-size: .9rem; }
+@media (max-width: 600px) { .least-row-count { white-space: normal; text-align: right; } }

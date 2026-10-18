@@ -1,0 +1,625 @@
+{
+  "aws.pci.vpc.peering_dns_resolution": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "befa2b7f74cd08c76208b4e7c7a77593486a95a418fe4719b563068b72ac24b5",
+    "collector_route": [
+      "peaso/collectors/aws_facts_swc.py:14",
+      "peaso/collectors/aws_facts_swc.py:220"
+    ],
+    "companion_source_sha256": "befa2b7f74cd08c76208b4e7c7a77593486a95a418fe4719b563068b72ac24b5",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail",
+        "measured_fail_other_side_denied"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field"
+      ]
+    },
+    "id": "aws.pci.vpc.peering_dns_resolution",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "pci_4.0_aws",
+        "1.2.8.40"
+      ],
+      [
+        "pci_4.0_aws",
+        "1.3.1.44"
+      ],
+      [
+        "pci_4.0_aws",
+        "1.3.2.44"
+      ],
+      [
+        "pci_4.0_aws",
+        "1.4.1.9"
+      ],
+      [
+        "pci_4.0_aws",
+        "1.4.2.42"
+      ],
+      [
+        "pci_4.0_aws",
+        "1.4.4.9"
+      ]
+    ],
+    "signed_spec": {
+      "category": "hardening",
+      "data_source": "new read-only API call ec2:DescribeVpcPeeringConnections; requester/accepter PeeringOptions.AllowDnsResolutionFromRemoteVpc",
+      "description": "Detects a VPC peering connection whose requester or accepter peering option disables remote DNS resolution; this can create an unapproved network or resource access path.",
+      "id": "aws.pci.vpc.peering_dns_resolution",
+      "predicate": "For each active VPC peering connection, both PeeringOptions.AllowDnsResolutionFromRemoteVpc values are true",
+      "provider": "aws",
+      "remediation_hint": "Enable AllowDnsResolutionFromRemoteVpc on both requester and accepter peering options with modify-vpc-peering-connection-options.",
+      "resource_kind": "vpc_peering_connection",
+      "severity": "medium",
+      "title": "VPC peering resolves remote private DNS"
+    }
+  },
+  "aws_g6_api_stage_valid_client_certificate": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "124db8d822f9c3e1fe01ea1bfb97a080eb1ba987366a42052f4c8470e8de352d",
+    "collector_route": [
+      "peaso/collectors/aws_facts_swc.py:_stage",
+      "peaso/collectors/aws.py:1978"
+    ],
+    "companion_source_sha256": "124db8d822f9c3e1fe01ea1bfb97a080eb1ba987366a42052f4c8470e8de352d",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail",
+        "not_found",
+        "no_client_certificate"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field",
+        "denied",
+        "foreign_certificate"
+      ]
+    },
+    "id": "aws_g6_api_stage_valid_client_certificate",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "aws-compliance.benchmark.nydfs_23",
+        "aws-compliance.control.apigateway_rest_api_stage_use_ssl_certificate"
+      ]
+    ],
+    "signed_spec": {
+      "category": "hardening",
+      "data_source": "apigateway:GetStages stageName,clientCertificateId; apigateway:GetClientCertificate clientCertificateId,expirationDate; scan capture time",
+      "description": "Read-only assessment of rEST API stages reference valid client certificates.",
+      "id": "aws_g6_api_stage_valid_client_certificate",
+      "predicate": "For every in-scope REST stage, FAIL iff clientCertificateId is empty, GetClientCertificate cannot resolve it, or expirationDate is at or before capture time; PASS iff the referenced client certificate exists and is unexpired; UNKNOWN on denied or incomplete detail reads.",
+      "provider": "aws",
+      "remediation_hint": "Associate each REST API stage with a valid, unexpired API Gateway client certificate.",
+      "resource_kind": "rest_api_stage",
+      "severity": "medium",
+      "title": "REST API stages reference valid client certificates"
+    }
+  },
+  "aws_g6_elbv2_only_https_tls_listeners": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "fd4ec56f5bc6040bfb5049b4855233c2143f6dea91d588418a7ea79ef6739bf7",
+    "collector_route": [
+      "peaso/collectors/aws_facts_swc.py:225",
+      "peaso/collectors/aws.py:1978"
+    ],
+    "companion_source_sha256": "fd4ec56f5bc6040bfb5049b4855233c2143f6dea91d588418a7ea79ef6739bf7",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail",
+        "partial_listener_observed_http",
+        "no_certificate"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field",
+        "listener_denied",
+        "listener_partial",
+        "foreign_listener"
+      ]
+    },
+    "id": "aws_g6_elbv2_only_https_tls_listeners",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "aws-compliance.benchmark.nist_csf_v2",
+        "aws-compliance.control.elb_application_network_lb_use_ssl_certificate"
+      ],
+      [
+        "aws-compliance.benchmark.nydfs_23",
+        "aws-compliance.control.elb_application_network_lb_use_ssl_certificate"
+      ]
+    ],
+    "signed_spec": {
+      "category": "hardening",
+      "data_source": "elasticloadbalancingv2:DescribeLoadBalancers Type and DescribeListeners Protocol,Certificates for every application and network load balancer",
+      "description": "Read-only assessment of aLB and NLB listeners use only HTTPS or TLS.",
+      "id": "aws_g6_elbv2_only_https_tls_listeners",
+      "predicate": "For each ALB/NLB listener, FAIL iff Protocol is not HTTPS or TLS, or no certificate ARN is configured; PASS iff every listener uses HTTPS/TLS with a certificate; UNKNOWN on incomplete load-balancer or listener inventory.",
+      "provider": "aws",
+      "remediation_hint": "Replace plaintext listeners with HTTPS/TLS listeners and attach valid certificates.",
+      "resource_kind": "load_balancer_v2",
+      "severity": "high",
+      "title": "ALB and NLB listeners use only HTTPS or TLS"
+    }
+  },
+  "aws_nist_autoscaling_use_multiple_instance_types_in_multiple_az": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "62976369827022d4a7f08dc98e8c1293cc63bb6c6e5e5330a41f28a3560e376e",
+    "collector_route": [
+      "peaso/collectors/aws.py:649"
+    ],
+    "companion_source_sha256": "62976369827022d4a7f08dc98e8c1293cc63bb6c6e5e5330a41f28a3560e376e",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field",
+        "unresolved_requirements"
+      ]
+    },
+    "id": "aws_nist_autoscaling_use_multiple_instance_types_in_multiple_az",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "aws-compliance.benchmark.nist_csf",
+        "aws-compliance.control.autoscaling_use_multiple_instance_types_in_multiple_az"
+      ]
+    ],
+    "signed_spec": {
+      "category": "compliance",
+      "data_source": "autoscaling:DescribeAutoScalingGroups MixedInstancesPolicy and AvailabilityZones",
+      "description": "Multiple Availability Zones are not tested by the instance-type evaluator.",
+      "id": "aws_nist_autoscaling_use_multiple_instance_types_in_multiple_az",
+      "predicate": "For every in-scope Auto Scaling group, PASS only if the effective mixed policy has at least two distinct instance types and AvailabilityZones contains at least two distinct zone names; UNKNOWN on incomplete group data.",
+      "provider": "aws",
+      "remediation_hint": "Configure the resource to satisfy the stated predicate and review missing inventory or policy inputs.",
+      "resource_kind": "autoscaling_group",
+      "severity": "medium",
+      "title": "EC2 auto scaling groups should use multiple instance types in multiple availability zones"
+    }
+  },
+  "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "3b22cabdc060bb8217cbf4b0b08f82ccd73bedefd850f9288a93088c35126bea",
+    "collector_route": [
+      "peaso/collectors/aws.py:1965",
+      "peaso/collectors/aws.py:SPECS.elasticache_cluster"
+    ],
+    "companion_source_sha256": "3b22cabdc060bb8217cbf4b0b08f82ccd73bedefd850f9288a93088c35126bea",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail",
+        "complete_documented_omission"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field",
+        "unproven_omission"
+      ]
+    },
+    "id": "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "aws-compliance.benchmark.nist_800_53_rev_4",
+        "aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days"
+      ],
+      [
+        "aws-compliance.benchmark.nist_800_53_rev_5",
+        "aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days"
+      ],
+      [
+        "aws-compliance.benchmark.nist_csf",
+        "aws-compliance.control.elasticache_redis_cluster_automatic_backup_retention_15_days"
+      ]
+    ],
+    "signed_spec": {
+      "category": "compliance",
+      "data_source": "elasticache:DescribeReplicationGroups SnapshotRetentionLimit and automatic snapshot settings",
+      "description": "An omitted retention limit is treated as passing by the evaluator.",
+      "id": "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days",
+      "predicate": "For each applicable Redis replication group, PASS only if SnapshotRetentionLimit is an integer >=15; FAIL when it is absent, zero or lower; UNKNOWN on incomplete detail.",
+      "provider": "aws",
+      "remediation_hint": "Configure the resource to satisfy the stated predicate and review missing inventory or policy inputs.",
+      "resource_kind": "elasticache_replication_group",
+      "severity": "medium",
+      "title": "ElastiCache Redis cluster automatic backup should be enabled with retention period of 15 days or greater"
+    }
+  },
+  "aws_shield_automatic_application_layer_response": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "b455e05c2504d8b549acef233d839ff4e2e0d5456631064516345750a075ee3c",
+    "collector_route": [
+      "peaso/collectors/aws_facts_swc.py:273"
+    ],
+    "companion_source_sha256": "b455e05c2504d8b549acef233d839ff4e2e0d5456631064516345750a075ee3c",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field"
+      ]
+    },
+    "id": "aws_shield_automatic_application_layer_response",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "aws_account_security_onboarding_aws",
+        "Enable Shield Advanced automatic application layer DDoS mitigation"
+      ]
+    ],
+    "signed_spec": {
+      "category": "hardening",
+      "data_source": "new read-only API calls shield:DescribeProtection; ApplicationLayerAutomaticResponse.Status",
+      "description": "Detects a Shield protection whose Shield protection has ApplicationLayerAutomaticResponse.Status other than ENABLED; this can leave the workload exposed to preventable compromise or service loss.",
+      "id": "aws_shield_automatic_application_layer_response",
+      "predicate": "PASS iff each applicable Shield protection reports ApplicationLayerAutomaticResponse.Status=ENABLED",
+      "provider": "aws",
+      "remediation_hint": "Enable ApplicationLayerAutomaticResponse on each applicable Shield Advanced protection.",
+      "resource_kind": "shield_protection",
+      "severity": "medium",
+      "title": "Enable Shield Advanced automatic application layer DDoS mitigation"
+    }
+  },
+  "aws_shield_protection_health_checks": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "ebe9124bf04ed7b7c4d784fabc4b36d43e7545b389baded606a5835526d0acf1",
+    "collector_route": [
+      "peaso/collectors/aws_facts_swc.py:273"
+    ],
+    "companion_source_sha256": "ebe9124bf04ed7b7c4d784fabc4b36d43e7545b389baded606a5835526d0acf1",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail",
+        "health_check_missing"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field",
+        "denied_health_detail"
+      ]
+    },
+    "id": "aws_shield_protection_health_checks",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "aws_account_security_onboarding_aws",
+        "Configure R53 health checks for all protected resources"
+      ]
+    ],
+    "signed_spec": {
+      "category": "hardening",
+      "data_source": "existing shield_protection collector: shield:ListProtections (HealthCheckIds); new read-only route53:GetHealthCheck",
+      "description": "Detects a Shield protection whose Shield protection lacks a live associated Route 53 health check; this can leave the workload exposed to preventable compromise or service loss.",
+      "id": "aws_shield_protection_health_checks",
+      "predicate": "PASS iff each scoped shield:ListProtections item has nonempty HealthCheckIds and every ID resolves through route53:GetHealthCheck.",
+      "provider": "aws",
+      "remediation_hint": "Associate existing Route 53 health-check IDs with each Shield protection and remove stale IDs.",
+      "resource_kind": "shield_protection",
+      "severity": "medium",
+      "title": "Configure R53 health checks for all protected resources"
+    }
+  },
+  "aws_vpc_uses_amazonprovided_dns": {
+    "all_control_edges_match": true,
+    "bundle": "aws",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "f11a85221099e8ec791b786a5162e54f41433704431c2716f1007d5526c3d410",
+    "collector_route": [
+      "peaso/collectors/aws.py:SPECS.vpc",
+      "peaso/collectors/aws_facts_swc.py:12"
+    ],
+    "companion_source_sha256": "f11a85221099e8ec791b786a5162e54f41433704431c2716f1007d5526c3d410",
+    "cost": "Scope/kind keyed MemoIndex rows/member maps; DHCP/RDS/Redis repeated dependency joins have counted-iteration fixtures. Per-resource nested lists are local to the subject.",
+    "decision": "admit",
+    "fixture_evidence": {
+      "FAIL": [
+        "fail",
+        "partial_measured_fail"
+      ],
+      "PASS": [
+        "pass"
+      ],
+      "UNKNOWN": [
+        "parent_denied",
+        "parent_partial",
+        "parent_not_collected",
+        "parent_malformed",
+        "missing_inventory",
+        "foreign_scope",
+        "foreign_provider",
+        "malformed_item",
+        "projection_mismatch",
+        "duplicate_resource",
+        "malformed_field",
+        "missing_field",
+        "denied_field",
+        "missing_dhcp_join"
+      ]
+    },
+    "id": "aws_vpc_uses_amazonprovided_dns",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "aws",
+    "reason": "Exact signed predicate uses existing read-only producer fields; final owner module freeze verified, final22 targeted producer/category/EFS tests plus prior205 batch receipt preserved.",
+    "runtime_category": "signed category when supported; otherwise explicit approved compatibility hardening, with signed category and exact controls retained separately",
+    "scope_guard": "AWS account/region/partition, native ARN/owner where available, exact envelope/wrapper agreement, duplicate identity rejection; observed FAIL retained on unrelated partial inventory while PASS requires parent completeness.",
+    "signed_control_edges": [
+      [
+        "aws_account_security_onboarding_aws",
+        "Use strictly AWS VPC DNS resolver"
+      ]
+    ],
+    "signed_spec": {
+      "category": "hardening",
+      "data_source": "ec2:DescribeVpcs Vpcs[].VpcId, DhcpOptionsId; ec2:DescribeDhcpOptions DhcpOptions[].DhcpConfigurations[Key=domain-name-servers].Values[].Value",
+      "description": "Detects a VPC whose DHCP options contain DNS servers other than AmazonProvidedDNS; this can create an unapproved network or resource access path.",
+      "id": "aws_vpc_uses_amazonprovided_dns",
+      "predicate": "For every VpcId, PASS iff the associated DhcpOptionsId resolves to domain-name-servers Values containing AmazonProvidedDNS and no other DNS server value.",
+      "provider": "aws",
+      "remediation_hint": "Set the VPC DHCP option domain-name-servers to AmazonProvidedDNS and remove other DNS server values.",
+      "resource_kind": "vpc",
+      "severity": "medium",
+      "title": "Use strictly AWS VPC DNS resolver"
+    }
+  },
+  "azure.gap.web_pub_sub_private_link_used": {
+    "all_control_edges_match": true,
+    "bundle": "azure",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "82a248e2b678bf88d4b5a78348a6b0d170103fc785e0d5117c835b0e797ef292",
+    "collector_route": "Web PubSub azure.py:151/237 _embed; Firewall azure.py:1294 -> azure_swc.collect_facts:539 -> _firewall_groups:295; actual helper fixtures.",
+    "companion_source_sha256": "82a248e2b678bf88d4b5a78348a6b0d170103fc785e0d5117c835b0e797ef292",
+    "cost": "Scope/kind/completeness keyed MemoIndex validated rows/member maps; counted20-subject tests prevent repeated full traversals.",
+    "decision": "admit",
+    "fixture_evidence": "Frozen67 corrective XML/receipt includes decisive PASS/FAIL, denied/partial/missing/malformed/foreign/duplicate/contradictory inventories, inheritance cycles and actual helper projections.",
+    "id": "azure.gap.web_pub_sub_private_link_used",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "azure",
+    "reason": "Coordinator independently reviewed Azure scope memoization and real collector helper proof; final67 receipt.",
+    "signed_control_edges": [
+      [
+        "azure-compliance.benchmark.nist_sp_800_53_rev_5",
+        "azure-compliance.control.web_pub_sub_private_link_used"
+      ]
+    ],
+    "signed_spec": {
+      "category": "network",
+      "data_source": "azure.py collects web_pubsub parent at 2023-02-01; use that version or add paged Microsoft.SignalRService/webPubSub/privateEndpointConnections LIST per resource and read properties.privateLinkServiceConnectionState.status enum Approved/Rejected/Pending/Disconnected.",
+      "description": "An approved private endpoint connection provides private access to Web PubSub.",
+      "id": "azure.gap.web_pub_sub_private_link_used",
+      "predicate": "For each in-scope Web PubSub resource, PASS if a complete paged private-endpoint-connection list contains an Approved connection with a nonempty properties.privateEndpoint.id. FAIL if a complete list has none; UNKNOWN for incomplete inventory/list or unrecognized status. Complete empty resource inventory is NOT_APPLICABLE. An approved private endpoint does not prove public ingress is disabled.",
+      "provider": "azure",
+      "remediation_hint": "Web PubSub > Networking > Private endpoint connections: approve a private endpoint; disable public network access separately if policy requires it.",
+      "resource_kind": "web_pubsub",
+      "severity": "medium",
+      "title": "Web PubSub has an approved private endpoint"
+    }
+  },
+  "azure_firewall_policy_1_2_8_23_59ad733": {
+    "all_control_edges_match": true,
+    "bundle": "azure",
+    "canonical_sha_matches": true,
+    "canonical_signed_spec_sha256": "2d5acd04c5e345e9622fcc966fc4c16c8924c808ea3b816495dfbf9d3436e17c",
+    "collector_route": "Web PubSub azure.py:151/237 _embed; Firewall azure.py:1294 -> azure_swc.collect_facts:539 -> _firewall_groups:295; actual helper fixtures.",
+    "companion_source_sha256": "2d5acd04c5e345e9622fcc966fc4c16c8924c808ea3b816495dfbf9d3436e17c",
+    "cost": "Scope/kind/completeness keyed MemoIndex validated rows/member maps; counted20-subject tests prevent repeated full traversals.",
+    "decision": "admit",
+    "fixture_evidence": "Frozen67 corrective XML/receipt includes decisive PASS/FAIL, denied/partial/missing/malformed/foreign/duplicate/contradictory inventories, inheritance cycles and actual helper projections.",
+    "id": "azure_firewall_policy_1_2_8_23_59ad733",
+    "ordinary_callback_cloud_calls": 0,
+    "provider": "azure",
+    "reason": "Coordinator independently reviewed Azure scope memoization and real collector helper proof; final67 receipt.",
+    "signed_control_edges": [
+      [
+        "pci_4.0_azure",
+        "1.2.8.23"
+      ],
+      [
+        "pci_4.0_azure",
+        "1.3.1.26"
+      ],
+      [
+        "pci_4.0_azure",
+        "1.3.2.26"
+      ],
+      [
+        "pci_4.0_azure",
+        "1.4.2.24"
+      ],
+      [
+        "pci_4.0_azure",
+        "1.4.3.3"
+      ],
+      [
+        "pci_4.0_azure",
+        "1.5.1.23"
+      ],
+      [
+        "pci_4.0_azure",
+        "A1.1.3.23"
+      ]
+    ],
+    "signed_spec": {
+      "category": "network",
+      "data_source": "New paged ARM GET /subscriptions/{sub}/providers/Microsoft.Network/firewallPolicies?api-version=2023-09-01 and GET {policyId}/ruleCollectionGroups?api-version=2023-09-01. Read properties.ruleCollections[].ruleCollectionType enum FirewallPolicyFilterRuleCollection/FirewallPolicyNatRuleCollection and rules[]; follow properties.basePolicy.id recursively and list its groups too. Follow every nextLink. Collector has no firewall_policy.",
+      "description": "Checks rule collection presence in Azure Firewall Policies.",
+      "id": "azure_firewall_policy_1_2_8_23_59ad733",
+      "predicate": "For each Firewall Policy, resolve its complete direct ruleCollectionGroups and any effective basePolicy ancestry. PASS only if a group contains a FirewallPolicyFilterRuleCollection or FirewallPolicyNatRuleCollection with at least one correctly typed rule that applies to the policy. FAIL when complete direct/inherited inventories contain no such rule collection. UNKNOWN if group paging, inheritance, type or rule array is unresolved.",
+      "provider": "azure",
+      "remediation_hint": "Add a filter or NAT rule collection containing an applicable rule to the policy or its effective base policy.",
+      "resource_kind": "firewall_policy",
+      "severity": "medium",
+      "title": "Azure Firewall Policies contain configured rules"
+    }
+  }
+}

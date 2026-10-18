@@ -1,0 +1,54 @@
+{
+  "azure.cis.auto_provision_defender_containers_components": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure_pricing",
+      "kind": "security_pricing",
+      "path": "Containers properties.pricingTier,extensions[].name/isEnabled/operationStatus.code and approved required_extensions",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "356af7538c0a0a973ed96badc73a0f5388cff813596eb56276d9c323a306183c",
+    "references": [
+      {
+        "title": "Microsoft Defender for Cloud Pricings GET 2024-01-01",
+        "url": "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/get?view=rest-defenderforcloud-2024-01-01"
+      },
+      {
+        "title": "Microsoft Defender for Cloud Pricings LIST 2024-01-01",
+        "url": "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Confirm the exact subscription and the nonempty, current required Containers extension set with the owner; inspect pricing extension statuses and resource-level overrides.",
+      "If the observed plan or a required extension is disabled or absent, review billing, cluster applicability and deployment impact before changing the owned Defender configuration or IaC.",
+      "Verify provider operation status and actual cluster coverage separately after rollout; restore the previous approved configuration if coverage or cost is unacceptable."
+    ],
+    "summary": "Align the Containers plan extensions with the subscription owner-approved required set."
+  },
+  "azure.cis.file_integrity_monitoring_component_status": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure_pricing",
+      "kind": "security_pricing",
+      "path": "VirtualMachines properties.pricingTier,subPlan,extensions[].name/isEnabled/operationStatus.code",
+      "target": "scope"
+    },
+    "proposed_spec_sha256": "510a4f5b7e44ced1c31eb29a0faa267ea6b669387cee23d480ec6a21c8d9b090",
+    "references": [
+      {
+        "title": "Microsoft Defender for Cloud Pricings GET 2024-01-01",
+        "url": "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/get?view=rest-defenderforcloud-2024-01-01"
+      },
+      {
+        "title": "Microsoft Defender for Cloud Pricings LIST 2024-01-01",
+        "url": "https://learn.microsoft.com/en-us/rest/api/defenderforcloud/pricings/list?view=rest-defenderforcloud-2024-01-01"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the exact subscription VirtualMachines pricing response, P2 subplan, FileIntegrityMonitoring extension and any operation status with the Defender and VM owners.",
+      "If the plan or extension is disabled, review cost, eligible machines, existing resource overrides and rollout impact; update the approved subscription Defender configuration or IaC only after owner approval.",
+      "Confirm activation and expected host telemetry on in-scope machines; if the change disrupts monitoring or billing expectations, restore the previous approved configuration."
+    ],
+    "summary": "Review the P2 FileIntegrityMonitoring pricing declaration and verify host telemetry separately."
+  }
+}

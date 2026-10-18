@@ -1,0 +1,506 @@
+{
+  "azure-compliance.control.ad_admin_portals_require_mfa": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Includes MFA control but ignores grant-controls operator and alternative controls. Enabled All-users admin-portals policy with OR[mfa,compliantDevice] passes despite MFA not being required; exclusions also remain unevaluated.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 655,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    ),\n    conditional_access_policy as (\n      select\n        tenant_id,\n        count(*) as conditional_access_policy_count\n      from\n        azuread_conditional_access_policy\n      where\n        users -> 'includeUsers' ? 'All'\n        and applications -> 'includeApplications' ? 'MicrosoftAdminPortals'\n        and built_in_controls @> '[1]'::jsonb\n        and state = 'enabled'\n      group\n        by tenant_id\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when conditional_access_policy_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when conditional_access_policy_count > 0 then t.display_name || ' has conditional access policy that requires MFA for All users (or admin roles) when accessing admin portals.'\n        else t.display_name || ' does not have a conditional access policy that requires MFA for All users (or admin roles) when accessing admin portals.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t\n      left join conditional_access_policy as p on p.tenant_id = t.tenant_id;",
+      "query_sha256": "8b44529158b3ab4ad86c45c4738c047e67ae2ac5dcf7c6a13491daad783860f4",
+      "query_id": "ad_admin_portals_require_mfa",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "state": "enabled",
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        },
+        "grantControls": {
+          "operator": "OR",
+          "builtInControls": [
+            "mfa",
+            "compliantDevice"
+          ]
+        },
+        "pinned_status": "ok",
+        "mfa_required": false
+      },
+      "pinned_sql_sha256": "8c60032b041979468fcfeffd25dd5bae511112cb93b794607954eb83465414d5",
+      "upstream_evaluator_sha256": "8b44529158b3ab4ad86c45c4738c047e67ae2ac5dcf7c6a13491daad783860f4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.ad_mfa_service_mgmt_api": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Includes MFA control but ignores grant-controls operator and alternative controls. Enabled All-users management-app policy with OR[mfa,compliantDevice] passes despite MFA not being required; exclusions also remain unevaluated.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 698,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    ),\n    conditional_access_policy as (\n      select\n        tenant_id,\n        count(*) as conditional_access_policy_count\n      from\n        azuread_conditional_access_policy\n      where\n        users -> 'includeUsers' ? 'All'\n        and applications -> 'includeApplications' ? '797f4846-ba00-4fd7-ba43-dac1f8f63013'\n        and built_in_controls @> '[1]'::jsonb\n        and state = 'enabled'\n      group\n        by tenant_id\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when conditional_access_policy_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when conditional_access_policy_count > 0 then t.display_name || ' has conditional access policy which requires MFA for the Service Management API.'\n        else t.display_name || ' does not have a conditional access policy which requires MFA for the Service Management API.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t\n      left join conditional_access_policy as p on p.tenant_id = t.tenant_id;",
+      "query_sha256": "9454cb584c5dd9f49fd6464c21d8f711f2e23e6aae4b79da3457fe444ea9f970",
+      "query_id": "ad_mfa_service_mgmt_api",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "state": "enabled",
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        },
+        "grantControls": {
+          "operator": "OR",
+          "builtInControls": [
+            "mfa",
+            "compliantDevice"
+          ]
+        },
+        "pinned_status": "ok",
+        "mfa_required": false
+      },
+      "pinned_sql_sha256": "2ac23994bbbc15a0cbd0971249308a147f8f63146cd18cb8b994f11c4707cbf1",
+      "upstream_evaluator_sha256": "9454cb584c5dd9f49fd6464c21d8f711f2e23e6aae4b79da3457fe444ea9f970",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.ad_require_mfa_for_device_join": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Cross joins every accessible ARM tenant with one Graph device registration policy, without tenant join. A known required policy from tenant A is falsely attributed as required to tenant B. Azure tenant adapter uses ARM Tenants.List; native beta policy is tenant-specific.",
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "https://learn.microsoft.com/en-us/graph/api/resources/deviceregistrationpolicy?view=graph-rest-beta"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 499,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when multi_factor_auth_configuration = 'required' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when multi_factor_auth_configuration = 'required' then t.display_name || ' MFA is required for device registration.'\n        else\n          t.display_name || ' MFA is not required for device registration.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_device_registration_policy;",
+      "query_sha256": "dfe368277423d4950fd10f6659d5d2a2bc6353ce1b42a87baefd2c6306b1e01a",
+      "query_id": "ad_require_mfa_for_device_join",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "tenants": [
+          "A",
+          "B"
+        ],
+        "policy_tenant": "A",
+        "policy_value": "required",
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "unknown"
+        ]
+      },
+      "pinned_sql_sha256": "fa2aa33e31f502f8a5169134f9138e6d328d49f1831a5870e0679dfb35098fd8",
+      "upstream_evaluator_sha256": "dfe368277423d4950fd10f6659d5d2a2bc6353ce1b42a87baefd2c6306b1e01a",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.appservice_function_app_restrict_public_acces": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Only flags an explicit Any/Allow restriction. Complete empty IP restrictions with documented default Allow and Enabled public network produces OK although requests remain publicly allowed. Selector ignores actual default action and ordered rule enforcement.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/azure/app-service/app-service-ip-restrictions"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/appservice.pp",
+      "query_line": 1849,
+      "pinned_sql": "with public_function_app as (\n      select\n        id\n      from\n        azure_app_service_function_app,\n        jsonb_array_elements(configuration -> 'properties' -> 'ipSecurityRestrictions') as r\n      where\n        r ->> 'ipAddress' = 'Any'\n        and r ->> 'action' = 'Allow'\n    )\n    select\n      fa.id as resource,\n      case\n        when p.id is null then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.id is null then name || ' not publicly accessible.'\n        else name || ' publicly accessible.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"fa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_app_service_function_app fa\n      left join public_function_app as p on p.id = fa.id\n      left join azure_subscription as sub on sub.subscription_id = fa.subscription_id;",
+      "query_sha256": "11d90822541e96526504eda23bba5316fc096ba65085c8e5c4d8ddd6917fcb12",
+      "query_id": "appservice_function_app_restrict_public_acces",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "publicNetworkAccess": "Enabled",
+        "ipSecurityRestrictions": [],
+        "ipSecurityRestrictionsDefaultAction": "Allow",
+        "pinned_status": "ok",
+        "required_status": "alarm"
+      },
+      "pinned_sql_sha256": "0f48170dfaa9c22839252c468e3fcb1d8f70c8add323a71941b87aa66aa32532",
+      "upstream_evaluator_sha256": "11d90822541e96526504eda23bba5316fc096ba65085c8e5c4d8ddd6917fcb12",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.cis_v210_1_25": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Cross joins all accessible ARM tenants to Graph Global Administrator directory role without tenant join. Role member count from tenant A is assigned to tenant B; literal 2-4 threshold is not a max-5 equivalence. Empty role inventory additionally emits no required tenant check.",
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "https://learn.microsoft.com/en-us/graph/api/directoryrole-list-members?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 857,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        title,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when jsonb_array_length(member_ids) >= 2 and jsonb_array_length(member_ids) < 5 then 'ok'\n        else 'alarm'\n      end as status,\n      t.title || ' has ' ||  (jsonb_array_length(member_ids)) || ' users with global administrator assignment.'  as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_role\n    where\n      display_name = 'Global Administrator'",
+      "query_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "query_id": "iam_global_administrator_max_5",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "tenants": [
+          "A",
+          "B"
+        ],
+        "role_tenant": "A",
+        "members": 3,
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "unknown"
+        ]
+      },
+      "pinned_sql_sha256": "898cfe2d5a12fd4e75a09ce3b78f5d97476cec74fff0a899c2e566882e8fe573",
+      "upstream_evaluator_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.cis_v300_2_26": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Cross joins all accessible ARM tenants to Graph Global Administrator directory role without tenant join. Role member count from tenant A is assigned to tenant B; literal 2-4 threshold is not a max-5 equivalence. Empty role inventory additionally emits no required tenant check.",
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "https://learn.microsoft.com/en-us/graph/api/directoryrole-list-members?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 857,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        title,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when jsonb_array_length(member_ids) >= 2 and jsonb_array_length(member_ids) < 5 then 'ok'\n        else 'alarm'\n      end as status,\n      t.title || ' has ' ||  (jsonb_array_length(member_ids)) || ' users with global administrator assignment.'  as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_role\n    where\n      display_name = 'Global Administrator'",
+      "query_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "query_id": "iam_global_administrator_max_5",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "tenants": [
+          "A",
+          "B"
+        ],
+        "role_tenant": "A",
+        "members": 3,
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "unknown"
+        ]
+      },
+      "pinned_sql_sha256": "898cfe2d5a12fd4e75a09ce3b78f5d97476cec74fff0a899c2e566882e8fe573",
+      "upstream_evaluator_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.cis_v400_6_26": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Cross joins all accessible ARM tenants to Graph Global Administrator directory role without tenant join. Role member count from tenant A is assigned to tenant B; literal 2-4 threshold is not a max-5 equivalence. Empty role inventory additionally emits no required tenant check.",
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "https://learn.microsoft.com/en-us/graph/api/directoryrole-list-members?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 857,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        title,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when jsonb_array_length(member_ids) >= 2 and jsonb_array_length(member_ids) < 5 then 'ok'\n        else 'alarm'\n      end as status,\n      t.title || ' has ' ||  (jsonb_array_length(member_ids)) || ' users with global administrator assignment.'  as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_role\n    where\n      display_name = 'Global Administrator'",
+      "query_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "query_id": "iam_global_administrator_max_5",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "tenants": [
+          "A",
+          "B"
+        ],
+        "role_tenant": "A",
+        "members": 3,
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "unknown"
+        ]
+      },
+      "pinned_sql_sha256": "898cfe2d5a12fd4e75a09ce3b78f5d97476cec74fff0a899c2e566882e8fe573",
+      "upstream_evaluator_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.cis_v500_5_22": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Cross joins every accessible ARM tenant with one Graph device registration policy, without tenant join. A known required policy from tenant A is falsely attributed as required to tenant B. Azure tenant adapter uses ARM Tenants.List; native beta policy is tenant-specific.",
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "https://learn.microsoft.com/en-us/graph/api/resources/deviceregistrationpolicy?view=graph-rest-beta"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 499,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      id as resource,\n      case\n        when multi_factor_auth_configuration = 'required' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when multi_factor_auth_configuration = 'required' then t.display_name || ' MFA is required for device registration.'\n        else\n          t.display_name || ' MFA is not required for device registration.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_device_registration_policy;",
+      "query_sha256": "dfe368277423d4950fd10f6659d5d2a2bc6353ce1b42a87baefd2c6306b1e01a",
+      "query_id": "ad_require_mfa_for_device_join",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "tenants": [
+          "A",
+          "B"
+        ],
+        "policy_tenant": "A",
+        "policy_value": "required",
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "unknown"
+        ]
+      },
+      "pinned_sql_sha256": "fa2aa33e31f502f8a5169134f9138e6d328d49f1831a5870e0679dfb35098fd8",
+      "upstream_evaluator_sha256": "dfe368277423d4950fd10f6659d5d2a2bc6353ce1b42a87baefd2c6306b1e01a",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.cis_v500_5_26": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Cross joins all accessible ARM tenants to Graph Global Administrator directory role without tenant join. Role member count from tenant A is assigned to tenant B; literal 2-4 threshold is not a max-5 equivalence. Empty role inventory additionally emits no required tenant check.",
+    "official_docs": [
+      "https://raw.githubusercontent.com/turbot/steampipe-plugin-azure/main/azure/table_azure_tenant.go",
+      "https://learn.microsoft.com/en-us/graph/api/directoryrole-list-members?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 857,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        title,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when jsonb_array_length(member_ids) >= 2 and jsonb_array_length(member_ids) < 5 then 'ok'\n        else 'alarm'\n      end as status,\n      t.title || ' has ' ||  (jsonb_array_length(member_ids)) || ' users with global administrator assignment.'  as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_directory_role\n    where\n      display_name = 'Global Administrator'",
+      "query_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "query_id": "iam_global_administrator_max_5",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "tenants": [
+          "A",
+          "B"
+        ],
+        "role_tenant": "A",
+        "members": 3,
+        "pinned_statuses": [
+          "ok",
+          "ok"
+        ],
+        "required_statuses": [
+          "ok",
+          "unknown"
+        ]
+      },
+      "pinned_sql_sha256": "898cfe2d5a12fd4e75a09ce3b78f5d97476cec74fff0a899c2e566882e8fe573",
+      "upstream_evaluator_sha256": "83a4dd402190c83667d940663f4b0e7f5b2c57d58efe1accfa09b749c195cf86",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.cis_v500_5_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Includes MFA control but ignores grant-controls operator and alternative controls. Enabled All-users management-app policy with OR[mfa,compliantDevice] passes despite MFA not being required; exclusions also remain unevaluated.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 698,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    ),\n    conditional_access_policy as (\n      select\n        tenant_id,\n        count(*) as conditional_access_policy_count\n      from\n        azuread_conditional_access_policy\n      where\n        users -> 'includeUsers' ? 'All'\n        and applications -> 'includeApplications' ? '797f4846-ba00-4fd7-ba43-dac1f8f63013'\n        and built_in_controls @> '[1]'::jsonb\n        and state = 'enabled'\n      group\n        by tenant_id\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when conditional_access_policy_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when conditional_access_policy_count > 0 then t.display_name || ' has conditional access policy which requires MFA for the Service Management API.'\n        else t.display_name || ' does not have a conditional access policy which requires MFA for the Service Management API.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t\n      left join conditional_access_policy as p on p.tenant_id = t.tenant_id;",
+      "query_sha256": "9454cb584c5dd9f49fd6464c21d8f711f2e23e6aae4b79da3457fe444ea9f970",
+      "query_id": "ad_mfa_service_mgmt_api",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "state": "enabled",
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        },
+        "grantControls": {
+          "operator": "OR",
+          "builtInControls": [
+            "mfa",
+            "compliantDevice"
+          ]
+        },
+        "pinned_status": "ok",
+        "mfa_required": false
+      },
+      "pinned_sql_sha256": "2ac23994bbbc15a0cbd0971249308a147f8f63146cd18cb8b994f11c4707cbf1",
+      "upstream_evaluator_sha256": "9454cb584c5dd9f49fd6464c21d8f711f2e23e6aae4b79da3457fe444ea9f970",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "azure-compliance.control.cis_v500_5_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Includes MFA control but ignores grant-controls operator and alternative controls. Enabled All-users admin-portals policy with OR[mfa,compliantDevice] passes despite MFA not being required; exclusions also remain unevaluated.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "source_review": {
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 655,
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        display_name,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    ),\n    conditional_access_policy as (\n      select\n        tenant_id,\n        count(*) as conditional_access_policy_count\n      from\n        azuread_conditional_access_policy\n      where\n        users -> 'includeUsers' ? 'All'\n        and applications -> 'includeApplications' ? 'MicrosoftAdminPortals'\n        and built_in_controls @> '[1]'::jsonb\n        and state = 'enabled'\n      group\n        by tenant_id\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when conditional_access_policy_count > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when conditional_access_policy_count > 0 then t.display_name || ' has conditional access policy that requires MFA for All users (or admin roles) when accessing admin portals.'\n        else t.display_name || ' does not have a conditional access policy that requires MFA for All users (or admin roles) when accessing admin portals.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t\n      left join conditional_access_policy as p on p.tenant_id = t.tenant_id;",
+      "query_sha256": "8b44529158b3ab4ad86c45c4738c047e67ae2ac5dcf7c6a13491daad783860f4",
+      "query_id": "ad_admin_portals_require_mfa",
+      "arguments": [],
+      "source_revision": "464a8efe3c4bb5eb208e00e7369bd0b4577ac834",
+      "counterexample": {
+        "state": "enabled",
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        },
+        "grantControls": {
+          "operator": "OR",
+          "builtInControls": [
+            "mfa",
+            "compliantDevice"
+          ]
+        },
+        "pinned_status": "ok",
+        "mfa_required": false
+      },
+      "pinned_sql_sha256": "8c60032b041979468fcfeffd25dd5bae511112cb93b794607954eb83465414d5",
+      "upstream_evaluator_sha256": "8b44529158b3ab4ad86c45c4738c047e67ae2ac5dcf7c6a13491daad783860f4",
+      "hash_representation": "Canonical complete upstream query/control body, including parameters; extracted SQL proof has its own pinned_sql_sha256."
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "prowler.azure.aks_clusters_public_access_disabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Source changes FAIL to PASS when ANY pool lacks public IP and never resets it for a public pool. A private control-plane FQDN with one private and one public agent pool is wrongly certified as public access disabled; all-pool private-node predicate is separate.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/aks/managed-clusters/get?view=rest-aks-2026-07-01"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/aks/aks_clusters_public_access_disabled/aks_clusters_public_access_disabled.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.aks.aks_client import aks_client\n\n\nclass aks_clusters_public_access_disabled(Check):\n    def execute(self) -> Check_Report_Azure:\n        findings = []\n\n        for subscription_id, clusters in aks_client.clusters.items():\n            subscription_name = aks_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for cluster in clusters.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=cluster)\n                report.subscription = subscription_id\n                report.status = \"FAIL\"\n                report.status_extended = f\"Public access to nodes is enabled for cluster '{cluster.name}' in subscription '{subscription_name} ({subscription_id})'\"\n\n                if cluster.private_fqdn:\n                    for agent_pool in cluster.agent_pool_profiles:\n                        if not getattr(agent_pool, \"enable_node_public_ip\", False):\n                            report.status = \"PASS\"\n                            report.status_extended = f\"Public access to nodes is disabled for cluster '{cluster.name}' in subscription '{subscription_name} ({subscription_id})'\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "4ed86395e907764b4d6d34301354dff9f7ce7da4ca11c77f21c86fbf00520196",
+      "query_id": "aks_clusters_public_access_disabled",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample": {
+        "private_fqdn": "cluster.private.invalid",
+        "public_node_ip_flags": [
+          false,
+          true
+        ],
+        "pinned_status": "PASS",
+        "required_status": "FAIL"
+      }
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "prowler.azure.app_function_identity_is_configured": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Checks truthiness of SDK identity object; a valid ARM managed identity object with type None is truthy and passes although all identities are removed. Same substantive None-identity bug as independently reviewed app variant, not a scope merge.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_identity_is_configured/app_function_identity_is_configured.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.services.app.app_client import app_client\n\n\nclass app_function_identity_is_configured(Check):\n    def execute(self):\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                report = Check_Report_Azure(metadata=self.metadata(), resource=function)\n                report.subscription = subscription_id\n                report.status = \"FAIL\"\n                report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) does not have a managed identity enabled.\"\n\n                if function.identity:\n                    identity_type = (\n                        function.identity.type\n                        if getattr(function.identity, \"type\", \"\")\n                        else \"managed\"\n                    )\n                    report.status = \"PASS\"\n                    report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) has a {identity_type} identity enabled.\"\n\n                findings.append(report)\n\n        return findings\n",
+      "source_sha256": "0b51b0680bac0aec40a82766c236775d1f2d4692c45cb7272174cd87b234a0f8",
+      "query_id": "app_function_identity_is_configured",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample": {
+        "identity": {
+          "type": "None"
+        },
+        "pinned_status": "PASS",
+        "required_status": "FAIL"
+      }
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  },
+  "prowler.azure.app_function_identity_without_admin_privileges": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Only compares system identity principal_id to role assignments. UserAssigned-only identity has no system principal, so an explicitly admin-assigned user identity passes without its authoritative principal association being inspected; false claim covers all managed identities.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-by-resource-group?view=rest-appservice-2025-05-01",
+      "https://learn.microsoft.com/en-us/rest/api/authorization/role-assignments/list-for-subscription?view=rest-authorization-2022-04-01"
+    ],
+    "source_review": {
+      "source_path": "prowler/providers/azure/services/app/app_function_identity_without_admin_privileges/app_function_identity_without_admin_privileges.py",
+      "pinned_python": "from prowler.lib.check.models import Check, Check_Report_Azure\nfrom prowler.providers.azure.config import (\n    CONTRIBUTOR_ROLE_ID,\n    OWNER_ROLE_ID,\n    ROLE_BASED_ACCESS_CONTROL_ADMINISTRATOR_ROLE_ID,\n    USER_ACCESS_ADMINISTRATOR_ROLE_ID,\n)\nfrom prowler.providers.azure.services.app.app_client import app_client\nfrom prowler.providers.azure.services.iam.iam_client import iam_client\n\n\nclass app_function_identity_without_admin_privileges(Check):\n    def execute(self):\n        findings = []\n\n        for (\n            subscription_id,\n            functions,\n        ) in app_client.functions.items():\n            subscription_name = app_client.subscriptions.get(\n                subscription_id, subscription_id\n            )\n            for function in functions.values():\n                if function.identity:\n                    report = Check_Report_Azure(\n                        metadata=self.metadata(), resource=function\n                    )\n                    report.subscription = subscription_id\n                    report.status = \"PASS\"\n                    report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) has a managed identity enabled but without admin privileges.\"\n\n                    admin_roles_assigned = []\n\n                    for role_assignment in iam_client.role_assignments[\n                        subscription_id\n                    ].values():\n                        if (\n                            role_assignment.agent_id == function.identity.principal_id\n                            and role_assignment.role_id\n                            in [\n                                CONTRIBUTOR_ROLE_ID,\n                                OWNER_ROLE_ID,\n                                ROLE_BASED_ACCESS_CONTROL_ADMINISTRATOR_ROLE_ID,\n                                USER_ACCESS_ADMINISTRATOR_ROLE_ID,\n                            ]\n                        ):\n                            admin_roles_assigned.append(\n                                getattr(\n                                    iam_client.roles[subscription_id].get(\n                                        f\"/subscriptions/{subscription_id}/providers/Microsoft.Authorization/roleDefinitions/{role_assignment.role_id}\"\n                                    ),\n                                    \"name\",\n                                    \"\",\n                                )\n                            )\n\n                    if admin_roles_assigned:\n                        report.status = \"FAIL\"\n                        report.status_extended = f\"Function {function.name} from subscription {subscription_name} ({subscription_id}) has a managed identity enabled and it is configure with admin privileges using {'roles: ' + ', '.join(admin_roles_assigned) if len(admin_roles_assigned) > 1 else 'role ' + admin_roles_assigned[0]}.\"\n\n                    findings.append(report)\n\n        return findings\n",
+      "source_sha256": "41c3252a160638f8d5a04e29604221b4bafd1d6b8ebcf66cb8067fa55cef259a",
+      "query_id": "app_function_identity_without_admin_privileges",
+      "arguments": [],
+      "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "counterexample": {
+        "identity": {
+          "type": "UserAssigned",
+          "principalId": null,
+          "userAssignedIdentities": {
+            "/identity": {
+              "principalId": "user-principal"
+            }
+          }
+        },
+        "owner_assignment_principal": "user-principal",
+        "pinned_status": "PASS",
+        "required_status": "FAIL"
+      }
+    },
+    "review_notes": "Substantive known configuration/scope counterexample; unavailable collection is not the rejection reason. Corrected/scoped/native counterparts are not silently substituted as exact source equivalence."
+  }
+}

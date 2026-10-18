@@ -1,0 +1,698 @@
+{
+  "azure-compliance.control.cis_v130_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_blob_classic_logging"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_service_classic_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1139,
+      "query_sha256": "117d2fd9e54471f4b0441ec5bcf9e57f03318c9dde803b68129c26c4000121a5",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 156,
+      "arguments": [],
+      "pinned_sql": "select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then 'skip'\n        when not (sa.blob_service_logging ->> 'Read') :: boolean\n        or not (sa.blob_service_logging ->> 'Write') :: boolean\n        or not (sa.blob_service_logging ->> 'Delete') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then sa.name || ' is premium ' || kind || ' storage account.'\n        when not (sa.blob_service_logging ->> 'Read') :: boolean\n        or not (sa.blob_service_logging ->> 'Write') :: boolean\n        or not (sa.blob_service_logging ->> 'Delete') :: boolean then name || ' blob service logging not enabled for ' ||\n          concat_ws(', ',\n            case when not (sa.blob_service_logging ->> 'Write') :: boolean then 'write' end,\n            case when not (sa.blob_service_logging ->> 'Read') :: boolean then 'read' end,\n            case when not (sa.blob_service_logging ->> 'Delete') :: boolean then 'delete' end\n          ) || ' requests.'\n        else name || ' blob service logging enabled for read, write, delete requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v130_3_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_table_classic_logging"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_table_service_classic_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1171,
+      "query_sha256": "4ad096d37f96dcb0cdbe48873aa1061bd7a9eda225b28dfffe2fdb7f390e6149",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 170,
+      "arguments": [],
+      "pinned_sql": "select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when table_logging_write and table_logging_read and table_logging_delete then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when table_logging_write and table_logging_read and table_logging_delete\n          then sa.name || ' table service logging enabled for read, write, delete requests.'\n        else sa.name || ' table service logging not enabled for: ' ||\n          concat_ws(', ',\n            case when not table_logging_write then 'write' end,\n            case when not table_logging_read then 'read' end,\n            case when not table_logging_delete then 'delete' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as sa\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v130_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_queue_classic_logging"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_queue_service_classic_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1200,
+      "query_sha256": "8aabfbd72f1bfe29cb18a7b1762ed8f27f8d145f33f9499f549646a6485691ea",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 58,
+      "arguments": [],
+      "pinned_sql": "select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when queue_logging_read and queue_logging_write and queue_logging_delete then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when queue_logging_read and queue_logging_write and queue_logging_delete\n          then sa.name || ' queue service logging enabled for read, write, delete requests.'\n        else sa.name || ' queue service logging not enabled for: ' ||\n          concat_ws(', ',\n            case when not queue_logging_write then 'write' end,\n            case when not queue_logging_read then 'read' end,\n            case when not queue_logging_delete then 'delete' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n     left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v130_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_containers_public_access_disabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_containers_public_access_disabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 660,
+      "query_sha256": "0182679b9394dbb6936722fad840298cf4184392e5d7de65e541d06a036d3d97",
+      "control_path": "cis_v130/section_3.pp",
+      "control_line": 86,
+      "arguments": [],
+      "pinned_sql": "select\n      container.id as resource,\n      case\n        when not account.allow_blob_public_access and container.public_access = 'None' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when not account.allow_blob_public_access and container.public_access = 'None'\n          then account.name || ' container ' || container.name || ' doesn''t allow anonymous access.'\n        else account.name || ' container ' || container.name || ' allows anonymous access.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"account.\")}\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"container.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container container\n      left join azure_storage_account account on container.account_name = account.name\n      left join azure_subscription sub on sub.subscription_id = account.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_blob_classic_logging"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_service_classic_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1139,
+      "query_sha256": "117d2fd9e54471f4b0441ec5bcf9e57f03318c9dde803b68129c26c4000121a5",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 157,
+      "arguments": [],
+      "pinned_sql": "select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then 'skip'\n        when not (sa.blob_service_logging ->> 'Read') :: boolean\n        or not (sa.blob_service_logging ->> 'Write') :: boolean\n        or not (sa.blob_service_logging ->> 'Delete') :: boolean then 'alarm'\n        else 'ok'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then sa.name || ' is premium ' || kind || ' storage account.'\n        when not (sa.blob_service_logging ->> 'Read') :: boolean\n        or not (sa.blob_service_logging ->> 'Write') :: boolean\n        or not (sa.blob_service_logging ->> 'Delete') :: boolean then name || ' blob service logging not enabled for ' ||\n          concat_ws(', ',\n            case when not (sa.blob_service_logging ->> 'Write') :: boolean then 'write' end,\n            case when not (sa.blob_service_logging ->> 'Read') :: boolean then 'read' end,\n            case when not (sa.blob_service_logging ->> 'Delete') :: boolean then 'delete' end\n          ) || ' requests.'\n        else name || ' blob service logging enabled for read, write, delete requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_3_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_table_classic_logging"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_table_service_classic_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1171,
+      "query_sha256": "4ad096d37f96dcb0cdbe48873aa1061bd7a9eda225b28dfffe2fdb7f390e6149",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 171,
+      "arguments": [],
+      "pinned_sql": "select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when table_logging_write and table_logging_read and table_logging_delete then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when table_logging_write and table_logging_read and table_logging_delete\n          then sa.name || ' table service logging enabled for read, write, delete requests.'\n        else sa.name || ' table service logging not enabled for: ' ||\n          concat_ws(', ',\n            case when not table_logging_write then 'write' end,\n            case when not table_logging_read then 'read' end,\n            case when not table_logging_delete then 'delete' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as sa\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_3_3": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_queue_classic_logging"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_queue_service_classic_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 1200,
+      "query_sha256": "8aabfbd72f1bfe29cb18a7b1762ed8f27f8d145f33f9499f549646a6485691ea",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 59,
+      "arguments": [],
+      "pinned_sql": "select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when queue_logging_read and queue_logging_write and queue_logging_delete then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when queue_logging_read and queue_logging_write and queue_logging_delete\n          then sa.name || ' queue service logging enabled for read, write, delete requests.'\n        else sa.name || ' queue service logging not enabled for: ' ||\n          concat_ws(', ',\n            case when not queue_logging_write then 'write' end,\n            case when not queue_logging_read then 'read' end,\n            case when not queue_logging_delete then 'delete' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n     left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v140_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_containers_public_access_disabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_containers_public_access_disabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 660,
+      "query_sha256": "0182679b9394dbb6936722fad840298cf4184392e5d7de65e541d06a036d3d97",
+      "control_path": "cis_v140/section_3.pp",
+      "control_line": 87,
+      "arguments": [],
+      "pinned_sql": "select\n      container.id as resource,\n      case\n        when not account.allow_blob_public_access and container.public_access = 'None' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when not account.allow_blob_public_access and container.public_access = 'None'\n          then account.name || ' container ' || container.name || ' doesn''t allow anonymous access.'\n        else account.name || ' container ' || container.name || ' allows anonymous access.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"account.\")}\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"container.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container container\n      left join azure_storage_account account on container.account_name = account.name\n      left join azure_subscription sub on sub.subscription_id = account.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_private_link_all_approved"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_uses_private_link",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 440,
+      "query_sha256": "2bc9fa3ffe6f6aadb40ea70c07f668e9359c9819edda7cebb6d395728fba1c7b",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 160,
+      "arguments": [],
+      "pinned_sql": "with storage_account_connection as (\n      select\n        a.id,\n        a.name,\n        count(*) as total_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' = 'Approved' then 1 end) as approved_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' != 'Approved' then 1 end) as non_approved_connections\n      from\n        azure_storage_account as a,\n        jsonb_array_elements(private_endpoint_connections) as connection\n      where\n        private_endpoint_connections is not null\n        and jsonb_array_length(private_endpoint_connections) > 0\n      group by\n        a.id, a.name\n    )\n    select\n      distinct a.id as resource,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then 'alarm'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then 'ok'\n        when s.non_approved_connections > 0 then 'alarm'\n      end as status,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then a.name || ' not uses private link.'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then a.name || ' uses approved private link(s).'\n        else a.name || ' has non approved private link(s).'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as a\n      left join storage_account_connection as s on a.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v150_3_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 704,
+      "query_sha256": "0741b344931b2aa56c3a4bdf2f829f32583a454228a586ad9b11cab33ba4b0a8",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 202,
+      "arguments": [],
+      "pinned_sql": "with blob_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_blob_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from blob_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then 'skip'\n        when default_blob_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_blob_diagnostic_settings is null then sa.name || ' blob service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' blob service logging enabled for read, write, delete requests.'\n        else sa.name || ' blob service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v150_3_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_table_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_table_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 758,
+      "query_sha256": "669c4e8e30349cd40f48d15a7287c14b527f30cffd7c2083bc9431b739a032b2",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 216,
+      "arguments": [],
+      "pinned_sql": "with table_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_table_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from table_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_table_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_table_diagnostic_settings is null then sa.name || ' table service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' table service logging enabled for read, write, delete requests.'\n        else sa.name || ' table service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v150_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_queue_services_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_queue_services_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 835,
+      "query_sha256": "eed493414c7ae0d3fc088abb391007a742c508cebe8ae7ec0e25fda6417a4aef",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 90,
+      "arguments": [],
+      "pinned_sql": "with queue_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_queue_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from queue_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_queue_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_queue_diagnostic_settings is null then sa.name || ' queue service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' queue service logging enabled for read, write, delete requests.'\n        else sa.name || ' queue service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v150_3_7": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_containers_public_access_disabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_containers_public_access_disabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 660,
+      "query_sha256": "0182679b9394dbb6936722fad840298cf4184392e5d7de65e541d06a036d3d97",
+      "control_path": "cis_v150/section_3.pp",
+      "control_line": 118,
+      "arguments": [],
+      "pinned_sql": "select\n      container.id as resource,\n      case\n        when not account.allow_blob_public_access and container.public_access = 'None' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when not account.allow_blob_public_access and container.public_access = 'None'\n          then account.name || ' container ' || container.name || ' doesn''t allow anonymous access.'\n        else account.name || ' container ' || container.name || ' allows anonymous access.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"account.\")}\n      ${replace(local.common_dimensions_global_qualifier_sql, \"__QUALIFIER__\", \"container.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_container container\n      left join azure_storage_account account on container.account_name = account.name\n      left join azure_subscription sub on sub.subscription_id = account.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_private_link_all_approved"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_uses_private_link",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 440,
+      "query_sha256": "2bc9fa3ffe6f6aadb40ea70c07f668e9359c9819edda7cebb6d395728fba1c7b",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 160,
+      "arguments": [],
+      "pinned_sql": "with storage_account_connection as (\n      select\n        a.id,\n        a.name,\n        count(*) as total_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' = 'Approved' then 1 end) as approved_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' != 'Approved' then 1 end) as non_approved_connections\n      from\n        azure_storage_account as a,\n        jsonb_array_elements(private_endpoint_connections) as connection\n      where\n        private_endpoint_connections is not null\n        and jsonb_array_length(private_endpoint_connections) > 0\n      group by\n        a.id, a.name\n    )\n    select\n      distinct a.id as resource,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then 'alarm'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then 'ok'\n        when s.non_approved_connections > 0 then 'alarm'\n      end as status,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then a.name || ' not uses private link.'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then a.name || ' uses approved private link(s).'\n        else a.name || ' has non approved private link(s).'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as a\n      left join storage_account_connection as s on a.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v200_3_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 704,
+      "query_sha256": "0741b344931b2aa56c3a4bdf2f829f32583a454228a586ad9b11cab33ba4b0a8",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 202,
+      "arguments": [],
+      "pinned_sql": "with blob_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_blob_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from blob_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then 'skip'\n        when default_blob_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_blob_diagnostic_settings is null then sa.name || ' blob service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' blob service logging enabled for read, write, delete requests.'\n        else sa.name || ' blob service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v200_3_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_table_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_table_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 758,
+      "query_sha256": "669c4e8e30349cd40f48d15a7287c14b527f30cffd7c2083bc9431b739a032b2",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 216,
+      "arguments": [],
+      "pinned_sql": "with table_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_table_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from table_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_table_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_table_diagnostic_settings is null then sa.name || ' table service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' table service logging enabled for read, write, delete requests.'\n        else sa.name || ' table service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v200_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_queue_services_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_queue_services_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 835,
+      "query_sha256": "eed493414c7ae0d3fc088abb391007a742c508cebe8ae7ec0e25fda6417a4aef",
+      "control_path": "cis_v200/section_3.pp",
+      "control_line": 90,
+      "arguments": [],
+      "pinned_sql": "with queue_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_queue_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from queue_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_queue_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_queue_diagnostic_settings is null then sa.name || ' queue service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' queue service logging enabled for read, write, delete requests.'\n        else sa.name || ' queue service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v210_3_10": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_private_link_all_approved"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_uses_private_link",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 440,
+      "query_sha256": "2bc9fa3ffe6f6aadb40ea70c07f668e9359c9819edda7cebb6d395728fba1c7b",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 162,
+      "arguments": [],
+      "pinned_sql": "with storage_account_connection as (\n      select\n        a.id,\n        a.name,\n        count(*) as total_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' = 'Approved' then 1 end) as approved_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' != 'Approved' then 1 end) as non_approved_connections\n      from\n        azure_storage_account as a,\n        jsonb_array_elements(private_endpoint_connections) as connection\n      where\n        private_endpoint_connections is not null\n        and jsonb_array_length(private_endpoint_connections) > 0\n      group by\n        a.id, a.name\n    )\n    select\n      distinct a.id as resource,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then 'alarm'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then 'ok'\n        when s.non_approved_connections > 0 then 'alarm'\n      end as status,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then a.name || ' not uses private link.'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then a.name || ' uses approved private link(s).'\n        else a.name || ' has non approved private link(s).'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as a\n      left join storage_account_connection as s on a.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v210_3_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 704,
+      "query_sha256": "0741b344931b2aa56c3a4bdf2f829f32583a454228a586ad9b11cab33ba4b0a8",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 204,
+      "arguments": [],
+      "pinned_sql": "with blob_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_blob_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from blob_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then 'skip'\n        when default_blob_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_blob_diagnostic_settings is null then sa.name || ' blob service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' blob service logging enabled for read, write, delete requests.'\n        else sa.name || ' blob service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v210_3_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_table_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_table_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 758,
+      "query_sha256": "669c4e8e30349cd40f48d15a7287c14b527f30cffd7c2083bc9431b739a032b2",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 218,
+      "arguments": [],
+      "pinned_sql": "with table_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_table_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from table_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_table_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_table_diagnostic_settings is null then sa.name || ' table service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' table service logging enabled for read, write, delete requests.'\n        else sa.name || ' table service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v210_3_5": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_queue_services_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_queue_services_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 835,
+      "query_sha256": "eed493414c7ae0d3fc088abb391007a742c508cebe8ae7ec0e25fda6417a4aef",
+      "control_path": "cis_v210/section_3.pp",
+      "control_line": 92,
+      "arguments": [],
+      "pinned_sql": "with queue_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_queue_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from queue_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_queue_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_queue_diagnostic_settings is null then sa.name || ' queue service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' queue service logging enabled for read, write, delete requests.'\n        else sa.name || ' queue service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v300_4_12": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_queue_services_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_queue_services_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 835,
+      "query_sha256": "eed493414c7ae0d3fc088abb391007a742c508cebe8ae7ec0e25fda6417a4aef",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 190,
+      "arguments": [],
+      "pinned_sql": "with queue_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_queue_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from queue_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_queue_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_queue_diagnostic_settings is null then sa.name || ' queue service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' queue service logging enabled for read, write, delete requests.'\n        else sa.name || ' queue service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v300_4_13": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_blob_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_blob_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 704,
+      "query_sha256": "0741b344931b2aa56c3a4bdf2f829f32583a454228a586ad9b11cab33ba4b0a8",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 204,
+      "arguments": [],
+      "pinned_sql": "with blob_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_blob_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from blob_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then 'skip'\n        when default_blob_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' and kind in ('StorageV2', 'FileStorage') then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_blob_diagnostic_settings is null then sa.name || ' blob service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' blob service logging enabled for read, write, delete requests.'\n        else sa.name || ' blob service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v300_4_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_table_service_logging_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_table_service_logging_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 758,
+      "query_sha256": "669c4e8e30349cd40f48d15a7287c14b527f30cffd7c2083bc9431b739a032b2",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 218,
+      "arguments": [],
+      "pinned_sql": "with table_logs as (\n      select\n        a.id,\n        a.name,\n        log ->> 'category' as category,\n        (log ->> 'enabled')::boolean as enabled\n      from\n        azure_storage_account a,\n        jsonb_array_elements(a.default_table_diagnostic_settings) as b,\n        jsonb_array_elements(b -> 'properties' -> 'logs') as log\n      where\n        log ->> 'category' in ('StorageRead', 'StorageWrite', 'StorageDelete')\n    ),\n    log_status as (\n      select\n        id,\n        name,\n        max(case when category = 'StorageRead' then (enabled::int) else 0 end) = 1 as read_enabled,\n        max(case when category = 'StorageWrite' then (enabled::int) else 0 end) = 1 as write_enabled,\n        max(case when category = 'StorageDelete' then (enabled::int) else 0 end) = 1 as delete_enabled\n      from table_logs\n      group by id, name\n    )\n    select\n      sa.id as resource,\n      case\n        when lower(sku_tier) = 'premium' then 'skip'\n        when default_table_diagnostic_settings is null then 'alarm'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when lower(sku_tier) = 'premium' then sa.name || ' is premium ' || kind || ' storage account.'\n        when default_table_diagnostic_settings is null then sa.name || ' table service logging disabled for read, write, delete requests.'\n        when ls.read_enabled and ls.write_enabled and ls.delete_enabled then sa.name || ' table service logging enabled for read, write, delete requests.'\n        else sa.name || ' table service logging missing for: ' ||\n          trim(both ', ' from\n            case when not ls.read_enabled then 'read, ' else '' end ||\n            case when not ls.write_enabled then 'write, ' else '' end ||\n            case when not ls.delete_enabled then 'delete, ' else '' end\n          ) || ' requests.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join log_status as ls on ls.id = sa.id\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id"
+    }
+  },
+  "azure-compliance.control.cis_v300_4_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_private_link_all_approved"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_uses_private_link",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 440,
+      "query_sha256": "2bc9fa3ffe6f6aadb40ea70c07f668e9359c9819edda7cebb6d395728fba1c7b",
+      "control_path": "cis_v300/section_4.pp",
+      "control_line": 148,
+      "arguments": [],
+      "pinned_sql": "with storage_account_connection as (\n      select\n        a.id,\n        a.name,\n        count(*) as total_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' = 'Approved' then 1 end) as approved_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' != 'Approved' then 1 end) as non_approved_connections\n      from\n        azure_storage_account as a,\n        jsonb_array_elements(private_endpoint_connections) as connection\n      where\n        private_endpoint_connections is not null\n        and jsonb_array_length(private_endpoint_connections) > 0\n      group by\n        a.id, a.name\n    )\n    select\n      distinct a.id as resource,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then 'alarm'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then 'ok'\n        when s.non_approved_connections > 0 then 'alarm'\n      end as status,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then a.name || ' not uses private link.'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then a.name || ' uses approved private link(s).'\n        else a.name || ' has non approved private link(s).'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as a\n      left join storage_account_connection as s on a.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_10_1_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_file_share_soft_delete_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_file_share_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 977,
+      "query_sha256": "ad9bfc581b48be71015cfad0732a0c63e5fe91c02be7a9a4b5b7cdd3a8233959",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 58,
+      "arguments": [],
+      "pinned_sql": "with storage_account_with_file_share as (\n      select\n        distinct storage_account_name,\n        subscription_id,\n        resource_group\n      from\n        azure_storage_share_file\n    )\n    select\n      sa.id as resource,\n      case\n        when fs.storage_account_name is null then 'skip'\n        when file_soft_delete_enabled and file_soft_delete_retention_days between 1 and 365 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when fs.storage_account_name is null then name || ' does not have file share.'\n        when not coalesce(file_soft_delete_enabled, false) then name || ' file share soft delete disabled.'\n        when file_soft_delete_retention_days < 1 or file_soft_delete_retention_days > 365\n          then name || ' file share soft delete retention days (' || file_soft_delete_retention_days || ') not between 1 and 365.'\n        else name || ' file share soft delete enabled with ' || file_soft_delete_retention_days || ' days retention.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join storage_account_with_file_share as fs on sa.name = fs.storage_account_name and sa.subscription_id = fs.subscription_id and sa.resource_group = fs.resource_group\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v400_10_3_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_private_link_all_approved"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_uses_private_link",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 440,
+      "query_sha256": "2bc9fa3ffe6f6aadb40ea70c07f668e9359c9819edda7cebb6d395728fba1c7b",
+      "control_path": "cis_v400/section_10.pp",
+      "control_line": 237,
+      "arguments": [],
+      "pinned_sql": "with storage_account_connection as (\n      select\n        a.id,\n        a.name,\n        count(*) as total_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' = 'Approved' then 1 end) as approved_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' != 'Approved' then 1 end) as non_approved_connections\n      from\n        azure_storage_account as a,\n        jsonb_array_elements(private_endpoint_connections) as connection\n      where\n        private_endpoint_connections is not null\n        and jsonb_array_length(private_endpoint_connections) > 0\n      group by\n        a.id, a.name\n    )\n    select\n      distinct a.id as resource,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then 'alarm'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then 'ok'\n        when s.non_approved_connections > 0 then 'alarm'\n      end as status,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then a.name || ' not uses private link.'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then a.name || ' uses approved private link(s).'\n        else a.name || ' has non approved private link(s).'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as a\n      left join storage_account_connection as s on a.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_9_1_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "azure.port.storage_account_file_share_soft_delete_enabled"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_file_share_soft_delete_enabled",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 977,
+      "query_sha256": "ad9bfc581b48be71015cfad0732a0c63e5fe91c02be7a9a4b5b7cdd3a8233959",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 61,
+      "arguments": [],
+      "pinned_sql": "with storage_account_with_file_share as (\n      select\n        distinct storage_account_name,\n        subscription_id,\n        resource_group\n      from\n        azure_storage_share_file\n    )\n    select\n      sa.id as resource,\n      case\n        when fs.storage_account_name is null then 'skip'\n        when file_soft_delete_enabled and file_soft_delete_retention_days between 1 and 365 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when fs.storage_account_name is null then name || ' does not have file share.'\n        when not coalesce(file_soft_delete_enabled, false) then name || ' file share soft delete disabled.'\n        when file_soft_delete_retention_days < 1 or file_soft_delete_retention_days > 365\n          then name || ' file share soft delete retention days (' || file_soft_delete_retention_days || ') not between 1 and 365.'\n        else name || ' file share soft delete enabled with ' || file_soft_delete_retention_days || ' days retention.'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"sa.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account sa\n      left join storage_account_with_file_share as fs on sa.name = fs.storage_account_name and sa.subscription_id = fs.subscription_id and sa.resource_group = fs.resource_group\n      left join azure_subscription sub on sub.subscription_id = sa.subscription_id;"
+    }
+  },
+  "azure-compliance.control.cis_v500_9_3_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "azure.claude.storage_private_link_all_approved"
+    ],
+    "reason": "Individually inspected complete source scopes/conditions: exactpremium/kind skip, read/write/delete conjunction, all-approved private connections, file-share existence+1\u2013365retention, and container+parent-account conjunction. Reuse classicflags/privateapproval only where exact; source literaldiagnostic categories remain distinct from allLogs-aware native variants. FullARM parent joins and complete dependencies guard absence, malformed/deniedUNKNOWN.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/file-services/get-service-properties?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storagerp/blob-containers/list?view=rest-storagerp-2025-06-01",
+      "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties",
+      "https://learn.microsoft.com/en-us/rest/api/monitor/diagnostic-settings/list?view=rest-monitor-2021-05-01-preview"
+    ],
+    "review_notes": "ClassicOAuthreadproperties noaccountkeys/SASfallback; literalcategories sourceconditionconserved, allLogs-only doesnotpass. No secretvalues/blobfiles/networkprobes or runtimeenforcement assertion.",
+    "source_review": {
+      "query_id": "storage_account_uses_private_link",
+      "query_path": "regulatory_compliance/storage.pp",
+      "query_line": 440,
+      "query_sha256": "2bc9fa3ffe6f6aadb40ea70c07f668e9359c9819edda7cebb6d395728fba1c7b",
+      "control_path": "cis_v500/section_9.pp",
+      "control_line": 253,
+      "arguments": [],
+      "pinned_sql": "with storage_account_connection as (\n      select\n        a.id,\n        a.name,\n        count(*) as total_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' = 'Approved' then 1 end) as approved_connections,\n        count(case when connection -> 'properties' -> 'privateLinkServiceConnectionState' ->> 'status' != 'Approved' then 1 end) as non_approved_connections\n      from\n        azure_storage_account as a,\n        jsonb_array_elements(private_endpoint_connections) as connection\n      where\n        private_endpoint_connections is not null\n        and jsonb_array_length(private_endpoint_connections) > 0\n      group by\n        a.id, a.name\n    )\n    select\n      distinct a.id as resource,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then 'alarm'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then 'ok'\n        when s.non_approved_connections > 0 then 'alarm'\n      end as status,\n      case\n        when jsonb_array_length(private_endpoint_connections) = 0 then a.name || ' not uses private link.'\n        when s.approved_connections > 0 and s.non_approved_connections = 0 then a.name || ' uses approved private link(s).'\n        else a.name || ' has non approved private link(s).'\n      end as reason\n      ${replace(local.tag_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_sql, \"__QUALIFIER__\", \"a.\")}\n      ${replace(local.common_dimensions_qualifier_subscription_sql, \"__QUALIFIER__\", \"sub.\")}\n    from\n      azure_storage_account as a\n      left join storage_account_connection as s on a.id = s.id\n      left join azure_subscription as sub on sub.subscription_id = a.subscription_id;"
+    }
+  }
+}

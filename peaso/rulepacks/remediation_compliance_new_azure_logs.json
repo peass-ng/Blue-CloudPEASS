@@ -1,0 +1,28 @@
+{
+  "azure_log_analytics_workspace_10_5_1_4_8c74ccb": {
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_azure_logs",
+      "kind": "log_analytics_workspace",
+      "path": "properties.retentionInDays",
+      "target": "resource"
+    },
+    "proposed_spec_sha256": "6b4396e8c9799270506de761b27f082b7a2956987aa249f19dd18acb1c5fb6d2",
+    "references": [
+      {
+        "title": "Azure Log Analytics workspace GET 2023-09-01",
+        "url": "https://learn.microsoft.com/en-us/rest/api/loganalytics/workspaces/get?tabs=HTTP&view=rest-loganalytics-2023-09-01"
+      },
+      {
+        "title": "Manage data retention in Log Analytics",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure"
+      }
+    ],
+    "review_status": "draft",
+    "steps": [
+      "Inspect the workspace properties.retentionInDays, approved MinRetentionTime and any table-specific overrides with the log owner; confirm which tables inherit the default.",
+      "In Azure portal > Log Analytics workspaces > selected workspace > Usage and estimated costs > Data Retention, or the owning IaC resource, set the default interactive retention to the approved days after cost review.",
+      "Verify the workspace value and relevant table overrides after the change; restore the previous approved IaC revision if the change has unintended cost or query impact."
+    ],
+    "summary": "Increase the Log Analytics workspace default interactive retention to the approved days."
+  }
+}

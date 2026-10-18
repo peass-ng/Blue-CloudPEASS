@@ -1,0 +1,2110 @@
+{
+  "gcp-compliance.control.audit_logging_configured_for_all_service": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.audit_logging_configured_for_all_service; native port(s) gcp.ports.audit_logging_configured_for_all_service authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source WHERE filters out projects missing any required audit category before its CASE, so no negative finding can be emitted for absent audit configuration. Reject this filtered-universe false-clean result; replacement runs once per selected project and gates complete root-policy evidence before required-configuration absence."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "audit_logging_configured_for_all_service",
+      "source_path": "policy_bundle/resourcemanager.pp",
+      "source_line": 24,
+      "source_query_sha256": "26d164633e6029e1843c921721ee9b3aa0c7db919c5b9881ed2419cf069d9de8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.audit_logging_configured_for_all_service",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/policy_bundle/resourcemanager.pp#L7"
+    },
+    "replacement_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "audit_logging_configured_for_all_service",
+      "target_native_checks": [
+        "gcp.ports.audit_logging_configured_for_all_service"
+      ],
+      "resource": "Each selected project scope (target=scope) with its exact project-root IAM policy (kind iam_policy)",
+      "property": "auditConfigs[service=allServices].auditLogConfigs[].logType / exemptedMembers (or collector effectiveAuditConfigs)",
+      "pass_condition": "PASS iff allServices declares ADMIN_READ, DATA_READ and DATA_WRITE with no exemptedMembers",
+      "upstream_defect_only": "Source WHERE filters non-compliant projects out of the universe before the CASE (no alarm row can be emitted).",
+      "native_deviations": "Inherited org/folder audit configs count when the collector materializes effectiveAuditConfigs; missing/ambiguous root policy is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v120_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.audit_logging_configured_for_all_service; native port(s) gcp.ports.audit_logging_configured_for_all_service authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source WHERE filters out projects missing any required audit category before its CASE, so no negative finding can be emitted for absent audit configuration. Reject this filtered-universe false-clean result; replacement runs once per selected project and gates complete root-policy evidence before required-configuration absence."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "audit_logging_configured_for_all_service",
+      "source_path": "policy_bundle/resourcemanager.pp",
+      "source_line": 24,
+      "source_query_sha256": "26d164633e6029e1843c921721ee9b3aa0c7db919c5b9881ed2419cf069d9de8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_2.pp#L30"
+    },
+    "replacement_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "audit_logging_configured_for_all_service",
+      "target_native_checks": [
+        "gcp.ports.audit_logging_configured_for_all_service"
+      ],
+      "resource": "Each selected project scope (target=scope) with its exact project-root IAM policy (kind iam_policy)",
+      "property": "auditConfigs[service=allServices].auditLogConfigs[].logType / exemptedMembers (or collector effectiveAuditConfigs)",
+      "pass_condition": "PASS iff allServices declares ADMIN_READ, DATA_READ and DATA_WRITE with no exemptedMembers",
+      "upstream_defect_only": "Source WHERE filters non-compliant projects out of the universe before the CASE (no alarm row can be emitted).",
+      "native_deviations": "Inherited org/folder audit configs count when the collector materializes effectiveAuditConfigs; missing/ambiguous root policy is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.no_default_vpc"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_default_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1319,
+      "source_query_sha256": "bb6a476e1715b4b8a591f7e1997b375a4a4ca7a5fa1c5983e8ed9589023395ca",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L28"
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_network_contains_no_legacy_network"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_legacy_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1338,
+      "source_query_sha256": "fb267ad7a82ab069ecc22e463d243ae8d922028b1fafb1a2f65b6e339a528ed8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L42"
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_ssh_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits TCP declarations with absent ports although Compute interprets that as all ports, and ignores IPv6 internet ranges; its malformed textual all-protocol branch cannot match ordinary JSON. Reject the false-clean broad-ingress predicate and retain explicit declared-rule review without effective-reachability claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_ssh_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 793,
+      "source_query_sha256": "5ef07870f9667e5941851efdda11a6ad83b6d440524aee0f9573b63c505501cc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L98"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_ssh_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 22 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v120_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_rdp_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits protocol/port omission and IPv6 broad-source cases that can declare RDP ingress. Reject the false-clean enumeration gaps; replacement includes documented all-port defaults, active direction and declared ranges without effective-firewall inference."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_rdp_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 845,
+      "source_query_sha256": "58c1270fccf287eb96f0e1a6346c4e0979e756e4713e724e8ace2ae7a47ea0e8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_3.pp#L112"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_rdp_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 3389 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1252,
+      "source_query_sha256": "d6fe77086852d05aa680d90d0f6a5ba072eec33a5d71566b578d7b3b16cfff63",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L29"
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.confidential_computing"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_confidential_computing_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1087,
+      "source_query_sha256": "e874e15f9055de302a6e8325afff1a44b7fab0b11b16c5983694599292d8e6ab",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L169"
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account_with_full_access"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account_with_full_access",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1228,
+      "source_query_sha256": "7d726f5f89e260d05fd6523297eaf57b907f85b883bd70e7c2ffa6203b86e7d2",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L43"
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_block_project_wide_ssh_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_block_project_wide_ssh_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1064,
+      "source_query_sha256": "0bb2f1d122b7b21394afcd04fe4c6d6f7fdd0ff79477d8365290997ec134b7a7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L57"
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.no_serial_console"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_serial_port_connection_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1188,
+      "source_query_sha256": "9dbac8873ef572c91e09a3116449614202431ca09a54724097dac390b1422171",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L85"
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_ip_forwarding_disabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_ip_forwarding_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1107,
+      "source_query_sha256": "bfcf6d3880f1b0d61cda963e30b9e846e3cd30f5edee42713415f0c1fd383536",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L99"
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_shielded_vm_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_shielded_vm_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1208,
+      "source_query_sha256": "556ccf0a13e8ce91dc371c7d6fc50a1eeaaf352963541536f4a963b35e91f4d3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L127"
+    }
+  },
+  "gcp-compliance.control.cis_v120_4_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_instance_with_no_public_ip_addresses; native port(s) gcp.ports.compute_instance_with_no_public_ip_addresses authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes a multi-interface VM whenever any one interface has no NAT configuration, hiding another interface with a declared public IP. Reject this any-private-interface false-clean result; replacement reviews every observed interface and retains no-reachability semantics."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_public_ip_addresses",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1276,
+      "source_query_sha256": "dcf49826cde9c994937446dbd08ca7988225e9ed69b53661ad7ca152ef127a7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_4_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_4.pp#L141"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_with_no_public_ip_addresses",
+      "target_native_checks": [
+        "gcp.ports.compute_instance_with_no_public_ip_addresses"
+      ],
+      "resource": "Each Compute Engine VM instance (kind instance)",
+      "property": "networkInterfaces[].accessConfigs[].natIP, ipv6AccessConfigs[].externalIpv6",
+      "pass_condition": "PASS iff no observed interface declares an external IPv4/IPv6 address",
+      "upstream_defect_only": "Source passes a multi-NIC VM when any one interface lacks an access config.",
+      "native_deviations": "GKE-created node instances (gke-* with goog-gke-node label) are evaluated, while the source skips them."
+    }
+  },
+  "gcp-compliance.control.cis_v120_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.sql_instance_require_ssl_enabled; native port(s) gcp.ports.sql_instance_require_ssl_enabled authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source alarms unless sslMode is exactly ENCRYPTED_ONLY, falsely rejecting TRUSTED_CLIENT_CERTIFICATE_REQUIRED which also enforces encrypted connections. Reject this incomplete enum classification and retain the current provider encryption modes."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_require_ssl_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 422,
+      "source_query_sha256": "a24604112e51489b9d5c013ddce90142465e052aaa0ad26e83f8e896548fe1d0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v120_6_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v120/section_6.pp#L461"
+    },
+    "replacement_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_require_ssl_enabled",
+      "target_native_checks": [
+        "gcp.ports.sql_instance_require_ssl_enabled"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "settings.ipConfiguration.sslMode",
+      "pass_condition": "PASS iff sslMode is ENCRYPTED_ONLY or TRUSTED_CLIENT_CERTIFICATE_REQUIRED; ALLOW_UNENCRYPTED_AND_ENCRYPTED fails",
+      "upstream_defect_only": "Source rejects TRUSTED_CLIENT_CERTIFICATE_REQUIRED (also encrypted-only).",
+      "native_deviations": "Missing/unrecognized sslMode is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v130_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.audit_logging_configured_for_all_service; native port(s) gcp.ports.audit_logging_configured_for_all_service authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source WHERE filters out projects missing any required audit category before its CASE, so no negative finding can be emitted for absent audit configuration. Reject this filtered-universe false-clean result; replacement runs once per selected project and gates complete root-policy evidence before required-configuration absence."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "audit_logging_configured_for_all_service",
+      "source_path": "policy_bundle/resourcemanager.pp",
+      "source_line": 24,
+      "source_query_sha256": "26d164633e6029e1843c921721ee9b3aa0c7db919c5b9881ed2419cf069d9de8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_2.pp#L33"
+    },
+    "replacement_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "audit_logging_configured_for_all_service",
+      "target_native_checks": [
+        "gcp.ports.audit_logging_configured_for_all_service"
+      ],
+      "resource": "Each selected project scope (target=scope) with its exact project-root IAM policy (kind iam_policy)",
+      "property": "auditConfigs[service=allServices].auditLogConfigs[].logType / exemptedMembers (or collector effectiveAuditConfigs)",
+      "pass_condition": "PASS iff allServices declares ADMIN_READ, DATA_READ and DATA_WRITE with no exemptedMembers",
+      "upstream_defect_only": "Source WHERE filters non-compliant projects out of the universe before the CASE (no alarm row can be emitted).",
+      "native_deviations": "Inherited org/folder audit configs count when the collector materializes effectiveAuditConfigs; missing/ambiguous root policy is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.no_default_vpc"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_default_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1319,
+      "source_query_sha256": "bb6a476e1715b4b8a591f7e1997b375a4a4ca7a5fa1c5983e8ed9589023395ca",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L28"
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_network_contains_no_legacy_network"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_legacy_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1338,
+      "source_query_sha256": "fb267ad7a82ab069ecc22e463d243ae8d922028b1fafb1a2f65b6e339a528ed8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L42"
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_ssh_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits TCP declarations with absent ports although Compute interprets that as all ports, and ignores IPv6 internet ranges; its malformed textual all-protocol branch cannot match ordinary JSON. Reject the false-clean broad-ingress predicate and retain explicit declared-rule review without effective-reachability claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_ssh_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 793,
+      "source_query_sha256": "5ef07870f9667e5941851efdda11a6ad83b6d440524aee0f9573b63c505501cc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L98"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_ssh_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 22 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v130_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_rdp_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits protocol/port omission and IPv6 broad-source cases that can declare RDP ingress. Reject the false-clean enumeration gaps; replacement includes documented all-port defaults, active direction and declared ranges without effective-firewall inference."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_rdp_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 845,
+      "source_query_sha256": "58c1270fccf287eb96f0e1a6346c4e0979e756e4713e724e8ace2ae7a47ea0e8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_3.pp#L112"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_rdp_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 3389 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1252,
+      "source_query_sha256": "d6fe77086852d05aa680d90d0f6a5ba072eec33a5d71566b578d7b3b16cfff63",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L30"
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.confidential_computing"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_confidential_computing_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1087,
+      "source_query_sha256": "e874e15f9055de302a6e8325afff1a44b7fab0b11b16c5983694599292d8e6ab",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L170"
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account_with_full_access"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account_with_full_access",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1228,
+      "source_query_sha256": "7d726f5f89e260d05fd6523297eaf57b907f85b883bd70e7c2ffa6203b86e7d2",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L44"
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_block_project_wide_ssh_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_block_project_wide_ssh_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1064,
+      "source_query_sha256": "0bb2f1d122b7b21394afcd04fe4c6d6f7fdd0ff79477d8365290997ec134b7a7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L58"
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.no_serial_console"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_serial_port_connection_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1188,
+      "source_query_sha256": "9dbac8873ef572c91e09a3116449614202431ca09a54724097dac390b1422171",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L86"
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_ip_forwarding_disabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_ip_forwarding_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1107,
+      "source_query_sha256": "bfcf6d3880f1b0d61cda963e30b9e846e3cd30f5edee42713415f0c1fd383536",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L100"
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_shielded_vm_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_shielded_vm_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1208,
+      "source_query_sha256": "556ccf0a13e8ce91dc371c7d6fc50a1eeaaf352963541536f4a963b35e91f4d3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L128"
+    }
+  },
+  "gcp-compliance.control.cis_v130_4_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_instance_with_no_public_ip_addresses; native port(s) gcp.ports.compute_instance_with_no_public_ip_addresses authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes a multi-interface VM whenever any one interface has no NAT configuration, hiding another interface with a declared public IP. Reject this any-private-interface false-clean result; replacement reviews every observed interface and retains no-reachability semantics."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_public_ip_addresses",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1276,
+      "source_query_sha256": "dcf49826cde9c994937446dbd08ca7988225e9ed69b53661ad7ca152ef127a7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_4_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_4.pp#L142"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_with_no_public_ip_addresses",
+      "target_native_checks": [
+        "gcp.ports.compute_instance_with_no_public_ip_addresses"
+      ],
+      "resource": "Each Compute Engine VM instance (kind instance)",
+      "property": "networkInterfaces[].accessConfigs[].natIP, ipv6AccessConfigs[].externalIpv6",
+      "pass_condition": "PASS iff no observed interface declares an external IPv4/IPv6 address",
+      "upstream_defect_only": "Source passes a multi-NIC VM when any one interface lacks an access config.",
+      "native_deviations": "GKE-created node instances (gke-* with goog-gke-node label) are evaluated, while the source skips them."
+    }
+  },
+  "gcp-compliance.control.cis_v130_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.sql_instance_require_ssl_enabled; native port(s) gcp.ports.sql_instance_require_ssl_enabled authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source alarms unless sslMode is exactly ENCRYPTED_ONLY, falsely rejecting TRUSTED_CLIENT_CERTIFICATE_REQUIRED which also enforces encrypted connections. Reject this incomplete enum classification and retain the current provider encryption modes."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_require_ssl_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 422,
+      "source_query_sha256": "a24604112e51489b9d5c013ddce90142465e052aaa0ad26e83f8e896548fe1d0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v130_6_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v130/section_6.pp#L356"
+    },
+    "replacement_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_require_ssl_enabled",
+      "target_native_checks": [
+        "gcp.ports.sql_instance_require_ssl_enabled"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "settings.ipConfiguration.sslMode",
+      "pass_condition": "PASS iff sslMode is ENCRYPTED_ONLY or TRUSTED_CLIENT_CERTIFICATE_REQUIRED; ALLOW_UNENCRYPTED_AND_ENCRYPTED fails",
+      "upstream_defect_only": "Source rejects TRUSTED_CLIENT_CERTIFICATE_REQUIRED (also encrypted-only).",
+      "native_deviations": "Missing/unrecognized sslMode is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v200_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.audit_logging_configured_for_all_service; native port(s) gcp.ports.audit_logging_configured_for_all_service authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source WHERE filters out projects missing any required audit category before its CASE, so no negative finding can be emitted for absent audit configuration. Reject this filtered-universe false-clean result; replacement runs once per selected project and gates complete root-policy evidence before required-configuration absence."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "audit_logging_configured_for_all_service",
+      "source_path": "policy_bundle/resourcemanager.pp",
+      "source_line": 24,
+      "source_query_sha256": "26d164633e6029e1843c921721ee9b3aa0c7db919c5b9881ed2419cf069d9de8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_2.pp#L34"
+    },
+    "replacement_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "audit_logging_configured_for_all_service",
+      "target_native_checks": [
+        "gcp.ports.audit_logging_configured_for_all_service"
+      ],
+      "resource": "Each selected project scope (target=scope) with its exact project-root IAM policy (kind iam_policy)",
+      "property": "auditConfigs[service=allServices].auditLogConfigs[].logType / exemptedMembers (or collector effectiveAuditConfigs)",
+      "pass_condition": "PASS iff allServices declares ADMIN_READ, DATA_READ and DATA_WRITE with no exemptedMembers",
+      "upstream_defect_only": "Source WHERE filters non-compliant projects out of the universe before the CASE (no alarm row can be emitted).",
+      "native_deviations": "Inherited org/folder audit configs count when the collector materializes effectiveAuditConfigs; missing/ambiguous root policy is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.no_default_vpc"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_default_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1319,
+      "source_query_sha256": "bb6a476e1715b4b8a591f7e1997b375a4a4ca7a5fa1c5983e8ed9589023395ca",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L28"
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_network_contains_no_legacy_network"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_legacy_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1338,
+      "source_query_sha256": "fb267ad7a82ab069ecc22e463d243ae8d922028b1fafb1a2f65b6e339a528ed8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L42"
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_ssh_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits TCP declarations with absent ports although Compute interprets that as all ports, and ignores IPv6 internet ranges; its malformed textual all-protocol branch cannot match ordinary JSON. Reject the false-clean broad-ingress predicate and retain explicit declared-rule review without effective-reachability claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_ssh_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 793,
+      "source_query_sha256": "5ef07870f9667e5941851efdda11a6ad83b6d440524aee0f9573b63c505501cc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L98"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_ssh_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 22 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v200_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_rdp_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits protocol/port omission and IPv6 broad-source cases that can declare RDP ingress. Reject the false-clean enumeration gaps; replacement includes documented all-port defaults, active direction and declared ranges without effective-firewall inference."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_rdp_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 845,
+      "source_query_sha256": "58c1270fccf287eb96f0e1a6346c4e0979e756e4713e724e8ace2ae7a47ea0e8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_3.pp#L112"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_rdp_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 3389 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1252,
+      "source_query_sha256": "d6fe77086852d05aa680d90d0f6a5ba072eec33a5d71566b578d7b3b16cfff63",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L30"
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.confidential_computing"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_confidential_computing_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1087,
+      "source_query_sha256": "e874e15f9055de302a6e8325afff1a44b7fab0b11b16c5983694599292d8e6ab",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L170"
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account_with_full_access"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account_with_full_access",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1228,
+      "source_query_sha256": "7d726f5f89e260d05fd6523297eaf57b907f85b883bd70e7c2ffa6203b86e7d2",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L44"
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_block_project_wide_ssh_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_block_project_wide_ssh_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1064,
+      "source_query_sha256": "0bb2f1d122b7b21394afcd04fe4c6d6f7fdd0ff79477d8365290997ec134b7a7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L58"
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.no_serial_console"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_serial_port_connection_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1188,
+      "source_query_sha256": "9dbac8873ef572c91e09a3116449614202431ca09a54724097dac390b1422171",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L86"
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_ip_forwarding_disabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_ip_forwarding_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1107,
+      "source_query_sha256": "bfcf6d3880f1b0d61cda963e30b9e846e3cd30f5edee42713415f0c1fd383536",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L100"
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_shielded_vm_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_shielded_vm_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1208,
+      "source_query_sha256": "556ccf0a13e8ce91dc371c7d6fc50a1eeaaf352963541536f4a963b35e91f4d3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L128"
+    }
+  },
+  "gcp-compliance.control.cis_v200_4_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_instance_with_no_public_ip_addresses; native port(s) gcp.ports.compute_instance_with_no_public_ip_addresses authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes a multi-interface VM whenever any one interface has no NAT configuration, hiding another interface with a declared public IP. Reject this any-private-interface false-clean result; replacement reviews every observed interface and retains no-reachability semantics."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_public_ip_addresses",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1276,
+      "source_query_sha256": "dcf49826cde9c994937446dbd08ca7988225e9ed69b53661ad7ca152ef127a7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_4_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_4.pp#L142"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_with_no_public_ip_addresses",
+      "target_native_checks": [
+        "gcp.ports.compute_instance_with_no_public_ip_addresses"
+      ],
+      "resource": "Each Compute Engine VM instance (kind instance)",
+      "property": "networkInterfaces[].accessConfigs[].natIP, ipv6AccessConfigs[].externalIpv6",
+      "pass_condition": "PASS iff no observed interface declares an external IPv4/IPv6 address",
+      "upstream_defect_only": "Source passes a multi-NIC VM when any one interface lacks an access config.",
+      "native_deviations": "GKE-created node instances (gke-* with goog-gke-node label) are evaluated, while the source skips them."
+    }
+  },
+  "gcp-compliance.control.cis_v200_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.sql_instance_require_ssl_enabled; native port(s) gcp.ports.sql_instance_require_ssl_enabled authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source alarms unless sslMode is exactly ENCRYPTED_ONLY, falsely rejecting TRUSTED_CLIENT_CERTIFICATE_REQUIRED which also enforces encrypted connections. Reject this incomplete enum classification and retain the current provider encryption modes."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_require_ssl_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 422,
+      "source_query_sha256": "a24604112e51489b9d5c013ddce90142465e052aaa0ad26e83f8e896548fe1d0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v200_6_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v200/section_6.pp#L353"
+    },
+    "replacement_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_require_ssl_enabled",
+      "target_native_checks": [
+        "gcp.ports.sql_instance_require_ssl_enabled"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "settings.ipConfiguration.sslMode",
+      "pass_condition": "PASS iff sslMode is ENCRYPTED_ONLY or TRUSTED_CLIENT_CERTIFICATE_REQUIRED; ALLOW_UNENCRYPTED_AND_ENCRYPTED fails",
+      "upstream_defect_only": "Source rejects TRUSTED_CLIENT_CERTIFICATE_REQUIRED (also encrypted-only).",
+      "native_deviations": "Missing/unrecognized sslMode is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v300_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.audit_logging_configured_for_all_service; native port(s) gcp.ports.audit_logging_configured_for_all_service authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source WHERE filters out projects missing any required audit category before its CASE, so no negative finding can be emitted for absent audit configuration. Reject this filtered-universe false-clean result; replacement runs once per selected project and gates complete root-policy evidence before required-configuration absence."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "audit_logging_configured_for_all_service",
+      "source_path": "policy_bundle/resourcemanager.pp",
+      "source_line": 24,
+      "source_query_sha256": "26d164633e6029e1843c921721ee9b3aa0c7db919c5b9881ed2419cf069d9de8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_2.pp#L34"
+    },
+    "replacement_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "audit_logging_configured_for_all_service",
+      "target_native_checks": [
+        "gcp.ports.audit_logging_configured_for_all_service"
+      ],
+      "resource": "Each selected project scope (target=scope) with its exact project-root IAM policy (kind iam_policy)",
+      "property": "auditConfigs[service=allServices].auditLogConfigs[].logType / exemptedMembers (or collector effectiveAuditConfigs)",
+      "pass_condition": "PASS iff allServices declares ADMIN_READ, DATA_READ and DATA_WRITE with no exemptedMembers",
+      "upstream_defect_only": "Source WHERE filters non-compliant projects out of the universe before the CASE (no alarm row can be emitted).",
+      "native_deviations": "Inherited org/folder audit configs count when the collector materializes effectiveAuditConfigs; missing/ambiguous root policy is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.no_default_vpc"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_default_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1319,
+      "source_query_sha256": "bb6a476e1715b4b8a591f7e1997b375a4a4ca7a5fa1c5983e8ed9589023395ca",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L28"
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_network_contains_no_legacy_network"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_legacy_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1338,
+      "source_query_sha256": "fb267ad7a82ab069ecc22e463d243ae8d922028b1fafb1a2f65b6e339a528ed8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L42"
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_ssh_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits TCP declarations with absent ports although Compute interprets that as all ports, and ignores IPv6 internet ranges; its malformed textual all-protocol branch cannot match ordinary JSON. Reject the false-clean broad-ingress predicate and retain explicit declared-rule review without effective-reachability claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_ssh_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 793,
+      "source_query_sha256": "5ef07870f9667e5941851efdda11a6ad83b6d440524aee0f9573b63c505501cc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L98"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_ssh_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 22 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v300_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_rdp_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits protocol/port omission and IPv6 broad-source cases that can declare RDP ingress. Reject the false-clean enumeration gaps; replacement includes documented all-port defaults, active direction and declared ranges without effective-firewall inference."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_rdp_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 845,
+      "source_query_sha256": "58c1270fccf287eb96f0e1a6346c4e0979e756e4713e724e8ace2ae7a47ea0e8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_3.pp#L112"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_rdp_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 3389 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1252,
+      "source_query_sha256": "d6fe77086852d05aa680d90d0f6a5ba072eec33a5d71566b578d7b3b16cfff63",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L30"
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.confidential_computing"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_confidential_computing_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1087,
+      "source_query_sha256": "e874e15f9055de302a6e8325afff1a44b7fab0b11b16c5983694599292d8e6ab",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L170"
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account_with_full_access"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account_with_full_access",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1228,
+      "source_query_sha256": "7d726f5f89e260d05fd6523297eaf57b907f85b883bd70e7c2ffa6203b86e7d2",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L44"
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_block_project_wide_ssh_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_block_project_wide_ssh_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1064,
+      "source_query_sha256": "0bb2f1d122b7b21394afcd04fe4c6d6f7fdd0ff79477d8365290997ec134b7a7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L58"
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.no_serial_console"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_serial_port_connection_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1188,
+      "source_query_sha256": "9dbac8873ef572c91e09a3116449614202431ca09a54724097dac390b1422171",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L86"
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_ip_forwarding_disabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_ip_forwarding_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1107,
+      "source_query_sha256": "bfcf6d3880f1b0d61cda963e30b9e846e3cd30f5edee42713415f0c1fd383536",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L100"
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_shielded_vm_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_shielded_vm_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1208,
+      "source_query_sha256": "556ccf0a13e8ce91dc371c7d6fc50a1eeaaf352963541536f4a963b35e91f4d3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L128"
+    }
+  },
+  "gcp-compliance.control.cis_v300_4_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_instance_with_no_public_ip_addresses; native port(s) gcp.ports.compute_instance_with_no_public_ip_addresses authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes a multi-interface VM whenever any one interface has no NAT configuration, hiding another interface with a declared public IP. Reject this any-private-interface false-clean result; replacement reviews every observed interface and retains no-reachability semantics."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_public_ip_addresses",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1276,
+      "source_query_sha256": "dcf49826cde9c994937446dbd08ca7988225e9ed69b53661ad7ca152ef127a7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_4_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_4.pp#L142"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_with_no_public_ip_addresses",
+      "target_native_checks": [
+        "gcp.ports.compute_instance_with_no_public_ip_addresses"
+      ],
+      "resource": "Each Compute Engine VM instance (kind instance)",
+      "property": "networkInterfaces[].accessConfigs[].natIP, ipv6AccessConfigs[].externalIpv6",
+      "pass_condition": "PASS iff no observed interface declares an external IPv4/IPv6 address",
+      "upstream_defect_only": "Source passes a multi-NIC VM when any one interface lacks an access config.",
+      "native_deviations": "GKE-created node instances (gke-* with goog-gke-node label) are evaluated, while the source skips them."
+    }
+  },
+  "gcp-compliance.control.cis_v300_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.sql_instance_require_ssl_enabled; native port(s) gcp.ports.sql_instance_require_ssl_enabled authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source alarms unless sslMode is exactly ENCRYPTED_ONLY, falsely rejecting TRUSTED_CLIENT_CERTIFICATE_REQUIRED which also enforces encrypted connections. Reject this incomplete enum classification and retain the current provider encryption modes."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_require_ssl_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 422,
+      "source_query_sha256": "a24604112e51489b9d5c013ddce90142465e052aaa0ad26e83f8e896548fe1d0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v300_6_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v300/section_6.pp#L337"
+    },
+    "replacement_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_require_ssl_enabled",
+      "target_native_checks": [
+        "gcp.ports.sql_instance_require_ssl_enabled"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "settings.ipConfiguration.sslMode",
+      "pass_condition": "PASS iff sslMode is ENCRYPTED_ONLY or TRUSTED_CLIENT_CERTIFICATE_REQUIRED; ALLOW_UNENCRYPTED_AND_ENCRYPTED fails",
+      "upstream_defect_only": "Source rejects TRUSTED_CLIENT_CERTIFICATE_REQUIRED (also encrypted-only).",
+      "native_deviations": "Missing/unrecognized sslMode is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v400_2_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.audit_logging_configured_for_all_service; native port(s) gcp.ports.audit_logging_configured_for_all_service authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source WHERE filters out projects missing any required audit category before its CASE, so no negative finding can be emitted for absent audit configuration. Reject this filtered-universe false-clean result; replacement runs once per selected project and gates complete root-policy evidence before required-configuration absence."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "audit_logging_configured_for_all_service",
+      "source_path": "policy_bundle/resourcemanager.pp",
+      "source_line": 24,
+      "source_query_sha256": "26d164633e6029e1843c921721ee9b3aa0c7db919c5b9881ed2419cf069d9de8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_2_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_2.pp#L34"
+    },
+    "replacement_checks": [
+      "gcp.ports.audit_logging_configured_for_all_service"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "audit_logging_configured_for_all_service",
+      "target_native_checks": [
+        "gcp.ports.audit_logging_configured_for_all_service"
+      ],
+      "resource": "Each selected project scope (target=scope) with its exact project-root IAM policy (kind iam_policy)",
+      "property": "auditConfigs[service=allServices].auditLogConfigs[].logType / exemptedMembers (or collector effectiveAuditConfigs)",
+      "pass_condition": "PASS iff allServices declares ADMIN_READ, DATA_READ and DATA_WRITE with no exemptedMembers",
+      "upstream_defect_only": "Source WHERE filters non-compliant projects out of the universe before the CASE (no alarm row can be emitted).",
+      "native_deviations": "Inherited org/folder audit configs count when the collector materializes effectiveAuditConfigs; missing/ambiguous root policy is UNKNOWN."
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_1": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.network.no_default_vpc"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_default_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1319,
+      "source_query_sha256": "bb6a476e1715b4b8a591f7e1997b375a4a4ca7a5fa1c5983e8ed9589023395ca",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L28"
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_network_contains_no_legacy_network"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_network_contains_no_legacy_network",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1338,
+      "source_query_sha256": "fb267ad7a82ab069ecc22e463d243ae8d922028b1fafb1a2f65b6e339a528ed8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L42"
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_6": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_ssh_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits TCP declarations with absent ports although Compute interprets that as all ports, and ignores IPv6 internet ranges; its malformed textual all-protocol branch cannot match ordinary JSON. Reject the false-clean broad-ingress predicate and retain explicit declared-rule review without effective-reachability claims."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_ssh_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 793,
+      "source_query_sha256": "5ef07870f9667e5941851efdda11a6ad83b6d440524aee0f9573b63c505501cc",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L98"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_ssh_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_ssh_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 22 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v400_3_7": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_firewall_rule_rdp_access_restricted. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source omits protocol/port omission and IPv6 broad-source cases that can declare RDP ingress. Reject the false-clean enumeration gaps; replacement includes documented all-port defaults, active direction and declared ranges without effective-firewall inference."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_firewall_rule_rdp_access_restricted",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 845,
+      "source_query_sha256": "58c1270fccf287eb96f0e1a6346c4e0979e756e4713e724e8ace2ae7a47ea0e8",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_3_7",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_3.pp#L112"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_firewall_rule_rdp_access_restricted",
+      "target_native_checks": [
+        "gcp.ports.compute_firewall_rule_rdp_access_restricted"
+      ],
+      "resource": "Each compute#firewall item (collector kind firewall)",
+      "property": "direction, disabled, sourceRanges (absent => 0.0.0.0/0 unless tags/SA sources), allowed[].IPProtocol/ports",
+      "pass_condition": "FAIL iff an active INGRESS rule with a 0.0.0.0/0 or ::/0 source allows tcp/6/all on a port range containing 3389 (absent ports = all ports)",
+      "upstream_defect_only": "Source misses absent-ports (all ports) and IPv6 ::/0 declarations (false clean).",
+      "native_deviations": "EGRESS/disabled rules are NOT_APPLICABLE; malformed ports are UNKNOWN; priorities/targets not evaluated (declaration audit, like the source)."
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_1": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1252,
+      "source_query_sha256": "d6fe77086852d05aa680d90d0f6a5ba072eec33a5d71566b578d7b3b16cfff63",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_1",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L30"
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_11": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.confidential_computing"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_confidential_computing_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1087,
+      "source_query_sha256": "e874e15f9055de302a6e8325afff1a44b7fab0b11b16c5983694599292d8e6ab",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_11",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L170"
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_2": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_default_service_account_with_full_access"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_default_service_account_with_full_access",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1228,
+      "source_query_sha256": "7d726f5f89e260d05fd6523297eaf57b907f85b883bd70e7c2ffa6203b86e7d2",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_2",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L44"
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_3": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_block_project_wide_ssh_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_block_project_wide_ssh_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1064,
+      "source_query_sha256": "0bb2f1d122b7b21394afcd04fe4c6d6f7fdd0ff79477d8365290997ec134b7a7",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_3",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L58"
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_5": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.reviewed.compute.no_serial_console"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_serial_port_connection_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1188,
+      "source_query_sha256": "9dbac8873ef572c91e09a3116449614202431ca09a54724097dac390b1422171",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_5",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L86"
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_6": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_ip_forwarding_disabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_ip_forwarding_disabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1107,
+      "source_query_sha256": "bfcf6d3880f1b0d61cda963e30b9e846e3cd30f5edee42713415f0c1fd383536",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_6",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L100"
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_8": {
+    "disposition": "ported",
+    "native_checks": [
+      "gcp.ports.compute_instance_shielded_vm_enabled"
+    ],
+    "reason": "Exact reviewed native field and source entity/GKE label applicability; shielded settings preserve the conjunctive predicate and legacy-network IPv4Range differs from auto subnet mode. Missing/denied metadata remains UNKNOWN, not a safe default.",
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_shielded_vm_enabled",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1208,
+      "source_query_sha256": "556ccf0a13e8ce91dc371c7d6fc50a1eeaaf352963541536f4a963b35e91f4d3",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_8",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L128"
+    }
+  },
+  "gcp-compliance.control.cis_v400_4_9": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.compute_instance_with_no_public_ip_addresses; native port(s) gcp.ports.compute_instance_with_no_public_ip_addresses authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source passes a multi-interface VM whenever any one interface has no NAT configuration, hiding another interface with a declared public IP. Reject this any-private-interface false-clean result; replacement reviews every observed interface and retains no-reachability semantics."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "compute_instance_with_no_public_ip_addresses",
+      "source_path": "policy_bundle/compute.pp",
+      "source_line": 1276,
+      "source_query_sha256": "dcf49826cde9c994937446dbd08ca7988225e9ed69b53661ad7ca152ef127a7a",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_4_9",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_4.pp#L142"
+    },
+    "replacement_checks": [
+      "gcp.ports.compute_instance_with_no_public_ip_addresses"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "compute_instance_with_no_public_ip_addresses",
+      "target_native_checks": [
+        "gcp.ports.compute_instance_with_no_public_ip_addresses"
+      ],
+      "resource": "Each Compute Engine VM instance (kind instance)",
+      "property": "networkInterfaces[].accessConfigs[].natIP, ipv6AccessConfigs[].externalIpv6",
+      "pass_condition": "PASS iff no observed interface declares an external IPv4/IPv6 address",
+      "upstream_defect_only": "Source passes a multi-NIC VM when any one interface lacks an access config.",
+      "native_deviations": "GKE-created node instances (gke-* with goog-gke-node label) are evaluated, while the source skips them."
+    }
+  },
+  "gcp-compliance.control.cis_v400_6_4": {
+    "disposition": "merged",
+    "native_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "review_classification": "corrected_native_merge",
+    "reason": "Framework-link re-adjudication (2026-10-11): the upstream evaluator is defective (see upstream_defect) and is not claimed as executed, but the framework control requirement it is mapped to is implemented by corrected native predicate(s): reviewer-declared replacement native(s) gcp.ports.sql_instance_require_ssl_enabled; native port(s) gcp.ports.sql_instance_require_ssl_enabled authored for this exact upstream query. This control's framework associations therefore attach to those natives.",
+    "upstream_defect": {
+      "classification": "invalid_predicate",
+      "reason": "Source alarms unless sslMode is exactly ENCRYPTED_ONLY, falsely rejecting TRUSTED_CLIENT_CERTIFICATE_REQUIRED which also enforces encrypted connections. Reject this incomplete enum classification and retain the current provider encryption modes."
+    },
+    "official_docs": [
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/instances",
+      "https://docs.cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+      "https://docs.cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances"
+    ],
+    "review_notes": {
+      "predicate": "sql_instance_require_ssl_enabled",
+      "source_path": "policy_bundle/sql.pp",
+      "source_line": 422,
+      "source_query_sha256": "a24604112e51489b9d5c013ddce90142465e052aaa0ad26e83f8e896548fe1d0",
+      "revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
+      "semantics": "explicit configuration, not runtime reachability/effective permissions",
+      "source_row_id": "gcp-compliance.control.cis_v400_6_4",
+      "source_url": "https://github.com/turbot/steampipe-mod-gcp-compliance/blob/3ac653021a284b68c69b14c75afa2ebc1feff665/cis_v400/section_6.pp#L337"
+    },
+    "replacement_checks": [
+      "gcp.ports.sql_instance_require_ssl_enabled"
+    ],
+    "native_equivalence_verification": {
+      "verified_on": "2026-10-11",
+      "verdict": "same_control_requirement",
+      "query_id": "sql_instance_require_ssl_enabled",
+      "target_native_checks": [
+        "gcp.ports.sql_instance_require_ssl_enabled"
+      ],
+      "resource": "Each Cloud SQL instance (kind sql_instance)",
+      "property": "settings.ipConfiguration.sslMode",
+      "pass_condition": "PASS iff sslMode is ENCRYPTED_ONLY or TRUSTED_CLIENT_CERTIFICATE_REQUIRED; ALLOW_UNENCRYPTED_AND_ENCRYPTED fails",
+      "upstream_defect_only": "Source rejects TRUSTED_CLIENT_CERTIFICATE_REQUIRED (also encrypted-only).",
+      "native_deviations": "Missing/unrecognized sslMode is UNKNOWN."
+    }
+  }
+}

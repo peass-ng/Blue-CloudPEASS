@@ -1,0 +1,63 @@
+{
+  "captured_live_snapshots": [
+    {
+      "source": ".cache/peaso-qa/task_02a312b5ac1f/aws-snapshot.json",
+      "provider": "aws",
+      "resources": 259,
+      "findings": 439,
+      "statuses": {
+        "UNKNOWN": 26,
+        "PASS": 214,
+        "FAIL": 63,
+        "NOT_APPLICABLE": 40,
+        "EMPTY": 38,
+        "MANUAL": 58
+      },
+      "coverage_complete": false,
+      "seconds": 0.5054453748743981,
+      "deterministic": true,
+      "input_unchanged": true,
+      "cloud_calls_at_evaluation": 0,
+      "selected_report_checks": 72
+    },
+    {
+      "source": ".cache/peaso-qa/task_02a312b5ac1f/azure-snapshot.json",
+      "provider": "azure",
+      "resources": 1500,
+      "findings": 2551,
+      "statuses": {
+        "EMPTY": 33,
+        "PASS": 25,
+        "FAIL": 10,
+        "UNKNOWN": 69,
+        "NOT_APPLICABLE": 1371,
+        "MANUAL": 1043
+      },
+      "coverage_complete": false,
+      "seconds": 0.7044988749548793,
+      "deterministic": true,
+      "input_unchanged": true,
+      "cloud_calls_at_evaluation": 0,
+      "selected_report_checks": 62
+    },
+    {
+      "source": ".cache/peaso-qa/task_02a312b5ac1f/k8s-snapshot.json",
+      "provider": "k8s",
+      "resources": 155,
+      "findings": 333,
+      "statuses": {
+        "PASS": 145,
+        "FAIL": 15,
+        "UNKNOWN": 120,
+        "MANUAL": 53
+      },
+      "coverage_complete": false,
+      "seconds": 0.1712040000129491,
+      "deterministic": true,
+      "input_unchanged": true,
+      "cloud_calls_at_evaluation": 0,
+      "selected_report_checks": 55
+    }
+  ],
+  "gcp": "No authenticated live snapshot supplied; native collector fixtures and missing/denied behavior validated separately."
+}

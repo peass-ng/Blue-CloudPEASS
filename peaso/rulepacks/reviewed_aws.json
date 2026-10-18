@@ -1,0 +1,616 @@
+{
+  "aws-compliance.control.eks_cluster_secrets_encrypted": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.eks.secrets_encryption"
+    ],
+    "reason": "Preserve version logic: major>1 OR version>=1.28 passes due service envelope-encryption defaults; older versions require encryptionConfig resources contains secrets. Missing/denied/malformed native facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/eks/client/describe_cluster.html"
+    ],
+    "review_notes": "Reviewed complete query predicate, including its applicability/defaults. Framework controls are preserved from pinned manifests.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "b85455da4507c0029f3d1e98ebf1eb7a220d995304ab91a2fe750a7f37b940ea",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/eks.pp#L7"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_eks_audit_log_monitoring_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.eks_audit_logs"
+    ],
+    "reason": "Existing detector feature list contains Name=EKS_AUDIT_LOGS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "c90a00b62814b9260d7479ef1dd8e5465f16df296d919595f9404021ad7074e8",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L77"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_lambda_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.lambda_network_logs"
+    ],
+    "reason": "Existing detector feature list contains Name=LAMBDA_NETWORK_LOGS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "39fdf9699c9a0461d29f74a8920c222927d7c58c60217a72271c63d365061723",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L85"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_rds_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.rds_login_events"
+    ],
+    "reason": "Existing detector feature list contains Name=RDS_LOGIN_EVENTS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "191e9474bf062489565d224210baceebbb13b6ea7152df1a49a1cf8a3662d8eb",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L109"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_runtime_monitoring_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.runtime_monitoring"
+    ],
+    "reason": "Existing detector feature list contains Name=RUNTIME_MONITORING and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "158bd4bdd0b0d42b61cd170f04f4b06fb889b1057210afdfc6f489962b78d970",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L125"
+    }
+  },
+  "aws-compliance.control.guardduty_detector_s3_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.guardduty.s3_data_events"
+    ],
+    "reason": "Existing detector feature list contains Name=S3_DATA_EVENTS and Status=ENABLED. This exactly retains the query CTE and self-left-join predicate; no account/region-wide detector presence is inferred. Complete empty feature list fails; missing/denied/malformed list is UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/guardduty/client/get_detector.html"
+    ],
+    "review_notes": "Single-detector feature configuration only; full regional detector coverage is separate. Reject conflicting duplicate feature rows as malformed evidence.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "03f51897e36f1e55adcd5bf280686e433edec011bddb7c3fe90a52cec4aece32",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/guardduty.pp#L117"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_copy_tags_to_snapshot_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.cluster_copy_snapshot_tags"
+    ],
+    "reason": "The complete single-table query requires CopyTagsToSnapshot=true on each DB cluster. Missing/denied/malformed native facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_clusters.html"
+    ],
+    "review_notes": "Reviewed complete query predicate, including its applicability/defaults. Framework controls are preserved from pinned manifests.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "4112462e772d9ed65533eeaf6eba5080b31adb9e16a54a9073163584b5024671",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L7"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_iam_authentication_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.cluster_iam_authentication"
+    ],
+    "reason": "The complete single-table query requires IAMDatabaseAuthenticationEnabled=true on each DB cluster. Missing/denied/malformed native facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_clusters.html"
+    ],
+    "review_notes": "Reviewed complete query predicate, including its applicability/defaults. Framework controls are preserved from pinned manifests.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "ebc113e1b0876f48f8ba145a2823ad9c9ee84103ee0440b1822e860551f5167b",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L377"
+    }
+  },
+  "aws-compliance.control.rds_db_cluster_multiple_az_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.cluster_multi_az"
+    ],
+    "reason": "The complete single-table query requires MultiAZ=true on each DB cluster; no instance/cluster join is substituted. Missing/denied/malformed native facts remain UNKNOWN.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_clusters.html"
+    ],
+    "review_notes": "Reviewed complete query predicate, including its applicability/defaults. Framework controls are preserved from pinned manifests.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "6f252c993e0153658934868ec40ea26932168af99a8f79b11efa2720ad43de46",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L516"
+    }
+  },
+  "aws-compliance.control.rds_db_snapshot_encrypted_at_rest": {
+    "disposition": "pending",
+    "native_checks": [],
+    "related_native_checks": [
+      "aws.rds.snapshot_encryption"
+    ],
+    "reason": "The upstream query is a UNION over DB instance and DB cluster snapshots. Current collector only retrieves instance snapshots, so the narrower native Encrypted predicate does not establish complete source support.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_snapshots.html",
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_cluster_snapshots.html"
+    ],
+    "review_notes": "Do not attach framework/source support for the complete UNION until cluster snapshots are collected and evaluated.",
+    "reviewed_source": {
+      "repository": "turbot/steampipe-mod-aws-compliance",
+      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "evaluator_sha256": "c5051cc8f6b11906e14ec1d4b4c6e3874a1442f523e3fcb174c0d9ab3ec657fb",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/rds.pp#L204"
+    }
+  },
+  "prowler.aws.awslambda_function_inside_vpc": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.lambda.vpc_configuration"
+    ],
+    "reason": "VpcConfig.VpcId is nonempty; no reachability or isolation claim. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/lambda/client/list_functions.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "719b8c85db2278103a162b7f7f19c9ae02a81a4fa161bdc904625ababc141083",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/awslambda/awslambda_function_inside_vpc/awslambda_function_inside_vpc.metadata.json"
+    }
+  },
+  "prowler.aws.awslambda_function_no_dead_letter_queue": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.lambda.dead_letter_queue"
+    ],
+    "reason": "DeadLetterConfig.TargetArn is nonempty, matching the service normalization before the upstream existence predicate. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/lambda/client/list_functions.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "e2bfbafa6cdae3bad9e0b0b527022ef90dc5342579d0e1cb6a128cbb9268a05b",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/awslambda/awslambda_function_no_dead_letter_queue/awslambda_function_no_dead_letter_queue.metadata.json"
+    }
+  },
+  "prowler.aws.awslambda_function_url_public": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.lambda.function_url_authentication"
+    ],
+    "reason": "Apply only when a function URL exists, require AuthType AWS_IAM; absent URL is NOT_APPLICABLE and denial is UNKNOWN. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/lambda/client/get_function_url_config.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "d996de31a7dffe77232165afd4a9cd007cb2a332639ee00276e8b5cf25bb2ea5",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/awslambda/awslambda_function_url_public/awslambda_function_url_public.metadata.json"
+    }
+  },
+  "prowler.aws.cloudtrail_kms_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.cloudtrail.kms_encryption"
+    ],
+    "reason": "KmsKeyId is nonempty on the collected named home-region trail; no claim about account-wide trail presence. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/cloudtrail/client/describe_trails.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "fea7720483059fd8cb09674a9a08dc452e79f45e99df1945c90bfa3afe809410",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cloudtrail/cloudtrail_kms_encryption_enabled/cloudtrail_kms_encryption_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.config_recorder_using_aws_service_role": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.config.service_linked_role"
+    ],
+    "reason": "Apply only to named recording recorder; roleARN equals current account and partition AWSServiceRoleForConfig ARN. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/config/client/describe_configuration_recorders.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "a2f579460d683bf20fac3c9bbf9ba6d73facafa201388a5897caec7e2fe7832d",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/config/config_recorder_using_aws_service_role/config_recorder_using_aws_service_role.metadata.json"
+    }
+  },
+  "prowler.aws.ecr_repositories_lifecycle_policy_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.ecr.lifecycle_policy"
+    ],
+    "reason": "Nonempty lifecyclePolicyText; explicit LifecyclePolicyNotFound absence fails and denied/missing evidence is UNKNOWN. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/ecr/client/get_lifecycle_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "ae82c584d1b299faf90d95405ce61d095f802de93da89e726694703ed05eb35f",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ecr/ecr_repositories_lifecycle_policy_enabled/ecr_repositories_lifecycle_policy_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.elbv2_alb_drop_invalid_header_fields_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.elbv2.drop_invalid_headers"
+    ],
+    "reason": "Application load balancers only; routing.http.drop_invalid_header_fields.enabled is true. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/elbv2/client/describe_load_balancer_attributes.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "aca26cca0ba638bbbb37316e2472a7f9de0bcffe559e88f5d3ef0c17f279985e",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/elbv2/elbv2_alb_drop_invalid_header_fields_enabled/elbv2_alb_drop_invalid_header_fields_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.elbv2_deletion_protection": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.elbv2.deletion_protection"
+    ],
+    "reason": "deletion_protection.enabled is true; parse native attribute list, reject duplicate/malformed evidence. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/elbv2/client/describe_load_balancer_attributes.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "f0523deced44c3feb686ab957e53567db28636ca1d7e3b6051a6feb8218e4d7b",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/elbv2/elbv2_deletion_protection/elbv2_deletion_protection.metadata.json"
+    }
+  },
+  "prowler.aws.elbv2_desync_mitigation_mode": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.elbv2.desync_mitigation"
+    ],
+    "reason": "Application load balancers only: defensive/strictest OR drop invalid header fields=true. Preserve the compound alternative. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/elbv2/client/describe_load_balancer_attributes.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "11123be5287dbc6ad6a0a4a7dd88a049db0e46248f3547844999bd8ee9ac6813",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/elbv2/elbv2_desync_mitigation_mode/elbv2_desync_mitigation_mode.metadata.json"
+    }
+  },
+  "prowler.aws.elbv2_is_in_multiple_az": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.elbv2.multiple_availability_zones"
+    ],
+    "reason": "At least two distinct AvailabilityZones ZoneName values, using pinned upstream default elbv2_min_azs=2. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/elbv2/client/describe_load_balancers.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "b76aec4998b30f850fcadcfb4c5be5e5c7d8271ed899c4108036ad374551d0b1",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/elbv2/elbv2_is_in_multiple_az/elbv2_is_in_multiple_az.metadata.json"
+    }
+  },
+  "prowler.aws.elbv2_logging_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.elbv2.access_logging"
+    ],
+    "reason": "access_logs.s3.enabled is true; all listed v2 load balancers as upstream. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/elbv2/client/describe_load_balancer_attributes.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "f00ae6b1fa5ec2a7a895798a2ed95c13ac7bf018aedbe98ac16533f2428f2013",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/elbv2/elbv2_logging_enabled/elbv2_logging_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.iam_password_policy_expires_passwords_within_90_days_or_less": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.password_max_age"
+    ],
+    "reason": "1 <= MaxPasswordAge <= 90; zero does not expire passwords and fails. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "b2fdee746df42a2bb0ae7ceef3cb5ed82179d18323cfbf8b560963bbbe3c5c75",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/iam/iam_password_policy_expires_passwords_within_90_days_or_less/iam_password_policy_expires_passwords_within_90_days_or_less.metadata.json"
+    }
+  },
+  "prowler.aws.iam_password_policy_lowercase": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.password_lowercase"
+    ],
+    "reason": "RequireLowercaseCharacters is true. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "4196d20cc36613591b131626e27f75860865c56c43d4ae7d38f5b62ab956c10f",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/iam/iam_password_policy_lowercase/iam_password_policy_lowercase.metadata.json"
+    }
+  },
+  "prowler.aws.iam_password_policy_minimum_length_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.password_minimum_length"
+    ],
+    "reason": "MinimumPasswordLength >= 14; no invented upper threshold. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "a4fd22d7e191227486f8294f0eb75b0ff111b9a1fe1649017bf81ae4951fec28",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/iam/iam_password_policy_minimum_length_14/iam_password_policy_minimum_length_14.metadata.json"
+    }
+  },
+  "prowler.aws.iam_password_policy_number": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.password_numbers"
+    ],
+    "reason": "RequireNumbers is true. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "6af8a0095cd6146994818e0899d0db00f26b7f3be73db3f60214e77fe204ec61",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/iam/iam_password_policy_number/iam_password_policy_number.metadata.json"
+    }
+  },
+  "prowler.aws.iam_password_policy_reuse_24": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.password_reuse_prevention"
+    ],
+    "reason": "PasswordReusePrevention == 24, preserving exact upstream equality. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "00ec3f13a6e969eb74451b3b8a9e33f6600a6825a23d2c8bba4821a73b1ea6f8",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/iam/iam_password_policy_reuse_24/iam_password_policy_reuse_24.metadata.json"
+    }
+  },
+  "prowler.aws.iam_password_policy_symbol": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.password_symbols"
+    ],
+    "reason": "RequireSymbols is true. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "a9279f355198e57e7dc08b34b17f7ffcc5650e08b6900f07c0d05a3c9f788493",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/iam/iam_password_policy_symbol/iam_password_policy_symbol.metadata.json"
+    }
+  },
+  "prowler.aws.iam_password_policy_uppercase": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.iam.password_uppercase"
+    ],
+    "reason": "RequireUppercaseCharacters is true. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/iam/client/get_account_password_policy.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "97c44d0e9d854f3243819b7b4cb502223b7d5f7111ede53b9b0b17e00891dc7f",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/iam/iam_password_policy_uppercase/iam_password_policy_uppercase.metadata.json"
+    }
+  },
+  "prowler.aws.kms_cmk_not_deleted_unintentionally": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.kms.no_pending_key_deletion"
+    ],
+    "reason": "CUSTOMER keys, excluding Disabled under pinned default scan_unused_services=false; KeyState != PendingDeletion. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/kms/client/describe_key.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "889c524b45caf2722b6f71b3bdadf154b93705979960c5160f63f4b2298ace5a",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_cmk_not_deleted_unintentionally/kms_cmk_not_deleted_unintentionally.metadata.json"
+    }
+  },
+  "prowler.aws.rds_instance_copy_tags_to_snapshots": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.copy_snapshot_tags"
+    ],
+    "reason": "Engine not in aurora/aurora-mysql/aurora-postgresql then CopyTagsToSnapshot; excluded engines are NOT_APPLICABLE. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_instances.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "7fe6f9a512a9050bbd3c2264186d459d87bf1a2c40c4418e3eacc25be0f91e6a",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rds/rds_instance_copy_tags_to_snapshots/rds_instance_copy_tags_to_snapshots.metadata.json"
+    }
+  },
+  "prowler.aws.rds_instance_enhanced_monitoring_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.enhanced_monitoring"
+    ],
+    "reason": "EnhancedMonitoringResourceArn is nonempty, preserving the upstream ARN predicate rather than substituting a monitoring interval. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_instances.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "12af5c4f01e2b9d77befad99ae3ec7b53e943d013bcd98e3e469ec98f76bb551",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rds/rds_instance_enhanced_monitoring_enabled/rds_instance_enhanced_monitoring_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.rds_instance_inside_vpc": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.vpc_configuration"
+    ],
+    "reason": "DBSubnetGroup.VpcId is nonempty; this is declared VPC membership, not network isolation. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_instances.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "53acff902b825021f502d15eeb16eda97407bc4c89725bcc24f816a16ada709f",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rds/rds_instance_inside_vpc/rds_instance_inside_vpc.metadata.json"
+    }
+  },
+  "prowler.aws.rds_instance_integration_cloudwatch_logs": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.cloudwatch_log_exports"
+    ],
+    "reason": "EnabledCloudwatchLogsExports contains at least one log type; no invented requirement for all engine-specific categories. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_instances.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "065decb7cd240aa25057c393b9a7d54f2aba76701ae10084624572d2978004c1",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rds/rds_instance_integration_cloudwatch_logs/rds_instance_integration_cloudwatch_logs.metadata.json"
+    }
+  },
+  "prowler.aws.rds_instance_minor_version_upgrade_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.rds.auto_minor_upgrade"
+    ],
+    "reason": "AutoMinorVersionUpgrade is true. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/describe_db_instances.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "db1fdb02303d0f2ccbc9f55a06b494f87e6cc7d8c96893a57cb2f87f462d2dd4",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rds/rds_instance_minor_version_upgrade_enabled/rds_instance_minor_version_upgrade_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.sns_topics_kms_encryption_at_rest_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.sns.kms_encryption"
+    ],
+    "reason": "KmsMasterKeyId is nonempty. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/sns/client/get_topic_attributes.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "ede1e9a6ad7181ea0309a94348f1c68749ace82bae2f711b410db5156270b4fd",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/sns/sns_topics_kms_encryption_at_rest_enabled/sns_topics_kms_encryption_at_rest_enabled.metadata.json"
+    }
+  },
+  "prowler.aws.sqs_queues_server_side_encryption_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.sqs.encryption"
+    ],
+    "reason": "KmsMasterKeyId is nonempty OR SqsManagedSseEnabled=true; upstream service sets its KMS marker for SQS-managed encryption too. Missing, denied and malformed evidence remains UNKNOWN rather than being coerced to an unsafe/safe default.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/boto3/latest/reference/services/sqs/client/get_queue_attributes.html"
+    ],
+    "review_notes": "Offline configuration predicate only; upstream default applicability retained. Framework/version/control references are merged from the exact pinned source by the catalog lead.",
+    "reviewed_source": {
+      "repository": "prowler-cloud/prowler",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "evaluator_sha256": "c672252e266cbad7e962eb0d0adf7eb69a962642b3b29a0b3eadc49974989829",
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/sqs/sqs_queues_server_side_encryption_enabled/sqs_queues_server_side_encryption_enabled.metadata.json"
+    }
+  }
+}

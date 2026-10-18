@@ -1,0 +1,375 @@
+{
+  "azure-compliance.control.ad_all_user_mfa_enabled": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "ad_all_user_mfa_enabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 213,
+      "query_sha256": "28854f438add1bc10f52c05fc097be5a9909c6945ea7972251b338c71c509356",
+      "control_path": "regulatory_compliance/activedirectory.pp",
+      "control_line": 23,
+      "arguments": [],
+      "pinned_sql": "with role_template_ids as (\n      select\n        array_agg(role_template_id) as rid\n      from\n        azuread_directory_role\n    ),\n    policy_with_mfa as (\n      select\n        tenant_id,\n        count(p.*)\n      from\n        azuread_conditional_access_policy as p,\n        role_template_ids as a\n      where\n        p.built_in_controls ?& array['mfa']\n        and (p.users -> 'includeRoles')::jsonb ?| (a.rid)\n        and jsonb_array_length(p.users -> 'excludeUsers') < 1\n      group by\n        tenant_id\n    ),\n    tenant_list as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when (select count from policy_with_mfa where tenant_id = t.tenant_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (select count from policy_with_mfa where tenant_id = t.tenant_id) > 0 then t.tenant_id || ' has MFA enabled for all users.'\n        else t.tenant_id || ' has MFA disabled for all users.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      tenant_list as t;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy",
+        "conditions": {
+          "users": {
+            "includeRoles": [
+              "one-role"
+            ],
+            "excludeUsers": [],
+            "includeUsers": []
+          }
+        },
+        "additional_fault": "Any directory role is not all users; disabled role-only policy passes"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v150_1_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 591,
+      "query_sha256": "0e2b5309c822deb14251822db8d6e07c5a5f504271aea810a38da790fff58cab",
+      "control_path": "cis_v150/section_1.pp",
+      "control_line": 213,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v200_1_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 591,
+      "query_sha256": "0e2b5309c822deb14251822db8d6e07c5a5f504271aea810a38da790fff58cab",
+      "control_path": "cis_v200/section_1.pp",
+      "control_line": 213,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_1_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 591,
+      "query_sha256": "0e2b5309c822deb14251822db8d6e07c5a5f504271aea810a38da790fff58cab",
+      "control_path": "cis_v210/section_1.pp",
+      "control_line": 214,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v210_1_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled_for_administrators",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 619,
+      "query_sha256": "ae7afc43db1a9a1ec37a85ac63e3b923b75df525011b366b5288147e56a058cf",
+      "control_path": "cis_v210/section_1.pp",
+      "control_line": 228,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        u.id,\n        tenant_id,\n        a.subscription_id,\n        u._ctx\n      from\n        azuread_user as u\n        left join azure_role_assignment as a on a.principal_id = u.id\n        left join azure_role_definition as d on d.id = a.role_definition_id\n      where role_type = 'BuiltInRole' and (role_name like '%Administrator%' or role_name = 'Owner')\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy",
+        "conditions": {
+          "users": {
+            "includeUsers": [
+              "unrelated-user"
+            ],
+            "excludeUsers": [
+              "administrator"
+            ]
+          }
+        },
+        "additional_fault": "Admin CTE crossjoined everypolicy without target-membership binding"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_2_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 591,
+      "query_sha256": "0e2b5309c822deb14251822db8d6e07c5a5f504271aea810a38da790fff58cab",
+      "control_path": "cis_v300/section_2.pp",
+      "control_line": 230,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v300_2_2_8": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled_for_administrators",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 619,
+      "query_sha256": "ae7afc43db1a9a1ec37a85ac63e3b923b75df525011b366b5288147e56a058cf",
+      "control_path": "cis_v300/section_2.pp",
+      "control_line": 244,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        u.id,\n        tenant_id,\n        a.subscription_id,\n        u._ctx\n      from\n        azuread_user as u\n        left join azure_role_assignment as a on a.principal_id = u.id\n        left join azure_role_definition as d on d.id = a.role_definition_id\n      where role_type = 'BuiltInRole' and (role_name like '%Administrator%' or role_name = 'Owner')\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy",
+        "conditions": {
+          "users": {
+            "includeUsers": [
+              "unrelated-user"
+            ],
+            "excludeUsers": [
+              "administrator"
+            ]
+          }
+        },
+        "additional_fault": "Admin CTE crossjoined everypolicy without target-membership binding"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_6_2_6": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 591,
+      "query_sha256": "0e2b5309c822deb14251822db8d6e07c5a5f504271aea810a38da790fff58cab",
+      "control_path": "cis_v400/section_6.pp",
+      "control_line": 203,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v400_6_2_7": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "iam_conditional_access_mfa_enabled_for_administrators",
+      "query_path": "regulatory_compliance/iam.pp",
+      "query_line": 619,
+      "query_sha256": "ae7afc43db1a9a1ec37a85ac63e3b923b75df525011b366b5288147e56a058cf",
+      "control_path": "cis_v400/section_6.pp",
+      "control_line": 217,
+      "arguments": [],
+      "pinned_sql": "with distinct_tenant as (\n      select\n        u.id,\n        tenant_id,\n        a.subscription_id,\n        u._ctx\n      from\n        azuread_user as u\n        left join azure_role_assignment as a on a.principal_id = u.id\n        left join azure_role_definition as d on d.id = a.role_definition_id\n      where role_type = 'BuiltInRole' and (role_name like '%Administrator%' or role_name = 'Owner')\n    )\n    select\n      p.id as resource,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when p.built_in_controls @> '[\"mfa\"]' then p.display_name || ' MFA enabled.'\n        else p.display_name || ' MFA disabled.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      distinct_tenant as t,\n      azuread_conditional_access_policy as p;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy",
+        "conditions": {
+          "users": {
+            "includeUsers": [
+              "unrelated-user"
+            ],
+            "excludeUsers": [
+              "administrator"
+            ]
+          }
+        },
+        "additional_fault": "Admin CTE crossjoined everypolicy without target-membership binding"
+      }
+    }
+  },
+  "azure-compliance.control.cis_v500_5_2_4": {
+    "disposition": "rejected",
+    "native_checks": [],
+    "review_classification": "invalid_predicate",
+    "reason": "Pinned source claims MFA enabled but tests only the mfa grant entry, never policy.state. A disabled/report-only policy with mfa therefore passes while it enforces no MFA. Admin/all-user variants additionally lack correct target-population coverage. Reject demonstrated wrong condition/scope, not missing snapshot facts or implementation.",
+    "official_docs": [
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesspolicy?view=graph-rest-1.0",
+      "https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols?view=graph-rest-1.0"
+    ],
+    "review_notes": "Each full source predicate and no-argument framework delegation inspected. Independent correct CA declaration/coverage baselines remain separate; no exact merge with stricter state/population/operator predicates.",
+    "source_review": {
+      "query_id": "ad_all_user_mfa_enabled",
+      "query_path": "regulatory_compliance/activedirectory.pp",
+      "query_line": 213,
+      "query_sha256": "28854f438add1bc10f52c05fc097be5a9909c6945ea7972251b338c71c509356",
+      "control_path": "cis_v500/section_5.pp",
+      "control_line": 170,
+      "arguments": [],
+      "pinned_sql": "with role_template_ids as (\n      select\n        array_agg(role_template_id) as rid\n      from\n        azuread_directory_role\n    ),\n    policy_with_mfa as (\n      select\n        tenant_id,\n        count(p.*)\n      from\n        azuread_conditional_access_policy as p,\n        role_template_ids as a\n      where\n        p.built_in_controls ?& array['mfa']\n        and (p.users -> 'includeRoles')::jsonb ?| (a.rid)\n        and jsonb_array_length(p.users -> 'excludeUsers') < 1\n      group by\n        tenant_id\n    ),\n    tenant_list as (\n      select\n        distinct tenant_id,\n        subscription_id,\n        _ctx\n      from\n        azure_tenant\n    )\n    select\n      t.tenant_id as resource,\n      case\n        when (select count from policy_with_mfa where tenant_id = t.tenant_id) > 0 then 'ok'\n        else 'alarm'\n      end as status,\n      case\n        when (select count from policy_with_mfa where tenant_id = t.tenant_id) > 0 then t.tenant_id || ' has MFA enabled for all users.'\n        else t.tenant_id || ' has MFA disabled for all users.'\n      end as reason,\n      t.tenant_id\n      ${replace(local.common_dimensions_subscription_id_qualifier_sql, \"__QUALIFIER__\", \"t.\")}\n    from\n      tenant_list as t;",
+      "counterexample": {
+        "state": "disabled",
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "AND"
+        },
+        "source_status": "ok",
+        "requirement_truth": "MFA_not_enforced_by_disabled_policy",
+        "conditions": {
+          "users": {
+            "includeRoles": [
+              "one-role"
+            ],
+            "excludeUsers": [],
+            "includeUsers": []
+          }
+        },
+        "additional_fault": "Any directory role is not all users; disabled role-only policy passes"
+      }
+    }
+  }
+}

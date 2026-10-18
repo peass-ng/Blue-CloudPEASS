@@ -1,0 +1,218 @@
+{
+  "prowler.aws.cognito_user_pool_password_policy_lowercase": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.password_lowercase"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_lowercase/cognito_user_pool_password_policy_lowercase.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "61204856b54413729d82e385c6ebbf73947d74e1eb73283b0f0c2a45edd4f5b4",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_lowercase/cognito_user_pool_password_policy_lowercase.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_password_policy_uppercase": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.password_uppercase"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_uppercase/cognito_user_pool_password_policy_uppercase.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "20ace85e68cdc0aef04e311bb4892a12deb6246841f2f78587caf8fc89837feb",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_uppercase/cognito_user_pool_password_policy_uppercase.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_password_policy_number": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.password_number"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_number/cognito_user_pool_password_policy_number.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "7495f757400d29717388caf6bd4aaf27738d87822c2cf9afd89ad08964f5dd1c",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_number/cognito_user_pool_password_policy_number.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_password_policy_symbol": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.password_symbol"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_symbol/cognito_user_pool_password_policy_symbol.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "d8992c1f0fea7a95693f23d0b332e5aff824b9ab2c29ba04740774e3eefd1105",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_symbol/cognito_user_pool_password_policy_symbol.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_deletion_protection_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.deletion_protection"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_deletion_protection_enabled/cognito_user_pool_deletion_protection_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "49d3225d6329baad614de41babb78d621808aeb609b3110675095f23df3fdac2",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_deletion_protection_enabled/cognito_user_pool_deletion_protection_enabled.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_mfa_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.required_mfa"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_mfa_enabled/cognito_user_pool_mfa_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "a8f1f36f0e829f1f7924eb1112a6aceee618ee7e2ea0f65c0fe594fd1cccf0ad",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_mfa_enabled/cognito_user_pool_mfa_enabled.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_advanced_security_enabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.enforced_threat_protection"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_advanced_security_enabled/cognito_user_pool_advanced_security_enabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "d12c6b1953324866c668162ddd4a2f659e58c87c84ce281dbff632c44ce13891",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_advanced_security_enabled/cognito_user_pool_advanced_security_enabled.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_self_registration_disabled": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.admin_only_signup"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_self_registration_disabled/cognito_user_pool_self_registration_disabled.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "eadc36142f67a0000426bd582821b9abf05bd093671f8bc11763c5f8321ce4a4",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_self_registration_disabled/cognito_user_pool_self_registration_disabled.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_password_policy_minimum_length_14": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.password_minimum_fourteen"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_minimum_length_14/cognito_user_pool_password_policy_minimum_length_14.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "6ed45e1352253a6547e2f990266be41e9b98ab02a78f515fa3a2e70ffa4f8a25",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_password_policy_minimum_length_14/cognito_user_pool_password_policy_minimum_length_14.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_temporary_password_expiration": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.temporary_password_seven_days"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_temporary_password_expiration/cognito_user_pool_temporary_password_expiration.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "fa3eada3e79d13da95119b61ceb72a9ecf158aecb42fd9e49b4b25ce4beaeafb",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_temporary_password_expiration/cognito_user_pool_temporary_password_expiration.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_blocks_compromised_credentials_sign_in_attempts": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.block_compromised_signin"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_blocks_compromised_credentials_sign_in_attempts/cognito_user_pool_blocks_compromised_credentials_sign_in_attempts.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "1b01444a689a777d31488b0d42161ed153e7024c068893fa41d27b016c37a654",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_blocks_compromised_credentials_sign_in_attempts/cognito_user_pool_blocks_compromised_credentials_sign_in_attempts.py"
+    }
+  },
+  "prowler.aws.cognito_user_pool_blocks_potential_malicious_sign_in_attempts": {
+    "disposition": "ported",
+    "native_checks": [
+      "aws.b.cognito.block_all_takeover_risks"
+    ],
+    "reason": "Individually reviewed pinned Python predicate and Cognito service DTO projection: preserve per-pool iteration, exact flags/enums and14-character or7-day threshold independently. Required MFA excludes OPTIONAL; threat protection requires ENFORCED and every declared response condition. Known successful native detail omissions use source/default semantics; denied/malformed/missing collection remains UNKNOWN. DescribeUserPool MFA state is the same native pool configuration state; identity-pool related-role prose is not a claim of effective access. No user credentials, sign-in execution or secret values are collected.",
+    "official_docs": [
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UserPoolType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_PasswordPolicyType.html",
+      "https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RiskConfigurationType.html"
+    ],
+    "reviewed_source": {
+      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/cognito/cognito_user_pool_blocks_potential_malicious_sign_in_attempts/cognito_user_pool_blocks_potential_malicious_sign_in_attempts.metadata.json",
+      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "sha256": "0224393840fe583bf90cffcd38616de914ec6b1133dee393492ed790ea9c7536",
+      "source_path": "prowler/providers/aws/services/cognito/cognito_user_pool_blocks_potential_malicious_sign_in_attempts/cognito_user_pool_blocks_potential_malicious_sign_in_attempts.py"
+    }
+  }
+}

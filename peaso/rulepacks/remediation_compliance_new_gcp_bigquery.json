@@ -1,0 +1,29 @@
+{
+  "gcp_pci_bigquery_dataset_a4e25dbf9640": {
+    "summary": "Remove the reviewed BigQuery dataset ACL entry granting allUsers READER access.",
+    "steps": [
+      "Read the exact dataset's FULL access list and identify the entry whose specialGroup is allUsers and role is READER; confirm the data owner's intended audience.",
+      "Arrange approved replacement access for the callers that need it, then remove only that allUsers READER entry through the reviewed dataset access-control change.",
+      "Read back the FULL dataset access list, verify the exact pair is absent, and separately review any other public grants or inherited access."
+    ],
+    "cli": [],
+    "caveats": [
+      "Removing a public reader grant can break anonymous consumers; coordinate the access change with the data owner.",
+      "This exact signed predicate does not assess allAuthenticatedUsers, WRITER, OWNER, iamMember, project, or inherited IAM grants; separate checks may report those risks."
+    ],
+    "references": [
+      {"title": "BigQuery datasets.get FULL view", "url": "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets/get"},
+      {"title": "BigQuery dataset access resource", "url": "https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/datasets"},
+      {"title": "BigQuery dataset access control", "url": "https://cloud.google.com/bigquery/docs/dataset-access-control"}
+    ],
+    "field_binding": {
+      "evaluator_family": "peaso.checks.compliance_new_gcp_bigquery",
+      "kind": "bigquery_dataset",
+      "target": "resource",
+      "path": "name; _provenance.representation=full; access[].specialGroup; access[].role",
+      "observed_fail_evidence": "dataset; all_users_reader_entries"
+    },
+    "proposed_spec_sha256": "1365f930a6137596c31b7f15d8609c6aed5ddc94b2f3928f2c86cf39662443cf",
+    "review_status": "source_bound_pending_review"
+  }
+}

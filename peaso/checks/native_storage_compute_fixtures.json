@@ -1,0 +1,1733 @@
+{
+  "aws_fedramp_emr_master_no_public_ip": {
+    "pass": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ],
+                "PublicIpAddress": "203.0.113.2"
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ],
+            "PublicIpAddress": "203.0.113.2"
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": []
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": []
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null
+  },
+  "aws.nist.emr_master_nodes_no_public_ip": {
+    "pass": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ],
+                "PublicIpAddress": "203.0.113.2"
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ],
+            "PublicIpAddress": "203.0.113.2"
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": []
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": []
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null
+  },
+  "aws_nist_emr_cluster_master_nodes_no_public_ip": {
+    "pass": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ],
+                "PublicIpAddress": "203.0.113.2"
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ],
+            "PublicIpAddress": "203.0.113.2"
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": []
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": []
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null
+  },
+  "aws_nist_efs_access_point_enforce_root_directory": {
+    "pass": {
+      "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+      "RootDirectory": {
+        "Path": "/tenant"
+      },
+      "_provenance": {
+        "operation": "efs:DescribeAccessPoints",
+        "root_directory_representation_complete": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "efs_access_point": [
+          {
+            "type": "efs_access_point",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+                "RootDirectory": {
+                  "Path": "/tenant"
+                },
+                "_provenance": {
+                  "operation": "efs:DescribeAccessPoints",
+                  "root_directory_representation_complete": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "efs_access_point": [
+        {
+          "type": "efs_access_point",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+            "RootDirectory": {
+              "Path": "/tenant"
+            },
+            "_provenance": {
+              "operation": "efs:DescribeAccessPoints",
+              "root_directory_representation_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+      "RootDirectory": {
+        "Path": "/"
+      },
+      "_provenance": {
+        "operation": "efs:DescribeAccessPoints",
+        "root_directory_representation_complete": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "efs_access_point": [
+          {
+            "type": "efs_access_point",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+                "RootDirectory": {
+                  "Path": "/"
+                },
+                "_provenance": {
+                  "operation": "efs:DescribeAccessPoints",
+                  "root_directory_representation_complete": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "efs_access_point": [
+        {
+          "type": "efs_access_point",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+            "RootDirectory": {
+              "Path": "/"
+            },
+            "_provenance": {
+              "operation": "efs:DescribeAccessPoints",
+              "root_directory_representation_complete": true
+            }
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+      "RootDirectory": {
+        "Path": "/tenant"
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "efs_access_point": [
+          {
+            "type": "efs_access_point",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+                "RootDirectory": {
+                  "Path": "/tenant"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "efs_access_point": [
+        {
+          "type": "efs_access_point",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "AccessPointArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-0123456789abcdef0",
+            "RootDirectory": {
+              "Path": "/tenant"
+            }
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null
+  },
+  "aws_g6_emr_master_nodes_no_public_address": {
+    "pass": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": [
+                  {
+                    "Ipv6Addresses": []
+                  }
+                ],
+                "PublicIpAddress": "203.0.113.2"
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": [
+              {
+                "Ipv6Addresses": []
+              }
+            ],
+            "PublicIpAddress": "203.0.113.2"
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "Id": "j-QA",
+      "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+      "Status": {
+        "State": "WAITING"
+      },
+      "MasterInstances": {
+        "collection_status": "collected",
+        "complete": true,
+        "items": [
+          {
+            "Ec2InstanceId": "i-0123456789abcdef0"
+          }
+        ],
+        "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+      }
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012"
+      },
+      "collections": {
+        "emr_cluster": [
+          {
+            "type": "emr_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "Id": "j-QA",
+                "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+                "Status": {
+                  "State": "WAITING"
+                },
+                "MasterInstances": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "items": [
+                    {
+                      "Ec2InstanceId": "i-0123456789abcdef0"
+                    }
+                  ],
+                  "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+                }
+              }
+            ]
+          }
+        ],
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-0123456789abcdef0",
+                "State": {
+                  "Name": "running"
+                },
+                "NetworkInterfaces": []
+              }
+            ]
+          }
+        ]
+      },
+      "emr_cluster": [
+        {
+          "type": "emr_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "Id": "j-QA",
+            "ClusterArn": "arn:aws:elasticmapreduce:us-east-1:123456789012:cluster/j-QA",
+            "Status": {
+              "State": "WAITING"
+            },
+            "MasterInstances": {
+              "collection_status": "collected",
+              "complete": true,
+              "items": [
+                {
+                  "Ec2InstanceId": "i-0123456789abcdef0"
+                }
+              ],
+              "PrimaryEc2InstanceId": "i-0123456789abcdef0"
+            }
+          }
+        }
+      ],
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-0123456789abcdef0",
+            "State": {
+              "Name": "running"
+            },
+            "NetworkInterfaces": []
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null
+  },
+  "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5": {
+    "pass": {
+      "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "collections": {
+        "sql_database_inventory": [
+          {
+            "type": "sql_database_inventory",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db"
+              }
+            ]
+          }
+        ],
+        "sql_tde_inventory": [
+          {
+            "type": "sql_tde_inventory",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db/transparentDataEncryption/current",
+                "parent_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db",
+                "properties": {
+                  "state": "Enabled"
+                }
+              }
+            ]
+          }
+        ],
+        "managed_instance_database": [
+          {
+            "type": "managed_instance_database",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "managed_instance_tde": [
+          {
+            "type": "managed_instance_tde",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "sql_database_inventory": [
+        {
+          "type": "sql_database_inventory",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db"
+          }
+        }
+      ],
+      "sql_tde_inventory": [
+        {
+          "type": "sql_tde_inventory",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db/transparentDataEncryption/current",
+            "parent_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db",
+            "properties": {
+              "state": "Enabled"
+            }
+          }
+        }
+      ],
+      "managed_instance_database": [],
+      "managed_instance_tde": []
+    },
+    "fail": {
+      "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "collections": {
+        "sql_database_inventory": [
+          {
+            "type": "sql_database_inventory",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db"
+              }
+            ]
+          }
+        ],
+        "sql_tde_inventory": [
+          {
+            "type": "sql_tde_inventory",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db/transparentDataEncryption/current",
+                "parent_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db",
+                "properties": {
+                  "state": "Disabled"
+                }
+              }
+            ]
+          }
+        ],
+        "managed_instance_database": [
+          {
+            "type": "managed_instance_database",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "managed_instance_tde": [
+          {
+            "type": "managed_instance_tde",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "sql_database_inventory": [
+        {
+          "type": "sql_database_inventory",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db"
+          }
+        }
+      ],
+      "sql_tde_inventory": [
+        {
+          "type": "sql_tde_inventory",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db/transparentDataEncryption/current",
+            "parent_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db",
+            "properties": {
+              "state": "Disabled"
+            }
+          }
+        }
+      ],
+      "managed_instance_database": [],
+      "managed_instance_tde": []
+    },
+    "unknown": {
+      "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "azure",
+        "scope": "/subscriptions/11111111-1111-1111-1111-111111111111"
+      },
+      "collections": {
+        "sql_database_inventory": [
+          {
+            "type": "sql_database_inventory",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db"
+              }
+            ]
+          }
+        ],
+        "sql_tde_inventory": [
+          {
+            "type": "sql_tde_inventory",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "collected",
+            "items": [
+              {
+                "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db/transparentDataEncryption/current",
+                "parent_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db",
+                "properties": {
+                  "state": "unknown"
+                }
+              }
+            ]
+          }
+        ],
+        "managed_instance_database": [
+          {
+            "type": "managed_instance_database",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "items": []
+          }
+        ],
+        "managed_instance_tde": [
+          {
+            "type": "managed_instance_tde",
+            "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+            "status": "empty",
+            "items": []
+          }
+        ]
+      },
+      "sql_database_inventory": [
+        {
+          "type": "sql_database_inventory",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db"
+          }
+        }
+      ],
+      "sql_tde_inventory": [
+        {
+          "type": "sql_tde_inventory",
+          "scope": "/subscriptions/11111111-1111-1111-1111-111111111111",
+          "data": {
+            "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db/transparentDataEncryption/current",
+            "parent_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/s/databases/db",
+            "properties": {
+              "state": "unknown"
+            }
+          }
+        }
+      ],
+      "managed_instance_database": [],
+      "managed_instance_tde": []
+    },
+    "missing": {},
+    "malformed": null
+  }
+}
