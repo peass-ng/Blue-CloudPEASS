@@ -87,7 +87,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     if isinstance(authenticator, Authenticator):
         authenticator.store = store
     dispatcher = WorkflowDispatcher()
-    app = FastAPI(title="PEASO defensive cloud posture API", version="1.0.0")
+    app = FastAPI(title="HackTricks CSPM API", version="1.0.0")
     app.state.settings, app.state.store = settings, store
     app.state.cipher, app.state.authenticator, app.state.artifacts = cipher, authenticator, artifacts
     # A small per-app index for immutable pre-count report manifests. Entries

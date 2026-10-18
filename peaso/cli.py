@@ -73,7 +73,7 @@ def _expanded(report, snapshot=None):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(prog="peaso", description="Read-only cloud inventory and offline defensive security review")
+    parser = argparse.ArgumentParser(prog="hacktricks-cspm", description="Read-only cloud inventory and offline defensive security review")
     commands = parser.add_subparsers(dest="command", required=True)
     for name in ("scan", "collect"):
         command = commands.add_parser(name)
@@ -182,7 +182,7 @@ def _execute(args, selectors):
     _write(value, args.output, args.format)
     if args.command in ("scan", "collect") and snapshot is not None and nothing_readable(snapshot):
         codes = sorted({str((c.get("error") or {}).get("code")) for c in snapshot.get("collections", []) if c.get("error")})
-        print("peaso: no collection could be read with the supplied credentials (" + ", ".join(codes or ["no collections"]) +
+        print("hacktricks-cspm: no collection could be read with the supplied credentials (" + ", ".join(codes or ["no collections"]) +
               "); the report contains no assessment. Check the auth method (e.g. --auth-file) and credentials.", file=sys.stderr)
         return 3
     return 0
@@ -197,7 +197,7 @@ def main(argv=None):
         with ProgressReporter(quiet=not active or getattr(args, "quiet", False), provider=getattr(args, "provider", None)):
             return _execute(args, selectors)
     except (OSError, ValueError, TypeError, KeyError) as exc:
-        print(f"peaso: {type(exc).__name__}: {exc}", file=sys.stderr)
+        print(f"hacktricks-cspm: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
 
 

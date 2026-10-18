@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "peaso"
+name = "hacktricks-cspm"
 version = "0.1.0"
 description = "Read-only, immutable cloud inventory and defensive security review"
 requires-python = ">=3.10"
@@ -17,6 +17,7 @@ test = ["pytest>=8", "httpx>=0.27", "jsonschema>=4", "setuptools>=68", "wheel"]
 release-build = ["zopfli==0.4.3"]
 
 [project.scripts]
+hacktricks-cspm = "peaso.cli:main"
 peaso = "peaso.cli:main"
 
 [tool.setuptools.packages.find]
