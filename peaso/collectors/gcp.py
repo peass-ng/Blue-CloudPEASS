@@ -848,6 +848,11 @@ class GCPCollector:
         self.needed = set(self.wanted)
         for kind in self.wanted:
             self.needed.update(DEPENDENCIES.get(kind, set()))
+        sw52_types = {"workspace_role_assignment", "workspace_role", "workspace_user", "iam_policy", "group", "group_membership"}
+        self.sw52_native_mode = sw52_types <= self.wanted
+        self.sw52_only_mode = self.sw52_native_mode and self.wanted == sw52_types
+        if self.sw52_native_mode:
+            self.needed.update(("project", "folder", "organization"))
         if 'asset_service_inventory' in self.wanted:
             from .gcp_native_evidence import inventory_dependencies
             self.needed.update(inventory_dependencies(self.options))
@@ -2425,6 +2430,83 @@ class GCPCollector:
             current = parent
         return chain
 
+    def derive_sw52_native(self):
+        """Bind one project's Directory realm and exact CRM root policies to native reads."""
+        self.sw52_native = {}
+        if not self.sw52_native_mode:
+            return
+        if len([scope for scope in self.scopes if scope.startswith("projects/")]) != 1 or len(self.scopes) != 1:
+            self.sw52_native = {scope: {"status": "unknown", "scope": scope, "reason": "multi_scope_directory_binding_unavailable"}
+                for scope in self.scopes if scope.startswith("projects/")}
+            return
+        for scope in self.scopes:
+            if not scope.startswith("projects/"):
+                continue
+            record = {"status": "unknown", "scope": scope, "reason": "hierarchy_unavailable"}
+            self.sw52_native[scope] = record
+            ancestry = self.ancestry.get(scope)
+            request = self.ancestry_source_requests.get(scope)
+            chain = self.hierarchy_chain(scope)
+            if not isinstance(ancestry, list) or not request or chain is None or not chain or not chain[-1].startswith("organizations/"):
+                continue
+            if chain.count(chain[-1]) != 1 or any(not name.startswith("folders/") for name in chain[:-1]):
+                continue
+            names = [scope, *chain]
+            project = self.collections.get(("project", scope))
+            if not project or project.get("status") != "collected" or len(project.get("items", [])) != 1:
+                record["reason"] = "project_identity_unavailable"
+                continue
+            project_row = project["items"][0]
+            if (project_row.get("projectId") != scope.split("/", 1)[1] or
+                    project_row.get("parent") != chain[0] or
+                    not project.get("source_requests")):
+                record["reason"] = "stale_project_parent"
+                continue
+            hierarchy_requests = {scope: project["source_requests"]}
+            for position, name in enumerate(chain[:-1]):
+                folder = self.collections.get(("folder", name))
+                if (not folder or folder.get("status") != "collected" or
+                        len(folder.get("items", [])) != 1 or
+                        folder["items"][0].get("name") != name or
+                        folder["items"][0].get("parent") != chain[position + 1] or
+                        not folder.get("source_requests")):
+                    record["reason"] = "stale_folder_parent"
+                    break
+                hierarchy_requests[name] = folder["source_requests"]
+            if record["reason"] == "stale_folder_parent":
+                continue
+            organization = self.collections.get(("organization", chain[-1]))
+            if not organization or organization.get("status") != "collected" or len(organization.get("items", [])) != 1:
+                record["reason"] = "organization_identity_unavailable"
+                continue
+            org = organization["items"][0]
+            if org.get("name") != chain[-1] or not isinstance(org.get("directoryCustomerId"), str) or not re.fullmatch(r"C[A-Za-z0-9_-]+", org["directoryCustomerId"]):
+                record["reason"] = "organization_directory_customer_unavailable"
+                continue
+            policy_requests, policy_roots = {}, []
+            for name in names:
+                collection = self.collections.get(("iam_policy", name))
+                roots = [row for row in (collection or {}).get("items", []) if row.get("name") == name and row.get("_provenance", {}).get("representation") == "full"]
+                if (not collection or collection.get("status") not in ("collected", "empty") or
+                        len(roots) != 1 or not collection.get("source_requests") or
+                        not roots[0].get("_provenance", {}).get("source_requests") or
+                        not isinstance(roots[0].get("bindings"), list)):
+                    record["reason"] = "iam_root_read_incomplete"
+                    break
+                policy_requests[name] = roots[0]["_provenance"]["source_requests"]
+                policy_roots.append({"origin_scope": name, "name": roots[0]["name"],
+                    "bindings": copy.deepcopy(roots[0]["bindings"]),
+                    "representation": "full", "source_requests": copy.deepcopy(policy_requests[name]),
+                    "collection_source_requests": copy.deepcopy(collection["source_requests"])})
+            else:
+                record.update({"status": "collected", "reason": "", "organization": chain[-1],
+                    "directory_customer": org["directoryCustomerId"], "iam_policy_resource_names": names,
+                    "iam_policy_levels": [name.split("/", 1)[0][:-1] for name in names],
+                    "ancestry_source_requests": [request], "iam_policy_source_requests": policy_requests,
+                    "iam_policy_roots": policy_roots,
+                    "organization_source_requests": organization.get("source_requests", []),
+                    "hierarchy_source_requests": hierarchy_requests})
+
     def annotate_effective_audit(self):
         """Attach the inherited (organization -> folders -> resource) audit
         configuration to each hierarchy root policy. Cloud Audit Logs takes the
@@ -2651,7 +2733,10 @@ class GCPCollector:
             for binding in policy.get("bindings", []) for member in binding.get("members", [])
             if isinstance(member, str) and member.startswith("group:")})
         customers = set(self.options.get("cloud_identity_customers", []))
-        for _, organization in self.items("organization"):
+        if self.sw52_only_mode:
+            customers = {entry["directory_customer"] for entry in getattr(self, "sw52_native", {}).values()
+                if entry.get("status") == "collected"}
+        for _, organization in ([] if self.sw52_only_mode else self.items("organization")):
             owner = organization.get("owner", {})
             customer = organization.get("directoryCustomerId") or (owner.get("directoryCustomerId") if isinstance(owner, dict) else None)
             if customer:
@@ -2759,14 +2844,19 @@ class GCPCollector:
         if not isinstance(customers, list) or any(not isinstance(customer, str) or not re.fullmatch(r"C[A-Za-z0-9_-]+|my_customer", customer) for customer in customers):
             raise ValueError("workspace_customers must contain directory customer IDs")
         customers = set(customers)
-        for _, organization in self.items("organization"):
+        if self.sw52_only_mode:
+            customers = {entry["directory_customer"] for entry in getattr(self, "sw52_native", {}).values()
+                if entry.get("status") == "collected"}
+        for _, organization in ([] if self.sw52_only_mode else self.items("organization")):
             owner = organization.get("owner", {})
             customer = organization.get("directoryCustomerId") or (owner.get("directoryCustomerId") if isinstance(owner, dict) else None)
             if customer and re.fullmatch(r"C[A-Za-z0-9_-]+", str(customer)):
                 customers.add(customer)
-        if not customers:
+        if not customers and not self.sw52_only_mode:
             customers = {"my_customer"}
         def pages(kind):
+            if not customers:
+                raise ReadError("unavailable", "organization_directory_customer_unavailable")
             failures = []
             for customer in sorted(customers):
                 if kind == "workspace_user":
@@ -2898,6 +2988,8 @@ class GCPCollector:
             metadata["appengine_version_policy"] = appengine_policy
         from .gcp_compliance_wave import policy_metadata
         metadata.update(policy_metadata(self.options, self.scopes))
+        if self.sw52_native_mode:
+            metadata["sw52_native"] = self.sw52_native
         if self.psc_owner_policy is not None:
             from peaso.gcp_psc_policy import OPTION as PSC_OPTION, normalize as normalize_psc_policy
             metadata[PSC_OPTION] = normalize_psc_policy(self.psc_owner_policy, self.scopes)
@@ -2946,6 +3038,7 @@ class GCPCollector:
                         f"https://cloudresourcemanager.googleapis.com/v3/{scope}", scope, single=True))
                     for scope in alias_scopes])
             self.inherited()
+            self.derive_sw52_native()
             self.perimeter_jobs()
             self.dependent_jobs()
             self.annotate_effective_audit()

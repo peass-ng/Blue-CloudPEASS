@@ -41047,323 +41047,1258 @@
   },
   "gcp.identity.super_admin_separation": {
     "fail": {
-      "assignedTo": "u1",
       "roleAssignmentId": "a1",
-      "roleId": "r1"
+      "roleId": "r1",
+      "assignedTo": "u1",
+      "customerId": "Cnative",
+      "name": "customers/Cnative/workspace_role_assignment/a1",
+      "directoryCustomer": "Cnative",
+      "scopeSelection": "existing selected identity; read-only Directory API",
+      "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+      "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+      "_provenance": {
+        "source_requests": [
+          "fake-11"
+        ],
+        "scope": "projects/sw52-project",
+        "collected_at": "2026-10-18T01:35:53.205099+00:00"
+      },
+      "_relationships": []
     },
     "fail_index": {
-      "collections": {
-        "group_membership": [
-          {
-            "items": [],
-            "scope": "projects/demo",
-            "status": "empty",
-            "type": "group_membership"
-          }
-        ],
-        "iam_policy": [
-          {
-            "items": [
-              {
-                "bindings": [
-                  {
-                    "members": [
-                      "user:root@example.com"
-                    ],
-                    "role": "roles/viewer"
-                  },
-                  {
-                    "members": [
-                      "user:root@example.com"
-                    ],
-                    "role": "roles/owner"
-                  }
-                ],
-                "name": "projects/demo"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "iam_policy"
-          }
-        ],
-        "workspace_role": [
-          {
-            "items": [
-              {
-                "isSuperAdminRole": true,
-                "roleId": "r1"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_role"
-          }
-        ],
-        "workspace_role_assignment": [
-          {
-            "items": [
-              {
-                "assignedTo": "u1",
-                "roleAssignmentId": "a1",
-                "roleId": "r1"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_role_assignment"
-          }
-        ],
-        "workspace_user": [
-          {
-            "items": [
-              {
-                "_representation": "full",
-                "id": "u1",
-                "identityProvider": "workspace",
-                "inDomain": true,
-                "isEnrolledIn2Sv": true,
-                "primaryEmail": "root@example.com",
-                "recoveryEmail": "rescue@example.com",
-                "suspended": false
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_user"
-          }
-        ]
-      },
-      "context": {
-        "metadata": {
-          "sw52": {
-            "iam_policy_levels": [
-              "project",
-              "folder",
-              "organization"
-            ],
-            "iam_policy_resource_names": [
-              "projects/demo"
-            ],
-            "scope": "projects/demo",
-            "status": "collected"
-          }
-        },
-        "provider": "gcp",
-        "scope": "projects/demo"
-      },
-      "group_membership": [],
       "iam_policy": [
         {
+          "id": "sha256:de98b0f1ffff611e2a50a05061a6296ae038059e77e7ab33d2105784bce9f48a",
+          "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+          "type": "iam_policy",
+          "service": "iam/cloudasset",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "bindings": [
+            "name": "projects/sw52-project",
+            "bindings": [],
+            "version": 3,
+            "etag": "etag",
+            "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "_provenance": {
+              "source_requests": [
+                "fake-3"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.205099+00:00",
+              "representation": "full"
+            },
+            "_relationships": [],
+            "effectiveAuditConfigs": [
               {
-                "members": [
-                  "user:root@example.com"
-                ],
-                "role": "roles/viewer"
+                "scope": "projects/sw52-project",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-3"
+                ]
               },
               {
-                "members": [
-                  "user:root@example.com"
-                ],
-                "role": "roles/owner"
+                "scope": "folders/456",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-6"
+                ]
+              },
+              {
+                "scope": "organizations/123",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-8"
+                ]
               }
             ],
-            "name": "projects/demo"
-          },
-          "scope": "projects/demo",
-          "type": "iam_policy"
+            "_coverage": {
+              "effectiveAuditConfigs": {
+                "status": "collected",
+                "collection_status": "collected",
+                "ancestry_known": true,
+                "missing_scopes": [],
+                "malformed_scopes": [],
+                "source_requests": [
+                  "fake-3",
+                  "fake-6",
+                  "fake-8"
+                ],
+                "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+              }
+            }
+          }
         }
       ],
       "workspace_role": [
         {
+          "id": "sha256:de3561906df8be9f6fe525ce7418821c41adfd3583ef4fe62b626b3d08b2a97a",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+          "type": "workspace_role",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
+            "roleId": "r1",
             "isSuperAdminRole": true,
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role"
+            "name": "customers/Cnative/workspace_role/r1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+            "_provenance": {
+              "source_requests": [
+                "fake-10"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.205099+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_role_assignment": [
         {
+          "id": "sha256:a388a339b17033eb31bed9cf47a0d381719b73a2057bebd50db16e39134796de",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+          "type": "workspace_role_assignment",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "assignedTo": "u1",
             "roleAssignmentId": "a1",
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role_assignment"
+            "roleId": "r1",
+            "assignedTo": "u1",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_role_assignment/a1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "_provenance": {
+              "source_requests": [
+                "fake-11"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.205099+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_user": [
         {
+          "id": "sha256:cb2b7960f72be2af0bb206564c9476236642a776a38f4f23f9cdf2bff5e1ddd8",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+          "type": "workspace_user",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "_representation": "full",
             "id": "u1",
-            "identityProvider": "workspace",
-            "inDomain": true,
-            "isEnrolledIn2Sv": true,
-            "primaryEmail": "root@example.com",
-            "recoveryEmail": "rescue@example.com",
-            "suspended": false
-          },
-          "scope": "projects/demo",
-          "type": "workspace_user"
+            "primaryEmail": "admin@example.test",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_user/u1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "_provenance": {
+              "source_requests": [
+                "fake-12"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.205099+00:00"
+            },
+            "_relationships": []
+          }
         }
-      ]
-    },
-    "index": {
+      ],
+      "group": [],
+      "group_membership": [],
       "collections": {
+        "group": [
+          {
+            "type": "group",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
+            "status": "empty",
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": [
+              "fake-9"
+            ]
+          }
+        ],
         "group_membership": [
           {
-            "items": [],
-            "scope": "projects/demo",
+            "type": "group_membership",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
             "status": "empty",
-            "type": "group_membership"
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": []
           }
         ],
         "iam_policy": [
           {
+            "type": "iam_policy",
+            "scope": "projects/sw52-project",
+            "service": "iam/cloudasset",
+            "status": "collected",
+            "coverage_status": "collected",
             "items": [
               {
-                "bindings": [
+                "name": "projects/sw52-project",
+                "bindings": [],
+                "version": 3,
+                "etag": "etag",
+                "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.205099+00:00",
+                  "representation": "full"
+                },
+                "_relationships": [],
+                "effectiveAuditConfigs": [
                   {
-                    "members": [
-                      "user:root@example.com"
-                    ],
-                    "role": "roles/viewer"
+                    "scope": "projects/sw52-project",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-3"
+                    ]
+                  },
+                  {
+                    "scope": "folders/456",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-6"
+                    ]
+                  },
+                  {
+                    "scope": "organizations/123",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-8"
+                    ]
                   }
                 ],
-                "name": "projects/demo"
+                "_coverage": {
+                  "effectiveAuditConfigs": {
+                    "status": "collected",
+                    "collection_status": "collected",
+                    "ancestry_known": true,
+                    "missing_scopes": [],
+                    "malformed_scopes": [],
+                    "source_requests": [
+                      "fake-3",
+                      "fake-6",
+                      "fake-8"
+                    ],
+                    "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+                  }
+                }
               }
             ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "iam_policy"
+            "source_requests": [
+              "fake-3"
+            ]
           }
         ],
         "workspace_role": [
           {
+            "type": "workspace_role",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
             "items": [
               {
+                "roleId": "r1",
                 "isSuperAdminRole": true,
-                "roleId": "r1"
+                "name": "customers/Cnative/workspace_role/r1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-10"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.205099+00:00"
+                },
+                "_relationships": []
               }
             ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_role"
+            "source_requests": [
+              "fake-10"
+            ]
           }
         ],
         "workspace_role_assignment": [
           {
+            "type": "workspace_role_assignment",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
             "items": [
               {
-                "assignedTo": "u1",
                 "roleAssignmentId": "a1",
-                "roleId": "r1"
+                "roleId": "r1",
+                "assignedTo": "u1",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_role_assignment/a1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-11"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.205099+00:00"
+                },
+                "_relationships": []
               }
             ],
-            "scope": "projects/foreign",
-            "status": "collected",
-            "type": "workspace_role_assignment"
+            "source_requests": [
+              "fake-11"
+            ]
           }
         ],
         "workspace_user": [
           {
+            "type": "workspace_user",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
             "items": [
               {
-                "_representation": "full",
                 "id": "u1",
-                "identityProvider": "workspace",
-                "inDomain": true,
-                "isEnrolledIn2Sv": true,
-                "primaryEmail": "root@example.com",
-                "recoveryEmail": "rescue@example.com",
-                "suspended": false
+                "primaryEmail": "admin@example.test",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_user/u1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-12"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.205099+00:00"
+                },
+                "_relationships": []
               }
             ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_user"
+            "source_requests": [
+              "fake-12"
+            ]
           }
         ]
       },
       "context": {
-        "metadata": {
-          "sw52": {
-            "iam_policy_levels": [
-              "project",
-              "folder",
-              "organization"
-            ],
-            "iam_policy_resource_names": [
-              "projects/demo"
-            ],
-            "scope": "projects/demo",
-            "status": "collected"
-          }
-        },
         "provider": "gcp",
-        "scope": "projects/demo"
-      },
-      "group_membership": [],
+        "scope": "projects/sw52-project",
+        "metadata": {
+          "collection": "read-only",
+          "collector": "native-gcp",
+          "requested_scopes": [
+            "projects/sw52-project"
+          ],
+          "resolved_scopes": [
+            "projects/sw52-project"
+          ],
+          "inherited_scopes": [
+            "folders/456",
+            "organizations/123"
+          ],
+          "auth_method": "adc",
+          "calls": 12,
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "concurrency": 1,
+          "asset_read_time": "2026-10-18T01:35:53.205099+00:00",
+          "intentional_limits": {},
+          "collection_mode": "full",
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "artifact_image",
+            "artifact_repository",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "bigquery_dataset",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_build",
+            "cloudbuild_trigger",
+            "cloudrun_job",
+            "cloudrun_service",
+            "composer_environment",
+            "dataproc_cluster",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "gcp_v4_workload_facts",
+            "gke_cluster",
+            "health_check",
+            "iam_deny_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider"
+          ],
+          "supporting_inventories": [
+            "folder",
+            "organization",
+            "project"
+          ],
+          "source_requests": [],
+          "scope_coverage": [],
+          "hierarchy_discovery": [],
+          "scope_type_omissions": {},
+          "project_restrictions": null,
+          "trusted_scope_ids": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_users": null,
+          "trusted_groups": null,
+          "trusted_service_accounts": null,
+          "service_usage_selection": [
+            "*"
+          ],
+          "service_usage_mode": "complete_list",
+          "cloudbuild_location_selection": null,
+          "cloudbuild_location_mode": "discovered",
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "sw52_native": {
+            "projects/sw52-project": {
+              "status": "collected",
+              "scope": "projects/sw52-project",
+              "reason": "",
+              "organization": "organizations/123",
+              "directory_customer": "Cnative",
+              "iam_policy_resource_names": [
+                "projects/sw52-project",
+                "folders/456",
+                "organizations/123"
+              ],
+              "iam_policy_levels": [
+                "project",
+                "folder",
+                "organization"
+              ],
+              "ancestry_source_requests": [
+                "fake-4"
+              ],
+              "iam_policy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-3"
+                ],
+                "folders/456": [
+                  "fake-6"
+                ],
+                "organizations/123": [
+                  "fake-8"
+                ]
+              },
+              "iam_policy_roots": [
+                {
+                  "origin_scope": "projects/sw52-project",
+                  "name": "projects/sw52-project",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "collection_source_requests": [
+                    "fake-3"
+                  ]
+                },
+                {
+                  "origin_scope": "folders/456",
+                  "name": "folders/456",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-6"
+                  ],
+                  "collection_source_requests": [
+                    "fake-6"
+                  ]
+                },
+                {
+                  "origin_scope": "organizations/123",
+                  "name": "organizations/123",
+                  "bindings": [
+                    {
+                      "role": "roles/resourcemanager.organizationAdmin",
+                      "members": [
+                        "user:admin@example.test"
+                      ]
+                    }
+                  ],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-8"
+                  ],
+                  "collection_source_requests": [
+                    "fake-8"
+                  ]
+                }
+              ],
+              "organization_source_requests": [
+                "fake-7"
+              ],
+              "hierarchy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-1",
+                  "fake-2",
+                  "fake-4"
+                ],
+                "folders/456": [
+                  "fake-5"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "index": {
       "iam_policy": [
         {
+          "id": "sha256:de98b0f1ffff611e2a50a05061a6296ae038059e77e7ab33d2105784bce9f48a",
+          "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+          "type": "iam_policy",
+          "service": "iam/cloudasset",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "bindings": [
+            "name": "projects/sw52-project",
+            "bindings": [],
+            "version": 3,
+            "etag": "etag",
+            "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "_provenance": {
+              "source_requests": [
+                "fake-3"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00",
+              "representation": "full"
+            },
+            "_relationships": [],
+            "effectiveAuditConfigs": [
               {
-                "members": [
-                  "user:root@example.com"
-                ],
-                "role": "roles/viewer"
+                "scope": "projects/sw52-project",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-3"
+                ]
+              },
+              {
+                "scope": "folders/456",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-6"
+                ]
+              },
+              {
+                "scope": "organizations/123",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-8"
+                ]
               }
             ],
-            "name": "projects/demo"
-          },
-          "scope": "projects/demo",
-          "type": "iam_policy"
+            "_coverage": {
+              "effectiveAuditConfigs": {
+                "status": "collected",
+                "collection_status": "collected",
+                "ancestry_known": true,
+                "missing_scopes": [],
+                "malformed_scopes": [],
+                "source_requests": [
+                  "fake-3",
+                  "fake-6",
+                  "fake-8"
+                ],
+                "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+              }
+            }
+          }
         }
       ],
       "workspace_role": [
         {
+          "id": "sha256:de3561906df8be9f6fe525ce7418821c41adfd3583ef4fe62b626b3d08b2a97a",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+          "type": "workspace_role",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
+            "roleId": "r1",
             "isSuperAdminRole": true,
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role"
+            "name": "customers/Cnative/workspace_role/r1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+            "_provenance": {
+              "source_requests": [
+                "fake-10"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_role_assignment": [
         {
+          "id": "sha256:a388a339b17033eb31bed9cf47a0d381719b73a2057bebd50db16e39134796de",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+          "type": "workspace_role_assignment",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "assignedTo": "u1",
             "roleAssignmentId": "a1",
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role_assignment"
+            "roleId": "r1",
+            "assignedTo": "u1",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_role_assignment/a1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "_provenance": {
+              "source_requests": [
+                "fake-11"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_user": [
         {
+          "id": "sha256:cb2b7960f72be2af0bb206564c9476236642a776a38f4f23f9cdf2bff5e1ddd8",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+          "type": "workspace_user",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "_representation": "full",
             "id": "u1",
-            "identityProvider": "workspace",
-            "inDomain": true,
-            "isEnrolledIn2Sv": true,
-            "primaryEmail": "root@example.com",
-            "recoveryEmail": "rescue@example.com",
-            "suspended": false
-          },
-          "scope": "projects/demo",
-          "type": "workspace_user"
+            "primaryEmail": "admin@example.test",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_user/u1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "_provenance": {
+              "source_requests": [
+                "fake-12"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00"
+            },
+            "_relationships": []
+          }
         }
-      ]
+      ],
+      "group": [],
+      "group_membership": [],
+      "collections": {
+        "group": [
+          {
+            "type": "group",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
+            "status": "empty",
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": [
+              "fake-9"
+            ]
+          }
+        ],
+        "group_membership": [
+          {
+            "type": "group_membership",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
+            "status": "empty",
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": []
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "projects/sw52-project",
+            "service": "iam/cloudasset",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "name": "projects/sw52-project",
+                "bindings": [],
+                "version": 3,
+                "etag": "etag",
+                "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00",
+                  "representation": "full"
+                },
+                "_relationships": [],
+                "effectiveAuditConfigs": [
+                  {
+                    "scope": "projects/sw52-project",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-3"
+                    ]
+                  },
+                  {
+                    "scope": "folders/456",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-6"
+                    ]
+                  },
+                  {
+                    "scope": "organizations/123",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-8"
+                    ]
+                  }
+                ],
+                "_coverage": {
+                  "effectiveAuditConfigs": {
+                    "status": "collected",
+                    "collection_status": "collected",
+                    "ancestry_known": true,
+                    "missing_scopes": [],
+                    "malformed_scopes": [],
+                    "source_requests": [
+                      "fake-3",
+                      "fake-6",
+                      "fake-8"
+                    ],
+                    "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+                  }
+                }
+              }
+            ],
+            "source_requests": [
+              "fake-3"
+            ]
+          }
+        ],
+        "workspace_role": [
+          {
+            "type": "workspace_role",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "roleId": "r1",
+                "isSuperAdminRole": true,
+                "name": "customers/Cnative/workspace_role/r1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-10"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-10"
+            ]
+          }
+        ],
+        "workspace_role_assignment": [
+          {
+            "type": "workspace_role_assignment",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "roleAssignmentId": "a1",
+                "roleId": "r1",
+                "assignedTo": "u1",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_role_assignment/a1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-11"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-11"
+            ]
+          }
+        ],
+        "workspace_user": [
+          {
+            "type": "workspace_user",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "id": "u1",
+                "primaryEmail": "admin@example.test",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_user/u1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-12"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-12"
+            ]
+          }
+        ]
+      },
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/sw52-project",
+        "metadata": {
+          "collection": "read-only",
+          "collector": "native-gcp",
+          "requested_scopes": [
+            "projects/sw52-project"
+          ],
+          "resolved_scopes": [
+            "projects/sw52-project"
+          ],
+          "inherited_scopes": [
+            "folders/456",
+            "organizations/123"
+          ],
+          "auth_method": "adc",
+          "calls": 12,
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "concurrency": 1,
+          "asset_read_time": "2026-10-18T01:35:52.765968+00:00",
+          "intentional_limits": {},
+          "collection_mode": "full",
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "artifact_image",
+            "artifact_repository",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "bigquery_dataset",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_build",
+            "cloudbuild_trigger",
+            "cloudrun_job",
+            "cloudrun_service",
+            "composer_environment",
+            "dataproc_cluster",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "gcp_v4_workload_facts",
+            "gke_cluster",
+            "health_check",
+            "iam_deny_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider"
+          ],
+          "supporting_inventories": [
+            "folder",
+            "organization",
+            "project"
+          ],
+          "source_requests": [],
+          "scope_coverage": [],
+          "hierarchy_discovery": [],
+          "scope_type_omissions": {},
+          "project_restrictions": null,
+          "trusted_scope_ids": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_users": null,
+          "trusted_groups": null,
+          "trusted_service_accounts": null,
+          "service_usage_selection": [
+            "*"
+          ],
+          "service_usage_mode": "complete_list",
+          "cloudbuild_location_selection": null,
+          "cloudbuild_location_mode": "discovered",
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "sw52_native": {
+            "projects/sw52-project": {
+              "status": "collected",
+              "scope": "projects/sw52-project",
+              "reason": "",
+              "organization": "organizations/123",
+              "directory_customer": "Cnative",
+              "iam_policy_resource_names": [
+                "projects/sw52-project",
+                "folders/456",
+                "organizations/123"
+              ],
+              "iam_policy_levels": [
+                "project",
+                "folder",
+                "organization"
+              ],
+              "ancestry_source_requests": [
+                "fake-4"
+              ],
+              "iam_policy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-3"
+                ],
+                "folders/456": [
+                  "fake-6"
+                ],
+                "organizations/123": [
+                  "fake-8"
+                ]
+              },
+              "iam_policy_roots": [
+                {
+                  "origin_scope": "projects/sw52-project",
+                  "name": "projects/sw52-project",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "collection_source_requests": [
+                    "fake-3"
+                  ]
+                },
+                {
+                  "origin_scope": "folders/456",
+                  "name": "folders/456",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-6"
+                  ],
+                  "collection_source_requests": [
+                    "fake-6"
+                  ]
+                },
+                {
+                  "origin_scope": "organizations/123",
+                  "name": "organizations/123",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-8"
+                  ],
+                  "collection_source_requests": [
+                    "fake-8"
+                  ]
+                }
+              ],
+              "organization_source_requests": [
+                "fake-7"
+              ],
+              "hierarchy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-1",
+                  "fake-2",
+                  "fake-4"
+                ],
+                "folders/456": [
+                  "fake-5"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "malformed": null,
     "missing": {
@@ -41523,316 +42458,1270 @@
       ]
     },
     "pass": {
-      "assignedTo": "u1",
       "roleAssignmentId": "a1",
-      "roleId": "r1"
+      "roleId": "r1",
+      "assignedTo": "u1",
+      "customerId": "Cnative",
+      "name": "customers/Cnative/workspace_role_assignment/a1",
+      "directoryCustomer": "Cnative",
+      "scopeSelection": "existing selected identity; read-only Directory API",
+      "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+      "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+      "_provenance": {
+        "source_requests": [
+          "fake-11"
+        ],
+        "scope": "projects/sw52-project",
+        "collected_at": "2026-10-18T01:35:52.765968+00:00"
+      },
+      "_relationships": []
     },
     "pass_index": {
-      "collections": {
-        "group_membership": [
-          {
-            "items": [],
-            "scope": "projects/demo",
-            "status": "empty",
-            "type": "group_membership"
-          }
-        ],
-        "iam_policy": [
-          {
-            "items": [
-              {
-                "bindings": [
-                  {
-                    "members": [
-                      "user:root@example.com"
-                    ],
-                    "role": "roles/viewer"
-                  }
-                ],
-                "name": "projects/demo"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "iam_policy"
-          }
-        ],
-        "workspace_role": [
-          {
-            "items": [
-              {
-                "isSuperAdminRole": true,
-                "roleId": "r1"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_role"
-          }
-        ],
-        "workspace_role_assignment": [
-          {
-            "items": [
-              {
-                "assignedTo": "u1",
-                "roleAssignmentId": "a1",
-                "roleId": "r1"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_role_assignment"
-          }
-        ],
-        "workspace_user": [
-          {
-            "items": [
-              {
-                "_representation": "full",
-                "id": "u1",
-                "identityProvider": "workspace",
-                "inDomain": true,
-                "isEnrolledIn2Sv": true,
-                "primaryEmail": "root@example.com",
-                "recoveryEmail": "rescue@example.com",
-                "suspended": false
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_user"
-          }
-        ]
-      },
-      "context": {
-        "metadata": {
-          "sw52": {
-            "iam_policy_levels": [
-              "project",
-              "folder",
-              "organization"
-            ],
-            "iam_policy_resource_names": [
-              "projects/demo"
-            ],
-            "scope": "projects/demo",
-            "status": "collected"
-          }
-        },
-        "provider": "gcp",
-        "scope": "projects/demo"
-      },
-      "group_membership": [],
       "iam_policy": [
         {
+          "id": "sha256:de98b0f1ffff611e2a50a05061a6296ae038059e77e7ab33d2105784bce9f48a",
+          "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+          "type": "iam_policy",
+          "service": "iam/cloudasset",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "bindings": [
+            "name": "projects/sw52-project",
+            "bindings": [],
+            "version": 3,
+            "etag": "etag",
+            "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "_provenance": {
+              "source_requests": [
+                "fake-3"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00",
+              "representation": "full"
+            },
+            "_relationships": [],
+            "effectiveAuditConfigs": [
               {
-                "members": [
-                  "user:root@example.com"
-                ],
-                "role": "roles/viewer"
+                "scope": "projects/sw52-project",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-3"
+                ]
+              },
+              {
+                "scope": "folders/456",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-6"
+                ]
+              },
+              {
+                "scope": "organizations/123",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-8"
+                ]
               }
             ],
-            "name": "projects/demo"
-          },
-          "scope": "projects/demo",
-          "type": "iam_policy"
+            "_coverage": {
+              "effectiveAuditConfigs": {
+                "status": "collected",
+                "collection_status": "collected",
+                "ancestry_known": true,
+                "missing_scopes": [],
+                "malformed_scopes": [],
+                "source_requests": [
+                  "fake-3",
+                  "fake-6",
+                  "fake-8"
+                ],
+                "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+              }
+            }
+          }
         }
       ],
       "workspace_role": [
         {
+          "id": "sha256:de3561906df8be9f6fe525ce7418821c41adfd3583ef4fe62b626b3d08b2a97a",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+          "type": "workspace_role",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
+            "roleId": "r1",
             "isSuperAdminRole": true,
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role"
+            "name": "customers/Cnative/workspace_role/r1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+            "_provenance": {
+              "source_requests": [
+                "fake-10"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_role_assignment": [
         {
+          "id": "sha256:a388a339b17033eb31bed9cf47a0d381719b73a2057bebd50db16e39134796de",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+          "type": "workspace_role_assignment",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "assignedTo": "u1",
             "roleAssignmentId": "a1",
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role_assignment"
+            "roleId": "r1",
+            "assignedTo": "u1",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_role_assignment/a1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "_provenance": {
+              "source_requests": [
+                "fake-11"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_user": [
         {
+          "id": "sha256:cb2b7960f72be2af0bb206564c9476236642a776a38f4f23f9cdf2bff5e1ddd8",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+          "type": "workspace_user",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "_representation": "full",
             "id": "u1",
-            "identityProvider": "workspace",
-            "inDomain": true,
-            "isEnrolledIn2Sv": true,
-            "primaryEmail": "root@example.com",
-            "recoveryEmail": "rescue@example.com",
-            "suspended": false
-          },
-          "scope": "projects/demo",
-          "type": "workspace_user"
+            "primaryEmail": "admin@example.test",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_user/u1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "_provenance": {
+              "source_requests": [
+                "fake-12"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:52.765968+00:00"
+            },
+            "_relationships": []
+          }
         }
-      ]
+      ],
+      "group": [],
+      "group_membership": [],
+      "collections": {
+        "group": [
+          {
+            "type": "group",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
+            "status": "empty",
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": [
+              "fake-9"
+            ]
+          }
+        ],
+        "group_membership": [
+          {
+            "type": "group_membership",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
+            "status": "empty",
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": []
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "projects/sw52-project",
+            "service": "iam/cloudasset",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "name": "projects/sw52-project",
+                "bindings": [],
+                "version": 3,
+                "etag": "etag",
+                "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00",
+                  "representation": "full"
+                },
+                "_relationships": [],
+                "effectiveAuditConfigs": [
+                  {
+                    "scope": "projects/sw52-project",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-3"
+                    ]
+                  },
+                  {
+                    "scope": "folders/456",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-6"
+                    ]
+                  },
+                  {
+                    "scope": "organizations/123",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-8"
+                    ]
+                  }
+                ],
+                "_coverage": {
+                  "effectiveAuditConfigs": {
+                    "status": "collected",
+                    "collection_status": "collected",
+                    "ancestry_known": true,
+                    "missing_scopes": [],
+                    "malformed_scopes": [],
+                    "source_requests": [
+                      "fake-3",
+                      "fake-6",
+                      "fake-8"
+                    ],
+                    "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+                  }
+                }
+              }
+            ],
+            "source_requests": [
+              "fake-3"
+            ]
+          }
+        ],
+        "workspace_role": [
+          {
+            "type": "workspace_role",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "roleId": "r1",
+                "isSuperAdminRole": true,
+                "name": "customers/Cnative/workspace_role/r1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cnative/workspace_role/r1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-10"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-10"
+            ]
+          }
+        ],
+        "workspace_role_assignment": [
+          {
+            "type": "workspace_role_assignment",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "roleAssignmentId": "a1",
+                "roleId": "r1",
+                "assignedTo": "u1",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_role_assignment/a1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-11"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-11"
+            ]
+          }
+        ],
+        "workspace_user": [
+          {
+            "type": "workspace_user",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "id": "u1",
+                "primaryEmail": "admin@example.test",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_user/u1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-12"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:52.765968+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-12"
+            ]
+          }
+        ]
+      },
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/sw52-project",
+        "metadata": {
+          "collection": "read-only",
+          "collector": "native-gcp",
+          "requested_scopes": [
+            "projects/sw52-project"
+          ],
+          "resolved_scopes": [
+            "projects/sw52-project"
+          ],
+          "inherited_scopes": [
+            "folders/456",
+            "organizations/123"
+          ],
+          "auth_method": "adc",
+          "calls": 12,
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "concurrency": 1,
+          "asset_read_time": "2026-10-18T01:35:52.765968+00:00",
+          "intentional_limits": {},
+          "collection_mode": "full",
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "artifact_image",
+            "artifact_repository",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "bigquery_dataset",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_build",
+            "cloudbuild_trigger",
+            "cloudrun_job",
+            "cloudrun_service",
+            "composer_environment",
+            "dataproc_cluster",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "gcp_v4_workload_facts",
+            "gke_cluster",
+            "health_check",
+            "iam_deny_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider"
+          ],
+          "supporting_inventories": [
+            "folder",
+            "organization",
+            "project"
+          ],
+          "source_requests": [],
+          "scope_coverage": [],
+          "hierarchy_discovery": [],
+          "scope_type_omissions": {},
+          "project_restrictions": null,
+          "trusted_scope_ids": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_users": null,
+          "trusted_groups": null,
+          "trusted_service_accounts": null,
+          "service_usage_selection": [
+            "*"
+          ],
+          "service_usage_mode": "complete_list",
+          "cloudbuild_location_selection": null,
+          "cloudbuild_location_mode": "discovered",
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "sw52_native": {
+            "projects/sw52-project": {
+              "status": "collected",
+              "scope": "projects/sw52-project",
+              "reason": "",
+              "organization": "organizations/123",
+              "directory_customer": "Cnative",
+              "iam_policy_resource_names": [
+                "projects/sw52-project",
+                "folders/456",
+                "organizations/123"
+              ],
+              "iam_policy_levels": [
+                "project",
+                "folder",
+                "organization"
+              ],
+              "ancestry_source_requests": [
+                "fake-4"
+              ],
+              "iam_policy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-3"
+                ],
+                "folders/456": [
+                  "fake-6"
+                ],
+                "organizations/123": [
+                  "fake-8"
+                ]
+              },
+              "iam_policy_roots": [
+                {
+                  "origin_scope": "projects/sw52-project",
+                  "name": "projects/sw52-project",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "collection_source_requests": [
+                    "fake-3"
+                  ]
+                },
+                {
+                  "origin_scope": "folders/456",
+                  "name": "folders/456",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-6"
+                  ],
+                  "collection_source_requests": [
+                    "fake-6"
+                  ]
+                },
+                {
+                  "origin_scope": "organizations/123",
+                  "name": "organizations/123",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-8"
+                  ],
+                  "collection_source_requests": [
+                    "fake-8"
+                  ]
+                }
+              ],
+              "organization_source_requests": [
+                "fake-7"
+              ],
+              "hierarchy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-1",
+                  "fake-2",
+                  "fake-4"
+                ],
+                "folders/456": [
+                  "fake-5"
+                ]
+              }
+            }
+          }
+        }
+      }
     },
     "unknown": {
-      "assignedTo": "u1",
       "roleAssignmentId": "a1",
-      "roleId": "r1"
+      "roleId": "r1",
+      "assignedTo": "u1",
+      "customerId": "Cnative",
+      "name": "customers/Cnative/workspace_role_assignment/a1",
+      "directoryCustomer": "Cnative",
+      "scopeSelection": "existing selected identity; read-only Directory API",
+      "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+      "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+      "_provenance": {
+        "source_requests": [
+          "fake-11"
+        ],
+        "scope": "projects/sw52-project",
+        "collected_at": "2026-10-18T01:35:53.207614+00:00"
+      },
+      "_relationships": []
     },
     "unknown_index": {
-      "collections": {
-        "group_membership": [
-          {
-            "items": [],
-            "scope": "projects/demo",
-            "status": "empty",
-            "type": "group_membership"
-          }
-        ],
-        "iam_policy": [
-          {
-            "items": [
-              {
-                "bindings": [
-                  {
-                    "members": [
-                      "user:root@example.com"
-                    ],
-                    "role": "roles/viewer"
-                  }
-                ],
-                "name": "projects/demo"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "iam_policy"
-          }
-        ],
-        "workspace_role": [
-          {
-            "items": [
-              {
-                "isSuperAdminRole": true,
-                "roleId": "r1"
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_role"
-          }
-        ],
-        "workspace_role_assignment": [
-          {
-            "items": [
-              {
-                "assignedTo": "u1",
-                "roleAssignmentId": "a1",
-                "roleId": "r1"
-              }
-            ],
-            "scope": "projects/foreign",
-            "status": "collected",
-            "type": "workspace_role_assignment"
-          }
-        ],
-        "workspace_user": [
-          {
-            "items": [
-              {
-                "_representation": "full",
-                "id": "u1",
-                "identityProvider": "workspace",
-                "inDomain": true,
-                "isEnrolledIn2Sv": true,
-                "primaryEmail": "root@example.com",
-                "recoveryEmail": "rescue@example.com",
-                "suspended": false
-              }
-            ],
-            "scope": "projects/demo",
-            "status": "collected",
-            "type": "workspace_user"
-          }
-        ]
-      },
-      "context": {
-        "metadata": {
-          "sw52": {
-            "iam_policy_levels": [
-              "project",
-              "folder",
-              "organization"
-            ],
-            "iam_policy_resource_names": [
-              "projects/demo"
-            ],
-            "scope": "projects/demo",
-            "status": "collected"
-          }
-        },
-        "provider": "gcp",
-        "scope": "projects/demo"
-      },
-      "group_membership": [],
       "iam_policy": [
         {
+          "id": "sha256:de98b0f1ffff611e2a50a05061a6296ae038059e77e7ab33d2105784bce9f48a",
+          "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+          "type": "iam_policy",
+          "service": "iam/cloudasset",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "bindings": [
+            "name": "projects/sw52-project",
+            "bindings": [],
+            "version": 3,
+            "etag": "etag",
+            "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+            "_provenance": {
+              "source_requests": [
+                "fake-3"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.207614+00:00",
+              "representation": "full"
+            },
+            "_relationships": [],
+            "effectiveAuditConfigs": [
               {
-                "members": [
-                  "user:root@example.com"
-                ],
-                "role": "roles/viewer"
+                "scope": "projects/sw52-project",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-3"
+                ]
+              },
+              {
+                "scope": "folders/456",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-6"
+                ]
+              },
+              {
+                "scope": "organizations/123",
+                "auditConfigs": [],
+                "source_requests": [
+                  "fake-8"
+                ]
               }
             ],
-            "name": "projects/demo"
-          },
-          "scope": "projects/demo",
-          "type": "iam_policy"
+            "_coverage": {
+              "effectiveAuditConfigs": {
+                "status": "collected",
+                "collection_status": "collected",
+                "ancestry_known": true,
+                "missing_scopes": [],
+                "malformed_scopes": [],
+                "source_requests": [
+                  "fake-3",
+                  "fake-6",
+                  "fake-8"
+                ],
+                "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+              }
+            }
+          }
         }
       ],
       "workspace_role": [
         {
+          "id": "sha256:424938c592929bfeb75496ee49c2ad0304ed24bc447cc7061d10abae789cfbf7",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cforeign/workspace_role/r1",
+          "type": "workspace_role",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
+            "roleId": "r1",
             "isSuperAdminRole": true,
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role"
+            "name": "customers/Cforeign/workspace_role/r1",
+            "directoryCustomer": "Cforeign",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cforeign/workspace_role/r1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cforeign/workspace_role/r1",
+            "_provenance": {
+              "source_requests": [
+                "fake-10"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.207614+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_role_assignment": [
         {
+          "id": "sha256:a388a339b17033eb31bed9cf47a0d381719b73a2057bebd50db16e39134796de",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+          "type": "workspace_role_assignment",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "assignedTo": "u1",
             "roleAssignmentId": "a1",
-            "roleId": "r1"
-          },
-          "scope": "projects/demo",
-          "type": "workspace_role_assignment"
+            "roleId": "r1",
+            "assignedTo": "u1",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_role_assignment/a1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+            "_provenance": {
+              "source_requests": [
+                "fake-11"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.207614+00:00"
+            },
+            "_relationships": []
+          }
         }
       ],
       "workspace_user": [
         {
+          "id": "sha256:cb2b7960f72be2af0bb206564c9476236642a776a38f4f23f9cdf2bff5e1ddd8",
+          "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+          "type": "workspace_user",
+          "service": "workspace-directory",
+          "scope": "projects/sw52-project",
+          "provider": "gcp",
           "data": {
-            "_representation": "full",
             "id": "u1",
-            "identityProvider": "workspace",
-            "inDomain": true,
-            "isEnrolledIn2Sv": true,
-            "primaryEmail": "root@example.com",
-            "recoveryEmail": "rescue@example.com",
-            "suspended": false
-          },
-          "scope": "projects/demo",
-          "type": "workspace_user"
+            "primaryEmail": "admin@example.test",
+            "customerId": "Cnative",
+            "name": "customers/Cnative/workspace_user/u1",
+            "directoryCustomer": "Cnative",
+            "scopeSelection": "existing selected identity; read-only Directory API",
+            "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+            "_provenance": {
+              "source_requests": [
+                "fake-12"
+              ],
+              "scope": "projects/sw52-project",
+              "collected_at": "2026-10-18T01:35:53.207614+00:00"
+            },
+            "_relationships": []
+          }
         }
-      ]
+      ],
+      "group": [],
+      "group_membership": [],
+      "collections": {
+        "group": [
+          {
+            "type": "group",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
+            "status": "empty",
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": [
+              "fake-9"
+            ]
+          }
+        ],
+        "group_membership": [
+          {
+            "type": "group_membership",
+            "scope": "projects/sw52-project",
+            "service": "cloudidentity",
+            "status": "empty",
+            "coverage_status": "empty",
+            "items": [],
+            "source_requests": []
+          }
+        ],
+        "iam_policy": [
+          {
+            "type": "iam_policy",
+            "scope": "projects/sw52-project",
+            "service": "iam/cloudasset",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "name": "projects/sw52-project",
+                "bindings": [],
+                "version": 3,
+                "etag": "etag",
+                "_resource_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "native_id": "//cloudresourcemanager.googleapis.com/projects/sw52-project",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.207614+00:00",
+                  "representation": "full"
+                },
+                "_relationships": [],
+                "effectiveAuditConfigs": [
+                  {
+                    "scope": "projects/sw52-project",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-3"
+                    ]
+                  },
+                  {
+                    "scope": "folders/456",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-6"
+                    ]
+                  },
+                  {
+                    "scope": "organizations/123",
+                    "auditConfigs": [],
+                    "source_requests": [
+                      "fake-8"
+                    ]
+                  }
+                ],
+                "_coverage": {
+                  "effectiveAuditConfigs": {
+                    "status": "collected",
+                    "collection_status": "collected",
+                    "ancestry_known": true,
+                    "missing_scopes": [],
+                    "malformed_scopes": [],
+                    "source_requests": [
+                      "fake-3",
+                      "fake-6",
+                      "fake-8"
+                    ],
+                    "semantics": "Union of resource and ancestor auditConfigs (organization, folders, resource)"
+                  }
+                }
+              }
+            ],
+            "source_requests": [
+              "fake-3"
+            ]
+          }
+        ],
+        "workspace_role": [
+          {
+            "type": "workspace_role",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "roleId": "r1",
+                "isSuperAdminRole": true,
+                "name": "customers/Cforeign/workspace_role/r1",
+                "directoryCustomer": "Cforeign",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cforeign/workspace_role/r1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role/customers/Cforeign/workspace_role/r1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-10"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.207614+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-10"
+            ]
+          }
+        ],
+        "workspace_role_assignment": [
+          {
+            "type": "workspace_role_assignment",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "roleAssignmentId": "a1",
+                "roleId": "r1",
+                "assignedTo": "u1",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_role_assignment/a1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_role_assignment/customers/Cnative/workspace_role_assignment/a1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-11"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.207614+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-11"
+            ]
+          }
+        ],
+        "workspace_user": [
+          {
+            "type": "workspace_user",
+            "scope": "projects/sw52-project",
+            "service": "workspace-directory",
+            "status": "collected",
+            "coverage_status": "collected",
+            "items": [
+              {
+                "id": "u1",
+                "primaryEmail": "admin@example.test",
+                "customerId": "Cnative",
+                "name": "customers/Cnative/workspace_user/u1",
+                "directoryCustomer": "Cnative",
+                "scopeSelection": "existing selected identity; read-only Directory API",
+                "_resource_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "native_id": "//gcp/projects/sw52-project/global/workspace_user/customers/Cnative/workspace_user/u1",
+                "_provenance": {
+                  "source_requests": [
+                    "fake-12"
+                  ],
+                  "scope": "projects/sw52-project",
+                  "collected_at": "2026-10-18T01:35:53.207614+00:00"
+                },
+                "_relationships": []
+              }
+            ],
+            "source_requests": [
+              "fake-12"
+            ]
+          }
+        ]
+      },
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/sw52-project",
+        "metadata": {
+          "collection": "read-only",
+          "collector": "native-gcp",
+          "requested_scopes": [
+            "projects/sw52-project"
+          ],
+          "resolved_scopes": [
+            "projects/sw52-project"
+          ],
+          "inherited_scopes": [
+            "folders/456",
+            "organizations/123"
+          ],
+          "auth_method": "adc",
+          "calls": 12,
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "concurrency": 1,
+          "asset_read_time": "2026-10-18T01:35:53.207614+00:00",
+          "intentional_limits": {},
+          "collection_mode": "full",
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "artifact_image",
+            "artifact_repository",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "bigquery_dataset",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_build",
+            "cloudbuild_trigger",
+            "cloudrun_job",
+            "cloudrun_service",
+            "composer_environment",
+            "dataproc_cluster",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "gcp_v4_workload_facts",
+            "gke_cluster",
+            "health_check",
+            "iam_deny_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider"
+          ],
+          "supporting_inventories": [
+            "folder",
+            "organization",
+            "project"
+          ],
+          "source_requests": [],
+          "scope_coverage": [],
+          "hierarchy_discovery": [],
+          "scope_type_omissions": {},
+          "project_restrictions": null,
+          "trusted_scope_ids": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_users": null,
+          "trusted_groups": null,
+          "trusted_service_accounts": null,
+          "service_usage_selection": [
+            "*"
+          ],
+          "service_usage_mode": "complete_list",
+          "cloudbuild_location_selection": null,
+          "cloudbuild_location_mode": "discovered",
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "sw52_native": {
+            "projects/sw52-project": {
+              "status": "collected",
+              "scope": "projects/sw52-project",
+              "reason": "",
+              "organization": "organizations/123",
+              "directory_customer": "Cforeign",
+              "iam_policy_resource_names": [
+                "projects/sw52-project",
+                "folders/456",
+                "organizations/123"
+              ],
+              "iam_policy_levels": [
+                "project",
+                "folder",
+                "organization"
+              ],
+              "ancestry_source_requests": [
+                "fake-4"
+              ],
+              "iam_policy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-3"
+                ],
+                "folders/456": [
+                  "fake-6"
+                ],
+                "organizations/123": [
+                  "fake-8"
+                ]
+              },
+              "iam_policy_roots": [
+                {
+                  "origin_scope": "projects/sw52-project",
+                  "name": "projects/sw52-project",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-3"
+                  ],
+                  "collection_source_requests": [
+                    "fake-3"
+                  ]
+                },
+                {
+                  "origin_scope": "folders/456",
+                  "name": "folders/456",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-6"
+                  ],
+                  "collection_source_requests": [
+                    "fake-6"
+                  ]
+                },
+                {
+                  "origin_scope": "organizations/123",
+                  "name": "organizations/123",
+                  "bindings": [],
+                  "representation": "full",
+                  "source_requests": [
+                    "fake-8"
+                  ],
+                  "collection_source_requests": [
+                    "fake-8"
+                  ]
+                }
+              ],
+              "organization_source_requests": [
+                "fake-7"
+              ],
+              "hierarchy_source_requests": {
+                "projects/sw52-project": [
+                  "fake-1",
+                  "fake-2",
+                  "fake-4"
+                ],
+                "folders/456": [
+                  "fake-5"
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   },
   "gcp.logging.access_transparency_entries": {

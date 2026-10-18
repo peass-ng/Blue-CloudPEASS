@@ -1906,38 +1906,38 @@ def _load_52():
                 active.add(member_email)
         return result(len(active) < 2, principal=email, recovery_email=recovery, active_member_count=len(active))
 
-    @register('gcp.identity.super_admin_separation', ['workspace_role_assignment', 'workspace_role', 'workspace_user', 'iam_policy', 'group_membership'])
+    @register('gcp.identity.super_admin_separation', ['workspace_role_assignment', 'workspace_role', 'workspace_user', 'iam_policy', 'group', 'group_membership'])
     def super_admin_separation(item, index):
-        _member(item, index, 'workspace_role_assignment')
-        role_id = get(item, 'roleId', str)
-        roles = [role for role in _rows(index, 'workspace_role') if get(role, 'roleId', str) == role_id]
-        if len(roles) != 1:
-            return unknown('role assignment cannot be resolved')
-        if not get(roles[0], 'isSuperAdminRole', bool):
-            return ('NOT_APPLICABLE', {'reason': 'assignment is not a super-admin role'})
-        user_id = get(item, 'assignedTo', str)
-        users = [user for user in _rows(index, 'workspace_user') if get(user, 'id', str) == user_id]
-        if len(users) != 1:
-            return unknown('super-admin user identity cannot be resolved')
-        email = get(users[0], 'primaryEmail', str).lower()
-        _rows(index, 'group_membership')
-        policy = _policy(index, 'iam_policy_levels', list)
-        if not {'project', 'folder', 'organization'} <= set(policy):
-            return unknown('IAM policy level coverage incomplete')
-        hierarchy = _policy(index, 'iam_policy_resource_names')
-        if not hierarchy or _scope(index) not in hierarchy:
-            return unknown('super-admin IAM hierarchy unavailable')
-        all_policies = _rows(index, 'iam_policy')
-        selected = [document for document in all_policies if get(document, 'name', str) in hierarchy]
-        if len(selected) != len(hierarchy) or {get(document, 'name', str) for document in selected} != set(hierarchy):
-            return unknown('super-admin IAM policy read incomplete')
-        findings = []
-        for document in selected:
-            for binding in _bindings(document):
-                role = get(binding, 'role', str)
-                if (role in ('roles/owner', 'roles/editor') or role.endswith(('Admin', 'admin'))) and 'user:' + email in _iam_members(binding):
-                    findings.append(role)
-        return result(bool(findings), principal=email, conflicting_roles=sorted(set(findings)))
+        # Keep the signed control identity and registration; dispatch only its native evidence path.
+        from hashlib import sha256
+        from pathlib import Path
+        source = Path(__file__).with_name('sw52_native_successor.py')
+        if sha256(source.read_bytes()).hexdigest() != '1933637f4f70a43decb946cbf9ecf69637acdd2a258f9a2a6aff65a815ab58b8':
+            return unknown('reviewed SW52 native source hash mismatch')
+        from .sw52_native_successor import super_admin_separation as native_evaluate
+        return native_evaluate(item, index)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @register('gcp.orgpolicy.central_constraints', ['org_policy_effective'], target='scope')
     def central_constraints(item, index):
