@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/peasso-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `8771bb42764598d01e73f5e38834c4db0195a610` by
+pack at pinned commit `fa3a4843cee564e74391c260894163c9357145da` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -101,7 +101,7 @@ Kubernetes: <https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/>
 
 ## Detection quality and validation
 
-The pinned pack contains **53 rules**. Its digest is `0631f676a219e4642defb145e4d0252cac01fd6fb2540c78fd3957c40c23d5ae`. Runtime normalizers preserve source IDs, exact identities, successful/denied outcomes and correlation requirements. Unsupported, incomplete or contradictory evidence must not produce an accepted match.
+The pinned pack contains **57 rules**. Its digest is `87586439c5ed7c1f775c9375b12fa637fea0862e270e6b9df11c0eacc53827fd`. Runtime normalizers preserve source IDs, exact identities, successful/denied outcomes and correlation requirements. Unsupported, incomplete or contradictory evidence must not produce an accepted match.
 
 Tests cover positive, negative, malformed and conflicting event shapes. Some rules also have bounded live audit evidence; that does not measure customer false-positive rates or complete technique coverage. Source-page links are navigation evidence rather than detection recall. Four experimental candidates for GuardDuty evasion, access keys, Key Vault purge and Kubernetes TokenRequest are excluded from this release because their signal or evidence was insufficient.
 
