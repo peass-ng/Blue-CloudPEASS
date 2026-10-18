@@ -28,7 +28,7 @@ from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
 from .gcp_logging_next import normalize_gcp_default_sink_disabled
 from .gcp_logging_tamper_next import normalize_gcp_data_access_exclusion_created, normalize_gcp_data_access_log_delete
 from .gcp_hmac_next import normalize_gcp_hmac_key_created
-from .kubernetes import normalize_kubernetes_audit
+from .kubernetes import normalize_kubernetes_audit_candidates
 from .kubernetes_next import normalize_kubernetes_cluster_admin_grant
 from .kubernetes_pod_next import normalize_kubernetes_privileged_host_pod
 from .kubernetes_ephemeral_next import normalize_kubernetes_privileged_ephemeral_update
@@ -185,12 +185,12 @@ def detect_kubernetes_events(
 ) -> list[Detection]:
     """Detect completed Kubernetes audit events with returned RBAC objects."""
     def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
-        base = normalize_kubernetes_audit(record)
+        base = normalize_kubernetes_audit_candidates(record)
         next_event = normalize_kubernetes_cluster_admin_grant(record)
         pod = normalize_kubernetes_privileged_host_pod(record)
         ephemeral = normalize_kubernetes_privileged_ephemeral_update(record)
         socket = normalize_kubernetes_runtime_socket_pod(record)
-        return (([base] if base is not None else [])
+        return (base
                 + ([next_event] if next_event is not None else [])
                 + ([pod] if pod is not None else [])
                 + ([ephemeral] if ephemeral is not None else [])

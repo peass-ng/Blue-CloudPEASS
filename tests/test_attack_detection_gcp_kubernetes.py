@@ -103,6 +103,34 @@ def test_kubernetes_requires_completed_create_and_returned_privileged_binding() 
     assert normalize_kubernetes_audit(good)["target.principal"] == "system:serviceaccount:app:worker"
 
 
+def test_cluster_admin_binding_reports_each_distinct_service_account() -> None:
+    row = k8s_binding_event()
+    row["responseObject"]["subjects"].extend([
+        {"kind": "ServiceAccount", "name": "other", "namespace": "app"},
+        {"kind": "ServiceAccount", "name": "worker", "namespace": "app"},
+        {"kind": "ServiceAccount", "name": "system", "namespace": "kube-system"},
+    ])
+    matches = detect_kubernetes_events([row], [K8S_TEST_RULE])
+    assert {item.target_id for item in matches} == {
+        "system:serviceaccount:app:worker", "system:serviceaccount:app:other"}
+    assert len(matches) == 2
+    assert {item.event_id for item in matches} == {"audit-1"}
+    assert {item.evidence["correlation"]["binding_name"] for item in matches} == {"workload-admin"}
+    assert {item.evidence["correlation"]["service_account"] for item in matches} == {
+        "system:serviceaccount:app:worker", "system:serviceaccount:app:other"}
+
+    wrapped = {"logName": "projects/customer/logs/cloudaudit.googleapis.com%2Factivity",
+               "insertId": "gke-multi", "timestamp": "2026-10-18T00:00:00Z",
+               "resource": {"type": "k8s_cluster", "labels": {"cluster_name": "demo"}},
+               "protoPayload": {"@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                                "serviceName": "k8s.io",
+                                "methodName": "io.k8s.authorization.rbac.v1.clusterrolebindings.create",
+                                "authenticationInfo": {"principalEmail": "alice@example.com"},
+                                "status": {"code": 0}, "response": row["responseObject"]}}
+    assert {item.target_id for item in detect_kubernetes_events([wrapped], [K8S_TEST_RULE])} == {
+        "system:serviceaccount:app:worker", "system:serviceaccount:app:other"}
+
+
 def test_malformed_kubernetes_verb_and_uri_do_not_abort_following_valid_record() -> None:
     good = k8s_binding_event()
     malformed_verb = deepcopy(good)
