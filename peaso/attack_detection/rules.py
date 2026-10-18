@@ -34,11 +34,12 @@ from .kubernetes_next import normalize_kubernetes_cluster_admin_grant
 from .kubernetes_pod_next import normalize_kubernetes_privileged_host_pod
 from .kubernetes_ephemeral_next import normalize_kubernetes_privileged_ephemeral_update
 from .kubernetes_runtime_socket_next import normalize_kubernetes_runtime_socket_pod
+from .kubernetes_aggregate_view_next import normalize_aggregate_view_secret_read
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "f544873ce36fc57cb39bd9769cb4a1c9863e2669"
-DEFAULT_RULE_PACK_SHA256 = "6be09851fd9f2792edc40fec4c2df9d8650ec43717c3f0d3328bab5b145a6cfc"
+DEFAULT_RULE_REF = "d38464f9b992516c49c5b29dbfc06fb93cdc90b3"
+DEFAULT_RULE_PACK_SHA256 = "00e9c7e0c4d3f238e013643495e49142c2470c4cfadc749b779b441de9af36b7"
 
 
 @dataclass(frozen=True)
@@ -193,11 +194,13 @@ def detect_kubernetes_events(
         pod = normalize_kubernetes_privileged_host_pod(record)
         ephemeral = normalize_kubernetes_privileged_ephemeral_update(record)
         socket = normalize_kubernetes_runtime_socket_pod(record)
+        aggregate_view = normalize_aggregate_view_secret_read(record)
         return (base
                 + ([next_event] if next_event is not None else [])
                 + ([pod] if pod is not None else [])
                 + ([ephemeral] if ephemeral is not None else [])
-                + ([socket] if socket is not None else []))
+                + ([socket] if socket is not None else [])
+                + ([aggregate_view] if aggregate_view is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize, "kubernetes")
 
