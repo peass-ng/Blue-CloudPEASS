@@ -233,33 +233,45 @@ def diag_case(*logs, **properties):
 
 
 def subscription_builtin_assignments(index, scope):
-    """Exact direct SecurityCenterBuiltIn rows; retain child rows for other checks."""
+    """Bind complete unfiltered subscription List rows, including inherited MG rows."""
     rows = []
     seen = set()
-    for row in scoped(index, "policy_assignment"):
-        if get(row, "name", str) != "SecurityCenterBuiltIn":
+    mg = r'/providers/Microsoft\.Management/managementGroups/[^/?#]+'
+    for row in scoped(index, 'policy_assignment'):
+        if get(row, 'name', str) != 'SecurityCenterBuiltIn':
             continue
-        rid = get(row, "id", str)
-        declared = get(row, "properties.scope", str)
-        match = re.fullmatch(r"(.+)/providers/Microsoft\.Authorization/policyAssignments/([^/?#]+)", rid, re.I)
-        if (match is None or match.group(2).casefold() != "securitycenterbuiltin" or
-                declared.casefold() != match.group(1).casefold()):
-            raise Unavailable("SecurityCenterBuiltIn assignment identity or declared scope inconsistent")
+        rid = get(row, 'id', str)
+        declared = get(row, 'properties.scope', str)
+        match = re.fullmatch(r'(.+)/providers/Microsoft\.Authorization/policyAssignments/([^/?#]+)', rid, re.I)
+        if (match is None or match.group(2).casefold() != 'securitycenterbuiltin'
+                or declared.casefold() != match.group(1).casefold()):
+            raise Unavailable('SecurityCenterBuiltIn assignment identity or declared scope inconsistent')
         assigned_scope = match.group(1)
-        if assigned_scope.casefold() == scope.casefold():
-            if rid.casefold() in seen:
-                raise Unavailable("duplicate SecurityCenterBuiltIn assignment identity")
-            seen.add(rid.casefold())
-            rows.append(row)
-            continue
+        identity = rid.casefold()
+        if identity in seen:
+            raise Unavailable('duplicate SecurityCenterBuiltIn assignment identity')
+        seen.add(identity)
         child = re.fullmatch(re.escape(scope) +
-            r"/(?:resourceGroups/[^/?#]+(?:/providers/[^/?#]+(?:/[^/?#]+/[^/?#]+)+)?|"
-            r"providers/[^/?#]+(?:/[^/?#]+/[^/?#]+)+)", assigned_scope, re.I)
-        if child is None:
-            raise Unavailable("SecurityCenterBuiltIn assignment ancestry or foreign scope unproved")
-        # The complete native inventory keeps this child row for other consumers.
+            r'/(?:resourceGroups/[^/?#]+(?:/providers/[^/?#]+(?:/[^/?#]+/[^/?#]+)+)?|'
+            r'providers/[^/?#]+(?:/[^/?#]+/[^/?#]+)+)', assigned_scope, re.I)
+        inherited = re.fullmatch(mg, assigned_scope, re.I)
+        if assigned_scope.casefold() != scope.casefold() and child is None and inherited is None:
+            raise Unavailable('SecurityCenterBuiltIn assignment ancestry or foreign scope unproved')
+        if child is not None:
+            continue
+        if inherited is not None:
+            proof = get(row, '_native_policy_assignment_list', dict)
+            expected = {'source_operation': 'PolicyAssignments_List', 'api_version': '2023-04-01',
+                        'read_only': True, 'selected_scope': scope, 'filter': None,
+                        'request_path': scope + '/providers/Microsoft.Authorization/policyAssignments'}
+            if proof != expected:
+                raise Unavailable('inherited SecurityCenterBuiltIn List source binding unavailable')
+        properties = get(row, 'properties', dict)
+        for key in ('notScopes', 'resourceSelectors', 'overrides'):
+            if optional(properties, key, [], list):
+                raise Unavailable('conditional SecurityCenterBuiltIn applicability requires review')
+        rows.append(row)
     return rows
-
 
 def scoped(index, kind):
     """Complete scoped inventory or UNKNOWN."""

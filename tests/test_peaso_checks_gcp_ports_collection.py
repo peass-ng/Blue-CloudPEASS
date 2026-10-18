@@ -20,7 +20,7 @@ def test_extended_fact_hydration_projects_native_metadata_with_exact_read_reques
         if "serviceusage.googleapis.com" in url:
             assert request["method"] == "GET"
             assert url == "https://serviceusage.googleapis.com/v1/projects/p-one/services"
-            assert params["pageSize"] == 100
+            assert params["pageSize"] == 200
             return {"services": [{"name": "projects/p-one/services/compute.googleapis.com", "state": "ENABLED"}]}
         if "alloydb.googleapis.com" in url and url.endswith("/clusters"):
             assert "initialUser" not in params["fields"]

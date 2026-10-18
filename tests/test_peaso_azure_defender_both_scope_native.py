@@ -90,8 +90,8 @@ def test_incomplete_or_foreign_collection_never_certifies(monkeypatch,fault):
 
 
 @pytest.mark.parametrize('case',['missing_scope','scope_conflict','id_name_conflict',
-                                 'malformed_child','child_scope_conflict','unproved_ancestor'])
-def test_malformed_or_unproved_assignment_unknown_for_both(monkeypatch,case):
+                                 'malformed_child','child_scope_conflict','inherited_list_proven'])
+def test_assignment_scope_binding_for_both(monkeypatch,case):
     assignment=row();rows=[assignment]
     if case=='missing_scope':del assignment['properties']['scope']
     elif case=='scope_conflict':assignment['properties']['scope']=SCOPE+'/resourceGroups/child'
@@ -101,7 +101,8 @@ def test_malformed_or_unproved_assignment_unknown_for_both(monkeypatch,case):
         child=row(scope=SCOPE+'/resourceGroups/child');child['properties']['scope']=SCOPE;rows.append(child)
     else:rows=[row(scope='/providers/Microsoft.Management/managementGroups/unproved')]
     found,_,_=scan(monkeypatch,rows)
-    assert found=={EFFECT:'UNKNOWN',ENFORCE:'UNKNOWN'}
+    expected={EFFECT:'PASS',ENFORCE:'PASS'} if case=='inherited_list_proven' else {EFFECT:'UNKNOWN',ENFORCE:'UNKNOWN'}
+    assert found==expected
 
 
 def test_signed_absence_branches_preserved(monkeypatch):

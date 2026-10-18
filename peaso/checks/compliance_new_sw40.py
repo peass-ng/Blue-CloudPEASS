@@ -297,10 +297,21 @@ def _native_policy_attachment(item, index, arn):
            for kind, principal_arn in attached):
         return result(False, policy_arn=arn, attachment_kind="populated_iam_group",
                       criterion="declared attachment; usage unassessed")
+    unresolved_role = None
     for kind, principal_arn in attached:
-        if kind == "iam_role" and _declared_role_trust(principals[kind][principal_arn], partition, account):
+        if kind != "iam_role":
+            continue
+        try:
+            trusted = _declared_role_trust(principals[kind][principal_arn], partition, account)
+        except Unavailable as exc:
+            if unresolved_role is None:
+                unresolved_role = exc
+            continue
+        if trusted:
             return result(False, policy_arn=arn, attachment_kind="trusted_iam_role",
                           criterion="declared attachment; usage unassessed")
+    if unresolved_role is not None:
+        raise unresolved_role
     return result(True, policy_arn=arn, attachment_count=expected_count,
                   criterion="declared attachment; usage unassessed")
 
@@ -308,6 +319,11 @@ def _native_policy_attachment(item, index, arn):
 _TRUST_SEGMENT = re.compile(r"[A-Za-z0-9_+=,.@-]+\Z")
 _DNS_LABEL = re.compile(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\Z", re.I)
 _REGION_LABEL = re.compile(r"[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+\Z")
+_MULTILABEL_SERVICE_PREFIXES = {
+    "apidestinations.events", "ops.apigateway",
+    "application-signals.cloudwatch", "streams.metrics.cloudwatch",
+    "monitoring.rds", "replicator.lambda", "logger.cloudfront",
+}
 _BUILTIN_OIDC = {"cognito-identity.amazonaws.com", "www.amazon.com", "graph.facebook.com", "accounts.google.com"}
 
 
@@ -324,8 +340,9 @@ def _trust_principal_form(key, value, partition, account):
     if key == "Service":
         suffix = ".amazonaws.com.cn" if partition == "aws-cn" else ".amazonaws.com"
         labels = value[:-len(suffix)].split(".") if value.endswith(suffix) else []
-        if (len(labels) in {1, 2} and all(_DNS_LABEL.fullmatch(label) for label in labels)
-                and (len(labels) == 1 or _REGION_LABEL.fullmatch(labels[1]))):
+        if (labels and all(_DNS_LABEL.fullmatch(label) for label in labels)
+                and (len(labels) == 1 or len(labels) == 2 and _REGION_LABEL.fullmatch(labels[1])
+                     or ".".join(labels) in _MULTILABEL_SERVICE_PREFIXES)):
             return "service"
         raise Unavailable("unrecognized IAM service principal form")
     if key == "Federated" and value in _BUILTIN_OIDC:

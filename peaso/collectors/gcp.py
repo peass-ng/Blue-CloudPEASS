@@ -1451,7 +1451,7 @@ class GCPCollector:
         compute = f"https://compute.googleapis.com/compute/v1/projects/{project}"
         add("service_usage", "serviceusage", lambda: self.pages(
             f"https://serviceusage.googleapis.com/v1/{scope}/services", scope, key="services",
-            params={"pageSize": min(self.page_size, 200)}))
+            params={"pageSize": min(self.page_size if "page_size" in self.options else 200, 200)}))
         def bigtable_instances():
             for items, request_id in self.pages(f"https://bigtableadmin.googleapis.com/v2/{scope}/instances", scope,
                 key="instances", page_size_key=None, params={"fields": "instances(name,displayName,state,type,labels),failedLocations"}):

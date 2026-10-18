@@ -201,3 +201,67 @@ def test_public_description_hashguard():
     original = _compliance()[1]["checks"][CHECK_ID]
     with pytest.raises(ValueError):
         description({**original, "description": "drift"}, SIGNED_SPEC_SHA256)
+
+# Service DNS names documented by AWS or observed as literal forms in a complete
+# read-only GetAccountAuthorizationDetails response; parser shape only.
+@pytest.mark.parametrize('principal', [
+    'apidestinations.events.amazonaws.com',
+    'ops.apigateway.amazonaws.com',
+    'application-signals.cloudwatch.amazonaws.com',
+    'streams.metrics.cloudwatch.amazonaws.com',
+    'monitoring.rds.amazonaws.com',
+    'replicator.lambda.amazonaws.com',
+    'logger.cloudfront.amazonaws.com',
+])
+def test_documented_multilabel_service_principal(monkeypatch, principal):
+    row = run(monkeypatch, roles=[role(attached=True, trust=trust('Service', principal, 'sts:AssumeRole'))], count=1)
+    assert row['status'] == 'PASS'
+    assert row['evidence']['attachment_kind'] == 'trusted_iam_role'
+
+
+@pytest.mark.parametrize('principal', [
+    '*.events.amazonaws.com',
+    'apidestinations.events.amazonaws.com.',
+    'https://apidestinations.events.amazonaws.com',
+    'apidestinations.events.amazonaws.com:443',
+    'apidestinations..events.amazonaws.com',
+    'apidestinations.events.amazonaws.com.cn',
+    's3.not-a-region.amazonaws.com',
+])
+def test_multilabel_service_malformed_or_wrong_partition_unknown(monkeypatch, principal):
+    row = run(monkeypatch, roles=[role(attached=True, trust=trust('Service', principal, 'sts:AssumeRole'))], count=1)
+    assert row['status'] == 'UNKNOWN'
+
+
+def _distinct_attached_role(name, trust_document):
+    value = role(attached=True, trust=trust_document)
+    value['RoleName'] = name
+    value['RoleId'] = 'AROAEXAMPLE' + ('ORDER12345' if name == 'First' else 'ORDER67890')
+    value['Arn'] = f'arn:aws:iam::{ACCOUNT}:role/{name}'
+    return value
+
+
+@pytest.mark.parametrize('opaque', [
+    json.dumps({'Statement': [{'Effect': 'Allow', 'Action': 'sts:AssumeRole',
+        'Principal': {'AWS': '*'}, 'Condition': {'StringEquals': {'aws:PrincipalOrgID': 'o-example'}}}]}),
+    trust('AWS', 'AROAXXXXXXXXXXXXXXXX', 'sts:AssumeRole'),
+])
+@pytest.mark.parametrize('opaque_first', [True, False])
+def test_distinct_opaque_role_cannot_hide_complete_trusted_role(monkeypatch, opaque, opaque_first):
+    unknown_role = _distinct_attached_role('First', opaque)
+    trusted_role = _distinct_attached_role('Second', TRUST)
+    roles = [unknown_role, trusted_role] if opaque_first else [trusted_role, unknown_role]
+    row = run(monkeypatch, roles=roles, count=2)
+    assert row['status'] == 'PASS'
+    assert row['evidence']['attachment_kind'] == 'trusted_iam_role'
+
+
+def test_distinct_opaque_roles_without_witness_remain_unknown(monkeypatch):
+    opaque = trust('AWS', 'AROAXXXXXXXXXXXXXXXX', 'sts:AssumeRole')
+    roles = [_distinct_attached_role('First', opaque), _distinct_attached_role('Second', opaque)]
+    assert run(monkeypatch, roles=roles, count=2)['status'] == 'UNKNOWN'
+
+
+def test_distinct_complete_untrusted_roles_fail(monkeypatch):
+    roles = [_distinct_attached_role('First', UNTRUSTED), _distinct_attached_role('Second', UNTRUSTED)]
+    assert run(monkeypatch, roles=roles, count=2)['status'] == 'FAIL'

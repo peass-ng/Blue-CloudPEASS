@@ -873,6 +873,15 @@ def _metadata_only(value, secret=False):
     return result
 
 
+def _policy_assignment_scope_allowed(kind, selected_scope, resource_id):
+    """Allow only documented MG-policy rows from a subscription-bound List."""
+    if resource_id.casefold() == selected_scope.casefold() or resource_id.casefold().startswith(selected_scope.casefold() + '/'):
+        return True
+    return kind == 'policy_assignment' and re.fullmatch(
+        r'/providers/Microsoft\.Management/managementGroups/[^/?#]+'
+        r'/providers/Microsoft\.Authorization/policyAssignments/[^/?#]+', resource_id, re.I) is not None
+
+
 class _Reader:
     """Shared native read scheduler; budgets include retry attempts."""
     def __init__(self, options):
@@ -1011,7 +1020,7 @@ class _Reader:
                     identifier = item.get("id")
                     if not isinstance(identifier, str) or not identifier:
                         raise ValueError("missing authoritative resource identity")
-                    if service != "kubernetes" and kind in scoped_types and scope.startswith("/subscriptions/") and not (identifier.lower() == scope.lower() or identifier.lower().startswith(scope.lower() + "/")):
+                    if service != "kubernetes" and kind in scoped_types and scope.startswith("/subscriptions/") and not _policy_assignment_scope_allowed(kind, scope, identifier):
                         raise ValueError("resource outside selected ARM scope")
                     normalized = identifier.lower() if service != "kubernetes" else identifier
                     if normalized not in items and self.budget.max_items is not None and len(items) >= self.budget.max_items:
@@ -1043,6 +1052,8 @@ class _Reader:
                         raise ValueError('conflicting guest assignment identity')
                     if kind == 'embedded_backupProtectedItems' and normalized in items and items[normalized] != projected:
                         raise ValueError('conflicting backup protected item identity')
+                    if kind == 'policy_assignment' and normalized in items:
+                        raise ValueError('duplicate native policy assignment identity')
                     items.setdefault(normalized, projected)
         except Exception as exc:
             status, error = _safe_error(exc)
@@ -1644,12 +1655,34 @@ def collect(connector, requirements=None, *, transport=None):
                         return {**response, 'value': [
                             {**item, '_provenance': dict(proof)} if isinstance(item, dict) else item
                             for item in response['value']]}
-                    page_request = assessment_list_request if kind == 'security_assessment' else request
+                    def policy_assignment_list_request(page_url, *, body=None, audience=ARM):
+                        # Only an unfiltered List for this selected subscription can
+                        # establish that a returned management-group row applies here.
+                        parts = urlsplit(page_url)
+                        query = parse_qsl(parts.query, keep_blank_values=True)
+                        keys = [key.casefold() for key, _ in query]
+                        if (body is not None or audience != ARM or
+                                parts.path.casefold() != (scope + '/providers/Microsoft.Authorization/policyAssignments').casefold() or
+                                [value for key, value in query if key.casefold() == 'api-version'] != [version] or
+                                any(key.lstrip('$') in ('filter', 'top') for key in keys)):
+                            raise ValueError('policy assignment List source binding unavailable')
+                        return request(page_url, body=body, audience=audience)
+                    page_request = (assessment_list_request if kind == 'security_assessment' else
+                                    policy_assignment_list_request if kind == 'policy_assignment' else request)
+                    policy_list_proof = {'source_operation': 'PolicyAssignments_List', 'api_version': version,
+                                         'read_only': True, 'selected_scope': scope, 'filter': None,
+                                         'request_path': scope + '/providers/Microsoft.Authorization/policyAssignments'}
+                    def bound_policy_row(row):
+                        if kind != 'policy_assignment':
+                            return row
+                        if '_native_policy_assignment_list' in row:
+                            raise ValueError('conflicting policy assignment List source marker')
+                        return {**row, '_native_policy_assignment_list': dict(policy_list_proof)}
                     for page in reader.pages(page_request, url):
                         detailed = []
                         for item in page:
                             rid = item.get("id") if isinstance(item, dict) else None
-                            if not isinstance(rid, str) or not rid.lower().startswith(scope.lower() + "/"):
+                            if not isinstance(rid, str) or not _policy_assignment_scope_allowed(kind, scope, rid):
                                 raise ValueError("resource outside selected subscription")
                             if kind in ("easm_workspace", "monitor_log_profile", "arc_kubernetes_cluster", "integration_service_environment", "databricks_workspace"):
                                 identity = rid.casefold()
@@ -1658,7 +1691,7 @@ def collect(connector, requirements=None, *, transport=None):
                                     raise ValueError("duplicate or malformed selected Azure identity")
                                 seen_easm.add(identity)
                             if isinstance(item.get("properties"), dict) and kind != "container_group" and kind not in FULL_GET_KINDS:
-                                detailed.append(azure_swc.list_detail(item, kind))
+                                detailed.append(bound_policy_row(azure_swc.list_detail(item, kind)))
                                 continue
                             try:
                                 detail_url = ARM + rid + "?api-version=" + version
@@ -1674,7 +1707,7 @@ def collect(connector, requirements=None, *, transport=None):
                                 if kind in ("frontdoor", "cdn_profile"):
                                     result = azure_frontdoor_native.metadata_projection(result)
                                 result = azure_swc.list_detail(result, kind)
-                                detailed.append(result)
+                                detailed.append(bound_policy_row(result))
                             except Exception as exc:
                                 incomplete = exc
                                 detailed.append({"id": rid, "type": item.get("type"), "name": item.get("name"), "detail": {"collection_status": _safe_error(exc)[0], "error": _safe_error(exc)[1]}})
