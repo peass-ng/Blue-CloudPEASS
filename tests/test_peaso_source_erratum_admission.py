@@ -1,0 +1,29 @@
+"""Pinned successor evidence must not break authentic historical ledgers."""
+from pathlib import Path
+import pytest
+from scripts.peaso_compliance_compile import SOURCE_ERRATA, verify_source_errata
+
+RELATIVE, (CHECK, SPEC, _) = next(iter(SOURCE_ERRATA.items()))
+CURRENT = {CHECK: {'proposal_provenance': {'source_correction': {
+    'current_canonical_spec_sha256': SPEC}}}}
+
+
+def test_historical_catalog_without_successor_accepts_missing_future_record(tmp_path):
+    verify_source_errata(tmp_path, {})
+
+
+def test_current_catalog_requires_its_pinned_successor_record(tmp_path):
+    with pytest.raises(ValueError, match='Admitted source erratum is missing'):
+        verify_source_errata(tmp_path, CURRENT)
+
+
+def test_changed_record_rejected_even_for_historical_catalog(tmp_path):
+    (tmp_path / RELATIVE).write_text('{}')
+    with pytest.raises(ValueError, match='Source erratum hash mismatch'):
+        verify_source_errata(tmp_path, {})
+
+
+def test_exact_reviewed_record_is_accepted(tmp_path):
+    source = Path(__file__).resolve().parents[1] / 'docs/compliance-ledgers' / RELATIVE
+    (tmp_path / RELATIVE).write_bytes(source.read_bytes())
+    verify_source_errata(tmp_path, CURRENT)

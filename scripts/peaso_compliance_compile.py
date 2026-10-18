@@ -62,7 +62,13 @@ DESCRIPTION_FIELD_ORDER = ("description", "fail_when", "evaluated", "not_applica
 DESCRIPTION_FIELDS = set(DESCRIPTION_FIELD_ORDER)
 ANALYSIS_IDS = {"analysis.grant_review", "analysis.inactive_identity", "analysis.principal_exposure",
                 "analysis.network_review", "analysis.coverage", "analysis.internet_exposure", "analysis.federated_trust"}
-RESEARCH_JSON = {f"new-checks-{provider}.json" for provider in PROVIDERS} | {
+SOURCE_ERRATA = {
+    "gcp-api-key-service-name-erratum-20261018.json": (
+        "gcp.apikeys.active_service_restrictions",
+        "0cae3df2c44dcab5f9ce736977ff4a191d83dba2406161be7fb1cdb1a959dd31",
+        "fe2e9bd7e9f6bde4af987a6a3ca40d358cbf24bef3541506c25233b5a7146eb9"),
+}
+RESEARCH_JSON = {f"new-checks-{provider}.json" for provider in PROVIDERS} | set(SOURCE_ERRATA) | {
     "descriptions/desc-all-1.problems.json", "descriptions/desc-aws-2.problems.json",
     "descriptions/desc-azure-2.problems.json", "descriptions/desc-gcp-1.problems.json",
     "descriptions/desc-k8s-2.problems.json",
@@ -77,6 +83,21 @@ def digest(data: bytes) -> str:
 
 def spec_digest(value: dict) -> str:
     return digest(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode())
+
+
+def verify_source_errata(ledger_root, native):
+    """Keep historical ledgers valid; require exact bytes for admitted successors."""
+    for relative, (check_id, spec_sha256, file_sha256) in SOURCE_ERRATA.items():
+        path = ledger_root / relative
+        provenance = native.get(check_id, {}).get("proposal_provenance", {})
+        correction = provenance.get("source_correction", {})
+        required = correction.get("current_canonical_spec_sha256") == spec_sha256
+        if required and not path.is_file():
+            raise ValueError("Admitted source erratum is missing")
+        if path.exists():
+            path = checked_path(ledger_root, relative)
+            if digest(path.read_bytes()) != file_sha256:
+                raise ValueError("Source erratum hash mismatch")
 
 
 def _reviewed_rds_registered_declaration(native):
@@ -294,6 +315,7 @@ def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict
     if not isinstance(native_rows, list):
         raise ValueError("Native catalogue has no checks")
     native = {row["id"]: row for row in native_rows}
+    verify_source_errata(ledger_root, native)
     if len(native) != len(native_rows):
         raise ValueError("Native catalogue IDs are not unique")
     new_native = set(native) - set(indexed)

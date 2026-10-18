@@ -26,7 +26,7 @@ def render_documents() -> dict[Path, bytes]:
                                       full_requirements, manifest, proposal_provenance_for, runtime_metadata)
     from peaso.collectors import supported_types
     from peaso.server.catalog_view import frameworks_view
-    from scripts.peaso_compliance_compile import lookup_index
+    from scripts.peaso_compliance_compile import lookup_index, spec_digest
 
     clear_caches()
     packed = _compliance()
@@ -91,6 +91,12 @@ def render_documents() -> dict[Path, bytes]:
     source_corrections = {module.CHECK_ID: {"spec": module.CORRECTED_SPEC,
                                           "provenance": module.correction_provenance()}
                           for module in (azure_vm_ssh_source_correction, gcp_cloudsql_lockout_source_correction)}
+    from peaso.checks.gcp_api_key_service_names_native import CHECK_ID as api_key_id, source_correction as api_key_correction
+    prior_api_key = next((row for row in canonical['proposed_checks'] if row['id'] == api_key_id), None)
+    if prior_api_key is None:
+        raise ValueError('Historical GCP API key proposal missing')
+    corrected_api_key, api_key_provenance = api_key_correction(spec_digest(prior_api_key))
+    source_corrections[api_key_id] = {'spec': corrected_api_key, 'provenance': api_key_provenance}
     from peaso.checks.aws_policy_source_correction import CORRECTIONS
     source_corrections.update({cid: {"spec": row["spec"], "provenance": row["provenance"]}
                                for cid, row in CORRECTIONS.items()})

@@ -16,6 +16,7 @@ def _load_08():
     from urllib.parse import quote
     from . import CHECKS, register, result, unknown
     from .facts import Unavailable, complete_items, get, list_of_objects, omitted
+    from .gcp_api_key_service_names_native import canonical_service, canonical_target
 
     def _rows(index, kind, scope):
         envelopes = get(index, 'collections', dict).get(kind)
@@ -316,20 +317,26 @@ def _load_08():
         requested = []
         for target in targets:
             service = get(target, 'service', str)
-            if not re.fullmatch('[a-z][a-z0-9.-]+\\.googleapis\\.com', service):
-                raise Unavailable('malformed API target service')
-            requested.append(service)
+            try:
+                requested.append(canonical_target(service))
+            except ValueError as exc:
+                raise Unavailable(str(exc)) from exc
         rows = _rows(index, 'service_usage', scope)
         states = {}
         for row in rows:
-            name = get(row, 'name', str)
             state = get(row, 'state', str)
-            if get(row, '_provenance.scope', str) != scope or not re.fullmatch(re.escape(scope) + '/services/[a-z][a-z0-9.-]+\\.googleapis\\.com', name) or name in states or (state not in ('ENABLED', 'DISABLED')):
+            if get(row, '_provenance.scope', str) != scope or state not in ('ENABLED', 'DISABLED'):
                 raise Unavailable('malformed or foreign Service Usage fact')
-            states[name] = state
-        if any((scope + '/services/' + service not in states for service in requested)):
+            try:
+                service = canonical_service(row, scope)
+            except ValueError as exc:
+                raise Unavailable(str(exc)) from exc
+            if service in states:
+                raise Unavailable('duplicate Service Usage DNS identity')
+            states[service] = state
+        if any((service not in states for service in requested)):
             return unknown('target service absent from selected Service Usage inventory', api_key=key_name)
-        disabled = sorted(set((service for service in requested if states[scope + '/services/' + service] == 'DISABLED')))
+        disabled = sorted(set((service for service in requested if states[service] == 'DISABLED')))
         if disabled:
             return result(True, api_key=key_name, disabled_target_services=disabled)
         return unknown('enabled service does not establish active key use', api_key=key_name)

@@ -147,6 +147,11 @@ def proposal_provenance_for(check_id):
                   "signed_provider": spec["provider"], "signed_severity": spec["severity"],
                   "signed_category": spec["category"], "signed_resource_kind": spec["resource_kind"],
                   "source_manifest_sha256": _compliance()[0]["source_manifest_sha256"]}
+    if check_id == "gcp.apikeys.active_service_restrictions":
+        from .gcp_api_key_service_names_native import source_correction
+        _, correction = source_correction(provenance["signed_spec_sha256"])
+        provenance["signed_spec_status"] = "historical_superseded_for_this_check"
+        provenance["source_correction"] = correction
     if check_id == 'azure_vm_8_2_1_1_712e1ad':
         from .azure_vm_ssh_source_correction import PRIOR_FROZEN_SPEC_SHA256, correction_provenance
         if provenance["signed_spec_sha256"] != PRIOR_FROZEN_SPEC_SHA256:
