@@ -23,6 +23,7 @@ def normalize_entra_credential_add(
             or row.get("loggedByService") != "Core Directory"
             or row.get("activityDisplayName") != "Add service principal credentials"
             or row.get("result") != "success"
+            or row.get("operationType") != "Add"
             or not isinstance(event_id, str) or not event_id
             or not isinstance(event_time, str) or not event_time):
         return None

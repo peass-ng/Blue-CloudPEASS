@@ -15,9 +15,8 @@ _TRAIL_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{1,126}[A-Za-z0-9]")
 
 
 def _detector_id(value: Any) -> bool:
-    # GuardDuty documents 1..300 characters but no tighter lexical pattern.
-    return (isinstance(value, str) and 1 <= len(value) <= 300
-            and value == value.strip() and all(ord(char) >= 32 for char in value))
+    # The URI accepts a broad string length, but GuardDuty issues 32-hex IDs.
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{32}", value) is not None
 
 
 def _trail_name(value: str) -> bool:

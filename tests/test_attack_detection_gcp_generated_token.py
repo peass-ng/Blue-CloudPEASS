@@ -51,7 +51,7 @@ def test_confirmed_cross_principal_mint_exposes_only_safe_fields():
 
 @pytest.mark.parametrize("change", [
     "admin_activity", "wrong_method", "wrong_service", "wrong_resource", "foreign_project",
-    "foreign_email", "status_missing", "status_failed", "status_boolean", "missing_request",
+    "foreign_email", "status_missing", "status_failed", "status_boolean", "status_float", "missing_request",
     "request_redacted", "request_other_sa", "request_wrong_type", "actor_missing", "actor_self",
     "named_resource_other", "start_only", "missing_event_id",
 ])
@@ -76,6 +76,8 @@ def test_incomplete_or_mismatched_mint_is_not_observed(change):
         payload["status"]["code"] = 7
     elif change == "status_boolean":
         payload["status"]["code"] = False
+    elif change == "status_float":
+        payload["status"]["code"] = 0.0
     elif change == "missing_request":
         payload.pop("request")
     elif change == "request_redacted":

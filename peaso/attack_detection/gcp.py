@@ -16,6 +16,15 @@ _POLICY_TYPE = "type.googleapis.com/google.iam.v1.Policy"
 _REQUEST_TYPE = "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
 
 
+def _successful_status(value: Any, *, require_code: bool = False) -> bool:
+    if value is None:
+        return not require_code
+    if not isinstance(value, Mapping):
+        return False
+    code = value.get("code")
+    return (type(code) is int and code == 0) if require_code else (code is None or type(code) is int and code == 0)
+
+
 def normalize_gcp_generated_access_token(record: Mapping[str, Any]) -> dict[str, Any] | None:
     """Observe a successful cross-principal service-account token mint.
 
@@ -46,7 +55,7 @@ def normalize_gcp_generated_access_token(record: Mapping[str, Any]) -> dict[str,
     if payload.get("serviceName") != "iamcredentials.googleapis.com" or payload.get("methodName") != "GenerateAccessToken":
         return None
     status = payload.get("status")
-    if not isinstance(status, Mapping) or status.get("code") != 0 or isinstance(status.get("code"), bool):
+    if not _successful_status(status, require_code=True):
         return None
     auth = payload.get("authenticationInfo")
     request = payload.get("request")
@@ -116,7 +125,7 @@ def normalize_gcp_undeleted_service_account(record: Mapping[str, Any]) -> dict[s
     if payload.get("serviceName") != "iam.googleapis.com" or payload.get("methodName") != "google.iam.admin.v1.UndeleteServiceAccount":
         return None
     status = payload.get("status")
-    if status is not None and (not isinstance(status, Mapping) or status.get("code") not in (None, 0) or isinstance(status.get("code"), bool)):
+    if not _successful_status(status):
         return None
     auth = payload.get("authenticationInfo")
     request = payload.get("request")
@@ -202,7 +211,7 @@ def normalize_gcp_uploaded_service_account_key(record: Mapping[str, Any]) -> dic
     if payload.get("serviceName") != "iam.googleapis.com" or payload.get("methodName") != "google.iam.admin.v1.UploadServiceAccountKey":
         return None
     status = payload.get("status")
-    if status is not None and (not isinstance(status, Mapping) or status.get("code") not in (None, 0) or isinstance(status.get("code"), bool)):
+    if not _successful_status(status):
         return None
     auth = payload.get("authenticationInfo")
     request = payload.get("request")
@@ -281,7 +290,7 @@ def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -
     if payload.get("serviceName") != "iam.googleapis.com" or payload.get("methodName") != "google.iam.admin.v1.SetIAMPolicy":
         return None
     status = payload.get("status")
-    if status is not None and (not isinstance(status, Mapping) or status.get("code") not in (None, 0) or isinstance(status.get("code"), bool)):
+    if not _successful_status(status):
         return None
     auth = payload.get("authenticationInfo")
     request = payload.get("request")
@@ -374,8 +383,8 @@ def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
     target = request.get("name")
     key_name = response.get("name")
     key_returned = isinstance(key_name, str) and "/serviceAccounts/" in key_name and "/keys/" in key_name and bool(key_name.rsplit("/keys/", 1)[-1])
-    explicit_success = code == 0 and not isinstance(code, bool)
-    if code not in (None, 0) or not (explicit_success or key_returned):
+    explicit_success = type(code) is int and code == 0
+    if (code is not None and not explicit_success) or not (explicit_success or key_returned):
         return None
     if not isinstance(target, str) or not target.startswith("projects/") or "/serviceAccounts/" not in target or not target.rsplit("/serviceAccounts/", 1)[-1]:
         return None

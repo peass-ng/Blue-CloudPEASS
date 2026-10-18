@@ -99,7 +99,7 @@ def test_delete_detector_observes_exact_id_without_claiming_current_state() -> N
 def test_delete_detector_requires_success_exact_target_and_consistent_actor() -> None:
     good = _record("guardduty.amazonaws.com", "DeleteDetector", {"detectorId": "b" * 32})
     negatives = []
-    for edit in ("denied", "error_message", "missing_id", "empty_id", "oversized_id",
+    for edit in ("denied", "error_message", "missing_id", "empty_id", "one_character_id", "nonhex_32_id", "oversized_id",
                  "wrong_source", "wrong_action", "missing_account", "foreign_actor_account",
                  "missing_region", "missing_time", "missing_response", "data_event"):
         row = deepcopy(good)
@@ -107,6 +107,8 @@ def test_delete_detector_requires_success_exact_target_and_consistent_actor() ->
         if edit == "error_message": row["errorMessage"] = "Not authorized"
         if edit == "missing_id": row["requestParameters"].pop("detectorId")
         if edit == "empty_id": row["requestParameters"]["detectorId"] = ""
+        if edit == "one_character_id": row["requestParameters"]["detectorId"] = "x"
+        if edit == "nonhex_32_id": row["requestParameters"]["detectorId"] = "g" * 32
         if edit == "oversized_id": row["requestParameters"]["detectorId"] = "a" * 301
         if edit == "wrong_source": row["eventSource"] = "cloudtrail.amazonaws.com"
         if edit == "wrong_action": row["eventName"] = "GetDetector"

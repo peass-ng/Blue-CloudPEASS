@@ -119,7 +119,7 @@ def test_detector_requires_literal_false_and_exact_id() -> None:
     })
     negatives = []
     for edit in ("denied", "missing_enable", "true_enable", "string_false", "numeric_zero", "missing_id",
-                 "malformed_id", "wrong_action", "wrong_region", "missing_event_id", "foreign_account"):
+                 "malformed_id", "one_character_id", "nonhex_32_id", "wrong_action", "wrong_region", "missing_event_id", "foreign_account"):
         row = deepcopy(good)
         request = row["requestParameters"]
         if edit == "denied": row["errorCode"] = "AccessDeniedException"
@@ -129,6 +129,8 @@ def test_detector_requires_literal_false_and_exact_id() -> None:
         if edit == "numeric_zero": request["enable"] = 0
         if edit == "missing_id": request.pop("detectorId")
         if edit == "malformed_id": request["detectorId"] = " "
+        if edit == "one_character_id": request["detectorId"] = "x"
+        if edit == "nonhex_32_id": request["detectorId"] = "g" * 32
         if edit == "wrong_action": row["eventName"] = "GetDetector"
         if edit == "wrong_region": row["awsRegion"] = "not-a-region"
         if edit == "missing_event_id": row.pop("eventID")

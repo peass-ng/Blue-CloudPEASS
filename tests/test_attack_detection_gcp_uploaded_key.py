@@ -65,7 +65,7 @@ def test_explicit_project_request_and_dash_return_are_accepted():
 
 @pytest.mark.parametrize("change", [
     "wrong_method", "wrong_service", "data_access", "wrong_resource_type", "foreign_project_label",
-    "failed", "boolean_status", "missing_request", "redacted_request", "foreign_request_project",
+    "failed", "boolean_status", "floating_status", "missing_request", "redacted_request", "foreign_request_project",
     "foreign_request_email", "missing_response", "missing_key_name", "foreign_returned_email",
     "foreign_returned_project", "redacted_response", "wrong_key_origin", "missing_actor",
     "missing_event_id", "other_named_resource",
@@ -87,6 +87,8 @@ def test_incomplete_or_foreign_upload_cannot_be_a_candidate(change):
         payload["status"] = {"code": 7}
     elif change == "boolean_status":
         payload["status"] = {"code": False}
+    elif change == "floating_status":
+        payload["status"] = {"code": 0.0}
     elif change == "missing_request":
         payload.pop("request")
     elif change == "redacted_request":

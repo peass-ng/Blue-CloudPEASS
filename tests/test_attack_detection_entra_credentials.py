@@ -65,6 +65,7 @@ def test_completed_service_principal_credential_add_matches_reviewed_rule():
     {"category": "UserManagement"},
     {"loggedByService": "Other Service"},
     {"activityDisplayName": "Remove service principal credentials"},
+    {"operationType": "Delete"},
     {"targetResources": [{"id": TARGET, "type": "Application"}]},
     {"targetResources": [{"id": TARGET, "type": "ServicePrincipal"}, {"id": ACTOR, "type": "ServicePrincipal"}]},
     {"targetResources": [{"id": "not-a-uuid", "type": "ServicePrincipal"}]},

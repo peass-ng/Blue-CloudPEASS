@@ -58,7 +58,7 @@ def test_matching_restore_observes_identity_only():
 
 @pytest.mark.parametrize("change", [
     "data_access", "wrong_method", "wrong_service", "wrong_resource_type", "foreign_resource_label",
-    "failed", "boolean_status", "missing_request", "request_email", "foreign_request_project",
+    "failed", "boolean_status", "floating_status", "missing_request", "request_email", "foreign_request_project",
     "missing_response", "missing_restored_account", "redacted_response", "wrong_response_id",
     "wrong_response_project", "wrong_response_email", "wrong_response_name",
     "wrong_resource_name", "missing_actor", "missing_event_id",
@@ -81,6 +81,8 @@ def test_incomplete_or_mismatched_restore_is_not_confirmed(change):
         payload["status"] = {"code": 7}
     elif change == "boolean_status":
         payload["status"] = {"code": False}
+    elif change == "floating_status":
+        payload["status"] = {"code": 0.0}
     elif change == "missing_request":
         payload.pop("request")
     elif change == "request_email":
