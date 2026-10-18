@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
+from urllib.parse import parse_qsl, urlsplit
 
 
 SYSTEM_NAMESPACES = {"kube-system", "kube-public", "kube-node-lease"}
-RBAC_CREATE_METHODS = {
-    "io.k8s.authorization.rbac.v1.clusterrolebindings.create": ("clusterrolebindings", "ClusterRoleBinding"),
-    "io.k8s.authorization.rbac.v1.rolebindings.create": ("rolebindings", "RoleBinding"),
+RBAC_WRITE_METHODS = {
+    f"io.k8s.authorization.rbac.v1.{resource}.{verb}": (resource, kind, verb)
+    for resource, kind in (("clusterrolebindings", "ClusterRoleBinding"),
+                           ("rolebindings", "RoleBinding"))
+    for verb in ("create", "update", "patch")
 }
 
 
@@ -22,7 +25,7 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
             return None
         if payload.get("@type") != "type.googleapis.com/google.cloud.audit.AuditLog" or payload.get("serviceName") != "k8s.io":
             return None
-        binding = RBAC_CREATE_METHODS.get(payload.get("methodName"))
+        binding = RBAC_WRITE_METHODS.get(payload.get("methodName"))
         if binding is None or resource.get("type") != "k8s_cluster":
             return None
         log_name = record.get("logName")
@@ -46,20 +49,22 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         if resource_labels.get("location") and resource_labels.get("cluster_name"):
             scope += f"/locations/{resource_labels['location']}/clusters/{resource_labels['cluster_name']}"
         record = {
-            "apiVersion": "audit.k8s.io/v1", "kind": "Event", "stage": "ResponseComplete", "verb": "create",
+            "apiVersion": "audit.k8s.io/v1", "kind": "Event", "stage": "ResponseComplete", "verb": binding[2],
             "auditID": record.get("insertId"), "stageTimestamp": record.get("timestamp"),
             "cluster_id": scope,
             "user": {"username": auth.get("principalEmail")},
             "objectRef": {"apiGroup": "rbac.authorization.k8s.io", "resource": binding[0],
                           "name": metadata.get("name"), "namespace": metadata.get("namespace")},
-            "responseStatus": {"code": 201, "status": "Success"}, "responseObject": response,
+            "responseStatus": {"code": 201 if binding[2] == "create" else 200, "status": "Success"},
+            "responseObject": response,
         }
     if record.get("apiVersion") != "audit.k8s.io/v1" or record.get("kind") != "Event":
         return None
-    if record.get("stage") != "ResponseComplete" or record.get("verb") != "create":
+    verb = record.get("verb")
+    if record.get("stage") != "ResponseComplete" or verb not in {"create", "update", "patch"}:
         return None
     request_uri = record.get("requestURI")
-    if isinstance(request_uri, str) and "dryRun=" in request_uri:
+    if isinstance(request_uri, str) and any(key.lower() == "dryrun" for key, _ in parse_qsl(urlsplit(request_uri).query, keep_blank_values=True)):
         return None
     object_ref = record.get("objectRef")
     object_ref = object_ref if isinstance(object_ref, Mapping) else {}
@@ -68,7 +73,10 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         return None
     status = record.get("responseStatus")
     status = status if isinstance(status, Mapping) else {}
-    if status.get("code") != 201 or status.get("status") != "Success":
+    # A 201 on a PUT/PATCH can mean the resource was created. Keep update
+    # coverage to completed updates of an existing binding with 200 OK.
+    allowed_codes = {201} if verb == "create" else {200}
+    if status.get("code") not in allowed_codes or status.get("status") != "Success":
         return None
     response = record.get("responseObject")
     expected_kind = "RoleBinding" if resource_name == "rolebindings" else "ClusterRoleBinding"
@@ -83,7 +91,9 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
     binding_name = metadata.get("name")
     if not isinstance(binding_name, str) or not binding_name:
         return None
-    if object_ref.get("name") not in (None, binding_name):
+    if verb in {"update", "patch"} and object_ref.get("name") != binding_name:
+        return None
+    if verb == "create" and object_ref.get("name") not in (None, binding_name):
         return None
     namespace = metadata.get("namespace")
     if resource_name == "rolebindings":
@@ -91,6 +101,8 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
             return None
         if object_ref.get("namespace") != namespace:
             return None
+    elif namespace not in (None, "") or object_ref.get("namespace") not in (None, ""):
+        return None
     subjects = response.get("subjects")
     if not isinstance(subjects, list):
         return None
@@ -106,7 +118,7 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         return None
     return {
         "cloud.provider": "kubernetes",
-        "event.name": "create",
+        "event.name": verb,
         "event.source": "kubernetes.audit",
         "event.outcome": "success",
         "event.id": record.get("auditID"),
@@ -116,6 +128,8 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         "target.id": binding_name,
         "target.principal": f"system:serviceaccount:{privileged_subject['namespace']}:{privileged_subject['name']}",
         "rbac.role": "cluster-admin",
+        "rbac.observed_cluster_admin_binding": True,
+        "rbac.change_effect": "observed_state",
         "rbac.non_system_service_account": True,
         "rbac.self_namespace_service_account": resource_name == "rolebindings",
     }
