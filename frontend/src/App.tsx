@@ -41,7 +41,7 @@ const pages = [
     label: "Dashboard",
     icon: Gauge,
     group: "WORKSPACE",
-    description: "An evidence-led view of your cloud security.",
+    description: "",
   },
   {
     label: "Connectors",
@@ -288,7 +288,7 @@ export function App() {
             <div>
               <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>
               <h1>{page}</h1>
-              <p>{pageInfo.description}</p>
+              {pageInfo.description && <p>{pageInfo.description}</p>}
             </div>
             {(insight || page === "Dashboard") && (
               <label className="scan-picker">
