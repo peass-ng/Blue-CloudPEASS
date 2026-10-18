@@ -1,11 +1,42 @@
 """Automatic product admission excludes external contracts without changing evidence."""
 import copy
+import hashlib
+import json
+from pathlib import Path
 import pytest
 from peaso import engine
 from peaso.checks import CHECKS
 from peaso.checks.native_only import exclusions
 from peaso.snapshot import make_snapshot
 from peaso.server import catalog_view
+from tests import archived_check_contract
+
+
+BEDROCK = "aws_bedrock_automated_reasoning_policy_attached"
+
+
+def test_bedrock_signed_contract_is_archived_out_of_native_only_admission():
+    entry = exclusions()[BEDROCK]
+    assert "complete_in_scope_bedrock_application_inventory" in entry["mandatory_external_fields"]
+    assert "application_to_guardrail_version_bindings" in entry["mandatory_external_fields"]
+    assert "approved_active_policy_semantics" in entry["mandatory_external_fields"]
+    assert BEDROCK in {check.id for check in CHECKS}
+    assert BEDROCK not in {check.id for check in engine._registry()}
+    assert BEDROCK not in {row["id"] for row in engine.get_catalog()["checks"]}
+    _, selected = engine._selection("aws", None, None, None)
+    assert BEDROCK not in {check.id for check in selected}
+    request = {"connector": {"provider": "aws"}, "checks": [BEDROCK]}
+    with pytest.raises(ValueError, match="external policy or manual evidence"):
+        engine.plan_collection(request)
+    assert "bedrock_automated_reasoning_policy" in archived_check_contract.plan_collection(request)
+    root = Path(__file__).resolve().parents[1]
+    signed = root / "docs/compliance-ledgers/new-checks-aws.json"
+    assert hashlib.sha256(signed.read_bytes()).hexdigest() == "d788106442a6a79536a7ed6caf29d5e4ee58997160731296fadd6fff3bb174ef"
+    catalog = json.loads((root / "peaso/rulepacks/native_catalog.json").read_text())
+    archived = next(row for row in catalog["archived_checks"] if row["id"] == BEDROCK)
+    assert catalog["excluded_controls"][BEDROCK] == entry
+    assert archived["proposal_provenance"]["signed_spec_sha256"] == "5e6dd7252b56c8d9d4dd46868567b160e8c9bc8ab248baf4a9157a4478abf4e2"
+    assert archived["proposal_provenance"]["source_manifest_sha256"] == "ffb564cedbf575c3d1f94a158c4565f198c14919f93236207e02177855de5879"
 
 
 @pytest.mark.parametrize("check_id", sorted(exclusions()))

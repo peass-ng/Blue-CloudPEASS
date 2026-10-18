@@ -337,6 +337,16 @@
       "reason": "approved protected-resource ARN inventory and customer test interval",
       "source": "peaso/checks/compliance_new_sw43.py::_restore_tests@463"
     },
+    "aws_bedrock_automated_reasoning_policy_attached": {
+      "mandatory_external_fields": [
+        "complete_in_scope_bedrock_application_inventory",
+        "application_to_guardrail_version_bindings",
+        "approved_active_policy_semantics"
+      ],
+      "native_alternative": "Published AgentAlias guardrail bindings establish only a narrower configuration signal; GetAutomatedReasoningPolicy exposes no ACTIVE status.",
+      "reason": "The signed predicate covers every in-scope Bedrock application. Native AgentAlias metadata cannot establish complete application scope or runtime guardrail bindings, and the policy API has no ACTIVE status; application inventory and active-policy interpretation are mandatory external inputs.",
+      "source": "docs/compliance-ledgers/new-checks-aws.json::aws_bedrock_automated_reasoning_policy_attached; peaso/checks/compliance_new_sw44.py::bedrock_policy"
+    },
     "aws_budgets_stop_action": {
       "mandatory_external_fields": [
         "approved_stop_document_arns"
