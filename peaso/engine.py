@@ -333,6 +333,10 @@ def plan_collection(request):
     from .checks.native_only import automated_inventory_types
     available = set(automated_inventory_types(provider, supported_types(provider)))
     required = {kind for check in checks for kind in getattr(check, "dependencies", [check.kind])}
+    # The signed PCI bucket read-grant predicate needs ACL closure only when
+    # this exact check is selected; other bucket-only checks stay cheap.
+    if provider == "gcp" and any(c.id == "gcp_pci_bucket_157fb0c69361" for c in checks):
+        required.update({"bucket_acl", "object_acl"})
     # Extra facts required by cross-resource native predicates.
     if any(c.id == "k8s.network.namespace_policy_inventory" for c in checks):
         required.add("networkpolicy")

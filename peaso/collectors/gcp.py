@@ -1061,6 +1061,9 @@ class GCPCollector:
                     elif rid in items:
                         if kind == "project":
                             raise ReadError("malformed", "duplicate_project_identity")
+                        if kind == "bucket":
+                            # A repeated list identity makes ACL absence ambiguous.
+                            raise ReadError("malformed", "duplicate_bucket_identity")
                         if kind == 'log_entry':
                             excluded = {'_resource_id', 'native_id', '_provenance', '_relationships'}
                             previous = {key: value for key, value in items[rid].items() if key not in excluded}
@@ -1322,6 +1325,10 @@ class GCPCollector:
             self.scopes = self.scopes[:self.max_scopes]
             self.scope_errors.append({"code": "scope_limit", "status": "partial"})
 
+    def alias_identity_only(self):
+        return (self.api_key_alias_mode and "project" not in self.wanted and
+                self.needed == {"api_key", "service_usage", "project"})
+
     def scope_jobs(self, scope):
         jobs = []
         from .gcp_native_evidence import scope_jobs as native_evidence_jobs
@@ -1335,9 +1342,7 @@ class GCPCollector:
         scope_type = {"projects": "project", "organizations": "organization", "folders": "folder"}[scope.split("/")[0]]
         def scope_metadata():
             for items, request_id in self.pages(f"{crm}/v3/{scope}", scope, single=True):
-                alias_identity_only = (self.api_key_alias_mode and "project" not in self.wanted and
-                    self.needed == {"api_key", "service_usage", "project"})
-                if scope_type == "project" and not alias_identity_only:
+                if scope_type == "project" and not self.alias_identity_only():
                     hydrated = []
                     for item in items:
                         item = self.hydrate(item, "computeConfig", f"https://compute.googleapis.com/compute/v1/{scope}", scope)
@@ -2133,6 +2138,8 @@ class GCPCollector:
         return jobs
 
     def inherited(self):
+        if self.alias_identity_only():
+            return
         if not self.options.get("include_inherited", True) or not self.needed.intersection(
             {"iam_policy", "iam_deny_policy", "iam_role", "project", "folder", "organization", "firewall_policy", "firewall_policy_association"}):
             return
