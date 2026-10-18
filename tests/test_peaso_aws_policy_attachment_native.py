@@ -57,13 +57,13 @@ def _user(*, attached=True, activity=False):
     return row
 
 
-def test_complete_native_join_requires_observed_activity_for_pass():
+def test_complete_native_user_attachment_is_declared_configuration():
     row = _result(policy=_policy(1), users=[_user(activity=True)])
     assert row["status"] == "PASS"
-    assert row["evidence"]["activity_source"] == "iam:GetServiceLastAccessedDetails"
+    assert row["evidence"]["attachment_kind"] == "iam_user"
     row = _result(policy=_policy(1), users=[_user()])
-    assert row["status"] == "UNKNOWN"
-    assert row["evidence"]["reason"] == "native IAM attachment activity unavailable"
+    assert row["status"] == "PASS"
+    assert "usage unassessed" in row["evidence"]["criterion"]
 
 
 def test_native_missing_or_incomplete_attachment_evidence_stays_unknown():
@@ -91,28 +91,30 @@ def test_native_foreign_duplicate_and_count_conflicts_stay_unknown():
     assert _result(policy=_policy(2), users=[duplicated_attachment])["status"] == "UNKNOWN"
 
 
-def test_native_group_attachment_without_member_activity_stays_unknown():
+def test_native_group_attachment_requires_native_user_group_list():
     group = {"Arn": "arn:aws:iam::" + ACCOUNT + ":group/Ops", "GroupName": "Ops",
              "_provenance": {"operation": "iam:GetAccountAuthorizationDetails", "native_response_complete": True},
              "AttachedManagedPolicies": [{"PolicyArn": POLICY_ARN}],
              "Users": [{"UserName": "Alice"}]}
-    assert _result(policy=_policy(1), users=[_user(attached=False, activity=True)],
-                   groups=[group])["status"] == "UNKNOWN"
+    user = _user(attached=False, activity=True)
+    assert _result(policy=_policy(1), users=[user], groups=[group])["status"] == "FAIL"
+    user["GroupList"] = ["Ops"]
+    assert _result(policy=_policy(1), users=[user], groups=[group])["status"] == "PASS"
 
 
-def test_native_role_last_used_is_activity_proof_but_trust_alone_is_not():
+def test_native_role_declared_trust_is_sufficient_without_usage():
     role = {"Arn": "arn:aws:iam::" + ACCOUNT + ":role/Worker", "RoleName": "Worker",
             "_provenance": {"operation": "iam:GetAccountAuthorizationDetails", "native_response_complete": True},
             "AttachedManagedPolicies": [{"PolicyArn": POLICY_ARN}],
             "AssumeRolePolicyDocument": {"Statement": [{"Effect": "Allow",
                 "Action": "sts:AssumeRole", "Principal": {"AWS": "*"}}]}}
-    assert _result(policy=_policy(1), roles=[role])["status"] == "UNKNOWN"
+    assert _result(policy=_policy(1), roles=[role])["status"] == "PASS"
     role["RoleLastUsed"] = {"LastUsedDate": "2026-10-01T00:00:00+00:00"}
     row = _result(policy=_policy(1), roles=[role])
     assert row["status"] == "PASS"
-    assert row["evidence"]["activity_source"] == "iam:GetAccountAuthorizationDetails.RoleLastUsed"
+    assert row["evidence"]["attachment_kind"] == "trusted_iam_role"
     role["RoleLastUsed"]["LastUsedDate"] = "not-a-date"
-    assert _result(policy=_policy(1), roles=[role])["status"] == "UNKNOWN"
+    assert _result(policy=_policy(1), roles=[role])["status"] == "PASS"
 
 
 def test_future_or_before_creation_role_use_cannot_prove_active():
@@ -126,23 +128,23 @@ def test_future_or_before_creation_role_use_cannot_prove_active():
     assert _result(policy=_policy(1), roles=[role])["status"] == "UNKNOWN"
 
 
-def test_service_activity_time_must_fit_capture_and_principal_lifetime():
+def test_service_activity_timestamps_do_not_change_declared_attachment():
     user = _user(activity=True)
     user["CreateDate"] = "2026-09-01T00:00:00+00:00"
     assert _result(policy=_policy(1), users=[user])["status"] == "PASS"
     user["ServicesLastAccessed"][0]["LastAuthenticated"] = "2026-10-19T00:00:00+00:00"
-    assert _result(policy=_policy(1), users=[user])["status"] == "UNKNOWN"
+    assert _result(policy=_policy(1), users=[user])["status"] == "PASS"
     user["ServicesLastAccessed"][0]["LastAuthenticated"] = "2026-08-31T00:00:00+00:00"
-    assert _result(policy=_policy(1), users=[user])["status"] == "UNKNOWN"
+    assert _result(policy=_policy(1), users=[user])["status"] == "PASS"
     user["ServicesLastAccessed"][0]["LastAuthenticated"] = "2026-10-01T00:00:00+00:00"
     user["CreateDate"] = "malformed"
-    assert _result(policy=_policy(1), users=[user])["status"] == "UNKNOWN"
+    assert _result(policy=_policy(1), users=[user])["status"] == "PASS"
     del user["CreateDate"]
-    assert _result(policy=_policy(1), users=[user], capture_at="malformed")["status"] == "UNKNOWN"
-    assert _result(policy=_policy(1), users=[user], capture_at="2026-10-18T00:00:00")["status"] == "UNKNOWN"
+    assert _result(policy=_policy(1), users=[user], capture_at="malformed")["status"] == "PASS"
+    assert _result(policy=_policy(1), users=[user], capture_at="2026-10-18T00:00:00")["status"] == "PASS"
 
 
-def test_independent_valid_usage_can_resolve_other_invalid_usage_without_age_cutoff():
+def test_multiple_declared_user_attachments_do_not_require_use_reports():
     invalid = _user(activity=True)
     invalid["Arn"] = "arn:aws:iam::" + ACCOUNT + ":user/Future"
     invalid["UserName"] = "Future"
@@ -152,4 +154,4 @@ def test_independent_valid_usage_can_resolve_other_invalid_usage_without_age_cut
     valid["CreateDate"] = "2019-12-31T00:00:00+00:00"
     row = _result(policy=_policy(2), users=[invalid, valid])
     assert row["status"] == "PASS"
-    assert row["evidence"]["activity_source"] == "iam:GetServiceLastAccessedDetails"
+    assert row["evidence"]["attachment_kind"] == "iam_user"

@@ -294,12 +294,9 @@ def _kms_expiry(item, index):
         return unknown("unrecognized KMS key origin")
     if state not in {"Enabled", "Disabled", "PendingDeletion", "PendingImport", "Unavailable", "Updating"}:
         return unknown("unrecognized KMS key state")
-    tags = get(item, "Tags", list)
-    retired = False
-    for tag in tags:
-        key, value = get(tag, "TagKey", str), get(tag, "TagValue", str)
-        if key == "Retired" and value.lower() == "true":
-            retired = True
+    enabled = optional(metadata, "Enabled", None, bool)
+    if enabled is not None and enabled != (state == "Enabled"):
+        return unknown("KMS Enabled flag contradicts KeyState")
     expired = False
     if origin == "EXTERNAL":
         model = optional(metadata, "ExpirationModel", None, str)
@@ -320,6 +317,21 @@ def _kms_expiry(item, index):
             expired = end <= now
         else:
             return unknown("unrecognized imported KMS material expiration model")
+    # Either complete DescribeKey witness is independent of the Retired tag:
+    # expired imported material fails, and Disabled satisfies any retired tag.
+    # An unread ListResourceTags never proves that a tag is absent.
+    if expired:
+        return result(True, key_id=metadata["KeyId"], imported_material_expired=True,
+                      key_state=state, retirement_marker="not_evaluated")
+    if state == "Disabled":
+        return result(False, key_id=metadata["KeyId"], imported_material_expired=False,
+                      key_state=state, retirement_marker="not_evaluated")
+    tags = get(item, "Tags", list)
+    retired = False
+    for tag in tags:
+        key, value = get(tag, "TagKey", str), get(tag, "TagValue", str)
+        if key == "Retired" and value.lower() == "true":
+            retired = True
     return result(expired or retired and state != "Disabled", key_id=metadata["KeyId"],
                   imported_material_expired=expired, retired=retired, key_state=state)
 

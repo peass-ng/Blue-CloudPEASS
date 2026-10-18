@@ -52,7 +52,7 @@ def evaluate(monkeypatch, check, patterns, denied_target=None):
     finally:
         for stub in stubs.values(): stub.deactivate()
 
-OPAQUE = {'detail-type': ['Unrelated native event']}
+OPAQUE = {'source': [{'prefix': 'aws.'}]}  # May match the required native event source.
 
 @pytest.mark.parametrize('check', CHECKS)
 @pytest.mark.parametrize('good_first', [True, False])

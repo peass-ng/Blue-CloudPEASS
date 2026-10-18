@@ -539,15 +539,54 @@ def _pattern(row):
     return value
 
 
+def _literal_selector_relevance(pattern, field, expected):
+    """True/False for readable literal selectors; None if they might match."""
+    try:
+        values = get(pattern, field, list)
+    except Unavailable:
+        return None
+    if not values or any(not isinstance(value, str) or not value for value in values):
+        return None
+    return expected in values
+
+
+def _event_relevance(pattern, source, detail_type):
+    # Either complete literal selector can independently exclude the event.
+    source_match = _literal_selector_relevance(pattern, "source", source)
+    type_match = _literal_selector_relevance(pattern, "detail-type", detail_type)
+    if source_match is False or type_match is False:
+        return False
+    if source_match is None or type_match is None:
+        raise Unavailable("event source or detail type may match but is unresolved")
+    return True
+
+
+def _native_scheduled_only(row):
+    if "EventPattern" in row:
+        return False  # A rule can trigger on both a schedule and matching events.
+    marker = get(get(row, "_coverage", dict), "EventPattern", dict)
+    provenance = get(row, "_provenance", dict)
+    schedule = get(row, "ScheduleExpression", str)
+    if (marker.get("status") != "empty" or marker.get("source_operation") != "events:ListRules"
+            or marker.get("rule_arn") != get(row, "Arn", str)
+            or marker.get("rule_name") != get(row, "Name", str)
+            or marker.get("schedule_expression") != schedule
+            or marker.get("event_bus_name") != "default"
+            or provenance.get("source_operation") != "events:ListRules" or provenance.get("read_only") is not True
+            or "ManagedBy" in row):
+        raise Unavailable("native scheduled-only rule proof unavailable")
+    if not schedule or schedule != schedule.strip():
+        raise Unavailable("native scheduled-only rule schedule malformed")
+    return True
+
+
 def _event_match(row, source, detail_type, detail, *, allowed_detail=None):
     """Return covered literal values only for exact, unnarrowed event patterns."""
     pattern = _pattern(row)
+    if not _event_relevance(pattern, source, detail_type):
+        return set()
     if set(pattern) - {"source", "detail-type", "detail"}:
         raise Unavailable("event pattern has unreviewed narrowing clauses")
-    sources = _strings(get(pattern, "source", list))
-    types = _strings(get(pattern, "detail-type", list))
-    if source not in sources or detail_type not in types:
-        return set()
     body = get(pattern, "detail", dict)
     if set(body) - {key.split(".")[0] for key in detail}:
         raise Unavailable("event detail has unreviewed narrowing clauses")
@@ -587,6 +626,10 @@ def _event_coverage(item, index, source, detail_type, detail, field, required, *
             state = get(row, "State", str)
             if state not in ("ENABLED", "DISABLED", "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"):
                 raise Unavailable("unrecognized EventBridge state")
+            if state == "DISABLED":
+                continue
+            if _native_scheduled_only(row):
+                continue
             pattern_covered = _event_match(row, source, detail_type, detail, allowed_detail=field)
             if pattern_covered and state != "DISABLED" and any(_targets(row)):
                 covered.update(pattern_covered & required)
@@ -639,13 +682,15 @@ def inspector_critical_image_findings_alert(item, index):
             state = get(row, "State", str)
             if state not in ("ENABLED", "DISABLED", "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"):
                 raise Unavailable("unrecognized EventBridge state")
+            if state == "DISABLED":
+                continue
+            if _native_scheduled_only(row):
+                continue
             pattern = _pattern(row)
+            if not _event_relevance(pattern, "aws.inspector2", "Inspector2 Finding"):
+                continue
             if set(pattern) - {"source", "detail-type", "detail"}:
                 raise Unavailable("unreviewed Inspector event pattern")
-            sources = _strings(get(pattern, "source", list))
-            types = _strings(get(pattern, "detail-type", list))
-            if "aws.inspector2" not in sources or "Inspector2 Finding" not in types:
-                continue
             detail = get(pattern, "detail", dict)
             if set(detail) != {"severity", "resources"} or "CRITICAL" not in _strings(get(detail, "severity", list)):
                 raise Unavailable("Inspector finding filters cannot prove severity and resource coverage")

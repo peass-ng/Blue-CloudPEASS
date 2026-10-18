@@ -231,6 +231,36 @@ def diag_case(*logs, **properties):
     return {"diagnosticSettings": [{"name": "d", "properties": {"logs": list(logs), **properties}}]}
 
 
+
+def subscription_builtin_assignments(index, scope):
+    """Exact direct SecurityCenterBuiltIn rows; retain child rows for other checks."""
+    rows = []
+    seen = set()
+    for row in scoped(index, "policy_assignment"):
+        if get(row, "name", str) != "SecurityCenterBuiltIn":
+            continue
+        rid = get(row, "id", str)
+        declared = get(row, "properties.scope", str)
+        match = re.fullmatch(r"(.+)/providers/Microsoft\.Authorization/policyAssignments/([^/?#]+)", rid, re.I)
+        if (match is None or match.group(2).casefold() != "securitycenterbuiltin" or
+                declared.casefold() != match.group(1).casefold()):
+            raise Unavailable("SecurityCenterBuiltIn assignment identity or declared scope inconsistent")
+        assigned_scope = match.group(1)
+        if assigned_scope.casefold() == scope.casefold():
+            if rid.casefold() in seen:
+                raise Unavailable("duplicate SecurityCenterBuiltIn assignment identity")
+            seen.add(rid.casefold())
+            rows.append(row)
+            continue
+        child = re.fullmatch(re.escape(scope) +
+            r"/(?:resourceGroups/[^/?#]+(?:/providers/[^/?#]+(?:/[^/?#]+/[^/?#]+)+)?|"
+            r"providers/[^/?#]+(?:/[^/?#]+/[^/?#]+)+)", assigned_scope, re.I)
+        if child is None:
+            raise Unavailable("SecurityCenterBuiltIn assignment ancestry or foreign scope unproved")
+        # The complete native inventory keeps this child row for other consumers.
+    return rows
+
+
 def scoped(index, kind):
     """Complete scoped inventory or UNKNOWN."""
     return complete_items(index, kind)
@@ -249,4 +279,4 @@ __all__ = ["claude", "cid", "enum", "nullable_string", "private_link_states", "a
            "INTERNET_SOURCES", "nsg_rules", "port_range", "internet_allow_rules", "nsg_rule", "nsg_case",
            "diagnostic_settings", "diagnostic_logs", "diag_log", "diag_case", "scoped", "scope_index",
            "get", "list_of_objects", "optional", "complete_items", "Unavailable", "result", "unknown", "CASES", "nest",
-           "CHECK_IDS", "PREFIX"]
+           "CHECK_IDS", "PREFIX", "subscription_builtin_assignments"]

@@ -279,7 +279,7 @@ CASES[cid("defender_container_registry_vulnerability_scanning")] = {
 
 @_scope_check("defender_default_initiative_no_disabled_effects", "policy_assignment", "Defender for Cloud default initiative sets no parameter to Disabled", control="CM-6")
 def asc_default(item, index):
-    rows = [r for r in scoped(index, "policy_assignment") if get(r, "name", str) == "SecurityCenterBuiltIn"]
+    rows = subscription_builtin_assignments(index, get(item, "scope", str))
     if not rows:
         return _manual("SecurityCenterBuiltIn is not assigned at this scope; review management-group inheritance")
     disabled = []
@@ -293,7 +293,7 @@ def asc_default(item, index):
     return result(bool(disabled), disabled_parameters=sorted(disabled),
                   semantics="Upstream count(value='Disabled') counts every non-null comparison; the intended any-Disabled predicate is evaluated")
 _assignment = lambda value: {"id": "/subscriptions/s/providers/Microsoft.Authorization/policyAssignments/SecurityCenterBuiltIn",
-                             "name": "SecurityCenterBuiltIn", "properties": {"parameters": {"systemUpdatesMonitoringEffect": {"value": value}}}}
+                             "name": "SecurityCenterBuiltIn", "properties": {"scope": "/subscriptions/s", "parameters": {"systemUpdatesMonitoringEffect": {"value": value}}}}
 CASES[cid("defender_default_initiative_no_disabled_effects")] = {
     "pass": SCOPE, "fail": SCOPE, "manual": SCOPE,
     "pass_index": scope_index({"policy_assignment": [_assignment("AuditIfNotExists")]}),

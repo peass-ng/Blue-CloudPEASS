@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import re
 
 from .aws_facts_data_identity import _pick, _list, _detail
 
@@ -87,10 +88,36 @@ def _rules(requests, session, region, account):
     return ReadResult(rows, "partial" if rows and failures else failures[0].status if failures else "collected" if rows else "empty", failures[0].error if failures else None)
 
 
+def _native_schedule_shape(value):
+    # ListRules is authoritative for the rule; this only rejects malformed
+    # responses/fixtures, rather than interpreting when a cron will fire.
+    if not isinstance(value, str) or not value or len(value) > 256 or value != value.strip():
+        return False
+    rate = re.fullmatch(r"rate\(([1-9][0-9]*) (minute|minutes|hour|hours|day|days)\)", value)
+    if rate:
+        return (int(rate.group(1)) == 1) == (not rate.group(2).endswith("s"))
+    cron = re.fullmatch(r"cron\(([^()]*)\)", value)
+    return bool(cron and len(cron.group(1).split()) == 6 and all(
+        re.fullmatch(r"[A-Za-z0-9*?,/#LW-]+", part) for part in cron.group(1).split()))
+
+
 def _default_rules(requests, session, region, account):
     from .aws import ReadResult
     read = requests.pages(session, "events", region, "list_rules", "Rules", _tokens=("NextToken", "NextToken"), EventBusName="default")
-    rows = [{**row, "EventBusName": "default"} for row in read.items if isinstance(row, dict)]
+    rows = []
+    for raw in read.items:
+        if not isinstance(raw, dict):
+            continue
+        row = {**raw, "EventBusName": "default"}
+        if (read.status == "collected" and "EventPattern" not in raw and "ManagedBy" not in raw
+                and _native_schedule_shape(raw.get("ScheduleExpression"))
+                and isinstance(raw.get("Name"), str) and raw["Name"]
+                and isinstance(raw.get("Arn"), str) and raw["Arn"]):
+            row["_coverage"] = {"EventPattern": {"status": "empty", "source_operation": "events:ListRules",
+                                                  "rule_arn": raw["Arn"], "rule_name": raw["Name"],
+                                                  "schedule_expression": raw["ScheduleExpression"],
+                                                  "event_bus_name": "default"}}
+        rows.append(row)
     if len(rows) != len(read.items):
         return ReadResult(rows, "partial" if rows else "malformed", {"code": "malformed_eventbridge_rule"})
     return ReadResult(rows, read.status, read.error)

@@ -7,14 +7,13 @@ cannot be resolved from the collected declarations alone.
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import datetime
 import json
 import re
 from urllib.parse import unquote
 
 from . import CHECKS, register, result, unknown
 from .aws_all_policies import scan as _customer_policy_scan
-from .facts import Unavailable, complete_items, get
+from .facts import Unavailable, complete_items, get, optional
 
 _ACCOUNT = re.compile(r"^[0-9]{12}$")
 _ARN = re.compile(r"^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$")
@@ -234,12 +233,11 @@ def _policy_scoped_action(item, index):
 def _native_policy_attachment(item, index, arn):
     """Join a complete authorization-detail projection without inventing activity."""
     _, account = _context(index)
-    policy_provenance = item.get("_provenance")
-    if (not isinstance(policy_provenance, dict) or
-            policy_provenance.get("operation") != "iam:GetAccountAuthorizationDetails" or
-            policy_provenance.get("native_response_complete") is not True):
+    policy_provenance = get(item, "_provenance", dict)
+    if (get(policy_provenance, "operation", str) != "iam:GetAccountAuthorizationDetails" or
+            get(policy_provenance, "native_response_complete", bool) is not True):
         raise Unavailable("native IAM policy attachment provenance unavailable")
-    expected_count = item.get("AttachmentCount")
+    expected_count = get(item, "AttachmentCount", int)
     if type(expected_count) is not int or expected_count < 0:
         raise Unavailable("native policy attachment count unavailable")
     partition = _ARN.fullmatch(arn).group(1)
@@ -253,15 +251,14 @@ def _native_policy_attachment(item, index, arn):
                     r":" + suffix + r"/.+", principal_arn) or principal_arn in seen:
                 raise Unavailable("foreign or duplicate IAM attachment principal")
             seen.add(principal_arn)
-            provenance = row.get("_provenance")
-            if (not isinstance(provenance, dict) or
-                    provenance.get("operation") != "iam:GetAccountAuthorizationDetails" or
-                    provenance.get("native_response_complete") is not True):
+            provenance = get(row, "_provenance", dict)
+            if (get(provenance, "operation", str) != "iam:GetAccountAuthorizationDetails" or
+                    get(provenance, "native_response_complete", bool) is not True):
                 raise Unavailable("native IAM principal attachment provenance unavailable")
             policies = get(row, "AttachedManagedPolicies", list)
             policy_arns = []
             for policy in policies:
-                candidate = policy.get("PolicyArn") if isinstance(policy, dict) else None
+                candidate = get(policy, "PolicyArn", str)
                 match = _ARN.fullmatch(candidate) if isinstance(candidate, str) else None
                 if match is None or match.group(1) != partition or match.group(2) not in {account, "aws"}:
                     raise Unavailable("foreign or malformed attached policy ARN")
@@ -274,58 +271,136 @@ def _native_policy_attachment(item, index, arn):
     if len(attached) != expected_count:
         raise Unavailable("native policy attachment count mismatch")
     if not attached:
-        return result(True, policy_arn=arn, attachment_count=0)
+        return result(True, policy_arn=arn, attachment_count=0,
+                      criterion="declared attachment; usage unassessed")
 
-    def observed_timestamp(value):
-        if not isinstance(value, str):
-            return None
-        try:
-            observed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        except ValueError:
-            return None
-        return observed if observed.tzinfo is not None and observed.utcoffset() is not None else None
+    names = {"iam_user": {}, "iam_group": {}, "iam_role": {}}
+    for kind in names:
+        for principal_arn, row in principals[kind].items():
+            name = get(row, {"iam_user": "UserName", "iam_group": "GroupName", "iam_role": "RoleName"}[kind], str)
+            if not name or principal_arn.rsplit("/", 1)[-1] != name or name in names[kind]:
+                raise Unavailable("IAM principal name and ARN identity mismatch")
+            names[kind][name] = principal_arn
+    memberships = set()
+    for name, user_arn in names["iam_user"].items():
+        # UserDetail.GroupList is the complete native group-membership list.
+        groups = optional(principals["iam_user"][user_arn], "GroupList", [], list)
+        if any(not isinstance(group, str) or not group or group not in names["iam_group"]
+               for group in groups) or len(groups) != len(set(groups)):
+            raise Unavailable("malformed or unbound IAM user group membership")
+        memberships.update(groups)
 
-    captured_at = observed_timestamp(get(index, "context", dict).get("created_at"))
-
-    def coherent_activity(row, value):
-        observed = observed_timestamp(value)
-        if observed is None or captured_at is None or observed > captured_at:
-            return False
-        if "CreateDate" in row:
-            created = observed_timestamp(row["CreateDate"])
-            if created is None or observed < created:
-                return False
-        return True
-
-    def activity_source(kind, row):
-        # RoleLastUsed is present in the native RoleDetail model. Its date is
-        # positive usage evidence; a missing date does not prove inactivity.
-        if kind == "iam_role":
-            last = row.get("RoleLastUsed")
-            if isinstance(last, dict) and coherent_activity(row, last.get("LastUsedDate")):
-                return "iam:GetAccountAuthorizationDetails.RoleLastUsed"
-        state = row.get("ServicesLastAccessedStatus")
-        services = row.get("ServicesLastAccessed")
-        if (isinstance(state, dict) and state.get("collection_status") == "collected" and
-                state.get("operation") == "iam:GetServiceLastAccessedDetails" and
-                state.get("granularity") == "SERVICE_LEVEL" and isinstance(services, list) and
-                any(isinstance(service, dict) and coherent_activity(row, service.get("LastAuthenticated"))
-                    for service in services)):
-            return "iam:GetServiceLastAccessedDetails"
-        return None
-
+    if any(kind == "iam_user" for kind, _ in attached):
+        return result(False, policy_arn=arn, attachment_kind="iam_user",
+                      criterion="declared attachment; usage unassessed")
+    if any(kind == "iam_group" and get(principals[kind][principal_arn], "GroupName", str) in memberships
+           for kind, principal_arn in attached):
+        return result(False, policy_arn=arn, attachment_kind="populated_iam_group",
+                      criterion="declared attachment; usage unassessed")
     for kind, principal_arn in attached:
-        if kind in {"iam_user", "iam_role"}:
-            source = activity_source(kind, principals[kind][principal_arn])
-            if source:
-                return result(False, active_attachment=principal_arn, activity_source=source)
-    # Group membership and a role trust declaration are not observations of use.
-    raise Unavailable("native IAM attachment activity unavailable")
+        if kind == "iam_role" and _declared_role_trust(principals[kind][principal_arn], partition, account):
+            return result(False, policy_arn=arn, attachment_kind="trusted_iam_role",
+                          criterion="declared attachment; usage unassessed")
+    return result(True, policy_arn=arn, attachment_count=expected_count,
+                  criterion="declared attachment; usage unassessed")
+
+
+_TRUST_SEGMENT = re.compile(r"[A-Za-z0-9_+=,.@-]+\Z")
+_DNS_LABEL = re.compile(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\Z", re.I)
+_REGION_LABEL = re.compile(r"[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+\Z")
+_BUILTIN_OIDC = {"cognito-identity.amazonaws.com", "www.amazon.com", "graph.facebook.com", "accounts.google.com"}
+
+
+def _identity_segments(resource, prefix, *, minimum, maximum):
+    parts = resource.split("/")
+    return (parts[0] == prefix and len(parts) >= minimum and (maximum is None or len(parts) <= maximum) and
+            all(_TRUST_SEGMENT.fullmatch(part) for part in parts[1:]))
+
+
+def _trust_principal_form(key, value, partition, account):
+    """Recognize documented literal trust forms, without asserting live identity."""
+    if key == "AWS" and (value == "*" or _ACCOUNT.fullmatch(value)):
+        return "aws"
+    if key == "Service":
+        suffix = ".amazonaws.com.cn" if partition == "aws-cn" else ".amazonaws.com"
+        labels = value[:-len(suffix)].split(".") if value.endswith(suffix) else []
+        if (len(labels) in {1, 2} and all(_DNS_LABEL.fullmatch(label) for label in labels)
+                and (len(labels) == 1 or _REGION_LABEL.fullmatch(labels[1]))):
+            return "service"
+        raise Unavailable("unrecognized IAM service principal form")
+    if key == "Federated" and value in _BUILTIN_OIDC:
+        return "web"
+    parts = value.split(":", 5)
+    if (len(parts) != 6 or parts[:2] != ["arn", partition] or parts[2] not in {"iam", "sts"}
+            or parts[3] or not _ACCOUNT.fullmatch(parts[4])):
+        raise Unavailable("unrecognized IAM trust principal ARN")
+    resource = parts[5]
+    if not resource or any(char.isspace() for char in resource) or "*" in resource or "?" in resource:
+        raise Unavailable("malformed IAM trust principal resource")
+    if key == "AWS":
+        if parts[2] == "iam" and (resource == "root" or
+                _identity_segments(resource, "user", minimum=2, maximum=None) or
+                _identity_segments(resource, "role", minimum=2, maximum=None)):
+            return "aws"
+        if parts[2] == "sts" and (_identity_segments(resource, "assumed-role", minimum=3, maximum=3) or
+                _identity_segments(resource, "federated-user", minimum=2, maximum=2)):
+            return "aws"
+        raise Unavailable("unrecognized AWS account, user, role, or session principal")
+    if key == "Federated" and parts[2] == "iam" and parts[4] == account:
+        if _identity_segments(resource, "saml-provider", minimum=2, maximum=2):
+            return "saml"
+        if resource.startswith("oidc-provider/"):
+            issuer = resource.split("/", 1)[1]
+            host, *path = issuer.split("/")
+            if (len(host.split(".")) >= 2 and all(_DNS_LABEL.fullmatch(label) for label in host.split("."))
+                    and all(segment and not any(c.isspace() or c in "?#" for c in segment) for segment in path)):
+                return "web"
+    raise Unavailable("unrecognized or cross-account federated principal")
+
+
+def _declared_role_trust(role, partition, account):
+    """A declared allow for an STS assume action, not effective assume access."""
+    trusted = False
+    denied = False
+    for statement in _document(get(role, "AssumeRolePolicyDocument")):
+        effect = get(statement, "Effect", str)
+        if effect not in {"Allow", "Deny"} or "NotAction" in statement or "NotPrincipal" in statement:
+            raise Unavailable("role trust action or principal cannot be resolved")
+        if "Condition" in statement:
+            raise Unavailable("conditional role trust requires effective-access review")
+        action = get(statement, "Action")
+        actions = [action] if isinstance(action, str) else action
+        if not isinstance(actions, list) or not actions or any(not isinstance(a, str) or not a for a in actions):
+            raise Unavailable("malformed role trust action")
+        principal = get(statement, "Principal")
+        if principal == "*":
+            principal = {"AWS": "*"}
+        if not isinstance(principal, dict) or not principal or any(key not in {"AWS", "Service", "Federated"}
+                                                                for key in principal):
+            raise Unavailable("malformed role trust principal")
+        forms = set()
+        for key, value in principal.items():
+            values = [value] if isinstance(value, str) else value
+            if not isinstance(values, list) or not values or any(not isinstance(v, str) or not v for v in values):
+                raise Unavailable("malformed role trust principal")
+            forms.update(_trust_principal_form(key, v, partition, account) for v in values)
+        if effect == "Deny":
+            denied = True
+            continue
+        actions = {a.casefold() for a in actions}
+        matching = ((forms & {"aws", "service"} and actions & {"sts:assumerole", "sts:*", "*"}) or
+                    ("saml" in forms and actions & {"sts:assumerolewithsaml", "sts:*", "*"}) or
+                    ("web" in forms and actions & {"sts:assumerolewithwebidentity", "sts:*", "*"}))
+        trusted = trusted or matching
+    if denied and trusted:
+        raise Unavailable("role trust Deny needs effective-access review")
+    return trusted
 
 
 def _policy_attachment(item, index):
     arn, _ = _one_policy(item, index)
-    if not any(field in item for field in ("AttachedUsers", "AttachedGroups", "AttachedRoles")):
+    if ("_provenance" in item or "_provenance" in item.get("_coverage", {}) or
+            not any(field in item for field in ("AttachedUsers", "AttachedGroups", "AttachedRoles"))):
         return _native_policy_attachment(item, index, arn)
     users = get(item, "AttachedUsers", list)
     groups = get(item, "AttachedGroups", list)

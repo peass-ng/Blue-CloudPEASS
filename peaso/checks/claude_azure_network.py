@@ -1090,7 +1090,7 @@ CASES[cid("network_watcher_flow_logs_retention_90")] = {"pass": _watcher(flow_lo
         remediation="Set the SecurityCenterBuiltIn (Microsoft cloud security benchmark) assignment enforcementMode to Default.")
 def claude_defender_default_policy_enforced(item, index):
     get(item, "scope", str)
-    rows = [r for r in scoped(index, "policy_assignment") if get(r, "name", str) == "SecurityCenterBuiltIn"]
+    rows = subscription_builtin_assignments(index, get(item, "scope", str))
     if not rows:
         return "NOT_APPLICABLE", {"reason": "no SecurityCenterBuiltIn assignment visible in scope"}
     modes = [get(r, "properties.enforcementMode", str) for r in rows]
@@ -1101,7 +1101,7 @@ def claude_defender_default_policy_enforced(item, index):
 
 def _assignment(mode):
     return {"id": SUB + "/providers/Microsoft.Authorization/policyAssignments/SecurityCenterBuiltIn", "name": "SecurityCenterBuiltIn",
-            "properties": {"enforcementMode": mode}}
+            "properties": {"scope": SUB, "enforcementMode": mode}}
 
 
 CASES[cid("defender_default_policy_enforced")] = {"pass": {"scope": SUB}, "fail": {"scope": SUB},

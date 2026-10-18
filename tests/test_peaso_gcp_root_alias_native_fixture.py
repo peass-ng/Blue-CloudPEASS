@@ -26,6 +26,7 @@ CAI_NAME = f"//cloudresourcemanager.googleapis.com/projects/{NUMBER}"
 def test_native_project_id_and_number_policy_views_are_currently_ambiguous(check_id):
     service = CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.lock = Lock()
     collector.max_items = None
     collector.seen_items = set()

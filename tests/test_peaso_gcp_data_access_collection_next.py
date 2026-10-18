@@ -64,6 +64,7 @@ def test_project_root_with_collected_resource_policy_peer_keeps_root_verdict(che
     resource = {"name": "//storage.googleapis.com/projects/_/buckets/fixture",
                 "assetType": "storage.googleapis.com/Bucket", "bindings": []}
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: []}
     collector.collections = {("iam_policy", PROJECT): {"items": [root, resource]}}
@@ -90,6 +91,7 @@ def test_duplicate_ancestor_roots_never_supply_complete_effective_audit(check_id
     bad = policy(ORG, [])
     for ancestor_items in ([bad, good], [good, bad]):
         collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+        collector.ancestry_source_requests = {}
         collector.needed = {"iam_policy"}
         collector.ancestry = {PROJECT: [{"resourceId": {"type": "organization", "id": "34"}}]}
         collector.collections = {

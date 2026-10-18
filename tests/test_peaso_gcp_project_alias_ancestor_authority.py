@@ -13,6 +13,7 @@ from tests.test_peaso_gcp_data_access import PROJECT, ORG, config, policy, owner
 def test_ancestor_authority_is_required_before_project_verdict(check, case):
     service = CHECK_SERVICES[check]
     collector = GCPCollector.__new__(GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {'iam_policy'}
     collector.ancestry = {PROJECT: [
         {'resourceId': {'type': 'project', 'id': PROJECT.split('/')[1]}},

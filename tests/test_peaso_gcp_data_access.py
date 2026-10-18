@@ -40,6 +40,7 @@ def report(check_id, *, project=(), organization=(), ancestry=True, owner_rows=.
            org_available=True, project_status="collected", raw_owner_rows=False):
     service = native.CHECK_SERVICES[check_id]
     collector = gcp.GCPCollector.__new__(gcp.GCPCollector)
+    collector.ancestry_source_requests = {}
     collector.needed = {"iam_policy"}
     collector.ancestry = {PROJECT: [{"resourceId": {"type": "organization", "id": "34"}}] if ancestry else []}
     collector.collections = {("iam_policy", PROJECT): {"items": [policy(PROJECT, project)]}}
