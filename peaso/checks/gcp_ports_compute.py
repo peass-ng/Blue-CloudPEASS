@@ -134,8 +134,13 @@ def firewall_port(query, port):
             return "NOT_APPLICABLE", {"reason": "Not an active ingress declaration"}
         allowed = list_of_objects(optional(item, "allowed", [], list))
         ranges = optional(item, "sourceRanges", None, list)
-        if ranges is None:
-            ranges = [] if item.get("sourceTags") or item.get("sourceServiceAccounts") else ["0.0.0.0/0"]
+        if not ranges:
+            # No source selector means Google's default of all IPv4 sources.
+            tags = optional(item, "sourceTags", [], list)
+            accounts = optional(item, "sourceServiceAccounts", [], list)
+            if any(not isinstance(value, str) or not value for value in tags + accounts):
+                raise Unavailable("malformed firewall source selectors")
+            ranges = [] if tags or accounts else ["0.0.0.0/0"]
         if any(not isinstance(value, str) for value in ranges):
             raise Unavailable("malformed firewall source ranges")
         public = bool(set(ranges).intersection({"0.0.0.0/0", "::/0"}))

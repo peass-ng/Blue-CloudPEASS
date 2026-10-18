@@ -86,3 +86,19 @@ def test_audit_scope_uses_inherited_effective_audit_configs():
     exempt = copy.deepcopy(inherited)
     exempt[1]["auditConfigs"][0]["auditLogConfigs"][1]["exemptedMembers"] = ["user:a@example.com"]
     assert check.evaluate({"scope": "projects/p"}, index(exempt))[0] == "FAIL"
+
+
+@pytest.mark.parametrize("port", [22, 3389])
+@pytest.mark.parametrize("sources,wanted", [
+    ({"sourceRanges": []}, "FAIL"),
+    ({"sourceRanges": [], "sourceTags": [], "sourceServiceAccounts": []}, "FAIL"),
+    ({"sourceRanges": [], "sourceTags": ["trusted"]}, "PASS"),
+    ({"sourceRanges": [], "sourceServiceAccounts": ["vm@p.iam.gserviceaccount.com"]}, "PASS"),
+    ({"sourceRanges": [], "sourceTags": "trusted"}, "UNKNOWN"),
+    ({"_coverage": {"sourceTags": {"status": "denied"}}}, "UNKNOWN"),
+])
+def test_firewall_empty_source_default_and_selector_evidence(port, sources, wanted):
+    query = "compute_firewall_rule_" + ("ssh" if port == 22 else "rdp") + "_access_restricted"
+    check = REGISTRY[ports.REFERENCE_SPECS[query]]
+    item = {"direction": "INGRESS", "allowed": [{"IPProtocol": "tcp", "ports": [str(port)]}], **sources}
+    assert check.evaluate(item, {})[0] == wanted
