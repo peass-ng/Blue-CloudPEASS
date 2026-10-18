@@ -576,7 +576,10 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if data.get("provider") != provider or data.get("input_mode") != "live":
             raise HTTPException(422, "Choose a live connector for the selected audit source.")
         private = cipher.decrypt(row["auth"])
-        return provider, private["auth"], data.get("scopes", []), private["options"]
+        connector_fingerprint = hashlib.sha256(
+            (row["data"] + "\0" + row["auth"]).encode("utf-8")
+        ).hexdigest()
+        return provider, private["auth"], data.get("scopes", []), private["options"], connector_fingerprint
 
     def attack_log_error(code):
         return {
@@ -616,7 +619,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     @app.post("/api/attack-analysis/check-access")
     def attack_log_check_access(body: AttackLogSource, user=Depends(identity)):
-        provider, auth, scopes, options = attack_source(body, user)
+        provider, auth, scopes, options, connector_fingerprint = attack_source(body, user)
         from .attack_logs import LogAccessError, check_aws_source
         from .gcp_attack_logs import GcpLogAccessError
         try:
@@ -643,6 +646,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Check the pinned rule repository and retry."}
         payload = body.model_dump()
         token = cipher.encrypt({"tenant": user.tenant_id, "digest": connector_digest(payload),
+                                "connector_fingerprint": connector_fingerprint,
                                 "expires": time.time() + 600})
         return {"status": "pass", **result, "check_token": token}
 
@@ -657,7 +661,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 or checked.get("digest") != connector_digest(payload)
                 or checked.get("expires", 0) < time.time()):
             raise HTTPException(422, "Check log access again before starting analysis.")
-        provider, auth, scopes, options = attack_source(body, user)
+        provider, auth, scopes, options, connector_fingerprint = attack_source(body, user)
+        if checked.get("connector_fingerprint") != connector_fingerprint:
+            raise HTTPException(422, "Connector settings changed; check log access again.")
         from .attack_logs import LogAccessError, analyze_aws_source
         from .gcp_attack_logs import GcpLogAccessError
         from peaso.attack_detection.rules import RuleSourceError

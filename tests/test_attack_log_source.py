@@ -50,6 +50,11 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
         assert client.post("/api/attack-analysis/run", json={**source, "check_token": "invalid"}).status_code == 422
         assert client.post("/api/attack-analysis/check-access", json={**source, "kind": "aws_cloudtrail_s3"}).status_code == 422
         assert client.post("/api/attack-analysis/check-access", json={**source, "kind": "gcp_audit", "project_id": "customer-demo-123"}).status_code == 422
+        changed = client.patch(f"/api/connectors/{source['connector_id']}", json={"name": "AWS updated"})
+        assert changed.status_code == 200, changed.text
+        stale = client.post("/api/attack-analysis/run", json={**source, "check_token": token})
+        assert stale.status_code == 422
+        assert "Connector settings changed" in stale.json()["detail"]
 
 
 def test_s3_check_proves_get_object_and_reports_empty_without_token(monkeypatch):
