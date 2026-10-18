@@ -2,6 +2,8 @@
 from __future__ import annotations
 import copy
 import json
+import re
+from urllib.parse import quote
 from collections import Counter, defaultdict
 from importlib import import_module
 from .snapshot import SCHEMA_VERSION, PROVIDERS, digest, freeze, validate, resources, resource_id, seal
@@ -503,6 +505,75 @@ def _retired_collection_evidence(provider, snapshot, collection):
     return "retired", evidence
 
 
+# Reviewed PSP-object predicates only. A later scope or enforcement check must opt in
+# through a separate source review, even if it uses the same collection kind.
+_PSP_RESOURCE_CHECK_IDS = frozenset({
+    "k8s.ports.podsecuritypolicy.pod_security_policy_container_privilege_disabled",
+    "k8s.ports.podsecuritypolicy.pod_security_policy_hostpid_sharing_disabled",
+    "k8s.ports.podsecuritypolicy.pod_security_policy_hostipc_sharing_disabled",
+    "k8s.ports.podsecuritypolicy.pod_security_policy_host_network_access_disabled",
+    "k8s.ports.podsecuritypolicy.pod_security_policy_container_privilege_escalation_disabled",
+    "k8s.ports.podsecuritypolicy.pod_security_policy_immutable_container_filesystem",
+    "k8s.ports.podsecuritypolicy.pod_security_policy_non_root_container",
+    "k8s.claude.podsecuritypolicy.allowed_host_path_restricted",
+    "k8s.claude.podsecuritypolicy.default_seccomp_profile",
+    "k8s.claude.podsecuritypolicy.security_services_hardening",
+})
+
+
+def _psp_resource_absence_evidence(provider, snapshot, collection):
+    """Recognize only the native, same-cluster proof that PSP objects cannot exist."""
+    if provider != "k8s" or collection.get("type") != "podsecuritypolicy":
+        return None
+    error, marker = collection.get("error"), collection.get("applicability")
+    if (collection.get("scope") not in snapshot.get("scopes", ())
+            or collection.get("service") != "kubernetes"
+            or collection.get("status") != "not_collected"
+            or collection.get("coverage_status") != "not_applicable"
+            or collection.get("items") != [] or not isinstance(error, dict)
+            or error.get("kind") != "not_applicable"
+            or error.get("code") != "pod_security_policy_api_absent"
+            or not isinstance(marker, dict)
+            or marker.get("observed_resource_absent") != "policy/v1beta1/podsecuritypolicies"
+            or marker.get("source") != "GET /apis and GET /version"):
+        return None
+    cluster = snapshot.get("metadata", {}).get("cluster_id")
+    if not isinstance(cluster, str) or not cluster or len(cluster) > 256:
+        return None
+    discovery = [row for row in snapshot["collections"]
+        if row.get("type") == "api_discovery" and row.get("scope") == collection["scope"]]
+    if (len(discovery) != 1 or discovery[0].get("service") != "kubernetes"
+            or discovery[0].get("status") != "collected"
+            or discovery[0].get("error") or len(discovery[0].get("items", [])) != 1):
+        return None
+    item = discovery[0]["items"][0]
+    provenance = item.get("provenance")
+    if (item.get("id") != "k8s://" + quote(cluster, safe="") + "/api-discovery"
+            or not isinstance(provenance, dict)
+            or provenance.get("cluster_id") != cluster
+            or provenance.get("source") != "GET /apis"
+            or item.get("_coverage")
+            or item.get("podSecurityPolicyAdvertised") is not False):
+        return None
+    server_version = item.get("serverVersion")
+    version = server_version.get("gitVersion") if isinstance(server_version, dict) else None
+    if (not isinstance(version, str) or len(version) > 128
+            or marker.get("kubernetes_version") != version):
+        return None
+    match = re.fullmatch(r"v?([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})([-+][0-9A-Za-z.\-]{1,96})?", version)
+    if not match or tuple(int(part) for part in match.groups()[:3]) < (1, 25, 0):
+        return None
+    suffix = match.group(4) or ""
+    # A hyphen may be a vendor build or a prerelease; accept only recognized
+    # release build labels. Unknown labels cannot prove a stable server.
+    if suffix.startswith("-") and not re.match(r"-(?:gke[.-]|eks[.-]|aks[.-]|k3s[0-9]|rke2r[0-9])", suffix):
+        return None
+    return {"reason": "PodSecurityPolicy resource API removed on observed Kubernetes version; legacy PSP resource check is not applicable.",
+        "kubernetes_version": version, "observed_resource_absent": "policy/v1beta1/podsecuritypolicies",
+        "source": "GET /apis and GET /version", "collection_status": collection["status"],
+        "semantics": "Legacy PSP resource applicability only; no secure admission or enforcement conclusion."}
+
+
 AGGREGATED_STATUSES = ("NOT_APPLICABLE", "EMPTY")
 AGGREGATE_SCOPE_CAP = 500
 AGGREGATE_SAMPLE = 5
@@ -707,13 +778,14 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     coverage, findings = [], []
     for collection in snapshot["collections"]:
         retirement = _retired_collection_evidence(provider, snapshot, collection)
-        coverage_status = "unknown" if retirement and retirement[0] == "unknown" else collection["status"]
+        psp_absence = _psp_resource_absence_evidence(provider, snapshot, collection)
+        coverage_status = "unknown" if retirement and retirement[0] == "unknown" else "not_applicable" if psp_absence else collection["status"]
         coverage.append({"level": "collection", "type": collection["type"], "scope": collection["scope"],
             "service": collection.get("service", collection["type"]), "status": coverage_status,
-            "resource_count": len(collection["items"]), "reason": retirement[1]["reason"] if retirement else
+            "resource_count": len(collection["items"]), "reason": retirement[1]["reason"] if retirement else psp_absence["reason"] if psp_absence else
                 _unknown_coverage_reason(collection_status=collection["status"])
                 if collection["status"] not in ("collected", "empty") else ""})
-        code = "retired_service" if retirement else _safe_collection_error_code(collection)
+        code = "retired_service" if retirement else "pod_security_policy_api_absent" if psp_absence else _safe_collection_error_code(collection)
         if code is not None:
             coverage[-1]["error_code"] = code
     scoped_indexes = {}
@@ -816,6 +888,9 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         for collection in collections:
             scope, collection_status = collection["scope"], collection["status"]
             retirement = _retired_collection_evidence(provider, snapshot, collection)
+            psp_absence = (_psp_resource_absence_evidence(provider, snapshot, collection)
+                if check.id in _PSP_RESOURCE_CHECK_IDS and check.kind == "podsecuritypolicy"
+                and getattr(check, "target", "resource") == "resource" else None)
             scope_findings = []
             for resource in by_scope.get((check.kind, scope), []):
                 # The rule index is scoped; foreign subscriptions/namespaces cannot satisfy a check.
@@ -828,7 +903,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                 except (KeyError, TypeError, ValueError, AttributeError, IndexError) as exc:
                     status, evidence = "UNKNOWN", {"reason": "missing or malformed provider facts", "error_kind": type(exc).__name__}
                 scope_findings.append(_finding(check, provider, scope, resource["id"], resource["service"], status, evidence, check_frameworks))
-            unavailable = collection_status not in ("collected", "empty") or bool(retirement and retirement[0] == "unknown")
+            unavailable = (collection_status not in ("collected", "empty") and not psp_absence) or bool(retirement and retirement[0] == "unknown")
             empty_evaluated = False
             if (not retirement and not scope_findings and collection_status == "empty"
                     and collection.get("type") == check.kind and collection.get("scope") == scope
@@ -864,9 +939,9 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                         scope_findings.append(_finding(check, provider, scope, "scope:" + scope,
                             collection.get("service", check.kind), status, evidence, check_frameworks))
             if unavailable or not scope_findings:
-                status = "UNKNOWN" if retirement and retirement[0] == "unknown" else "NOT_APPLICABLE" if retirement else "DENIED" if collection_status == "denied" else "EMPTY" if collection_status == "empty" else "UNKNOWN"
+                status = "UNKNOWN" if retirement and retirement[0] == "unknown" else "NOT_APPLICABLE" if retirement or psp_absence else "DENIED" if collection_status == "denied" else "EMPTY" if collection_status == "empty" else "UNKNOWN"
                 scope_findings.append(_finding(check, provider, scope, "inventory:" + check.kind, collection.get("service", check.kind), status,
-                    retirement[1] if retirement else {"collection_status": collection_status, "reason": collection.get("error", {}).get("code", "no collected resources"),
+                    retirement[1] if retirement else psp_absence if psp_absence else {"collection_status": collection_status, "reason": collection.get("error", {}).get("code", "no collected resources"),
                      "semantics": "Inventory coverage, not a resource security pass."}, check_frameworks))
             check_findings.extend(scope_findings)
             counts = dict(Counter(f["status"] for f in scope_findings))
@@ -876,7 +951,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             coverage.append({"level": "check", "check_id": check.id, "type": check.kind, "scope": scope,
                 **({"target": "scope"} if empty_evaluated else {}),
                 "status": check_status, "by_status": counts, "reason": _unknown_coverage_reason(scope_findings, collection_status=collection_status)
-                if check_status in ("unknown", "denied", "partial") and not retirement else retirement[1]["reason"] if retirement else ""})
+                if check_status in ("unknown", "denied", "partial") and not retirement and not psp_absence else retirement[1]["reason"] if retirement else psp_absence["reason"] if psp_absence else ""})
         findings.extend(collapse(_dedupe_cross_scope(check_findings, native_ids, provider)))
     emit_progress(phase="evaluating", provider=provider, completed=len(selected), total=len(selected),
                   resources=len(inventory), dynamic_total=False)

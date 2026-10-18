@@ -1,0 +1,512 @@
+{
+  "collections": [
+    {
+      "applicability": {
+        "guidance": "Review Pod Security Admission/SCC metadata separately; API absence is not evidence of secure admission",
+        "kubernetes_version": "v1.36.4-gke.1391002",
+        "observed_resource_absent": "policy/v1beta1/podsecuritypolicies",
+        "source": "GET /apis and GET /version"
+      },
+      "coverage_status": "not_applicable",
+      "error": {
+        "code": "pod_security_policy_api_absent",
+        "kind": "not_applicable"
+      },
+      "items": [],
+      "scope": "*",
+      "service": "kubernetes",
+      "status": "not_collected",
+      "type": "podsecuritypolicy"
+    },
+    {
+      "items": [
+        {
+          "groups": [
+            {
+              "name": "apiregistration.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "apiregistration.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "apiregistration.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "apps",
+              "preferredVersion": {
+                "groupVersion": "apps/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "apps/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "events.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "events.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "events.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "authentication.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "authentication.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "authentication.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "authorization.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "authorization.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "authorization.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "autoscaling",
+              "preferredVersion": {
+                "groupVersion": "autoscaling/v2",
+                "version": "v2"
+              },
+              "versions": [
+                {
+                  "groupVersion": "autoscaling/v2",
+                  "version": "v2"
+                },
+                {
+                  "groupVersion": "autoscaling/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "batch",
+              "preferredVersion": {
+                "groupVersion": "batch/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "batch/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "certificates.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "certificates.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "certificates.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "networking.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "networking.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "networking.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "policy",
+              "preferredVersion": {
+                "groupVersion": "policy/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "policy/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "rbac.authorization.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "rbac.authorization.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "rbac.authorization.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "storage.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "storage.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "storage.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "admissionregistration.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "admissionregistration.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "admissionregistration.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "apiextensions.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "apiextensions.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "apiextensions.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "scheduling.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "scheduling.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "scheduling.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "coordination.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "coordination.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "coordination.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "node.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "node.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "node.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "discovery.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "discovery.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "discovery.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "resource.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "resource.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "resource.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "flowcontrol.apiserver.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "flowcontrol.apiserver.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "flowcontrol.apiserver.k8s.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "auto.gke.io",
+              "preferredVersion": {
+                "groupVersion": "auto.gke.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "auto.gke.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "autoscaling.x-k8s.io",
+              "preferredVersion": {
+                "groupVersion": "autoscaling.x-k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "autoscaling.x-k8s.io/v1",
+                  "version": "v1"
+                },
+                {
+                  "groupVersion": "autoscaling.x-k8s.io/v1beta1",
+                  "version": "v1beta1"
+                },
+                {
+                  "groupVersion": "autoscaling.x-k8s.io/v1alpha1",
+                  "version": "v1alpha1"
+                }
+              ]
+            },
+            {
+              "name": "cloud.google.com",
+              "preferredVersion": {
+                "groupVersion": "cloud.google.com/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "cloud.google.com/v1",
+                  "version": "v1"
+                },
+                {
+                  "groupVersion": "cloud.google.com/v1beta1",
+                  "version": "v1beta1"
+                }
+              ]
+            },
+            {
+              "name": "datalayer.gke.io",
+              "preferredVersion": {
+                "groupVersion": "datalayer.gke.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "datalayer.gke.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "hub.gke.io",
+              "preferredVersion": {
+                "groupVersion": "hub.gke.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "hub.gke.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "internal.autoscaling.gke.io",
+              "preferredVersion": {
+                "groupVersion": "internal.autoscaling.gke.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "internal.autoscaling.gke.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "monitoring.googleapis.com",
+              "preferredVersion": {
+                "groupVersion": "monitoring.googleapis.com/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "monitoring.googleapis.com/v1",
+                  "version": "v1"
+                },
+                {
+                  "groupVersion": "monitoring.googleapis.com/v1alpha1",
+                  "version": "v1alpha1"
+                }
+              ]
+            },
+            {
+              "name": "networking.gke.io",
+              "preferredVersion": {
+                "groupVersion": "networking.gke.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "networking.gke.io/v1",
+                  "version": "v1"
+                },
+                {
+                  "groupVersion": "networking.gke.io/v1beta2",
+                  "version": "v1beta2"
+                },
+                {
+                  "groupVersion": "networking.gke.io/v1beta1",
+                  "version": "v1beta1"
+                }
+              ]
+            },
+            {
+              "name": "node.gke.io",
+              "preferredVersion": {
+                "groupVersion": "node.gke.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "node.gke.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "snapshot.storage.k8s.io",
+              "preferredVersion": {
+                "groupVersion": "snapshot.storage.k8s.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "snapshot.storage.k8s.io/v1",
+                  "version": "v1"
+                },
+                {
+                  "groupVersion": "snapshot.storage.k8s.io/v1beta1",
+                  "version": "v1beta1"
+                }
+              ]
+            },
+            {
+              "name": "warden.gke.io",
+              "preferredVersion": {
+                "groupVersion": "warden.gke.io/v1",
+                "version": "v1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "warden.gke.io/v1",
+                  "version": "v1"
+                }
+              ]
+            },
+            {
+              "name": "nodemanagement.gke.io",
+              "preferredVersion": {
+                "groupVersion": "nodemanagement.gke.io/v1alpha1",
+                "version": "v1alpha1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "nodemanagement.gke.io/v1alpha1",
+                  "version": "v1alpha1"
+                }
+              ]
+            },
+            {
+              "name": "autoscaling.gke.io",
+              "preferredVersion": {
+                "groupVersion": "autoscaling.gke.io/v1beta1",
+                "version": "v1beta1"
+              },
+              "versions": [
+                {
+                  "groupVersion": "autoscaling.gke.io/v1beta1",
+                  "version": "v1beta1"
+                }
+              ]
+            }
+          ],
+          "id": "k8s://k8s-cluster%3Ae3d13849450aaf77583dde4decf0d519c5fdd86bdcf23bf995384e945ff68471/api-discovery",
+          "podSecurityPolicyAdvertised": false,
+          "policy_engines": {
+            "gatekeeper": [],
+            "kyverno": []
+          },
+          "provenance": {
+            "authoritative_for": "Advertised API groups, optional policy resources and captured server version; not secure admission enforcement",
+            "cluster_id": "k8s-cluster:e3d13849450aaf77583dde4decf0d519c5fdd86bdcf23bf995384e945ff68471",
+            "source": "GET /apis"
+          },
+          "serverVersion": {
+            "gitVersion": "v1.36.4-gke.1391002"
+          }
+        }
+      ],
+      "scope": "*",
+      "service": "kubernetes",
+      "status": "collected",
+      "type": "api_discovery"
+    }
+  ],
+  "metadata": {
+    "cluster_id": "k8s-cluster:e3d13849450aaf77583dde4decf0d519c5fdd86bdcf23bf995384e945ff68471"
+  }
+}
