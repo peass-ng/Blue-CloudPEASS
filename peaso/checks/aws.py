@@ -92,12 +92,88 @@ def rotation(item, index):
 CASES["aws.kms.rotation"] = {state: {"Metadata": {"KeyMetadata": {"KeyManager": "CUSTOMER", "Origin": "AWS_KMS", "KeySpec": "SYMMETRIC_DEFAULT"}}, "Rotation": {"KeyRotationEnabled": v}} for state, v in (("pass", True), ("fail", False))}
 
 
+_MANAGEMENT_SOURCE_DOMAINS = ("other", "kms.amazonaws.com", "rdsdata.amazonaws.com")
+
+
+def _advanced_management_coverage(selector):
+    """Prove source domains and read/write directions covered by one selector.
+
+    Conditions inside one selector intersect; independent selectors union. CloudTrail
+    permits the two named management-source exclusions, so finite source domains
+    suffice for proving unrestricted coverage without assuming service inventory.
+    """
+    fields = list_of_objects(get(selector, "FieldSelectors", list))
+    by_name = {}
+    for field in fields:
+        name = get(field, "Field", str)
+        if name in by_name:
+            raise Unavailable("repeated advanced management field: " + name)
+        operators = set(field) - {"Field"}
+        if not operators or operators - {"Equals", "NotEquals", "StartsWith", "NotStartsWith", "EndsWith", "NotEndsWith"}:
+            raise Unavailable("unsupported advanced management operator")
+        for operator in operators:
+            values = get(field, operator, list)
+            if not values or any(not isinstance(value, str) or not value for value in values):
+                raise Unavailable("malformed advanced management filter")
+        by_name[name] = field
+    category = by_name.get("eventCategory")
+    if category is None or set(category) != {"Field", "Equals"}:
+        raise Unavailable("advanced eventCategory must use Equals")
+    values = get(category, "Equals", list)
+    if values not in (["Management"], ["Data"], ["NetworkActivity"]):
+        raise Unavailable("unsupported advanced eventCategory")
+    if values != ["Management"]:
+        return set()
+    if set(by_name) - {"eventCategory", "readOnly", "eventSource"}:
+        raise Unavailable("unsupported advanced management field")
+    read = by_name.get("readOnly")
+    directions = {"read", "write"}
+    if read is not None:
+        if set(read) != {"Field", "Equals"}:
+            raise Unavailable("unsupported advanced readOnly filter")
+        values = get(read, "Equals", list)
+        if any(value not in ("true", "false") for value in values):
+            raise Unavailable("unsupported advanced readOnly value")
+        directions = {direction for value, direction in (("true", "read"), ("false", "write")) if value in values}
+    sources = set(_MANAGEMENT_SOURCE_DOMAINS)
+    source = by_name.get("eventSource")
+    if source is not None:
+        if set(source) != {"Field", "NotEquals"}:
+            raise Unavailable("unsupported advanced eventSource filter")
+        excluded = get(source, "NotEquals", list)
+        if any(value not in ("kms.amazonaws.com", "rdsdata.amazonaws.com") for value in excluded):
+            raise Unavailable("unsupported advanced eventSource exclusion")
+        sources.difference_update(excluded)
+    return {(direction, source) for direction in directions for source in sources}
+
+
 @register("aws.cloudtrail.management_events", "aws", "hardening", "cloudtrail", "CloudTrail records both read and write management events", "high", "AU-2", "Configure complete management event selectors and review excluded event sources.")
 def trail_events(item, index):
     selectors = get(item, "EventSelectors", dict)
+    # A successful native GetEventSelectors read must belong to this trail.
+    # Legacy hand-authored facts omit collection_status and retain prior behavior.
+    if selectors.get("collection_status") == "collected":
+        if get(selectors, "TrailARN", str) != get(item, "TrailARN", str):
+            return unknown("CloudTrail selector response trail identity mismatch")
     advanced = _native_optional(selectors, "AdvancedEventSelectors", [], list)
     if advanced:
-        return "MANUAL", {"advanced_event_selectors": list_of_objects(advanced), "reason": "Advanced selectors need field-selection review"}
+        rows = list_of_objects(advanced)
+        basic = _native_optional(selectors, "EventSelectors", [], list)
+        if basic:
+            return unknown("basic and advanced CloudTrail selectors cannot coexist")
+        covered, unresolved = set(), []
+        for row in rows:
+            try:
+                covered.update(_advanced_management_coverage(row))
+            except Unavailable as exc:
+                unresolved.append(str(exc))
+        required = {(direction, source) for direction in ("read", "write")
+                    for source in _MANAGEMENT_SOURCE_DOMAINS}
+        if required <= covered:
+            return result(False, advanced_event_selectors=rows)
+        if unresolved:
+            return unknown("advanced management event coverage unresolved", unresolved=unresolved)
+        return result(True, advanced_event_selectors=rows)
     rows = list_of_objects(get(selectors, "EventSelectors", list))
     complete, unresolved = False, []
     for row in rows:

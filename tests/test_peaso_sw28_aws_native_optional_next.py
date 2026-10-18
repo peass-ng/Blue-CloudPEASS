@@ -130,7 +130,7 @@ def test_frozen_selected_valid_verdicts():
         "Rotation": {"KeyRotationEnabled": True}}) == "PASS"
     assert check("aws.kms.rotation", {"Metadata": {"KeyMetadata": {**metadata, "Origin": "EXTERNAL"}}}) == "NOT_APPLICABLE"
     assert check("aws.cloudtrail.management_events", {"EventSelectors": {
-        "AdvancedEventSelectors": [{"Name": "custom"}]}}) == "MANUAL"
+        "AdvancedEventSelectors": [{"Name": "custom"}]}}) == "UNKNOWN"
     assert check("aws.cloudtrail.management_events", {"EventSelectors": {"EventSelectors": []}}) == "FAIL"
     assert check("aws.iam.access_key_count", {"AccessKeys": {"items": [{"Status": "Active"}]}}) == "PASS"
     assert check("aws.logs.retention", {"logGroupName": "audit", "retentionInDays": 90}) == "PASS"

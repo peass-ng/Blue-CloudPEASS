@@ -105,6 +105,9 @@ def description_for(check_id):
     if check_id in ("aws.c2b.autoscaling.lc_no_public_ip", "aws.c2b.autoscaling.group_lc_no_public_ip"):
         from .aws_launch_ip_description_overlay import description
         return description(check_id, original)
+    if check_id == "aws.cloudtrail.management_events":
+        from .cloudtrail_management_description_overlay import description
+        return description(check_id, original)
     return deepcopy(original)
 
 
