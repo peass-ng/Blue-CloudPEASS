@@ -1,4 +1,5 @@
 """Container/build/cache/identity configuration checks using native SDK envelopes."""
+import re
 from . import result, unknown
 from .facts import get, list_of_objects, optional, Unavailable
 from .aws_b_core import install, scalar, SOURCES
@@ -179,32 +180,92 @@ def build_s3(item, index):
     return result(disabled, s3_log_encryption_disabled=disabled)
 
 
-@install("aws.b.ecs.declared_nonroot_users", "ecs_task_definition", "ECS containers explicitly declare non-root users", {"Definition": {"taskDefinition": {"containerDefinitions": [{"name": "app", "user": "1000:1000"}]}}}, {"Definition": {"taskDefinition": {"containerDefinitions": [{"name": "app", "user": "0:1000"}]}}}, query="_corrected:ecs_task_definition_no_root_user")
+_ECS_OS_DEFAULT_REFERENCE = "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters_ec2.html"
+_ECS_USER_REFERENCE = "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html"
+
+
+def _ecs_linux_user_scope(item, definition):
+    """Use the API's LINUX default only on a successful ARN-bound detail read."""
+    platform = optional(definition, "runtimePlatform", None)
+    if platform is None and "runtimePlatform" not in definition:
+        outer_arn = item.get("taskDefinitionArn")
+        inner_arn = definition.get("taskDefinitionArn")
+        detail = item.get("Definition")
+        if (isinstance(detail, dict) and detail.get("collection_status") == "collected"
+                and isinstance(outer_arn, str)
+                and re.fullmatch(r"arn:aws(?:-[a-z]+)?:ecs:[a-z0-9-]+:[0-9]{12}:task-definition/[A-Za-z0-9_-]+:[1-9][0-9]*", outer_arn)
+                and outer_arn == inner_arn):
+            return {"operating_system_family": "LINUX", "operating_system_evidence": "documented default on successful ARN-bound DescribeTaskDefinition",
+                    "official_reference": _ECS_OS_DEFAULT_REFERENCE}
+        return None
+    if not isinstance(platform, dict):
+        return None
+    family = optional(platform, "operatingSystemFamily", None)
+    if family == "LINUX":
+        return {"operating_system_family": family, "operating_system_evidence": "explicit RuntimePlatform",
+                "official_reference": _ECS_USER_REFERENCE}
+    return None
+
+
+@install("aws.b.ecs.declared_nonroot_users", "ecs_task_definition", "Linux ECS containers declare a proven non-root numeric UID", {"Definition": {"taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "containerDefinitions": [{"name": "app", "user": "1000:1000"}]}}}, {"Definition": {"taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "containerDefinitions": [{"name": "app", "user": "0:1000"}]}}}, query="_corrected:ecs_task_definition_no_root_user")
 def nonroot_users(item, index):
-    _, rows = task(item)
-    root, inherited = [], []
+    definition, rows = task(item)
+    os_evidence = _ecs_linux_user_scope(item, definition)
+    if os_evidence is None:
+        return unknown("Linux user UID semantics not established for this ECS task definition",
+                       runtime_platform=definition.get("runtimePlatform"), official_reference=_ECS_USER_REFERENCE)
+    root, inherited, unresolved_names, malformed, numeric = [], [], [], [], []
+    # Docker's --user numeric UID range is 0..2147483647. A group does not
+    # establish the user UID and is deliberately not assessed by this check.
+    max_uid = 2147483647
     for row in rows:
+        name = row["name"]
         user = optional(row, "user", None)
         if user is None or user == "":
-            inherited.append(row["name"])
+            inherited.append(name)
             continue
-        if not isinstance(user, str):
-            return unknown("malformed user declaration")
-        if user.count(":") > 1:
-            return unknown("malformed user declaration")
-        identity = user.split(":", 1)[0]
-        if not identity:
-            return unknown("user declaration does not identify a user")
-        if identity == "root" or identity.isascii() and identity.isdecimal() and int(identity) == 0:
-            root.append(row["name"])
+        if not isinstance(user, str) or user.count(":") > 1:
+            malformed.append(name)
+            continue
+        identity, separator, group = user.partition(":")
+        if not identity or (separator and not group):
+            malformed.append(name)
+            continue
+        if identity == "root" or (identity.isascii() and identity.isdecimal() and not identity.lstrip("0")):
+            root.append(name)
+            continue
+        if separator and group.isascii() and group.isdecimal():
+            significant_group = group.lstrip("0")
+            if len(significant_group) > 10 or significant_group and int(significant_group) > max_uid:
+                malformed.append(name)
+                continue
+        elif separator and (group.strip() != group or group.startswith(("+", "-")) or any(ch.isspace() for ch in group)):
+            malformed.append(name)
+            continue
+        if identity.isascii() and identity.isdecimal():
+            significant_uid = identity.lstrip("0")
+            if not significant_uid:
+                root.append(name)
+            elif len(significant_uid) > 10 or int(significant_uid) > max_uid:
+                malformed.append(name)
+            else:
+                numeric.append(name)
+        elif identity.strip() != identity or identity.startswith(("+", "-")) or any(ch.isspace() for ch in identity):
+            malformed.append(name)
+        else:
+            unresolved_names.append(name)
     if root:
-        return result(True, root_user_containers=root, inherited_image_users=inherited)
-    if inherited:
-        return unknown("user inherited from uninspected image metadata", containers=inherited)
-    return result(False, explicitly_nonroot_containers=[row["name"] for row in rows], semantics="Declared user names/UIDs; image name-to-UID resolution is not independently inspected.")
+        return result(True, root_user_containers=root, inherited_image_users=inherited,
+                      unresolved_named_users=unresolved_names, malformed_user_containers=malformed, **os_evidence)
+    if inherited or unresolved_names or malformed:
+        return unknown("container user UID cannot be proven from task definition alone",
+                       inherited_image_users=inherited, unresolved_named_users=unresolved_names,
+                       malformed_user_containers=malformed, proven_numeric_uid_containers=numeric, **os_evidence)
+    return result(False, proven_numeric_uid_containers=numeric, **os_evidence,
+                  semantics="Task definition declares a valid nonzero numeric UID for every container; group identity and runtime process identity are not assessed.")
 
 
-@install("aws.b.ecs.host_network_nonprivileged", "ecs_task_definition", "Host-network ECS task containers avoid privilege and explicitly use non-root users", {"Definition": {"taskDefinition": {"networkMode": "host", "containerDefinitions": [{"name": "app", "privileged": False, "user": "1000"}]}}}, {"Definition": {"taskDefinition": {"networkMode": "host", "containerDefinitions": [{"name": "app", "privileged": True, "user": "1000"}]}}}, query="_corrected:ecs_task_definition_user_for_host_mode_check", extra={"not_applicable": {"Definition": {"taskDefinition": {"networkMode": "awsvpc", "containerDefinitions": [{"name": "app"}]}}}})
+@install("aws.b.ecs.host_network_nonprivileged", "ecs_task_definition", "Host-network Linux ECS task containers avoid privilege and declare non-root numeric UIDs", {"Definition": {"taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "networkMode": "host", "containerDefinitions": [{"name": "app", "privileged": False, "user": "1000"}]}}}, {"Definition": {"taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "networkMode": "host", "containerDefinitions": [{"name": "app", "privileged": True, "user": "1000"}]}}}, query="_corrected:ecs_task_definition_user_for_host_mode_check", extra={"not_applicable": {"Definition": {"taskDefinition": {"networkMode": "awsvpc", "containerDefinitions": [{"name": "app"}]}}}})
 def host_user(item, index):
     definition, _ = task(item)
     mode = get(definition, "networkMode", str)
@@ -212,8 +273,17 @@ def host_user(item, index):
         return unknown("unrecognized network mode")
     if mode != "host":
         return "NOT_APPLICABLE", {"network_mode": mode}
-    status, evidence = privileges(item, index)
-    if status != "PASS":
-        return status, {**evidence, "network_mode": mode}
-    status, evidence = nonroot_users(item, index)
-    return status, {**evidence, "network_mode": mode}
+    if _ecs_linux_user_scope(item, definition) is None:
+        return unknown("Linux host-network user and privilege semantics not established",
+                       runtime_platform=definition.get("runtimePlatform"), network_mode=mode,
+                       official_reference=_ECS_USER_REFERENCE)
+    privilege_status, privilege_evidence = privileges(item, index)
+    user_status, user_evidence = nonroot_users(item, index)
+    # A proven privilege or root UID failure survives an unresolved sibling.
+    if "FAIL" in (privilege_status, user_status):
+        status = "FAIL"
+    elif "UNKNOWN" in (privilege_status, user_status):
+        status = "UNKNOWN"
+    else:
+        status = "PASS"
+    return status, {**privilege_evidence, **user_evidence, "network_mode": mode}

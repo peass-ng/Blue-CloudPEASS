@@ -34,7 +34,7 @@ def test_lambda_missing_layers_requires_successful_detail_and_function_identity(
 
 def test_ecs_inherited_image_user_remains_unknown_and_explicit_root_fails():
     c = check("aws.b.ecs.declared_nonroot_users")
-    base = {"Definition": {"collection_status": "collected", "taskDefinition": {"containerDefinitions": [{"name": "fixture"}]}}}
+    base = {"Definition": {"collection_status": "collected", "taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "containerDefinitions": [{"name": "fixture"}]}}}
     assert c.evaluate(base, {})[0] == "UNKNOWN"
     base["Definition"]["taskDefinition"]["containerDefinitions"][0]["user"] = "0"
     assert c.evaluate(base, {})[0] == "FAIL"
@@ -50,14 +50,142 @@ def test_ecs_inherited_image_user_remains_unknown_and_explicit_root_fails():
 ])
 def test_explicit_container_field_denial_cannot_be_ignored_by_optional_defaults(field, cid, value):
     row = {"name": "fixture", field: value, "_coverage": {field: {"status": "denied"}}}
-    data = {"Definition": {"taskDefinition": {"containerDefinitions": [row]}}}
+    data = {"Definition": {"taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "containerDefinitions": [row]}}}
     assert check(cid).evaluate(data, {})[0] == "UNKNOWN"
 
 
 @pytest.mark.parametrize("user,expected", [("00", "FAIL"), ("0000:1000", "FAIL"), (":1000", "UNKNOWN"), ("1000:1000:1000", "UNKNOWN")])
 def test_declared_numeric_uid_zero_and_malformed_user_formats(user, expected):
-    data = {"Definition": {"taskDefinition": {"containerDefinitions": [{"name": "fixture", "user": user}]}}}
+    data = {"Definition": {"taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "containerDefinitions": [{"name": "fixture", "user": user}]}}}
     assert check("aws.b.ecs.declared_nonroot_users").evaluate(data, {})[0] == expected
+
+
+@pytest.mark.parametrize("user,expected", [
+    (None, "UNKNOWN"), ("root", "FAIL"), ("root:1000", "FAIL"),
+    ("0", "FAIL"), ("00:1000", "FAIL"), ("root:2147483648", "FAIL"), ("1000", "PASS"),
+    ("1000:root", "PASS"), ("2147483647", "PASS"),
+    ("appuser", "UNKNOWN"), ("appuser:1000", "UNKNOWN"),
+    (":1000", "UNKNOWN"), ("1000:", "UNKNOWN"),
+    ("1000:1000:1000", "UNKNOWN"), ("2147483648", "UNKNOWN"),
+    ("999999999999999999999999999999", "UNKNOWN"),
+    ("1000:2147483648", "UNKNOWN"), ("1000:-1", "UNKNOWN"),
+])
+def test_ecs_user_uid_proof_registered_callback(user, expected):
+    # An image may map appuser to UID 0; a declared name cannot prove non-root.
+    row = {"name": "fixture"}
+    if user is not None:
+        row["user"] = user
+    data = {"Definition": {"collection_status": "collected",
+                           "taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "containerDefinitions": [row]}}}
+    status, evidence = check("aws.b.ecs.declared_nonroot_users").evaluate(data, {})
+    assert status == expected
+    if user == "appuser":
+        assert evidence["unresolved_named_users"] == ["fixture"]
+
+
+def test_ecs_explicit_root_still_fails_with_unresolved_sibling():
+    data = {"Definition": {"collection_status": "collected",
+                           "taskDefinition": {"runtimePlatform": {"operatingSystemFamily": "LINUX"}, "containerDefinitions": [
+                               {"name": "unknown", "user": "appuser"},
+                               {"name": "root", "user": "0"}]}}}
+    assert check("aws.b.ecs.declared_nonroot_users").evaluate(data, {})[0] == "FAIL"
+
+
+@pytest.mark.parametrize("user,os_family,expected", [
+    ("appuser", None, "UNKNOWN"), ("1000:root", None, "PASS"), ("0", None, "FAIL"),
+    ("1000", "LINUX", "PASS"), ("0", "LINUX", "FAIL"),
+    ("1000", "WINDOWS_SERVER_2022_CORE", "UNKNOWN"),
+    ("0", "WINDOWS_SERVER_2022_CORE", "UNKNOWN")])
+def test_ecs_uid_proof_through_aws_collector_and_engine(monkeypatch, user, os_family, expected):
+    import boto3
+    from botocore.stub import Stubber
+    from peaso.collectors import aws
+    from peaso.engine import evaluate_snapshot
+
+    account, region = "123456789012", "us-east-1"
+    arn = f"arn:aws:ecs:{region}:{account}:task-definition/uid-proof:1"
+    session = boto3.Session(aws_access_key_id="fixture", aws_secret_access_key="fixture",
+                           region_name=region)
+    sts, ecs = session.client("sts"), session.client("ecs")
+    with Stubber(sts) as sts_stub, Stubber(ecs) as ecs_stub:
+        sts_stub.add_response("get_caller_identity", {"Account": account,
+            "Arn": f"arn:aws:iam::{account}:user/reviewer", "UserId": "AIDAREVIEWER"}, {})
+        ecs_stub.add_response("list_task_definitions", {"taskDefinitionArns": [arn]}, {})
+        definition = {"taskDefinitionArn": arn, "status": "ACTIVE", "networkMode": "host",
+                      "containerDefinitions": [{"name": "app", "privileged": False, "user": user}]}
+        if os_family is not None:
+            definition["runtimePlatform"] = {"operatingSystemFamily": os_family}
+        ecs_stub.add_response("describe_task_definition", {"taskDefinition": definition},
+                              {"taskDefinition": arn})
+        clients = {("sts", region): sts, ("ecs", region): ecs}
+        monkeypatch.setattr(aws.Requests, "client",
+                            lambda self, _session, service, requested_region: clients[(service, requested_region)])
+        monkeypatch.setattr(aws, "_session", lambda auth, requested_region: (session, "fixture"))
+        snapshot = aws.collect({"provider": "aws", "scopes": [account],
+            "auth": {"profile": "fixture"}, "options": {"regions": [region],
+            "service_concurrency": 1, "scope_concurrency": 1}}, ["ecs_task_definition"])
+        sts_stub.assert_no_pending_responses()
+        ecs_stub.assert_no_pending_responses()
+    ids = ["aws.b.ecs.declared_nonroot_users", "aws.b.ecs.host_network_nonprivileged"]
+    report = evaluate_snapshot(snapshot, checks=ids)
+    findings = {row["check_id"]: row["status"] for row in report["findings"]
+                if row["resource_id"] != "inventory:ecs_task_definition"}
+    assert findings == dict.fromkeys(ids, expected)
+
+
+@pytest.mark.parametrize("privileged,user,expected", [
+    (False, "appuser", "UNKNOWN"), (False, "1000:root", "PASS"),
+    (False, "0", "FAIL"), (True, "appuser", "FAIL"),
+    ("unresolved", "0", "FAIL")])
+def test_host_network_uid_and_privilege_failure_precedence(privileged, user, expected):
+    data = {"Definition": {"collection_status": "collected", "taskDefinition": {
+        "runtimePlatform": {"operatingSystemFamily": "LINUX"}, "networkMode": "host", "containerDefinitions": [
+            {"name": "fixture", "privileged": privileged, "user": user}]}}}
+    assert check("aws.b.ecs.host_network_nonprivileged").evaluate(data, {})[0] == expected
+
+
+@pytest.mark.parametrize("os_family,user,expected", [
+    ("LINUX", "1000", "PASS"), ("LINUX", "0", "FAIL"),
+    ("WINDOWS_SERVER_2022_CORE", "1000", "UNKNOWN"),
+    ("WINDOWS_SERVER_2022_CORE", "0", "UNKNOWN"),
+    ("INVALID_OS", "1000", "UNKNOWN")])
+def test_ecs_registered_uid_os_scope(os_family, user, expected):
+    definition = {"runtimePlatform": {"operatingSystemFamily": os_family},
+                  "networkMode": "host", "containerDefinitions": [
+                      {"name": "fixture", "privileged": False, "user": user}]}
+    data = {"Definition": {"collection_status": "collected", "taskDefinition": definition}}
+    for check_id in ("aws.b.ecs.declared_nonroot_users", "aws.b.ecs.host_network_nonprivileged"):
+        assert check(check_id).evaluate(data, {})[0] == expected
+
+
+def test_ecs_linux_default_needs_successful_matching_native_identity():
+    arn = "arn:aws:ecs:us-east-1:123456789012:task-definition/uid-proof:1"
+    definition = {"taskDefinitionArn": arn, "networkMode": "host",
+                  "containerDefinitions": [{"name": "fixture", "privileged": False, "user": "1000"}]}
+    item = {"taskDefinitionArn": arn, "Definition": {"collection_status": "collected",
+            "taskDefinition": definition}}
+    for check_id in ("aws.b.ecs.declared_nonroot_users", "aws.b.ecs.host_network_nonprivileged"):
+        status, evidence = check(check_id).evaluate(item, {})
+        assert status == "PASS"
+        assert evidence["operating_system_evidence"] == "documented default on successful ARN-bound DescribeTaskDefinition"
+        for altered in ({"Definition": item["Definition"]},
+                        {"taskDefinitionArn": arn + "-mismatch", "Definition": item["Definition"]},
+                        {"taskDefinitionArn": "arn:aws:s3:::fake", "Definition": {"collection_status": "collected",
+                            "taskDefinition": {**definition, "taskDefinitionArn": "arn:aws:s3:::fake"}}},
+                        {"taskDefinitionArn": arn, "Definition": {"taskDefinition": definition}}):
+            assert check(check_id).evaluate(altered, {})[0] == "UNKNOWN"
+
+
+def test_ecs_description_overlay_rejects_signed_row_drift():
+    from peaso.checks.catalog import _compliance, description_for
+    from peaso.checks.ecs_uid_description_overlay import description
+    check_id = "aws.b.ecs.declared_nonroot_users"
+    original = _compliance()[1]["checks"][check_id]
+    corrected = description_for(check_id)
+    assert "valid nonzero numeric UID" in corrected["pass_when"]
+    assert corrected["description_correction"]["base_row_sha256"]
+    with pytest.raises(ValueError, match="original description row changed"):
+        description(check_id, {**original, "pass_when": "drifted"})
 
 
 def test_codebuild_identity_denial_cannot_prove_optional_encryption_defaults():

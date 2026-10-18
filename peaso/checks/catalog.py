@@ -96,7 +96,13 @@ def description_for(check_id):
         from .gcp_cloudsql_lockout_source_correction import description
         return description()
     packed = _compliance()
-    return deepcopy(packed[1]["checks"].get(check_id)) if packed else None
+    if not packed:
+        return None
+    original = packed[1]["checks"].get(check_id)
+    if check_id in ("aws.b.ecs.declared_nonroot_users", "aws.b.ecs.host_network_nonprivileged"):
+        from .ecs_uid_description_overlay import description
+        return description(check_id, original)
+    return deepcopy(original)
 
 
 def requirement_tags_for(check_id):

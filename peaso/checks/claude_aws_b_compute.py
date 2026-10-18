@@ -165,9 +165,58 @@ def _trails(selectors=None, advanced=None):
                                      "EventSelectors": {"EventSelectors": selectors or [], **({"AdvancedEventSelectors": advanced} if advanced else {})}}])
 
 
-def _trail_covers(trail, arn):
-    if not get(trail, "Status.IsLogging", bool):
-        return False
+def _verified_organization_trail(trail, arn, index, account, region):
+    """Bind a member-visible trail to the signed, unique native home observation."""
+    # SW35 is admitted under the signed bulk namespace; importing its source
+    # name again would register duplicate checks during evaluation. Reuse the
+    # already loaded native helper and fail closed if admission is unavailable.
+    import sys
+    sw35 = sys.modules.get("peaso.checks._bulk_pending_compliance_new_sw35")
+    if sw35 is None or not callable(getattr(sw35, "_trails", None)):
+        raise Unavailable("signed CloudTrail home-trail helper unavailable")
+    _trails = sw35._trails
+
+    context = get(index, "context", dict)
+    scope = get(context, "scope", str)
+    if get(context, "provider", str) != "aws" or scope != f"{account}/{region}" or get(context, "Account", str) != account:
+        raise Unavailable("Lambda and CloudTrail account scope do not match")
+    home_region = get(trail, "HomeRegion", str)
+    trail_arn = get(trail, "TrailARN", str)
+    if trail.get("IsOrganizationTrail") is not True or get(trail, "AccountId", str) != account:
+        raise Unavailable("cross-account trail scope not verified")
+    provenance = get(trail, "_provenance", dict)
+    if provenance.get("operation") != "cloudtrail:DescribeTrails" or provenance.get("native_response_complete") is not True:
+        raise Unavailable("regional CloudTrail provenance unavailable")
+    # _trails requires complete same-account global inventory, native STS caller
+    # binding, DescribeTrails(includeShadowTrails=True), and one home observation.
+    matching = [row for row in _trails(index, account, home_region, scope)
+                if get(row, "TrailARN", str) == trail_arn]
+    if len(matching) != 1:
+        raise Unavailable("organization trail home observation unavailable")
+    home = matching[0]
+    for field in ("Name", "HomeRegion", "IsMultiRegionTrail", "IsOrganizationTrail"):
+        if get(home, field) != get(trail, field):
+            raise Unavailable("organization trail regional and home identity differ")
+    for field in ("Status", "EventSelectors"):
+        regional_detail = get(trail, field, dict)
+        home_detail = get(home, field, dict)
+        if regional_detail.get("collection_status") != "collected" or home_detail.get("collection_status") != "collected":
+            raise Unavailable("organization trail detail incomplete")
+        if field == "Status":
+            if get(regional_detail, "IsLogging", bool) != get(home_detail, "IsLogging", bool):
+                raise Unavailable("organization trail status observations differ")
+        else:
+            if (regional_detail.get("TrailARN", trail_arn) != trail_arn or
+                    home_detail.get("TrailARN", trail_arn) != trail_arn or
+                    not any(key in home_detail for key in ("EventSelectors", "AdvancedEventSelectors"))):
+                raise Unavailable("organization trail selector identity unavailable")
+            for key in ("EventSelectors", "AdvancedEventSelectors"):
+                if regional_detail.get(key, []) != home_detail.get(key, []):
+                    raise Unavailable("organization trail selector observations differ")
+    return home
+
+
+def _trail_covers(trail, arn, index=None):
     parts = arn.split(":")
     if len(parts) < 7 or parts[2] != "lambda" or not parts[3]:
         raise Unavailable("malformed Lambda function ARN")
@@ -178,7 +227,9 @@ def _trail_covers(trail, arn):
     if len(trail_parts) < 6 or trail_parts[2] != "cloudtrail":
         raise Unavailable("malformed CloudTrail ARN")
     if trail_parts[4] != function_account:
-        raise Unavailable("cross-account trail scope not verified")
+        trail = _verified_organization_trail(trail, arn, index or {}, function_account, region)
+    if not get(trail, "Status.IsLogging", bool):
+        return False
     if not get(trail, "IsMultiRegionTrail", bool) and get(trail, "HomeRegion", str) != region:
         return False
     body = get(trail, "EventSelectors", dict)
@@ -298,7 +349,7 @@ def _selector_allows(field, value):
 @install("aws.cb.lambda.cloudtrail_data_events", "lambda_function", "Lambda function invocations are captured by a CloudTrail data event selector",
     _fn(), _fn(), rows=[C + "lambda_function_cloudtrail_logging_enabled"], severity="low", control="AU-2",
     remediation="Add a CloudTrail data event selector for AWS::Lambda::Function (all functions or this ARN).",
-    docs=["https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html"], dependencies=["lambda_function", "cloudtrail"],
+    docs=["https://docs.aws.amazon.com/awscloudtrail/latest/userguide/logging-data-events-with-cloudtrail.html"], dependencies=["lambda_function", "cloudtrail", "cloudtrail_account_inventory"],
     extra={"pass_index": _trails([{"DataResources": [{"Type": "AWS::Lambda::Function", "Values": ["arn:aws:lambda"]}]}]),
            "fail_index": _trails([{"DataResources": [{"Type": "AWS::S3::Object", "Values": ["arn:aws:s3"]}]}])},
     note="Semantic correction to pinned Steampipe SQL: require an actively logging, region-covering trail and a Lambda Data selector that includes Invoke and this ARN. The pinned query accepted unrelated advanced fields and did not inspect IsLogging; unread status/selectors are UNKNOWN.")
@@ -309,7 +360,7 @@ def lambda_trail(item, index):
     unread = False
     for trail in trails:
         try:
-            if _trail_covers(trail, arn):
+            if _trail_covers(trail, arn, index):
                 covered.append(get(trail, "Name", str))
         except Unavailable:
             unread = True

@@ -33,6 +33,8 @@ def render_documents() -> dict[Path, bytes]:
     if packed is None:
         raise ValueError("Verified compliance packs are missing")
     requirements, descriptions = packed
+    from peaso.checks.ecs_uid_description_overlay import validate_rows as validate_ecs_description_rows
+    validate_ecs_description_rows(descriptions["checks"])
     canonical = full_requirements()
     if lookup_index(canonical, requirements["full_pack_sha256"]) != requirements:
         raise ValueError("Compact lookup differs from canonical signed requirement pack")
