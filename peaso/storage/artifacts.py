@@ -125,7 +125,7 @@ class S3Artifacts:
         check_reference(tenant, reference)
         arguments = {"Bucket": self.bucket, "Key": "artifacts/" + reference}
         if filename:
-            if not re.fullmatch(r"peaso-[a-f0-9]{32}\.(json|md)", filename):
+            if not re.fullmatch(r"(?:peaso|hacktricks-cspm)-[a-f0-9]{32}\.(json|md)", filename):
                 raise ValueError("Invalid download filename")
             arguments["ResponseContentDisposition"] = f'attachment; filename="{filename}"'
         return self.client.generate_presigned_url("get_object", Params=arguments, ExpiresIn=300)

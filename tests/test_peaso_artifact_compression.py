@@ -11,6 +11,7 @@ from peaso.storage.artifacts import S3Artifacts
 class MemoryS3:
     def __init__(self):
         self.objects = {}
+        self.last_presign = None
 
     def put_object(self, **request):
         self.objects[request["Key"]] = request
@@ -25,7 +26,39 @@ class MemoryS3:
                 "Metadata": stored.get("Metadata", {})}
 
     def generate_presigned_url(self, operation, Params, ExpiresIn):
+        self.last_presign = (operation, Params, ExpiresIn)
         return f"https://fixture.invalid/{Params['Key']}?expiry={ExpiresIn}"
+
+
+@pytest.mark.parametrize("extension", ["json", "md"])
+def test_hosted_report_filename_presign_keeps_owner_and_download_boundaries(extension):
+    client = MemoryS3()
+    artifacts = S3Artifacts("private", client=client)
+    scan_id = "a" * 32
+    reference = artifacts.put("owner", scan_id, "report", {"findings": []})
+    filename = f"hacktricks-cspm-{scan_id}.{extension}"
+    assert "expiry=300" in artifacts.presign("owner", reference, filename)
+    operation, params, expiry = client.last_presign
+    assert operation == "get_object" and expiry == 300
+    assert params["Key"] == "artifacts/" + reference
+    assert params["ResponseContentDisposition"] == f'attachment; filename="{filename}"'
+    with pytest.raises(ValueError, match="Invalid artifact reference"):
+        artifacts.presign("other", reference, filename)
+
+
+@pytest.mark.parametrize("filename", [
+    "../hacktricks-cspm-" + "a" * 32 + ".json",
+    "hacktricks-cspm-" + "a" * 32 + ".json\r\nX-Injected: yes",
+    "hacktricks-cspm-" + "a" * 32 + ".txt",
+    "hacktricks-cspm-" + "a" * 31 + "Z.json",
+])
+def test_hosted_report_filename_rejects_unsafe_values(filename):
+    client = MemoryS3()
+    artifacts = S3Artifacts("private", client=client)
+    reference = artifacts.put("owner", "a" * 32, "report", {"findings": []})
+    with pytest.raises(ValueError, match="Invalid download filename"):
+        artifacts.presign("owner", reference, filename)
+    assert client.last_presign is None
 
 
 def test_large_unicode_report_is_lossless_smaller_and_private():
