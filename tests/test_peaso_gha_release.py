@@ -65,3 +65,22 @@ def test_review_requires_complete_runtime_and_frozen_image():
     candidate["variables"]["worker_image"]["value"] = IMAGE.replace("@sha256:", ":latest-")
     with pytest.raises(ValueError, match="immutable"):
         release.review_plan(candidate, {"source_version": VERSION})
+
+
+@pytest.mark.parametrize("member_count,accepted", [(2504, True), (2601, True), (2602, False)])
+def test_current_source_member_growth_keeps_an_explicit_upper_bound(tmp_path, monkeypatch, member_count, accepted):
+    import json
+    import zipfile
+
+    manifest = {"source_version": VERSION, "files": {}}
+    archive = tmp_path / f"peaso-source-{VERSION}.zip"
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as target:
+        for index in range(member_count - 1):
+            target.writestr(f"source/{index:04d}.txt", b"x")
+        target.writestr("release.json", json.dumps(manifest, indent=2).encode())
+    monkeypatch.setattr(release.deploy, "BUILD", tmp_path)
+    if accepted:
+        assert release.verify_source_archive(manifest) == archive
+    else:
+        with pytest.raises(ValueError, match="member count"):
+            release.verify_source_archive(manifest)

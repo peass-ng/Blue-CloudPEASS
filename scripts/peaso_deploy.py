@@ -139,7 +139,7 @@ CURRENT_API_MEMBER_LIMIT = 4800
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
-CURRENT_SOURCE_MEMBER_LIMIT = 2501  # Includes release.json.
+CURRENT_SOURCE_MEMBER_LIMIT = 2601  # Includes release.json; current measured roster is 2,504.
 CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 275_000_000
 
 
