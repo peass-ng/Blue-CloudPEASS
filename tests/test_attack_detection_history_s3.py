@@ -14,6 +14,7 @@ from peaso.attack_detection.history_s3 import (
     CloudTrailObject, HistorySourceGap, assess_reconciliation, day_prefix,
     inventory_day, read_cloudtrail_object,
 )
+from peaso.attack_detection.rules import Rule, detect_aws_events
 
 
 ACCOUNT = "123456789012"
@@ -231,3 +232,31 @@ def test_incompatible_manifest_cannot_be_reconciled():
     other = inventory_day(ListingClient([{"IsTruncated": False}]), "other-bucket", BASE, ACCOUNT, REGION, DAY)
     with pytest.raises(HistorySourceGap, match="incompatible_manifests"):
         assess_reconciliation(original, other, {}, grace_elapsed=True)
+
+
+def test_selected_history_object_reaches_reviewed_cloudtrail_rule() -> None:
+    row = {
+        **record("fee0d559-62a8-43b4-8824-2250a7a2203f"),
+        "eventSource": "cloudtrail.amazonaws.com", "eventName": "StopLogging",
+        "eventCategory": "Management", "eventType": "AwsApiCall",
+        "managementEvent": True, "readOnly": False,
+        "eventTime": "2026-10-18T12:00:00Z",
+        "userIdentity": {"type": "IAMUser", "accountId": ACCOUNT,
+                         "arn": f"arn:aws:iam::{ACCOUNT}:user/reviewer"},
+        "requestParameters": {"name": "reviewed-trail"}, "responseElements": None,
+    }
+    raw = compressed(row)
+    day, obj = object_manifest(raw)
+    chosen = read_cloudtrail_object(ObjectClient(raw), day, obj)
+    rule = Rule(
+        id="reviewed-stop", title="StopLogging observed", level="medium",
+        description="A successful StopLogging call was observed.",
+        technique_id="aws-cloudtrail-stop-logging", product="aws",
+        selection={"event.source": "cloudtrail.amazonaws.com",
+                   "event.name": "StopLogging", "event.outcome": "success",
+                   "request.stop_logging_observed": True},
+    )
+    hits = detect_aws_events(chosen.records, [rule])
+    assert [(hit.rule_id, hit.event_id, hit.account_id) for hit in hits] == [
+        ("reviewed-stop", row["eventID"], ACCOUNT)
+    ]
