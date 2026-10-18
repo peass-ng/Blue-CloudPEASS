@@ -9,7 +9,7 @@ from .reachability import REACHABILITY_TYPES, evaluate_reachability, evaluate_re
 from .internet_exposure import EXPOSURE_TYPES, annotate_network, federated_findings, internet_findings
 
 REQUIRED_TYPES = {
-    "aws": {"least_privilege": ["iam_user", "iam_group", "iam_role", "iam_policy"],
+    "aws": {"least_privilege": ["iam_user", "iam_group", "iam_role", "iam_policy", "access_analyzer"],
             "exposure": ["iam_role", "bucket", "security_group"],
             "network": ["vpc", "subnet", "network_interface", "instance", "security_group", "route_table", "network_acl",
                         "internet_gateway", "nat_gateway", "vpc_endpoint", "vpc_endpoint_service", "ec2_instance_connect_endpoint",
@@ -18,7 +18,7 @@ REQUIRED_TYPES = {
                         "network_firewall_policy", "network_firewall_rule_group",
                         "elastic_ip", "ec2_eip", "load_balancer", "classic_load_balancer", "target_group", "rds_instance", "rds_cluster",
                         "lambda_function", "eks_cluster"]},
-    "gcp": {"least_privilege": ["iam_policy", "service_account", "iam_role"],
+    "gcp": {"least_privilege": ["iam_policy", "service_account", "iam_role", "recommendation", "insight"],
             "exposure": ["iam_policy", "bucket", "firewall"],
             "network": ["network", "subnetwork", "instance", "firewall", "firewall_policy", "route", "router",
                         "vpn_gateway", "vpn_tunnel", "forwarding_rule", "backend_service", "backend_bucket",

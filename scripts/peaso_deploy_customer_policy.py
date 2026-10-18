@@ -53,7 +53,7 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | WAF_IP_SET_ACTIONS
 TRANSIT_GATEWAY_ROUTE_READ_ACTIONS = frozenset({
     'ec2:DescribeTransitGatewayVpcAttachments',
     'ec2:GetTransitGatewayRouteTableAssociations', 'ec2:SearchTransitGatewayRoutes'})
-VERIFIED_ACTIONS = VERIFIED_ACTIONS | TRANSIT_GATEWAY_ROUTE_READ_ACTIONS
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | TRANSIT_GATEWAY_ROUTE_READ_ACTIONS | frozenset({"access-analyzer:GetFinding"})
 NATIVE_BATCH_REFERENCE_SHA256 = '72e537c6b0c83b43f1c818b7d7b8db0e434dd54c304352b35875f2c46376d7c2'
 NATIVE_BATCH_ACTIONS = frozenset({'organizations:DescribeResourcePolicy', 'cloudwatch:ListMetrics'})
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | NATIVE_BATCH_ACTIONS
@@ -148,7 +148,7 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | {SECURITYHUB_HISTORY_METADATA_REFERENCE[0]
 PRESERVED_TEMPLATE_READ_ACTIONS = frozenset({("cloudformation", "list_stacks")})
 SERVICE_PREFIXES = {'elbv2': 'elasticloadbalancing', 'elb': 'elasticloadbalancing', 'docdb': 'rds', 'neptune': 'rds', 'opensearch': 'es', 's3control': 's3', 'efs': 'elasticfilesystem', 'apigatewayv2': 'apigateway', 'sso-admin': 'sso', 'accessanalyzer': 'access-analyzer', 'emr': 'elasticmapreduce', 'bedrock-agent': 'bedrock', 'sesv2': 'ses', 'stepfunctions': 'states', 'supplychain': 'scn'}
 SERVICE_PREFIXES['resourcegroupstaggingapi'] = 'tag'
-ACTION_ALIASES = {('s3', 'list_buckets'): 's3:ListAllMyBuckets', ('s3', 'get_public_access_block'): 's3:GetBucketPublicAccessBlock', ('s3', 'get_bucket_encryption'): 's3:GetEncryptionConfiguration', ('s3control', 'get_public_access_block'): 's3:GetAccountPublicAccessBlock', ('s3', 'get_bucket_lifecycle_configuration'): 's3:GetLifecycleConfiguration', ('s3', 'get_object_lock_configuration'): 's3:GetBucketObjectLockConfiguration', ('s3', 'get_bucket_notification_configuration'): 's3:GetBucketNotification', ('s3', 'get_bucket_replication'): 's3:GetReplicationConfiguration', ('s3', 'list_directory_buckets'): 's3express:ListAllMyDirectoryBuckets', ('accessanalyzer', 'list_findings_v2'): 'access-analyzer:ListFindings'}
+ACTION_ALIASES = {('s3', 'list_buckets'): 's3:ListAllMyBuckets', ('s3', 'get_public_access_block'): 's3:GetBucketPublicAccessBlock', ('s3', 'get_bucket_encryption'): 's3:GetEncryptionConfiguration', ('s3control', 'get_public_access_block'): 's3:GetAccountPublicAccessBlock', ('s3', 'get_bucket_lifecycle_configuration'): 's3:GetLifecycleConfiguration', ('s3', 'get_object_lock_configuration'): 's3:GetBucketObjectLockConfiguration', ('s3', 'get_bucket_notification_configuration'): 's3:GetBucketNotification', ('s3', 'get_bucket_replication'): 's3:GetReplicationConfiguration', ('s3', 'list_directory_buckets'): 's3express:ListAllMyDirectoryBuckets', ('accessanalyzer', 'list_findings_v2'): 'access-analyzer:ListFindings', ('accessanalyzer', 'get_finding_v2'): 'access-analyzer:GetFinding'}
 
 # S3Control's Outposts list uses a distinct IAM service namespace.
 ACTION_ALIASES[('s3control', 'list_regional_buckets')] = 's3-outposts:ListRegionalBuckets'

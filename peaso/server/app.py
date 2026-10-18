@@ -760,6 +760,36 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         value.update(runtime=store.public_job(row)["runtime"], finding_count=bundle.get("finding_count", len(bundle.get("findings", []))), coverage_count=bundle.get("coverage_count", len(bundle.get("coverage", []))) + len(_credential_target_coverage(bundle)))
         return value
 
+    @app.get("/api/scans/{ident}/least-privilege")
+    def least_privilege(ident: str, search: str = "", offset: int = Query(default=0, ge=0),
+                        limit: int = Query(default=100, ge=1, le=500), user=Depends(identity)):
+        """One row per principal, backed by the immutable scan's native evidence."""
+        row, bundle = owned_bundle(user.tenant_id, ident)
+        if bundle.get("least_privilege"):
+            projection = artifacts.get(user.tenant_id, bundle["least_privilege"])
+        else:
+            # Historical reports predate the compact projection artifact. Their
+            # native resource chunks still carry the evidence needed to build it.
+            from peaso.least_privilege import project
+            provider = bundle.get("summary", bundle).get("provider", "")
+            if bundle.get("bundle_version") == 1 and bundle.get("resource_chunks"):
+                resource_rows = [dict(item, provider=provider)
+                    for chunk in bundle["resource_chunks"]
+                    for item in artifacts.get(user.tenant_id, chunk["reference"])["items"]]
+                projection = project(provider, resource_rows)
+            else:
+                projection = project(provider, bundle.get("resources", []))
+        needle = search.strip().casefold()[:200]
+        candidates = projection["items"]
+        if needle:
+            candidates = [card for card in candidates if needle in card["principal"].casefold()
+                or needle in card.get("label", "").casefold()
+                or any(needle in scope.casefold() for scope in card["scopes"])]
+        page = candidates[offset:offset + limit]
+        return {"items": page, "total": len(candidates), "offset": offset,
+            "next_offset": offset + len(page) if offset + len(page) < len(candidates) else None,
+            "coverage": projection["coverage"]}
+
     @app.get("/api/scans/{ident}/coverage")
     def coverage(ident: str, offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)

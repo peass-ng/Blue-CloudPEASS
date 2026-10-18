@@ -19,7 +19,7 @@ def prefix(tenant):
 
 
 def check_reference(tenant, reference):
-    if not re.fullmatch(r"[a-f0-9]{64}/[a-f0-9]{32}/(snapshot|network-snapshot|report|manifest|findings|finding-index|coverage|graph-network|graph-iam|graph-privesc|markdown|detail|resources)-[a-f0-9]{32}\.(json|md)", reference) or not reference.startswith(prefix(tenant) + "/"):
+    if not re.fullmatch(r"[a-f0-9]{64}/[a-f0-9]{32}/(snapshot|network-snapshot|report|manifest|findings|finding-index|coverage|graph-network|graph-iam|graph-privesc|markdown|detail|resources|least-privilege)-[a-f0-9]{32}\.(json|md)", reference) or not reference.startswith(prefix(tenant) + "/"):
         raise ValueError("Invalid artifact reference")
 
 

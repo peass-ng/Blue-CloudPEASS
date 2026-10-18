@@ -12,7 +12,7 @@ assert hashlib.sha256(BASE_BYTES).hexdigest()=='0484deedf711ac855f691e08531561c5
 BASE=json.loads(BASE_BYTES)
 HISTORICAL_ROLE_BYTES=(ROOT/'infra/aws'/DELTA['new_archive']).read_bytes()
 ROLE=json.loads(HISTORICAL_ROLE_BYTES)
-ACTIVE_ROLE_SHA='c6549e16bbd36c1a7bd66aaf2a620906832097af64b244e6d999d456c594baed'
+ACTIVE_ROLE_SHA='4ea77d8e8f9ec707db8536313086cac740a37083280085054de0cf93b8420794'
 ACTIVE_ROLE_BYTES=(ROOT/'infra/aws/customer-role.json').read_bytes()
 ACTIVE_ROLE=json.loads(ACTIVE_ROLE_BYTES)
 OPS={('outposts','list_outposts'):'outposts:ListOutposts',('s3control','list_regional_buckets'):'s3-outposts:ListRegionalBuckets',('s3tables','list_table_buckets'):'s3tables:ListTableBuckets',('s3vectors','list_vector_buckets'):'s3vectors:ListVectorBuckets',('dynamodb','list_backups'):'dynamodb:ListBackups',('rds','describe_db_instance_automated_backups'):'rds:DescribeDBInstanceAutomatedBackups',('rds','describe_db_cluster_automated_backups'):'rds:DescribeDBClusterAutomatedBackups',('redshift-serverless','list_snapshots'):'redshift-serverless:ListSnapshots',('redshift-serverless','list_recovery_points'):'redshift-serverless:ListRecoveryPoints'}

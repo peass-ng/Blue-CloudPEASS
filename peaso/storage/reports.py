@@ -130,6 +130,10 @@ def publish_report(artifacts, tenant, ident, report, snapshot=None):
         manifest["coverage_chunk_counts"].append(len(group))
     if embeddable:
         manifest["resource_chunks"] = resource_chunks(artifacts, tenant, ident, report, snapshot)
+        from peaso.least_privilege import project as project_least_privilege
+        from peaso.snapshot import resources as snapshot_resources
+        projection = project_least_privilege(report["provider"], snapshot_resources(snapshot))
+        manifest["least_privilege"] = artifacts.put(tenant, ident, "least-privilege", projection)
     for kind in ("network", "iam"):
         graph = report.get("graphs", {}).get(kind, {"nodes": [], "edges": []})
         manifest["graphs"][kind] = artifacts.put(tenant, ident, "graph-" + kind, graph)

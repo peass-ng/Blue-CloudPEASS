@@ -19,6 +19,7 @@ import { ApiError, authSessionChangedEvent, items, useApi, workspaceKey } from "
 import { Connectors } from "./Connectors";
 import { Dashboard } from "./Dashboard";
 import { Findings } from "./Findings";
+import { LeastPrivilege } from "./LeastPrivilege";
 import { Help } from "./Help";
 import { authLink } from "./authLinks";
 const NetworkMap = lazy(() =>
@@ -365,7 +366,7 @@ export function App() {
               }}
             />
           )}
-          {["Hardening Findings", "Exposure", "Least Privilege"].includes(
+          {["Hardening Findings", "Exposure"].includes(
             page,
           ) && (
             <>
@@ -376,18 +377,13 @@ export function App() {
               >
                 <Findings
                   scanId={scanId}
-                  category={
-                    page === "Hardening Findings"
-                      ? "hardening"
-                      : page === "Exposure"
-                        ? "exposure"
-                        : "least_privilege"
-                  }
+                  category={page === "Hardening Findings" ? "hardening" : "exposure"}
                   demo={demo}
                 />
               </State>
             </>
           )}
+          {page === "Least Privilege" && <LeastPrivilege scanId={scanId} demo={demo} />}
           {page === "Privilege Escalation Map" && (
             scans.error instanceof ApiError && scans.error.status === 401 && !demo
               ? <Panel>

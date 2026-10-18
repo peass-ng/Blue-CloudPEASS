@@ -161,7 +161,7 @@ READ_ACTIONS.update({
     ("support", "describe_trusted_advisor_check_summaries"),
     ("ssm-incidents", "get_replication_set"), ("ssm-incidents", "list_response_plans"),
     ("ssm", "get_service_setting"),
-    ("accessanalyzer", "list_findings_v2"),
+    ("accessanalyzer", "list_findings_v2"), ("accessanalyzer", "get_finding_v2"),
 })
 
 _OK = ("collected", "empty")
@@ -1238,6 +1238,13 @@ def _analyzer_findings(requests, session, region, items):
             findings = requests.pages(session, "accessanalyzer", region, "list_findings_v2", projection, analyzerArn=item["arn"], filter={"status": {"eq": ["ACTIVE"]}})
             if findings.status in _OK:
                 item["Findings"] = findings.items
+                if item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}:
+                    for finding in item["Findings"]:
+                        if finding.get("findingType") != "UnusedPermission" or not isinstance(finding.get("id"), str):
+                            continue
+                        detail = requests.pages(session, "accessanalyzer", region, "get_finding_v2", "findingDetails",
+                            analyzerArn=item["arn"], id=finding["id"])
+                        finding["UnusedPermissionDetails"] = _listing(detail)
             else:
                 _cover(item, "Findings", *_cause(findings), source_operation="access-analyzer:ListFindingsV2")
         output.append(item)

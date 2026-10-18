@@ -260,6 +260,14 @@ export function demoRequest(path: string, init: RequestInit): unknown {
     return { ...frameworkCatalog, view: "frameworks" };
   }
   if (path === "/catalog") return frameworkCatalog;
+  if (path.endsWith("/least-privilege")) return {
+    items: [{ id: "demo-app-role", principal: "arn:aws:iam::111122223333:role/demo-app-role",
+      provider: "aws", scopes: ["111122223333/us-east-1"], recommendation_count: 1,
+      suggestions: [{ kind: "permission", value: "s3:DeleteBucket", scope: "111122223333/us-east-1",
+        source: "Illustrative AWS IAM Access Analyzer finding", evidence_id: "demo-unused-permission",
+        confidence: "provider_recommendation" }] }], total: 1, next_offset: null,
+    coverage: { limitations: ["Fixture only. No live analyzer or principal was queried."], unused_access_analyzers: 1 },
+  };
   if (path.includes("/coverage"))
     return {
       items: report.coverage,
