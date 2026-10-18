@@ -1,7 +1,8 @@
 """Account-global IAM password policy is evaluated once per account."""
 
 from peaso.checks import CHECKS
-from peaso.engine import _scope_check_scopes, evaluate_snapshot
+from peaso.engine import _scope_check_scopes
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 CHECK_ID = "aws.pci.iam.configured_password_policy"

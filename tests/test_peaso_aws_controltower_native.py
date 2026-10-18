@@ -4,7 +4,7 @@ import json
 import pytest
 from test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, collect_live
-from peaso.engine import plan_collection, evaluate_snapshot
+from tests.archived_check_contract import plan_collection, evaluate_snapshot
 from peaso.collectors import aws_controltower_native as native
 
 CHECK = 'aws_controltower_landing_zone_active'

@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure, azure_functions_runtime_native as native
 from peaso.collectors.azure import _Reader
-from peaso.engine import collect_snapshot, evaluate_snapshot, plan_collection
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot, plan_collection
 from peaso.snapshot import make_snapshot
 
 SUB = '/subscriptions/11111111-1111-1111-1111-111111111111'

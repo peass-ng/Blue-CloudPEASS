@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 from peaso.collectors import azure, azure_swc
 from peaso.collectors import azure_certificate_issuance_native as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 SCOPE = '/subscriptions/11111111-1111-1111-1111-111111111111'

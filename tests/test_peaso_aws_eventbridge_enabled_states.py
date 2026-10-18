@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 EXTENDED = "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"

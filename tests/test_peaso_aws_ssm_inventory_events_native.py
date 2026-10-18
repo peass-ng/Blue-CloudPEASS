@@ -5,7 +5,7 @@ import pytest
 from test_peaso_aws_bulk_inventory import sdk,ACCOUNT,REGION
 from peaso.collectors import aws,collect_live
 from peaso.collectors import aws_ssm_inventory_events_native as native
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.snapshot import make_snapshot
 NOW=datetime(2026,10,15,tzinfo=timezone.utc);TIME=NOW-timedelta(minutes=5)
 ID='11111111-1111-1111-1111-111111111111';ACTOR=f'arn:aws:iam::{ACCOUNT}:user/inventory-reader'

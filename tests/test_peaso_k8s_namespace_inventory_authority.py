@@ -1,6 +1,6 @@
 """Namespace policy inventory does not infer absence from unreadable identities."""
 from copy import deepcopy
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 CID="k8s.network.namespace_policy_inventory"
 

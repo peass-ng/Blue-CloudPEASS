@@ -420,7 +420,7 @@ def test_review_vpc_endpoint_projection_cannot_duplicate_one_good_row():
 
 
 def test_review_owner_parameters_survive_real_engine_context():
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     from peaso.snapshot import make_snapshot
     check_id = "aws_ebs_snapshot_trusted_accounts"
     row = {"SnapshotId": "snap-12345678", "OwnerId": "123456789012", "CreateVolumePermissions": [{"UserId": "210987654321"}]}

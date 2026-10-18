@@ -4,7 +4,7 @@ import json
 import pytest
 from peaso.collectors import aws, aws_bulk_inventory as bulk, aws_wave_semantics_native as wave
 from peaso.collectors import aws_securityhub_finding_metadata_native as metadata
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 

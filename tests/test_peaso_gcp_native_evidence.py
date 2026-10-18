@@ -5,7 +5,7 @@ import json
 import pytest
 
 from peaso.collectors.gcp import ReadError
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from tests.test_peaso_collectors_gcp import snapshot, collection
 
 ORG = 'organizations/123'

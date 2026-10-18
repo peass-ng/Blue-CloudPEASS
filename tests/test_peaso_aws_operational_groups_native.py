@@ -5,7 +5,7 @@ import pytest
 from test_peaso_aws_bulk_inventory import sdk,ACCOUNT,REGION
 from peaso.collectors import aws,collect_live
 from peaso.collectors import aws_operational_groups_native as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 SCOPE=ACCOUNT+'/'+REGION
 RECOVERY='aws.nist.sc_36_coverage'
 CAPACITY='aws.nist.sc_5_2_coverage'
@@ -59,7 +59,7 @@ def capture(sdk,monkeypatch,mode='ok',selected=None):
  options={'service_concurrency':1,'retry_attempts':1,**({'max_pages':1}if mode=='partial_asg'else{}),'compliance_parameters':{}if approval is None else{'operational_groups':approval}}
  connector={'provider':'aws','scopes':[SCOPE],'options':options}
  if selected:
-  from peaso.engine import collect_snapshot
+  from tests.archived_check_contract import collect_snapshot
   snapshot=collect_snapshot({'connector':connector,'checks':[selected]})
  else:snapshot=collect_live(connector,['recovery_group','instance','rds_instance','capacity_group'])
  result=evaluate_snapshot(snapshot,checks=[selected]if selected else[RECOVERY,CAPACITY])

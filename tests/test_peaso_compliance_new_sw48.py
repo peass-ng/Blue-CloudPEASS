@@ -36,18 +36,34 @@ def test_signed_metadata_and_no_duplicate_ids():
 
 
 def test_config_recorder():
-    identifier = 'aws_nist_config_enabled_all_regions'
-    subject = {'scope':SCOPE}
-    rec = {'name':'default','Status':{'collection_status':'collected','ConfigurationRecordersStatus':[{'name':'default','recording':True}]},
-           'recordingGroup':{'allSupported':True,'includeGlobalResourceTypes':True}}
-    facts = index({'config_recorder':[rec],'config_delivery_channel':[{'name':'default'}]},
-                  {'enabled_regions':['us-east-1'],'global_resource_regions':['us-east-1']})
-    assert evaluate(identifier,subject,facts) == 'PASS'
-    bad = copy.deepcopy(facts)
-    bad['config_recorder'][0]['data']['Status']['ConfigurationRecordersStatus'][0]['recording'] = False
-    bad['collections']['config_recorder'][0]['items'][0]['Status']['ConfigurationRecordersStatus'][0]['recording'] = False
-    assert evaluate(identifier,subject,bad) == 'FAIL'
-    assert evaluate(identifier,subject,index({'config_recorder':[rec],'config_delivery_channel':[{'name':'default'}]})) == 'UNKNOWN'
+    # Native account-global proof replaces caller parameters and regional PASS.
+    from peaso.collectors.aws_config_account_native import derive, KIND
+    account, capture = '123456789012', '2026-10-12T00:00:00+00:00'
+    scope = account + '/global'
+    identity = {'Account': account, 'Arn': 'arn:aws:sts::123456789012:assumed-role/test/probe'}
+    discovery = [{'account_id': account, 'caller_account_id': account, 'scope': scope,
+                  'partition': 'aws', 'source_operation': 'ec2:DescribeRegions',
+                  'all_regions': True, 'read_only': True, 'observed_at': capture,
+                  'raw_regions': [{'RegionName': 'us-east-1', 'OptInStatus': 'opt-in-not-required'}],
+                  'regions': ['us-east-1'], 'status': 'collected'}]
+    rec = {'name': 'default', 'AccountId': account, 'Region': 'us-east-1', 'Status': {'collection_status': 'collected',
+           'ConfigurationRecordersStatus': [{'name': 'default', 'recording': True, 'lastStatus': 'Success'}]},
+           'recordingGroup': {'allSupported': True, 'includeGlobalResourceTypes': True}}
+    regional = [{'type': kind, 'scope': SCOPE, 'account_id': account, 'global': False,
+                 'status': 'collected', 'items': rows}
+                for kind, rows in [('config_recorder', [rec]),
+                                   ('config_delivery_channel', [{'name': 'default', 'AccountId': account, 'Region': 'us-east-1'}])]]
+    rows, status, error = derive(account, identity, discovery, regional, capture)
+    assert status == 'collected' and error is None
+    facts = {'context': {'provider': 'aws', 'scope': scope, 'created_at': capture,
+                        'metadata': {'parameters': {'enabled_regions': ['eu-west-1']}}},
+             'collections': {KIND: [{'type': KIND, 'scope': scope, 'status': status, 'items': rows}]},
+             KIND: [{'type': KIND, 'scope': scope, 'data': rows[0]}]}
+    assert evaluate('aws_nist_config_enabled_all_regions', {'scope': scope}, facts) == 'PASS'
+    rows[0]['Regions'][0]['Recorders'][0]['recordingGroup']['includeGlobalResourceTypes'] = False
+    assert evaluate('aws_nist_config_enabled_all_regions', {'scope': scope}, facts) == 'UNKNOWN'
+    assert evaluate('aws_nist_config_enabled_all_regions', {'scope': SCOPE},
+                    index({'config_recorder': [rec], 'config_delivery_channel': [{'name': 'default'}]})) == 'UNKNOWN'
 
 
 def test_secret_kms_and_rotation():

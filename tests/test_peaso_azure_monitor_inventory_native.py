@@ -4,7 +4,7 @@ from urllib.parse import urlsplit,parse_qs
 import pytest
 from peaso.collectors import azure,collect_live
 from peaso.collectors.azure_monitor_inventory_native import SPECS,GAPS
-from peaso.engine import evaluate_snapshot,collect_snapshot
+from tests.archived_check_contract import evaluate_snapshot, collect_snapshot
 from tests.test_peaso_azure_bulk_native import Transport,parent,SUB,SCOPE,BASE,envelope,verdict
 
 CHECKS={'data_collection_rule':['azure.other.monitor_stream_auth','azure.other.metric_ingestion_rate_alert'],

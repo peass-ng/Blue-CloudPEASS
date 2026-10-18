@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from peaso.snapshot import make_snapshot
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 DATA = json.loads((Path(__file__).parent / "fixtures/bulk_pending_behavior.json").read_text())
 MFA = "azure.gap.iam_user_with_read_permission_on_subscription_mfa_enabled"

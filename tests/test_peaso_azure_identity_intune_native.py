@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 SUB='/subscriptions/11111111-1111-1111-1111-111111111111'
 TENANT='22222222-2222-2222-2222-222222222222'
 USER='33333333-3333-3333-3333-333333333333'
@@ -74,7 +74,7 @@ def capture(monkeypatch,mode='ok',selected=None):
  transport=Transport();monkeypatch.setattr(azure,'AzureTransport',lambda auth:transport)
  connector={'provider':'azure','scopes':[SUB],'auth':{'method':'token','arm_token':'fixture','graph_token':'fixture'},'options':{'retries':0,'compliance_policy':policy}}
  if selected:
-  from peaso.engine import collect_snapshot
+  from tests.archived_check_contract import collect_snapshot
   snapshot=collect_snapshot({'connector':connector,'checks':[selected]})
  else:
   snapshot=collect_live(connector,['directory_user_group_membership','sql_database','sql_server','mssql_managed_instance','sql_managed_instance_administrator','intune_diagnostic_setting','vm'])

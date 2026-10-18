@@ -3,7 +3,7 @@ from copy import deepcopy
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure,collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from test_peaso_azure_docker_assessment_native import SCOPE,VM,RID,row
 CID='azure.gap.compute_vm_container_security_configurations_vulnerabilities_remediated'
 KEY='0677209d-e675-2c6f-e91a-54cef2878663'

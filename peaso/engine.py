@@ -24,12 +24,13 @@ FRAMEWORK_ALIASES = {"hacktricks": "HackTricks Cloud Best Practices", "hacktrick
 
 def _registry():
     from .checks import CHECKS
-    return list(CHECKS)
+    from .checks.native_only import automated_checks
+    return automated_checks(CHECKS)
 
 
 def get_catalog():
     from .analysis import ANALYSIS_CHECKS
-    from .checks.catalog import coverage as upstream_coverage, description_for, framework_catalog, manual_requirements, requirement_tags_for
+    from .checks.catalog import coverage as upstream_coverage, description_for, framework_catalog, requirement_tags_for
     from .collectors import supported_types
     from .collectors.bulk_evidence import coverage as evidence_coverage
     from .privesc.versioned_catalog import current_binding
@@ -40,9 +41,10 @@ def get_catalog():
             check.update(reviewed)
             check["rationale"] = reviewed["description"]
             check["requirement_controls"] = requirement_tags_for(check["id"])
+    from .checks.native_only import scope as automation_scope, automated_coverage, automated_inventory_coverage, automated_inventory_types
     checks = [check.public() for check in _registry()] + analysis_checks
     return {"schema_version": SCHEMA_VERSION, "privesc_catalog": current_binding(), "providers": list(PROVIDERS), "categories": list(CATEGORIES),
-        "inventories": {p: supported_types(p) for p in PROVIDERS}, "inventory_coverage": evidence_coverage(), "framework_versions": framework_catalog(), "manual_requirements": manual_requirements(), "checks": checks, "privesc_techniques": privesc_techniques(), "upstream_coverage": upstream_coverage(), "frameworks": framework_labels(checks),
+        "inventories": {p: automated_inventory_types(p, supported_types(p)) for p in PROVIDERS}, "inventory_coverage": automated_inventory_coverage(evidence_coverage(), _registry()), "framework_versions": framework_catalog(), "manual_requirements": [], "automation_scope": automation_scope(), "checks": checks, "privesc_techniques": privesc_techniques(), "upstream_coverage": automated_coverage(upstream_coverage()), "frameworks": framework_labels(checks),
         "limitations": ["Native reviewed snapshot checks only; upstream catalogs are provenance, not migrated runtime coverage.",
                          "Framework mappings are thematic review guidance, not certification.", "Graphs describe declared relationships; effective access and reachability require separate validation."]}
 
@@ -196,8 +198,12 @@ def _selection(provider, categories, checks, frameworks):
     if checks is not None:
         from .checks import CHECK_ALIASES
         checks = list(dict.fromkeys(CHECK_ALIASES.get(check, check) for check in _string_list(checks, "checks")))
+        from .checks.native_only import exclusions
         from .checks.catalog import manual_requirement_ids
-        known = {c.id for c in registry if c.provider == provider} | {c["id"] for c in ANALYSIS_CHECKS} | manual_requirement_ids(provider)
+        unavailable = set(checks).intersection(exclusions()) | set(checks).intersection(manual_requirement_ids(provider))
+        if unavailable:
+            raise ValueError("check requires external policy or manual evidence and is not available for automated scans: " + ", ".join(sorted(unavailable)))
+        known = {c.id for c in registry if c.provider == provider} | {c["id"] for c in ANALYSIS_CHECKS}
         if any(check not in known for check in checks):
             known |= {PRIVESC_CHECK_ID} | {t["id"] for t in privesc_techniques(provider)}
         if any(check not in known for check in checks):
@@ -324,7 +330,8 @@ def plan_collection(request):
     categories, checks = _selection(provider, request.get("categories"), request.get("checks"), request.get("frameworks"))
     from .collectors import supported_types
     from .analysis import REQUIRED_TYPES, privesc_required_types
-    available = set(supported_types(provider))
+    from .checks.native_only import automated_inventory_types
+    available = set(automated_inventory_types(provider, supported_types(provider)))
     required = {kind for check in checks for kind in getattr(check, "dependencies", [check.kind])}
     # Extra facts required by cross-resource native predicates.
     if any(c.id == "k8s.network.namespace_policy_inventory" for c in checks):
@@ -913,45 +920,11 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
             timings["privesc"] = privesc_timing
         findings.extend(collapse(privesc_findings))
         coverage.extend(privesc_coverage)
-    from .checks.catalog import manual_requirements, framework_display_names, canonical_name
+    from .checks.catalog import framework_display_names
     display_names = framework_display_names()
-    requested_frameworks = _expand_frameworks(frameworks) if frameworks else None
-    def manual_scopes(requirement):
-        kinds = set(requirement.get("scope_kinds", []))
-        if provider == "aws" and "account" in kinds:
-            import re
-            proven = {c.get("account_id") for c in snapshot["collections"] if c["type"] == "aws_account"
-                and c["status"] == "collected" and c.get("global") is True and isinstance(c.get("account_id"), str)
-                and re.fullmatch(r"[0-9]{12}", c["account_id"]) and any(item.get("Account") == c["account_id"] for item in c["items"])}
-            return list(dict.fromkeys(scope.split("/", 1)[0] if scope.split("/", 1)[0] in proven else scope for scope in snapshot["scopes"]))
-        if not kinds:
-            # A requirement without a scope kind is one tenant/organisation-wide question: ask it once, not per scope.
-            return [manual_root_scope()]
-        return list(snapshot["scopes"])
-    def manual_root_scope():
-        tenants = sorted({c["scope"] for c in snapshot["collections"] if str(c.get("scope", "")).startswith("/tenants/")})
-        if provider == "azure" and len(tenants) == 1:
-            return tenants[0]
-        roots = list(dict.fromkeys(scope.split("/", 1)[0] if provider == "aws" else scope for scope in snapshot["scopes"]))
-        return roots[0] if len(roots) == 1 else "*"
+    # Attestation questions are source references, not provider-API checks.
+    # Historic reports retain their original manual findings unchanged.
     selected_manual = []
-    if "hardening" in selected_categories:
-        for requirement in manual_requirements(provider=provider, ids=set(checks) if checks else None):
-            mapping_names = {entry.get(key) for entry in requirement["frameworks"] for key in ("framework", "framework_family", "framework_id")}
-            mapping_names.add("HackTricks Cloud Best Practices")
-            labels = sorted({display_names.get(entry.get("framework_id")) or canonical_name(entry["framework"]) for entry in requirement["frameworks"]} - {PRIVESC_FRAMEWORK})
-            mapping_names.update(labels)
-            if requirement["provider"] != provider or (checks and requirement["id"] not in checks) or (requested_frameworks and not requested_frameworks.intersection(mapping_names)):
-                continue
-            selected_manual.append(copy.deepcopy(requirement))
-            for scope in manual_scopes(requirement):
-                findings.append({"id": digest([provider, scope, requirement["id"], "manual"]), "category": "hardening", "check_id": requirement["id"],
-                    "title": requirement["title"], "provider": provider, "service": "manual_review", "resource_id": "scope:" + scope,
-                    "scope": scope, "severity": "info", "status": "MANUAL", "automated": False,
-                    "frameworks": ["HackTricks Cloud Best Practices"] + labels,
-                    "evidence": {"question": requirement["question"], "source": requirement["source"], "revision": requirement["revision"], "reason": requirement["reason"], "automated": False},
-                    "remediation": requirement["guidance"] or "Have the owner provide reviewed evidence for this requirement."})
-                coverage.append({"level": "manual", "check_id": requirement["id"], "scope": scope, "status": "manual", "reason": "Human attestation required; no automated security assessment."})
     resource_lookup = {resource["id"]: resource for resource in inventory}
     for finding in findings:
         resource = resource_lookup.get(finding["resource_id"])
@@ -966,6 +939,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         finding["resource_name"] = name if isinstance(name, str) else resource["native_id"]
     selected_framework_versions = []
     from .checks.catalog import _framework_rows
+    from .checks.native_only import automated_frameworks
     if frameworks:
         # Only explicitly requested versions (id or canonical name); a family label selects checks, not checklists.
         requested_frameworks = {FRAMEWORK_ALIASES.get(value, value) for value in frameworks}
@@ -989,6 +963,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         coverage.append({"level": "scope", "scope": "requested_scopes", "status": "partial" if snapshot.get("metadata", {}).get("intentional_partial") else "unknown",
             "reason": scope_coverage.get("reason", "Explicit scope limit or incomplete discovery") if isinstance(scope_coverage, dict) else "Malformed scope coverage metadata"})
     findings = normalize_unknown_reasons(findings)
+    selected_framework_versions = automated_frameworks(selected_framework_versions)
     counts = Counter(f["status"] for f in findings)
     aggregates = collapse.result()
     for row in aggregates:

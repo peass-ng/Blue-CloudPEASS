@@ -4,7 +4,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure,collect_live
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 CID='azure.other.function_invoke_rate_limit'
 SUB='/subscriptions/11111111-1111-1111-1111-111111111111';ROOT=SUB+'/resourceGroups/rg/providers/'
 SITE=ROOT+'Microsoft.Web/sites/fixture';SERVICE=ROOT+'Microsoft.ApiManagement/service/gateway';API=SERVICE+'/apis/example';OP=API+'/operations/invoke';FUNCTION=SITE+'/functions/invoke'

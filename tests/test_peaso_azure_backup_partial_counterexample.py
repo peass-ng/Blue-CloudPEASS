@@ -2,7 +2,7 @@
 from copy import deepcopy
 import pytest
 from peaso.checks import evaluate_check
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 S = '/subscriptions/sub'
 BACKUP = S + '/resourceGroups/rg/providers/Microsoft.RecoveryServices/vaults/v/backupProtectedItems/i'

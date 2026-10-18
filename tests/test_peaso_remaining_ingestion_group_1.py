@@ -3,7 +3,7 @@ import copy
 import json
 from pathlib import Path
 import pytest
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.snapshot import make_snapshot, seal
 
 ROOT = Path(__file__).resolve().parents[1]

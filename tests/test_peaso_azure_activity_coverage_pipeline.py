@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlsplit
 import re
 import pytest
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 
 SCOPE = '/subscriptions/11111111-1111-1111-1111-111111111111'
 CHECK = 'azure.other.change_approval_trace'

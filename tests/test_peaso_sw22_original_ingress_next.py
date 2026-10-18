@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 RESTORE = "azure_c5_ops_08_01b"

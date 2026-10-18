@@ -17,7 +17,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "prowler_threatscore_alibabacloud",
@@ -34,7 +35,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "secnumcloud_3.2_alibabacloud",
@@ -51,7 +53,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "asd_essential_eight_aws",
@@ -165,7 +168,8 @@
         "manual": 20,
         "partial": 28
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws_account_security_onboarding_aws",
@@ -221,45 +225,30 @@
         "aws.s3.access_logging",
         "aws_budgets_stop_action",
         "aws_cloudtrail_s3_siem_delivery",
-        "aws_cloudwatch_alarm_missing_data_realert",
-        "aws_costexplorer_anomaly_alert",
-        "aws_costexplorer_prod_anomaly_monitor",
-        "aws_costexplorer_qa_anomaly_monitor",
-        "aws_ecr_scan_findings_metric_export",
         "aws_eventbridge_iam_user_change_alert",
         "aws_eventbridge_snapshot_change_alert",
         "aws_guardduty_doh_threat_list",
         "aws_guardduty_high_finding_alert",
-        "aws_guardduty_siem_forwarding",
         "aws_guardduty_suppression_filters",
         "aws_identity_center_sso_configured",
         "aws_inspector_critical_image_findings_alert",
-        "aws_inspector_findings_metric_export",
-        "aws_organizations_restrict_ec2_instance_types",
-        "aws_organizations_security_service_tamper_scp",
-        "aws_resolver_managed_domain_lists_block",
         "aws_route53resolver_blocked_query_alert",
-        "aws_route53resolver_query_logs_forwarded",
         "aws_securityhub_aggregated_findings_present",
         "aws_securityhub_critical_findings_alert",
         "aws_securityhub_medium_findings_alert",
         "aws_securityhub_no_critical_findings",
-        "aws_securityhub_standards_control_baseline",
         "aws_shield_automatic_application_layer_response",
         "aws_shield_ddos_detected_alarm",
         "aws_shield_protection_health_checks",
         "aws_vpc_uses_amazonprovided_dns",
-        "aws_wafv2_baseline_managed_rules",
         "aws_wafv2_blanket_rate_rule",
         "aws_wafv2_global_allow_block_lists",
         "aws_wafv2_managed_block_alarm",
-        "aws_wafv2_managed_rule_groups",
         "aws_wafv2_rate_rule_alarm",
-        "aws_wafv2_redacted_siem_logging",
         "aws_wafv2_scoped_rate_rules",
         "aws_wafv2_service_exclusion_rules"
       ],
-      "supported_native_checks": 81,
+      "supported_native_checks": 66,
       "source_checks": 49,
       "pending_source_checks": 0,
       "manual_requirements": 2,
@@ -272,7 +261,9 @@
         "manual": 10,
         "partial": 22
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 15
     },
     {
       "id": "aws_ai_security_framework_aws",
@@ -500,13 +491,9 @@
         "aws.secretsmanager.rotation",
         "aws.sns.kms_encryption",
         "aws.sqs.encryption",
-        "aws_bedrock_automated_reasoning_policy_attached",
-        "aws_controltower_landing_zone_active",
-        "aws_detective_ai_account_graph_enabled",
-        "aws_ec2_ai_nitro_instance_type",
-        "aws_sagemaker_model_clarify_bias_job"
+        "aws_bedrock_automated_reasoning_policy_attached"
       ],
-      "supported_native_checks": 221,
+      "supported_native_checks": 217,
       "source_checks": 226,
       "pending_source_checks": 0,
       "manual_requirements": 12,
@@ -518,7 +505,9 @@
         "manual": 5,
         "partial": 58
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 4
     },
     {
       "id": "aws_audit_manager_control_tower_guardrails_aws",
@@ -558,7 +547,8 @@
         "automated": 8,
         "partial": 6
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws_foundational_security_best_practices_aws",
@@ -876,7 +866,8 @@
         "automated": 261,
         "partial": 25
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws_foundational_technical_review_aws",
@@ -909,12 +900,9 @@
         "aws.iam.root_mfa",
         "aws.rds.backups",
         "aws.rds.encryption",
-        "aws.secretsmanager.rotation",
-        "aws_backup_restore_tests_recent",
-        "aws_partner_role_external_id_present",
-        "aws_partner_role_external_ids_unique"
+        "aws.secretsmanager.rotation"
       ],
-      "supported_native_checks": 25,
+      "supported_native_checks": 22,
       "source_checks": 74,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -927,7 +915,9 @@
         "manual": 21,
         "partial": 18
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "aws_well_architected_framework_reliability_pillar_aws",
@@ -964,7 +954,8 @@
       "requirements_by_status": {
         "partial": 3
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws_well_architected_framework_security_pillar_aws",
@@ -1187,13 +1178,10 @@
         "aws.s3.access_logging",
         "aws.secretsmanager.rotation",
         "aws.sqs.encryption",
-        "aws_incident_automated_containment",
         "aws_lambda_code_signing_configured",
-        "aws_security_logs_central_search",
-        "aws_sensitive_data_rest_access_controls",
         "aws_service_transport_peer_authentication"
       ],
-      "supported_native_checks": 216,
+      "supported_native_checks": 213,
       "source_checks": 237,
       "pending_source_checks": 0,
       "manual_requirements": 5,
@@ -1205,7 +1193,9 @@
         "manual": 12,
         "partial": 45
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "c5_aws",
@@ -1261,35 +1251,21 @@
         "aws_backup_cross_region_copy",
         "aws_backup_failure_notification",
         "aws_backup_recent_restore_test",
-        "aws_cognito_session_expiry",
         "aws_config_continuous_inventory",
         "aws_development_backup_assignment",
         "aws_ec2_status_alarm",
-        "aws_ecr_image_provenance",
-        "aws_ecr_sbom_present",
         "aws_eks_runtime_image_integrity",
         "aws_external_key_store_connected",
         "aws_guardduty_threat_feed",
         "aws_iam_departed_identity_disabled",
-        "aws_incident_evidence_retention",
-        "aws_incident_workflow_sla",
         "aws_inspector_cvss_version",
         "aws_kms_compromised_key_restricted",
-        "aws_kms_customer_key_control",
         "aws_kms_key_expiry",
         "aws_log_archive_immutable",
-        "aws_log_clock_sync_compliance",
-        "aws_log_retention_upper_bound",
-        "aws_logging_service_multi_az",
-        "aws_malware_definitions_fresh",
-        "aws_nitro_attestation_key_policy",
-        "aws_s3_delete_lifecycle",
         "aws_securityhub_findings_alerted",
-        "aws_siem_log_delivery",
-        "aws_siem_log_immutable_archive",
         "aws_ssm_application_inventory_fresh"
       ],
-      "supported_native_checks": 71,
+      "supported_native_checks": 57,
       "source_checks": 425,
       "pending_source_checks": 0,
       "manual_requirements": 5,
@@ -1301,7 +1277,9 @@
         "manual": 494,
         "partial": 116
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 14
     },
     {
       "id": "ccc_aws",
@@ -1565,13 +1543,12 @@
         "aws.secretsmanager.rotation",
         "aws.sns.kms_encryption",
         "aws.sqs.encryption",
-        "aws_ecr_repository_lifecycle_retention",
         "aws_elbv2_stickiness_duration_30_minutes",
         "aws_kms_imported_key_origin_spec",
         "aws_sagemaker_approved_image_restriction",
         "aws_wafv2_monitoring_rate_rule"
       ],
-      "supported_native_checks": 257,
+      "supported_native_checks": 256,
       "source_checks": 240,
       "pending_source_checks": 0,
       "manual_requirements": 2,
@@ -1584,7 +1561,9 @@
         "manual": 25,
         "partial": 146
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "cis_1.4_aws",
@@ -1675,7 +1654,8 @@
         "manual": 1,
         "partial": 10
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_1.5_aws",
@@ -1770,7 +1750,8 @@
         "manual": 1,
         "partial": 11
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_2.0_aws",
@@ -1868,7 +1849,8 @@
         "manual": 1,
         "partial": 11
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_3.0_aws",
@@ -1963,7 +1945,8 @@
         "manual": 1,
         "partial": 10
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_4.0_aws",
@@ -2060,7 +2043,8 @@
         "manual": 1,
         "partial": 11
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_5.0_aws",
@@ -2156,7 +2140,8 @@
         "automated": 52,
         "partial": 11
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_6.0_aws",
@@ -2252,7 +2237,8 @@
         "automated": 52,
         "partial": 11
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_7.0_aws",
@@ -2359,13 +2345,11 @@
         "aws_cis_elasticbeanstalk_load_balancer_access_logs",
         "aws_cis_organization_account_guardrails",
         "aws_cis_organization_units_environment_sensitivity",
-        "aws_cis_organizations_integrated_services_delegated",
         "aws_cis_organizations_management_account_workloads",
         "aws_cis_organizations_policy_management_delegated",
-        "aws_cis_s3_macie_classification_coverage",
-        "aws_cis_vpc_service_endpoints_required"
+        "aws_cis_s3_macie_classification_coverage"
       ],
-      "supported_native_checks": 100,
+      "supported_native_checks": 98,
       "source_checks": 82,
       "pending_source_checks": 0,
       "manual_requirements": 2,
@@ -2377,7 +2361,9 @@
         "automated": 52,
         "partial": 18
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "cisa_aws",
@@ -2482,10 +2468,9 @@
         "aws.s3.versioning",
         "aws.secretsmanager.rotation",
         "aws.sns.kms_encryption",
-        "aws_cis_backup_recovery_point_isolation",
-        "aws_cis_route53_dns_firewall"
+        "aws_cis_backup_recovery_point_isolation"
       ],
-      "supported_native_checks": 95,
+      "supported_native_checks": 94,
       "source_checks": 89,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -2497,7 +2482,9 @@
         "manual": 1,
         "partial": 15
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "ens_rd2022_aws",
@@ -2661,13 +2648,12 @@
         "aws_client_vpn_authentication_configured",
         "aws_cloudtrail_bucket_lifecycle_retention_365",
         "aws_config_all_resources_recorded",
-        "aws_ec2_dedicated_tenancy_for_sensitive_workloads",
         "aws_sns_delivery_failure_alarm_present",
         "aws_sqs_queue_depth_alarm_present",
         "aws_vpn_tunnel_encryption_configuration",
         "aws_wafv2_request_validation_rules"
       ],
-      "supported_native_checks": 157,
+      "supported_native_checks": 156,
       "source_checks": 127,
       "pending_source_checks": 0,
       "manual_requirements": 6,
@@ -2679,7 +2665,9 @@
         "manual": 4,
         "partial": 185
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "fedramp_low_revision_4_aws",
@@ -2713,7 +2701,6 @@
         "aws.iam.root_mfa",
         "aws.pci.backup.plan_frequency_retention",
         "aws.pci.shield.protection_all_internet_resources",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.backups",
         "aws.rds.cloudwatch_log_exports",
         "aws.s3.access_logging",
@@ -2721,10 +2708,9 @@
         "aws_cloudtrail_bucket_lifecycle_retention_365",
         "aws_config_continuous_inventory",
         "aws_iam_departed_identity_disabled",
-        "aws_incident_automated_containment",
         "aws_log_archive_immutable"
       ],
-      "supported_native_checks": 32,
+      "supported_native_checks": 30,
       "source_checks": 76,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -2736,7 +2722,9 @@
         "manual": 6,
         "partial": 12
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "fedramp_moderate_revision_4_aws",
@@ -2792,7 +2780,6 @@
         "aws.iam.root_mfa",
         "aws.pci.backup.plan_frequency_retention",
         "aws.pci.shield.protection_all_internet_resources",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.backups",
         "aws.rds.cloudwatch_log_exports",
         "aws.rds.encryption",
@@ -2803,11 +2790,10 @@
         "aws_eventbridge_iam_user_change_alert",
         "aws_guardduty_high_finding_alert",
         "aws_iam_inactive_accounts_disabled_after_policy_days",
-        "aws_incident_automated_containment",
         "aws_log_archive_immutable",
         "aws_vpn_tunnel_encryption_configuration"
       ],
-      "supported_native_checks": 58,
+      "supported_native_checks": 56,
       "source_checks": 96,
       "pending_source_checks": 0,
       "manual_requirements": 4,
@@ -2819,7 +2805,9 @@
         "manual": 39,
         "partial": 24
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "ffiec_aws",
@@ -2862,7 +2850,8 @@
         "manual": 35,
         "partial": 9
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gdpr_aws",
@@ -2947,7 +2936,8 @@
       "requirements_by_status": {
         "partial": 3
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gxp_21_cfr_part_11_aws",
@@ -3057,7 +3047,8 @@
       "requirements_by_status": {
         "partial": 11
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gxp_eu_annex_11_aws",
@@ -3105,7 +3096,8 @@
       "requirements_by_status": {
         "partial": 14
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "hipaa_aws",
@@ -3224,7 +3216,8 @@
       "requirements_by_status": {
         "partial": 32
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "iso27001_2013_aws",
@@ -3304,7 +3297,8 @@
         "automated": 51,
         "partial": 28
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "iso27001_2022_aws",
@@ -3661,7 +3655,8 @@
         "manual": 38,
         "partial": 54
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "kisa_isms_p_2023_aws",
@@ -3747,7 +3742,8 @@
         "manual": 52,
         "partial": 49
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "kisa_isms_p_2023_korean_aws",
@@ -3834,7 +3830,8 @@
         "manual": 52,
         "partial": 49
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "mitre_attack_aws",
@@ -3983,12 +3980,9 @@
         "aws.sns.kms_encryption",
         "aws_cloudtrail_administration_command",
         "aws_cloudtrail_event_triggered_execution",
-        "aws_cloudtrail_permission_group_discovery",
-        "aws_cloudwatchlogs_cloud_storage_staging",
-        "aws_cloudwatchlogs_information_repository_read",
-        "aws_ssm_software_inventory_enumeration"
+        "aws_cloudtrail_permission_group_discovery"
       ],
-      "supported_native_checks": 141,
+      "supported_native_checks": 138,
       "source_checks": 144,
       "pending_source_checks": 0,
       "manual_requirements": 6,
@@ -4000,7 +3994,9 @@
         "manual": 4,
         "partial": 42
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "nis2_aws",
@@ -4071,7 +4067,8 @@
         "manual": 48,
         "partial": 72
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "nist_800_171_revision_2_aws",
@@ -4114,7 +4111,8 @@
         "manual": 44,
         "partial": 6
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "nist_800_53_revision_4_aws",
@@ -4166,7 +4164,6 @@
         "aws.iam.root_mfa",
         "aws.pci.backup.plan_frequency_retention",
         "aws.pci.shield.protection_all_internet_resources",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.backups",
         "aws.rds.cloudwatch_log_exports",
         "aws.rds.encryption",
@@ -4178,11 +4175,10 @@
         "aws_guardduty_high_finding_alert",
         "aws_iam_departed_identity_disabled",
         "aws_iam_inactive_accounts_disabled_after_policy_days",
-        "aws_incident_automated_containment",
         "aws_log_archive_immutable",
         "aws_vpn_tunnel_encryption_configuration"
       ],
-      "supported_native_checks": 55,
+      "supported_native_checks": 53,
       "source_checks": 81,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -4194,7 +4190,9 @@
         "manual": 39,
         "partial": 25
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "nist_800_53_revision_5_aws",
@@ -4251,11 +4249,6 @@
         "aws.iam.password_minimum_length",
         "aws.iam.root_mfa",
         "aws.lambda.function_url_authentication",
-        "aws.nist.sc_36_coverage",
-        "aws.nist.sc_5_2_coverage",
-        "aws.nist.sc_8_1_coverage",
-        "aws.nist.sc_8_coverage",
-        "aws.pci.iam.configured_password_policy",
         "aws.pci.iam.nonconsole_mfa_policy",
         "aws.pci.iam.wildcard_action_scoped_resource",
         "aws.rds.backups",
@@ -4272,10 +4265,9 @@
         "aws_guardduty_threat_feed",
         "aws_kms_key_expiry",
         "aws_log_archive_immutable",
-        "aws_sensitive_data_rest_access_controls",
         "aws_vpn_tunnel_encryption_configuration"
       ],
-      "supported_native_checks": 68,
+      "supported_native_checks": 62,
       "source_checks": 105,
       "pending_source_checks": 0,
       "manual_requirements": 6,
@@ -4287,7 +4279,9 @@
         "manual": 260,
         "partial": 27
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "nist_csf_1.1_aws",
@@ -4395,11 +4389,9 @@
         "aws.rds.encryption",
         "aws.s3.access_logging",
         "aws.sns.kms_encryption",
-        "aws_cloudwatch_metric_alarm_has_threshold",
-        "aws_organizations_environment_account_separation",
-        "aws_resource_priority_tags_present"
+        "aws_organizations_environment_account_separation"
       ],
-      "supported_native_checks": 99,
+      "supported_native_checks": 97,
       "source_checks": 89,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -4412,7 +4404,9 @@
         "not_applicable": 2,
         "partial": 21
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "nist_csf_2.0_aws",
@@ -4520,11 +4514,9 @@
         "aws.rds.encryption",
         "aws.s3.access_logging",
         "aws.sns.kms_encryption",
-        "aws_cloudwatch_metric_alarm_has_threshold",
-        "aws_organizations_environment_account_separation",
-        "aws_resource_priority_tags_present"
+        "aws_organizations_environment_account_separation"
       ],
-      "supported_native_checks": 99,
+      "supported_native_checks": 97,
       "source_checks": 247,
       "pending_source_checks": 0,
       "manual_requirements": 7,
@@ -4537,7 +4529,9 @@
         "not_applicable": 2,
         "partial": 21
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "pci_3.2.1_aws",
@@ -4647,19 +4641,14 @@
         "aws.pci.codecommit.pr_review_approval",
         "aws.pci.iam.generic_user_ids",
         "aws.pci.iam.nonconsole_mfa_policy",
-        "aws.pci.iam.third_party_temporary_access",
-        "aws.pci.kms.cryptoperiod_rotation",
-        "aws.pci.kms.key_custodian_access",
         "aws.pci.s3.sensitive_auth_data_findings",
-        "aws.pci.ssm.antimalware_inventory",
         "aws.pci.vpc.antispoofing_ingress",
-        "aws.pci.vpc.approved_egress",
         "aws.rds.encryption",
         "aws.s3.access_logging",
         "aws.s3.versioning",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 109,
+      "supported_native_checks": 104,
       "source_checks": 98,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -4673,7 +4662,9 @@
         "not_applicable": 4,
         "partial": 138
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 5
     },
     {
       "id": "pci_4.0_aws",
@@ -4919,32 +4910,18 @@
         "aws.pci.classic_elb.custom_ssl_policy",
         "aws.pci.classic_elb.predefined_ssl_policy",
         "aws.pci.client_vpn.no_authorize_all_groups",
-        "aws.pci.cloudfront.min_tls_policy",
-        "aws.pci.cloudwatch.metric_alarm_settings",
-        "aws.pci.cloudwatch.resource_metric_alarm",
         "aws.pci.codebuild.aws_key_environment_vars",
         "aws.pci.codepipeline.first_stage_single_deploy",
         "aws.pci.fms.web_acl_rule_priority",
-        "aws.pci.iam.configured_password_policy",
-        "aws.pci.iam.policy_arn_attachment",
         "aws.pci.iam.policy_attached_to_active_principal",
-        "aws.pci.iam.role_required_managed_policies",
         "aws.pci.iam.wildcard_action_scoped_resource",
-        "aws.pci.kms.enclave_attestation_events",
-        "aws.pci.kms.enclave_attestation_policy",
-        "aws.pci.lambda.expected_configuration",
         "aws.pci.redshift.expected_settings",
-        "aws.pci.s3.allowed_policy_principals",
         "aws.pci.s3.bucket_backup_plan",
         "aws.pci.secretsmanager.kms_encryption_any",
         "aws.pci.shield.protection_all_internet_resources",
         "aws.pci.shield.srt_access",
         "aws.pci.sns.delivery_status_logging",
-        "aws.pci.ssm.required_applications",
-        "aws.pci.vpc.authorized_igw_attachment",
-        "aws.pci.vpc.igw_routes_reviewed",
         "aws.pci.vpc.peering_dns_resolution",
-        "aws.pci.vpc.world_ingress_authorized_ports",
         "aws.pci.wafv2.rule_group_metrics",
         "aws.pci.wafv2.rule_group_nonempty",
         "aws.rds.auto_minor_upgrade",
@@ -4959,7 +4936,7 @@
         "aws.secretsmanager.rotation",
         "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 273,
+      "supported_native_checks": 259,
       "source_checks": 208,
       "pending_source_checks": 0,
       "manual_requirements": 6,
@@ -4971,7 +4948,9 @@
         "automated": 1631,
         "partial": 48
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 14
     },
     {
       "id": "prowler_threatscore_aws",
@@ -5137,7 +5116,8 @@
         "automated": 102,
         "partial": 4
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "rbi_cyber_security_framework_aws",
@@ -5243,7 +5223,8 @@
       "requirements_by_status": {
         "partial": 9
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "secnumcloud_3.2_aws",
@@ -5419,13 +5400,12 @@
         "aws.s3.versioning",
         "aws.secretsmanager.rotation",
         "aws.sqs.encryption",
-        "aws_account_non_eu_resource_region_detected",
         "aws_config_all_resources_recorded",
         "aws_ec2_instance_time_offset_monitored",
         "aws_ssm_removable_storage_policy_compliance",
         "aws_ssm_software_allowlist_compliance"
       ],
-      "supported_native_checks": 169,
+      "supported_native_checks": 168,
       "source_checks": 209,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -5437,7 +5417,9 @@
         "manual": 40,
         "partial": 52
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "soc2_aws",
@@ -5632,7 +5614,8 @@
       "requirements_by_status": {
         "partial": 27
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "c5_azure",
@@ -5683,29 +5666,12 @@
         "azure.vault.rbac",
         "azure.vault.secret_expiration",
         "azure.vm.trusted_launch",
-        "azure_c5_am_04_01b",
-        "azure_c5_am_09_01b",
-        "azure_c5_cry_08_01b",
-        "azure_c5_cry_09_02b",
-        "azure_c5_dev_08_02b",
-        "azure_c5_dev_09_01b",
-        "azure_c5_iam_03_01ac",
         "azure_c5_iam_03_01as",
-        "azure_c5_ops_05_04ac",
-        "azure_c5_ops_07_01b",
-        "azure_c5_ops_08_01b",
-        "azure_c5_ops_13_01b",
-        "azure_c5_ops_13_03b",
-        "azure_c5_ops_15_02b",
         "azure_c5_ops_17_02ac",
-        "azure_c5_ops_17_02b",
         "azure_c5_ops_20_01b",
-        "azure_c5_ops_25_02b",
-        "azure_c5_ops_30_01ac",
-        "azure_c5_ops_33_03b",
-        "azure_c5_pi_01_02ac"
+        "azure_c5_ops_25_02b"
       ],
-      "supported_native_checks": 60,
+      "supported_native_checks": 43,
       "source_checks": 128,
       "pending_source_checks": 0,
       "manual_requirements": 7,
@@ -5717,7 +5683,9 @@
         "manual": 552,
         "partial": 58
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 17
     },
     {
       "id": "ccc_azure",
@@ -5805,74 +5773,28 @@
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.other.access_analysis_coverage",
-        "azure.other.acr_untagged_retention",
         "azure.other.activity_alert",
         "azure.other.audit_storage_access_logging",
         "azure.other.azure_activity_anomaly",
         "azure.other.backup_freshness_14_days",
         "azure.other.backup_freshness_30_days",
         "azure.other.backup_immutability_30",
-        "azure.other.blob_uniform_access",
         "azure.other.blob_uniform_deny",
-        "azure.other.build_private_network",
-        "azure.other.certificate_rotation_180_days",
-        "azure.other.certificate_rotation_90_days",
         "azure.other.credential_creation_role_scope",
-        "azure.other.database_backup_alert",
         "azure.other.database_backup_role_scope",
-        "azure.other.database_default_login_restricted",
         "azure.other.diagnostic_destination_alert",
-        "azure.other.disabled_identity_24h",
-        "azure.other.endpoint_certificate_trust",
         "azure.other.entra_app_secret_age_90",
-        "azure.other.entra_password_baseline",
-        "azure.other.enumeration_alert",
-        "azure.other.enumeration_logging",
-        "azure.other.external_impersonation_denied",
-        "azure.other.federated_subject_restricted",
-        "azure.other.function_invoke_rate_limit",
-        "azure.other.gateway_affinity_cookie_timeout",
-        "azure.other.gateway_api_cidr_allowlist",
-        "azure.other.gateway_backend_health_alert",
-        "azure.other.gateway_client_rate_limit",
-        "azure.other.gateway_server_header_rewrite",
-        "azure.other.gateway_throttle_log_alert",
         "azure.other.gateway_vmss_autoscale",
-        "azure.other.human_federated_signin",
-        "azure.other.lb_certificate_auto_renew",
-        "azure.other.lb_weight_change_authorized",
         "azure.other.log_expiry_query",
         "azure.other.log_writer_separation",
         "azure.other.message_namespace_cmk",
-        "azure.other.metric_ingestion_rate_alert",
-        "azure.other.ml_approved_images",
-        "azure.other.ml_compute_access_roles",
         "azure.other.ml_compute_file_download_restricted",
         "azure.other.ml_download_audit",
-        "azure.other.ml_public_access_exception",
-        "azure.other.ml_root_exception",
         "azure.other.ml_sensitive_root_disabled",
-        "azure.other.ml_sensitive_subnet_allowlist",
         "azure.other.ml_sensitive_terminal_disabled",
-        "azure.other.ml_subnet_baseline",
-        "azure.other.ml_terminal_exception",
-        "azure.other.monitor_alert_ack_authorization",
-        "azure.other.monitor_dashboard_access",
-        "azure.other.monitor_external_lateral_access",
-        "azure.other.monitor_stream_auth",
-        "azure.other.nsg_port_protocol_assignment",
-        "azure.other.region_allowlist",
         "azure.other.retention_change_alert",
         "azure.other.runtime_public_ip",
-        "azure.other.signed_log_completeness",
-        "azure.other.signed_log_integrity",
-        "azure.other.snapshot_sharing_scope",
-        "azure.other.sshv2_guest_configuration",
-        "azure.other.storage_immutability",
         "azure.other.storage_lifecycle",
-        "azure.other.vault_key_approved_algorithm",
-        "azure.other.vault_old_secret_disabled",
-        "azure.other.vnet_peering_allowlist",
         "azure.sql.tde_enabled",
         "azure.storage.blob_versioning",
         "azure.storage.container_soft_delete",
@@ -5886,7 +5808,7 @@
         "azure.storage.no_shared_key",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 156,
+      "supported_native_checks": 110,
       "source_checks": 97,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -5900,7 +5822,9 @@
         "not_applicable": 37,
         "partial": 88
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 46
     },
     {
       "id": "cis_2.0_azure",
@@ -5918,16 +5842,11 @@
         "azure.app.minimum_tls",
         "azure.cis.access_review_up_external_users_in_entra_privileged_identity_694482",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provision_defender_containers_components",
         "azure.cis.auto_provision_vulnerability_assessment_machines",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
         "azure.cis.enforce_ssl_connection_mysql_server",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_non_privileged_users",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.multifactor_authentication_policy_exists_administrative_groups",
@@ -5942,7 +5861,6 @@
         "azure.cis.postgresql_single_log_retention_days",
         "azure.cis.postgresql_single_no_azure_services_rule",
         "azure.cis.postgresql_single_ssl_enforcement",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_nsg_delete",
         "azure.claude.activity_log_alert_nsg_write",
         "azure.claude.activity_log_alert_policy_assignment_delete",
@@ -6051,7 +5969,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 138,
+      "supported_native_checks": 132,
       "source_checks": 117,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -6064,7 +5982,9 @@
         "manual": 17,
         "partial": 57
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "cis_2.1_azure",
@@ -6081,17 +6001,12 @@
         "azure.app.https_only",
         "azure.app.minimum_tls",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provision_defender_containers_components",
         "azure.cis.auto_provision_vulnerability_assessment_machines",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.enforce_ssl_connection_mysql_server",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_non_privileged_users",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.multifactor_authentication_policy_exists_administrative_groups",
@@ -6106,7 +6021,6 @@
         "azure.cis.postgresql_single_log_retention_days",
         "azure.cis.postgresql_single_no_azure_services_rule",
         "azure.cis.postgresql_single_ssl_enforcement",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_nsg_delete",
         "azure.claude.activity_log_alert_nsg_write",
         "azure.claude.activity_log_alert_policy_assignment_delete",
@@ -6215,7 +6129,7 @@
         "azure.vm.managed_disks",
         "azure.vm.trusted_launch"
       ],
-      "supported_native_checks": 138,
+      "supported_native_checks": 132,
       "source_checks": 114,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -6228,7 +6142,9 @@
         "manual": 17,
         "partial": 57
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "cis_3.0_azure",
@@ -6247,16 +6163,11 @@
         "azure.cis.agentless_discovery_kubernetes_component_status",
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
-        "azure.cis.exclusionary_device_code_flow_policy_considered",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.file_integrity_monitoring_component_status",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_non_privileged_users",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.multifactor_authentication_policy_exists_administrative_groups",
@@ -6264,7 +6175,6 @@
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.postgresql_single_log_connections",
         "azure.cis.postgresql_single_log_disconnections",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_nsg_delete",
         "azure.claude.activity_log_alert_nsg_write",
         "azure.claude.activity_log_alert_policy_assignment_delete",
@@ -6389,7 +6299,7 @@
         "azure.vm.managed_disks",
         "azure.vm.trusted_launch"
       ],
-      "supported_native_checks": 148,
+      "supported_native_checks": 142,
       "source_checks": 112,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -6402,7 +6312,9 @@
         "manual": 18,
         "partial": 58
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "cis_4.0_azure",
@@ -6416,14 +6328,8 @@
       "native_check_ids": [
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
-        "azure.cis.entra_activity_diagnostic",
-        "azure.cis.entra_graph_activity_diagnostic",
-        "azure.cis.exclusionary_device_code_flow_policy_considered",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.file_integrity_monitoring_component_status",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.intune_logs_captured_sent_log_analytics",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.privileged_role_assignments_periodically_reviewed",
@@ -6530,7 +6436,7 @@
         "azure.storage.no_shared_key",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 115,
+      "supported_native_checks": 109,
       "source_checks": 93,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -6543,7 +6449,9 @@
         "manual": 24,
         "partial": 53
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "cis_5.0_azure",
@@ -6557,14 +6465,8 @@
       "native_check_ids": [
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
-        "azure.cis.entra_activity_diagnostic",
-        "azure.cis.entra_graph_activity_diagnostic",
-        "azure.cis.exclusionary_device_code_flow_policy_considered",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.file_integrity_monitoring_component_status",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.intune_logs_captured_sent_log_analytics",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.non_privileged_role_assignments_periodically_reviewed",
@@ -6686,7 +6588,7 @@
         "azure.vault.purge_protection",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 130,
+      "supported_native_checks": 124,
       "source_checks": 95,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -6699,7 +6601,9 @@
         "manual": 24,
         "partial": 54
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "cis_6.0_azure",
@@ -6713,12 +6617,8 @@
       "native_check_ids": [
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
-        "azure.cis.entra_activity_diagnostic",
-        "azure.cis.entra_graph_activity_diagnostic",
         "azure.cis.file_integrity_monitoring_component_status",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.intune_logs_captured_sent_log_analytics",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.non_privileged_role_assignments_periodically_reviewed",
         "azure.cis.privileged_role_assignments_periodically_reviewed",
@@ -6823,7 +6723,7 @@
         "azure.vault.purge_protection",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 111,
+      "supported_native_checks": 107,
       "source_checks": 85,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -6836,7 +6736,9 @@
         "manual": 16,
         "partial": 42
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 4
     },
     {
       "id": "ens_rd2022_azure",
@@ -6908,17 +6810,11 @@
         "azure.claude2.prowler_function_not_public",
         "azure.claude2.prowler_function_vnet_integration",
         "azure.defender.standard_tier",
-        "azure.gap.asset_inventory_required_metadata",
         "azure.gap.nsg_declared_internet_http",
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.gap.nsg_declared_internet_udp_any",
         "azure.other.backup_immutability_30",
-        "azure.other.backup_restore_evidence",
-        "azure.other.clock_sync",
-        "azure.other.entra_identity_audit_events",
-        "azure.other.security_event_correlation",
-        "azure.other.vault_key_approved_algorithm",
         "azure.port.defender_alert_severity_contact",
         "azure.port.defender_required_mcas",
         "azure.port.defender_required_wdatp",
@@ -6938,7 +6834,7 @@
         "azure.storage.minimum_tls",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 89,
+      "supported_native_checks": 83,
       "source_checks": 106,
       "pending_source_checks": 0,
       "manual_requirements": 2,
@@ -6951,7 +6847,9 @@
         "manual": 4,
         "partial": 79
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "hipaa_azure",
@@ -7088,7 +6986,8 @@
         "manual": 4,
         "partial": 30
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "iso27001_2022_azure",
@@ -7160,19 +7059,11 @@
         "azure.claude.vmss_automatic_upgrade_mode",
         "azure.claude2.aks_azure_monitor_metrics_enabled",
         "azure.claude2.prowler_app_http_logs",
-        "azure.gap.asset_inventory_required_metadata",
         "azure.gap.nsg_declared_internet_http",
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.gap.nsg_declared_internet_udp_any",
         "azure.network.ddos_configured",
-        "azure.other.admin_network_separation",
-        "azure.other.azure_role_review",
-        "azure.other.change_approval_trace",
-        "azure.other.clock_sync",
-        "azure.other.devops_security_test_evidence",
-        "azure.other.entra_identity_audit_events",
-        "azure.other.incident_triage_trace",
         "azure.port.databricks_workspace_no_public_ip_enabled",
         "azure.port.databricks_workspace_public_network_access_disabled",
         "azure.port.securitycenter_azure_defender_on_for_server",
@@ -7181,7 +7072,7 @@
         "azure.storage.infrastructure_encryption",
         "azure.storage.minimum_tls"
       ],
-      "supported_native_checks": 80,
+      "supported_native_checks": 72,
       "source_checks": 109,
       "pending_source_checks": 0,
       "manual_requirements": 2,
@@ -7194,7 +7085,9 @@
         "manual": 47,
         "partial": 41
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 8
     },
     {
       "id": "mitre_attack_azure",
@@ -7252,42 +7145,12 @@
         "azure.gap.nsg_declared_internet_ssh",
         "azure.gap.nsg_declared_internet_udp_any",
         "azure.network.ddos_configured",
-        "azure.other.attack_t1049",
-        "azure.other.attack_t1069",
-        "azure.other.attack_t1074",
-        "azure.other.attack_t1082",
-        "azure.other.attack_t1087",
-        "azure.other.attack_t1110",
-        "azure.other.attack_t1119",
-        "azure.other.attack_t1136",
-        "azure.other.attack_t1199",
-        "azure.other.attack_t1201",
-        "azure.other.attack_t1213",
-        "azure.other.attack_t1491",
-        "azure.other.attack_t1496",
-        "azure.other.attack_t1499",
-        "azure.other.attack_t1518",
-        "azure.other.attack_t1525",
-        "azure.other.attack_t1526",
-        "azure.other.attack_t1537",
-        "azure.other.attack_t1546",
-        "azure.other.attack_t1552",
-        "azure.other.attack_t1562",
-        "azure.other.attack_t1578",
-        "azure.other.attack_t1580",
-        "azure.other.attack_t1606",
-        "azure.other.attack_t1614",
-        "azure.other.attack_t1619",
-        "azure.other.attack_t1621",
-        "azure.other.attack_t1648",
-        "azure.other.attack_t1651",
-        "azure.other.region_allowlist",
         "azure.storage.container_soft_delete",
         "azure.storage.https_only",
         "azure.storage.minimum_tls",
         "azure.storage.no_blob_public_access"
       ],
-      "supported_native_checks": 80,
+      "supported_native_checks": 50,
       "source_checks": 79,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -7298,7 +7161,9 @@
       "requirements_by_status": {
         "partial": 46
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 30
     },
     {
       "id": "nis2_azure",
@@ -7401,11 +7266,6 @@
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.gap.nsg_declared_internet_udp_any",
-        "azure.other.admin_network_separation",
-        "azure.other.backup_restore_evidence",
-        "azure.other.change_approval_trace",
-        "azure.other.entra_identity_audit_events",
-        "azure.other.incident_triage_trace",
         "azure.port.defender_alert_severity_contact",
         "azure.port.defender_notify_owner_contact",
         "azure.port.defender_required_mcas",
@@ -7431,7 +7291,7 @@
         "azure.storage.minimum_tls",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 120,
+      "supported_native_checks": 115,
       "source_checks": 133,
       "pending_source_checks": 0,
       "manual_requirements": 7,
@@ -7443,7 +7303,9 @@
         "manual": 31,
         "partial": 60
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 5
     },
     {
       "id": "pci_4.0_azure",
@@ -7488,7 +7350,6 @@
         "azure.claude2.prowler_function_vnet_integration",
         "azure.claude2.vnet_flow_logs_to_log_analytics",
         "azure.defender.standard_tier",
-        "azure.gap.compute_vm_system_updates_installed",
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.iam.no_full_custom_role",
@@ -7506,50 +7367,34 @@
         "azure.storage.no_blob_public_access",
         "azure_aks_cluster_10_2_1_1_17_885658f",
         "azure_aks_cluster_1_4_5_2_3ac7b3c",
-        "azure_aks_cluster_3_5_1_14_247ebcd",
-        "azure_aks_cluster_6_3_3_4_98a0b2c",
         "azure_aks_cluster_7_2_1_6_93c4fab",
         "azure_aks_cluster_aks_cluster_rbac_enabled_c41a0cb",
         "azure_aks_cluster_aks_cluster_rbac_enabled_db12524",
         "azure_aks_cluster_aks_cluster_rbac_enabled_fc209e3",
         "azure_api_management_10_3_1_3_8a50dc0",
         "azure_api_management_1_2_8_1_ba319cf",
-        "azure_api_management_1_2_8_3_e8fe737",
-        "azure_api_management_3_5_1_1_345bdac",
-        "azure_api_management_app_http_logs_enabled_21c108d",
-        "azure_api_management_app_http_logs_enabled_9b3b56e",
-        "azure_api_management_app_http_logs_enabled_9ef06db",
         "azure_api_management_appinsights_ensure_is_configured_42aac6a",
-        "azure_app_service_app_function_latest_runtime_version_f50215a",
         "azure_application_gateway_11_5_1_1_1_f56bdc2",
         "azure_application_gateway_1_2_5_8_33a9d21",
         "azure_application_gateway_app_client_certificates_on_fcca0b8",
         "azure_application_gateway_app_ensure_http_is_redirected_to_https_1099ad7",
-        "azure_application_gateway_app_ensure_http_is_redirected_to_https_debad63",
-        "azure_application_gateway_app_ensure_http_is_redirected_to_https_e598c17",
         "azure_application_gateway_app_http_logs_enabled_2de0361",
-        "azure_azure_resource_1_3_1_46_b70e2c8",
-        "azure_azure_resource_keyvault_private_endpoints_c3995a6",
         "azure_cdn_profile_10_3_4_1_4e40487",
         "azure_cdn_profile_1_2_8_5_ed953a0",
         "azure_cosmos_account_10_2_1_1_13_5c115b0",
         "azure_cosmos_account_10_2_1_1_23_e04a63d",
-        "azure_cosmos_account_10_5_1_5_2029065",
         "azure_devops_project_1_2_8_6_fb0e5a8",
         "azure_devops_project_3_5_1_7_dc58423",
         "azure_devops_project_6_5_5_2_2908a87",
         "azure_diagnostic_setting_11_5_2_3_7959930",
-        "azure_diagnostic_setting_app_http_logs_enabled_d32e8e1",
         "azure_directory_user_10_6_3_21_d013932",
         "azure_directory_user_7_2_1_19_28e2aa7",
-        "azure_directory_user_7_2_4_1_712ef31",
         "azure_directory_user_7_2_4_2_7a90cfb",
         "azure_directory_user_entra_non_privileged_user_has_mfa_b242ca9",
         "azure_directory_user_entra_privileged_user_has_mfa_6f6d584",
         "azure_directory_user_keyvault_rbac_secret_expiration_set_e2e0e28",
         "azure_directory_user_sqlserver_azuread_administrator_enabled_1a9c5cf",
         "azure_disk_10_3_3_12_174f526",
-        "azure_firewall_policy_10_2_1_1_24_0781f5f",
         "azure_firewall_policy_1_2_8_23_59ad733",
         "azure_firewall_policy_1_2_8_24_cc7cb8a",
         "azure_firewall_policy_1_2_8_42_cacbd9e",
@@ -7562,73 +7407,46 @@
         "azure_frontdoor_app_minimum_tls_version_12_0512053",
         "azure_frontdoor_monitor_storage_account_with_activity_logs_is_private_d42518a",
         "azure_frontdoor_network_http_internet_access_restricted_7004685",
-        "azure_hdinsight_cluster_1_2_5_11_babfa1b",
         "azure_log_analytics_workspace_10_5_1_4_8c74ccb",
         "azure_log_analytics_workspace_monitor_diagnostic_setting_with_appropriate_categories_48f6b2b",
-        "azure_management_group_7_2_1_12_3f8ec01",
-        "azure_management_group_7_2_1_13_50babe4",
-        "azure_management_group_7_2_1_1_af95df1",
-        "azure_ml_workspace_1_2_8_36_33f50db",
         "azure_ml_workspace_1_2_8_37_973721f",
-        "azure_nsg_world_ingress_approved_ports",
         "azure_pci_10_2_1_1_16",
         "azure_pci_10_2_1_1_25",
         "azure_pci_10_2_1_1_8",
         "azure_pci_1_2_8_19",
         "azure_pci_1_2_8_39",
         "azure_pci_1_3_1_33",
-        "azure_pci_3_5_1_29",
-        "azure_pci_3_7_4_5",
-        "azure_purview_account_a3_2_5_1_1_282bac6",
-        "azure_purview_account_a3_2_5_1_2_6690c25",
         "azure_recovery_vault_10_3_3_1_1f42f66",
         "azure_recovery_vault_10_3_3_2_5313a3c",
         "azure_recovery_vault_10_3_3_3_45b190e",
         "azure_recovery_vault_10_3_3_8_26e08d7",
-        "azure_redis_cache_10_3_3_17_5912e19",
         "azure_role_assignment_7_2_1_14_6743a56",
         "azure_role_assignment_aks_cluster_rbac_enabled_1c8eacd",
         "azure_role_assignment_aks_cluster_rbac_enabled_675305a",
-        "azure_route_table_network_http_internet_access_restricted_5cd2484",
-        "azure_search_service_10_6_3_27_ba08488",
         "azure_search_service_3_5_1_19_a3c75c0",
-        "azure_security_pricing_policy_ensure_asc_enforcement_enabled_70150a3",
         "azure_sql_database_sqlserver_auditing_enabled_77d6841",
         "azure_sql_database_sqlserver_azuread_administrator_enabled_4a039a9",
         "azure_sql_database_sqlserver_tde_encryption_enabled_c4383b5",
         "azure_sql_server_sqlserver_unrestricted_inbound_access_9b32c6a",
-        "azure_storage_account_10_2_1_1_20_5914d2c",
         "azure_storage_account_10_3_3_24_61d5e36",
         "azure_storage_account_10_3_4_7_02943e9",
         "azure_storage_account_10_5_1_13_2f5d4f6",
         "azure_storage_account_defender_ensure_defender_for_keyvault_is_on_2cabbc3",
         "azure_storage_account_monitor_alert_create_update_sqlserver_fr_7a7ddfa",
-        "azure_storage_account_sqlserver_auditing_enabled_e4e4b28",
-        "azure_storage_account_storage_blob_public_access_level_is_disabled_4211794",
-        "azure_storage_account_storage_ensure_azure_services_are_trusted_to_access_is_enabled_3f8ed7f",
-        "azure_storage_account_storage_ensure_azure_services_are_trusted_to_access_is_enabled_7677ce9",
         "azure_storage_file_share_10_3_3_15_f2d7075",
         "azure_storage_file_share_10_3_3_18_d67ab34",
-        "azure_storage_file_share_3_5_1_15_17dc7f4",
-        "azure_synapse_workspace_10_2_1_1_28_47f4840",
-        "azure_synapse_workspace_10_3_3_22_15e4d4e",
         "azure_synapse_workspace_1_2_8_29_fcdc827",
         "azure_vault_10_3_2_3_922adc4",
         "azure_vault_3_7_1_2_532ecd2",
-        "azure_vault_keyvault_key_expiration_set_in_non_rbac_a7d99d3",
-        "azure_vault_keyvault_non_rbac_secret_expiration_set_0041351",
-        "azure_vault_keyvault_non_rbac_secret_expiration_set_a4923d7",
         "azure_vault_keyvault_rbac_enabled_0179c48",
-        "azure_vm_1_2_8_10_1bd35d0",
         "azure_vm_1_4_5_1_d40be43",
         "azure_vm_8_2_1_1_712e1ad",
         "azure_vm_app_function_identity_is_configured_bdb10d4",
         "azure_vm_monitor_diagnostic_setting_with_appropriate_categories_4e20679",
-        "azure_vm_vm_ensure_using_managed_disks_11f205b",
         "azure_vnet_gateway_10_2_1_1_14_4189d89",
         "azure_vnet_gateway_network_ssh_internet_access_restricted_e19b1dc"
       ],
-      "supported_native_checks": 172,
+      "supported_native_checks": 128,
       "source_checks": 48,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -7642,7 +7460,9 @@
         "not_applicable": 466,
         "partial": 304
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 44
     },
     {
       "id": "prowler_threatscore_azure",
@@ -7723,8 +7543,6 @@
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.gap.nsg_declared_internet_udp_any",
-        "azure.other.app_latest_tls",
-        "azure.other.nsg_internet_https_restricted",
         "azure.port.defender_alert_severity_contact",
         "azure.port.defender_notify_owner_contact",
         "azure.sql.auditing",
@@ -7733,7 +7551,7 @@
         "azure.storage.minimum_tls",
         "azure.storage.no_public_network"
       ],
-      "supported_native_checks": 78,
+      "supported_native_checks": 76,
       "source_checks": 75,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -7745,7 +7563,9 @@
         "automated": 48,
         "partial": 28
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "rbi_cyber_security_framework_azure",
@@ -7823,8 +7643,6 @@
         "azure.claude2.prowler_function_identity_not_admin",
         "azure.claude2.prowler_function_not_public",
         "azure.defender.standard_tier",
-        "azure.gap.asset_inventory_required_metadata",
-        "azure.gap.compute_vm_rdp_service_disabled",
         "azure.gap.nsg_declared_internet_http",
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
@@ -7850,7 +7668,7 @@
         "azure.storage.no_blob_public_access",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 92,
+      "supported_native_checks": 90,
       "source_checks": 117,
       "pending_source_checks": 0,
       "manual_requirements": 5,
@@ -7862,7 +7680,9 @@
         "automated": 1,
         "partial": 8
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "secnumcloud_3.2_azure",
@@ -7958,20 +7778,10 @@
         "azure.claude2.prowler_app_http_logs",
         "azure.claude2.prowler_function_ftp_ftps_disabled",
         "azure.claude2.prowler_function_not_public",
-        "azure.gap.asset_inventory_required_metadata",
         "azure.gap.nsg_declared_internet_http",
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.gap.nsg_declared_internet_udp_any",
-        "azure.other.admin_network_separation",
-        "azure.other.azure_role_review",
-        "azure.other.backup_restore_evidence",
-        "azure.other.change_approval_trace",
-        "azure.other.clock_sync",
-        "azure.other.devops_security_test_evidence",
-        "azure.other.infrastructure_configuration_backup",
-        "azure.other.region_allowlist",
-        "azure.other.storage_geo",
         "azure.port.defender_alert_severity_contact",
         "azure.port.defender_notify_owner_contact",
         "azure.port.defender_required_wdatp",
@@ -7989,7 +7799,7 @@
         "azure.storage.no_blob_public_access",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 114,
+      "supported_native_checks": 104,
       "source_checks": 123,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8002,7 +7812,9 @@
         "manual": 40,
         "partial": 48
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 10
     },
     {
       "id": "soc2_azure",
@@ -8066,7 +7878,6 @@
         "azure.claude2.prowler_app_http_logs",
         "azure.claude2.prowler_function_not_public",
         "azure.defender.standard_tier",
-        "azure.gap.capacity_usage_alerts",
         "azure.gap.nsg_declared_internet_http",
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
@@ -8093,7 +7904,7 @@
         "azure.storage.minimum_tls",
         "azure.storage.no_blob_public_access"
       ],
-      "supported_native_checks": 78,
+      "supported_native_checks": 77,
       "source_checks": 100,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -8106,7 +7917,9 @@
         "manual": 10,
         "partial": 15
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "c5_gcp",
@@ -8150,44 +7963,23 @@
         "gcp.reviewed.sql.high_availability",
         "gcp.sql.backups",
         "gcp.sql.restrict_authorized_networks",
-        "gcp_c5_access_approval",
         "gcp_c5_asset_change_audit",
-        "gcp_c5_asset_inventory",
-        "gcp_c5_asset_risk_label",
         "gcp_c5_backup_remote_location",
         "gcp_c5_build_provenance",
-        "gcp_c5_classification_label",
-        "gcp_c5_cloud_armor_waf",
         "gcp_c5_cloudbuild_gate",
-        "gcp_c5_deletion_recoverability",
         "gcp_c5_iam_change_timeliness",
-        "gcp_c5_iam_conditions",
         "gcp_c5_iam_expiry",
-        "gcp_c5_iam_inventory",
-        "gcp_c5_key_versions",
-        "gcp_c5_kms_hsm",
         "gcp_c5_log_event_fields",
-        "gcp_c5_log_export",
-        "gcp_c5_log_isolation",
-        "gcp_c5_log_retention",
-        "gcp_c5_logging_redundancy",
-        "gcp_c5_malware_telemetry",
         "gcp_c5_network_separation",
         "gcp_c5_network_topology",
-        "gcp_c5_patch_deployment",
-        "gcp_c5_region",
         "gcp_c5_restore_destination",
-        "gcp_c5_restore_test",
         "gcp_c5_sbom",
         "gcp_c5_secret_access",
         "gcp_c5_security_event_route",
-        "gcp_c5_siem_sink",
-        "gcp_c5_software_inventory",
-        "gcp_c5_sql_backup_run",
         "gcp_c5_tls_policy",
         "gcp_c5_workforce_federation"
       ],
-      "supported_native_checks": 68,
+      "supported_native_checks": 47,
       "source_checks": 68,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8199,7 +7991,9 @@
         "manual": 485,
         "partial": 125
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 21
     },
     {
       "id": "ccc_gcp",
@@ -8252,38 +8046,22 @@
         "gcp.sql.backups",
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access",
-        "gcp_artifact_registry_cleanup_policy",
         "gcp_autoscaler_capacity_target",
-        "gcp_c5_sql_backup_run",
         "gcp_certificate_renewal_30_days",
         "gcp_certificate_rotation_180_days",
         "gcp_certificate_rotation_90_days",
         "gcp_certificate_validity",
-        "gcp_cloud_armor_cidr_deny",
-        "gcp_cloud_armor_rate_limit",
         "gcp_cloudbuild_private_pool",
         "gcp_cloudbuild_trigger_trust",
         "gcp_cloudcdn_cookie_ttl",
         "gcp_cloudsql_backup_failure_alert",
-        "gcp_cloudsql_failed_attempts_lockout",
-        "gcp_gcs_replication_status",
         "gcp_https_proxy_mtls_required",
-        "gcp_kms_approved_algorithm",
         "gcp_kms_key_destroy_alert",
         "gcp_lb_server_header_rewrite",
         "gcp_logging_enumeration_alert",
-        "gcp_logging_query_rate_alert",
-        "gcp_pubsub_topic_cmek",
-        "gcp_resource_approved_location",
-        "gcp_vpc_peering_allowlist",
-        "gcp_workbench_approved_image",
-        "gcp_workbench_approved_vpc",
-        "gcp_workbench_download_disabled",
-        "gcp_workbench_no_public_ip",
-        "gcp_workbench_root_disabled",
-        "gcp_workbench_terminal_disabled"
+        "gcp_pubsub_topic_cmek"
       ],
-      "supported_native_checks": 71,
+      "supported_native_checks": 55,
       "source_checks": 59,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8297,7 +8075,9 @@
         "not_applicable": 2,
         "partial": 73
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 16
     },
     {
       "id": "cis_2.0_gcp",
@@ -8334,7 +8114,6 @@
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
         "gcp.compute.no_external_ip",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.htbp.function.secret_env_from_secret_manager",
@@ -8393,7 +8172,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 83,
+      "supported_native_checks": 82,
       "source_checks": 73,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8406,7 +8185,9 @@
         "manual": 1,
         "partial": 22
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "cis_3.0_gcp",
@@ -8420,7 +8201,6 @@
       "native_check_ids": [
         "gcp.apikeys.active_service_restrictions",
         "gcp.appengine.version_https_only",
-        "gcp.bigquery.table_classification_tags",
         "gcp.claude.bucket.log_sink_retention_locked",
         "gcp.claude.dns_zone.dnssec_enabled",
         "gcp.claude.dns_zone.ksk_not_rsasha1",
@@ -8443,7 +8223,6 @@
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
         "gcp.compute.no_external_ip",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.htbp.function.secret_env_from_secret_manager",
@@ -8502,7 +8281,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 83,
+      "supported_native_checks": 81,
       "source_checks": 68,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8515,7 +8294,9 @@
         "manual": 1,
         "partial": 23
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "cis_4.0_gcp",
@@ -8529,7 +8310,6 @@
       "native_check_ids": [
         "gcp.apikeys.active_service_restrictions",
         "gcp.appengine.version_https_only",
-        "gcp.bigquery.table_classification_tags",
         "gcp.claude.bucket.log_sink_retention_locked",
         "gcp.claude.dns_zone.dnssec_enabled",
         "gcp.claude.dns_zone.ksk_not_rsasha1",
@@ -8552,7 +8332,6 @@
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
         "gcp.compute.no_external_ip",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.htbp.function.secret_env_from_secret_manager",
@@ -8611,7 +8390,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 83,
+      "supported_native_checks": 81,
       "source_checks": 68,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8624,7 +8403,9 @@
         "manual": 1,
         "partial": 23
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "cis_5.0_gcp",
@@ -8638,7 +8419,6 @@
       "native_check_ids": [
         "gcp.apikeys.active_service_restrictions",
         "gcp.appengine.version_https_only",
-        "gcp.bigquery.table_classification_tags",
         "gcp.claude.bucket.log_sink_retention_locked",
         "gcp.claude.dns_zone.dnssec_enabled",
         "gcp.claude.dns_zone.ksk_not_rsasha1",
@@ -8662,7 +8442,6 @@
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
         "gcp.compute.no_external_ip",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.htbp.function.secret_env_from_secret_manager",
@@ -8671,8 +8450,6 @@
         "gcp.identity.super_admin_recovery_group",
         "gcp.identity.super_admin_separation",
         "gcp.logging.access_transparency_entries",
-        "gcp.network.private_service_connect_google_apis",
-        "gcp.network.vpc_service_controls_supported_services",
         "gcp.orgpolicy.central_constraints",
         "gcp.ports.access_approval_explicit_enrollment",
         "gcp.ports.audit_logging_configured_for_all_service",
@@ -8707,7 +8484,6 @@
         "gcp.ports.reference_sqlserver_user_options",
         "gcp.ports.sql_instance_not_open_to_internet",
         "gcp.ports.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter",
-        "gcp.resourcemanager.folder_environment_structure",
         "gcp.reviewed.bigquery.no_public_acl",
         "gcp.reviewed.compute.block_project_ssh_keys",
         "gcp.reviewed.compute.confidential_computing",
@@ -8729,7 +8505,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 92,
+      "supported_native_checks": 87,
       "source_checks": 68,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8742,7 +8518,9 @@
         "manual": 2,
         "partial": 29
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 5
     },
     {
       "id": "ens_rd2022_gcp",
@@ -8779,17 +8557,10 @@
         "gcp.reviewed.project.os_login_2fa",
         "gcp.reviewed.sql.cmek",
         "gcp.sql.backups",
-        "gcp_cloud_armor_rate_limit",
-        "gcp_cloudcdn_cache_policy",
-        "gcp_compute_approved_image",
-        "gcp_compute_approved_packages",
-        "gcp_compute_os_patch_compliance",
         "gcp_iam_workforce_mfa",
-        "gcp_kms_approved_algorithm",
-        "gcp_logging_scc_findings_alert",
-        "gcp_resource_label_inventory"
+        "gcp_logging_scc_findings_alert"
       ],
-      "supported_native_checks": 34,
+      "supported_native_checks": 27,
       "source_checks": 62,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8802,7 +8573,9 @@
         "manual": 58,
         "partial": 23
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 7
     },
     {
       "id": "hipaa_gcp",
@@ -8839,7 +8612,8 @@
         "manual": 14,
         "partial": 9
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "iso27001_2022_gcp",
@@ -8878,12 +8652,9 @@
         "gcp.sql.backups",
         "gcp_autoscaler_capacity_target",
         "gcp_cloud_armor_waf_enabled",
-        "gcp_compute_approved_packages",
-        "gcp_compute_os_patch_compliance",
-        "gcp_resource_label_inventory",
         "gcp_source_repo_access_restricted"
       ],
-      "supported_native_checks": 31,
+      "supported_native_checks": 28,
       "source_checks": 54,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8896,7 +8667,9 @@
         "manual": 70,
         "partial": 21
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "mitre_attack_gcp",
@@ -8919,10 +8692,9 @@
         "gcp_logging_detect_t1614",
         "gcp_logging_detect_t1619",
         "gcp_logging_detect_t1648",
-        "gcp_logging_detect_t1651",
-        "gcp_resource_approved_location"
+        "gcp_logging_detect_t1651"
       ],
-      "supported_native_checks": 13,
+      "supported_native_checks": 12,
       "source_checks": 44,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -8934,7 +8706,9 @@
         "manual": 34,
         "partial": 12
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "nis2_gcp",
@@ -8990,7 +8764,8 @@
         "manual": 60,
         "partial": 20
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "pci_4.0_gcp",
@@ -9026,7 +8801,6 @@
         "gcp_kms_key_kms_keys_scheduled_deletion_56316ac06650",
         "gcp_pci_asset_6ee2fef37d98",
         "gcp_pci_backend_service_2ce96d36d0bf",
-        "gcp_pci_backend_service_571fd0bfec67",
         "gcp_pci_bigquery_dataset_6017267cdf32",
         "gcp_pci_bigquery_dataset_a4e25dbf9640",
         "gcp_pci_bigquery_dataset_fb9fcc01d5b7",
@@ -9043,7 +8817,7 @@
         "gcp_pci_url_map_9ed56c323a05",
         "gcp_sql_instance_sql_instance_does_have_iam_4b5fe00566e6"
       ],
-      "supported_native_checks": 40,
+      "supported_native_checks": 39,
       "source_checks": 57,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -9057,7 +8831,9 @@
         "not_applicable": 61,
         "partial": 54
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "prowler_threatscore_gcp",
@@ -9139,7 +8915,8 @@
         "automated": 48,
         "partial": 9
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "rbi_cyber_security_framework_gcp",
@@ -9175,7 +8952,8 @@
         "manual": 4,
         "partial": 5
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "secnumcloud_3.2_gcp",
@@ -9229,12 +9007,9 @@
         "gcp.reviewed.storage.versioning",
         "gcp.sql.backups",
         "gcp.storage.no_public_iam",
-        "gcp.storage.uniform_access",
-        "gcp_compute_approved_packages",
-        "gcp_resource_approved_location",
-        "gcp_resource_label_inventory"
+        "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 46,
+      "supported_native_checks": 43,
       "source_checks": 80,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -9247,7 +9022,9 @@
         "manual": 68,
         "partial": 22
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "soc2_gcp",
@@ -9287,7 +9064,8 @@
         "manual": 24,
         "partial": 4
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_1.0_github",
@@ -9304,7 +9082,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_1.2.0_github",
@@ -9321,7 +9100,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_1.3_googleworkspace",
@@ -9338,7 +9118,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_1.4_googleworkspace",
@@ -9355,7 +9136,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cisa_scuba_0.6_googleworkspace",
@@ -9372,7 +9154,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_1.0_huaweicloud",
@@ -9389,7 +9172,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_1.10_kubernetes",
@@ -9415,60 +9199,23 @@
         "k8s.cis.admission_runasnonroot",
         "k8s.cis.admission_windowsoptions_hostprocess",
         "k8s.cis.avoid_use_of_system_masters_group",
-        "k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller",
         "k8s.cis.consider_external_secret_storage",
         "k8s.cis.controller_manager_rotate_kubelet_server_certificate_true",
-        "k8s.cis.file_admin_conf_mode_600",
-        "k8s.cis.file_admin_conf_owner",
-        "k8s.cis.file_controller_manager_conf_mode_600",
-        "k8s.cis.file_controller_manager_conf_owner",
-        "k8s.cis.file_etc_cni_net_d_mode_600",
-        "k8s.cis.file_etc_cni_net_d_owner",
-        "k8s.cis.file_manifests_etcd_yaml_mode_600",
-        "k8s.cis.file_manifests_etcd_yaml_owner",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_owner",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_owner",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_owner",
-        "k8s.cis.file_pki_ca_crt_mode_600",
-        "k8s.cis.file_pki_ca_crt_owner",
-        "k8s.cis.file_pki_crt_mode_600",
-        "k8s.cis.file_pki_key_mode_600",
-        "k8s.cis.file_pki_owner",
-        "k8s.cis.file_proxy_conf_mode_600",
-        "k8s.cis.file_proxy_conf_owner",
-        "k8s.cis.file_scheduler_conf_mode_600",
-        "k8s.cis.file_scheduler_conf_owner",
-        "k8s.cis.file_var_lib_etcd_mode_700",
-        "k8s.cis.file_var_lib_etcd_owner",
         "k8s.cis.kubelet_rotate_kubelet_server_certificate_true",
         "k8s.cis.namespace_has_networkpolicy",
         "k8s.cis.pod_effective_runtime_default_seccomp",
-        "k8s.cis.the_eventrecordqps_argument_is_set_to_a_level_which_ensures_appropriate_event_capture",
         "k8s.cis.the_kube_proxy_metrics_service_is_bound_to_localhost",
-        "k8s.cis.the_request_timeout_argument_is_set_as_appropriate",
         "k8s.claude.clusterrole.no_bind",
         "k8s.claude.clusterrole.no_pod_create",
         "k8s.claude.clusterrole.no_secret_read",
         "k8s.claude.clusterrole.no_wildcard_resources_or_verbs",
-        "k8s.claude.clusterrolebinding.cluster_admin_review",
         "k8s.claude.clusterrolebinding.no_human_csr_approval",
         "k8s.claude.clusterrolebinding.no_human_node_proxy",
         "k8s.claude.clusterrolebinding.no_human_pv_create",
         "k8s.claude.clusterrolebinding.no_human_serviceaccount_token_create",
         "k8s.claude.clusterrolebinding.no_human_webhook_config_write",
-        "k8s.claude.configuration.kubelet_client_ca_file",
-        "k8s.claude.configuration.kubelet_streaming_timeout",
-        "k8s.claude.configuration.kubelet_strong_ciphers",
-        "k8s.claude.configuration.kubelet_tls_cert_and_key",
-        "k8s.claude.file_metadata.kubelet_conf_permissions",
-        "k8s.claude.file_metadata.kubelet_config_yaml_permissions",
-        "k8s.claude.file_metadata.kubelet_service_file_permissions",
         "k8s.claude.pod.capabilities_dropped",
         "k8s.claude.pod.controller_manager_gc_threshold",
-        "k8s.claude.pod.etcd_unique_ca",
         "k8s.claude.pod.no_added_capabilities",
         "k8s.claude.pod.no_host_ipc",
         "k8s.claude.pod.no_host_pid",
@@ -9487,7 +9234,6 @@
         "k8s.htbp.clusterrole.no_impersonation",
         "k8s.htbp.role.no_impersonation",
         "k8s.namespace.restricted_admission",
-        "k8s.network.namespace_policy_inventory",
         "k8s.pod.no_default_serviceaccount",
         "k8s.pod.no_hostpath",
         "k8s.pod.no_privilege_escalation",
@@ -9496,17 +9242,9 @@
         "k8s.ports.clusterrole.role_with_rbac_escalate_permissions",
         "k8s.ports.clusterrolebinding.cluster_role_binding_default_service_account_binding_not_active",
         "k8s.ports.configmap_metadata.config_map_default_namespace_used",
-        "k8s.ports.configuration.kubelet_authorization_mode",
-        "k8s.ports.configuration.kubelet_disable_anonymous_auth",
-        "k8s.ports.configuration.kubelet_disable_read_only_port",
-        "k8s.ports.configuration.kubelet_manage_iptables",
-        "k8s.ports.configuration.kubelet_rotate_certificates",
         "k8s.ports.cronjob.cronjob_default_namespace_used",
         "k8s.ports.daemonset.daemonset_default_namespace_used",
         "k8s.ports.deployment.deployment_default_namespace_used",
-        "k8s.ports.file_metadata.kubelet_conf_file_ownership",
-        "k8s.ports.file_metadata.kubelet_config_yaml_ownership",
-        "k8s.ports.file_metadata.kubelet_service_file_ownership_root",
         "k8s.ports.ingress.ingress_default_namespace_used",
         "k8s.ports.job.job_default_namespace_used",
         "k8s.ports.pod.container_admission_control_plugin_always_pull_images",
@@ -9563,7 +9301,7 @@
         "k8s.ports.statefulset.statefulset_default_namespace_used",
         "k8s.serviceaccount.disable_automount"
       ],
-      "supported_native_checks": 161,
+      "supported_native_checks": 115,
       "source_checks": 82,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -9576,7 +9314,9 @@
         "manual": 4,
         "partial": 65
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 46
     },
     {
       "id": "cis_1.11_kubernetes",
@@ -9602,63 +9342,24 @@
         "k8s.cis.admission_runasnonroot",
         "k8s.cis.admission_windowsoptions_hostprocess",
         "k8s.cis.avoid_use_of_system_masters_group",
-        "k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller",
         "k8s.cis.consider_external_secret_storage",
         "k8s.cis.controller_manager_rotate_kubelet_server_certificate_true",
-        "k8s.cis.file_admin_conf_mode_600",
-        "k8s.cis.file_admin_conf_owner",
-        "k8s.cis.file_controller_manager_conf_mode_600",
-        "k8s.cis.file_controller_manager_conf_owner",
-        "k8s.cis.file_etc_cni_net_d_mode_600",
-        "k8s.cis.file_etc_cni_net_d_owner",
-        "k8s.cis.file_manifests_etcd_yaml_mode_600",
-        "k8s.cis.file_manifests_etcd_yaml_owner",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_owner",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_owner",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_owner",
-        "k8s.cis.file_pki_ca_crt_mode_644",
-        "k8s.cis.file_pki_ca_crt_owner",
-        "k8s.cis.file_pki_crt_mode_644",
-        "k8s.cis.file_pki_key_mode_600",
-        "k8s.cis.file_pki_owner",
-        "k8s.cis.file_proxy_conf_mode_600",
-        "k8s.cis.file_proxy_conf_owner",
-        "k8s.cis.file_scheduler_conf_mode_600",
-        "k8s.cis.file_scheduler_conf_owner",
-        "k8s.cis.file_var_lib_etcd_mode_700",
-        "k8s.cis.file_var_lib_etcd_owner",
         "k8s.cis.kubelet_rotate_kubelet_server_certificate_true",
         "k8s.cis.namespace_has_networkpolicy",
         "k8s.cis.pod_effective_runtime_default_seccomp",
-        "k8s.cis.the_eventrecordqps_argument_is_set_to_a_level_which_ensures_appropriate_event_capture",
-        "k8s.cis.the_ipaddressdeny_is_set_to_any",
         "k8s.cis.the_kube_proxy_metrics_service_is_bound_to_localhost",
-        "k8s.cis.the_request_timeout_argument_is_set_as_appropriate",
-        "k8s.cis.the_seccomp_default_parameter_is_set_to_true",
         "k8s.cis.the_service_account_extend_token_expiration_parameter_is_set_to_false",
         "k8s.claude.clusterrole.no_bind",
         "k8s.claude.clusterrole.no_pod_create",
         "k8s.claude.clusterrole.no_secret_read",
         "k8s.claude.clusterrole.no_wildcard_resources_or_verbs",
-        "k8s.claude.clusterrolebinding.cluster_admin_review",
         "k8s.claude.clusterrolebinding.no_human_csr_approval",
         "k8s.claude.clusterrolebinding.no_human_node_proxy",
         "k8s.claude.clusterrolebinding.no_human_pv_create",
         "k8s.claude.clusterrolebinding.no_human_serviceaccount_token_create",
         "k8s.claude.clusterrolebinding.no_human_webhook_config_write",
-        "k8s.claude.configuration.kubelet_client_ca_file",
-        "k8s.claude.configuration.kubelet_streaming_timeout",
-        "k8s.claude.configuration.kubelet_strong_ciphers",
-        "k8s.claude.configuration.kubelet_tls_cert_and_key",
-        "k8s.claude.file_metadata.kubelet_conf_permissions",
-        "k8s.claude.file_metadata.kubelet_config_yaml_permissions",
-        "k8s.claude.file_metadata.kubelet_service_file_permissions",
         "k8s.claude.pod.capabilities_dropped",
         "k8s.claude.pod.controller_manager_gc_threshold",
-        "k8s.claude.pod.etcd_unique_ca",
         "k8s.claude.pod.no_added_capabilities",
         "k8s.claude.pod.no_host_ipc",
         "k8s.claude.pod.no_host_pid",
@@ -9677,7 +9378,6 @@
         "k8s.htbp.clusterrole.no_impersonation",
         "k8s.htbp.role.no_impersonation",
         "k8s.namespace.restricted_admission",
-        "k8s.network.namespace_policy_inventory",
         "k8s.pod.no_default_serviceaccount",
         "k8s.pod.no_hostpath",
         "k8s.pod.no_privilege_escalation",
@@ -9686,17 +9386,9 @@
         "k8s.ports.clusterrole.role_with_rbac_escalate_permissions",
         "k8s.ports.clusterrolebinding.cluster_role_binding_default_service_account_binding_not_active",
         "k8s.ports.configmap_metadata.config_map_default_namespace_used",
-        "k8s.ports.configuration.kubelet_authorization_mode",
-        "k8s.ports.configuration.kubelet_disable_anonymous_auth",
-        "k8s.ports.configuration.kubelet_disable_read_only_port",
-        "k8s.ports.configuration.kubelet_manage_iptables",
-        "k8s.ports.configuration.kubelet_rotate_certificates",
         "k8s.ports.cronjob.cronjob_default_namespace_used",
         "k8s.ports.daemonset.daemonset_default_namespace_used",
         "k8s.ports.deployment.deployment_default_namespace_used",
-        "k8s.ports.file_metadata.kubelet_conf_file_ownership",
-        "k8s.ports.file_metadata.kubelet_config_yaml_ownership",
-        "k8s.ports.file_metadata.kubelet_service_file_ownership_root",
         "k8s.ports.ingress.ingress_default_namespace_used",
         "k8s.ports.job.job_default_namespace_used",
         "k8s.ports.pod.container_admission_control_plugin_always_pull_images",
@@ -9753,7 +9445,7 @@
         "k8s.ports.statefulset.statefulset_default_namespace_used",
         "k8s.serviceaccount.disable_automount"
       ],
-      "supported_native_checks": 164,
+      "supported_native_checks": 116,
       "source_checks": 82,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -9766,7 +9458,9 @@
         "manual": 4,
         "partial": 66
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 48
     },
     {
       "id": "cis_1.12_kubernetes",
@@ -9791,62 +9485,24 @@
         "k8s.cis.admission_runasnonroot",
         "k8s.cis.admission_windowsoptions_hostprocess",
         "k8s.cis.avoid_use_of_system_masters_group",
-        "k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller",
         "k8s.cis.consider_external_secret_storage",
         "k8s.cis.controller_manager_rotate_kubelet_server_certificate_true",
-        "k8s.cis.file_admin_conf_mode_600",
-        "k8s.cis.file_admin_conf_owner",
-        "k8s.cis.file_controller_manager_conf_mode_600",
-        "k8s.cis.file_controller_manager_conf_owner",
-        "k8s.cis.file_etc_cni_net_d_mode_600",
-        "k8s.cis.file_etc_cni_net_d_owner",
-        "k8s.cis.file_manifests_etcd_yaml_mode_600",
-        "k8s.cis.file_manifests_etcd_yaml_owner",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_owner",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_owner",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_owner",
-        "k8s.cis.file_pki_ca_crt_mode_644",
-        "k8s.cis.file_pki_ca_crt_owner",
-        "k8s.cis.file_pki_crt_mode_644",
-        "k8s.cis.file_pki_key_mode_600",
-        "k8s.cis.file_pki_owner",
-        "k8s.cis.file_proxy_conf_mode_600",
-        "k8s.cis.file_proxy_conf_owner",
-        "k8s.cis.file_scheduler_conf_mode_600",
-        "k8s.cis.file_scheduler_conf_owner",
-        "k8s.cis.file_var_lib_etcd_mode_700",
-        "k8s.cis.file_var_lib_etcd_owner",
         "k8s.cis.kubelet_rotate_kubelet_server_certificate_true",
         "k8s.cis.namespace_has_networkpolicy",
         "k8s.cis.pod_effective_runtime_default_seccomp",
-        "k8s.cis.the_eventrecordqps_argument_is_set_to_a_level_which_ensures_appropriate_event_capture",
         "k8s.cis.the_kube_proxy_metrics_service_is_bound_to_localhost",
-        "k8s.cis.the_request_timeout_argument_is_set_as_appropriate",
-        "k8s.cis.the_seccomp_default_parameter_is_set_to_true",
         "k8s.cis.the_service_account_extend_token_expiration_parameter_is_set_to_false",
         "k8s.claude.clusterrole.no_bind",
         "k8s.claude.clusterrole.no_pod_create",
         "k8s.claude.clusterrole.no_secret_read",
         "k8s.claude.clusterrole.no_wildcard_resources_or_verbs",
-        "k8s.claude.clusterrolebinding.cluster_admin_review",
         "k8s.claude.clusterrolebinding.no_human_csr_approval",
         "k8s.claude.clusterrolebinding.no_human_node_proxy",
         "k8s.claude.clusterrolebinding.no_human_pv_create",
         "k8s.claude.clusterrolebinding.no_human_serviceaccount_token_create",
         "k8s.claude.clusterrolebinding.no_human_webhook_config_write",
-        "k8s.claude.configuration.kubelet_client_ca_file",
-        "k8s.claude.configuration.kubelet_streaming_timeout",
-        "k8s.claude.configuration.kubelet_strong_ciphers",
-        "k8s.claude.configuration.kubelet_tls_cert_and_key",
-        "k8s.claude.file_metadata.kubelet_conf_permissions",
-        "k8s.claude.file_metadata.kubelet_config_yaml_permissions",
-        "k8s.claude.file_metadata.kubelet_service_file_permissions",
         "k8s.claude.pod.capabilities_dropped",
         "k8s.claude.pod.controller_manager_gc_threshold",
-        "k8s.claude.pod.etcd_unique_ca",
         "k8s.claude.pod.no_host_ipc",
         "k8s.claude.pod.no_host_pid",
         "k8s.claude.pod.no_host_ports",
@@ -9864,7 +9520,6 @@
         "k8s.htbp.clusterrole.no_impersonation",
         "k8s.htbp.role.no_impersonation",
         "k8s.namespace.restricted_admission",
-        "k8s.network.namespace_policy_inventory",
         "k8s.pod.no_default_serviceaccount",
         "k8s.pod.no_hostpath",
         "k8s.pod.no_privilege_escalation",
@@ -9873,17 +9528,9 @@
         "k8s.ports.clusterrole.role_with_rbac_escalate_permissions",
         "k8s.ports.clusterrolebinding.cluster_role_binding_default_service_account_binding_not_active",
         "k8s.ports.configmap_metadata.config_map_default_namespace_used",
-        "k8s.ports.configuration.kubelet_authorization_mode",
-        "k8s.ports.configuration.kubelet_disable_anonymous_auth",
-        "k8s.ports.configuration.kubelet_disable_read_only_port",
-        "k8s.ports.configuration.kubelet_manage_iptables",
-        "k8s.ports.configuration.kubelet_rotate_certificates",
         "k8s.ports.cronjob.cronjob_default_namespace_used",
         "k8s.ports.daemonset.daemonset_default_namespace_used",
         "k8s.ports.deployment.deployment_default_namespace_used",
-        "k8s.ports.file_metadata.kubelet_conf_file_ownership",
-        "k8s.ports.file_metadata.kubelet_config_yaml_ownership",
-        "k8s.ports.file_metadata.kubelet_service_file_ownership_root",
         "k8s.ports.ingress.ingress_default_namespace_used",
         "k8s.ports.job.job_default_namespace_used",
         "k8s.ports.pod.container_admission_control_plugin_always_pull_images",
@@ -9940,7 +9587,7 @@
         "k8s.ports.statefulset.statefulset_default_namespace_used",
         "k8s.serviceaccount.disable_automount"
       ],
-      "supported_native_checks": 161,
+      "supported_native_checks": 114,
       "source_checks": 81,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -9953,7 +9600,9 @@
         "manual": 4,
         "partial": 65
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 47
     },
     {
       "id": "cis_1.8_kubernetes",
@@ -9979,59 +9628,22 @@
         "k8s.cis.admission_runasnonroot",
         "k8s.cis.admission_windowsoptions_hostprocess",
         "k8s.cis.avoid_use_of_system_masters_group",
-        "k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller",
         "k8s.cis.consider_external_secret_storage",
         "k8s.cis.controller_manager_rotate_kubelet_server_certificate_true",
-        "k8s.cis.file_admin_conf_mode_600",
-        "k8s.cis.file_admin_conf_owner",
-        "k8s.cis.file_controller_manager_conf_mode_600",
-        "k8s.cis.file_controller_manager_conf_owner",
-        "k8s.cis.file_etc_cni_net_d_mode_600",
-        "k8s.cis.file_etc_cni_net_d_owner",
-        "k8s.cis.file_manifests_etcd_yaml_mode_600",
-        "k8s.cis.file_manifests_etcd_yaml_owner",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_owner",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_owner",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_owner",
-        "k8s.cis.file_pki_ca_crt_mode_600",
-        "k8s.cis.file_pki_ca_crt_owner",
-        "k8s.cis.file_pki_crt_mode_600",
-        "k8s.cis.file_pki_key_mode_600",
-        "k8s.cis.file_pki_owner",
-        "k8s.cis.file_proxy_conf_mode_600",
-        "k8s.cis.file_proxy_conf_owner",
-        "k8s.cis.file_scheduler_conf_mode_600",
-        "k8s.cis.file_scheduler_conf_owner",
-        "k8s.cis.file_var_lib_etcd_mode_700",
-        "k8s.cis.file_var_lib_etcd_owner",
         "k8s.cis.kubelet_rotate_kubelet_server_certificate_true",
         "k8s.cis.namespace_has_networkpolicy",
         "k8s.cis.pod_effective_runtime_default_seccomp",
-        "k8s.cis.the_eventrecordqps_argument_is_set_to_a_level_which_ensures_appropriate_event_capture",
-        "k8s.cis.the_request_timeout_argument_is_set_as_appropriate",
         "k8s.claude.clusterrole.no_bind",
         "k8s.claude.clusterrole.no_pod_create",
         "k8s.claude.clusterrole.no_secret_read",
         "k8s.claude.clusterrole.no_wildcard_resources_or_verbs",
-        "k8s.claude.clusterrolebinding.cluster_admin_review",
         "k8s.claude.clusterrolebinding.no_human_csr_approval",
         "k8s.claude.clusterrolebinding.no_human_node_proxy",
         "k8s.claude.clusterrolebinding.no_human_pv_create",
         "k8s.claude.clusterrolebinding.no_human_serviceaccount_token_create",
         "k8s.claude.clusterrolebinding.no_human_webhook_config_write",
-        "k8s.claude.configuration.kubelet_client_ca_file",
-        "k8s.claude.configuration.kubelet_streaming_timeout",
-        "k8s.claude.configuration.kubelet_strong_ciphers",
-        "k8s.claude.configuration.kubelet_tls_cert_and_key",
-        "k8s.claude.file_metadata.kubelet_conf_permissions",
-        "k8s.claude.file_metadata.kubelet_config_yaml_permissions",
-        "k8s.claude.file_metadata.kubelet_service_file_permissions",
         "k8s.claude.pod.capabilities_dropped",
         "k8s.claude.pod.controller_manager_gc_threshold",
-        "k8s.claude.pod.etcd_unique_ca",
         "k8s.claude.pod.no_added_capabilities",
         "k8s.claude.pod.no_host_ipc",
         "k8s.claude.pod.no_host_pid",
@@ -10050,7 +9662,6 @@
         "k8s.htbp.clusterrole.no_impersonation",
         "k8s.htbp.role.no_impersonation",
         "k8s.namespace.restricted_admission",
-        "k8s.network.namespace_policy_inventory",
         "k8s.pod.no_default_serviceaccount",
         "k8s.pod.no_hostpath",
         "k8s.pod.no_privilege_escalation",
@@ -10059,17 +9670,9 @@
         "k8s.ports.clusterrole.role_with_rbac_escalate_permissions",
         "k8s.ports.clusterrolebinding.cluster_role_binding_default_service_account_binding_not_active",
         "k8s.ports.configmap_metadata.config_map_default_namespace_used",
-        "k8s.ports.configuration.kubelet_authorization_mode",
-        "k8s.ports.configuration.kubelet_disable_anonymous_auth",
-        "k8s.ports.configuration.kubelet_disable_read_only_port",
-        "k8s.ports.configuration.kubelet_manage_iptables",
-        "k8s.ports.configuration.kubelet_rotate_certificates",
         "k8s.ports.cronjob.cronjob_default_namespace_used",
         "k8s.ports.daemonset.daemonset_default_namespace_used",
         "k8s.ports.deployment.deployment_default_namespace_used",
-        "k8s.ports.file_metadata.kubelet_conf_file_ownership",
-        "k8s.ports.file_metadata.kubelet_config_yaml_ownership",
-        "k8s.ports.file_metadata.kubelet_service_file_ownership_root",
         "k8s.ports.ingress.ingress_default_namespace_used",
         "k8s.ports.job.job_default_namespace_used",
         "k8s.ports.pod.container_admission_control_plugin_always_pull_images",
@@ -10127,7 +9730,7 @@
         "k8s.ports.statefulset.statefulset_default_namespace_used",
         "k8s.serviceaccount.disable_automount"
       ],
-      "supported_native_checks": 161,
+      "supported_native_checks": 115,
       "source_checks": 83,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -10140,7 +9743,9 @@
         "manual": 4,
         "partial": 65
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 46
     },
     {
       "id": "cis_2.0.1_kubernetes",
@@ -10165,62 +9770,24 @@
         "k8s.cis.admission_runasnonroot",
         "k8s.cis.admission_windowsoptions_hostprocess",
         "k8s.cis.avoid_use_of_system_masters_group",
-        "k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller",
         "k8s.cis.consider_external_secret_storage",
         "k8s.cis.controller_manager_rotate_kubelet_server_certificate_true",
-        "k8s.cis.file_admin_conf_mode_600",
-        "k8s.cis.file_admin_conf_owner",
-        "k8s.cis.file_controller_manager_conf_mode_600",
-        "k8s.cis.file_controller_manager_conf_owner",
-        "k8s.cis.file_etc_cni_net_d_mode_600",
-        "k8s.cis.file_etc_cni_net_d_owner",
-        "k8s.cis.file_manifests_etcd_yaml_mode_600",
-        "k8s.cis.file_manifests_etcd_yaml_owner",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_apiserver_yaml_owner",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_controller_manager_yaml_owner",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_mode_600",
-        "k8s.cis.file_manifests_kube_scheduler_yaml_owner",
-        "k8s.cis.file_pki_ca_crt_mode_644",
-        "k8s.cis.file_pki_ca_crt_owner",
-        "k8s.cis.file_pki_crt_mode_644",
-        "k8s.cis.file_pki_key_mode_600",
-        "k8s.cis.file_pki_owner",
-        "k8s.cis.file_proxy_conf_mode_600",
-        "k8s.cis.file_proxy_conf_owner",
-        "k8s.cis.file_scheduler_conf_mode_600",
-        "k8s.cis.file_scheduler_conf_owner",
-        "k8s.cis.file_var_lib_etcd_mode_700",
-        "k8s.cis.file_var_lib_etcd_owner",
         "k8s.cis.kubelet_rotate_kubelet_server_certificate_true",
         "k8s.cis.namespace_has_networkpolicy",
         "k8s.cis.pod_effective_runtime_default_seccomp",
-        "k8s.cis.the_eventrecordqps_argument_is_set_to_a_level_which_ensures_appropriate_event_capture",
         "k8s.cis.the_kube_proxy_metrics_service_is_bound_to_localhost",
-        "k8s.cis.the_request_timeout_argument_is_set_as_appropriate",
-        "k8s.cis.the_seccomp_default_parameter_is_set_to_true",
         "k8s.cis.the_service_account_extend_token_expiration_parameter_is_set_to_false",
         "k8s.claude.clusterrole.no_bind",
         "k8s.claude.clusterrole.no_pod_create",
         "k8s.claude.clusterrole.no_secret_read",
         "k8s.claude.clusterrole.no_wildcard_resources_or_verbs",
-        "k8s.claude.clusterrolebinding.cluster_admin_review",
         "k8s.claude.clusterrolebinding.no_human_csr_approval",
         "k8s.claude.clusterrolebinding.no_human_node_proxy",
         "k8s.claude.clusterrolebinding.no_human_pv_create",
         "k8s.claude.clusterrolebinding.no_human_serviceaccount_token_create",
         "k8s.claude.clusterrolebinding.no_human_webhook_config_write",
-        "k8s.claude.configuration.kubelet_client_ca_file",
-        "k8s.claude.configuration.kubelet_streaming_timeout",
-        "k8s.claude.configuration.kubelet_strong_ciphers",
-        "k8s.claude.configuration.kubelet_tls_cert_and_key",
-        "k8s.claude.file_metadata.kubelet_conf_permissions",
-        "k8s.claude.file_metadata.kubelet_config_yaml_permissions",
-        "k8s.claude.file_metadata.kubelet_service_file_permissions",
         "k8s.claude.pod.capabilities_dropped",
         "k8s.claude.pod.controller_manager_gc_threshold",
-        "k8s.claude.pod.etcd_unique_ca",
         "k8s.claude.pod.no_host_ipc",
         "k8s.claude.pod.no_host_pid",
         "k8s.claude.pod.no_host_ports",
@@ -10238,7 +9805,6 @@
         "k8s.htbp.clusterrole.no_impersonation",
         "k8s.htbp.role.no_impersonation",
         "k8s.namespace.restricted_admission",
-        "k8s.network.namespace_policy_inventory",
         "k8s.pod.no_default_serviceaccount",
         "k8s.pod.no_hostpath",
         "k8s.pod.no_privilege_escalation",
@@ -10247,17 +9813,9 @@
         "k8s.ports.clusterrole.role_with_rbac_escalate_permissions",
         "k8s.ports.clusterrolebinding.cluster_role_binding_default_service_account_binding_not_active",
         "k8s.ports.configmap_metadata.config_map_default_namespace_used",
-        "k8s.ports.configuration.kubelet_authorization_mode",
-        "k8s.ports.configuration.kubelet_disable_anonymous_auth",
-        "k8s.ports.configuration.kubelet_disable_read_only_port",
-        "k8s.ports.configuration.kubelet_manage_iptables",
-        "k8s.ports.configuration.kubelet_rotate_certificates",
         "k8s.ports.cronjob.cronjob_default_namespace_used",
         "k8s.ports.daemonset.daemonset_default_namespace_used",
         "k8s.ports.deployment.deployment_default_namespace_used",
-        "k8s.ports.file_metadata.kubelet_conf_file_ownership",
-        "k8s.ports.file_metadata.kubelet_config_yaml_ownership",
-        "k8s.ports.file_metadata.kubelet_service_file_ownership_root",
         "k8s.ports.ingress.ingress_default_namespace_used",
         "k8s.ports.job.job_default_namespace_used",
         "k8s.ports.pod.container_admission_control_plugin_always_pull_images",
@@ -10314,7 +9872,7 @@
         "k8s.ports.statefulset.statefulset_default_namespace_used",
         "k8s.serviceaccount.disable_automount"
       ],
-      "supported_native_checks": 161,
+      "supported_native_checks": 114,
       "source_checks": 81,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -10327,7 +9885,9 @@
         "manual": 4,
         "partial": 65
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 47
     },
     {
       "id": "iso27001_2022_kubernetes",
@@ -10339,10 +9899,8 @@
       "source_revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
       "repository": "prowler-cloud/prowler",
       "native_check_ids": [
-        "k8s.claude.clusterrolebinding.cluster_admin_review",
         "k8s.claude.deployment.replicas_minimum_3",
         "k8s.namespace.restricted_admission",
-        "k8s.network.namespace_policy_inventory",
         "k8s.pod.no_default_serviceaccount",
         "k8s.ports.namespace.namespace_resource_quota_cpu_limit",
         "k8s.ports.networkpolicy.network_policy_default_dont_allow_ingress",
@@ -10351,13 +9909,12 @@
         "k8s.ports.pod.container_encryption_providers_configured",
         "k8s.rbac.no_wildcards",
         "k8s.rbac.role_no_wildcards",
-        "k8s_approved_image_installation",
         "k8s_cluster_appropriate_set_procedures_information_labelling_should_e24bda19",
         "k8s_cluster_clocks_information_processing_systems_used_by_82e06ff4",
         "k8s_environment_separation",
         "k8s_privileged_utility_access"
       ],
-      "supported_native_checks": 17,
+      "supported_native_checks": 14,
       "source_checks": 54,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -10370,7 +9927,9 @@
         "not_applicable": 14,
         "partial": 22
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "pci_4.0_kubernetes",
@@ -10385,7 +9944,6 @@
         "k8s.claude.pod.no_host_pid",
         "k8s.claude.pod.no_secret_env",
         "k8s.deployment.no_privileged",
-        "k8s.network.namespace_policy_inventory",
         "k8s.pod.no_privileged_containers",
         "k8s.pod.non_root",
         "k8s.pod.read_only_root",
@@ -10402,16 +9960,12 @@
         "k8s.rbac.no_wildcards",
         "k8s.rbac.role_no_wildcards",
         "k8s.service.review_public_type",
-        "k8s_cluster_version_at_least_oldest_supported",
-        "k8s_cluster_version_supported",
         "k8s_deployment_available_condition",
         "k8s_ingress_backend_https",
         "k8s_ingress_ingress_has_any_associated_ingress_93579100f9",
         "k8s_ingress_ingress_redirect_http_traffic_https_12967db1",
         "k8s_ingress_sni_hosts",
         "k8s_ingress_tls_configured",
-        "k8s_namespace_has_rolebinding",
-        "k8s_namespace_namespace_part_specific_label_set_07ecb6d791",
         "k8s_networkpolicy_cluster_has_network_policies_that_1fd253608e",
         "k8s_networkpolicy_cluster_has_network_policies_that_24d2fc90b0",
         "k8s_networkpolicy_has_ingress_or_egress_rules",
@@ -10425,21 +9979,16 @@
         "k8s_pod_direct_internet_access_disabled_pod_0a30afe8f2",
         "k8s_pod_effective_run_as_user_nonzero",
         "k8s_pod_pod_deployed_specific_namespace_its_76714f9dfe",
-        "k8s_pod_pod_deployed_within_specific_namespace_0daa0bd46b",
         "k8s_pod_pod_deployed_within_specific_namespace_3790c81f90",
         "k8s_pod_pod_deployed_within_specific_namespace_62bb9e62c0",
         "k8s_pod_pod_running_within_specific_namespace_0f3d581358",
         "k8s_pod_secret_pod_rule_non_compliant_fcdc38e543",
         "k8s_pod_serviceaccount_has_rbac_binding",
-        "k8s_response_team_required_binding",
         "k8s_secret_no_deletion_timestamp",
         "k8s_service_external_traffic_policy_matches_required",
-        "k8s_service_loadbalancers_associated_authorized_namespace_rule_8b0a04d99f",
-        "k8s_service_service_uses_ftp_endpoint_connection_e9b0a5f836",
-        "k8s_service_services_type_specified_rule_parameter_86993f7594",
-        "k8s_service_spec_type_loadbalancer"
+        "k8s_service_service_uses_ftp_endpoint_connection_e9b0a5f836"
       ],
-      "supported_native_checks": 56,
+      "supported_native_checks": 46,
       "source_checks": 32,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -10453,7 +10002,9 @@
         "not_applicable": 9,
         "partial": 259
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 10
     },
     {
       "id": "prowler_threatscore_kubernetes",
@@ -10468,17 +10019,12 @@
         "k8s.claude.clusterrole.no_pod_create",
         "k8s.claude.clusterrole.no_secret_read",
         "k8s.claude.clusterrole.no_wildcard_resources_or_verbs",
-        "k8s.claude.clusterrolebinding.cluster_admin_review",
         "k8s.claude.clusterrolebinding.no_human_csr_approval",
         "k8s.claude.clusterrolebinding.no_human_node_proxy",
         "k8s.claude.clusterrolebinding.no_human_pv_create",
         "k8s.claude.clusterrolebinding.no_human_serviceaccount_token_create",
         "k8s.claude.clusterrolebinding.no_human_webhook_config_write",
-        "k8s.claude.configuration.kubelet_client_ca_file",
-        "k8s.claude.configuration.kubelet_strong_ciphers",
-        "k8s.claude.configuration.kubelet_tls_cert_and_key",
         "k8s.claude.pod.capabilities_dropped",
-        "k8s.claude.pod.etcd_unique_ca",
         "k8s.claude.pod.no_added_capabilities",
         "k8s.claude.pod.no_host_ipc",
         "k8s.claude.pod.no_host_pid",
@@ -10495,10 +10041,6 @@
         "k8s.gap.apiserver.deny_service_external_ips",
         "k8s.pod.no_privilege_escalation",
         "k8s.pod.no_privileged_containers",
-        "k8s.ports.configuration.kubelet_authorization_mode",
-        "k8s.ports.configuration.kubelet_disable_anonymous_auth",
-        "k8s.ports.configuration.kubelet_disable_read_only_port",
-        "k8s.ports.configuration.kubelet_rotate_certificates",
         "k8s.ports.pod.container_admission_control_plugin_always_pull_images",
         "k8s.ports.pod.container_admission_control_plugin_no_always_admit",
         "k8s.ports.pod.container_arg_peer_client_cert_auth_enabled",
@@ -10537,7 +10079,7 @@
         "k8s.ports.pod.reference_apiserver_client_ca_file_set",
         "k8s.ports.pod.reference_etcd_no_peer_auto_tls"
       ],
-      "supported_native_checks": 71,
+      "supported_native_checks": 62,
       "source_checks": 67,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -10549,7 +10091,9 @@
         "automated": 39,
         "partial": 31
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 9
     },
     {
       "id": "cis_4.0_m365",
@@ -10566,7 +10110,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_6.0_m365",
@@ -10583,7 +10128,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_7.0_m365",
@@ -10600,7 +10146,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "iso27001_2022_m365",
@@ -10617,7 +10164,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "prowler_threatscore_m365",
@@ -10634,7 +10182,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "iso27001_2022_nhn",
@@ -10651,7 +10200,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "okta_idaas_stig_v1r2_okta",
@@ -10668,7 +10218,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_3.0_oraclecloud",
@@ -10685,7 +10236,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "cis_3.1_oraclecloud",
@@ -10702,7 +10254,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "secnumcloud_3.2_oraclecloud",
@@ -10719,7 +10272,8 @@
       "pending_source_checks": 0,
       "manual_requirements": 0,
       "rejected_invalid_predicates": 0,
-      "status": "out_of_scope"
+      "status": "out_of_scope",
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.acsc_essential_eight",
@@ -10881,10 +10435,9 @@
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
         "aws_eks_cluster_supported_version_catalog",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_ssh_ipv6_all"
       ],
-      "supported_native_checks": 152,
+      "supported_native_checks": 151,
       "source_checks": 144,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -10896,7 +10449,9 @@
         "automated": 138,
         "partial": 6
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.audit_manager_control_tower",
@@ -10936,7 +10491,8 @@
         "automated": 12,
         "partial": 2
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_compute_service_v100",
@@ -10977,7 +10533,6 @@
         "aws.claude_a.iam.role_no_administrator_access",
         "aws.claude_a.organizations.tag_policy_attached",
         "aws.elbv2.access_logging",
-        "aws_cis_ami_name_policy",
         "aws_cis_batch_job_cloudwatch_logging",
         "aws_cis_beanstalk_persistent_logs_s3",
         "aws_cis_ec2_default_security_group_not_attached",
@@ -10987,19 +10542,15 @@
         "aws_cis_elasticbeanstalk_https_listener",
         "aws_cis_elasticbeanstalk_load_balancer_access_logs",
         "aws_cis_lambda_config_recorded",
-        "aws_cis_lambda_database_secrets_manager",
         "aws_cis_lambda_execution_role_exists",
         "aws_cis_lambda_execution_role_no_admin",
         "aws_cis_lambda_execution_role_unique",
-        "aws_cis_lambda_resource_policy_trusted_accounts",
         "aws_cis_lightsail_bucket_access_logging",
-        "aws_cis_lightsail_bucket_iam_policy",
-        "aws_cis_lightsail_bucket_instance_access",
         "aws_cis_lightsail_bucket_private",
         "aws_cis_lightsail_ssm_patch_compliance",
         "aws_lambda_code_signing_configured"
       ],
-      "supported_native_checks": 50,
+      "supported_native_checks": 45,
       "source_checks": 53,
       "pending_source_checks": 0,
       "manual_requirements": 27,
@@ -11012,7 +10563,9 @@
         "manual": 5,
         "partial": 17
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 5
     },
     {
       "id": "aws-compliance.benchmark.cis_controls_v8_ig1",
@@ -11132,7 +10685,8 @@
         "automated": 87,
         "partial": 3
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v120",
@@ -11206,7 +10760,8 @@
         "manual": 1,
         "partial": 5
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v130",
@@ -11287,7 +10842,8 @@
         "manual": 1,
         "partial": 5
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v140",
@@ -11374,7 +10930,8 @@
         "manual": 1,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v150",
@@ -11466,7 +11023,8 @@
         "manual": 1,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v200",
@@ -11561,7 +11119,8 @@
         "manual": 1,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v300",
@@ -11654,7 +11213,8 @@
         "manual": 1,
         "partial": 6
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v400",
@@ -11749,7 +11309,8 @@
         "manual": 1,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v500",
@@ -11843,7 +11404,8 @@
         "automated": 56,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cis_v600",
@@ -11937,7 +11499,8 @@
         "automated": 56,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.cisa_cyber_essentials",
@@ -12076,10 +11639,9 @@
         "aws.s3.access_logging",
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
-        "aws_cis_elbv2_only_tls_listeners",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws_cis_elbv2_only_tls_listeners"
       ],
-      "supported_native_checks": 129,
+      "supported_native_checks": 128,
       "source_checks": 119,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -12091,7 +11653,9 @@
         "automated": 112,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.fedramp_low_rev_4",
@@ -12228,10 +11792,9 @@
         "aws_fedramp_ec2_effective_public_exposure",
         "aws_fedramp_emr_master_no_public_ip",
         "aws_fedramp_iam_all_policies_no_admin_star",
-        "aws_fedramp_iam_all_policies_no_service_wildcard",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws_fedramp_iam_all_policies_no_service_wildcard"
       ],
-      "supported_native_checks": 127,
+      "supported_native_checks": 126,
       "source_checks": 111,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -12243,7 +11806,9 @@
         "automated": 99,
         "partial": 12
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.fedramp_moderate_rev_4",
@@ -12394,10 +11959,9 @@
         "aws_fedramp_ec2_effective_public_exposure",
         "aws_fedramp_emr_master_no_public_ip",
         "aws_fedramp_iam_all_policies_no_admin_star",
-        "aws_fedramp_iam_all_policies_no_service_wildcard",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws_fedramp_iam_all_policies_no_service_wildcard"
       ],
-      "supported_native_checks": 141,
+      "supported_native_checks": 140,
       "source_checks": 123,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -12409,7 +11973,9 @@
         "automated": 110,
         "partial": 13
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.ffiec",
@@ -12540,7 +12106,6 @@
         "aws.nist.acm_all_certificates_expiry_30_days",
         "aws.nist.all_iam_policies_no_star_star",
         "aws.nist.all_managed_policies_no_service_wildcard",
-        "aws.nist.apigateway_stage_valid_client_certificate",
         "aws.nist.cloudtrail_cloudwatch_integration",
         "aws.nist.codebuild_exact_aws_key_env_names",
         "aws.nist.ec2_instance_effective_public_reachability",
@@ -12552,10 +12117,9 @@
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
-        "aws.s3.versioning",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws.s3.versioning"
       ],
-      "supported_native_checks": 133,
+      "supported_native_checks": 131,
       "source_checks": 117,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -12567,7 +12131,9 @@
         "automated": 104,
         "partial": 13
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "aws-compliance.benchmark.foundational_security",
@@ -12936,7 +12502,8 @@
         "automated": 322,
         "partial": 17
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.gdpr",
@@ -13038,7 +12605,8 @@
         "automated": 70,
         "partial": 3
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-compliance.benchmark.gxp_21_cfr_part_11",
@@ -13193,19 +12761,17 @@
         "aws.gap.securityhub.region_hub_enabled",
         "aws.lambda.vpc_configuration",
         "aws.pci.apigateway.all_methods_cache_encrypted",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.deletion_protection",
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_common_ports_ipv6_all",
         "aws_security_group_ssh_ipv6_all",
         "aws_security_group_tcp_udp_ipv6_all"
       ],
-      "supported_native_checks": 154,
+      "supported_native_checks": 152,
       "source_checks": 143,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -13217,7 +12783,9 @@
         "automated": 133,
         "partial": 10
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "aws-compliance.benchmark.gxp_eu_annex_11",
@@ -13290,10 +12858,9 @@
         "aws.rds.encryption",
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
-        "aws_config_recorder_all_supported_resources",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws_config_recorder_all_supported_resources"
       ],
-      "supported_native_checks": 63,
+      "supported_native_checks": 62,
       "source_checks": 61,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -13305,7 +12872,9 @@
         "automated": 57,
         "partial": 4
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.hipaa_final_omnibus_security_rule_2013",
@@ -13473,7 +13042,6 @@
         "aws.lambda.dead_letter_queue",
         "aws.lambda.vpc_configuration",
         "aws.pci.apigateway.all_methods_cache_encrypted",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.deletion_protection",
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint",
@@ -13481,12 +13049,11 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
         "aws_config_recorder_all_supported_resources",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_common_ports_ipv6_all",
         "aws_security_group_ssh_ipv6_all",
         "aws_security_group_tcp_udp_ipv6_all"
       ],
-      "supported_native_checks": 168,
+      "supported_native_checks": 166,
       "source_checks": 156,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -13498,7 +13065,9 @@
         "automated": 143,
         "partial": 13
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "aws-compliance.benchmark.hipaa_security_rule_2003",
@@ -13640,19 +13209,17 @@
         "aws.lambda.dead_letter_queue",
         "aws.lambda.vpc_configuration",
         "aws.pci.apigateway.all_methods_cache_encrypted",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
         "aws_config_recorder_all_supported_resources",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_common_ports_ipv6_all",
         "aws_security_group_ssh_ipv6_all",
         "aws_security_group_tcp_udp_ipv6_all"
       ],
-      "supported_native_checks": 141,
+      "supported_native_checks": 139,
       "source_checks": 131,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -13664,7 +13231,9 @@
         "automated": 120,
         "partial": 11
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "aws-compliance.benchmark.nist_800_171_rev_2",
@@ -13837,7 +13406,6 @@
         "aws.nist.all_cloudtrail_destination_bucket_access_logging",
         "aws.nist.all_iam_policies_no_star_star",
         "aws.nist.all_managed_policies_no_service_wildcard",
-        "aws.nist.apigateway_stage_valid_client_certificate",
         "aws.nist.cloudtrail_cloudwatch_destination_kms",
         "aws.nist.cloudtrail_cloudwatch_integration",
         "aws.nist.ec2_instance_effective_public_reachability",
@@ -13846,7 +13414,6 @@
         "aws.nist.waf_classic_regional_acl_logging",
         "aws.pci.apigateway.all_methods_cache_encrypted",
         "aws.pci.apigateway.all_methods_logging",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.cluster_iam_authentication",
         "aws.rds.deletion_protection",
         "aws.rds.encryption",
@@ -13854,10 +13421,9 @@
         "aws.s3.access_logging",
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
-        "aws_config_all_resources_recorded",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws_config_all_resources_recorded"
       ],
-      "supported_native_checks": 180,
+      "supported_native_checks": 177,
       "source_checks": 159,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -13869,7 +13435,9 @@
         "automated": 139,
         "partial": 20
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "aws-compliance.benchmark.nist_800_172",
@@ -13941,16 +13509,14 @@
         "aws.gap.s3.no_public_write_acl_or_policy",
         "aws.gap.securityhub.region_hub_enabled",
         "aws.lambda.vpc_configuration",
-        "aws.nist.apigateway_stage_valid_client_certificate",
         "aws.nist.cloudtrail_cloudwatch_integration",
         "aws.nist.ec2_instance_effective_public_reachability",
         "aws.nist.emr_master_nodes_no_public_ip",
         "aws.nist.rds_cluster_member_enhanced_monitoring",
-        "aws.pci.vpc.world_ingress_authorized_ports",
         "aws.rds.auto_minor_upgrade",
         "aws.rds.no_public_endpoint"
       ],
-      "supported_native_checks": 68,
+      "supported_native_checks": 66,
       "source_checks": 62,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -13962,7 +13528,9 @@
         "automated": 55,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "aws-compliance.benchmark.nist_800_53_rev_4",
@@ -14099,10 +13667,9 @@
         "aws_nist_emr_cluster_master_nodes_no_public_ip",
         "aws_nist_iam_policy_no_star_star",
         "aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled",
-        "aws_nist_s3_bucket_cross_region_replication_enabled",
-        "aws_nist_vpc_igw_attached_to_authorized_vpc"
+        "aws_nist_s3_bucket_cross_region_replication_enabled"
       ],
-      "supported_native_checks": 127,
+      "supported_native_checks": 126,
       "source_checks": 106,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -14114,7 +13681,9 @@
         "automated": 89,
         "partial": 17
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.nist_800_53_rev_5",
@@ -14253,7 +13822,6 @@
         "aws.s3.access_logging",
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
-        "aws_account_expected_organization_master",
         "aws_nist_acm_certificate_expires_30_days",
         "aws_nist_apigateway_stage_cache_encryption_at_rest_enabled",
         "aws_nist_apigateway_stage_logging_enabled",
@@ -14271,7 +13839,7 @@
         "aws_nist_s3_bucket_cross_region_replication_enabled",
         "aws_nist_secretsmanager_secret_automatic_rotation_enabled"
       ],
-      "supported_native_checks": 144,
+      "supported_native_checks": 143,
       "source_checks": 122,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -14283,7 +13851,9 @@
         "automated": 103,
         "partial": 19
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.nist_csf",
@@ -14549,15 +14119,12 @@
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
         "aws.s3.versioning",
-        "aws_account_expected_organization_master",
         "aws_cloudfront_origin_failover_configured",
         "aws_eks_cluster_current_supported_version",
         "aws_nist_acm_certificate_expires_30_days",
         "aws_nist_apigateway_stage_cache_encryption_at_rest_enabled",
         "aws_nist_apigateway_stage_logging_enabled",
         "aws_nist_autoscaling_use_multiple_instance_types_in_multiple_az",
-        "aws_nist_backup_plan_min_retention_35_days",
-        "aws_nist_cloudformation_stack_drift_detection_check",
         "aws_nist_cloudtrail_s3_logging_enabled",
         "aws_nist_cloudtrail_trail_integrated_with_logs",
         "aws_nist_cloudtrail_trail_logs_encrypted_with_kms_cmk",
@@ -14566,7 +14133,6 @@
         "aws_nist_config_enabled_all_regions",
         "aws_nist_dynamodb_table_encrypted_with_kms",
         "aws_nist_ec2_instance_not_publicly_accessible",
-        "aws_nist_ecs_task_definition_container_environment_no_secret",
         "aws_nist_efs_access_point_enforce_root_directory",
         "aws_nist_efs_file_system_in_backup_plan",
         "aws_nist_elasticache_redis_cluster_automatic_backup_retention_15_days",
@@ -14574,19 +14140,16 @@
         "aws_nist_emr_cluster_master_nodes_no_public_ip",
         "aws_nist_iam_all_policy_no_service_wild_card",
         "aws_nist_iam_policy_no_star_star",
-        "aws_nist_lambda_function_use_latest_runtime",
         "aws_nist_opensearch_domain_logs_to_cloudwatch",
         "aws_nist_rds_db_cluster_aurora_backtracking_enabled",
         "aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled",
         "aws_nist_s3_bucket_cross_region_replication_enabled",
         "aws_nist_secretsmanager_secret_automatic_rotation_enabled",
         "aws_nist_sns_topic_notification_delivery_status_enabled",
-        "aws_nist_vpc_configured_to_use_vpc_endpoints",
-        "aws_nist_vpc_igw_attached_to_authorized_vpc",
         "aws_nist_waf_web_acl_logging_enabled",
         "aws_nist_waf_web_acl_resource_associated"
       ],
-      "supported_native_checks": 290,
+      "supported_native_checks": 283,
       "source_checks": 251,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -14598,7 +14161,9 @@
         "automated": 215,
         "partial": 36
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 7
     },
     {
       "id": "aws-compliance.benchmark.nist_csf_v2",
@@ -14818,9 +14383,7 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
         "aws.sqs.encryption",
-        "aws_account_expected_organization_master",
         "aws_autoscaling_userdata_plaintext_aws_key",
-        "aws_cis_vpc_service_endpoints_required",
         "aws_config_all_resources_recorded",
         "aws_g6_acm_all_certificates_30_day_expiry",
         "aws_g6_all_cloudtrail_destination_bucket_access_logging",
@@ -14835,16 +14398,14 @@
         "aws_g6_iam_all_policy_service_wildcard",
         "aws_g6_iam_all_policy_star_star",
         "aws_g6_rds_cluster_members_enhanced_monitoring",
-        "aws_g6_sns_no_named_cross_account_principals",
         "aws_guardduty_no_active_high_findings",
         "aws_inspector2_ec2_no_high_critical_findings",
         "aws_msk_in_cluster_tls_enabled",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_common_ports_ipv6_all",
         "aws_security_group_ssh_ipv6_all",
         "aws_security_group_tcp_udp_ipv6_all"
       ],
-      "supported_native_checks": 233,
+      "supported_native_checks": 229,
       "source_checks": 204,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -14856,7 +14417,9 @@
         "automated": 179,
         "partial": 25
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 4
     },
     {
       "id": "aws-compliance.benchmark.nydfs_23",
@@ -14990,8 +14553,6 @@
         "aws.lambda.vpc_configuration",
         "aws.pci.apigateway.all_methods_cache_encrypted",
         "aws.pci.apigateway.all_methods_logging",
-        "aws.pci.vpc.authorized_igw_attachment",
-        "aws.pci.vpc.world_ingress_authorized_ports",
         "aws.rds.deletion_protection",
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint",
@@ -15010,11 +14571,10 @@
         "aws_g6_emr_master_nodes_no_public_address",
         "aws_g6_iam_all_policy_star_star",
         "aws_g6_rds_cluster_members_enhanced_monitoring",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_common_ports_ipv6_all",
         "aws_security_group_ssh_ipv6_all"
       ],
-      "supported_native_checks": 145,
+      "supported_native_checks": 142,
       "source_checks": 126,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -15026,7 +14586,9 @@
         "automated": 105,
         "partial": 21
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "aws-compliance.benchmark.pci_dss_v321",
@@ -15191,10 +14753,9 @@
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
         "aws.s3.versioning",
-        "aws.sns.kms_encryption",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 155,
+      "supported_native_checks": 154,
       "source_checks": 149,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -15206,7 +14767,9 @@
         "automated": 145,
         "partial": 4
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.pci_dss_v40",
@@ -15476,10 +15039,9 @@
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
         "aws.s3.versioning",
-        "aws.sns.kms_encryption",
-        "aws_nist_backup_plan_min_retention_35_days"
+        "aws.sns.kms_encryption"
       ],
-      "supported_native_checks": 260,
+      "supported_native_checks": 259,
       "source_checks": 253,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -15491,7 +15053,9 @@
         "automated": 246,
         "partial": 7
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.rbi_cyber_security",
@@ -15594,7 +15158,6 @@
         "aws.gap.securityhub.region_hub_enabled",
         "aws.lambda.vpc_configuration",
         "aws.pci.apigateway.all_methods_cache_encrypted",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.auto_minor_upgrade",
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint",
@@ -15605,7 +15168,7 @@
         "aws_security_group_ssh_ipv6_all",
         "aws_security_group_tcp_udp_ipv6_all"
       ],
-      "supported_native_checks": 101,
+      "supported_native_checks": 100,
       "source_checks": 90,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -15617,7 +15180,9 @@
         "automated": 82,
         "partial": 8
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-compliance.benchmark.rbi_itf_nbfc",
@@ -15747,18 +15312,16 @@
         "aws.gap.securityhub.region_hub_enabled",
         "aws.lambda.dead_letter_queue",
         "aws.lambda.vpc_configuration",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.auto_minor_upgrade",
         "aws.rds.deletion_protection",
         "aws.rds.no_public_endpoint",
         "aws.s3.access_logging",
         "aws.s3.versioning",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_common_ports_ipv6_all",
         "aws_security_group_ssh_ipv6_all",
         "aws_security_group_tcp_udp_ipv6_all"
       ],
-      "supported_native_checks": 128,
+      "supported_native_checks": 126,
       "source_checks": 118,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -15770,7 +15333,9 @@
         "automated": 109,
         "partial": 9
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "aws-compliance.benchmark.soc_2",
@@ -15908,7 +15473,6 @@
         "aws.lambda.dead_letter_queue",
         "aws.lambda.vpc_configuration",
         "aws.pci.apigateway.all_methods_cache_encrypted",
-        "aws.pci.vpc.authorized_igw_attachment",
         "aws.rds.deletion_protection",
         "aws.rds.encryption",
         "aws.rds.no_public_endpoint",
@@ -15916,12 +15480,11 @@
         "aws.s3.versioning",
         "aws.sns.kms_encryption",
         "aws_config_recorder_all_supported_resources",
-        "aws_nist_backup_plan_min_retention_35_days",
         "aws_security_group_common_ports_ipv6_all",
         "aws_security_group_ssh_ipv6_all",
         "aws_security_group_tcp_udp_ipv6_all"
       ],
-      "supported_native_checks": 138,
+      "supported_native_checks": 136,
       "source_checks": 126,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -15933,7 +15496,9 @@
         "automated": 116,
         "partial": 10
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "aws-perimeter.benchmark.network_access",
@@ -15961,10 +15526,9 @@
         "aws.claude_a.vpc.subnet_no_auto_public_ip",
         "aws.gap.vpc.sg_world_any_common_ports",
         "aws.lambda.vpc_configuration",
-        "aws.rds.vpc_configuration",
-        "aws_vpc_peering_trusted_accounts"
+        "aws.rds.vpc_configuration"
       ],
-      "supported_native_checks": 18,
+      "supported_native_checks": 17,
       "source_checks": 18,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -15975,7 +15539,9 @@
       "requirements_by_status": {
         "automated": 18
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "aws-perimeter.benchmark.public_access",
@@ -16032,7 +15598,8 @@
         "automated": 31,
         "partial": 1
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "aws-perimeter.benchmark.shared_access",
@@ -16068,7 +15635,8 @@
         "automated": 7,
         "partial": 5
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "azure-compliance.benchmark.cis_v130",
@@ -16086,14 +15654,10 @@
         "azure.app.https_only",
         "azure.app.minimum_tls",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
-        "azure.cis.endpoint_protection_vms_installed",
         "azure.cis.enforce_ssl_connection_mysql_server",
         "azure.cis.guest_users_reviewed_monthly_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.latest_os_patches_vms_applied",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.postgresql_single_connection_throttling",
         "azure.cis.postgresql_single_log_checkpoints",
@@ -16102,7 +15666,6 @@
         "azure.cis.postgresql_single_log_retention_days",
         "azure.cis.postgresql_single_no_azure_services_rule",
         "azure.cis.postgresql_single_ssl_enforcement",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_subscription_nsg_delete",
         "azure.claude.activity_log_alert_subscription_nsg_rule_write",
         "azure.claude.activity_log_alert_subscription_nsg_write",
@@ -16185,7 +15748,7 @@
         "azure.storage.no_blob_public_access",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 104,
+      "supported_native_checks": 99,
       "source_checks": 111,
       "pending_source_checks": 0,
       "manual_requirements": 35,
@@ -16198,7 +15761,9 @@
         "manual": 16,
         "partial": 27
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 5
     },
     {
       "id": "azure-compliance.benchmark.cis_v140",
@@ -16216,15 +15781,11 @@
         "azure.app.https_only",
         "azure.app.minimum_tls",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
-        "azure.cis.endpoint_protection_vms_installed",
         "azure.cis.enforce_ssl_connection_mysql_server",
         "azure.cis.guest_users_reviewed_monthly_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.latest_os_patches_vms_applied",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.postgresql_single_connection_throttling",
         "azure.cis.postgresql_single_log_checkpoints",
@@ -16233,7 +15794,6 @@
         "azure.cis.postgresql_single_log_retention_days",
         "azure.cis.postgresql_single_no_azure_services_rule",
         "azure.cis.postgresql_single_ssl_enforcement",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_subscription_nsg_delete",
         "azure.claude.activity_log_alert_subscription_nsg_rule_delete",
         "azure.claude.activity_log_alert_subscription_nsg_rule_write",
@@ -16321,7 +15881,7 @@
         "azure.storage.no_blob_public_access",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 110,
+      "supported_native_checks": 105,
       "source_checks": 115,
       "pending_source_checks": 0,
       "manual_requirements": 34,
@@ -16334,7 +15894,9 @@
         "manual": 16,
         "partial": 29
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 5
     },
     {
       "id": "azure-compliance.benchmark.cis_v150",
@@ -16352,17 +15914,11 @@
         "azure.app.minimum_tls",
         "azure.cis.access_review_up_external_users_in_entra_privileged_identity_694482",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provision_defender_containers_components",
         "azure.cis.auto_provision_vulnerability_assessment_machines",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
-        "azure.cis.endpoint_protection_vms_installed",
         "azure.cis.enforce_ssl_connection_mysql_server",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_non_privileged_users",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.multifactor_authentication_policy_exists_administrative_groups",
@@ -16377,7 +15933,6 @@
         "azure.cis.postgresql_single_log_retention_days",
         "azure.cis.postgresql_single_no_azure_services_rule",
         "azure.cis.postgresql_single_ssl_enforcement",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_subscription_nsg_delete",
         "azure.claude.activity_log_alert_subscription_nsg_write",
         "azure.claude.activity_log_alert_subscription_policy_assignment_delete",
@@ -16493,7 +16048,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 146,
+      "supported_native_checks": 139,
       "source_checks": 146,
       "pending_source_checks": 0,
       "manual_requirements": 45,
@@ -16506,7 +16061,9 @@
         "manual": 17,
         "partial": 42
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 7
     },
     {
       "id": "azure-compliance.benchmark.cis_v200",
@@ -16524,17 +16081,12 @@
         "azure.app.minimum_tls",
         "azure.cis.access_review_up_external_users_in_entra_privileged_identity_694482",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provision_defender_containers_components",
         "azure.cis.auto_provision_vulnerability_assessment_machines",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.enforce_ssl_connection_mysql_server",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_non_privileged_users",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.multifactor_authentication_policy_exists_administrative_groups",
@@ -16549,7 +16101,6 @@
         "azure.cis.postgresql_single_log_retention_days",
         "azure.cis.postgresql_single_no_azure_services_rule",
         "azure.cis.postgresql_single_ssl_enforcement",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_subscription_nsg_delete",
         "azure.claude.activity_log_alert_subscription_nsg_write",
         "azure.claude.activity_log_alert_subscription_policy_assignment_delete",
@@ -16674,7 +16225,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 155,
+      "supported_native_checks": 149,
       "source_checks": 154,
       "pending_source_checks": 0,
       "manual_requirements": 46,
@@ -16687,7 +16238,9 @@
         "manual": 16,
         "partial": 45
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "azure-compliance.benchmark.cis_v210",
@@ -16704,17 +16257,12 @@
         "azure.app.https_only",
         "azure.app.minimum_tls",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provision_defender_containers_components",
         "azure.cis.auto_provision_vulnerability_assessment_machines",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.enforce_ssl_connection_mysql_server",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_non_privileged_users",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.multifactor_authentication_policy_exists_administrative_groups",
@@ -16729,7 +16277,6 @@
         "azure.cis.postgresql_single_log_retention_days",
         "azure.cis.postgresql_single_no_azure_services_rule",
         "azure.cis.postgresql_single_ssl_enforcement",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_subscription_nsg_delete",
         "azure.claude.activity_log_alert_subscription_nsg_write",
         "azure.claude.activity_log_alert_subscription_policy_assignment_delete",
@@ -16852,7 +16399,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 152,
+      "supported_native_checks": 146,
       "source_checks": 152,
       "pending_source_checks": 0,
       "manual_requirements": 48,
@@ -16865,7 +16412,9 @@
         "manual": 16,
         "partial": 45
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "azure-compliance.benchmark.cis_v300",
@@ -16884,16 +16433,11 @@
         "azure.cis.agentless_discovery_kubernetes_component_status",
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.app_service_entra_registration_enabled",
-        "azure.cis.auto_provisioning_log_analytics_agent_vms",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
-        "azure.cis.exclusionary_device_code_flow_policy_considered",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.file_integrity_monitoring_component_status",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.key_vaults_store_secrets",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_auth_status_non_privileged_users",
         "azure.cis.multifactor_auth_status_privileged_users",
         "azure.cis.multifactor_authentication_policy_exists_administrative_groups",
@@ -16901,7 +16445,6 @@
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.postgresql_single_log_connections",
         "azure.cis.postgresql_single_log_disconnections",
-        "azure.cis.shared_access_signature_tokens_expire_within_hour",
         "azure.claude.activity_log_alert_subscription_nsg_delete",
         "azure.claude.activity_log_alert_subscription_nsg_write",
         "azure.claude.activity_log_alert_subscription_policy_assignment_delete",
@@ -17040,7 +16583,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 162,
+      "supported_native_checks": 156,
       "source_checks": 162,
       "pending_source_checks": 0,
       "manual_requirements": 53,
@@ -17053,7 +16596,9 @@
         "manual": 17,
         "partial": 46
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "azure-compliance.benchmark.cis_v400",
@@ -17067,14 +16612,8 @@
       "native_check_ids": [
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
-        "azure.cis.entra_activity_diagnostic",
-        "azure.cis.entra_graph_activity_diagnostic",
-        "azure.cis.exclusionary_device_code_flow_policy_considered",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.file_integrity_monitoring_component_status",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.intune_logs_captured_sent_log_analytics",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.mysql_flexible_cmk",
@@ -17169,12 +16708,10 @@
         "azure.claude2.vnet_flow_logs_to_log_analytics",
         "azure.claude2.web_app_diagnostic_http_log_category",
         "azure.disk.private_export",
-        "azure.gap.mysql_server_private_link_used",
         "azure.gap.nsg_declared_internet_http_https",
         "azure.gap.nsg_declared_internet_rdp",
         "azure.gap.nsg_declared_internet_ssh",
         "azure.gap.nsg_declared_internet_udp_services",
-        "azure.gap.postgres_server_private_link_used",
         "azure.port.ad_authorization_policy_guest_invite_restricted",
         "azure.port.ad_authorization_policy_guest_user_access_restricted",
         "azure.port.ad_authorization_policy_user_consent_disallowed",
@@ -17242,7 +16779,7 @@
         "azure.vault.no_public_network",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 176,
+      "supported_native_checks": 168,
       "source_checks": 192,
       "pending_source_checks": 0,
       "manual_requirements": 53,
@@ -17255,7 +16792,9 @@
         "manual": 22,
         "partial": 50
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 8
     },
     {
       "id": "azure-compliance.benchmark.cis_v500",
@@ -17269,14 +16808,8 @@
       "native_check_ids": [
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
-        "azure.cis.entra_activity_diagnostic",
-        "azure.cis.entra_graph_activity_diagnostic",
-        "azure.cis.exclusionary_device_code_flow_policy_considered",
-        "azure.cis.exclusionary_geographic_access_policy_considered",
         "azure.cis.file_integrity_monitoring_component_status",
         "azure.cis.guest_users_reviewed_regular_basis",
-        "azure.cis.intune_logs_captured_sent_log_analytics",
-        "azure.cis.monitor_resource_logging_services_support_it",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.non_privileged_role_assignments_periodically_reviewed",
@@ -17409,7 +16942,7 @@
         "azure.vault.purge_protection",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 141,
+      "supported_native_checks": 135,
       "source_checks": 155,
       "pending_source_checks": 0,
       "manual_requirements": 42,
@@ -17422,7 +16955,9 @@
         "manual": 24,
         "partial": 40
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "azure-compliance.benchmark.fedramp_high",
@@ -17564,13 +17099,8 @@
         "azure.claude2.web_app_managed_identity",
         "azure.gap.appservice_api_app_latest_tls_version",
         "azure.gap.compute_vm_remote_access_restricted_all_ports",
-        "azure.gap.compute_vm_system_updates_installed",
         "azure.gap.compute_vm_tcp_udp_access_restricted_internet",
-        "azure.gap.kubernetes_cluster_upgraded_with_non_vulnerable_version",
-        "azure.gap.mysql_server_private_link_used",
         "azure.gap.nsg_declared_internet_remote_access",
-        "azure.gap.postgres_server_private_link_used",
-        "azure.gap.postgres_sql_server_encrypted_at_rest_using_cmk",
         "azure.gap.postgresql_server_infrastructure_encryption_enabled",
         "azure.gap.sql_database_long_term_geo_redundant_backup_enabled",
         "azure.port.apimanagement_service_with_virtual_network",
@@ -17604,7 +17134,7 @@
         "azure.vault.purge_protection",
         "azure.vault.soft_delete"
       ],
-      "supported_native_checks": 169,
+      "supported_native_checks": 164,
       "source_checks": 177,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -17618,7 +17148,9 @@
         "not_applicable": 12,
         "partial": 28
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 5
     },
     {
       "id": "azure-compliance.benchmark.hipaa_hitrust_v92",
@@ -17699,25 +17231,8 @@
         "azure.claude2.web_app_client_certificates",
         "azure.claude2.web_app_diagnostic_logs_enabled",
         "azure.gap.appservice_api_app_latest_tls_version",
-        "azure.gap.appservice_web_app_use_virtual_service_endpoint",
-        "azure.gap.audit_diagnostic_setting",
-        "azure.gap.compute_vm_adaptive_application_controls_enabled",
-        "azure.gap.compute_vm_adaptive_network_hardening_recommendation_applied",
-        "azure.gap.compute_vm_administrators_group_with_extra_accounts_windows",
-        "azure.gap.compute_vm_administrators_group_with_no_specified_members_windows",
-        "azure.gap.compute_vm_administrators_group_with_specified_members_windows",
-        "azure.gap.compute_vm_attached_with_network",
-        "azure.gap.compute_vm_container_security_configurations_vulnerabilities_remediated",
-        "azure.gap.compute_vm_malware_agent_automatic_upgrade_enabled",
-        "azure.gap.compute_vm_meet_firewall_properties_windows",
         "azure.gap.compute_vm_remote_access_restricted_all_ports",
-        "azure.gap.compute_vm_scale_set_endpoint_protection_solution_installed",
-        "azure.gap.compute_vm_scale_set_security_configuration_vulnerabilities_remediated",
-        "azure.gap.compute_vm_scale_set_system_updates_installed",
-        "azure.gap.compute_vm_system_updates_installed",
         "azure.gap.compute_vm_tcp_udp_access_restricted_internet",
-        "azure.gap.compute_vm_with_no_specified_certificates_in_trusted_root_windows",
-        "azure.gap.iam_user_with_read_permission_on_subscription_mfa_enabled",
         "azure.gap.monitor_log_profile_enabled_for_all_categories",
         "azure.gap.network_security_group_rdp_access_restricted",
         "azure.gap.nsg_declared_internet_remote_access",
@@ -17729,7 +17244,7 @@
         "azure.storage.https_only",
         "azure.vault.purge_protection"
       ],
-      "supported_native_checks": 98,
+      "supported_native_checks": 81,
       "source_checks": 105,
       "pending_source_checks": 0,
       "manual_requirements": 25,
@@ -17742,7 +17257,9 @@
         "not_applicable": 9,
         "partial": 39
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 17
     },
     {
       "id": "azure-compliance.benchmark.nist_csf_v2",
@@ -17803,8 +17320,6 @@
         "azure.claude2.iam_no_custom_owner_roles",
         "azure.claude2.nsg_flow_log_configured",
         "azure.gap.appservice_api_app_latest_tls_version",
-        "azure.gap.compute_vm_scale_set_automatic_upgrade_enabled",
-        "azure.gap.compute_vm_system_updates_installed",
         "azure.gap.monitor_log_profile_enabled_for_all_categories",
         "azure.gap.monitor_log_profile_retention_365_days",
         "azure.gap.sql_database_long_term_geo_redundant_backup_enabled",
@@ -17826,7 +17341,7 @@
         "azure.vault.purge_protection",
         "azure.vault.soft_delete"
       ],
-      "supported_native_checks": 71,
+      "supported_native_checks": 69,
       "source_checks": 70,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -17839,7 +17354,9 @@
         "not_applicable": 3,
         "partial": 20
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "azure-compliance.benchmark.nist_sp_800_171_rev_2",
@@ -17981,15 +17498,9 @@
         "azure.claude2.web_app_incoming_client_cert",
         "azure.claude2.web_app_managed_identity",
         "azure.gap.appservice_api_app_latest_tls_version",
-        "azure.gap.compute_vm_malware_agent_automatic_upgrade_enabled",
         "azure.gap.compute_vm_remote_access_restricted_all_ports",
-        "azure.gap.compute_vm_system_updates_installed",
         "azure.gap.compute_vm_tcp_udp_access_restricted_internet",
-        "azure.gap.kubernetes_cluster_upgraded_with_non_vulnerable_version",
-        "azure.gap.mysql_server_private_link_used",
         "azure.gap.nsg_declared_internet_remote_access",
-        "azure.gap.postgres_server_private_link_used",
-        "azure.gap.postgres_sql_server_encrypted_at_rest_using_cmk",
         "azure.gap.postgresql_server_infrastructure_encryption_enabled",
         "azure.port.apimanagement_service_with_virtual_network",
         "azure.port.app_configuration_private_link_used",
@@ -18025,7 +17536,7 @@
         "azure.vault.purge_protection",
         "azure.vault.soft_delete"
       ],
-      "supported_native_checks": 173,
+      "supported_native_checks": 167,
       "source_checks": 183,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -18039,7 +17550,9 @@
         "not_applicable": 12,
         "partial": 27
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 6
     },
     {
       "id": "azure-compliance.benchmark.nist_sp_800_53_rev_5",
@@ -18197,43 +17710,20 @@
         "azure.gap.appservice_api_app_latest_tls_version",
         "azure.gap.arc_kubernetes_cluster_azure_defender_extension_installed",
         "azure.gap.automation_account_encrypted_with_cmk",
-        "azure.gap.bot_service_encrypted_with_cmk",
-        "azure.gap.compute_vm_adaptive_application_controls_enabled",
-        "azure.gap.compute_vm_adaptive_network_hardening_recommendation_applied",
-        "azure.gap.compute_vm_container_security_configurations_vulnerabilities_remediated",
-        "azure.gap.compute_vm_image_builder_uses_private_link",
-        "azure.gap.compute_vm_password_file_permissions_0644_linux",
         "azure.gap.compute_vm_remote_access_restricted_all_ports",
-        "azure.gap.compute_vm_scale_set_endpoint_protection_solution_installed",
-        "azure.gap.compute_vm_scale_set_security_configuration_vulnerabilities_remediated",
-        "azure.gap.compute_vm_scale_set_system_updates_installed",
-        "azure.gap.compute_vm_system_updates_installed",
         "azure.gap.compute_vm_tcp_udp_access_restricted_internet",
-        "azure.gap.compute_vm_vulnerability_findings_resolved_for_sql_server",
-        "azure.gap.container_registry_vulnerabilities_remediated",
-        "azure.gap.databox_job_double_encryption_enabled",
-        "azure.gap.databox_job_unlock_password_encrypted_with_cmk",
-        "azure.gap.iam_user_with_read_permission_on_subscription_mfa_enabled",
-        "azure.gap.iot_hub_encrypted_with_cmk",
         "azure.gap.kubernetes_cluster_container_cpu_and_memory_resource_limit",
         "azure.gap.kubernetes_cluster_container_use_allowed_apparmor_profile",
         "azure.gap.kubernetes_cluster_container_use_allowed_images",
         "azure.gap.kubernetes_cluster_https_enabled",
-        "azure.gap.kubernetes_cluster_pods_and_containers_uses_approved_user_and_group_id",
         "azure.gap.kubernetes_cluster_service_listen_to_allowed_ports",
-        "azure.gap.kubernetes_cluster_upgraded_with_non_vulnerable_version",
         "azure.gap.logic_app_integration_service_environment_encrypted_with_cmk",
         "azure.gap.machine_learning_workspace_private_link_used",
         "azure.gap.monitor_log_analytics_workspace_integrated_with_encrypted_storage_account",
         "azure.gap.monitor_log_cluster_encrypted_with_cmk",
         "azure.gap.monitor_log_cluster_infrastructure_encryption_enabled",
-        "azure.gap.mysql_server_private_link_used",
-        "azure.gap.network_subnet_protected_by_firewall",
         "azure.gap.nsg_declared_internet_remote_access",
-        "azure.gap.postgres_server_private_link_used",
-        "azure.gap.postgres_sql_server_encrypted_at_rest_using_cmk",
         "azure.gap.postgresql_server_infrastructure_encryption_enabled",
-        "azure.gap.recovery_service_vault_encrypted_with_cmk",
         "azure.gap.sql_database_long_term_geo_redundant_backup_enabled",
         "azure.gap.stream_analytics_job_encrypted_with_cmk",
         "azure.gap.web_pub_sub_private_link_used",
@@ -18272,7 +17762,7 @@
         "azure.vault.purge_protection",
         "azure.vault.soft_delete"
       ],
-      "supported_native_checks": 220,
+      "supported_native_checks": 197,
       "source_checks": 239,
       "pending_source_checks": 0,
       "manual_requirements": 48,
@@ -18286,7 +17776,9 @@
         "not_applicable": 12,
         "partial": 36
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 23
     },
     {
       "id": "azure-compliance.benchmark.pci_dss_v321",
@@ -18333,10 +17825,9 @@
         "azure.storage.https_only",
         "azure.vm.encryption_at_host",
         "azure_role_assignment_iam_user_with_owner_permission_on_subscription_mfa_enabled_8bf88f9",
-        "azure_role_assignment_iam_user_with_write_permission_on_subscription_mfa_enabled_d1806c1",
-        "azure_security_pricing_compute_vm_security_configuration_vulnerabilities_remediated_64c8b1c"
+        "azure_role_assignment_iam_user_with_write_permission_on_subscription_mfa_enabled_d1806c1"
       ],
-      "supported_native_checks": 37,
+      "supported_native_checks": 36,
       "source_checks": 36,
       "pending_source_checks": 0,
       "manual_requirements": 6,
@@ -18349,7 +17840,9 @@
         "not_applicable": 2,
         "partial": 16
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "azure-compliance.benchmark.rbi_itf_nbfc_v2017",
@@ -18432,14 +17925,11 @@
         "azure.claude2.web_app_client_certificates",
         "azure.gap.appservice_api_app_latest_tls_version",
         "azure.gap.compute_vm_remote_access_restricted_all_ports",
-        "azure.gap.compute_vm_system_updates_installed",
         "azure.gap.compute_vm_tcp_udp_access_restricted_internet",
-        "azure.gap.kubernetes_cluster_upgraded_with_non_vulnerable_version",
         "azure.gap.monitor_log_profile_enabled_for_all_categories",
         "azure.gap.monitor_log_profile_retention_365_days",
         "azure.gap.nsg_declared_internet_remote_access",
         "azure.gap.postgres_db_server_log_duration_on",
-        "azure.gap.postgres_sql_server_encrypted_at_rest_using_cmk",
         "azure.gap.postgresql_server_infrastructure_encryption_enabled",
         "azure.gap.sql_database_long_term_geo_redundant_backup_enabled",
         "azure.port.app_configuration_encryption_enabled",
@@ -18460,7 +17950,7 @@
         "azure.vault.purge_protection",
         "azure.vault.soft_delete"
       ],
-      "supported_native_checks": 98,
+      "supported_native_checks": 95,
       "source_checks": 96,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -18474,7 +17964,9 @@
         "not_applicable": 4,
         "partial": 33
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 3
     },
     {
       "id": "azure-perimeter.benchmark.network_access",
@@ -18508,7 +18000,8 @@
         "automated": 2,
         "partial": 6
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "azure-perimeter.benchmark.public_access",
@@ -18538,7 +18031,8 @@
         "automated": 4,
         "partial": 2
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.cft_scorecard_v1",
@@ -18550,7 +18044,6 @@
       "source_revision": "3ac653021a284b68c69b14c75afa2ebc1feff665",
       "repository": "turbot/steampipe-mod-gcp-compliance",
       "native_check_ids": [
-        "gcp.appengine.service_version_count",
         "gcp.claude.bigquery_dataset.no_gmail_access",
         "gcp.claude.bigquery_dataset.no_googlegroups_access",
         "gcp.claude.dns_zone.ksk_not_rsasha1",
@@ -18578,7 +18071,7 @@
         "gcp.storage.uniform_access",
         "gcp.subnetwork.private_google_access"
       ],
-      "supported_native_checks": 27,
+      "supported_native_checks": 26,
       "source_checks": 26,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -18590,7 +18083,9 @@
         "automated": 21,
         "partial": 5
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "gcp-compliance.benchmark.cis_v120",
@@ -18698,7 +18193,8 @@
         "manual": 1,
         "partial": 18
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.cis_v130",
@@ -18727,7 +18223,6 @@
         "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes",
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.gap.sql_3625_trace_flag_off_cis_v1",
@@ -18793,7 +18288,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 82,
+      "supported_native_checks": 81,
       "source_checks": 83,
       "pending_source_checks": 0,
       "manual_requirements": 11,
@@ -18806,7 +18301,9 @@
         "manual": 1,
         "partial": 22
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "gcp-compliance.benchmark.cis_v200",
@@ -18836,7 +18333,6 @@
         "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes",
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.gap.sql_3625_trace_flag_off_cis_v1",
@@ -18902,7 +18398,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 83,
+      "supported_native_checks": 82,
       "source_checks": 84,
       "pending_source_checks": 0,
       "manual_requirements": 8,
@@ -18915,7 +18411,9 @@
         "manual": 1,
         "partial": 23
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 1
     },
     {
       "id": "gcp-compliance.benchmark.cis_v300",
@@ -18929,7 +18427,6 @@
       "native_check_ids": [
         "gcp.apikeys.active_service_restrictions",
         "gcp.appengine.version_https_only",
-        "gcp.bigquery.table_classification_tags",
         "gcp.claude.bucket.log_sink_retention_locked",
         "gcp.claude.dns_zone.dnssec_enabled",
         "gcp.claude.dns_zone.ksk_not_rsasha1",
@@ -18945,7 +18442,6 @@
         "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes",
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.htbp.function.secret_env_from_secret_manager",
@@ -19011,7 +18507,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 83,
+      "supported_native_checks": 81,
       "source_checks": 84,
       "pending_source_checks": 0,
       "manual_requirements": 8,
@@ -19024,7 +18520,9 @@
         "manual": 1,
         "partial": 24
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "gcp-compliance.benchmark.cis_v400",
@@ -19038,7 +18536,6 @@
       "native_check_ids": [
         "gcp.apikeys.active_service_restrictions",
         "gcp.appengine.version_https_only",
-        "gcp.bigquery.table_classification_tags",
         "gcp.claude.bucket.log_sink_retention_locked",
         "gcp.claude.dns_zone.dnssec_enabled",
         "gcp.claude.dns_zone.ksk_not_rsasha1",
@@ -19054,7 +18551,6 @@
         "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes",
         "gcp.claude2.logging.sink_all_log_entries",
         "gcp.claude2.sql_instance.only_private_ip_addresses",
-        "gcp.compute.os_patch_compliance",
         "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only",
         "gcp.gap.iam_user_managed_sa_no_admin_roles",
         "gcp.htbp.function.secret_env_from_secret_manager",
@@ -19120,7 +18616,7 @@
         "gcp.storage.no_public_iam",
         "gcp.storage.uniform_access"
       ],
-      "supported_native_checks": 83,
+      "supported_native_checks": 81,
       "source_checks": 84,
       "pending_source_checks": 0,
       "manual_requirements": 8,
@@ -19133,7 +18629,9 @@
         "manual": 1,
         "partial": 24
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "requirement_counts_scope": "reviewed_source_reference",
+      "excluded_custom_checks": 2
     },
     {
       "id": "gcp-compliance.benchmark.forseti_security_v226",
@@ -19168,7 +18666,8 @@
         "automated": 6,
         "partial": 4
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.hipaa",
@@ -19224,7 +18723,8 @@
         "automated": 27,
         "partial": 4
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.nist_800_53_rev_5",
@@ -19316,7 +18816,8 @@
         "automated": 55,
         "partial": 12
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.nist_csf_v10",
@@ -19403,7 +18904,8 @@
         "automated": 52,
         "partial": 10
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.nist_csf_v2",
@@ -19547,7 +19049,8 @@
         "automated": 108,
         "partial": 14
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.pci_dss_v321",
@@ -19630,7 +19133,8 @@
         "manual": 1,
         "partial": 1
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-compliance.benchmark.soc_2_2017",
@@ -19710,7 +19214,8 @@
         "automated": 45,
         "partial": 10
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-perimeter.benchmark.iam_policy_public_access",
@@ -19742,7 +19247,8 @@
       "requirements_by_status": {
         "automated": 8
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-perimeter.benchmark.iam_policy_shared_access",
@@ -19784,7 +19290,8 @@
       "requirements_by_status": {
         "automated": 18
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "gcp-perimeter.benchmark.network_access",
@@ -19817,7 +19324,8 @@
         "automated": 6,
         "partial": 1
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "kubernetes-compliance.benchmark.cis_kube_v120",
@@ -19888,7 +19396,8 @@
         "automated": 16,
         "partial": 19
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "kubernetes-compliance.benchmark.cis_v170",
@@ -19953,7 +19462,8 @@
         "automated": 16,
         "partial": 13
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     },
     {
       "id": "kubernetes-compliance.benchmark.nsa_cisa_v1",
@@ -20079,7 +19589,8 @@
         "automated": 95,
         "partial": 5
       },
-      "pending_automatable_requirements": 0
+      "pending_automatable_requirements": 0,
+      "excluded_custom_checks": 0
     }
   ]
 }

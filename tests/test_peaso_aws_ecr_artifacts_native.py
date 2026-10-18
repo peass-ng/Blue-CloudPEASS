@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from test_peaso_aws_bulk_inventory import sdk,ACCOUNT,REGION
 from peaso.collectors import aws,collect_live
 from peaso.collectors import aws_ecr_artifacts_native as native
-from peaso.engine import evaluate_snapshot,collect_snapshot
+from tests.archived_check_contract import evaluate_snapshot, collect_snapshot
 SIGN='aws_ecr_image_provenance';SBOM='aws_ecr_sbom_present';REPO='native-fixture'
 URL='https://native-bucket.s3.us-east-1.amazonaws.com/blob?X-Amz-Signature=private-query'
 sha=lambda b:'sha256:'+hashlib.sha256(b).hexdigest()

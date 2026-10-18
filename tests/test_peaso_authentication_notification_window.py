@@ -5,7 +5,7 @@ notification-delivery observations acquired from a cloud service.
 """
 from datetime import datetime, timedelta
 from peaso.snapshot import make_snapshot
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 CID='azure_c5_iam_03_01ac'
 TENANT='22222222-2222-2222-2222-222222222222'

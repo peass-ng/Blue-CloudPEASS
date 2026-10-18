@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 CASES = json.loads((Path(__file__).parent / "fixtures/bulk_pending_behavior.json").read_text())

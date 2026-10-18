@@ -3,7 +3,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import pytest
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 CID = 'azure_app_service_app_function_latest_runtime_version_f50215a'
 DATA = json.loads((Path(__file__).parent / 'fixtures/bulk_pending_behavior.json').read_text())

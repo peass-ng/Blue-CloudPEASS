@@ -3,7 +3,7 @@ import copy
 import json
 import pytest
 from peaso.collectors import gcp
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.snapshot import seal
 
 CID = "gcp_cloudsql_failed_attempts_lockout"

@@ -211,7 +211,7 @@ def test_logs_transport_rejects_other_origins_before_reading_credentials(url):
 def engine_case(monkeypatch, cid, *, mode="ok", disabled_rule=False, dialect="sw11-v1", include_both=False,
                 source_override=None, table="AzureActivity", verified_tenant=None, unrelated_unresolved=False):
     from peaso.collectors import collect_live
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     group = ROOT + "Microsoft.Insights/actionGroups/response"
     rule = ROOT + "Microsoft.Insights/scheduledQueryRules/detection"
     source = source_override or (ROOT + "Microsoft.Compute/virtualMachines/host" if dialect == "sw12-v1" else SOURCE)

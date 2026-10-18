@@ -141,7 +141,7 @@ def test_verified_empty_plugin_declaration_is_retained():
 
 
 def test_real_collector_to_published_check_pass_fail_unknown():
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     check_id = 'k8s.cis.configure_image_provenance_using_imagepolicywebhook_admission_controller'
     def status(api):
         report = evaluate_snapshot(snapshot(api), checks=[check_id])

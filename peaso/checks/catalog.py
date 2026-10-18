@@ -318,7 +318,8 @@ def framework_catalog():
     rows = deepcopy(runtime["frameworks"]) if runtime is not None else raw_framework_catalog(manifest())
     packed = _compliance()
     if packed is None:
-        return rows
+        from .native_only import automated_frameworks
+        return automated_frameworks(rows)
     requirement_rows = {row["id"]: row for row in packed[0]["frameworks"]}
     lookup = packed[0]["by_check"]
     ids_by_framework = {}
@@ -338,7 +339,8 @@ def framework_catalog():
         row["native_check_ids"] = sorted(ids_by_framework.get(row["id"], ()))
         row["supported_native_checks"] = len(row["native_check_ids"])
         row["status"] = "partially_supported" if row["native_check_ids"] else "pending"
-    return rows
+    from .native_only import automated_frameworks
+    return automated_frameworks(rows)
 
 
 def raw_framework_catalog(data):

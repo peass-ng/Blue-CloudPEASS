@@ -3,7 +3,7 @@ import copy
 import json
 from pathlib import Path
 import pytest
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 CID = "azure.other.enumeration_alert"

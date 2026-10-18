@@ -92,7 +92,7 @@ def cis_snapshot(mode='complete'):
         arc = BASE + 'Microsoft.HybridCompute/machines/arc'
         mapping[SCOPE + '/providers/Microsoft.HybridCompute/machines'] = {'value': [parent(arc, 'Microsoft.HybridCompute/machines', {})]}
     api = Transport(mapping)
-    from peaso.engine import plan_collection
+    from tests.archived_check_contract import plan_collection
     needed = plan_collection({'connector': {'provider': 'azure'}, 'checks': [CIS_CHECK]})
     return collect(needed, api), api
 
@@ -143,7 +143,7 @@ def test_vpn_real_tunnel_health_and_rg_roster_coverage(mode, expected):
 
 
 def test_native_selection_includes_complete_positive_cis_dependencies():
-    from peaso.engine import plan_collection
+    from tests.archived_check_contract import plan_collection
     assert NATIVE_TYPES <= set(azure.TYPES)
     needed = plan_collection({'connector': {'provider': 'azure'}, 'checks': [CIS_CHECK]})
     assert {'security_pricing', 'server_vulnerability_assessment_setting', 'arc_machine', 'arc_vulnerability_assessment_evidence'} <= set(needed)

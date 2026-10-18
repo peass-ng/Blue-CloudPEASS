@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from peaso.collectors import azure
 from peaso.collectors import azure_wave_network_controls as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 SCOPE = '/subscriptions/11111111-1111-1111-1111-111111111111'

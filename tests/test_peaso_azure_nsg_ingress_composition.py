@@ -11,7 +11,7 @@ from fastapi import HTTPException
 
 from peaso.collectors import azure
 from peaso.collectors import azure_nsg_ingress_native as native
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.server.validation import validate_connector
 from tests.test_peaso_azure_nsg_ingress_native import S, N, NIC, VNET, OPTIONS, topology, InertTransport, InertHTTPResponse
 

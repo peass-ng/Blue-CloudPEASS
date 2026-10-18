@@ -10,7 +10,7 @@ from test_peaso_aws_wave_semantics_native_integration import (
 )
 from peaso.collectors import aws, aws_wave_semantics_native as native
 from peaso.collectors.bulk_evidence import collect as collect_bulk
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 
 def _run(sdk, monkeypatch, created, records, *, finding_status='NOTIFIED',

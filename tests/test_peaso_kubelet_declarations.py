@@ -9,7 +9,7 @@ import pytest
 from peaso.checks import CHECKS, HACKTRICKS
 from peaso.checks.catalog import requirement_tags_for
 from peaso.collectors.k8s import collect
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 PID = "k8s.cis.a_limit_is_set_on_pod_pids"

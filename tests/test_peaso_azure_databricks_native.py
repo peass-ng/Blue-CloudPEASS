@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from peaso.collectors import azure,collect_live
 from peaso.collectors import azure_databricks_native as native
-from peaso.engine import collect_snapshot
+from tests.archived_check_contract import collect_snapshot
 from tests.test_peaso_azure_bulk_native import Transport,parent,SUB,SCOPE,BASE,verdict
 CHECK='azure.cis.unity_catalog_configured_databricks'
 ACCOUNT='33333333-3333-3333-3333-333333333333';META='44444444-4444-4444-4444-444444444444'

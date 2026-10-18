@@ -7,7 +7,7 @@ import pytest
 from fastapi import HTTPException
 from peaso.collectors import azure,collect_live
 from peaso.server.validation import validate_connector
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from scripts import peaso_deploy_customer_policy as policy
 from test_peaso_azure_diagnostics_storage_retention import fixture,API,SUB,SCOPE,CHECK,ROUTES
 OPS=[('iam','get_role'),('iam','get_context_keys_for_principal_policy'),('iam','simulate_principal_policy'),('codecommit','list_repositories'),('codecommit','list_pull_requests'),('codecommit','get_pull_request'),('codecommit','describe_pull_request_events'),('codecommit','get_pull_request_approval_states')]
@@ -123,7 +123,7 @@ def test_private_union_aks_databricks_and_route_policy_survive_one_public_pipeli
  from tests import test_peaso_azure_aks_workloads_native as aks
  from tests import test_peaso_azure_databricks_native as db
  from peaso.collectors import k8s
- from peaso.engine import collect_snapshot
+ from tests.archived_check_contract import collect_snapshot
  routes,_,options,auth,Api=aks.fixture(ca)
  raw=db.parent(db.RID,'Microsoft.Databricks/workspaces',{'workspaceId':'123','provisioningState':'Succeeded'})
  row={'workspace_id':123,'account_id':db.ACCOUNT,'workspace_status':'RUNNING','cloud':'azure','azure_workspace_info':{'subscription_id':db.SUB,'resource_group':'rg'}}

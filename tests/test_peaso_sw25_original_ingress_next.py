@@ -5,7 +5,7 @@ import json
 import pytest
 from pathlib import Path
 
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 GATEWAY_ID = 'azure.other.gateway_backend_health_alert'

@@ -478,7 +478,8 @@ def test_pinned_description_index_includes_native_and_seven_analysis_checks():
     from scripts.peaso_compliance_compile import ANALYSIS_IDS
     root = Path(__file__).resolve().parents[1]
     indexed = {row["id"]: row for row in json.loads((root / "docs/compliance-ledgers/inputs/check-index.json").read_text())}
-    native = {row["id"] for row in json.loads((root / "peaso/rulepacks/native_catalog.json").read_text())["checks"]}
+    catalog = json.loads((root / "peaso/rulepacks/native_catalog.json").read_text())
+    native = {row["id"] for row in catalog["checks"] + catalog.get("archived_checks", [])}
     assert len(indexed) == 3112 and len(native) >= 3105
     assert set(indexed) - native == ANALYSIS_IDS
     assert {indexed[cid]["provider"] for cid in ANALYSIS_IDS} == {"all"}

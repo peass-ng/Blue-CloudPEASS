@@ -168,3 +168,69 @@ def test_antimalware_accepts_any_approved_package_required_apps_need_all():
     policy["required_applications"].append({"Name": "alternative", "minimumVersion": "1.0"})
     assert evaluate("aws.pci.ssm.antimalware_inventory", facts) == "PASS"
     assert evaluate("aws.pci.ssm.required_applications", facts) == "FAIL"
+
+
+def foreign_organization_index():
+    facts = index()
+    trail = facts["cloudtrail_account_inventory"][0]["data"]
+    trail["TrailARN"] = "arn:aws:cloudtrail:us-east-1:999999999999:trail/org"
+    trail["IsOrganizationTrail"] = True
+    trail["IsMultiRegionTrail"] = True
+    trail["AccountId"] = SCOPE.split("/")[0]
+    trail["_account_trail_binding"] = {
+        "caller_account_id": SCOPE.split("/")[0],
+        "identity_operation": "sts:GetCallerIdentity",
+        "describe_operation": "cloudtrail:DescribeTrails",
+        "include_shadow_trails": True,
+        "trail_arn": trail["TrailARN"],
+        "capture_observed_at": facts["context"]["created_at"],
+    }
+    return facts
+
+
+def test_foreign_organization_trail_requires_native_caller_binding_and_destination_evidence():
+    facts = foreign_organization_index()
+    for check_id in ("aws_nist_cloudtrail_trail_integrated_with_logs",
+                     "aws.nist.cloudtrail_cloudwatch_destination_kms",
+                     "aws_cloudtrail_bucket_lifecycle_retention_365",
+                     "aws_cloudtrail_s3_siem_delivery"):
+        assert evaluate(check_id, facts) == "PASS"
+    # A foreign destination cannot be inferred from the trail ARN or org flag.
+    facts["cloudtrail_account_inventory"][0]["data"]["CloudWatchLogsLogGroupArn"] = (
+        "arn:aws:logs:us-east-1:999999999999:log-group:foreign")
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"
+
+
+@pytest.mark.parametrize("defect", ["no_binding", "not_org", "wrong_account", "wrong_clock",
+                                    "no_shadow_proof", "manual_pointer", "wrong_scope", "missing_home"])
+def test_foreign_organization_trail_ambiguous_binding_stays_unknown(defect):
+    facts = foreign_organization_index()
+    trail = facts["cloudtrail_account_inventory"][0]["data"]
+    binding = trail["_account_trail_binding"]
+    if defect == "no_binding":
+        del trail["_account_trail_binding"]
+    elif defect == "not_org":
+        trail["IsOrganizationTrail"] = False
+    elif defect == "wrong_account":
+        trail["AccountId"] = "999999999999"
+    elif defect == "wrong_clock":
+        binding["capture_observed_at"] = "2026-10-11T00:00:00Z"
+    elif defect == "no_shadow_proof":
+        binding["include_shadow_trails"] = False
+    elif defect == "manual_pointer":
+        trail["_account_trail_binding"] = {"caller_account_id": SCOPE.split("/")[0]}
+    elif defect == "wrong_scope":
+        facts["context"]["scope"] = "999999999999/us-east-1"
+    elif defect == "missing_home":
+        trail["SourceRegion"] = "eu-west-1"
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"
+
+
+def test_cloudtrail_duplicate_home_rows_stay_unknown_at_signed_gate():
+    facts = foreign_organization_index()
+    original = facts["cloudtrail_account_inventory"][0]["data"]
+    duplicate = copy.deepcopy(original)
+    duplicate["Name"] = "conflict"
+    facts["cloudtrail_account_inventory"].append({"data": duplicate})
+    facts["collections"]["cloudtrail_account_inventory"][0]["items"].append(duplicate)
+    assert evaluate("aws_nist_cloudtrail_trail_integrated_with_logs", facts) == "UNKNOWN"

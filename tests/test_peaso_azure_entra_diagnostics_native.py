@@ -4,7 +4,8 @@ from types import SimpleNamespace
 from urllib.parse import urlsplit
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot, _scope_check_scopes
+from peaso.engine import _scope_check_scopes
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import validate
 import pytest
 

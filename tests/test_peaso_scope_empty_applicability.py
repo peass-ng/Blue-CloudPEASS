@@ -4,6 +4,7 @@ from dataclasses import replace
 import pytest
 
 from peaso import engine
+from tests import archived_check_contract as archived_engine
 from peaso.checks import CHECKS
 from peaso.snapshot import make_snapshot
 
@@ -17,7 +18,7 @@ CHECKS_WITH_EMPTY_PRIMARY = [
 
 
 def status(snapshot, check_id):
-    findings = [f for f in engine.evaluate_snapshot(snapshot, checks=[check_id], include_not_applicable=True)['findings']
+    findings = [f for f in archived_engine.evaluate_snapshot(snapshot, checks=[check_id], include_not_applicable=True)['findings']
                 if f['check_id'] == check_id]
     assert len(findings) == 1
     return findings[0]['status']

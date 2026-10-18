@@ -1,7 +1,8 @@
 """Native API ordering must not turn complete inventory into UNKNOWN."""
 import copy
 import pytest
-from peaso.engine import evaluate_snapshot, _index
+from peaso.engine import _index
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot, resources
 
 ACCOUNT='123456789012'

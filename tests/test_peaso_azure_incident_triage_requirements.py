@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from peaso.server.validation import validate_connector
 from peaso.checks import evaluate_check
 from peaso.snapshot import make_snapshot
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 SCOPE = '/subscriptions/11111111-1111-1111-1111-111111111111'
 CID = 'azure.other.incident_triage_trace'

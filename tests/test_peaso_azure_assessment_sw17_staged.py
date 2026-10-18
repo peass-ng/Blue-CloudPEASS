@@ -25,7 +25,7 @@ def test_actual_list_capture_reaches_registered_sw17_with_explicit_external_auth
                             created_at=snapshot['created_at'])
     with staged_registry(['compliance_new_sw17']):
         importlib.import_module('peaso.checks.compliance_new_sw17')
-        from peaso.engine import evaluate_snapshot
+        from tests.archived_check_contract import evaluate_snapshot
         findings = evaluate_snapshot(rebound, checks=[CID])['findings']
     assert len(findings) == 1 and findings[0]['status'] == 'FAIL'
     assert envelope['items'][0]['_provenance']['source_operation'] == 'Assessments_List'

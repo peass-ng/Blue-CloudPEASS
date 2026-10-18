@@ -4,7 +4,7 @@ import pytest
 from test_peaso_aws_bulk_inventory import sdk,ACCOUNT,REGION
 from peaso.collectors import aws,collect_live
 from peaso.collectors.aws_resolver_firewall_native import normalize
-from peaso.engine import collect_snapshot,evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 VPC='vpc-12345678';GROUP='rslvr-frg-example';LID='rslvr-fdl-example';AID='rslvr-frgassoc-example'
 CHECK='aws_resolver_managed_domain_lists_block'
 def capture(sdk,monkeypatch,mode,planned=False,hosted=False):

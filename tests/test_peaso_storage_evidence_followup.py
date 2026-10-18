@@ -3,7 +3,7 @@ import copy
 import json
 from pathlib import Path
 
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 FIXTURE = Path(__file__).parent / "fixtures" / "bulk_pending_behavior.json"

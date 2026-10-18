@@ -48,18 +48,14 @@ def test_global_inventory_requires_explicit_verified_same_account_proof(monkeypa
         assert report["findings"][0]["status"] == "UNKNOWN"
 
 
-def test_manual_attestation_is_selected_separately_from_automated_count(monkeypatch):
-    requirement = {"id": "aws-compliance.control.manual_example", "provider": "aws", "title": "Review owner evidence", "question": "Is the service configured for the approved purpose?", "guidance": "Obtain owner evidence", "status": "MANUAL", "source": "https://example.test/source", "revision": "pinned", "license": "Apache-2.0", "frameworks": [{"framework": "CIS", "framework_id": "aws-compliance.benchmark.cis", "framework_family": "CIS"}], "reason": "Pinned source emits constant manual status", "automated": False}
-    monkeypatch.setattr("peaso.checks.catalog.manual_requirements", lambda *args, **kwargs: [requirement])
-    monkeypatch.setattr("peaso.checks.catalog.manual_requirement_ids", lambda provider=None: {requirement["id"]})
+def test_manual_attestation_is_not_an_automatic_scan_selection(monkeypatch):
+    requirement_id = "aws-compliance.control.account_manual"
+    monkeypatch.setattr("peaso.checks.catalog.manual_requirement_ids", lambda provider=None: {requirement_id})
     snapshot = make_snapshot("aws", ["111111111111/us-east-1"], [])
-    report = evaluate_snapshot(snapshot, categories=["hardening"], checks=[requirement["id"]])
-    assert report["stats"]["check_count"] == 0
-    assert report["stats"]["manual_requirement_count"] == 1
-    assert len(report["findings"]) == 1
-    assert report["findings"][0]["status"] == "MANUAL" and report["findings"][0]["automated"] is False
-    assert not report["stats"]["coverage_complete"]
+    with pytest.raises(ValueError, match="external policy or manual evidence"):
+        evaluate_snapshot(snapshot, categories=["hardening"], checks=[requirement_id])
     report = evaluate_snapshot(snapshot, categories=["hardening"], checks=["aws.ec2.imdsv2"])
+    assert report["stats"]["manual_requirement_count"] == 0
     assert report["manual_requirements"] == []
 
 
@@ -123,32 +119,17 @@ def test_successful_selected_inventory_does_not_hide_intentional_scope_partial()
     assert any(c["level"] == "scope" and c["status"] == "partial" for c in report["coverage"])
 
 
-def test_manual_account_question_deduplicates_regions_only_with_verified_account(monkeypatch):
-    requirement = {"id": "aws-compliance.control.account_manual", "provider": "aws", "title": "Owner review", "question": "Review evidence", "guidance": "Owner", "source": "https://example.test", "revision": "fixed", "license": "Apache-2.0", "frameworks": [], "reason": "constant manual source", "automated": False, "scope_kinds": ["account"]}
-    monkeypatch.setattr("peaso.checks.catalog.manual_requirements", lambda *args, **kwargs: [requirement])
-    monkeypatch.setattr("peaso.checks.catalog.manual_requirement_ids", lambda provider=None: {requirement["id"]})
-    scopes = ["111111111111/us-east-1", "111111111111/eu-west-1", "222222222222/us-east-1"]
-    account = {"type": "aws_account", "scope": scopes[0], "status": "collected", "global": True, "account_id": "111111111111", "items": [{"Account": "111111111111", "AccountId": "111111111111"}]}
-    report = evaluate_snapshot(make_snapshot("aws", scopes, [account]), categories=["hardening"], checks=[requirement["id"]])
-    assert {f["scope"] for f in report["findings"]} == {"111111111111", "222222222222/us-east-1"}
-    report = evaluate_snapshot(make_snapshot("aws", scopes, []), categories=["hardening"], checks=[requirement["id"]])
-    assert len(report["findings"]) == 3
-
-
-def test_scopeless_manual_requirements_are_asked_once_per_tenant():
-    from collections import Counter
+def test_default_and_framework_scans_do_not_emit_attestation_questions():
     from peaso.checks.catalog import manual_requirements
-    from peaso.engine import evaluate_snapshot
-    from peaso.snapshot import make_snapshot
+    from peaso.engine import get_catalog
+    assert manual_requirements(provider="azure")  # Source references remain available.
     subs = ["/subscriptions/%08d-0000-0000-0000-000000000000" % i for i in range(3)]
     tenant = "/tenants/11111111-1111-1111-1111-111111111111"
     snap = make_snapshot("azure", subs, [{"type": "tenant", "scope": tenant, "service": "entra", "status": "empty", "items": []}])
-    report = evaluate_snapshot(snap, categories=["hardening"])
-    kinds = {r["id"]: r.get("scope_kinds", []) for r in manual_requirements(provider="azure")}
-    manual = Counter(f["check_id"] for f in report["findings"] if f["status"] == "MANUAL")
-    scopes = {f["check_id"]: f["scope"] for f in report["findings"] if f["status"] == "MANUAL"}
-    tenant_wide = [rid for rid, k in kinds.items() if not k and rid in manual]
-    per_sub = [rid for rid, k in kinds.items() if "subscription" in k and rid in manual]
-    assert tenant_wide and per_sub
-    assert all(manual[rid] == 1 and scopes[rid] == tenant for rid in tenant_wide)
-    assert all(manual[rid] == len(subs) for rid in per_sub)
+    for frameworks in (None, ["HackTricks Cloud Best Practices"]):
+        report = evaluate_snapshot(snap, categories=["hardening"], frameworks=frameworks)
+        assert report["manual_requirements"] == []
+        assert report["stats"]["manual_requirement_count"] == 0
+        assert not any(f.get("service") == "manual_review" for f in report["findings"])
+        assert not any(row["level"] == "manual" for row in report["coverage"])
+    assert get_catalog()["manual_requirements"] == []

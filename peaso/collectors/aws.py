@@ -789,7 +789,7 @@ SPECS = {
     "opensearch_domain": ("opensearch", "list_domain_names", "DomainNames"),
     "dynamodb_table": ("dynamodb", "list_tables", "TableNames"),
 }
-GLOBAL_TYPES = {"iam_managed_policy", "aws_account", "aws_account_configuration", "cloudtrail_account_inventory", "config_account_aggregator_inventory", "config_delegated_administrator", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "iam_access_key", "iam_virtual_mfa_device", "iam_server_certificate", "bucket", "s3_account_public_access_block", "organization_account", "organization_parent", "scp_policy"}
+GLOBAL_TYPES = {"iam_managed_policy", "aws_account", "aws_account_configuration", "cloudtrail_account_inventory", "config_account_region_coverage", "config_account_aggregator_inventory", "config_delegated_administrator", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "iam_access_key", "iam_virtual_mfa_device", "iam_server_certificate", "bucket", "s3_account_public_access_block", "organization_account", "organization_parent", "scp_policy"}
 AWS_TYPES = sorted(set(SPECS) | GLOBAL_TYPES)
 GLOBAL_SCOPE = "global"
 FETCHERS = {}
@@ -832,7 +832,7 @@ _NATIVE_IDS = {
     "vpc_account_inventory": "id",
     "ssm_managed_instance": "InstanceId", "autoscaling_group": "AutoScalingGroupARN", "config_delegated_administrator": "Id", "config_aggregator": "ConfigurationAggregatorArn", "config_account_aggregator_inventory": "ConfigurationAggregatorArn",
     "log_resource_policy": "policyName", "config_aggregate_authorization": "AggregationAuthorizationArn", "dlm_policy": "PolicyId",
-    "cloudtrail_account_inventory": "TrailARN",
+    "cloudtrail_account_inventory": "TrailARN", "config_account_region_coverage": "id",
     "macie2_account_classification_job_inventory": "id",
     "ec2_image": "ImageId", "ebs_snapshot": "SnapshotId",
     "flow_log": "FlowLogId",
@@ -1693,6 +1693,9 @@ def collect(connector, requirements=None):
                          and wanted <= {'lightsail_bucket', 'lightsail_iam_policy_attachment'})
     requests.sagemaker_clarify_requested = "sagemaker_endpoint" in wanted
     derive_account_vpcs = "vpc_account_inventory" in wanted
+    derive_config_account = "config_account_region_coverage" in wanted
+    if derive_config_account:
+        wanted.update(("config_recorder", "config_delivery_channel"))
     if derive_account_vpcs:
         wanted.add("vpc")
     # Caller identity is mandatory even when no resource inventories are chosen.
@@ -1916,15 +1919,36 @@ def collect(connector, requirements=None):
             account = identity["Account"]
             read = requests.pages(account_session, "ec2", regions[0], "describe_regions", "Regions", AllRegions=True)
             requests.backup_region_discovery[account] = copy.deepcopy(read)
-            valid = read.status in {"collected", "empty"} and all(isinstance(row, dict) and isinstance(row.get("RegionName"), str) and row.get("OptInStatus") in {"opt-in-not-required", "opted-in", "not-opted-in"} for row in read.items)
-            enabled = sorted({row["RegionName"] for row in read.items if isinstance(row, dict) and row.get("OptInStatus") in {"opt-in-not-required", "opted-in"}}) if valid else []
+            partition = account_session.get_partition_for_region(regions[0])
+            caller_arn = identity.get("Arn", "")
+            caller = re.fullmatch(r"arn:([^:]+):(iam|sts)::([0-9]{12}):.+", caller_arn) if isinstance(caller_arn, str) else None
+            raw_regions = copy.deepcopy(read.items)
+            seen_regions, enabled = set(), []
+            valid = read.status == "collected" and isinstance(raw_regions, list) and bool(raw_regions)
+            valid = valid and caller is not None and caller.group(1) == partition and caller.group(3) == account
+            if valid:
+                for row in raw_regions:
+                    name = row.get("RegionName") if isinstance(row, dict) else None
+                    state = row.get("OptInStatus") if isinstance(row, dict) else None
+                    if (not isinstance(name, str) or not re.fullmatch(r"[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+", name)
+                            or name in seen_regions or state not in {"opt-in-not-required", "opted-in", "not-opted-in"}
+                            or account_session.get_partition_for_region(name) != partition):
+                        valid = False
+                        break
+                    seen_regions.add(name)
+                    if state != "not-opted-in":
+                        enabled.append(name)
+            enabled = sorted(enabled) if valid else []
+            proof = {"account_id": account, "caller_account_id": account, "scope": account + "/global",
+                "partition": partition, "source_operation": "ec2:DescribeRegions", "all_regions": True,
+                "read_only": True, "observed_at": requests.observed_at.isoformat(), "raw_regions": raw_regions}
             if not valid or not enabled:
                 failure = ReadFailure(read.status if read.status not in {"collected", "empty"} else "malformed", (read.error or {}).get("code", "enabled_region_discovery_unavailable"))
                 region_discovery_errors[account] = failure
-                metadata["region_discovery"].append({"account_id": account, "status": failure.status, "error": {"code": failure.code}})
+                metadata["region_discovery"].append({**proof, "status": failure.status, "error": {"code": failure.code}})
             else:
                 discovered_regions[account] = enabled
-                metadata["region_discovery"].append({"account_id": account, "status": "collected", "regions": enabled})
+                metadata["region_discovery"].append({**proof, "status": "collected", "regions": enabled})
         if discovered_regions:
             regions[:] = sorted({region for values in discovered_regions.values() for region in values})
         metadata["regions"] = list(regions)
@@ -1967,22 +1991,45 @@ def collect(connector, requirements=None):
                 return ReadResult([], failure.status, {"code": failure.code, "reason": "full_account_region_discovery_incomplete"})
             if explicit_regions:
                 return ReadResult([], "not_collected", {"code": "full_account_region_coverage_not_proven"})
-            trails, failure = {}, None
+            observations, malformed, failure = {}, [], None
             for observed_region in regions_for(account):
                 read = regional_job(session, identity, observed_region, "cloudtrail")
                 for original in read.items:
-                    if not isinstance(original, dict) or not isinstance(original.get("TrailARN"), str):
+                    if not isinstance(original, dict) or not isinstance(original.get("TrailARN"), str) or not original["TrailARN"]:
                         failure = ReadFailure("malformed", "malformed_account_trail")
+                        malformed.append({"SourceRegion": observed_region, "NativeObservation": original})
                         continue
                     item = {**original, "SourceRegion": observed_region}
-                    existing = trails.get(item["TrailARN"])
-                    if existing is None or observed_region == item.get("HomeRegion"):
-                        trails[item["TrailARN"]] = item
+                    observations.setdefault(item["TrailARN"], []).append(item)
                 if read.status not in {"collected", "empty"}:
                     failure = ReadFailure((read.error or {}).get("cause_status", read.status), (read.error or {}).get("code", "account_trail_inventory_incomplete"))
+            trails = []
+            for arn, copies in observations.items():
+                # Keep every native observation; a dict overwrite would erase a
+                # second home row before the signed uniqueness gate sees it.
+                homes = [row for row in copies if row.get("SourceRegion") == row.get("HomeRegion")]
+                selected = homes[0] if homes else copies[0]
+                identity_fields = ("TrailARN", "Name", "HomeRegion", "IsOrganizationTrail", "IsMultiRegionTrail")
+                consistent = all(all(row.get(field) == selected.get(field) for field in identity_fields) for row in copies)
+                arn_parts = re.fullmatch(r"arn:aws(?:-[a-z0-9-]+)?:cloudtrail:([a-z0-9-]+):([0-9]{12}):trail/[^/]+", arn)
+                home = selected.get("HomeRegion")
+                if (len(homes) != 1 or not consistent or arn_parts is None or
+                        arn_parts.group(1) != home or not isinstance(selected.get("Name"), str) or not selected["Name"] or
+                        (arn_parts.group(2) != account and selected.get("IsOrganizationTrail") is not True)):
+                    failure = ReadFailure("malformed", "ambiguous_account_trail")
+                selected = {**selected, "_account_trail_observations": copies}
+                # identity comes only from this session's GetCallerIdentity;
+                # a declared AccountId on a trail is not an account binding.
+                selected["_account_trail_binding"] = {
+                    "caller_account_id": account, "identity_operation": "sts:GetCallerIdentity",
+                    "describe_operation": "cloudtrail:DescribeTrails", "include_shadow_trails": True,
+                    "trail_arn": arn, "capture_observed_at": requests.observed_at.isoformat(),
+                }
+                trails.append(selected)
+            trails.extend(malformed)
             if failure:
-                return ReadResult(list(trails.values()), "partial" if trails else failure.status, {"code": failure.code, "cause_status": failure.status})
-            return ReadResult(list(trails.values()), "collected" if trails else "empty")
+                return ReadResult(trails, "partial" if trails else failure.status, {"code": failure.code, "cause_status": failure.status})
+            return ReadResult(trails, "collected" if trails else "empty")
         if kind == "macie2_account_classification_job_inventory":
             if account in region_discovery_errors:
                 failure = region_discovery_errors[account]
@@ -2146,6 +2193,8 @@ def collect(connector, requirements=None):
                         vpc = item.get("VpcConfig")
                         if isinstance(vpc, dict) and "VpcId" not in vpc:
                             _documented_omission(vpc, "VpcId", "", "lambda:GetFunctionConfiguration")
+                        from .aws_lambda_omission_native import normalize_documented_omissions
+                        normalize_documented_omissions(item)
         except Exception as exc:
             failure = _failure(exc)
             # Retain original valid dictionary evidence, mark incomplete detail.
@@ -2174,7 +2223,7 @@ def collect(connector, requirements=None):
                 # pagination; one job reads them instead of four blocked workers.
                 selected_iam = sorted(iam_kinds & wanted)
                 iam_future = pool.submit(_iam, requests, session, regions_for(identity["Account"])[0], set(selected_iam)) if selected_iam else None
-                for kind in sorted(GLOBAL_TYPES - {"vpc_account_inventory"}):
+                for kind in sorted(GLOBAL_TYPES - {"vpc_account_inventory", "config_account_region_coverage"}):
                     if kind in wanted:
                         if kind in iam_kinds:
                             future = Future()
@@ -2230,6 +2279,12 @@ def collect(connector, requirements=None):
                                 read = ReadResult([], failure.status, {"code": failure.code})
                             append(kind, f"{identity['Account']}/{region}", SPECS[kind][0], read, identity["Account"], region)
             for session, identity in scope_batch:
+                if derive_config_account:
+                    from .aws_config_account_native import derive as derive_config_account_proof
+                    rows, status, error = derive_config_account_proof(identity["Account"], identity,
+                        metadata.get("region_discovery", []), collections, requests.observed_at.isoformat())
+                    append("config_account_region_coverage", f"{identity['Account']}/{GLOBAL_SCOPE}", "config",
+                        ReadResult(rows, status, error), identity["Account"])
                 if derive_account_vpcs:
                     from .aws_inventory import vpc_account_inventory
                     items, status, error = vpc_account_inventory(collections, identity["Account"], regions_for(identity["Account"]),

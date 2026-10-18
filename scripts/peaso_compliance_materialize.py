@@ -73,8 +73,14 @@ def render_documents() -> dict[Path, bytes]:
                              "source_manifest_sha256": signed,
                              "requirements_total": sum(requirements["counts"].values())}
     framework_rows = framework_catalog()
-    public = [check.public() for check in CHECKS]
-    if {check["id"] for check in public} != native_ids:
+    from peaso.checks.native_only import automated_checks, scope as automation_scope, exclusions
+    active = automated_checks(CHECKS)
+    from peaso.checks import azure_vm_ssh_source_correction, gcp_cloudsql_lockout_source_correction
+    source_corrections = {module.CHECK_ID: {"spec": module.CORRECTED_SPEC,
+                                          "provenance": module.correction_provenance()}
+                          for module in (azure_vm_ssh_source_correction, gcp_cloudsql_lockout_source_correction)}
+    public = [check.public() for check in active]
+    if {check["id"] for check in public} != {check.id for check in active}:
         raise ValueError("Public native catalog differs from the registry")
     for check in public:
         if check["framework_ids"] != sorted({tag["framework_id"] for tag in check["requirement_controls"]}):
@@ -82,7 +88,7 @@ def render_documents() -> dict[Path, bytes]:
     from peaso.collectors.bulk_evidence import coverage as evidence_coverage
     inventory_coverage = evidence_coverage()
     has_evidence_gaps = any(row['unavailable_projections'] for row in inventory_coverage.values())
-    summary = {**runtime["coverage"], "inventory_coverage": inventory_coverage,
+    summary = {**runtime["coverage"], "active_native_checks": len(active), "automation_scope": automation_scope(), "inventory_coverage": inventory_coverage,
                "phase": "expansion_in_progress" if runtime["coverage"]["upstream"]["pending"] or has_evidence_gaps else "review_complete"}
     frameworks_view.cache_clear()
     frontend = frameworks_view()
@@ -108,7 +114,9 @@ def render_documents() -> dict[Path, bytes]:
 
     return {PACK / "runtime_metadata.json": encoded(runtime, compact=True),
             PACK / "native_catalog.json": encoded({"schema_version": "1.0", "evaluator_version": "1.0.0",
-                                                    "compliance_source_manifest_sha256": signed, "checks": public}, compact=True),
+                                                    "compliance_source_manifest_sha256": signed, "automation_scope": automation_scope(), "checks": public,
+                                                    "archived_checks": [check.public() for check in CHECKS if check.id in exclusions()],
+                                                    "excluded_controls": exclusions(), "source_corrections": source_corrections}, compact=True),
             PACK / "framework_catalog.json": encoded({"schema_version": "1.0", "compliance_source_manifest_sha256": signed,
                                                        "frameworks": framework_rows}),
             PACK / "catalog_summary.json": encoded(summary),

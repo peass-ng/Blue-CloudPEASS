@@ -6,7 +6,8 @@ from urllib.parse import urlsplit
 
 import pytest
 from peaso.collectors import azure, collect_live, azure_geo_consideration_native as native
-from peaso.engine import _registry, evaluate_snapshot, plan_collection
+from tests.archived_check_contract import archived_registry
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.snapshot import make_snapshot, resources
 from peaso.server.validation import validate_connector
 from tests.test_peaso_azure_geo_consideration_native import case, SCOPE, TENANT
@@ -124,7 +125,7 @@ def test_no_declared_review_and_other_check_keep_default_empty(monkeypatch):
     ('timeout','UNKNOWN'),('not_collected','UNKNOWN'),('malformed','UNKNOWN'),('collected','UNKNOWN')])
 def test_callback_is_never_invoked_for_nonempty_statuses(monkeypatch,status,expected):
     snapshot=capture(monkeypatch); called=[]
-    callback=next(c.evaluate for c in _registry() if c.id==native.CID)
+    callback=next(c.evaluate for c in archived_registry([native.CID]) if c.id==native.CID)
     monkeypatch.setattr(callback,'evaluate_empty_inventory',lambda *args: called.append(args) or ('PASS',{}), raising=False)
     updated=changed(snapshot,lambda value: collection(value).update(status=status))
     _,rows=findings(updated)
@@ -143,7 +144,7 @@ def test_callback_errors_are_scoped_unknown_and_do_not_leak(monkeypatch,mode):
             env['_provenance']['tenant_verified']=False
         env['items'].append({'id':'fake'})
         return 'PASS',{}
-    evaluate=next(c.evaluate for c in _registry() if c.id==native.CID)
+    evaluate=next(c.evaluate for c in archived_registry([native.CID]) if c.id==native.CID)
     monkeypatch.setattr(evaluate,'evaluate_empty_inventory',callback, raising=False)
     report,rows=findings(snapshot)
     assert rows and {f['status'] for f in rows}=={'UNKNOWN'}
@@ -154,7 +155,7 @@ def test_callback_errors_are_scoped_unknown_and_do_not_leak(monkeypatch,mode):
 
 def test_empty_callback_is_not_called_for_actual_policy_resources(monkeypatch):
     snapshot=capture(monkeypatch,nonempty=True); called=[]
-    evaluate=next(c.evaluate for c in _registry() if c.id==native.CID)
+    evaluate=next(c.evaluate for c in archived_registry([native.CID]) if c.id==native.CID)
     monkeypatch.setattr(evaluate,'evaluate_empty_inventory',lambda *args: called.append(args) or ('UNKNOWN',{}), raising=False)
     report,rows=findings(snapshot)
     assert not called and rows and {f['status'] for f in rows}=={'PASS'}

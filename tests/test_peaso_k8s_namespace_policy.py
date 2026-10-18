@@ -9,7 +9,7 @@ import peaso.checks
 from peaso.checks import CHECKS, evaluate_check
 from peaso.checks import k8s_namespace_policy_presence
 from peaso.collectors.k8s import _native, _owner_policy_metadata
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 CHECK_ID = "k8s.cis.namespace_has_networkpolicy"

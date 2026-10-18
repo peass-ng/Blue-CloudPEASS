@@ -1,4 +1,4 @@
-"""Console selector metadata retains every native ID and framework version."""
+"""Console selectors expose automatic predicates and retain framework references."""
 import json
 
 import pytest
@@ -6,15 +6,17 @@ from fastapi.testclient import TestClient
 
 from peaso.analysis import ANALYSIS_CHECKS
 from peaso.checks import CHECKS
+from peaso.checks.native_only import automated_checks, exclusions
 from peaso.checks.catalog import framework_catalog
 from peaso.server import create_app
 from peaso.server.catalog_view import summary
 from peaso.server.config import Settings
 
 
-def test_summary_preserves_all_native_ids_and_framework_filter_inputs():
+def test_summary_preserves_automatic_native_ids_and_framework_filter_inputs():
     value = summary()
-    assert {c["id"] for c in value["checks"]} == {c.id for c in CHECKS} | {c["id"] for c in ANALYSIS_CHECKS}
+    assert {c["id"] for c in value["checks"]} == {c.id for c in automated_checks(CHECKS)} | {c["id"] for c in ANALYSIS_CHECKS}
+    assert not set(exclusions()).intersection(c["id"] for c in value["checks"])
     assert value["framework_versions"] == framework_catalog()
     assert value["upstream_coverage"]["upstream"]["pending"] >= 0
     assert len(json.dumps(value, separators=(",", ":")).encode()) < 2 * 1024 * 1024

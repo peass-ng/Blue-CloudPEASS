@@ -4,7 +4,7 @@ from datetime import datetime,timezone
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure,collect_live
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.snapshot import make_snapshot
 SCOPE='/subscriptions/11111111-1111-1111-1111-111111111111';TENANT='22222222-2222-2222-2222-222222222222'
 VAULT=SCOPE+'/resourceGroups/rg/providers/Microsoft.KeyVault/vaults/vaultfixture';ORIGIN='https://vaultfixture.vault.azure.net'

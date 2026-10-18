@@ -374,7 +374,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 from cryptography.x509.oid import NameOID
 from peaso.collectors.azure import _Reader, AzureReadError
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 CERT_SCOPE = '/subscriptions/sub-fixture'
 CERT_VAULT_ID = CERT_SCOPE + '/resourceGroups/test/providers/Microsoft.KeyVault/vaults/vaultfixture'

@@ -8,7 +8,7 @@ import pytest
 
 from peaso.collectors import azure
 from peaso.collectors import azure_nsg_ingress_native as network_native
-from peaso.engine import collect_snapshot, evaluate_snapshot, plan_collection
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 
 SCOPE = '/subscriptions/11111111-1111-1111-1111-111111111111'

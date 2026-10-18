@@ -4,7 +4,7 @@ import pytest
 from test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, aws_bulk_inventory as facts
 from peaso.snapshot import make_snapshot
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 SCOPE = ACCOUNT + '/' + REGION
 GROUP = 'rslvr-frg-12345678901234567'

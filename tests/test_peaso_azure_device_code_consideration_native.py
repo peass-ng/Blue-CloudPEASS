@@ -6,7 +6,7 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from fastapi import HTTPException
 from peaso.collectors import azure, collect_live, azure_ca_consideration_native as native
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 
 TENANT = '22222222-2222-2222-2222-222222222222'

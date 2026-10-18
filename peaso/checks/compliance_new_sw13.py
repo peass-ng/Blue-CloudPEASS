@@ -1003,6 +1003,23 @@ def native_mfa_application_client_scope(conditions, axes):
         return None
 
 
+def _mfa_company_policy_declared(index):
+    """An explicit SW13 policy stays authoritative; unrelated policies do not."""
+    metadata = get(index, 'context.metadata', dict)
+    coverage = metadata.get('_coverage', {})
+    if not isinstance(coverage, dict):
+        raise Unavailable('MFA policy namespace coverage malformed')
+    if 'compliance_policy' not in metadata:
+        if 'compliance_policy' in coverage:
+            raise Unavailable('declared MFA policy namespace unreadable')
+        return False
+    root = get(metadata, 'compliance_policy', dict)
+    root_coverage = root.get('_coverage', {})
+    if not isinstance(root_coverage, dict):
+        raise Unavailable('MFA policy coverage malformed')
+    return 'sw13' in root or 'sw13' in root_coverage
+
+
 def native_universal_mfa(item, index, cid):
     """Prove the universal subset directly from native rules, without simulation."""
     provenance = item.get('_provenance', {})
@@ -1012,9 +1029,14 @@ def native_universal_mfa(item, index, cid):
     target(item, index, 'conditional_access_policy', graph=True)
     rules = inventory(index, 'conditional_access_policy', graph=True)
     native_mfa_source_capture(index, 'conditional_access_policy')
-    p = policy(index, cid)
+    owner_declared = _mfa_company_policy_declared(index)
+    p = (policy(index, cid) if owner_declared else
+         {'userScope': 'all', 'requiredApplications': ['All'],
+          'requiredClientAppTypes': ['all']})
+    if not owner_declared:
+        now(index)  # Reject malformed snapshot time on automatic native proof.
     mode = get(p, 'userScope', str)
-    if mode not in ('all', 'designated', 'administrative') or (cid == ADMIN and mode != 'administrative'):
+    if mode not in ('all', 'designated', 'administrative') or (cid == ADMIN and owner_declared and mode != 'administrative'):
         raise Unavailable('user designation unresolved')
     strings(get(p, 'requiredApplications', list), nonempty=True)
     strings(get(p, 'requiredClientAppTypes', list), nonempty=True)
@@ -1049,13 +1071,25 @@ def native_universal_mfa(item, index, cid):
     guid = r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}'
     direct_ids = ({u['id'].casefold() for u in enabled}
                   if all(re.fullmatch(guid, u['id'], re.I) for u in users) else None)
-    try:
+    if owner_declared:
+        try:
+            native_mfa_source_capture(index, 'directory_user')
+            directory_captured = True
+        except Unavailable:
+            # Historical owner-scoped proof can use an independently
+            # unrestricted All-users rule without a roster join.
+            directory_captured, direct_ids = False, None
+    else:
+        # A source-wide automatic verdict needs the complete enabled-user
+        # universe bound to this same read-only Graph tenant capture.
         native_mfa_source_capture(index, 'directory_user')
         directory_captured = True
-    except Unavailable:
-        # Only the independently unrestricted All-users proof can avoid a
-        # roster join. Invalid capture must never supply partition coverage.
-        directory_captured, direct_ids = False, None
+        if direct_ids is None:
+            return None
+        if cid == RISK:
+            # Risk policy applicability needs current per-user P2 entitlement.
+            if native_mfa_risk_licensed_users(index, users) != direct_ids:
+                return None
     axes = native_mfa_approved_axes(p, len(direct_ids), cid) if direct_ids else None
     context_coverage = ({key: set() for key in product(axes['apps'], axes['clients'], axes['risks'])}
                         if axes is not None else {})
@@ -1178,16 +1212,21 @@ def native_universal_mfa(item, index, cid):
         return result(False, **evidence)
     # Never infer a gap from a condition this limited adapter cannot evaluate.
     # With no enabled policies, however, no enabled CA MFA policy can exist.
-    if cid == USERS and mode == 'all' and directory_captured and not any(r['state'] == 'enabled' for r in rules):
+    if (cid == USERS and mode == 'all' and directory_captured
+            and (owner_declared or direct_ids is not None)
+            and not any(r['state'] == 'enabled' for r in rules)):
         return result(True, reason='Complete native CA inventory has no enabled policy and Security Defaults is disabled',
             enabled_user_count=len(enabled))
     return None
 
 
 def mfa(item, index, cid):
+    owner_declared = _mfa_company_policy_declared(index)
     native = native_universal_mfa(item, index, cid)
     if native is not None:
         return native
+    if not owner_declared:
+        return unknown('native Conditional Access MFA proof inconclusive: complete tenant-bound Graph users, policies, defaults, risk entitlement and unrestricted selectors required')
     p, rules, profiles, contexts, locations, strengths, defaults = ca_inputs(item, index, cid)
     if not profiles:
         if cid == ADMIN:

@@ -14,6 +14,12 @@
   "outside_runtime_provider_scope": 561,
   "runtime_scope_upstream_total": 5844,
   "limitations": "Unported target references remain pending; other providers are explicitly out of scope. Reference tags are not certification.",
+  "active_native_checks": 3594,
+  "automation_scope": {
+    "mode": "provider_read_only",
+    "manual_attestations": false,
+    "excluded_custom_controls": 392
+  },
   "inventory_coverage": {
     "aws": {
       "native_types": [
@@ -88,6 +94,7 @@
         "cognito_user_pool",
         "cognito_user_pool_client",
         "config_account_aggregator_inventory",
+        "config_account_region_coverage",
         "config_aggregate_authorization",
         "config_aggregator",
         "config_delegated_administrator",

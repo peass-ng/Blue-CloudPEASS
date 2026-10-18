@@ -3,7 +3,7 @@ from datetime import datetime,timedelta,timezone
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import collect_live,gcp
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 SCOPE='projects/demo-project';IDS=['gcp.compute.os_patch_compliance','gcp_compute_os_patch_compliance','gcp_c5_patch_deployment']
 class API:
  def __init__(self,mode):self.mode=mode;self.evidence=[];self.calls=0;self.lock=threading.Lock();self.now=datetime.now(timezone.utc)

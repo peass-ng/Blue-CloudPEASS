@@ -6,7 +6,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 
 SUB = "11111111-1111-1111-1111-111111111111"
 SCOPE = "/subscriptions/" + SUB

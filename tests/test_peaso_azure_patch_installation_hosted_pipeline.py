@@ -105,7 +105,7 @@ class NativeAPI:
     ('unapproved', 'UNKNOWN'), ('pci', 'UNKNOWN')])
 def test_normal_hosted_native_compute_pipeline(monkeypatch, mode, expected):
     from peaso.collectors import azure, collect_live
-    from peaso.engine import evaluate_snapshot, plan_collection
+    from tests.archived_check_contract import evaluate_snapshot, plan_collection
     api = NativeAPI(mode)
     monkeypatch.setattr(azure, 'AzureTransport', lambda auth: api)
     config = options()

@@ -10,7 +10,7 @@ from .facts import Unavailable, complete_items, get, guard
 
 # (kind, category, severity, title, signed digest, remediation)
 SPECS = {
-'aws_nist_config_enabled_all_regions': ('config_recorder','compliance','medium','AWS Config should be enabled','530a285b1afe78c7f01411ef9e27a8f041a5611d5bead9c8f1ef261e37882112','Enable AWS Config recording and delivery in every enabled Region.'),
+'aws_nist_config_enabled_all_regions': ('config_account_region_coverage','compliance','medium','AWS Config should be enabled','530a285b1afe78c7f01411ef9e27a8f041a5611d5bead9c8f1ef261e37882112','Enable AWS Config recording and delivery in every enabled Region.'),
 'aws.pci.secretsmanager.kms_encryption_any': ('secret','hardening','medium','Secrets Manager secrets use AWS KMS encryption','9324f2166db3358028a9710c333e2c57f30e648fcabd61c7ee02f99e8b7dd186','Configure an enabled AWS or customer managed KMS key.'),
 'aws_nist_secretsmanager_secret_automatic_rotation_enabled': ('secret','compliance','medium','Secrets Manager secrets should have automatic rotation enabled','db6bb47b7f124649a83f0b962cdaa58bf1f40d6801eaa9aa73ddd4c8c0362bd6','Enable rotation with a valid schedule and rotation Lambda when required.'),
 'aws.pci.redshift.expected_settings': ('redshift_cluster','hardening','medium','Redshift cluster settings match expected values','38c746a2e5ec77f7fa915997fa72df9f9d0d435ee4d643aec3c4608ea861c54a','Apply the approved cluster and parameter settings.'),
@@ -85,38 +85,86 @@ def _date(value):
 
 
 def _config(item, index):
-    # One scope decision needs the complete enabled-Region list and both Config inventories.
-    if get(item, 'scope', str) != get(index, 'context.scope', str):
-        raise Unavailable('Config scope subject mismatch')
-    recorders = _inventory(index, 'config_recorder')
-    channels = _inventory(index, 'config_delivery_channel')
-    regions = _policy(index, 'enabled_regions', list)
+    """One account-global verdict from complete native discovery and Config reads."""
     scope = get(index, 'context.scope', str)
-    region = scope.split('/')[1]
-    if not regions or len(regions) != len(set(regions)) or any(not isinstance(r, str) or not r for r in regions) or region not in regions:
-        raise Unavailable('complete enabled-Region inventory unavailable')
-    if len(recorders) > 1 or len(channels) > 1:
-        raise Unavailable('ambiguous Config recorder or delivery channel inventory')
-    if len(recorders) == 0 or len(channels) == 0:
-        return result(True, region=region, reason='recorder or delivery channel absent')
-    rec = recorders[0]
-    status = get(rec, 'Status', dict)
-    if get(status, 'collection_status', str) != 'collected':
-        raise Unavailable('recorder status unavailable')
-    recording = get(status, 'ConfigurationRecordersStatus', list)
-    if len(recording) != 1 or get(recording[0], 'name', str) != get(rec, 'name', str):
-        raise Unavailable('recorder status identity unavailable')
-    if get(recording[0], 'recording', bool) is not True:
-        return result(True, region=region, reason='recorder not recording')
-    group = get(rec, 'recordingGroup', dict)
-    all_supported = get(group, 'allSupported', bool)
-    include_global = get(group, 'includeGlobalResourceTypes', bool)
-    if not all_supported or (region in _policy(index, 'global_resource_regions', list) and not include_global):
-        return result(True, region=region, reason='recording group incomplete')
-    excluded = group.get('exclusionByResourceTypes', {}).get('resourceTypes', [])
-    if not isinstance(excluded, list) or any(not isinstance(v, str) for v in excluded):
-        raise Unavailable('malformed recording exclusions')
-    return result(bool(excluded), region=region)
+    if not scope.endswith('/global') or get(item, 'scope', str) != scope:
+        raise Unavailable('Config account-global subject unavailable')
+    account = scope.split('/')[0]
+    proofs = _inventory(index, 'config_account_region_coverage')
+    if len(proofs) != 1:
+        raise Unavailable('unique account Config proof unavailable')
+    proof = proofs[0]
+    if get(proof, 'AccountId', str) != account or get(proof, 'id', str) != account:
+        raise Unavailable('foreign Config account proof')
+    provenance = get(proof, '_provenance', dict)
+    discovery = get(proof, 'Discovery', dict)
+    capture = get(index, 'context.created_at', str)
+    caller = re.fullmatch(r'arn:([^:]+):(?:iam|sts)::([0-9]{12}):.+', get(discovery, 'caller_arn', str))
+    if (get(provenance, 'read_only', bool) is not True or get(provenance, 'account_global_complete', bool) is not True
+            or get(provenance, 'observed_at', str) != capture or get(discovery, 'observed_at', str) != capture
+            or get(discovery, 'scope', str) != scope or get(discovery, 'caller_account_id', str) != account
+            or get(discovery, 'source_operation', str) != 'ec2:DescribeRegions'
+            or get(discovery, 'all_regions', bool) is not True or get(discovery, 'read_only', bool) is not True
+            or caller is None or caller.group(1) != get(discovery, 'partition', str) or caller.group(2) != account):
+        raise Unavailable('Config native account/discovery provenance unavailable')
+    raw = get(discovery, 'raw_regions', list)
+    from peaso.collectors.aws_config_account_native import region_partition
+    seen, enabled = set(), []
+    for row in raw:
+        name, state = get(row, 'RegionName', str), get(row, 'OptInStatus', str)
+        if (not re.fullmatch(r'[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+', name)
+                or region_partition(name) != caller.group(1) or name in seen
+                or state not in {'opted-in', 'opt-in-not-required', 'not-opted-in'}):
+            raise Unavailable('duplicate or malformed native Region discovery')
+        seen.add(name)
+        if state != 'not-opted-in':
+            enabled.append(name)
+    enabled = sorted(enabled)
+    rows = get(proof, 'Regions', list)
+    if (not enabled or get(discovery, 'regions', list) != enabled or len(rows) != len(enabled)
+            or [get(row, 'RegionName', str) for row in rows] != enabled):
+        raise Unavailable('Config enabled-Region proof incomplete')
+    from .aws_config_recording import _recording_scope, _run_state
+    failures, unresolved = [], []
+    for row in rows:
+        region = get(row, 'RegionName', str)
+        recorders = get(row, 'Recorders', list)
+        channels = get(row, 'DeliveryChannels', list)
+        if len(recorders) > 1 or len(channels) > 1:
+            raise Unavailable('ambiguous Config recorder or delivery channel')
+        if not recorders or not channels:
+            failures.append({'region': region, 'reason': 'recorder or delivery channel absent'})
+            continue
+        if any(get(entry, 'AccountId', str) != account or get(entry, 'Region', str) != region
+               for entry in [*recorders, *channels]):
+            raise Unavailable('foreign Config regional item in account proof')
+        if not get(channels[0], 'name', str):
+            raise Unavailable('delivery channel identity unavailable')
+        rec = recorders[0]
+        name = get(rec, 'name', str)
+        status = get(rec, 'Status', dict)
+        if get(status, 'collection_status', str) != 'collected':
+            raise Unavailable('recorder status unavailable')
+        run, last = _run_state(rec, name)
+        if run in {'stopped', 'failed'}:
+            failures.append({'region': region, 'reason': 'recorder not recording', 'last_status': last})
+            continue
+        group = get(rec, 'recordingGroup', dict)
+        coverage, strategy, _, excluded = _recording_scope(group)
+        if coverage == 'restricted':
+            failures.append({'region': region, 'reason': 'recording group restricted', 'strategy': strategy,
+                             'excluded_types': excluded})
+        elif run != 'running':
+            unresolved.append({'region': region, 'reason': 'recorder run state unconfirmed'})
+        elif get(group, 'includeGlobalResourceTypes', bool) is not True:
+            unresolved.append({'region': region, 'reason': 'global-resource applicability unproven'})
+    if failures:
+        return result(True, account_id=account, enabled_regions=enabled, failing_regions=failures,
+                      unresolved_regions=unresolved, account_wide=True)
+    if unresolved:
+        return unknown('Config global-resource or run-state subclaim unresolved', account_id=account,
+                       enabled_regions=enabled, unresolved_regions=unresolved, account_wide=True)
+    return result(False, account_id=account, enabled_regions=enabled, account_wide=True)
 
 
 def _kms(item, index):
@@ -592,7 +640,7 @@ EVALUATORS = {
 'aws_ecr_repository_lifecycle_retention': _ecr,
 }
 DEPENDENCIES = {
-'aws_nist_config_enabled_all_regions':['config_recorder','config_delivery_channel'],
+'aws_nist_config_enabled_all_regions':['config_account_region_coverage'],
 'aws.pci.secretsmanager.kms_encryption_any':['secret','kms_key'],
 'aws.pci.classic_elb.custom_ssl_policy':['classic_elb'],
 'aws.pci.classic_elb.predefined_ssl_policy':['classic_elb'],
@@ -612,6 +660,8 @@ def _install(identifier, spec):
     def check(item,index):
         return EVALUATORS[identifier](item,index)
     check.__name__ = identifier.replace('.','_')
+    if identifier == 'aws_nist_config_enabled_all_regions':
+        check.evaluation_scope = 'aws_account'
     if CHECKS[-1].id != identifier:
         raise RuntimeError('unexpected check registry order')
     object.__setattr__(CHECKS[-1],'category',category)

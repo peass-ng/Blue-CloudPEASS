@@ -2,7 +2,7 @@
 import copy,json
 from pathlib import Path
 from peaso.snapshot import make_snapshot
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 CID='azure_c5_dev_09_01b'
 NAME='provider_source_lifecycle'
 FIXTURE=Path(__file__).parent/'fixtures/bulk_pending_behavior.json'

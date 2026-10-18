@@ -1073,3 +1073,88 @@ def test_instance_termination_protection_readguard_stays_narrow(arguments):
     with pytest.raises(aws.ReadFailure, match="undeclared_instance_attribute_query"):
         requests.call(object(), "ec2", REGION, "describe_instance_attribute", **arguments)
     assert requests.calls == 0
+
+
+@pytest.mark.parametrize("foreign,org,duplicate,reverse,expected", [
+    (False, False, False, False, "collected"), (True, True, False, False, "collected"),
+    (True, False, False, False, "partial"), (False, False, True, False, "partial"),
+    (False, False, True, True, "partial"),
+])
+def test_cloudtrail_account_inventory_native_binding_and_duplicate_home(sdk, foreign, org, duplicate, reverse, expected):
+    _, add, _ = sdk
+    owner = "999999999999" if foreign else ACCOUNT
+    arn = f"arn:aws:cloudtrail:{REGION}:{owner}:trail/native"
+    trail = {"Name": "native", "TrailARN": arn, "HomeRegion": REGION,
+             "IsOrganizationTrail": org, "IsMultiRegionTrail": True,
+             "S3BucketName": "native-bucket"}
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    add("ec2").add_response("describe_regions", {"Regions": [
+        {"RegionName": REGION, "OptInStatus": "opt-in-not-required"}]}, {"AllRegions": True})
+    ct = add("cloudtrail")
+    conflicting = {**trail, "Name": "conflicting-native-name"}
+    native_rows = ([conflicting, trail] if reverse else [trail, conflicting]) if duplicate else [trail]
+    ct.add_response("describe_trails", {"trailList": native_rows}, {"includeShadowTrails": True})
+    ct.add_response("get_trail_status", {"IsLogging": True}, {"Name": arn})
+    ct.add_response("get_event_selectors", {"TrailARN": arn, "EventSelectors": []}, {"TrailName": arn})
+    ct.add_client_error("get_insight_selectors", "InsightNotEnabledException",
+                        expected_params={"TrailName": arn})
+    snapshot = aws.collect({"provider": "aws", "scopes": [ACCOUNT], "options": {}},
+                           ["cloudtrail_account_inventory"])
+    inventory = envelope(snapshot, "cloudtrail_account_inventory")
+    assert inventory["status"] == expected
+    row = inventory["items"][0]
+    assert len(row["_account_trail_observations"]) == (2 if duplicate else 1)
+    assert row["_account_trail_binding"] == {
+        "caller_account_id": ACCOUNT, "identity_operation": "sts:GetCallerIdentity",
+        "describe_operation": "cloudtrail:DescribeTrails", "include_shadow_trails": True,
+        "trail_arn": arn, "capture_observed_at": snapshot["created_at"],
+    }
+    assert row["AccountId"] == ACCOUNT
+    assert row["SourceRegion"] == REGION
+    if duplicate:
+        assert inventory["error"]["code"] == "ambiguous_account_trail"
+
+
+@pytest.mark.parametrize("mode,expected", [
+    ("home_and_shadow", "collected"),
+    ("conflicting_shadow", "partial"),
+    ("denied_home", "partial"),
+])
+def test_cloudtrail_account_inventory_home_authority_across_native_regions(sdk, mode, expected):
+    _, add, _ = sdk
+    shadow_region = "eu-west-1"
+    arn = f"arn:aws:cloudtrail:{REGION}:{ACCOUNT}:trail/native"
+    home = {"Name": "native", "TrailARN": arn, "HomeRegion": REGION,
+            "IsOrganizationTrail": False, "IsMultiRegionTrail": True,
+            "S3BucketName": "native-bucket"}
+    shadow = dict(home)
+    if mode == "conflicting_shadow":
+        shadow["Name"] = "conflicting-name"
+    add("sts").add_response("get_caller_identity", IDENTITY, {})
+    add("ec2").add_response("describe_regions", {"Regions": [
+        {"RegionName": shadow_region, "OptInStatus": "opt-in-not-required"},
+        {"RegionName": REGION, "OptInStatus": "opt-in-not-required"}]}, {"AllRegions": True})
+    add("cloudtrail", shadow_region).add_response("describe_trails", {"trailList": [shadow]},
+                                                     {"includeShadowTrails": True})
+    home_client = add("cloudtrail", REGION)
+    home_client.add_response("get_trail_status", {"IsLogging": True}, {"Name": arn})
+    home_client.add_response("get_event_selectors", {"TrailARN": arn, "EventSelectors": []}, {"TrailName": arn})
+    home_client.add_client_error("get_insight_selectors", "InsightNotEnabledException",
+                                 expected_params={"TrailName": arn})
+    if mode == "denied_home":
+        home_client.add_client_error("describe_trails", "AccessDeniedException",
+                                     expected_params={"includeShadowTrails": True})
+    else:
+        home_client.add_response("describe_trails", {"trailList": [home]},
+                                 {"includeShadowTrails": True})
+    snapshot = aws.collect({"provider": "aws", "scopes": [ACCOUNT], "options": {}},
+                           ["cloudtrail_account_inventory"])
+    inventory = envelope(snapshot, "cloudtrail_account_inventory")
+    assert inventory["status"] == expected, inventory
+    row = inventory["items"][0]
+    assert len(row["_account_trail_observations"]) == (1 if mode == "denied_home" else 2)
+    if mode == "home_and_shadow":
+        assert row["SourceRegion"] == REGION
+        assert {x["SourceRegion"] for x in row["_account_trail_observations"]} == {REGION, shadow_region}
+    else:
+        assert inventory["error"]["code"] in {"ambiguous_account_trail", "AccessDeniedException"}

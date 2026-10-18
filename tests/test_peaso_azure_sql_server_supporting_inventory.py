@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import azure, collect_live
 from peaso.collectors import bulk_evidence
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.server.validation import validate_connector
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_collectors_azurek8s import FakeAzure

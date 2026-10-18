@@ -261,3 +261,68 @@ def test_concurrent_edits_invalidate_capture(tmp_path, catalogs, monkeypatch):
     report = audit_directory(tmp_path)
     assert not report["capture_stable"] and not report["catalog_consistent"]
     assert "concurrent_catalog_edit" in codes(report)
+
+
+def test_archived_external_control_retains_source_provenance_but_is_not_active(catalogs):
+    native = catalogs["native_catalog.json"]["checks"].pop()
+    ident = native["id"]
+    catalogs["native_catalog.json"]["archived_checks"] = [native]
+    catalogs["native_catalog.json"]["excluded_controls"] = {
+        ident: {"reason": "Requires owner-approved baseline", "source": "checks/example.py:evaluate"}}
+    row = catalogs["framework_catalog.json"]["frameworks"][0]
+    row["source_supported_native_checks"] = 1
+    row["supported_native_checks"] = 0
+    row["native_check_ids"] = []
+    catalogs["catalog_summary.json"]["active_native_checks"] = 0
+    report = audit_documents(catalogs)
+    assert report["catalog_consistent"], report["issues"]
+    assert report["active_native_checks"] == 0
+    assert report["archived_native_checks"] == 1
+    assert report["counts"]["native_checks"] == 1  # Audited source definitions.
+    native["dependencies"] = []
+    assert "missing_collection_dependencies" in codes(audit_documents(catalogs))
+
+
+def test_archive_cannot_silently_drop_or_duplicate_automatic_control(catalogs):
+    native = copy.deepcopy(catalogs["native_catalog.json"]["checks"][0])
+    catalogs["native_catalog.json"]["archived_checks"] = [native]
+    report = audit_documents(catalogs)
+    assert "invalid_native_only_admission_partition" in codes(report)
+    catalogs["native_catalog.json"]["checks"] = []
+    catalogs["native_catalog.json"]["excluded_controls"] = {native["id"]: {"reason": ""}}
+    assert "missing_native_only_exclusion_evidence" in codes(audit_documents(catalogs))
+
+
+@pytest.mark.parametrize("mutation", ["predicate", "prior_hash", "frozen_signature"])
+def test_source_erratum_keeps_both_frozen_and_current_provenance(catalogs, mutation):
+    import hashlib
+    reviewed_catalogs(catalogs)
+    native = catalogs["native_catalog.json"]["checks"][0]
+    spec = {"id": native["id"], "provider": "aws", "severity": "high", "category": "hardening",
+            "resource_kind": "bucket", "predicate": "Original reviewed condition"}
+    native["severity"] = "high"
+    digest = lambda value: hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+    signed = digest(spec)
+    current = {**spec, "predicate": "Explicit source erratum condition"}
+    proof = {"version": "peaso-source-correction-v1", "status": "source_erratum_successor",
+             "prior_frozen_status": "historical_superseded_for_this_check",
+             "prior_frozen_signed_spec_sha256": signed,
+             "current_canonical_spec_sha256": digest(current),
+             "current_predicate_sha256": hashlib.sha256(current["predicate"].encode()).hexdigest(),
+             "source_url": "https://example.org/source-erratum"}
+    native["source_correction"] = copy.deepcopy(proof)
+    native["proposal_provenance"] = {"signed_spec_sha256": signed, "signed_provider": "aws",
+        "signed_severity": "high", "signed_category": "hardening", "signed_resource_kind": "bucket",
+        "source_manifest_sha256": catalogs["compliance_requirements.json"]["source_manifest_sha256"],
+        "signed_spec_status": "historical_superseded_for_this_check", "source_correction": copy.deepcopy(proof)}
+    catalogs["compliance_requirements.json"]["proposed_checks"] = [spec]
+    catalogs["native_catalog.json"]["source_corrections"] = {native["id"]: {"spec": current, "provenance": proof}}
+    refresh_reviewed_lookup(catalogs)
+    assert audit_documents(catalogs)["catalog_consistent"]
+    if mutation == "predicate":
+        current["predicate"] = "Unreviewed replacement"
+    elif mutation == "prior_hash":
+        proof["prior_frozen_signed_spec_sha256"] = "0" * 64
+    else:
+        native["proposal_provenance"]["signed_spec_sha256"] = "0" * 64
+    assert not audit_documents(catalogs)["catalog_consistent"]

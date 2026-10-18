@@ -1520,13 +1520,13 @@
     },
     "aws_nist_config_enabled_all_regions": {
       "provider": "aws",
-      "kind": "config_recorder",
+      "kind": "config_account_region_coverage",
+      "signed_resource_kind": "config_recorder",
       "severity": "medium",
       "proposed_spec_sha256": "e7d061040c675e732d771743f369083d4bb74ac5ee620cadbaca8671acf0b8be",
       "source_module": "compliance_new_sw48",
       "dependencies": [
-        "config_recorder",
-        "config_delivery_channel"
+        "config_account_region_coverage"
       ]
     },
     "aws_nist_ec2_instance_not_publicly_accessible": {
@@ -6065,7 +6065,7 @@
     "compliance_new_sw10": "6dcd76069c450e4d0291229dd3eeff307fe34b7f5c1061cb9a05b028df2fd986",
     "compliance_new_sw11": "dc807a53d9e9f9eb21ccf1243cf39426d8eaa5d94541c8879a66c248ac4b65e7",
     "compliance_new_sw12": "c4f086d9703e53f6e2ef1f9fd12210a2b2d25091027bb7d5760e154d580fe576",
-    "compliance_new_sw13": "d091c0e89cfc69cb2613abdd38955ba67184a2278c8ac69cbc76750a405fe4f8",
+    "compliance_new_sw13": "aa3b7d7e2ce049d2e2ac66d70620f6bc405888bb6a14409c68f0c473b17ea06c",
     "compliance_new_sw14": "2ff8256b7d52d5356e201f386ac8615b035fa6338d58cb7968c5612ad4eebd7f",
     "compliance_new_sw15": "d25d0ad78443d716b42eb5c6117bd297866f2ba3c1858cefc146ca459a7f2f97",
     "compliance_new_sw16": "e5990e9b65623771a1d9a348df168091cfd7c79f85b6068337eb491a052c1067",
@@ -6087,7 +6087,7 @@
     "compliance_new_sw32": "8a56bd712359f9b19e48a1a31df27ddcd26a25173c602d5e9dc7be486ea61f92",
     "compliance_new_sw33": "aee51ad51345776f5861f0f90e82d4bab862e00d41c0a017363df80404c48a15",
     "compliance_new_sw34": "eb2b7a68e78fb897f7494466b7d6760f79f288af7a7589b4c109c7aab0613b9e",
-    "compliance_new_sw35": "4dc73b45cfe7b3131d296251c5c2cf25b58e45b84d03bf27fc921ca63b5f269a",
+    "compliance_new_sw35": "460835b3e1dc162d9cff45de1be4e6f984b9768c1dd65635e9fbcd565bb2d98c",
     "compliance_new_sw36": "fb314bd59dcb8e4aa4113ea86e110861176db46ae8ca025703a35d105fcf1a9c",
     "compliance_new_sw37": "63e73e26ef553d9646272ceb6bcf2d9cf46fd673b4ccc4c1e7dfdd55efe530d7",
     "compliance_new_sw38": "8349853eb7eca42fb60ca5a61c46a5b2eb40db5456eac982189864b06811392c",
@@ -6100,7 +6100,7 @@
     "compliance_new_sw45": "2a7349a3691cebacf6b7a665bdf06fb89723c818fca5a3b44be93a2324b36719",
     "compliance_new_sw46": "553fc35045130d729c20e1cec09fd1a6d897d9ae65c69257202b26cbf8b575be",
     "compliance_new_sw47": "5c57aa4be9b3178be05fbc0ca19c60606cf12b130af48291cda6e15ac6736d78",
-    "compliance_new_sw48": "8ecd1e305201036495cc8960a3461228e1a33c7a6fc5884c8c72cdba6d732dc5",
+    "compliance_new_sw48": "a2769bd37fb6a009382ec741a8812f886159d3ecfd4c83760f12aad1e02436d0",
     "compliance_new_sw49": "c339c4f8e06f656a0507cb8f77b857a52b659da725d276c2eb0e80bffac8e954",
     "compliance_new_sw50": "6b97ba8a3a7ebfbc46b35fe932b71405b79fc2fc6adcd42f57f3fa86d2a3e3ba",
     "compliance_new_sw51": "5a1df90fbbafa43399dced00d3c515ddee2111d7f3ef8a7500b6a5a00cc247b1",

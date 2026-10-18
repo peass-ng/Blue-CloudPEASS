@@ -7,7 +7,7 @@ from test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from test_peaso_aws_wave_semantics_native_integration import finding, history_record, FILTERS, SCOPE, PRODUCT, ACTOR
 from peaso.collectors import aws, aws_wave_semantics_native as native
 from peaso.collectors.bulk_evidence import collect as collect_bulk
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 
 AUTOMATION = f'arn:aws:iam::{ACCOUNT}:role/automation'
 BASE = datetime(2026, 10, 10, tzinfo=timezone.utc)

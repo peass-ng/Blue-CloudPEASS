@@ -61,8 +61,20 @@ def _trails(index, account, region, scope):
         name = get(row, "Name", str)
         source = get(row, "SourceRegion", str)
         provenance = get(row, "_provenance", dict)
-        if (not match or match.group(3) != account or match.group(2) != home or
-                not name or source != home or provenance.get("operation") != "cloudtrail:DescribeTrails" or
+        foreign_org = match is not None and match.group(3) != account
+        if foreign_org:
+            binding = row.get("_account_trail_binding")
+            context = get(index, "context", dict)
+            capture_at = get(context, "created_at", str)
+            if (row.get("IsOrganizationTrail") is not True or row.get("AccountId") != account or
+                    not isinstance(binding, dict) or binding.get("caller_account_id") != account or
+                    binding.get("identity_operation") != "sts:GetCallerIdentity" or
+                    binding.get("describe_operation") != "cloudtrail:DescribeTrails" or
+                    binding.get("include_shadow_trails") is not True or binding.get("trail_arn") != arn or
+                    binding.get("capture_observed_at") != capture_at):
+                raise Unavailable("organization trail native account binding unavailable")
+        if (not match or match.group(2) != home or not name or source != home or
+                provenance.get("operation") != "cloudtrail:DescribeTrails" or
                 provenance.get("native_response_complete") is not True or arn in seen):
             raise Unavailable("trail identity, home Region, provenance, or uniqueness unavailable")
         seen.add(arn)
@@ -126,12 +138,12 @@ def _log_groups(index, account, scope):
     return groups
 
 
-def _log_group(trail, groups, *, missing_is_none=False):
+def _log_group(trail, groups, account, *, missing_is_none=False):
     arn = get(trail, "CloudWatchLogsLogGroupArn", str).removesuffix(":*")
     if not arn:
         return None
     match = _LOG_ARN.fullmatch(arn)
-    if not match or match.group(2) != get(trail, "HomeRegion", str):
+    if not match or match.group(2) != get(trail, "HomeRegion", str) or match.group(3) != account:
         raise Unavailable("CloudWatch destination log group unresolved")
     if arn not in groups:
         if missing_is_none:
@@ -322,7 +334,7 @@ def _cloudtrail(item, index, check_id):
             if not dest or (role is not None and not role):
                 failed.append(arn)
                 continue
-            group = _log_group(trail, groups, missing_is_none=True)
+            group = _log_group(trail, groups, account, missing_is_none=True)
             if group is None:
                 failed.append(arn)
                 continue
@@ -349,7 +361,7 @@ def _cloudtrail(item, index, check_id):
             trail_good = _cmk(get(trail, "KmsKeyId", str), keys, region, account)
             group_good = True
             if get(trail, "CloudWatchLogsLogGroupArn", str):
-                group = _log_group(trail, groups)
+                group = _log_group(trail, groups, account)
                 group_good = _cmk(get(group, "kmsKeyId", str), keys, region, account)
             if not trail_good or not group_good:
                 failed.append(arn)

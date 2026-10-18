@@ -6,7 +6,7 @@ import pytest
 
 from peaso.checks import CHECKS
 from peaso.collectors import aws, aws_region_data_native as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 ACCOUNT = '123456789012'

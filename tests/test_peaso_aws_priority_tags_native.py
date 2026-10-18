@@ -3,7 +3,7 @@ import copy
 import pytest
 from test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, collect_live, aws_priority_tags_native as native
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.archived_check_contract import evaluate_snapshot, plan_collection
 from peaso.snapshot import make_snapshot
 
 CHECK='aws_resource_priority_tags_present'

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 from tests.test_peaso_aws_bulk_inventory import sdk, ACCOUNT, REGION
 from peaso.collectors import aws, collect_live
-from peaso.engine import plan_collection, evaluate_snapshot
+from tests.archived_check_contract import plan_collection, evaluate_snapshot
 from peaso.server.validation import validate_connector
 
 CONTROL = 'aws_route53resolver_query_logs_forwarded'

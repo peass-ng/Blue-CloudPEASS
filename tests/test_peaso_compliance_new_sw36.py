@@ -334,7 +334,7 @@ def test_schedule_only_rule_cannot_prove_event_alert():
 
 
 def test_engine_evaluates_new_scope_and_resource_kinds():
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     from peaso.snapshot import make_snapshot
 
     event = rule('alert', 'aws.guardduty', 'GuardDuty Finding',

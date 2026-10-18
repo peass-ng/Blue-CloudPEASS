@@ -98,7 +98,7 @@ def capture(private,monkeypatch,mode):
  if mode=='call-cap':opts['max_calls']=5
  if mode=='resource-cap':opts['max_resources']=1
  connector={'provider':'aws','scopes':[ACCOUNT+'/'+region],'options':opts}
- from peaso.engine import collect_snapshot,evaluate_snapshot
+ from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
  try:
   snap=collect_snapshot({'connector':connector,'checks':[CID]})
   findings=[f for f in evaluate_snapshot(snap,checks=[CID])['findings']if f['check_id']==CID]

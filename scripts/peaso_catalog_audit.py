@@ -35,7 +35,18 @@ def audit_documents(documents):
         issues.append({"code": code, **details})
 
     rows = documents["upstream_manifest.json"]["checks"]
-    checks = documents["native_catalog.json"]["checks"]
+    active_checks = documents["native_catalog.json"]["checks"]
+    archived_checks = documents["native_catalog.json"].get("archived_checks", [])
+    excluded_controls = documents["native_catalog.json"].get("excluded_controls", {})
+    active_ids = {check["id"] for check in active_checks}
+    archived_ids = {check["id"] for check in archived_checks}
+    if archived_ids != set(excluded_controls) or active_ids.intersection(archived_ids):
+        issue("invalid_native_only_admission_partition")
+    for cid, admission in excluded_controls.items():
+        if not isinstance(admission, dict) or not all(isinstance(admission.get(key), str) and admission[key].strip() for key in ("reason", "source")):
+            issue("missing_native_only_exclusion_evidence", native_id=cid)
+    # Source mappings retain archived definitions; active selectors never include them.
+    checks = active_checks + archived_checks
     reviewed = documents.get("compliance_requirements.json")
     if reviewed is None and (documents["native_catalog.json"].get("compliance_source_manifest_sha256") or
                             documents["framework_catalog.json"].get("compliance_source_manifest_sha256") or
@@ -159,7 +170,7 @@ def audit_documents(documents):
         if f is None:
             issue("missing_framework", framework_id=fid)
         else:
-            source_count_field = ("source_supported_native_checks" if fid in reviewed_framework_ids
+            source_count_field = ("source_supported_native_checks" if fid in reviewed_framework_ids or "source_supported_native_checks" in f
                                   else "supported_native_checks")
             expected = {"source_checks": len(ids), "pending_source_checks": counter["pending"],
                         source_count_field: len(framework_native[fid])}
@@ -210,6 +221,28 @@ def audit_documents(documents):
                                    "signed_category": spec["category"],
                                    "signed_resource_kind": spec["resource_kind"],
                                    "source_manifest_sha256": source_hash}
+            correction = documents["native_catalog.json"].get("source_corrections", {}).get(cid)
+            if correction is not None:
+                spec_now = correction.get("spec", {})
+                provenance = correction.get("provenance", {})
+                canonical_now = json.dumps(spec_now, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+                current_digest = hashlib.sha256(canonical_now).hexdigest()
+                predicate_digest = hashlib.sha256(str(spec_now.get("predicate", "")).encode()).hexdigest()
+                valid = (spec_now.get("id") == cid and spec_now.get("provider") == spec["provider"]
+                         and spec_now.get("severity") == spec["severity"]
+                         and provenance.get("version") == "peaso-source-correction-v1"
+                         and provenance.get("status") == "source_erratum_successor"
+                         and provenance.get("prior_frozen_status") == "historical_superseded_for_this_check"
+                         and provenance.get("prior_frozen_signed_spec_sha256") == expected_provenance["signed_spec_sha256"]
+                         and provenance.get("current_canonical_spec_sha256") == current_digest
+                         and provenance.get("current_predicate_sha256") == predicate_digest
+                         and isinstance(provenance.get("source_url"), str) and provenance["source_url"].startswith("https://")
+                         and native[cid].get("source_correction") == provenance)
+                if not valid:
+                    issue("invalid_source_correction_provenance", native_id=cid)
+                else:
+                    expected_provenance["signed_spec_status"] = "historical_superseded_for_this_check"
+                    expected_provenance["source_correction"] = provenance
             if native[cid].get("proposal_provenance") != expected_provenance:
                 issue("missing_signed_proposal_provenance", native_id=cid)
             if native[cid].get("provider") != spec["provider"]:
@@ -249,7 +282,8 @@ def audit_documents(documents):
                 if row is None:
                     issue("missing_reviewed_framework", framework_id=fid)
                     continue
-                if row.get("native_check_ids") != sorted(reviewed_native[fid]) or row.get("supported_native_checks") != len(reviewed_native[fid]):
+                expected_active = reviewed_native[fid].intersection(active_ids)
+                if row.get("native_check_ids") != sorted(expected_active) or row.get("supported_native_checks") != len(expected_active):
                     issue("stale_reviewed_framework_checks", framework_id=fid)
                 if row.get("requirements_total") != version.get("requirements_total"):
                     issue("stale_reviewed_framework_requirements", framework_id=fid)
@@ -259,6 +293,9 @@ def audit_documents(documents):
                 expected_states = dict(Counter(item.get("runtime_status") for item in version["requirements"]))
                 if row.get("requirements_by_status") != expected_states:
                     issue("stale_reviewed_framework_statuses", framework_id=fid)
+    declared_active = documents["catalog_summary.json"].get("active_native_checks")
+    if declared_active is not None and declared_active != len(active_ids):
+        issue("stale_active_native_summary", expected=len(active_ids), observed=declared_active)
     providers = {}
     for provider in PROVIDERS:
         own = [r for r in rows if r["provider"] == provider]
@@ -276,6 +313,7 @@ def audit_documents(documents):
                             reviewed_states["not_assessed"] == 0)
     return {"schema_version": "1.0", "scope": "native configuration catalog metadata only",
             "catalog_consistent": not issues, "coverage_complete": requirement_complete,
+            "active_native_checks": len(active_ids), "archived_native_checks": len(archived_ids),
             "automation_implementation_complete": implementation_complete,
             "source_reference_coverage_complete": source_complete,
             "pending_automatable_requirements": pending_requirements,

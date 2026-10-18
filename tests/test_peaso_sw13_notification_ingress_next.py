@@ -1,6 +1,6 @@
 """Closed sign-in delivery evidence is evaluated per event."""
 import pytest
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 CID='azure_c5_iam_03_01ac'
 TENANT='/tenants/tenant-13'

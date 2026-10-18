@@ -64,7 +64,7 @@ def test_empty_tenant_roster_requires_complete_subscription_universe(complete):
 @pytest.mark.parametrize('delegated',[False,True])
 def test_snapshot_engine_preserves_complete_principal_universe(delegated):
     from peaso.snapshot import make_snapshot
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     _,index=case();proof=coverage(index)
     if delegated:
         proof['principal_ids'].append('foreign-reader')

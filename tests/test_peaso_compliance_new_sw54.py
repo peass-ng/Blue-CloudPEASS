@@ -290,7 +290,7 @@ def test_empty_complete_sink_inventory_is_evaluated_at_scope():
 def test_engine_runs_scope_sink_check_on_empty_inventory(monkeypatch):
     import peaso.engine as engine
     monkeypatch.setattr(engine, "CATEGORIES", engine.CATEGORIES + ("logging",))
-    from peaso.engine import evaluate_snapshot
+    from tests.archived_check_contract import evaluate_snapshot
     from peaso.snapshot import make_snapshot
 
     _, facts = log_setup("export")

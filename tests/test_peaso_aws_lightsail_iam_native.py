@@ -8,7 +8,7 @@ import boto3
 from botocore.stub import Stubber
 import pytest
 from peaso.collectors import aws, aws_lightsail_iam_native as native
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from peaso.aws_lightsail_owner_policy import normalize, owner_metadata
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from peaso.checks import CHECKS, HACKTRICKS
 from peaso.checks.fixtures import CASES
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 from peaso.engine import hydrate_frameworks
 
@@ -258,4 +258,5 @@ def test_runtime_catalog_does_not_load_pending_audit_definitions(monkeypatch):
     result = get_catalog()
     assert result["checks"]
     assert result["upstream_coverage"]["runtime_scope_upstream_total"] == 5844
-    assert result["manual_requirements"]
+    assert result["manual_requirements"] == []
+    assert catalog_module.manual_requirements()  # Retained source references, outside scan scope.

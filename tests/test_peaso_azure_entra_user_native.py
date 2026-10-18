@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 
 from peaso.collectors import azure
-from peaso.engine import collect_snapshot, evaluate_snapshot
+from tests.archived_check_contract import collect_snapshot, evaluate_snapshot
 
 TENANT = "22222222-2222-2222-2222-222222222222"
 OTHER_TENANT = "99999999-9999-9999-9999-999999999999"

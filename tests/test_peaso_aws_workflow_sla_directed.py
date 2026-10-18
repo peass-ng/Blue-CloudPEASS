@@ -2,7 +2,7 @@
 import pytest
 
 from peaso.collectors.aws_wave_semantics_native import PROFILE
-from peaso.engine import evaluate_snapshot
+from tests.archived_check_contract import evaluate_snapshot
 from peaso.snapshot import make_snapshot
 
 ACCOUNT = '123456789012'
