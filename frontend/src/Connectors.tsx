@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, KeyRound, Check, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, Copy } from "lucide-react";
 import { items, json, request, useApi } from "./api";
 import { authGuides, gcpRoles } from "./authGuides";
 import { providers } from "./types";
@@ -362,6 +362,20 @@ export const authModes: Record<Provider, Mode[]> = {
     },
   ],
 };
+const methodOrder: Record<"hosted" | "local", Record<Provider, string[]>> = {
+  hosted: {
+    aws: ["assume_role", "access_keys"],
+    gcp: ["platform-service-account", "service-account", "impersonation", "token"],
+    azure: ["client-secret", "client-cert-inline", "workload-identity-inline", "token"],
+    k8s: ["kubeconfig-inline", "token", "certificate-inline"],
+  },
+  local: {
+    aws: ["default", "profile", "assume_role", "sso", "access_keys", "instance", "container", "web_identity"],
+    gcp: ["adc", "gcloud", "metadata", "service-account", "impersonation", "token", "external-account", "platform-service-account"],
+    azure: ["default", "az-cli", "managed-identity", "client-secret", "client-cert", "client-cert-inline", "workload-identity", "workload-identity-inline", "token"],
+    k8s: ["in_cluster", "kubeconfig", "kubeconfig-inline", "token", "certificate", "certificate-inline"],
+  },
+};
 for (const { id: provider } of providers) {
   for (const mode of authModes[provider]) {
     if (!authGuides[provider][mode.id]) throw new Error(`Missing ${provider} authentication setup guide for ${mode.id}`);
@@ -390,7 +404,7 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
   return (
     <>
       <div className="section-top">
-        <p>Give HackTricks CSPM a read-only view of your environments.</p>
+        <p>Give PEASS'o CSPM a read-only view of your environments.</p>
         <button
           className="button primary"
           disabled={demo || !canWrite}
@@ -476,14 +490,6 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
           </div>
         )}
       </Panel>
-      <div className="notice">
-        <KeyRound size={19} />
-        <p>
-          Credentials are encrypted by the API, redacted in responses, and
-          cleared from this form after submission. Default chains and local
-          profiles run on the server hosting HackTricks CSPM.
-        </p>
-      </div>
       {onboarding && (
         <Inspector
           title={onboarding.gcp_onboarding ? "Google Cloud onboarding" : "Hosted role onboarding"}
@@ -575,7 +581,7 @@ function AuthSetupGuide({ provider, method, label, hosted, prepared }: { provide
       <section className="auth-guide-step">
         <span className="auth-guide-step-number">1</span>
         <div className="auth-guide-step-body">
-          <h4>{hostedAwsRole ? "Create role and grant access" : "Create access"}</h4><p>{hostedAwsRole ? `In each customer AWS account, review and deploy the template. It creates a role that trusts ${collectorArn} using this connector's External ID, and attaches all four collector read policies. Enter the resulting role ARN below.` : hostedGcp ? `The scanning identity already exists: ${gcpEmail}. Add this connector's approval label to each customer project. The platform project is excluded.` : guide.access}</p>
+          <h4>{hostedAwsRole ? "Create role and grant access" : "Create access"}</h4><p>{hostedAwsRole ? `In each customer AWS account, deploy the template and enter the resulting role ARN below. It uses this connector's External ID to grant access to ${collectorArn}.` : hostedGcp ? `Da acceso a la cuenta de servicio de HackTricks ${gcpEmail} en cada proyecto que quieras analizar y añade la etiqueta de aprobación del conector.` : guide.access}</p>
           {accessCommands.map((command) => <GuideCommand key={command.label} label={command.label} value={command.value} />)}
         </div>
       </section>
@@ -583,7 +589,7 @@ function AuthSetupGuide({ provider, method, label, hosted, prepared }: { provide
         <span className="auth-guide-step-number">2</span>
         <div className="auth-guide-step-body">
           <h4>Grant permissions</h4>
-          <p>{hostedGcp ? "Grant the shared scanning service account these seven project roles in each customer project. Repeat for each selected project." : guide.permissions}</p>
+          <p>{hostedGcp ? "Asigna los permisos del comando a esa cuenta de servicio en cada proyecto que quieras analizar." : guide.permissions}</p>
           {guide.permissionIds && <ul className="auth-guide-policy-list">
             {guide.permissionIds.map((id) => <li key={id}><code>{id}</code></li>)}
           </ul>}
@@ -610,7 +616,7 @@ function HostedOnboarding({ details }: { details: NonNullable<Connector["onboard
     : null;
   const cli = `curl -fsSL '${template}' -o hacktricks-cspm-customer-role.json\naws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${details.external_id}`;
   return <div className="form">
-    <p>Trust the HackTricks CSPM IAM collector role in each target account. The server generated this connector’s ExternalID.</p>
+    <p>In each AWS account you want to scan, create a role that trusts the PEASS'o CSPM role below. Use this connector's External ID.</p>
     <CopyValue label="Collector role ARN" value={details.collector_role_arn || COLLECTOR_ROLE_ARN} />
     <CopyValue label="ExternalID" value={details.external_id} />
     <CopyValue label="Target role ARNs" value={(details.target_role_arns || []).join("\n")} />
@@ -632,12 +638,11 @@ function HostedOnboarding({ details }: { details: NonNullable<Connector["onboard
         });
       }}>Copy or download trust policy</button>
     </section>
-    <p>Deploy the template in each target account. It attaches the collector's scoped inventory and configuration read policies, plus the explicitly authorized IAM credential-report generation action. Review those policies and acknowledge named IAM resources before deployment.</p>
+    <p>Deploy the template in each AWS account you want to scan, then add the new role ARN to this connector.</p>
     {quickCreate ? <a className="button" href={quickCreate} target="_blank" rel="noreferrer">Create role with CloudFormation</a>
-      : <p className="muted small">Quick create becomes available after the public S3 template is enabled. Download the template and create the stack in CloudFormation meanwhile.</p>}
+      : null}
     <a className="button" href={template} download="customer-role.json">Download CloudFormation template</a>
     <CopyValue label="AWS CLI fallback" value={cli} />
-    <p className="muted small">For several AWS accounts, deploy the same template through StackSets and use this connector’s ExternalID parameter. Add each resulting role ARN to the target list.</p>
   </div>;
 }
 function GcpOnboarding({ details }: { details: NonNullable<Connector["gcp_onboarding"]> }) {
@@ -650,17 +655,15 @@ function GcpOnboarding({ details }: { details: NonNullable<Connector["gcp_onboar
     'gcloud alpha projects update "$PROJECT_ID" --update-labels="' + details.project_label_key + "=" + details.project_label_value + '"',
   ].join("\n");
   return <div className="form">
-    <p>In each customer project, grant the HackTricks CSPM service account read access and add this connector’s project label. The label authorizes this connector to scan that project, including when you select “Discover all approved customer projects.”</p>
+    <p>Da acceso a la cuenta de servicio de HackTricks <strong>{details.service_account_email}</strong> en cada proyecto que quieras analizar. Añade también la etiqueta de este conector.</p>
     <CopyValue label="Service account email" value={details.service_account_email} />
     <CopyValue label="Project label key" value={details.project_label_key} />
     <CopyValue label="Project label value" value={details.project_label_value} />
     <CopyValue label="gcloud CLI: grant roles and label this project" value={grantCommand} />
     <ol>
-      <li>Run the command above for each customer project after replacing PROJECT_ID. It grants {gcpRoles.join(", ")} to this service account.</li>
-      <li>On each project’s Labels page, add the label key and value above. You need permission to edit project labels to do this.</li>
-      <li>Enter the project IDs in this connector, or select “Discover all approved customer projects” to include every accessible project carrying this connector’s label. Run a scan after the grants and label are visible.</li>
+      <li>Sustituye PROJECT_ID y ejecuta el comando en cada proyecto que quieras analizar. El comando asigna los permisos y añade la etiqueta.</li>
+      <li>Después, introduce los ID de los proyectos en el conector o activa la búsqueda de proyectos aprobados.</li>
     </ol>
-    <p className="muted small">The HackTricks CSPM service account’s own project is always excluded. A missing label or read permission prevents that project from being scanned. Scan coverage records remaining permission gaps.</p>
   </div>;
 }
 function ConnectorForm({
@@ -814,8 +817,31 @@ function ConnectorForm({
       (!hosted || !m.localOnly) &&
       (!capabilities?.[provider] ||
         capabilities[provider].includes(capability(m))),
-  );
+  ).sort((a, b) => methodOrder[hosted ? "hosted" : "local"][provider].indexOf(a.id) -
+    methodOrder[hosted ? "hosted" : "local"][provider].indexOf(b.id));
   const selected = allowedModes.find((m) => m.id === mode) || allowedModes[0];
+  useEffect(() => {
+    if (selected && mode !== selected.id) setMode(selected.id);
+  }, [mode, selected?.id]);
+  const environmentIntro = !hosted ? ({
+    aws: {
+      default: "Para usar credenciales del entorno, ejecuta primero PEASS'o CSPM en el servidor o contenedor que las tiene.",
+      container: "Para usar el rol de la tarea, ejecuta primero PEASS'o CSPM en esa tarea de ECS.",
+      instance: "Para usar el rol de la instancia, ejecuta primero PEASS'o CSPM en esa instancia EC2.",
+    },
+    gcp: {
+      adc: "Para usar credenciales del entorno, ejecuta primero PEASS'o CSPM en la VM o contenedor que las tiene.",
+      metadata: "Para usar la cuenta de servicio de la VM, ejecuta primero PEASS'o CSPM en esa VM de Google Cloud.",
+      ...(sourceMethod === "metadata" ? { impersonation: "Para usar la identidad asociada a la VM, ejecuta primero PEASS'o CSPM en esa VM de Google Cloud." } : {}),
+    },
+    azure: {
+      default: "Para usar credenciales del entorno, ejecuta primero PEASS'o CSPM en el servidor o recurso que las tiene.",
+      "managed-identity": "Para usar la identidad administrada, ejecuta primero PEASS'o CSPM en el recurso de Azure que la tiene.",
+    },
+    k8s: {
+      in_cluster: "Para usar la identidad del pod, ejecuta primero PEASS'o CSPM dentro de ese clúster.",
+    },
+  } as Record<Provider, Record<string, string>>)[provider][selected.id] : undefined;
   const mutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) => {
       const init = json(payload, connector ? "PATCH" : "POST");
@@ -1094,9 +1120,30 @@ function ConnectorForm({
       setCheckPending(false);
     }
   }
+  function chooseProvider(p: Provider) {
+    if (connector || p === provider) return;
+    setProvider(p);
+    setMode("");
+    setAuth({});
+    setAwsRoles("");
+    setIncludeSourceAccount(true);
+    setAdvancedAuth("");
+    setBackupPolicyEnabled(false);
+    setBackupFrequencyHours("");
+    setBackupPolicyScopes("");
+    setGcpAuditEnabled(false);
+    setGcpAuditRecords([emptyGcpAuditRecord()]);
+    setK8sPolicyEnabled(false);
+    setK8sClusterId("");
+    setK8sObservedAt("");
+    setK8sMaxAge("");
+    setK8sMaxItems("");
+    setK8sSystemNamespaces("");
+  }
   return (
     <Inspector
-      title={connector ? "Edit connector" : "Add cloud connector"}
+      title={connector ? "Edit connector" : "Add connector"}
+      className="connector-inspector"
       onClose={onClose}
     >
       <form onSubmit={(event) => { void submit(event); }} onChange={() => setCheckedPayload("")} className="form">
@@ -1111,41 +1158,16 @@ function ConnectorForm({
             autoComplete="off"
           />
         </label>
+        <div className="provider-picker">
+          <label className="field-label" htmlFor="connector-provider">Cloud provider</label>
+          <select id="connector-provider" className="sr-only" aria-label="Cloud provider" value={provider} disabled={!!connector} onChange={(e) => chooseProvider(e.target.value as Provider)}>
+            {providers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <div className="provider-picker-options" role="group" aria-label="Providers">
+            {providers.map((p) => <button key={p.id} type="button" className="provider-picker-option" aria-label={p.id.toUpperCase()} aria-pressed={provider === p.id} disabled={!!connector} onClick={() => chooseProvider(p.id)}><ProviderIcon provider={p.id} size={24} /><span>{p.id === "k8s" ? "K8s" : p.id.toUpperCase()}</span></button>)}
+          </div>
+        </div>
         <div className="form-columns">
-          <label>
-            Cloud provider
-            <select
-              aria-label="Cloud provider"
-              value={provider}
-              disabled={!!connector}
-              onChange={(e) => {
-                const p = e.target.value as Provider;
-                setProvider(p);
-                setMode(authModes[p][0].id);
-                setAuth({});
-                setAwsRoles("");
-                setIncludeSourceAccount(true);
-                setAdvancedAuth("");
-                setBackupPolicyEnabled(false);
-                setBackupFrequencyHours("");
-                setBackupPolicyScopes("");
-                setGcpAuditEnabled(false);
-                setGcpAuditRecords([emptyGcpAuditRecord()]);
-                setK8sPolicyEnabled(false);
-                setK8sClusterId("");
-                setK8sObservedAt("");
-                setK8sMaxAge("");
-                setK8sMaxItems("");
-                setK8sSystemNamespaces("");
-              }}
-            >
-              {providers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
           <label>
             Authentication
             <select
@@ -1168,6 +1190,7 @@ function ConnectorForm({
             </select>
           </label>
         </div>
+        {environmentIntro && <p className="notice">{environmentIntro}</p>}
         <AuthSetupGuide key={`${provider}-${selected.id}`} provider={provider} method={selected.id}
           label={hosted && provider === "aws" && selected.id === "assume_role" ? "HackTricks CSPM IAM role" : selected.label} hosted={hosted} prepared={prepared} />
         {prepareError && <p className="form-error" role="alert">Could not prepare setup details: {prepareError}</p>}
@@ -1228,7 +1251,7 @@ function ConnectorForm({
           (provider === "k8s" && ["token", "kubeconfig-inline", "kubeconfig"].includes(selected.id))) &&
           <label>Temporary credential expiration (UTC, if the token has no readable expiry)
             <input type="datetime-local" value={credentialExpiresAt} onChange={(event) => setCredentialExpiresAt(event.target.value)} />
-            <small>The checker blocks credentials with less than one hour remaining. AWS STS session tokens and opaque OAuth tokens need this timestamp because their expiration cannot be read from the token.</small>
+            <small>Enter the expiration time if it is not included in the token. The token must remain valid for at least one hour.</small>
           </label>}
         {replace && provider === "aws" && (selected.id === "access_keys" || (hosted && selected.id === "assume_role")) && (
           <label>
@@ -1258,7 +1281,7 @@ function ConnectorForm({
           </label>
         )}
         {hosted && provider === "gcp" && selected.id === "platform-service-account" && (
-          <p className="notice">Grant <strong>{String(me.data?.gcp_platform_service_account_email || "the HackTricks CSPM service account")}</strong> read access to each customer project. Save this connector to get its unique project label, then add that label to each project before scanning. The platform service account’s own project is excluded.</p>
+          <p className="notice">Da acceso a la cuenta de servicio de HackTricks <strong>{String(me.data?.gcp_platform_service_account_email || "hacktricks-cspm-sa-acc-third-p@billing-static-info-no-delete.iam.gserviceaccount.com")}</strong> en cada proyecto que quieras analizar. Guarda el conector para obtener su etiqueta y añádela a esos proyectos.</p>
         )}
         <label>
           {provider === "gcp"
@@ -1276,8 +1299,8 @@ function ConnectorForm({
           />
           {provider === "aws" && <small>Choose which AWS accounts to scan. Leave empty to scan {hosted && selected.id === "assume_role" ? "all configured target roles you can access" : "the source account and any configured target roles you can access"}.</small>}
           {provider === "gcp" && <small>{hosted && selected.id === "platform-service-account"
-            ? "Enter customer project IDs, or select discovery below. This connector scans only projects with its onboarding label; the platform project is always excluded."
-            : "Enter the projects to scan, or select “Discover all accessible projects” below. The service account’s home project is not selected automatically."}</small>}
+            ? "Introduce los ID de los proyectos que quieras analizar o activa la búsqueda de proyectos aprobados."
+            : "Enter the project IDs to scan, or select “Discover all accessible projects” below."}</small>}
         </label>
         {provider === "aws" && (
           <label>
@@ -1321,7 +1344,7 @@ function ConnectorForm({
                     onChange={(e) => setK8sSystemNamespaces(e.target.value)}
                     placeholder="kube-system, kube-public" />
                 </label>
-                <small>This is an explicit declaration for the named cluster. Set both freshness fields to bound its age; an expired declaration yields an unknown check result. A NetworkPolicy declaration does not prove CNI enforcement.</small>
+                <small>Set when this list was checked and how long it stays valid.</small>
               </div>
             )}
           </fieldset>
@@ -1342,7 +1365,7 @@ function ConnectorForm({
             {provider === "aws" && (
               <fieldset>
                 <legend>AWS Backup plan policy</legend>
-                <p className="muted small">Set your required backup schedule for specific AWS account and Region pairs. The interval is the longest allowed time between scheduled runs: 24 hours means at least once per day. The scan compares AWS Backup plan rules with this declared requirement. One check evaluates every rule’s schedule; another checks whether at least one rule meets both the interval and a 35-day retention period.</p>
+                <p className="muted small">Set how often backups must run for each AWS account and Region. The scan compares backup plans with that interval and a 35-day retention period.</p>
                 <label className="checkbox">
                   <input
                     type="checkbox"
@@ -1373,7 +1396,7 @@ function ConnectorForm({
                         rows={2}
                       />
                     </label>
-                    <small>Enter exact account ID/Region pairs, such as 123456789012/us-east-1. This is a policy threshold, not an AWS setting: it does not change backup schedules or prove that backup jobs ran successfully. Without a declared interval for a scope, checks that require it report unknown.</small>
+                    <small>Enter account ID/Region pairs, such as 123456789012/us-east-1. This setting checks backup plans; it does not change them.</small>
                   </div>
                 )}
               </fieldset>
@@ -1381,7 +1404,7 @@ function ConnectorForm({
             {provider === "gcp" && (
               <fieldset>
                 <legend>Data Access required principals</legend>
-                <p className="muted small">Use this only if your organization requires specific users or service accounts to be covered by Spanner or Pub/Sub Data Access audit logs. For each selected project and service, enter the principals and an approval reference. The scan checks project and inherited audit settings for DATA_READ and DATA_WRITE coverage and exemptions. It cannot enable logging or prove that logs were delivered.</p>
+                <p className="muted small">If you require audit logs for specific users or service accounts in Spanner or Pub/Sub, list them here. The scan checks whether their read and write activity is configured to be logged.</p>
                 <label className="checkbox">
                   <input type="checkbox" checked={gcpAuditEnabled}
                     onChange={(e) => setGcpAuditEnabled(e.target.checked)} />
@@ -1424,7 +1447,7 @@ function ConnectorForm({
                       onClick={() => setGcpAuditRecords((records) => [...records, emptyGcpAuditRecord()])}>
                       Add approved requirement
                     </button>
-                    <small>Enter each project and service once. Use exact user: or serviceAccount: email identities where possible; group and domain exemptions can make the result unknown without membership evidence. Leave this declaration off if you have no approved list of principals.</small>
+                    <small>Enter each project and service once. Use exact user: or serviceAccount: email addresses when possible.</small>
                   </div>
                 )}
               </fieldset>
@@ -1432,7 +1455,7 @@ function ConnectorForm({
             {provider === "gcp" && (
               <fieldset>
                 <legend>Private Service Connect requirements</legend>
-                <p className="muted small">Use this only if your network policy requires Google APIs to be reached through Private Service Connect in specific VPCs. Enter the project, required VPCs and googleapis.com hostnames, the policy reference, and how long that declaration stays valid. The scan checks for matching Google APIs forwarding rules and private DNS A records. It cannot create endpoints or confirm actual DNS resolution, routing, or firewall behavior.</p>
+                <p className="muted small">If your network policy requires Private Service Connect for Google APIs, enter the projects, VPCs and DNS names to check.</p>
                 <label className="checkbox">
                   <input type="checkbox" checked={pscEnabled} onChange={(e) => setPscEnabled(e.target.checked)} />
                   Declare required private Google API endpoints
@@ -1444,7 +1467,7 @@ function ConnectorForm({
                   <label>PSC approval reference<input value={pscReference} maxLength={512} placeholder="Policy or change request" onChange={(e) => setPscReference(e.target.value)} /></label>
                   <label>PSC declaration date (UTC)<input value={pscDate} onChange={(e) => setPscDate(e.target.value)} /></label>
                   <label>PSC declaration expiry (days)<input type="number" min="1" max="365" value={pscAgeDays} onChange={(e) => setPscAgeDays(e.target.value)} /></label>
-                  <small>The declaration must cover a selected project and be current when the scan runs. Without it, the policy-specific check cannot determine whether your chosen VPCs and DNS names meet the requirement.</small>
+                  <small>Use a current policy reference for a project included in this scan.</small>
                 </div>}
               </fieldset>
             )}
@@ -1469,29 +1492,6 @@ function ConnectorForm({
             </label>
           </div>
         </details>
-        {hosted && (
-          <p className="notice">
-            Hosted mode accepts portable inline credentials. Server paths, CLI
-            sessions and ambient identity modes are available only on a local
-            server.
-          </p>
-        )}
-        <p className="muted small">
-          Server identity modes use credentials already available to the HackTricks CSPM
-          server. Web federation uses the server SDK environment. Advanced JSON
-          supports native role chains, impersonation source credentials and
-          collector limits.
-        </p>
-        {hosted && selected.id === "assume_role" && (
-          <p className="notice">
-            The HackTricks CSPM IAM collector role accesses each target role independently.
-            Use the External ID in the setup guide, then check access before saving.
-          </p>
-        )}
-        <p className="muted small">
-          Use a read-only identity. Access and supported collectors determine
-          actual coverage; permission denials appear in scan coverage.
-        </p>
         {(error || mutation.error) && (
           <p className="form-error" role="alert">
             {error || (mutation.error && humanError(mutation.error))}

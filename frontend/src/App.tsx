@@ -3,7 +3,9 @@ import type { ErrorInfo, ReactNode } from "react";
 import {
   ChevronDown,
   Cloud,
+  ArrowUpRight,
   Gauge,
+  GraduationCap,
   HelpCircle,
   Layers,
   Network,
@@ -52,11 +54,6 @@ const pages = [
     description: "Assess, monitor and revisit your cloud posture.",
   },
   {
-    label: "Attack Analysis",
-    icon: Radar,
-    description: "Review suspicious actions in cloud audit logs.",
-  },
-  {
     label: "Hardening Findings",
     icon: ShieldCheck,
     group: "SECURITY INSIGHTS",
@@ -82,6 +79,12 @@ const pages = [
     label: "Network Map",
     icon: Network,
     description: "See the connections behind your infrastructure.",
+  },
+  {
+    label: "Attack Analysis",
+    icon: Radar,
+    group: "THREAT DETECTION",
+    description: "Review suspicious actions in cloud audit logs.",
   },
   {
     label: "Settings",
@@ -170,7 +173,6 @@ export function App() {
     if (signedIn || identity.isPending) return;
     setDemoRequested(!demoRequested);
     setSelected("");
-    client.removeQueries({ queryKey: [!demo ? "demo" : "live"] });
   }
   const insight = [
     "Hardening Findings",
@@ -190,9 +192,9 @@ export function App() {
           href="#Dashboard"
           onClick={() => navigate("Dashboard")}
         >
-          <img src="/icons/hacktricks-cspm.svg" alt="" width={34} height={36} />
+          <img src="/icons/peaso-badge.svg" alt="" width={44} height={44} />
           <div>
-            HackTricks CSPM<span>CLOUD SECURITY</span>
+            PEASS'o CSPM<span>CLOUD SECURITY</span>
           </div>
         </a>
         <div className="workspace-selector">
@@ -211,6 +213,12 @@ export function App() {
           <button type="button" onClick={() => { setWorkspaceMenuOpen(false); navigate("Settings"); }}>Manage workspaces</button>
         </div>}
         </div>
+        <a className="sidebar-training-ad" href="https://hacktricks-training.com/courses/" target="_blank" rel="noopener noreferrer" aria-label="Learn Cloud Security">
+          <GraduationCap className="training-ad-icon" size={22} aria-hidden="true" />
+          <span className="training-ad-kicker">HACKTRICKS TRAINING</span>
+          <strong>Learn Cloud Security</strong>
+          <span className="training-ad-cta">Explore courses <ArrowUpRight size={14} aria-hidden="true" /></span>
+        </a>
         <nav aria-label="Primary navigation">
           {pages.filter((p) => p.label !== "Help").map((p) => (
             <div key={p.label}>
@@ -247,6 +255,7 @@ export function App() {
             <HelpCircle size={18} />
             Help & documentation
           </button>
+          <div className="sidebar-version">Built by HackTricks</div>
         </div>
       </aside>
       <div className="workspace-main">
@@ -260,6 +269,7 @@ export function App() {
               <span className="switch-track" />
               Fixture demo
             </label>
+            {!identity.isPending && <span className={`api-status${health.error && !demo ? " offline" : ""}`}><span className="status-dot" />{demo ? "Demo data" : health.error ? "API unavailable" : "Live API"}</span>}
             {!identity.isPending && !signedIn && <div className="topbar-auth-actions">
               <a className="button" href={authLink("login")}>Log in</a>
               <a className="button primary" href={authLink("register")}>Register</a>
@@ -276,7 +286,7 @@ export function App() {
         <main id="main-content">
           <div className="page-heading">
             <div>
-              <div className="eyebrow">HACKTRICKS CSPM</div>
+              <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>
               <h1>{page}</h1>
               <p>{pageInfo.description}</p>
             </div>
@@ -449,7 +459,7 @@ export function App() {
               >
                 Source code
               </a>{" "}
-              · HackTricks CSPM
+              · PEASS'o CSPM · HackTricks Cloud
             </span>
           </footer>
         </main>

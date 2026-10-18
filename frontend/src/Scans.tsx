@@ -310,7 +310,6 @@ export function Scans({
           {inspect.status === "completed" && (
             <>
             <Panel title="Coverage & limitations">
-              {demo && <p className="muted small">Fixture demo coverage for this example snapshot.</p>}
               <CoverageView scanId={inspect.id} demo={demo} />
             </Panel>
             <CatalogSupport catalog={frameworkCatalog.data} loading={frameworkCatalog.isPending} error={frameworkCatalog.error} />
@@ -349,7 +348,7 @@ function CatalogSupport({ catalog, loading, error }: { catalog?: Catalog; loadin
     }))
     .filter(row => Number.isSafeInteger(row.notAssessed) && row.notAssessed > 0);
   return <Panel title="Catalog support (global)">
-    <p className="muted small">Not assessed describes checklist requirements without a reviewed automated assessment in the global catalog. These counts are not tenant results, passing checks, or coverage from this scan.</p>
+    <p className="muted small">These checklist requirements do not have an automated check yet.</p>
     {loading && <p role="status">Loading catalog support…</p>}
     {error && <p role="alert">Catalog support could not be loaded.</p>}
     {!loading && !error && (versions.length ? <details><summary>{versions.length} checklist versions with Not assessed requirements</summary><ul className="coverage-list">{versions.map(row => <li key={row.id} className="coverage-row"><strong>{row.name}</strong><span>Not assessed · {row.notAssessed.toLocaleString()} requirements</span></li>)}</ul></details> : <p className="muted">No Not assessed requirement counts are supplied by the current catalog.</p>)}
@@ -456,7 +455,7 @@ function LaunchForm({
           <p className="form-error">Add a connector before launching a scan.</p>
         )}
         <fieldset>
-          <legend>Assessment categories</legend>
+          <legend>Assessment categories <span className="category-count">{selected.length} / {categories.length} selected</span></legend>
           <div className="assessment-category-grid">
             {categories.map((c) => (
               <label key={c.id} className="checkbox">
@@ -487,7 +486,7 @@ function LaunchForm({
         <details>
           <summary>Frameworks and checklist versions (optional){frameworks.length ? ` · ${frameworks.length} selected` : ""}</summary>
           <div className="form" style={{ marginTop: 12 }}>
-            <p className="muted small">Choose a framework family or an exact reviewed checklist version for this connector. Leave empty to run the selected assessment categories without a framework filter. Pending checklist coverage remains unknown.</p>
+            <p className="muted small">Choose a framework to limit the checks. Leave this empty to run all checks in the selected categories.</p>
             {frameworks.map((value, index) => <div className="framework-selection" key={`${index}-${value}`}>
               <span aria-label={`Framework ${index + 1}`}>{availableFrameworks.find((choice) => choice.value === value)?.label || `${value} · unavailable for this connector`}</span>
               <button type="button" className="text-button" aria-label={`Remove framework ${index + 1}`} onClick={() => setFrameworks(frameworks.filter((_, i) => i !== index))}>Remove</button>
@@ -530,10 +529,6 @@ function LaunchForm({
             />
           </label>
         )}
-        <p className="muted small">
-          Only native supported collectors and checks run. Unsupported scope and
-          missing permissions are reported as coverage limitations.
-        </p>
         {(error || mutation.error) && (
           <p className="form-error" role="alert">
             {error || (mutation.error && humanError(mutation.error))}

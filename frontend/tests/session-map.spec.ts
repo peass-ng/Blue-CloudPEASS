@@ -80,7 +80,7 @@ test("a rejected bearer and rejected cookie default to fixture demo", async ({ p
   await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
   expect(attempts).toContain(true);
   expect(attempts).toContain(false);
-  expect(await page.evaluate(() => sessionStorage.getItem("peaso.api-token"))).toBe("rejected-tab-token");
+  expect(await page.evaluate(() => sessionStorage.getItem("hacktricks-cspm.api-token"))).toBe("rejected-tab-token");
   await expect(page.getByRole("link", { name: "Register" })).toBeVisible();
 });
 

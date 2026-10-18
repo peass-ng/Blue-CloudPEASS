@@ -215,7 +215,7 @@ def _gcp(auth, scopes, options, issues, principals, settings):
             _issue(issues, "critical", "projects", "No accessible customer project was found.")
         for project in selected[:100]:
             if project == PLATFORM_PROJECT:
-                _issue(issues, "critical", project, "The HackTricks platform project cannot be scanned.")
+                _issue(issues, "critical", project, "Choose a different project to scan.")
                 continue
             try:
                 response = requests.get(f"https://cloudresourcemanager.googleapis.com/v3/projects/{project}", headers=headers, timeout=10)

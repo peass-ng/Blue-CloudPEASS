@@ -464,8 +464,8 @@ export function GraphView({
         <Layers size={18} />
         <p>
           {kind === "iam"
-            ? "Relationships reflect snapshot evidence. Conditions, deny policies and runtime context may change effective access. This map does not establish an executable access path."
-            : "Groups follow explicit structural resource references, preserving provider scope and GCP global/shared network semantics. CIDR overlap does not establish connectivity. Rule candidates do not prove routed reachability."}
+            ? "This map shows permissions found in the scan. Conditions may affect actual access."
+            : "This map shows resources linked in the scan. Open a connection to see what was found."}
         </p>
       </div>
       {displayLimited && (

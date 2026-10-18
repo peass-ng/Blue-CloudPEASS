@@ -468,7 +468,7 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
                     if any(scope.startswith(("organizations/", "folders/")) for scope in scopes):
                         raise ValueError("organization or folder scopes unsupported")
                 except (ValueError, TypeError):
-                    raise HTTPException(422, "Select customer project IDs; the platform project is excluded") from None
+                    raise HTTPException(422, "Enter the IDs of the projects you want to scan, or enable project discovery") from None
             if options.get("discover_projects") or options.get("all_hierarchy"):
                 raise HTTPException(422, "Hosted GCP platform identity only scans verified projects")
         elif auth.get("method") == "external-account":

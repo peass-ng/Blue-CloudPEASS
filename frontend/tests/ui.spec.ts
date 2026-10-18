@@ -91,6 +91,41 @@ test("every authentication option explains access and permission setup", async (
   await expect(awsGuide).toContainText("arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess");
   await expect(awsGuide.locator("pre").last()).toContainText("aws accessanalyzer create-analyzer");
 });
+test("connector methods start with common choices and explain environment credentials", async ({ page }) => {
+  await emptyApi(page);
+  await page.goto("/#Connectors");
+  await page.getByRole("button", { name: "Add connector", exact: true }).click();
+  const authentication = page.getByLabel("Authentication", { exact: true });
+  await expect(authentication.locator("option").first()).toHaveValue("default");
+  await authentication.selectOption("instance");
+  await expect(page.locator(".connector-inspector > .form > .notice")).toContainText("ejecuta primero PEASS'o CSPM en esa instancia EC2");
+  await page.getByLabel("Cloud provider").selectOption("gcp");
+  await expect(authentication.locator("option").first()).toHaveValue("adc");
+  await authentication.selectOption("metadata");
+  await expect(page.locator(".connector-inspector > .form > .notice")).toContainText("ejecuta primero PEASS'o CSPM en esa VM de Google Cloud");
+  const sizes = await page.evaluate(() => ({
+    label: parseFloat(getComputedStyle(document.querySelector(".connector-inspector .form > label")!).fontSize),
+    input: parseFloat(getComputedStyle(document.querySelector(".connector-inspector .form input")!).fontSize),
+    provider: parseFloat(getComputedStyle(document.querySelector(".connector-inspector .provider-picker-option")!).fontSize),
+  }));
+  expect(sizes.label).toBeGreaterThanOrEqual(14);
+  expect(sizes.input).toBeGreaterThanOrEqual(14);
+  expect(sizes.provider).toBeGreaterThanOrEqual(13);
+});
+test("hosted connectors show the usual access method first", async ({ page }) => {
+  await emptyApi(page);
+  await page.route("**/api/me", (route) => route.fulfill({ json: { runtime_mode: "hosted" } }));
+  await page.goto("/#Connectors");
+  await page.getByRole("button", { name: "Add connector", exact: true }).click();
+  const authentication = page.getByLabel("Authentication", { exact: true });
+  await expect(authentication).toHaveValue("assume_role");
+  await page.getByLabel("Cloud provider").selectOption("gcp");
+  await expect(authentication).toHaveValue("platform-service-account");
+  await page.getByLabel("Cloud provider").selectOption("azure");
+  await expect(authentication).toHaveValue("client-secret");
+  await page.getByLabel("Cloud provider").selectOption("k8s");
+  await expect(authentication).toHaveValue("kubeconfig-inline");
+});
 test("scan framework picker adds multiple relevant selections and clears on connector change", async ({ page }) => {
   await emptyApi(page);
   await page.route("**/api/connectors", (route) => route.fulfill({ json: { items: [
@@ -163,18 +198,26 @@ test("live starts empty without invented scans and fixture is explicit", async (
 test("anonymous visitors start in fixture demo with prominent account actions", async ({ page }) => {
   await emptyApi(page);
   let signedIn = false;
-  await page.route("**/api/me", (route) => signedIn
+  let identityChecks = 0;
+  await page.route("**/api/me", (route) => {
+    identityChecks += 1;
+    return signedIn
     ? route.fulfill({ json: { tenant_id: "signed-in", email: "user@example.test" } })
-    : route.fulfill({ status: 401, json: { detail: "Bearer authentication required" } }));
+    : route.fulfill({ status: 401, json: { detail: "Bearer authentication required" } });
+  });
   await page.goto("/");
   await expect(page.getByLabel("Fixture demo", { exact: true })).toBeChecked();
   await expect(page.getByRole("link", { name: "Log in", exact: true })).toHaveAttribute("href", `https://tools.hacktricks.wiki/login.html?next=${encodeURIComponent(page.url())}`);
   await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveAttribute("href", `https://tools.hacktricks.wiki/register.html?next=${encodeURIComponent(page.url())}`);
   await expect(page.getByRole("status").filter({ hasText: "Fixture demo" })).toBeVisible();
+  const checksBeforeSwitch = identityChecks;
   await page.getByLabel("Fixture demo", { exact: true }).uncheck();
   await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();
+  await expect(page.getByRole("link", { name: "Log in", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Register", exact: true })).toBeVisible();
+  expect(identityChecks).toBe(checksBeforeSwitch);
   signedIn = true;
-  await page.evaluate(() => window.dispatchEvent(new Event("peaso-auth-session-changed")));
+  await page.evaluate(() => window.dispatchEvent(new Event("hacktricks-cspm-auth-session-changed")));
   await expect(page.getByLabel("Fixture demo", { exact: true })).toBeDisabled();
   await expect(page.getByLabel("Fixture demo", { exact: true })).not.toBeChecked();
   await expect(page.getByRole("link", { name: "Register", exact: true })).toHaveCount(0);
@@ -186,8 +229,8 @@ test("account initial and Help route show actionable documentation", async ({ pa
   } }));
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Account settings for maria@example.test" })).toHaveText("M");
-  await expect(page.getByText("Live API", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("PEASO v1.0")).toHaveCount(0);
+  await expect(page.getByText("Live API", { exact: true })).toBeVisible();
+  await expect(page.getByText(/PEASS'o CSPM v1\.0/)).toBeVisible();
   await page.getByRole("button", { name: "Help & documentation" }).click();
   await expect(page).toHaveURL(/#Help$/);
   await expect(page.getByRole("heading", { name: "Get started" })).toBeVisible();
@@ -345,11 +388,11 @@ test("anonymous fixture demo still offers local session authentication", async (
     page.getByRole("dialog").getByLabel("API bearer token", { exact: true }),
   ).toHaveValue("");
   expect(
-    await page.evaluate(() => sessionStorage.getItem("peaso.api-token")),
+    await page.evaluate(() => sessionStorage.getItem("hacktricks-cspm.api-token")),
   ).toBe("synthetic-local-validation-token");
   await page.getByRole("dialog").getByRole("button", { name: "Clear token" }).click();
   expect(
-    await page.evaluate(() => sessionStorage.getItem("peaso.api-token")),
+    await page.evaluate(() => sessionStorage.getItem("hacktricks-cspm.api-token")),
   ).toBeNull();
   await page.screenshot({
     path: "evidence/auth-error-desktop.png",
@@ -544,8 +587,8 @@ test("hosted role form and onboarding show trust, copy, and CloudFormation", asy
   await page.getByLabel("Authentication").selectOption("assume_role");
   await expect(page.getByLabel("Authentication").locator('option[value="assume_role"]')).toHaveText("HackTricks CSPM IAM role");
   await page.locator(".auth-setup-guide > summary").click();
-  await expect(page.locator(".auth-setup-guide")).toContainText("aws iam create-role");
-  await expect(page.locator(".auth-setup-guide")).toContainText("aws iam attach-role-policy");
+  await expect(page.locator(".auth-setup-guide")).toContainText("aws cloudformation create-stack");
+  await expect(page.locator(".auth-setup-guide")).toContainText("customer-role.json");
   await expect(page.locator(".auth-setup-guide")).toContainText("peaso-fixture-external-id");
   await expect(page.locator(".auth-setup-guide").getByText("arn:aws:iam::aws:policy/ReadOnlyAccess")).toHaveCount(0);
   await page.locator(".auth-setup-guide > summary").click();

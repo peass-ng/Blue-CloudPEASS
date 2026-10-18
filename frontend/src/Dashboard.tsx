@@ -109,43 +109,7 @@ export function Dashboard({
         </div>
         <div className="orb-scene" aria-hidden="true">
           <div className="orb-halo" />
-          <svg className="orb" viewBox="0 0 320 320">
-            <defs>
-              <radialGradient id="orb-fill">
-                <stop offset="0" stopColor="#204a48" stopOpacity=".18" />
-                <stop offset=".8" stopColor="#70dfc6" stopOpacity=".1" />
-                <stop offset="1" stopColor="#89ffe0" stopOpacity=".24" />
-              </radialGradient>
-            </defs>
-            <circle
-              cx="160"
-              cy="160"
-              r="120"
-              fill="url(#orb-fill)"
-              stroke="#78d7c3"
-              strokeOpacity=".5"
-            />
-            <g fill="none" stroke="#78d7c3" strokeOpacity=".23">
-              <ellipse cx="160" cy="160" rx="120" ry="40" />
-              <ellipse cx="160" cy="160" rx="120" ry="80" />
-              <ellipse cx="160" cy="160" rx="40" ry="120" />
-              <ellipse cx="160" cy="160" rx="80" ry="120" />
-              <path d="M40 160h240M160 40v240" />
-            </g>
-            <g fill="#9effdd">
-              <circle cx="99" cy="102" r="4" />
-              <circle cx="228" cy="136" r="4" />
-              <circle cx="167" cy="230" r="4" />
-            </g>
-            <path
-              d="m99 102 129 34-61 94Z"
-              fill="#99ffdb"
-              fillOpacity=".04"
-              stroke="#99ffdb"
-              strokeOpacity=".5"
-              strokeDasharray="3 4"
-            />
-          </svg>
+          <img className="orb" src="/icons/peaso-badge.svg" alt="" />
           <span className="orb-chip chip-one">
             <ShieldCheck size={14} />
             Native evidence
@@ -224,7 +188,7 @@ export function Dashboard({
                 <div
                   className="posture-ring"
                   style={{
-                    background: `conic-gradient(#99f2ce ${passPercent || 0}%, #203039 0)`,
+                    background: `conic-gradient(#a6e3d4 0 ${passPercent || 0}%, #d9b77a ${passPercent || 0}% ${Math.min(100, (passPercent || 0) + (total ? reviewCount / total * 100 : 0))}%, #26343b 0)`,
                   }}
                 >
                   <div>
@@ -349,10 +313,7 @@ export function Dashboard({
                   <Radar />
                   <div>
                     <h3>Coverage is not available yet</h3>
-                    <p>
-                      Collector status, denied permissions and unobserved scope
-                      will appear here.
-                    </p>
+                    <p>Run a scan to see what was checked.</p>
                   </div>
                 </div>
               )}

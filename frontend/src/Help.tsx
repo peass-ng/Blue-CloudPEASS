@@ -1,4 +1,4 @@
-import { Panel } from "./ui";
+import { Panel, ProviderIcon } from "./ui";
 
 export function Help({ onNavigate }: { onNavigate: (page: string) => void }) {
   return <div className="help-grid">
@@ -12,20 +12,19 @@ export function Help({ onNavigate }: { onNavigate: (page: string) => void }) {
     </Panel>
     <Panel title="AWS role access" kicker="CUSTOMER ACCOUNTS">
       <p>For a hosted AWS connector, create a role in each customer account that trusts <code>arn:aws:iam::202533532952:role/HackTricks-CSPM</code> and requires the unique External ID shown in Connectors.</p>
-      <p>The HackTricks role can assume customer roles but cannot read platform resources or assume roles in HackTricks accounts. The customer role supplies the read permissions for its own account.</p>
       <button className="button" onClick={() => onNavigate("Connectors")}>Open AWS setup guide</button>
     </Panel>
     <Panel title="Read the results" kicker="EVIDENCE AND COVERAGE">
-      <p>Findings show the observed configuration, the check result and suggested remediation. A check with missing permissions or unavailable evidence is marked as incomplete; it is not treated as a pass.</p>
-      <p>Use the assessment selector to compare completed scans. Fixture demo data is illustrative and never reads your cloud account.</p>
+      <p>Open a finding to see what was detected and how to fix it. If the scan could not check something, you will see it marked as incomplete.</p>
+      <p>Use the scan selector to review previous results.</p>
       <button className="button" onClick={() => onNavigate("Hardening Findings")}>Open findings</button>
     </Panel>
     <Panel title="Cloud documentation" kicker="SETUP REFERENCES">
       <ul className="help-links">
-        <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html" target="_blank" rel="noopener noreferrer">AWS cross-account roles and External IDs ↗</a></li>
-        <li><a href="https://docs.cloud.google.com/iam/docs/granting-changing-revoking-access" target="_blank" rel="noopener noreferrer">Google Cloud project IAM grants ↗</a></li>
-        <li><a href="https://learn.microsoft.com/azure/role-based-access-control/role-assignments-portal" target="_blank" rel="noopener noreferrer">Azure role assignments ↗</a></li>
-        <li><a href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/" target="_blank" rel="noopener noreferrer">Kubernetes RBAC ↗</a></li>
+        <li><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html" target="_blank" rel="noopener noreferrer"><ProviderIcon provider="aws" size={20} />AWS cross-account roles and External IDs ↗</a></li>
+        <li><a href="https://docs.cloud.google.com/iam/docs/granting-changing-revoking-access" target="_blank" rel="noopener noreferrer"><ProviderIcon provider="gcp" size={20} />Google Cloud project IAM grants ↗</a></li>
+        <li><a href="https://learn.microsoft.com/azure/role-based-access-control/role-assignments-portal" target="_blank" rel="noopener noreferrer"><ProviderIcon provider="azure" size={20} />Azure role assignments ↗</a></li>
+        <li><a href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/" target="_blank" rel="noopener noreferrer"><ProviderIcon provider="k8s" size={20} />Kubernetes RBAC ↗</a></li>
       </ul>
     </Panel>
   </div>;

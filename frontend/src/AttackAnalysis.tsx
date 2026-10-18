@@ -76,7 +76,7 @@ export function AttackAnalysis({ demo, canWrite, onNavigate }: { demo: boolean; 
     link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  if (demo) return <Panel><div className="state"><ShieldAlert size={28} /><h3>Sign in to review audit logs</h3><p>Attack analysis reads your own cloud audit source. Fixture data cannot establish whether an attack occurred.</p></div></Panel>;
+  if (demo) return <Panel><div className="state"><ShieldAlert size={28} /><h3>Sign in to review audit logs</h3><p>Connect your cloud account to analyze its audit logs.</p></div></Panel>;
   return <div className="attack-analysis">
     <Panel>
       <div className="attack-intro"><ShieldAlert size={22} /><div><h2>Find suspicious actions in audit logs</h2><p>Review concrete permission changes and credential activity. A matching event needs human investigation; it does not prove malicious intent.</p></div></div>

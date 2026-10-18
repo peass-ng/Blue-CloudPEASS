@@ -691,6 +691,7 @@ function FindingInspector({
           <div className="inspector-badges">
             <Badge value={observed.severity} />
             <Badge value={observed.status} />
+            <span className="badge service">{observed.service}</span>
           </div>
           <h3>{observed.title}</h3>
           <p className="finding-detail-location">{observed.service} · {observed.scope}</p>

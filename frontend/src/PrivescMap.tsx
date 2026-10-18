@@ -1127,7 +1127,7 @@ export function PrivescMap({
                   }}
                   colorMode="dark"
                 >
-                  <Background color="#1f3444" gap={26} />
+                  <Background color="rgba(166,227,212,.09)" gap={22} size={1} />
                   <Controls showInteractive={false} />
                   <MiniMap
                     pannable

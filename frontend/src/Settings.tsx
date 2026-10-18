@@ -30,6 +30,7 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
   const activeAdminGrant = me.data?.plan_source === "administrator_comped_qa" &&
     typeof currentPlan === "string" && currentPlan.toLowerCase() !== "free" &&
     expiryValid && (!grantExpiry || grantExpiry.getTime() > Date.now());
+  const showWorkspaceTools = !demo && !!me.data && !me.error && (me.data as Me & { auth_kind?: string }).auth_kind !== "api_key";
   function refresh() {
     void client.resetQueries({ queryKey: ["live"] });
   }
@@ -47,6 +48,8 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
   }
   return (
     <>
+      <div className={`settings-grid${showWorkspaceTools ? "" : " settings-grid-single"}`}>
+      <div className="settings-column">
       <Panel title="Account & quota" kicker="WORKSPACE" className="account-panel">
         {me.isPending ? <State loading /> : authRequired ? (
           <div className="account-details">
@@ -67,13 +70,15 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
             </div>
             {me.data?.email && me.data.email_verified === false && <p className="muted small">Email address is not verified with the identity provider.</p>}
             {activeAdminGrant && <p className="muted small">Temporary paid access (administrator grant){grantExpiry ? ` · Expires ${grantExpiry.toLocaleString()}` : ""}</p>}
-            {used !== undefined && limit !== undefined ? <div className="quota-summary"><p className="muted">Assessments used this week</p><p className="quota-value">{used} <span>/ {limit}</span></p></div> : <p className="muted">Weekly assessment quota was not supplied by this API.</p>}
+            {used !== undefined && limit !== undefined ? <div className="quota-summary"><p className="muted">Assessments used this week</p><p className="quota-value">{used} <span>/ {limit}</span></p><div className="quota-segments" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <span key={index} className={index < Math.ceil(5 * used / Math.max(1, limit)) ? "used" : ""} />)}</div></div> : <p className="muted">Weekly assessment quota was not supplied by this API.</p>}
             {localMode && !demo && <button className="text-button small" onClick={() => setTokenDialog(true)}>Manage local API token</button>}
           </div>
         )}
       </Panel>
-      {!demo && me.data && !me.error && (me.data as Me & { auth_kind?: string }).auth_kind !== "api_key" && <Workspaces me={me.data} workspaceId={workspaceId} onWorkspaceCreated={onWorkspaceCreated} />}
-      {!demo && me.data && !me.error && (me.data as Me & { auth_kind?: string }).auth_kind !== "api_key" && <ApiKeys />}
+      {showWorkspaceTools && <ApiKeys />}
+      </div>
+      {showWorkspaceTools && <div className="settings-column"><Workspaces me={me.data} workspaceId={workspaceId} onWorkspaceCreated={onWorkspaceCreated} /></div>}
+      </div>
       {tokenDialog && localMode && !demo && <Inspector title="Local API authentication" onClose={() => setTokenDialog(false)}>
         <form className="form" onSubmit={(event) => { event.preventDefault(); save(); }}>
           <p className="muted small">Enter a token issued by your local API. It is kept in this browser tab only.</p>

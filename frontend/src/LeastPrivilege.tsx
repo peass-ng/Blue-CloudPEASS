@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronRight, Search, ShieldCheck } from "lucide-react";
 import { useApi } from "./api";
-import { Inspector, Panel, State } from "./ui";
+import { Inspector, Panel, ProviderIcon, State } from "./ui";
 import "./LeastPrivilege.css";
 
 type Suggestion = {
@@ -55,8 +55,9 @@ export function LeastPrivilege({ scanId, demo }: { scanId: string; demo: boolean
           {rows.length ? <div className="least-list" role="list" aria-label="Principals with access to review">
             {rows.map((principal) => <button type="button" role="listitem" className="least-row" key={principal.id}
               onClick={() => setSelected(principal)}>
-              <span className="least-identity"><strong>{principal.label || principal.principal}</strong><small>{principal.label && principal.label !== principal.principal ? `${principal.principal} · ` : ""}{principal.scopes.length} scope{principal.scopes.length === 1 ? "" : "s"}</small></span>
-              <span className="least-row-count">{principal.recommendation_count
+              <span className="least-provider"><ProviderIcon provider={principal.provider} size={22} /></span>
+              <span className="least-identity"><strong>{principal.label || principal.principal.split("/").pop() || principal.principal}</strong><small>{principal.principal} · {principal.scopes.length} scope{principal.scopes.length === 1 ? "" : "s"}</small></span>
+              <span className={`least-row-count${principal.recommendation_count ? " recommended" : ""}`}>{principal.recommendation_count
                 ? `${principal.recommendation_count} suggested changes`
                 : `${principal.suggestions.length} grants to review`}</span>
               <ChevronRight size={18} aria-hidden="true" />
