@@ -29,6 +29,11 @@ from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
 from .gcp_logging_next import normalize_gcp_default_sink_disabled
 from .gcp_logging_tamper_next import normalize_gcp_data_access_exclusion_created, normalize_gcp_data_access_log_delete
 from .gcp_hmac_next import normalize_gcp_hmac_key_created
+from .gcp_secret_versions_next import (
+    normalize_gcp_secret_delete,
+    normalize_gcp_secret_version_destroy,
+    normalize_gcp_secret_version_disable,
+)
 from .kubernetes import normalize_kubernetes_audit_candidates
 from .kubernetes_next import normalize_kubernetes_cluster_admin_grant
 from .kubernetes_pod_next import normalize_kubernetes_privileged_host_pod
@@ -174,13 +179,19 @@ def detect_gcp_events(
         deleted = normalize_gcp_data_access_log_delete(record)
         exclusion = normalize_gcp_data_access_exclusion_created(record)
         hmac_key = normalize_gcp_hmac_key_created(record)
+        destroyed = normalize_gcp_secret_version_destroy(record)
+        disabled = normalize_gcp_secret_version_disable(record)
+        secret_deleted = normalize_gcp_secret_delete(record)
         return (([base] if base is not None else [])
                 + normalize_gcp_project_self_iam_bindings(record)
                 + normalize_gcp_cross_project_sa_grants(record)
                 + ([sink] if sink is not None else [])
                 + ([deleted] if deleted is not None else [])
                 + ([exclusion] if exclusion is not None else [])
-                + ([hmac_key] if hmac_key is not None else []))
+                + ([hmac_key] if hmac_key is not None else [])
+                + ([destroyed] if destroyed is not None else [])
+                + ([disabled] if disabled is not None else [])
+                + ([secret_deleted] if secret_deleted is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="gcp"), normalize, "gcp")
 

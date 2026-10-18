@@ -123,6 +123,7 @@ def _read_pages(transport, subscription, *, analyze):
     role_rows = []
     diagnostic_candidates = []
     vm_dcr_candidates = []
+    keyvault_diagnostic_candidates = []
     read_count = 0
     ignored = 0
     relevant = 0
@@ -156,6 +157,10 @@ def _read_pages(transport, subscription, *, analyze):
             vm_dcr = normalize_azure_vm_dcr_association_delete(row, subscription=subscription)
             if vm_dcr is not None:
                 vm_dcr_candidates.append(vm_dcr)
+            from peaso.attack_detection.azure_keyvault_diagnostic_next import normalize_keyvault_diagnostic_delete
+            keyvault_diagnostic = normalize_keyvault_diagnostic_delete(row, subscription=subscription)
+            if keyvault_diagnostic is not None:
+                keyvault_diagnostic_candidates.append(keyvault_diagnostic)
             if normalized["request.role_assignment_write"]:
                 role_rows.append(row)
             if normalized["request.role_assignment_write"] and normalized["event.outcome"] == "success":
@@ -173,7 +178,7 @@ def _read_pages(transport, subscription, *, analyze):
         url = next_url
     else:
         truncated = bool(next_url)
-    return read_count, events, role_rows, diagnostic_candidates, vm_dcr_candidates, ignored, relevant, truncated
+    return read_count, events, role_rows, diagnostic_candidates, vm_dcr_candidates, keyvault_diagnostic_candidates, ignored, relevant, truncated
 
 
 def _run(auth, scopes, options, source, *, analyze):
@@ -182,7 +187,7 @@ def _run(auth, scopes, options, source, *, analyze):
     subscription = _selected_subscription(scopes, source)
     transport = AzureTransport(auth)
     try:
-        read_count, events, role_rows, diagnostic_candidates, vm_dcr_candidates, ignored, relevant, truncated = _read_pages(transport, subscription, analyze=analyze)
+        read_count, events, role_rows, diagnostic_candidates, vm_dcr_candidates, keyvault_diagnostic_candidates, ignored, relevant, truncated = _read_pages(transport, subscription, analyze=analyze)
     finally:
         transport.close()
     if not analyze:
@@ -197,6 +202,7 @@ def _run(auth, scopes, options, source, *, analyze):
     candidates.extend(correlate_azure_rg_owner_self_grants(role_rows, subscription=subscription))
     candidates.extend(diagnostic_candidates)
     candidates.extend(vm_dcr_candidates)
+    candidates.extend(keyvault_diagnostic_candidates)
     from peaso.attack_detection import detect_azure_events
     detections = detect_azure_events(candidates)
     return {
@@ -204,9 +210,10 @@ def _run(auth, scopes, options, source, *, analyze):
                      "window_hours": 24, "events_read": read_count,
                      "events_normalized": len(events), "events_ignored": ignored,
                      "successful_role_assignment_writes": relevant,
-                     "self_grant_candidates": len(candidates) - len(diagnostic_candidates) - len(vm_dcr_candidates),
+                     "self_grant_candidates": len(candidates) - len(diagnostic_candidates) - len(vm_dcr_candidates) - len(keyvault_diagnostic_candidates),
                      "subscription_diagnostic_delete_candidates": len(diagnostic_candidates),
                      "vm_dcr_association_delete_candidates": len(vm_dcr_candidates),
+                     "keyvault_diagnostic_delete_candidates": len(keyvault_diagnostic_candidates),
                      "truncated": truncated,
                      "detection_status": "self_grants_and_monitoring_deletes"},
         "detections": [item.__dict__ for item in detections],
