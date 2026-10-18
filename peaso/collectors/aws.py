@@ -508,8 +508,8 @@ class Requests:
                     # list excluding the Region it is the same unsupported state.
                     connect_unsupported = (service, operation, failure.code) == ("connect", "list_instances", "InvalidRequestException") and \
                         not ((getattr(exc, "response", None) or {}).get("Error") or {}).get("Message")
-                    if type(exc).__name__ == "EndpointConnectionError" or connect_unsupported:
-                        # A failed synthesized endpoint plus an explicit SDK
+                    if type(exc).__name__ in {"EndpointConnectionError", "ConnectTimeoutError"} or connect_unsupported:
+                        # A failed endpoint connection plus an explicit SDK
                         # support list that excludes this region is unsupported
                         # endpoint evidence, not a successful empty inventory.
                         try:

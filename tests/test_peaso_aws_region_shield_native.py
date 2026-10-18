@@ -85,6 +85,7 @@ def test_shield_native_metric_region_and_real_alarm_check(sdk,mode,expected):
     if mode in ('denied','not_found'):
         shield.add_client_error('list_protections','AccessDeniedException'if mode=='denied'else'ResourceNotFoundException',http_status_code=403 if mode=='denied'else 400,expected_params={})
     else:shield.add_response('list_protections',{'Protections':rows,**({'NextToken':'next'}if mode=='truncated'else{})}, {})
+    if mode=='not_found':shield.add_response('get_subscription_state',{'SubscriptionState':'ACTIVE'}, {})
     read=native.shield_protection_region(aws.Requests({'retry_attempts':1,**({'max_pages':1}if mode=='truncated'else{})}),session,REGION,ACCOUNT)
     if expected=='UNKNOWN':
         assert read.status not in ('collected','empty')
@@ -128,7 +129,7 @@ def test_protections_parent_cache_reused_and_global_metric_region_filtered(sdk):
 def test_native_region_registration_and_declared_iam_operations():
     from scripts.peaso_deploy_customer_policy import iam_action
     assert native.READ_ACTIONS<=aws.READ_ACTIONS
-    assert {iam_action(*pair)for pair in native.READ_ACTIONS}=={'ec2:DescribeRegions','shield:ListProtections'}
+    assert {iam_action(*pair)for pair in native.READ_ACTIONS}=={'ec2:DescribeRegions','shield:ListProtections','shield:GetSubscriptionState'}
     assert aws.FETCHERS['aws_region']is native.aws_region
     assert aws.FETCHERS['shield_protection_region']is native.shield_protection_region
 
