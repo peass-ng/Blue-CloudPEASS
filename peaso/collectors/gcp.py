@@ -861,6 +861,12 @@ class GCPCollector:
         self.needed = set(self.wanted)
         for kind in self.wanted:
             self.needed.update(DEPENDENCIES.get(kind, set()))
+        # The signed active-service restriction predicate joins these two
+        # inventories by selected project ID. Both APIs may instead return the
+        # numeric project name, which needs independent CRM identity proof.
+        self.api_key_alias_mode = {"api_key", "service_usage"} <= self.needed
+        if self.api_key_alias_mode:
+            self.needed.add("project")
         sw52_types = {"workspace_role_assignment", "workspace_role", "workspace_user", "iam_policy", "group", "group_membership"}
         self.sw52_native_mode = sw52_types <= self.wanted
         self.sw52_only_mode = self.sw52_native_mode and self.wanted == sw52_types
@@ -1053,6 +1059,8 @@ class GCPCollector:
                                 ordinal += 1
                             rid = f"{rid}#observation-{ordinal}"
                     elif rid in items:
+                        if kind == "project":
+                            raise ReadError("malformed", "duplicate_project_identity")
                         if kind == 'log_entry':
                             excluded = {'_resource_id', 'native_id', '_provenance', '_relationships'}
                             previous = {key: value for key, value in items[rid].items() if key not in excluded}
@@ -1327,7 +1335,9 @@ class GCPCollector:
         scope_type = {"projects": "project", "organizations": "organization", "folders": "folder"}[scope.split("/")[0]]
         def scope_metadata():
             for items, request_id in self.pages(f"{crm}/v3/{scope}", scope, single=True):
-                if scope_type == "project":
+                alias_identity_only = (self.api_key_alias_mode and "project" not in self.wanted and
+                    self.needed == {"api_key", "service_usage", "project"})
+                if scope_type == "project" and not alias_identity_only:
                     hydrated = []
                     for item in items:
                         item = self.hydrate(item, "computeConfig", f"https://compute.googleapis.com/compute/v1/{scope}", scope)
@@ -2973,7 +2983,8 @@ class GCPCollector:
                     "error": collection.get("error"), "source_requests": collection.get("source_requests", [])})
                 continue
             if (key[0] in self.wanted or key[0] == "project" and
-                    (self.options.get("all_projects") or key[1] in getattr(self, "proven_project_alias_scopes", set()))):
+                    (self.options.get("all_projects") or key[1] in getattr(self, "proven_project_alias_scopes", set())
+                     or key[1] in getattr(self, "proven_api_key_alias_scopes", set()))):
                 collection["items"].sort(key=lambda item: item["_resource_id"])
                 envelopes.append(collection)
         metadata = {"collection": "read-only", "collector": "native-gcp", "requested_scopes": self.requested_scopes,
@@ -3089,6 +3100,9 @@ class GCPCollector:
             self.discover()
             self.progress("collecting")
             self.run_jobs([job for scope in self.scopes for job in self.scope_jobs(scope)])
+            if self.api_key_alias_mode:
+                from .gcp_api_key_alias_native import materialize
+                self.proven_api_key_alias_scopes = materialize(self)
             # Fetch independent project identity only where an observed CAI
             # hierarchy view could alias a direct project root.
             alias_scopes = []
