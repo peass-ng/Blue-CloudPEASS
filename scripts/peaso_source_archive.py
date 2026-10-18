@@ -74,6 +74,7 @@ def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompre
                             packed, selected = candidate, f"{level}/{memory}/{strategy}"
                     if zopfli_compress and member.filename in {
                             "release.json", "peaso/rulepacks/compliance_lookup.json", "peaso/rulepacks/check_descriptions.json",
+                            "peaso/rulepacks/native_catalog.json",
                             "docs/compliance-ledgers/azure-pci.json", "docs/compliance-ledgers/inputs/aws-nist-ffiec-nydfs.json",
                             "docs/compliance-ledgers/azure-cis.json", "docs/compliance-ledgers/inputs/aws-other.json"}:
                         candidate = zopfli_compress(data, numiterations=15)[2:-4]
