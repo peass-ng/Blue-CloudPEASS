@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import parse_qsl, urlsplit
 
-from .gke_scope import project_scope
+from .gke_scope import project_scope, successful_status
 
 
 _GROUPS = {"system:authenticated", "system:unauthenticated"}
@@ -55,12 +55,8 @@ def _gke_native_event(record: Mapping[str, Any]) -> dict[str, Any] | None:
             or scope is None
             or isinstance(labels, Mapping) and "command.gke.io/dryRun" in labels):
         return None
-    status = payload.get("status")
-    if status is not None:
-        if not isinstance(status, Mapping):
-            return None
-        if "code" in status and (type(status["code"]) is not int or status["code"] != 0):
-            return None
+    if not successful_status(payload):
+        return None
     request = payload.get("request")
     if isinstance(request, Mapping) and request.get("dryRun"):
         return None

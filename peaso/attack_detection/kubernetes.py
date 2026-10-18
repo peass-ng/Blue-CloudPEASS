@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from typing import Any
 from urllib.parse import parse_qsl, urlsplit
 
-from .gke_scope import project_scope
+from .gke_scope import project_scope, successful_status
 
 
 SYSTEM_NAMESPACES = {"kube-system", "kube-public", "kube-node-lease"}
@@ -37,11 +37,7 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
             return None
         if isinstance(labels, Mapping) and "command.gke.io/dryRun" in labels:
             return None
-        status = payload.get("status")
-        if "status" in payload and not isinstance(status, Mapping):
-            return None
-        code = status.get("code") if isinstance(status, Mapping) else None
-        if isinstance(status, Mapping) and "code" in status and (type(code) is not int or code != 0):
+        if not successful_status(payload):
             return None
         response = payload.get("response")
         if not isinstance(response, Mapping) or response.get("kind") != binding[1]:

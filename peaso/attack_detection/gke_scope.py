@@ -23,3 +23,15 @@ def project_scope(log_name: Any, resource_labels: Any) -> str | None:
             or resource_labels["project_id"] != project):
         return None
     return f"projects/{project}"
+
+
+def successful_status(payload: Mapping[str, Any]) -> bool:
+    """Accept absent/empty GKE status or an explicit integer success code."""
+    if "status" not in payload:
+        return True
+    status = payload["status"]
+    if not isinstance(status, Mapping):
+        return False
+    if not status:
+        return True
+    return type(status.get("code")) is int and status["code"] == 0

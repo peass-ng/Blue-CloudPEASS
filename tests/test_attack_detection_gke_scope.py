@@ -56,6 +56,32 @@ def test_gke_wrappers_reject_conflicting_or_malformed_project_label(normalize, f
     assert normalize(row) is None
 
 
+@pytest.mark.parametrize("normalize,fixture", WRAPPERS)
+@pytest.mark.parametrize("bad", [
+    {"message": "permission denied"}, {"code": 7}, {"code": None},
+    {"code": False}, {"code": 0.0}, None, [],
+])
+def test_gke_wrappers_reject_ambiguous_or_failed_status(normalize, fixture, bad):
+    row = deepcopy(fixture())
+    row["protoPayload"]["status"] = bad
+    assert normalize(row) is None
+
+
+@pytest.mark.parametrize("normalize,fixture", WRAPPERS)
+@pytest.mark.parametrize("status", [{}, {"code": 0}])
+def test_gke_wrappers_accept_proven_or_empty_success_status(normalize, fixture, status):
+    row = deepcopy(fixture())
+    row["protoPayload"]["status"] = status
+    assert normalize(row) is not None
+
+
+@pytest.mark.parametrize("normalize,fixture", WRAPPERS)
+def test_gke_wrappers_accept_omitted_success_status(normalize, fixture):
+    row = deepcopy(fixture())
+    row["protoPayload"].pop("status")
+    assert normalize(row) is not None
+
+
 @pytest.mark.parametrize("log_name", [
     "projects/customer/other/logs/cloudaudit.googleapis.com%2Factivity",
     "organizations/123/logs/cloudaudit.googleapis.com%2Factivity",
