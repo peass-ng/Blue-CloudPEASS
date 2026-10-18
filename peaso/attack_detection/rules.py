@@ -29,6 +29,7 @@ from .aws_sqs_queue import normalize_aws_sqs_queue
 from .aws_sns_topic import normalize_aws_sns_topic
 from .aws_lambda_control import normalize_aws_lambda_control
 from .aws_cloudwatch_monitoring import normalize_aws_cloudwatch_monitoring
+from .aws_cloudwatch_logs import normalize_aws_cloudwatch_logs
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -50,8 +51,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "28aac677645f848367721ee277c92445ea3b89ee"
-DEFAULT_RULE_PACK_SHA256 = "7b4924166dc02ca86601be75e48ae4aded968e8deab219488fd37568f4e78ed9"
+DEFAULT_RULE_REF = "9630b64ecc0342bff3b2d9829e05fd5ccb7d0de9"
+DEFAULT_RULE_PACK_SHA256 = "1b496cfdd68dc7ed2dc4521c4d5efc30abe0d604aa28bb45225dff16a5c857a5"
 
 
 @dataclass(frozen=True)
@@ -172,6 +173,7 @@ def detect_aws_events(
         sns_topic = normalize_aws_sns_topic(record)
         lambda_control = normalize_aws_lambda_control(record)
         cloudwatch_monitoring = normalize_aws_cloudwatch_monitoring(record)
+        cloudwatch_logs = normalize_aws_cloudwatch_logs(record)
         return (([base] if base is not None else [])
                 + ([profile] if profile is not None else [])
                 + ([updated_profile] if updated_profile is not None else [])
@@ -183,7 +185,8 @@ def detect_aws_events(
                 + ([sqs_queue] if sqs_queue is not None else [])
                 + ([sns_topic] if sns_topic is not None else [])
                 + ([lambda_control] if lambda_control is not None else [])
-                + cloudwatch_monitoring)
+                + cloudwatch_monitoring
+                + ([cloudwatch_logs] if cloudwatch_logs is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 

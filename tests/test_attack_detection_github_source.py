@@ -129,6 +129,7 @@ def test_accepts_provider_and_aws_service_directories(monkeypatch):
     mock_network(monkeypatch, archive(
         (ROOT, b"", tarfile.DIRTYPE),
         (f"{ROOT}/WORK_PLAN.md", b"plan", tarfile.REGTYPE),
+        (f"{ROOT}/AWS_SOURCE_DELTA.md", b"delta", tarfile.REGTYPE),
         (f"{ROOT}/scripts", b"", tarfile.DIRTYPE),
         (f"{ROOT}/scripts/live_iam_batch.py", b"print('test')", tarfile.REGTYPE),
         (f"{ROOT}/rules", b"", tarfile.DIRTYPE),
