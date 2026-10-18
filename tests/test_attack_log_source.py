@@ -165,3 +165,43 @@ def test_aws_log_source_honors_explicit_account_and_region_scopes(monkeypatch):
     with pytest.raises(LogAccessError, match="region_outside_connector_scope"):
         _target_session({"method": "default"}, {"regions": ["us-west-2"]}, None, "us-east-1", ["123456789012"])
     assert _target_session({"method": "default"}, {}, None, "us-west-2", ["123456789012/us-west-2"])[1] == "123456789012"
+
+
+def test_s3_listing_cap_is_reported_as_partial_and_never_as_empty(monkeypatch):
+    monkeypatch.setattr("peaso.attack_detection.rules.load_rules", lambda **kwargs: ())
+    raw = gzip.compress(json.dumps({"Records": []}).encode())
+    class Client:
+        def __init__(self, include_record):
+            self.calls = 0
+            self.include_record = include_record
+
+        def list_objects_v2(self, **kwargs):
+            self.calls += 1
+            return {
+                "Contents": ([{"Key": "trail.json.gz", "Size": len(raw)}] if self.include_record and self.calls == 1 else []),
+                "NextContinuationToken": f"page-{self.calls}",
+                "IsTruncated": True,
+            }
+
+        def get_object(self, **kwargs):
+            return {"Body": io.BytesIO(raw)}
+
+    class Session:
+        def __init__(self, include_record):
+            self.client_instance = Client(include_record)
+
+        def client(self, service, **kwargs):
+            return self.client_instance
+
+    source = SimpleNamespace(kind="aws_cloudtrail_s3", region="us-east-1", role_arn=None,
+                             bucket="audit-bucket", prefix="AWSLogs/123456789012/CloudTrail/", day="2020-01-01")
+    monkeypatch.setattr("peaso.server.attack_logs._target_session",
+                        lambda *args: (Session(False), "123456789012"))
+    with pytest.raises(LogAccessError, match="log_prefix_listing_incomplete"):
+        check_aws_source({}, {}, source)
+    monkeypatch.setattr("peaso.server.attack_logs._target_session",
+                        lambda *args: (Session(True), "123456789012"))
+    result = analyze_aws_source({}, {}, source)
+    assert result["coverage"]["truncated"] is True
+    assert result["coverage"]["objects_read"] == 1
+

@@ -100,11 +100,11 @@ def _objects(client, bucket, prefix, *, count):
             if item.get("Key", "").endswith(".json.gz"):
                 found.append(item)
                 if len(found) >= count:
-                    return found
+                    return found, False
         token = page.get("NextContinuationToken")
         if not token:
-            return found
-    return found
+            return found, page.get("IsTruncated") is not True
+    return found, False
 
 
 def _day_prefix(source):
@@ -128,8 +128,10 @@ def check_aws_source(auth, options, source, scopes=None):
     if f"/{account}/CloudTrail/" not in "/" + source.prefix:
         raise LogAccessError("prefix_must_select_target_account_cloudtrail")
     client = session.client("s3", region_name=source.region, config=_CONFIG)
-    found = _objects(client, source.bucket, _day_prefix(source), count=1)
+    found, listing_complete = _objects(client, source.bucket, _day_prefix(source), count=1)
     if not found:
+        if not listing_complete:
+            raise LogAccessError("log_prefix_listing_incomplete")
         return {"account_id": account, "source_status": "empty", "coverage": "The prefix is listable but contains no CloudTrail .json.gz object. Read permission and coverage remain unverified."}
     key = found[0]["Key"]
     response = client.get_object(Bucket=source.bucket, Key=key, Range="bytes=0-0")
@@ -175,8 +177,8 @@ def analyze_aws_source(auth, options, source, scopes=None):
         if f"/{account}/CloudTrail/" not in "/" + source.prefix:
             raise LogAccessError("prefix_must_select_target_account_cloudtrail")
         client = session.client("s3", region_name=source.region, config=_CONFIG)
-        objects = _objects(client, source.bucket, _day_prefix(source), count=MAX_OBJECTS + 1)
-        if len(objects) > MAX_OBJECTS:
+        objects, listing_complete = _objects(client, source.bucket, _day_prefix(source), count=MAX_OBJECTS + 1)
+        if not listing_complete or len(objects) > MAX_OBJECTS:
             coverage["truncated"] = True
         total_bytes = 0
         for item in objects[:MAX_OBJECTS]:
