@@ -566,7 +566,8 @@ def _psp_resource_absence_evidence(provider, snapshot, collection):
     suffix = match.group(4) or ""
     # A hyphen may be a vendor build or a prerelease; accept only recognized
     # release build labels. Unknown labels cannot prove a stable server.
-    if suffix.startswith("-") and not re.match(r"-(?:gke[.-]|eks[.-]|aks[.-]|k3s[0-9]|rke2r[0-9])", suffix):
+    if suffix.startswith("-") and not re.fullmatch(
+            r"-(?:gke[.-][0-9]+|(?:eks|aks)[.-][0-9a-f]+|k3s[0-9]+|rke2r[0-9]+)", suffix):
         return None
     return {"reason": "PodSecurityPolicy resource API removed on observed Kubernetes version; legacy PSP resource check is not applicable.",
         "kubernetes_version": version, "observed_resource_absent": "policy/v1beta1/podsecuritypolicies",

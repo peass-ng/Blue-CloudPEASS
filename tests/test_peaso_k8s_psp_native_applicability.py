@@ -194,3 +194,27 @@ def test_general_admission_requirements_keep_own_results():
     assert findings["k8s.cis.admission_privileged"]["status"] == "UNKNOWN"
     assert findings["k8s.cis.admission_hostpath"]["status"] == "UNKNOWN"
     assert all(f["status"] != "PASS" for f in findings.values())
+
+
+@pytest.mark.parametrize("version", [
+    "v1.25.0-gke.alpha.1", "v1.25.0-gke.rc.1", "v1.25.0-eks.preview.1",
+    "v1.25.0-aks.beta.1", "v1.25.0-k3s1-rc.1", "v1.25.0-rke2r1-preview.1",
+    "v1.25.0-gke.1391002-rc.1", "v1.25.0-eks-deadbeef-preview.1",
+    "v1.25.0-gke.", "v1.25.0-k3s1junk",
+])
+def test_vendor_prefixed_prerelease_or_malformed_build_stays_unknown(version):
+    report, findings = result(fixture_snapshot(lambda n: _version(n, version)))
+    assert {f["status"] for f in findings.values()} == {"UNKNOWN"}
+    coverage = next(c for c in report["coverage"] if c["level"] == "collection" and c["type"] == "podsecuritypolicy")
+    assert coverage["status"] == "not_collected"
+
+
+@pytest.mark.parametrize("version", [
+    "v1.25.0", "v1.36.4-gke.1391002", "v1.25.0-eks-deadbeef",
+    "v1.25.0-aks.abc123", "v1.25.0-k3s1", "v1.25.0-rke2r1",
+    "v1.25.0+vendor.build.1",
+])
+def test_recognized_stable_builds_keep_absence_applicability(version):
+    _, findings = result(fixture_snapshot(lambda n: _version(n, version)))
+    assert {f["status"] for f in findings.values()} == {"NOT_APPLICABLE"}
+    assert all(f["status"] != "PASS" for f in findings.values())
