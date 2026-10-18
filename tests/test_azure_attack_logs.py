@@ -94,7 +94,7 @@ def test_analysis_exposes_coverage_without_raw_events_or_compromise_claim(monkey
     result = analyze_azure_source({}, [], {}, SOURCE)
     assert result["coverage"]["events_read"] == 3
     assert result["coverage"]["successful_role_assignment_writes"] == 1
-    assert result["coverage"]["detection_status"] == "correlated_self_grants"
+    assert result["coverage"]["detection_status"] == "self_grants_and_subscription_diagnostic_deletes"
     assert result["detections"] == []
     assert "events" not in result
     assert api.closed
@@ -121,7 +121,7 @@ def test_subscription_level_and_optional_field_rows_do_not_block(monkeypatch):
     assert analyzed["coverage"]["events_normalized"] == 1
     assert analyzed["coverage"]["events_ignored"] == 2
     assert analyzed["coverage"]["successful_role_assignment_writes"] == 0
-    assert analyzed["coverage"]["detection_status"] == "correlated_self_grants"
+    assert analyzed["coverage"]["detection_status"] == "self_grants_and_subscription_diagnostic_deletes"
     assert api.closed
 
 
@@ -183,4 +183,28 @@ def test_analysis_correlates_only_complete_self_grants(monkeypatch):
     assert result["detections"][0]["rule_id"] == "unit-azure-self-grant"
     assert "candidate_events" not in result
     assert "requestbody" not in json.dumps(result)
+    assert api.closed
+
+
+def test_analysis_reports_successful_subscription_activity_export_deletion(monkeypatch):
+    rule = Rule(id="unit-azure-diagnostic-delete", title="Export setting deleted", level="high",
+                description="Review the observed deletion", technique_id="azure-diagnostic-delete",
+                product="azure", selection={
+                    "event.source": "azure.activity", "event.name": "subscription_diagnostic_setting_delete",
+                    "event.outcome": "success", "scope.type": "subscription",
+                    "request.subscription_activity_export_setting_deleted": True,
+                })
+    monkeypatch.setattr("peaso.attack_detection.detect_azure_events",
+                        lambda candidates: detect_azure_events(candidates, [rule]))
+    row = event(operation="Microsoft.Insights/diagnosticSettings/delete")
+    row.update({"resourceId": f"/subscriptions/{SUB}/providers/Microsoft.Insights/diagnosticSettings/send-activity-to-soc",
+                "category": {"value": "Administrative"},
+                "authorization": {"action": "Microsoft.Insights/diagnosticSettings/delete"},
+                "resourceType": {"value": "Microsoft.Insights/diagnosticSettings"}})
+    api = with_api(monkeypatch, [{"value": [row]}])
+    result = analyze_azure_source({}, [SUB], {}, SOURCE)
+    assert result["coverage"]["subscription_diagnostic_delete_candidates"] == 1
+    assert result["coverage"]["self_grant_candidates"] == 0
+    assert [hit["rule_id"] for hit in result["detections"]] == [rule.id]
+    assert "authorization" not in str(result)
     assert api.closed

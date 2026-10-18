@@ -21,13 +21,15 @@ from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
+from .gcp_logging_next import normalize_gcp_default_sink_disabled
 from .kubernetes import normalize_kubernetes_audit
 from .kubernetes_next import normalize_kubernetes_cluster_admin_grant
+from .kubernetes_pod_next import normalize_kubernetes_privileged_host_pod
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "30dedc872f1e52c7c050ff82cba815a47a97afef"
-DEFAULT_RULE_PACK_SHA256 = "15d269ed09cbeceedeb3284b6f434a5dd3d0ae1c04918c8e8be9b8e779df8c06"
+DEFAULT_RULE_REF = "654489a507e79e66ec4ca774c7e88e42bc0e259a"
+DEFAULT_RULE_PACK_SHA256 = "f50c12ee9d34586635a414649ab1c98d7a04312dbc6afe5259104cfd5f8b0620"
 
 
 @dataclass(frozen=True)
@@ -146,7 +148,10 @@ def detect_gcp_events(
     """Detect successful GCP audit events with concrete credential evidence."""
     def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         base = normalize_gcp_audit(record)
-        return ([base] if base is not None else []) + normalize_gcp_project_self_iam_bindings(record)
+        sink = normalize_gcp_default_sink_disabled(record)
+        return (([base] if base is not None else [])
+                + normalize_gcp_project_self_iam_bindings(record)
+                + ([sink] if sink is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="gcp"), normalize, "gcp")
 
@@ -158,7 +163,10 @@ def detect_kubernetes_events(
     def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         base = normalize_kubernetes_audit(record)
         next_event = normalize_kubernetes_cluster_admin_grant(record)
-        return ([base] if base is not None else []) + ([next_event] if next_event is not None else [])
+        pod = normalize_kubernetes_privileged_host_pod(record)
+        return (([base] if base is not None else [])
+                + ([next_event] if next_event is not None else [])
+                + ([pod] if pod is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize, "kubernetes")
 
