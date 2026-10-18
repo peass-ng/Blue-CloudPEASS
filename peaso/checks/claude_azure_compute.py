@@ -1,10 +1,10 @@
 """claude_azure COMPUTE group: VMs, disks, scale sets, container instances/registries, Cosmos DB,
 Data Box Edge and Databricks predicates.
 
-Every predicate reads ARM-native shapes. Facts the collector does not gather yet (VM extensions in
-``resources``, ``guestConfigurationAssignments``, embedded ``diagnosticSettings``, JIT policies, backup
-items/policies, resource links, ACR replications) stay UNKNOWN until collected; see
-docs/peaso-claude-azure-coverage.md "COLLECTOR FACTS NEEDED".
+Predicates read ARM-native shapes and preserve unavailable evidence as UNKNOWN.
+Registration alone does not establish that a live collector can produce every prerequisite.
+Public automation admission and collected coverage determine which checks can run; see
+docs/peaso-checks.md for the current evidence and automation contracts.
 """
 from __future__ import annotations
 from .claude_azure_common import *  # noqa: F401,F403
