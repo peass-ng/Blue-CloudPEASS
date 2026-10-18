@@ -23,6 +23,7 @@ def test_recompression_preserves_unicode_empty_binary_and_release_bytes(tmp_path
     files = {"release.json": b'{"source_version":"example"}', "empty": b"",
              "docs/seguridad-\u00f1.md": ("seguridad \u2713\n" * 3000).encode(),
              "binary.dat": bytes(range(256)) * 150}
+    files["peaso/rulepacks/check_descriptions.json"] = b'{"description":"' + b"signed input unchanged " * 1000 + b'"}'
     package(path, files)
     before = path.stat().st_size
     receipt = optimize_source_archive(path, **LIMITS)

@@ -31,7 +31,7 @@ The 2026-10-14 source audit checked all 4,074 catalog/exclusion references again
 | `test_peaso_privesc_v4_batch.py` | Historical catalog bindings, tenant isolation and preservation of the earlier 1,004/1,052/1,126/1,224-entry catalogs. |
 | `test_privesc_sync.py` | Three-way synchronization, conflicts, malformed inputs, symlinks and removal protection. |
 
-The current catalog has 1,234 active entries: AWS 537, Azure 325, GCP 282 and Kubernetes 90. This count is distinct from live, automatically collected evidence coverage. Excluded techniques and unsupported subcases remain documented in the provider ledgers and the disposition report.
+The reviewed catalog (unchanged from the pinned d72a1bed production baseline) has 633 active entries: AWS 165, Azure 158, GCP 238 and Kubernetes 72, with 3,515 exclusion records. This is passive catalog coverage, not a count of live-validated mechanisms. The earlier 1,234-entry count belongs to the historical V19 source and must not be presented as current production coverage. The five unverified Azure API secret-value interpretations remain excluded.
 
 ## Existing Azure Storage SFTP identities
 

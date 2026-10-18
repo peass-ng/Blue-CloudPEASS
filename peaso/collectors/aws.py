@@ -508,8 +508,8 @@ class Requests:
                     # list excluding the Region it is the same unsupported state.
                     connect_unsupported = (service, operation, failure.code) == ("connect", "list_instances", "InvalidRequestException") and \
                         not ((getattr(exc, "response", None) or {}).get("Error") or {}).get("Message")
-                    if type(exc).__name__ == "EndpointConnectionError" or connect_unsupported:
-                        # A failed synthesized endpoint plus an explicit SDK
+                    if type(exc).__name__ in {"EndpointConnectionError", "ConnectTimeoutError"} or connect_unsupported:
+                        # A failed endpoint connection plus an explicit SDK
                         # support list that excludes this region is unsupported
                         # endpoint evidence, not a successful empty inventory.
                         try:
@@ -2064,7 +2064,7 @@ def collect(connector, requirements=None):
             for home_region in ({row.get("HomeRegion") for row in trails
                                 if row.get("SourceRegion") == row.get("HomeRegion") and
                                 row.get("Status", {}).get("IsLogging") is True and
-                                row.get("IsOrganizationTrail") is False and row.get("IsMultiRegionTrail") is False and
+                                row.get("IsOrganizationTrail") is False and type(row.get("IsMultiRegionTrail")) is bool and
                                 row.get("CloudWatchLogsRoleArn") and row.get("CloudWatchLogsLogGroupArn")}
                                 if "cloudtrail_delivery_role_scope" in wanted else set()):
                 if not isinstance(home_region, str):

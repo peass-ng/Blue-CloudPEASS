@@ -480,7 +480,7 @@ secret-get request or private key is used by the analyzer. These facts establish
 only the backing-secret disclosure effect, not acceptance of the certificate by
 a cluster or any usable administrative session.
 
-The v7 catalog adds seven entries while preserving all previous 253 YAML files
+The historical v7 catalog adds seven entries while preserving all previous 253 YAML files
 and their 1,227 entries byte for byte. Previous catalog bindings continue to
 resolve only their original entries; a v6 report cannot acquire new disclosure
 techniques when opened with the newer runtime. The previous source audit remains
@@ -506,6 +506,8 @@ nonsecret configuration or a nullable value. The exact legacy SRE agent and
 `connectors` endpoint and cannot inherit its response semantics. These five
 historical entries, including APM, remain in immutable source history but
 produce explicit unsupported coverage, never resolved disclosure edges.
+
+In the reviewed catalog, unchanged from the pinned d72a1bed production baseline, the five API secret-value interpretations are exclusion records, not active evaluator entries. The full active catalog contains 633 entries; catalog validity does not establish live validation for every entry.
 
 The two retained reviewed paths are the exact provider-global SourceControls
 OAuth endpoint and exportable Fabric certificate secret linkage. Neither has

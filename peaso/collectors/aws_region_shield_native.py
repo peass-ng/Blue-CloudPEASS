@@ -6,7 +6,7 @@ import re
 SPECS = {'aws_region': ('ec2','describe_regions','Regions'),
          'shield_protection_region': ('shield','list_protections','Protections')}
 NATIVE_IDS = {'aws_region':'RegionName','shield_protection_region':'ResourceArn'}
-READ_ACTIONS = {('ec2','describe_regions'),('shield','list_protections')}
+READ_ACTIONS = {('ec2','describe_regions'),('shield','list_protections'),('shield','get_subscription_state')}
 _OK = ('collected','empty')
 _REGION = r'[a-z]{2}(?:-[a-z]+)+-[0-9]+'
 _UUID = r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
@@ -80,7 +80,15 @@ def shield_protection_region(requests,session,region,account):
     # scan cache entries. Retain failures rather than treating NotFound as empty.
     read=requests.pages(session,'shield',_home(region,'us-east-1'),'list_protections',
                         'Protections[].{Id: Id, Name: Name, ResourceArn: ResourceArn, ProtectionArn: ProtectionArn, HealthCheckIds: HealthCheckIds}')
-    if read.status not in _OK:return _failed(read,'shield_protection_inventory_incomplete')
+    if read.status not in _OK:
+        # ListProtections' ResourceNotFoundException alone does not identify
+        # the absent resource. Only a verified inactive account subscription
+        # establishes that no Shield Advanced protection is applicable.
+        if not read.items and (read.error or {}).get('code')=='ResourceNotFoundException':
+            subscription=requests.detail(session,'shield',_home(region,'us-east-1'),'get_subscription_state')
+            if subscription.get('collection_status')=='collected' and subscription.get('SubscriptionState')=='INACTIVE':
+                return _result([], 'empty','shield_subscription_inactive')
+        return _failed(read,'shield_protection_inventory_incomplete')
     rows=[];seen_ids=set();seen_resources=set()
     for native in read.items:
         if not isinstance(native,dict):return _result([], 'malformed','shield_protection_identity_invalid')

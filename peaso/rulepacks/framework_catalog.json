@@ -480,10 +480,9 @@
         "aws.s3.versioning",
         "aws.secretsmanager.rotation",
         "aws.sns.kms_encryption",
-        "aws.sqs.encryption",
-        "aws_bedrock_automated_reasoning_policy_attached"
+        "aws.sqs.encryption"
       ],
-      "supported_native_checks": 216,
+      "supported_native_checks": 215,
       "source_checks": 226,
       "pending_source_checks": 0,
       "manual_requirements": 12,
@@ -497,7 +496,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 5
+      "excluded_custom_checks": 6
     },
     {
       "id": "aws_audit_manager_control_tower_guardrails_aws",

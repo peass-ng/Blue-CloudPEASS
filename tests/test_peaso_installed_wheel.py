@@ -77,9 +77,22 @@ print(json.dumps({'checks': len(catalog['checks']), 'techniques': len(privileges
 
 def test_installed_cli_help_works_without_checkout(installed_wheel):
     target, environment = installed_wheel
-    code = ("import sys; sys.path.insert(0,sys.argv[1]); from importlib.metadata import distribution; "
-            "entry=next(e for e in distribution('peaso').entry_points if e.group=='console_scripts' and e.name=='peaso'); "
-            "raise SystemExit(entry.load()(['--help']))")
+    code = """
+import sys
+sys.path.insert(0, sys.argv[1])
+from importlib.metadata import distributions
+package = next(d for d in distributions(path=[sys.argv[1]])
+               if d.metadata['Name'] == 'hacktricks-cspm')
+entries = {e.name: e for e in package.entry_points if e.group == 'console_scripts'}
+assert {'hacktricks-cspm', 'peaso'} <= set(entries)
+for name in ('hacktricks-cspm', 'peaso'):
+    try:
+        code = entries[name].load()(['--help'])
+    except SystemExit as exc:
+        assert exc.code == 0
+    else:
+        assert code in (None, 0)
+"""
     result = subprocess.run([sys.executable, '-I', '-c', code, str(target)],
                             cwd=target, env=environment, capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr[-2000:]
