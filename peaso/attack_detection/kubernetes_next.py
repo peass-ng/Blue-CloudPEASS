@@ -13,6 +13,8 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import parse_qsl, urlsplit
 
+from .gke_scope import project_scope
+
 
 _GROUPS = {"system:authenticated", "system:unauthenticated"}
 _GKE_METHOD = "io.k8s.authorization.rbac.v1.clusterrolebindings.create"
@@ -43,13 +45,14 @@ def _gke_native_event(record: Mapping[str, Any]) -> dict[str, Any] | None:
     resource = record.get("resource")
     log_name = record.get("logName")
     labels = record.get("labels")
+    resource_labels = resource.get("labels") if isinstance(resource, Mapping) else None
+    scope = project_scope(log_name, resource_labels)
     if (not isinstance(payload, Mapping) or not isinstance(resource, Mapping)
             or payload.get("@type") != "type.googleapis.com/google.cloud.audit.AuditLog"
             or payload.get("serviceName") != "k8s.io"
             or payload.get("methodName") != _GKE_METHOD
             or resource.get("type") != "k8s_cluster"
-            or not isinstance(log_name, str)
-            or not log_name.endswith("/logs/cloudaudit.googleapis.com%2Factivity")
+            or scope is None
             or isinstance(labels, Mapping) and "command.gke.io/dryRun" in labels):
         return None
     status = payload.get("status")
@@ -63,7 +66,6 @@ def _gke_native_event(record: Mapping[str, Any]) -> dict[str, Any] | None:
         return None
     response = payload.get("response")
     auth = payload.get("authenticationInfo")
-    resource_labels = resource.get("labels")
     if (not isinstance(response, Mapping) or not isinstance(auth, Mapping)
             or not isinstance(resource_labels, Mapping)
             or not isinstance(resource_labels.get("location"), str) or not resource_labels["location"]
@@ -71,8 +73,7 @@ def _gke_native_event(record: Mapping[str, Any]) -> dict[str, Any] | None:
         return None
     metadata = response.get("metadata")
     metadata = metadata if isinstance(metadata, Mapping) else {}
-    scope = (log_name.split("/logs/", 1)[0]
-             + f"/locations/{resource_labels['location']}/clusters/{resource_labels['cluster_name']}")
+    scope += f"/locations/{resource_labels['location']}/clusters/{resource_labels['cluster_name']}"
     return {
         "apiVersion": "audit.k8s.io/v1", "kind": "Event", "stage": "ResponseComplete", "verb": "create",
         "auditID": record.get("insertId"), "stageTimestamp": record.get("timestamp"),

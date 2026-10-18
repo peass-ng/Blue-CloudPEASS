@@ -41,7 +41,7 @@ def _gke() -> dict:
     return {
         "logName": "projects/customer/logs/cloudaudit.googleapis.com%2Factivity",
         "resource": {"type": "k8s_cluster", "labels": {"location": "us-central1",
-                                                     "cluster_name": "cluster-one"}},
+                                                     "cluster_name": "cluster-one", "project_id": "customer"}},
         "insertId": "gke-ephemeral-1", "timestamp": "2026-10-18T10:00:00Z",
         "protoPayload": {
             "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
@@ -118,6 +118,7 @@ def test_ambiguous_or_unprivileged_native_update_does_not_match(change: str) -> 
     "denied", "boolean_status", "wrong_method", "dry_run_label", "dry_run_request",
     "missing_request", "missing_response", "wrong_log", "wrong_resource",
     "missing_cluster_label", "missing_insert_id", "missing_actor",
+    "cross_project_label", "null_project_label", "numeric_project_label", "invalid_log_project",
 ])
 def test_ambiguous_gke_wrapper_does_not_match(change: str) -> None:
     wrapped = _gke()
@@ -134,4 +135,14 @@ def test_ambiguous_gke_wrapper_does_not_match(change: str) -> None:
     if change == "missing_cluster_label": wrapped["resource"]["labels"].pop("location")
     if change == "missing_insert_id": wrapped.pop("insertId")
     if change == "missing_actor": payload["authenticationInfo"] = {}
+    if change == "cross_project_label": wrapped["resource"]["labels"]["project_id"] = "other-project"
+    if change == "null_project_label": wrapped["resource"]["labels"]["project_id"] = None
+    if change == "numeric_project_label": wrapped["resource"]["labels"]["project_id"] = 123
+    if change == "invalid_log_project": wrapped["logName"] = "projects/customer/other/logs/cloudaudit.googleapis.com%2Factivity"
     assert normalize_kubernetes_privileged_ephemeral_update(wrapped) is None
+
+
+def test_gke_wrapper_without_optional_project_label_remains_accepted() -> None:
+    wrapped = _gke()
+    wrapped["resource"]["labels"].pop("project_id")
+    assert normalize_kubernetes_privileged_ephemeral_update(wrapped) is not None

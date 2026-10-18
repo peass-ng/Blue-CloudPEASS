@@ -6,6 +6,8 @@ from collections.abc import Mapping
 from typing import Any
 from urllib.parse import parse_qsl, urlsplit
 
+from .gke_scope import project_scope
+
 
 SYSTEM_NAMESPACES = {"kube-system", "kube-public", "kube-node-lease"}
 RBAC_WRITE_METHODS = {
@@ -29,7 +31,9 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         if binding is None or resource.get("type") != "k8s_cluster":
             return None
         log_name = record.get("logName")
-        if not isinstance(log_name, str) or not log_name.endswith("/logs/cloudaudit.googleapis.com%2Factivity"):
+        resource_labels = resource.get("labels")
+        scope = project_scope(log_name, resource_labels)
+        if scope is None:
             return None
         if isinstance(labels, Mapping) and "command.gke.io/dryRun" in labels:
             return None
@@ -46,9 +50,6 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         metadata = metadata if isinstance(metadata, Mapping) else {}
         auth = payload.get("authenticationInfo")
         auth = auth if isinstance(auth, Mapping) else {}
-        resource_labels = resource.get("labels")
-        resource_labels = resource_labels if isinstance(resource_labels, Mapping) else {}
-        scope = log_name.split("/logs/", 1)[0]
         if resource_labels.get("location") and resource_labels.get("cluster_name"):
             scope += f"/locations/{resource_labels['location']}/clusters/{resource_labels['cluster_name']}"
         record = {
