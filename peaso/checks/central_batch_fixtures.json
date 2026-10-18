@@ -2033,24 +2033,31 @@
     "fail": {
       "AccountId": "111111111111",
       "Arn": "arn:aws:iam::111111111111:policy/narrow",
-      "PolicyVersionList": [
-        {
-          "Document": {
-            "Statement": [
-              {
-                "Action": "s3:*",
-                "Effect": "Allow",
-                "Resource": "arn:aws:s3:::data-bucket/record"
-              }
-            ]
-          },
-          "IsDefaultVersion": true
-        }
-      ]
+      "DefaultDocument": {
+        "Document": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::data-bucket/record"
+            }
+          ]
+        },
+        "VersionId": "v1",
+        "collection_status": "collected"
+      },
+      "DefaultVersionId": "v1",
+      "_provenance": {
+        "account_id": "111111111111",
+        "default_operation": "iam:GetPolicyVersion",
+        "managed_scope": "Local",
+        "only_attached": false,
+        "operation": "iam:ListPolicies"
+      }
     },
     "fail_index": {
       "collections": {
-        "iam_policy": [
+        "iam_customer_policy": [
           {
             "account_id": "111111111111",
             "global": true,
@@ -2058,62 +2065,77 @@
               {
                 "AccountId": "111111111111",
                 "Arn": "arn:aws:iam::111111111111:policy/narrow",
-                "PolicyVersionList": [
-                  {
-                    "Document": {
-                      "Statement": [
-                        {
-                          "Action": "s3:*",
-                          "Effect": "Allow",
-                          "Resource": "arn:aws:s3:::data-bucket/record"
-                        }
-                      ]
-                    },
-                    "IsDefaultVersion": true
-                  }
-                ]
+                "DefaultDocument": {
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Action": "s3:*",
+                        "Effect": "Allow",
+                        "Resource": "arn:aws:s3:::data-bucket/record"
+                      }
+                    ]
+                  },
+                  "VersionId": "v1",
+                  "collection_status": "collected"
+                },
+                "DefaultVersionId": "v1",
+                "_provenance": {
+                  "account_id": "111111111111",
+                  "default_operation": "iam:GetPolicyVersion",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "operation": "iam:ListPolicies"
+                }
               }
             ],
             "scope": "111111111111/global",
             "status": "collected",
-            "type": "iam_policy"
+            "type": "iam_customer_policy"
           }
         ]
       },
       "context": {
+        "Account": "111111111111",
         "metadata": {},
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "iam_policy": [
+      "iam_customer_policy": [
         {
           "data": {
             "AccountId": "111111111111",
             "Arn": "arn:aws:iam::111111111111:policy/narrow",
-            "PolicyVersionList": [
-              {
-                "Document": {
-                  "Statement": [
-                    {
-                      "Action": "s3:*",
-                      "Effect": "Allow",
-                      "Resource": "arn:aws:s3:::data-bucket/record"
-                    }
-                  ]
-                },
-                "IsDefaultVersion": true
-              }
-            ]
+            "DefaultDocument": {
+              "Document": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Allow",
+                    "Resource": "arn:aws:s3:::data-bucket/record"
+                  }
+                ]
+              },
+              "VersionId": "v1",
+              "collection_status": "collected"
+            },
+            "DefaultVersionId": "v1",
+            "_provenance": {
+              "account_id": "111111111111",
+              "default_operation": "iam:GetPolicyVersion",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "operation": "iam:ListPolicies"
+            }
           },
           "provider": "aws",
           "scope": "111111111111/global",
-          "type": "iam_policy"
+          "type": "iam_customer_policy"
         }
       ]
     },
     "index": {
       "collections": {
-        "iam_policy": [
+        "iam_customer_policy": [
           {
             "account_id": "111111111111",
             "global": true,
@@ -2121,56 +2143,71 @@
               {
                 "AccountId": "111111111111",
                 "Arn": "arn:aws:iam::111111111111:policy/narrow",
-                "PolicyVersionList": [
-                  {
-                    "Document": {
-                      "Statement": [
-                        {
-                          "Action": "s3:GetObject",
-                          "Effect": "Allow",
-                          "Resource": "arn:aws:s3:::data-bucket/record"
-                        }
-                      ]
-                    },
-                    "IsDefaultVersion": true
-                  }
-                ]
+                "DefaultDocument": {
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Action": "s3:GetObject",
+                        "Effect": "Allow",
+                        "Resource": "arn:aws:s3:::data-bucket/record"
+                      }
+                    ]
+                  },
+                  "VersionId": "v1",
+                  "collection_status": "collected"
+                },
+                "DefaultVersionId": "v1",
+                "_provenance": {
+                  "account_id": "111111111111",
+                  "default_operation": "iam:GetPolicyVersion",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "operation": "iam:ListPolicies"
+                }
               }
             ],
             "scope": "111111111111/global",
             "status": "collected",
-            "type": "iam_policy"
+            "type": "iam_customer_policy"
           }
         ]
       },
       "context": {
+        "Account": "111111111111",
         "metadata": {},
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "iam_policy": [
+      "iam_customer_policy": [
         {
           "data": {
             "AccountId": "111111111111",
             "Arn": "arn:aws:iam::111111111111:policy/narrow",
-            "PolicyVersionList": [
-              {
-                "Document": {
-                  "Statement": [
-                    {
-                      "Action": "s3:GetObject",
-                      "Effect": "Allow",
-                      "Resource": "arn:aws:s3:::data-bucket/record"
-                    }
-                  ]
-                },
-                "IsDefaultVersion": true
-              }
-            ]
+            "DefaultDocument": {
+              "Document": {
+                "Statement": [
+                  {
+                    "Action": "s3:GetObject",
+                    "Effect": "Allow",
+                    "Resource": "arn:aws:s3:::data-bucket/record"
+                  }
+                ]
+              },
+              "VersionId": "v1",
+              "collection_status": "collected"
+            },
+            "DefaultVersionId": "v1",
+            "_provenance": {
+              "account_id": "111111111111",
+              "default_operation": "iam:GetPolicyVersion",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "operation": "iam:ListPolicies"
+            }
           },
           "provider": "aws",
           "scope": "111111111111/global",
-          "type": "iam_policy"
+          "type": "iam_customer_policy"
         }
       ]
     },
@@ -2179,24 +2216,31 @@
     "pass": {
       "AccountId": "111111111111",
       "Arn": "arn:aws:iam::111111111111:policy/narrow",
-      "PolicyVersionList": [
-        {
-          "Document": {
-            "Statement": [
-              {
-                "Action": "s3:GetObject",
-                "Effect": "Allow",
-                "Resource": "arn:aws:s3:::data-bucket/record"
-              }
-            ]
-          },
-          "IsDefaultVersion": true
-        }
-      ]
+      "DefaultDocument": {
+        "Document": {
+          "Statement": [
+            {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::data-bucket/record"
+            }
+          ]
+        },
+        "VersionId": "v1",
+        "collection_status": "collected"
+      },
+      "DefaultVersionId": "v1",
+      "_provenance": {
+        "account_id": "111111111111",
+        "default_operation": "iam:GetPolicyVersion",
+        "managed_scope": "Local",
+        "only_attached": false,
+        "operation": "iam:ListPolicies"
+      }
     },
     "pass_index": {
       "collections": {
-        "iam_policy": [
+        "iam_customer_policy": [
           {
             "account_id": "111111111111",
             "global": true,
@@ -2204,56 +2248,71 @@
               {
                 "AccountId": "111111111111",
                 "Arn": "arn:aws:iam::111111111111:policy/narrow",
-                "PolicyVersionList": [
-                  {
-                    "Document": {
-                      "Statement": [
-                        {
-                          "Action": "s3:GetObject",
-                          "Effect": "Allow",
-                          "Resource": "arn:aws:s3:::data-bucket/record"
-                        }
-                      ]
-                    },
-                    "IsDefaultVersion": true
-                  }
-                ]
+                "DefaultDocument": {
+                  "Document": {
+                    "Statement": [
+                      {
+                        "Action": "s3:GetObject",
+                        "Effect": "Allow",
+                        "Resource": "arn:aws:s3:::data-bucket/record"
+                      }
+                    ]
+                  },
+                  "VersionId": "v1",
+                  "collection_status": "collected"
+                },
+                "DefaultVersionId": "v1",
+                "_provenance": {
+                  "account_id": "111111111111",
+                  "default_operation": "iam:GetPolicyVersion",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "operation": "iam:ListPolicies"
+                }
               }
             ],
             "scope": "111111111111/global",
             "status": "collected",
-            "type": "iam_policy"
+            "type": "iam_customer_policy"
           }
         ]
       },
       "context": {
+        "Account": "111111111111",
         "metadata": {},
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "iam_policy": [
+      "iam_customer_policy": [
         {
           "data": {
             "AccountId": "111111111111",
             "Arn": "arn:aws:iam::111111111111:policy/narrow",
-            "PolicyVersionList": [
-              {
-                "Document": {
-                  "Statement": [
-                    {
-                      "Action": "s3:GetObject",
-                      "Effect": "Allow",
-                      "Resource": "arn:aws:s3:::data-bucket/record"
-                    }
-                  ]
-                },
-                "IsDefaultVersion": true
-              }
-            ]
+            "DefaultDocument": {
+              "Document": {
+                "Statement": [
+                  {
+                    "Action": "s3:GetObject",
+                    "Effect": "Allow",
+                    "Resource": "arn:aws:s3:::data-bucket/record"
+                  }
+                ]
+              },
+              "VersionId": "v1",
+              "collection_status": "collected"
+            },
+            "DefaultVersionId": "v1",
+            "_provenance": {
+              "account_id": "111111111111",
+              "default_operation": "iam:GetPolicyVersion",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "operation": "iam:ListPolicies"
+            }
           },
           "provider": "aws",
           "scope": "111111111111/global",
-          "type": "iam_policy"
+          "type": "iam_customer_policy"
         }
       ]
     },
@@ -2261,24 +2320,22 @@
     "unknown": {
       "AccountId": "111111111111",
       "Arn": "arn:aws:iam::111111111111:policy/narrow",
-      "PolicyVersionList": [
-        {
-          "Document": {
-            "Statement": [
-              {
-                "Action": "s3:GetObject",
-                "Effect": "Allow",
-                "Resource": "arn:aws:s3:::data-bucket/record"
-              }
-            ]
-          },
-          "IsDefaultVersion": true
-        }
-      ]
+      "DefaultDocument": {
+        "VersionId": "v1",
+        "collection_status": "denied"
+      },
+      "DefaultVersionId": "v1",
+      "_provenance": {
+        "account_id": "111111111111",
+        "default_operation": "iam:GetPolicyVersion",
+        "managed_scope": "Local",
+        "only_attached": false,
+        "operation": "iam:ListPolicies"
+      }
     },
     "unknown_index": {
       "collections": {
-        "iam_policy": [
+        "iam_customer_policy": [
           {
             "account_id": "111111111111",
             "global": true,
@@ -2286,56 +2343,53 @@
               {
                 "AccountId": "111111111111",
                 "Arn": "arn:aws:iam::111111111111:policy/narrow",
-                "PolicyVersionList": [
-                  {
-                    "Document": {
-                      "Statement": [
-                        {
-                          "Action": "s3:GetObject",
-                          "Effect": "Allow",
-                          "Resource": "arn:aws:s3:::data-bucket/record"
-                        }
-                      ]
-                    },
-                    "IsDefaultVersion": true
-                  }
-                ]
+                "DefaultDocument": {
+                  "VersionId": "v1",
+                  "collection_status": "denied"
+                },
+                "DefaultVersionId": "v1",
+                "_provenance": {
+                  "account_id": "111111111111",
+                  "default_operation": "iam:GetPolicyVersion",
+                  "managed_scope": "Local",
+                  "only_attached": false,
+                  "operation": "iam:ListPolicies"
+                }
               }
             ],
             "scope": "111111111111/global",
-            "status": "partial",
-            "type": "iam_policy"
+            "status": "collected",
+            "type": "iam_customer_policy"
           }
         ]
       },
       "context": {
+        "Account": "111111111111",
         "metadata": {},
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "iam_policy": [
+      "iam_customer_policy": [
         {
           "data": {
             "AccountId": "111111111111",
             "Arn": "arn:aws:iam::111111111111:policy/narrow",
-            "PolicyVersionList": [
-              {
-                "Document": {
-                  "Statement": [
-                    {
-                      "Action": "s3:GetObject",
-                      "Effect": "Allow",
-                      "Resource": "arn:aws:s3:::data-bucket/record"
-                    }
-                  ]
-                },
-                "IsDefaultVersion": true
-              }
-            ]
+            "DefaultDocument": {
+              "VersionId": "v1",
+              "collection_status": "denied"
+            },
+            "DefaultVersionId": "v1",
+            "_provenance": {
+              "account_id": "111111111111",
+              "default_operation": "iam:GetPolicyVersion",
+              "managed_scope": "Local",
+              "only_attached": false,
+              "operation": "iam:ListPolicies"
+            }
           },
           "provider": "aws",
           "scope": "111111111111/global",
-          "type": "iam_policy"
+          "type": "iam_customer_policy"
         }
       ]
     }
@@ -11498,23 +11552,64 @@
   },
   "aws_g6_ecr_public_repositories_absent": {
     "fail": {
-      "metadata": {},
-      "provider": "aws",
-      "scope": "111111111111/us-east-1"
+      "Policy": {
+        "collection_status": "collected",
+        "policyText": {
+          "Statement": [
+            {
+              "Action": [
+                "ecr:BatchGetImage"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Resource": "arn:aws:ecr:us-east-1:111111111111:repository/private-one"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "registryId": "111111111111",
+        "repositoryName": "private-one"
+      },
+      "registryId": "111111111111",
+      "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+      "repositoryName": "private-one"
     },
     "fail_index": {
       "collections": {
-        "ecr_public_repository": [
+        "ecr_repository": [
           {
             "items": [
               {
-                "repositoryArn": "arn:aws:ecr-public::111111111111:repository/public-one",
-                "repositoryName": "public-one"
+                "Policy": {
+                  "collection_status": "collected",
+                  "policyText": {
+                    "Statement": [
+                      {
+                        "Action": [
+                          "ecr:BatchGetImage"
+                        ],
+                        "Effect": "Allow",
+                        "Principal": {
+                          "AWS": "*"
+                        },
+                        "Resource": "arn:aws:ecr:us-east-1:111111111111:repository/private-one"
+                      }
+                    ],
+                    "Version": "2012-10-17"
+                  },
+                  "registryId": "111111111111",
+                  "repositoryName": "private-one"
+                },
+                "registryId": "111111111111",
+                "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+                "repositoryName": "private-one"
               }
             ],
             "scope": "111111111111/us-east-1",
             "status": "collected",
-            "type": "ecr_public_repository"
+            "type": "ecr_repository"
           }
         ]
       },
@@ -11523,26 +11618,60 @@
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "ecr_public_repository": [
+      "ecr_repository": [
         {
           "data": {
-            "repositoryArn": "arn:aws:ecr-public::111111111111:repository/public-one",
-            "repositoryName": "public-one"
+            "Policy": {
+              "collection_status": "collected",
+              "policyText": {
+                "Statement": [
+                  {
+                    "Action": [
+                      "ecr:BatchGetImage"
+                    ],
+                    "Effect": "Allow",
+                    "Principal": {
+                      "AWS": "*"
+                    },
+                    "Resource": "arn:aws:ecr:us-east-1:111111111111:repository/private-one"
+                  }
+                ],
+                "Version": "2012-10-17"
+              },
+              "registryId": "111111111111",
+              "repositoryName": "private-one"
+            },
+            "registryId": "111111111111",
+            "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+            "repositoryName": "private-one"
           },
           "provider": "aws",
           "scope": "111111111111/us-east-1",
-          "type": "ecr_public_repository"
+          "type": "ecr_repository"
         }
       ]
     },
     "index": {
       "collections": {
-        "ecr_public_repository": [
+        "ecr_repository": [
           {
-            "items": [],
+            "items": [
+              {
+                "Policy": {
+                  "absent": true,
+                  "collection_status": "empty",
+                  "error": {
+                    "code": "RepositoryPolicyNotFoundException"
+                  }
+                },
+                "registryId": "111111111111",
+                "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+                "repositoryName": "private-one"
+              }
+            ],
             "scope": "111111111111/us-east-1",
-            "status": "empty",
-            "type": "ecr_public_repository"
+            "status": "collected",
+            "type": "ecr_repository"
           }
         ]
       },
@@ -11551,23 +11680,118 @@
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "ecr_public_repository": []
+      "ecr_repository": [
+        {
+          "data": {
+            "Policy": {
+              "absent": true,
+              "collection_status": "empty",
+              "error": {
+                "code": "RepositoryPolicyNotFoundException"
+              }
+            },
+            "registryId": "111111111111",
+            "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+            "repositoryName": "private-one"
+          },
+          "provider": "aws",
+          "scope": "111111111111/us-east-1",
+          "type": "ecr_repository"
+        }
+      ]
     },
-    "malformed": null,
+    "malformed": {
+      "Policy": {
+        "collection_status": "collected",
+        "policyText": "{not-json",
+        "registryId": "111111111111",
+        "repositoryName": "private-one"
+      },
+      "registryId": "111111111111",
+      "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+      "repositoryName": "private-one"
+    },
+    "malformed_index": {
+      "collections": {
+        "ecr_repository": [
+          {
+            "items": [
+              {
+                "Policy": {
+                  "collection_status": "collected",
+                  "policyText": "{not-json",
+                  "registryId": "111111111111",
+                  "repositoryName": "private-one"
+                },
+                "registryId": "111111111111",
+                "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+                "repositoryName": "private-one"
+              }
+            ],
+            "scope": "111111111111/us-east-1",
+            "status": "collected",
+            "type": "ecr_repository"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {},
+        "provider": "aws",
+        "scope": "111111111111/us-east-1"
+      },
+      "ecr_repository": [
+        {
+          "data": {
+            "Policy": {
+              "collection_status": "collected",
+              "policyText": "{not-json",
+              "registryId": "111111111111",
+              "repositoryName": "private-one"
+            },
+            "registryId": "111111111111",
+            "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+            "repositoryName": "private-one"
+          },
+          "provider": "aws",
+          "scope": "111111111111/us-east-1",
+          "type": "ecr_repository"
+        }
+      ]
+    },
     "missing": {},
     "pass": {
-      "metadata": {},
-      "provider": "aws",
-      "scope": "111111111111/us-east-1"
+      "Policy": {
+        "absent": true,
+        "collection_status": "empty",
+        "error": {
+          "code": "RepositoryPolicyNotFoundException"
+        }
+      },
+      "registryId": "111111111111",
+      "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+      "repositoryName": "private-one"
     },
     "pass_index": {
       "collections": {
-        "ecr_public_repository": [
+        "ecr_repository": [
           {
-            "items": [],
+            "items": [
+              {
+                "Policy": {
+                  "absent": true,
+                  "collection_status": "empty",
+                  "error": {
+                    "code": "RepositoryPolicyNotFoundException"
+                  }
+                },
+                "registryId": "111111111111",
+                "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+                "repositoryName": "private-one"
+              }
+            ],
             "scope": "111111111111/us-east-1",
-            "status": "empty",
-            "type": "ecr_public_repository"
+            "status": "collected",
+            "type": "ecr_repository"
           }
         ]
       },
@@ -11576,22 +11800,52 @@
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "ecr_public_repository": []
+      "ecr_repository": [
+        {
+          "data": {
+            "Policy": {
+              "absent": true,
+              "collection_status": "empty",
+              "error": {
+                "code": "RepositoryPolicyNotFoundException"
+              }
+            },
+            "registryId": "111111111111",
+            "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+            "repositoryName": "private-one"
+          },
+          "provider": "aws",
+          "scope": "111111111111/us-east-1",
+          "type": "ecr_repository"
+        }
+      ]
     },
     "proposed_spec_sha256": "31ab35b82595e292dcd3e8870c373134ba3fca0fe09f592239783e73eda15d24",
     "unknown": {
-      "metadata": {},
-      "provider": "aws",
-      "scope": "111111111111/us-east-1"
+      "Policy": {
+        "collection_status": "denied"
+      },
+      "registryId": "111111111111",
+      "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+      "repositoryName": "private-one"
     },
     "unknown_index": {
       "collections": {
-        "ecr_public_repository": [
+        "ecr_repository": [
           {
-            "items": [],
+            "items": [
+              {
+                "Policy": {
+                  "collection_status": "denied"
+                },
+                "registryId": "111111111111",
+                "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+                "repositoryName": "private-one"
+              }
+            ],
             "scope": "111111111111/us-east-1",
-            "status": "partial",
-            "type": "ecr_public_repository"
+            "status": "collected",
+            "type": "ecr_repository"
           }
         ]
       },
@@ -11600,7 +11854,21 @@
         "provider": "aws",
         "scope": "111111111111/us-east-1"
       },
-      "ecr_public_repository": []
+      "ecr_repository": [
+        {
+          "data": {
+            "Policy": {
+              "collection_status": "denied"
+            },
+            "registryId": "111111111111",
+            "repositoryArn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+            "repositoryName": "private-one"
+          },
+          "provider": "aws",
+          "scope": "111111111111/us-east-1",
+          "type": "ecr_repository"
+        }
+      ]
     }
   },
   "aws_g6_ecs_all_containers_logging": {

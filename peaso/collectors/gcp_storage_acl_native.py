@@ -63,14 +63,18 @@ def _bucket_acl(collector,scope):
     for request in parent['source_requests']:yield [],request
     for bucket in parent['items']:
         if _uniform(bucket):continue
-        name=bucket['name'];seen={}
+        name=bucket['name'];seen={};requests=[];pages=0
         for page,request in collector.pages('https://storage.googleapis.com/storage/v1/b/'+quote(name,safe='')+'/acl',scope,page_size_key=None):
+            requests.append(request);pages+=1
             values=[]
             for raw in page:
                 row=_acl(raw,name);key=row['name']
                 if key in seen:raise _error('storage_duplicate_bucket_acl_entry')
                 seen[key]=row;values.append(row)
             yield values,request
+        with collector.lock:
+            collector._storage_acl_proof[('bucket_acl',scope)][name]={
+                'all_pages':True,'page_count':pages,'source_requests':requests}
 
 
 def _object_acl(collector,scope):
@@ -78,9 +82,10 @@ def _object_acl(collector,scope):
     for request in parent['source_requests']:yield [],request
     for bucket in parent['items']:
         if _uniform(bucket):continue
-        name=bucket['name'];seen_objects=set();seen_acls=set()
+        name=bucket['name'];seen_objects=set();seen_acls=set();requests=[];pages=0
         params={'projection':'full','versions':'true','fields':'items(bucket,name,generation,acl(bucket,object,generation,entity,role)),nextPageToken'}
         for page,request in collector.pages('https://storage.googleapis.com/storage/v1/b/'+quote(name,safe='')+'/o',scope,params=params,page_size_key='maxResults'):
+            requests.append(request);pages+=1
             values=[]
             for obj in page:
                 object_name,generation=obj.get('name'),obj.get('generation')
@@ -102,6 +107,11 @@ def _object_acl(collector,scope):
                     if row['name'] in seen_acls:raise _error('storage_duplicate_object_acl_entry')
                     seen_acls.add(row['name']);values.append(row)
             yield values,request
+        with collector.lock:
+            collector._storage_acl_proof[('object_acl',scope)][name]={
+                'all_pages':True,'all_objects':True,'all_versions':True,
+                'projection':'full','page_count':pages,'object_count':len(seen_objects),
+                'source_requests':requests}
 
 
 def _root_policies(collector,scope):
@@ -182,6 +192,9 @@ def _effective(collector,scope):
 
 def collect(collector):
     from .gcp import ReadError
+    from .gcp_bucket_acl_evidence_native import materialize
+    from collections import defaultdict
+    collector._storage_acl_proof=defaultdict(dict)
     jobs=[]
     for scope in collector.scopes:
         if not scope.startswith('projects/'):continue
@@ -199,3 +212,8 @@ def collect(collector):
                     if _uniform(b):disabled.append(b['name'])
                 except ReadError:continue
             collection['acl_disabled_parent_ids']=disabled
+            if kind in ('bucket_acl','object_acl'):
+                collection['per_parent_coverage']=collector._storage_acl_proof.get((kind,scope),{})
+    for scope in collector.scopes:
+        if scope.startswith('projects/'):
+            materialize(collector,scope)

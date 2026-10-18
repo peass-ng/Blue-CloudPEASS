@@ -27,6 +27,12 @@ POST_BASELINE_IDS = frozenset({
 ANCESTOR_MANIFEST = "db02091367b0067b5c4db3439d9fa13805877bb933e7e2dfab37113c1ffcaac8"
 VIEWS_SHA256 = "149b54a78e6811c1ec4d639e5912d5c7f4fe6a7aba16a2e6e2ee3550d995d41e"
 PUBLISHED_SPRINT_ARCHIVE = ROOT / "infra/aws/build/peaso-source-414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d.zip"
+SOURCE414_VERSION = "414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d"
+SOURCE414_NATIVE_MEMBER = "peaso/rulepacks/native_catalog.json"
+SOURCE414_NATIVE_DELTA = "tests/fixtures/post_dfaf_integration/source414-native-catalog-delta.json.gz"
+SOURCE414_NATIVE_DELTA_SHA256 = "f3f5fe3dbd87740d379ed20ab2042e39817cc888c23234db1e760e3af498ef87"
+SOURCE414_NATIVE_BASE_SHA256 = "35c0dd6dca7865995b8525161d2bca6608b4c183bc82eb713d8dd3a3446c4fa6"
+SOURCE414_NATIVE_SHA256 = "9007b31199e3cbe2f9866057d6ac46c04c62e7c83a3ee78c61a70ffb30c1fbba"
 
 
 def registered_before_bulk(checks):
@@ -216,6 +222,8 @@ def historical_bytes(path, member):
     if Path(path).is_file():
         with zipfile.ZipFile(path) as archive:
             raw = archive.read(member)
+    elif release["source_version"] == SOURCE414_VERSION and member == SOURCE414_NATIVE_MEMBER:
+        raw = _source414_native_catalog(release)
     else:
         payload = json.loads((ROOT / "tests/fixtures/post_dfaf_integration/historical-release-manifests.json").read_text())
         patch = payload["member_patches"][release["source_version"]][member]
@@ -241,6 +249,44 @@ def historical_bytes(path, member):
             raw = "".join(parts).encode()
     if hashlib.sha256(raw).hexdigest() != release["files"][member]:
         raise ValueError("Historical source member digest differs")
+    return raw
+
+
+def _source414_native_catalog(release):
+    """Reassemble the published member from a pinned current-row index delta."""
+    if release["files"].get(SOURCE414_NATIVE_MEMBER) != SOURCE414_NATIVE_SHA256:
+        raise ValueError("Historical native catalog release binding differs")
+    packed = (ROOT / SOURCE414_NATIVE_DELTA).read_bytes()
+    if hashlib.sha256(packed).hexdigest() != SOURCE414_NATIVE_DELTA_SHA256:
+        raise ValueError("Historical native catalog delta digest differs")
+    patch = json.loads(gzip.decompress(packed))
+    if (patch.get("schema") != "source414-native-catalog-index-delta-v1" or
+            patch.get("source_version") != SOURCE414_VERSION or
+            patch.get("source_member") != SOURCE414_NATIVE_MEMBER or
+            patch.get("base_member_sha256") != SOURCE414_NATIVE_BASE_SHA256 or
+            patch.get("release_member_sha256") != SOURCE414_NATIVE_SHA256):
+        raise ValueError("Historical native catalog delta binding differs")
+    baseline = (ROOT / SOURCE414_NATIVE_MEMBER).read_bytes()
+    if hashlib.sha256(baseline).hexdigest() != SOURCE414_NATIVE_BASE_SHA256:
+        raise ValueError("Historical native catalog baseline digest differs")
+    current = json.loads(baseline)
+    rows = current["checks"] + current["archived_checks"]
+    order = patch.get("order")
+    replacements = patch.get("replacements")
+    if (len(rows) != 3986 or len({row["id"] for row in rows}) != len(rows) or
+            not isinstance(order, list) or len(order) != 3986 or
+            any(type(index) is not int or not 0 <= index < len(rows) for index in order) or
+            len(set(order)) != len(rows) or
+            not isinstance(replacements, dict) or len(replacements) != 43 or
+            any(not key.isdecimal() or str(int(key)) != key or int(key) >= len(order)
+                for key in replacements)):
+        raise ValueError("Historical native catalog delta shape differs")
+    historical = patch["top_level"].copy()
+    historical["checks"] = [replacements.get(str(index), rows[item])
+                            for index, item in enumerate(order)]
+    raw = encoded(historical, compact=True)
+    if hashlib.sha256(raw).hexdigest() != SOURCE414_NATIVE_SHA256:
+        raise ValueError("Historical native catalog reconstruction digest differs")
     return raw
 
 
