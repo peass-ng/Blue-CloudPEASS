@@ -58,21 +58,94 @@ def test_gcp_requires_confirmed_success_and_target() -> None:
     matches = detect_gcp_events([good], [GCP_TEST_RULE])
     assert len(matches) == 1
     assert matches[0].target_id == "projects/-/serviceAccounts/target@customer.iam.gserviceaccount.com"
+    assert normalize_gcp_audit(good)["account.id"] == "customer"
     returned = deepcopy(good)
     returned["protoPayload"].pop("status")
     returned["protoPayload"]["response"] = {"name": "projects/customer/serviceAccounts/target@customer.iam.gserviceaccount.com/keys/abc"}
     assert len(detect_gcp_events([returned], [GCP_TEST_RULE])) == 1
     negatives = []
-    for edit in ("failure", "unknown", "data_log", "wrong_method", "wrong_target"):
+    for edit in ("failure", "unknown", "data_log", "wrong_method", "wrong_target",
+                 "foreign_target", "foreign_returned_key", "foreign_resource", "malformed_log"):
         row = deepcopy(good)
         if edit == "failure": row["protoPayload"]["status"] = {"code": 7}
         if edit == "unknown": row["protoPayload"].pop("status")
         if edit == "data_log": row["logName"] = row["logName"].replace("activity", "data_access")
         if edit == "wrong_method": row["protoPayload"]["methodName"] = "google.iam.admin.v1.GetServiceAccountKey"
         if edit == "wrong_target": row["protoPayload"]["request"]["name"] = "invalid"
+        if edit == "foreign_target": row["protoPayload"]["request"]["name"] = "projects/-/serviceAccounts/target@foreign.iam.gserviceaccount.com"
+        if edit == "foreign_returned_key": row["protoPayload"]["response"] = {"name": "projects/foreign/serviceAccounts/target@foreign.iam.gserviceaccount.com/keys/abc"}
+        if edit == "foreign_resource": row["resource"] = {"type": "service_account", "labels": {"project_id": "foreign"}}
+        if edit == "malformed_log": row["logName"] = "organizations/123/logs/cloudaudit.googleapis.com%2Factivity"
         negatives.append(row)
     assert detect_gcp_events(negatives, [GCP_TEST_RULE]) == []
     assert normalize_gcp_audit(good)["credential.effect_confirmed"] is True
+
+
+def test_gcp_numeric_key_parent_requires_exact_resource_identity_bridge() -> None:
+    unique_id = "123456789012345678901"
+    email = "target@customer.iam.gserviceaccount.com"
+    labels = {"project_id": "customer", "email_id": email, "unique_id": unique_id}
+    returned = gcp_key_event()
+    returned["resource"] = {"type": "service_account", "labels": labels}
+    returned["protoPayload"].pop("status")
+    returned["protoPayload"]["response"] = {
+        "name": f"projects/customer/serviceAccounts/{unique_id}/keys/abc"}
+    assert normalize_gcp_audit(returned)["credential.key_name"] == returned["protoPayload"]["response"]["name"]
+    assert len(detect_gcp_events([returned], [GCP_TEST_RULE])) == 1
+
+    numeric_request = deepcopy(returned)
+    numeric_request["protoPayload"]["request"]["name"] = f"projects/-/serviceAccounts/{unique_id}"
+    numeric_request["protoPayload"]["resourceName"] = f"projects/customer/serviceAccounts/{unique_id}"
+    assert normalize_gcp_audit(numeric_request)["target.id"] == f"projects/-/serviceAccounts/{unique_id}"
+    assert len(detect_gcp_events([numeric_request], [GCP_TEST_RULE])) == 1
+    numeric_request_code_zero = deepcopy(numeric_request)
+    numeric_request_code_zero["protoPayload"].pop("response")
+    numeric_request_code_zero["protoPayload"]["status"] = {"code": 0}
+    assert len(detect_gcp_events([numeric_request_code_zero], [GCP_TEST_RULE])) == 1
+
+    no_bridge = deepcopy(returned)
+    no_bridge.pop("resource")
+    assert normalize_gcp_audit(no_bridge) is None
+    no_bridge_request = deepcopy(numeric_request)
+    no_bridge_request.pop("resource")
+    assert normalize_gcp_audit(no_bridge_request) is None
+
+
+def test_gcp_key_creation_rejects_conflicting_audit_identity() -> None:
+    unique_id = "123456789012345678901"
+    email = "target@customer.iam.gserviceaccount.com"
+    good = gcp_key_event()
+    good["resource"] = {"type": "service_account", "labels": {
+        "project_id": "customer", "email_id": email, "unique_id": unique_id}}
+    good["protoPayload"]["resourceName"] = f"projects/customer/serviceAccounts/{email}"
+    assert normalize_gcp_audit(good) is not None
+
+    mismatched_email = deepcopy(good)
+    mismatched_email["resource"]["labels"]["email_id"] = "different@customer.iam.gserviceaccount.com"
+    mismatched_unique = deepcopy(good)
+    mismatched_unique["protoPayload"]["resourceName"] = "projects/customer/serviceAccounts/999999999999999999999"
+    foreign_name = deepcopy(good)
+    foreign_name["protoPayload"]["resourceName"] = "projects/foreign/serviceAccounts/target@foreign.iam.gserviceaccount.com"
+    other_email_name = deepcopy(good)
+    other_email_name["protoPayload"]["resourceName"] = "projects/customer/serviceAccounts/different@customer.iam.gserviceaccount.com"
+    malformed_name = deepcopy(good)
+    malformed_name["protoPayload"]["resourceName"] = []
+    for row in (mismatched_email, mismatched_unique, foreign_name, other_email_name, malformed_name):
+        assert normalize_gcp_audit(row) is None
+
+    numeric_return = deepcopy(good)
+    numeric_return["protoPayload"].pop("status")
+    numeric_return["protoPayload"]["response"] = {
+        "name": f"projects/customer/serviceAccounts/{unique_id}/keys/abc"}
+    bad_unique_label = deepcopy(numeric_return)
+    bad_unique_label["resource"]["labels"]["unique_id"] = "999999999999999999999"
+    assert normalize_gcp_audit(bad_unique_label) is None
+    missing_email_label = deepcopy(numeric_return)
+    del missing_email_label["resource"]["labels"]["email_id"]
+    assert normalize_gcp_audit(missing_email_label) is None
+    missing_project_label = deepcopy(numeric_return)
+    del missing_project_label["resource"]["labels"]["project_id"]
+    assert normalize_gcp_audit(missing_project_label) is None
 
 
 def test_malformed_gcp_method_does_not_abort_following_valid_record() -> None:
@@ -101,6 +174,34 @@ def test_kubernetes_requires_completed_create_and_returned_privileged_binding() 
         negatives.append(row)
     assert detect_kubernetes_events(negatives, [K8S_TEST_RULE]) == []
     assert normalize_kubernetes_audit(good)["target.principal"] == "system:serviceaccount:app:worker"
+
+
+def test_cluster_admin_binding_reports_each_distinct_service_account() -> None:
+    row = k8s_binding_event()
+    row["responseObject"]["subjects"].extend([
+        {"kind": "ServiceAccount", "name": "other", "namespace": "app"},
+        {"kind": "ServiceAccount", "name": "worker", "namespace": "app"},
+        {"kind": "ServiceAccount", "name": "system", "namespace": "kube-system"},
+    ])
+    matches = detect_kubernetes_events([row], [K8S_TEST_RULE])
+    assert {item.target_id for item in matches} == {
+        "system:serviceaccount:app:worker", "system:serviceaccount:app:other"}
+    assert len(matches) == 2
+    assert {item.event_id for item in matches} == {"audit-1"}
+    assert {item.evidence["correlation"]["binding_name"] for item in matches} == {"workload-admin"}
+    assert {item.evidence["correlation"]["service_account"] for item in matches} == {
+        "system:serviceaccount:app:worker", "system:serviceaccount:app:other"}
+
+    wrapped = {"logName": "projects/customer/logs/cloudaudit.googleapis.com%2Factivity",
+               "insertId": "gke-multi", "timestamp": "2026-10-18T00:00:00Z",
+               "resource": {"type": "k8s_cluster", "labels": {"cluster_name": "demo"}},
+               "protoPayload": {"@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+                                "serviceName": "k8s.io",
+                                "methodName": "io.k8s.authorization.rbac.v1.clusterrolebindings.create",
+                                "authenticationInfo": {"principalEmail": "alice@example.com"},
+                                "status": {"code": 0}, "response": row["responseObject"]}}
+    assert {item.target_id for item in detect_kubernetes_events([wrapped], [K8S_TEST_RULE])} == {
+        "system:serviceaccount:app:worker", "system:serviceaccount:app:other"}
 
 
 def test_malformed_kubernetes_verb_and_uri_do_not_abort_following_valid_record() -> None:

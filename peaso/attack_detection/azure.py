@@ -23,6 +23,7 @@ _ASSIGNMENT = re.compile(
 _ROLE = re.compile(rf"(?:/[^?#]+)?/providers/Microsoft\.Authorization/roleDefinitions/(?P<role>{_GUID})\Z", re.IGNORECASE)
 _ACTION = "microsoft.authorization/roleassignments/write"
 _OID_CLAIM = "http://schemas.microsoft.com/identity/claims/objectidentifier"
+_CREATED = {"created", "created (http status code: 201)", "201"}
 
 
 def _value(value: Any) -> str | None:
@@ -93,6 +94,18 @@ def _candidate(record: Any, subscription: str | None):
     status = (_value(record.get("status")) or "").lower()
     if status not in {"started", "succeeded"}:
         return None
+    if status == "succeeded" and (_value(record.get("subStatus")) or "").lower() not in _CREATED:
+        return None
+    if status == "succeeded":
+        properties = record.get("properties")
+        if isinstance(properties, Mapping):
+            status_codes = (value for key, value in properties.items()
+                            if isinstance(key, str) and key.lower() == "statuscode")
+            if any(not isinstance(code, str) or code.lower() not in _CREATED
+                   for code in status_codes):
+                return None
+        elif properties is not None:
+            return None
     resource = record.get("resourceId")
     match = _ASSIGNMENT.fullmatch(resource) if isinstance(resource, str) else None
     if not match:
@@ -105,18 +118,43 @@ def _candidate(record: Any, subscription: str | None):
     operation = record.get("operationId")
     when = _timestamp(record.get("eventTimestamp"))
     actor = _actor_oid(record)
-    if not isinstance(operation, str) or not re.fullmatch(_GUID, operation, re.IGNORECASE) or when is None or actor is None:
+    event_id = record.get("eventDataId")
+    if (not isinstance(operation, str) or not re.fullmatch(_GUID, operation, re.IGNORECASE)
+            or when is None or actor is None or not isinstance(event_id, str)
+            or not 0 < len(event_id) <= 256 or not isinstance(record.get("caller"), str)
+            or not record["caller"]):
         return None
     return status, (operation.lower(), resource.lower()), match, when, actor
+
+
+def _unique_rows(rows):
+    """Collapse identical pagination repeats; reject conflicting rows for one event ID."""
+    unique = {}
+    for row in rows:
+        event_id = row[0]["eventDataId"]
+        prior = unique.get(event_id)
+        if prior is not None and prior[0] != row[0]:
+            return None
+        unique[event_id] = row
+    return tuple(unique.values())
 
 
 def correlate_azure_self_grants(records: Iterable[Mapping[str, Any]], *, subscription: str | None = None) -> list[dict[str, Any]]:
     """Produce narrow canonical events for separately reviewed detection rules."""
     starts: dict[tuple[str, str], list[tuple[Mapping[str, Any], Any, datetime, str]]] = {}
     successes: dict[tuple[str, str], list[tuple[Mapping[str, Any], Any, datetime, str]]] = {}
+    event_rows: dict[str, Mapping[str, Any]] = {}
+    conflicting_ids: set[str] = set()
     for index, record in enumerate(records):
         if index >= 2_000:
             break
+        if isinstance(record, Mapping):
+            event_id = record.get("eventDataId")
+            if isinstance(event_id, str) and 0 < len(event_id) <= 256:
+                if event_id in event_rows and event_rows[event_id] != record:
+                    conflicting_ids.add(event_id)
+                else:
+                    event_rows[event_id] = record
         candidate = _candidate(record, subscription)
         if candidate is None:
             continue
@@ -125,6 +163,13 @@ def correlate_azure_self_grants(records: Iterable[Mapping[str, Any]], *, subscri
     candidates = []
     seen = set()
     for key, begun in starts.items():
+        finished = successes.get(key, [])
+        if any(row[0]["eventDataId"] in conflicting_ids for row in (*begun, *finished)):
+            continue
+        begun = _unique_rows(begun)
+        completed = _unique_rows(finished)
+        if begun is None or completed is None or len(begun) != 1 or len(completed) != 1:
+            continue
         for start, match, start_time, actor in begun:
             details = _request(start, match.group("assignment").lower())
             if details is None:
@@ -132,8 +177,10 @@ def correlate_azure_self_grants(records: Iterable[Mapping[str, Any]], *, subscri
             principal, role = details
             if principal != actor:
                 continue
-            for success, _, success_time, success_actor in successes.get(key, []):
-                if success_actor != actor or not timedelta(0) <= success_time - start_time <= MAX_PAIR_AGE:
+            for success, _, success_time, success_actor in completed:
+                if (success_actor != actor or success.get("caller") != start.get("caller")
+                        or success.get("eventDataId") == start.get("eventDataId")
+                        or not timedelta(0) <= success_time - start_time <= MAX_PAIR_AGE):
                     continue
                 success_id = success.get("eventDataId")
                 if not isinstance(success_id, str) or not success_id or (key, success_id) in seen:

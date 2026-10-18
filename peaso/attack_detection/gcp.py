@@ -373,10 +373,44 @@ def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
         return policy_binding
     if not isinstance(payload, Mapping) or payload.get("@type") != "type.googleapis.com/google.cloud.audit.AuditLog":
         return None
-    if payload.get("serviceName") != "iam.googleapis.com":
+    if (payload.get("serviceName") != "iam.googleapis.com"
+            or payload.get("methodName") != "google.iam.admin.v1.CreateServiceAccountKey"):
         return None
     log_name = record.get("logName")
-    if not isinstance(log_name, str) or not log_name.endswith("/logs/cloudaudit.googleapis.com%2Factivity"):
+    log_match = re.fullmatch(r"projects/([^/]+)/logs/cloudaudit\.googleapis\.com%2Factivity", log_name) if isinstance(log_name, str) else None
+    if log_match is None or _PROJECT.fullmatch(log_match.group(1)) is None:
+        return None
+    project = log_match.group(1)
+    resource = record.get("resource")
+    labels = None
+    if resource is not None:
+        if not isinstance(resource, Mapping) or resource.get("type") != "service_account":
+            return None
+        labels = resource.get("labels")
+        if not isinstance(labels, Mapping) or labels.get("project_id") not in (None, project):
+            return None
+    label_email = labels.get("email_id") if isinstance(labels, Mapping) else None
+    label_unique_id = labels.get("unique_id") if isinstance(labels, Mapping) else None
+    if isinstance(labels, Mapping):
+        if ("email_id" in labels and (not isinstance(label_email, str)
+                                      or _ACCOUNT_EMAIL.fullmatch(label_email) is None
+                                      or not label_email.endswith(f"@{project}.iam.gserviceaccount.com"))):
+            return None
+        if ("unique_id" in labels and (not isinstance(label_unique_id, str)
+                                        or re.fullmatch(r"[0-9]{21}", label_unique_id) is None)):
+            return None
+
+    def account_email(value: Any) -> str | None:
+        match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([^/]+)", value) if isinstance(value, str) else None
+        if match is None or match.group(1) not in ("-", project):
+            return None
+        identifier = match.group(2)
+        if _ACCOUNT_EMAIL.fullmatch(identifier) and identifier.endswith(f"@{project}.iam.gserviceaccount.com"):
+            return identifier
+        if (re.fullmatch(r"[0-9]{21}", identifier) and isinstance(labels, Mapping)
+                and labels.get("project_id") == project and label_email is not None
+                and identifier == label_unique_id):
+            return label_email
         return None
     auth = payload.get("authenticationInfo")
     auth = auth if isinstance(auth, Mapping) else {}
@@ -388,12 +422,21 @@ def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
     status = status if isinstance(status, Mapping) else {}
     code = status.get("code")
     target = request.get("name")
+    target_email = account_email(target)
+    if target_email is None or (label_email is not None and label_email != target_email):
+        return None
     key_name = response.get("name")
-    key_returned = isinstance(key_name, str) and "/serviceAccounts/" in key_name and "/keys/" in key_name and bool(key_name.rsplit("/keys/", 1)[-1])
+    key_match = re.fullmatch(r"(projects/[^/]+/serviceAccounts/[^/]+)/keys/([A-Za-z0-9_-]+)", key_name) if isinstance(key_name, str) else None
+    if key_name is not None and (key_match is None or account_email(key_match.group(1)) != target_email):
+        return None
+    if "resourceName" in payload and account_email(payload["resourceName"]) != target_email:
+        return None
+    key_returned = key_match is not None
     explicit_success = type(code) is int and code == 0
     if (code is not None and not explicit_success) or not (explicit_success or key_returned):
         return None
-    if not isinstance(target, str) or not target.startswith("projects/") or "/serviceAccounts/" not in target or not target.rsplit("/serviceAccounts/", 1)[-1]:
+    actor = auth.get("principalEmail")
+    if not isinstance(actor, str) or _PRINCIPAL_EMAIL.fullmatch(actor) is None:
         return None
     return {
         "cloud.provider": "gcp",
@@ -402,8 +445,8 @@ def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
         "event.outcome": "success",
         "event.id": record.get("insertId"),
         "event.time": record.get("timestamp"),
-        "account.id": log_name.split("/logs/", 1)[0],
-        "actor.id": auth.get("principalEmail"),
+        "account.id": project,
+        "actor.id": actor.lower(),
         "target.id": target,
         "credential.key_name": key_name if key_returned else None,
         "credential.effect_confirmed": True,

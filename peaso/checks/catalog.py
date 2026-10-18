@@ -102,6 +102,10 @@ def description_for(check_id):
     if not packed:
         return None
     original = packed[1]["checks"].get(check_id)
+    if check_id in ("aws.a.cloudtrail.bucket_access_logging", "aws.a.cloudtrail.bucket_mfa_delete",
+                    "aws.a.iam.attached_policy_no_star_star"):
+        from .aws_native_status_description_overlay import description
+        return description(check_id, original)
     if check_id == "aws.pci.iam.policy_attached_to_active_principal":
         from .aws_pci_iam_attachment_description_overlay import description
         spec = _proposals().get(check_id)

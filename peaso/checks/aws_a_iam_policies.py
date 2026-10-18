@@ -23,7 +23,7 @@ for kind in ("iam_user", "iam_group", "iam_role"):
 
 
 @register("aws.a.iam.attached_policy_no_star_star", "aws", "least_privilege", "iam_policy", "Attached customer-managed policy has no declared wildcard administrator statement",
-    "high", "AC-6", "Review attached declared full-action/full-resource grants; AWS managed wildcard grants require manual review under the source.")
+    "high", "AC-6", "Review attached customer-managed full-action/full-resource grants; AWS-managed policies have a separate native check.")
 def attached_admin(item, index):
     count = get(item, "AttachmentCount", int)
     if count < 0:
@@ -37,6 +37,8 @@ def attached_admin(item, index):
     managed = parts[4] == "aws"
     if not managed and (len(parts[4]) != 12 or not parts[4].isdigit()):
         return unknown("malformed policy account")
+    if managed:
+        return "NOT_APPLICABLE", {"reason": "AWS-managed policy is outside the customer-managed source population"}
     versions = list_of_objects(get(item, "PolicyVersionList", list))
     default = [version for version in versions if get(version, "IsDefaultVersion", bool)]
     if len(default) != 1:
@@ -62,13 +64,11 @@ def attached_admin(item, index):
             bad += 1
     if unresolved and not bad:
         return unknown("declared policy statement fields unavailable", unresolved_statements=unresolved)
-    if bad and managed:
-        return "MANUAL", {"reason": "Pinned source AWS managed wildcard-policy informational review", "wildcard_statement_count": bad}
     return result(bool(bad), wildcard_statement_count=bad,
         semantics="Declared source literals including conditioned statements; denies, boundaries and effective access are not simulated")
 POLICY = {"AttachmentCount": 1, "Arn": "arn:aws:iam::123456789012:policy/inert", "PolicyVersionList": [{"IsDefaultVersion": True,
     "Document": {"Statement": [{"Effect": "Allow", "Action": "s3:ListAllMyBuckets", "Resource": "*"}]}}]}
 BAD = {**POLICY, "PolicyVersionList": [{"IsDefaultVersion": True, "Document": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}}]}
 CASES["aws.a.iam.attached_policy_no_star_star"] = {"pass": POLICY, "fail": BAD, "missing": {}, "malformed": None,
-    "not_applicable": {"AttachmentCount": 0}, "manual": {**BAD, "Arn": "arn:aws:iam::aws:policy/AdministratorAccess"}}
+    "not_applicable": {"AttachmentCount": 0}, "aws_managed_not_applicable": {**BAD, "Arn": "arn:aws:iam::aws:policy/AdministratorAccess"}}
 NATIVE_IDS.append("aws.a.iam.attached_policy_no_star_star")

@@ -17,9 +17,9 @@ def test_policy_variant_real_states_and_purity(cid):
     assert REGISTRY[cid].evaluate({"collection_status": "denied"}, {})[0] == "UNKNOWN"
 
 
-def test_aws_managed_wildcard_is_manual_and_unattached_policy_skips():
+def test_aws_managed_wildcard_is_outside_customer_scope_and_unattached_policy_skips():
     check = REGISTRY["aws.a.iam.attached_policy_no_star_star"]
-    assert check.evaluate(CASES[check.id]["manual"], {})[0] == "MANUAL"
+    assert check.evaluate(CASES[check.id]["aws_managed_not_applicable"], {})[0] == "NOT_APPLICABLE"
     assert check.evaluate({"AttachmentCount": 0}, {})[0] == "NOT_APPLICABLE"
 
 

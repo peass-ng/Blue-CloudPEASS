@@ -140,3 +140,40 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         "rbac.non_system_service_account": True,
         "rbac.self_namespace_service_account": resource_name == "rolebindings",
     }
+
+
+def normalize_kubernetes_audit_candidates(record: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Emit one reviewed binding candidate per affected service account."""
+    base = normalize_kubernetes_audit(record)
+    if base is None:
+        return []
+    if "protoPayload" in record:
+        payload = record.get("protoPayload")
+        response = payload.get("response") if isinstance(payload, Mapping) else None
+    else:
+        response = record.get("responseObject")
+    if not isinstance(response, Mapping) or not isinstance(response.get("subjects"), list):
+        return []
+    binding_name = base["target.id"]
+    candidates = []
+    seen = set()
+    for subject in response["subjects"]:
+        if not isinstance(subject, Mapping) or subject.get("kind") != "ServiceAccount":
+            continue
+        name, namespace = subject.get("name"), subject.get("namespace")
+        if (not isinstance(name, str) or not name or not isinstance(namespace, str)
+                or not namespace or namespace in SYSTEM_NAMESPACES):
+            continue
+        principal = f"system:serviceaccount:{namespace}:{name}"
+        if base["rbac.binding_kind"] == "RoleBinding" and principal != base["actor.id"]:
+            continue
+        if principal in seen:
+            continue
+        seen.add(principal)
+        candidate = dict(base)
+        candidate["target.id"] = principal
+        candidate["target.principal"] = principal
+        candidate["correlation_evidence"] = {"binding_name": binding_name,
+                                               "service_account": principal}
+        candidates.append(candidate)
+    return candidates

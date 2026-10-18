@@ -172,7 +172,9 @@ def test_analysis_correlates_only_complete_self_grants(monkeypatch):
                   "properties": {"requestbody": json.dumps({"id": assignment, "properties": {
                       "principalId": actor, "roleDefinitionId": f"/providers/Microsoft.Authorization/roleDefinitions/{OWNER}"}})}})
     success = {**start, "status": {"value": "Succeeded"}, "eventDataId": "success-event",
-               "eventTimestamp": "2026-10-18T08:01:00Z", "properties": {"statusCode": "Created"}}
+               "eventTimestamp": "2026-10-18T08:01:00Z", "subStatus": {"value": "Created (HTTP Status Code: 201)"},
+               "caller": "actor@example.invalid", "properties": {"statusCode": "Created"}}
+    start["caller"] = "actor@example.invalid"
     api = with_api(monkeypatch, [{"value": [success, start]}])
     result = analyze_azure_source({}, [SUB], {}, SOURCE)
     assert result["coverage"]["events_read"] == 2
@@ -183,6 +185,29 @@ def test_analysis_correlates_only_complete_self_grants(monkeypatch):
     assert result["detections"][0]["rule_id"] == "unit-azure-self-grant"
     assert "candidate_events" not in result
     assert "requestbody" not in json.dumps(result)
+    assert api.closed
+
+
+def test_analysis_does_not_report_role_assignment_update_as_new_self_grant(monkeypatch):
+    import json
+    from peaso.attack_detection.azure import OWNER
+    actor = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    assignment = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+    operation = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+    start = event(status="Started")
+    start.update({"resourceId": f"/subscriptions/{SUB}/providers/Microsoft.Authorization/roleAssignments/{assignment}",
+                  "operationId": operation, "category": {"value": "Administrative"},
+                  "claims": {"oid": actor}, "caller": "actor@example.invalid", "eventDataId": "update-start",
+                  "properties": {"requestbody": json.dumps({"id": assignment, "properties": {
+                      "principalId": actor, "roleDefinitionId": f"/providers/Microsoft.Authorization/roleDefinitions/{OWNER}"}})}})
+    success = {**start, "status": {"value": "Succeeded"}, "eventDataId": "update-success",
+               "eventTimestamp": "2026-10-18T08:01:00Z", "subStatus": {"value": "OK (HTTP Status Code: 200)"},
+               "properties": {"statusCode": "OK"}}
+    api = with_api(monkeypatch, [{"value": [start, success]}])
+    result = analyze_azure_source({}, [SUB], {}, SOURCE)
+    assert result["coverage"]["events_read"] == 2
+    assert result["coverage"]["self_grant_candidates"] == 0
+    assert result["detections"] == []
     assert api.closed
 
 
