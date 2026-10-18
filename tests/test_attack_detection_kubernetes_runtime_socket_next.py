@@ -90,6 +90,7 @@ def test_flat_matcher_uses_only_observed_accepted_spec() -> None:
     "denied", "dry_run", "not_complete", "wrong_resource", "wrong_namespace", "system_namespace",
     "system_actor", "missing_uid", "missing_response", "not_privileged", "read_only_mount",
     "other_volume", "other_socket", "non_socket_type", "subpath", "windows", "wrong_uri", "gke_wrapper",
+    "list_socket_path", "list_mount_name", "malformed_uri",
 ])
 def test_benign_or_incomplete_evidence_does_not_match(change: str) -> None:
     row = event()
@@ -111,9 +112,12 @@ def test_benign_or_incomplete_evidence_does_not_match(change: str) -> None:
     if change == "read_only_mount": container["volumeMounts"][0]["readOnly"] = True
     if change == "other_volume": container["volumeMounts"][0]["name"] = "other"
     if change == "other_socket": volume["hostPath"]["path"] = "/tmp/other.sock"
+    if change == "list_socket_path": volume["hostPath"]["path"] = ["/run/docker.sock"]
+    if change == "list_mount_name": container["volumeMounts"][0]["name"] = ["runtime"]
     if change == "non_socket_type": volume["hostPath"]["type"] = "File"
     if change == "subpath": container["volumeMounts"][0]["subPath"] = "socket"
     if change == "windows": spec["os"] = {"name": "windows"}
     if change == "wrong_uri": row["requestURI"] = "/api/v1/namespaces/app/pods/other"
+    if change == "malformed_uri": row["requestURI"] = "http://["
     if change == "gke_wrapper": row["protoPayload"] = {}
     assert normalize(row) is None

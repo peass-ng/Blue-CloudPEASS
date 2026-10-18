@@ -65,6 +65,7 @@ def test_live_shaped_success_reports_only_observed_creation():
     "missing_response", "missing_metadata", "missing_access_id", "wrong_metadata_id",
     "inactive_key", "malformed_actor", "missing_event_id", "bad_resource_name",
     "incomplete_operation", "wrong_response_type", "malformed_resource",
+    "invalid_time", "timezone_free_time",
 ])
 def test_denied_incomplete_or_mismatched_event_fails_closed(change):
     row = deepcopy(event())
@@ -116,6 +117,10 @@ def test_denied_incomplete_or_mismatched_event_fails_closed(change):
         payload["response"]["@type"] = "type.googleapis.com/google.storage.v1.HmacKeyMetadata"
     elif change == "malformed_resource":
         row["resource"] = "bad"
+    elif change == "invalid_time":
+        row["timestamp"] = "not-a-time"
+    elif change == "timezone_free_time":
+        row["timestamp"] = "2026-10-18T12:00:00"
     assert normalize_gcp_hmac_key_created(row) is None
 
 

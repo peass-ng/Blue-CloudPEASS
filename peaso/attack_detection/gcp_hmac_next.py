@@ -8,6 +8,7 @@ The HMAC secret is never included in the normalized event.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import datetime
 import re
 from typing import Any
 
@@ -87,6 +88,12 @@ def normalize_gcp_hmac_key_created(record: Mapping[str, Any]) -> dict[str, Any] 
         return None
     event_id, event_time = record.get("insertId"), record.get("timestamp")
     if not isinstance(event_id, str) or not event_id or not isinstance(event_time, str) or not event_time:
+        return None
+    try:
+        parsed_time = datetime.fromisoformat(event_time.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed_time.tzinfo is None:
         return None
     return {
         "cloud.provider": "gcp",

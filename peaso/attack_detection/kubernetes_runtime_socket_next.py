@@ -31,8 +31,12 @@ def normalize_kubernetes_runtime_socket_pod(record: Mapping[str, Any]) -> dict[s
             or record.get("verb") != "create"):
         return None
     uri = record.get("requestURI")
-    if (isinstance(uri, str) and any(k.lower() == "dryrun" for k, _ in
-            parse_qsl(urlsplit(uri).query, keep_blank_values=True))):
+    try:
+        parsed_uri = urlsplit(uri) if isinstance(uri, str) else None
+    except ValueError:
+        return None
+    if parsed_uri is not None and any(k.lower() == "dryrun" for k, _ in
+            parse_qsl(parsed_uri.query, keep_blank_values=True)):
         return None
     ref, status, response, user = (record.get(k) for k in ("objectRef", "responseStatus", "responseObject", "user"))
     if (not isinstance(ref, Mapping) or ref.get("apiGroup") not in (None, "")
@@ -60,7 +64,7 @@ def normalize_kubernetes_runtime_socket_pod(record: Mapping[str, Any]) -> dict[s
             or not isinstance(pod, str) or not pod or not isinstance(uid, str) or not uid
             or ref.get("namespace") != namespace or ref.get("name") not in (None, pod)):
         return None
-    if isinstance(uri, str) and urlsplit(uri).path != f"/api/v1/namespaces/{namespace}/pods":
+    if parsed_uri is not None and parsed_uri.path != f"/api/v1/namespaces/{namespace}/pods":
         return None
     os = spec.get("os")
     if isinstance(os, Mapping) and os.get("name") == "windows":
@@ -73,9 +77,10 @@ def normalize_kubernetes_runtime_socket_pod(record: Mapping[str, Any]) -> dict[s
         if not isinstance(volume, Mapping):
             continue
         name, host = volume.get("name"), volume.get("hostPath")
-        if (isinstance(name, str) and name and isinstance(host, Mapping)
-                and host.get("path") in SOCKET_PATHS and host.get("type") == "Socket"):
-            socket_volumes[name] = host["path"]
+        path = host.get("path") if isinstance(host, Mapping) else None
+        if (isinstance(name, str) and name and isinstance(path, str)
+                and path in SOCKET_PATHS and host.get("type") == "Socket"):
+            socket_volumes[name] = path
     for container in containers:
         if not isinstance(container, Mapping) or not isinstance(container.get("name"), str) or not container["name"]:
             continue
@@ -83,7 +88,8 @@ def normalize_kubernetes_runtime_socket_pod(record: Mapping[str, Any]) -> dict[s
         if not isinstance(security, Mapping) or security.get("privileged") is not True or not isinstance(mounts, list):
             continue
         for mount in mounts:
-            if (not isinstance(mount, Mapping) or mount.get("name") not in socket_volumes
+            if (not isinstance(mount, Mapping) or not isinstance(mount.get("name"), str)
+                    or mount.get("name") not in socket_volumes
                     or mount.get("readOnly", False) is not False
                     or mount.get("subPath") or mount.get("subPathExpr")):
                 continue
