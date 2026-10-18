@@ -8,7 +8,7 @@ import json
 import re
 
 from . import CHECKS, register, result, unknown
-from .facts import Unavailable, complete_items, get
+from .facts import Unavailable, complete_items, get, optional, memoized
 
 IDS = (
     'aws_ssm_application_inventory_fresh', 'aws_ssm_endpoint_device_compliance',
@@ -34,8 +34,19 @@ def _scope(index):
     return scope
 
 
-def _rows(index, kind):
-    scope = _scope(index)
+def _archive_scope(index):
+    # Buckets and complete account trail inventory are both native account/global.
+    context = get(index, 'context', dict)
+    if get(context, 'provider', str) != 'aws':
+        raise Unavailable('AWS provider authority unavailable')
+    scope = get(context, 'scope', str)
+    if not re.fullmatch(r'[0-9]{12}/global', scope):
+        raise Unavailable('AWS account/global archive scope unavailable')
+    return scope
+
+
+def _rows(index, kind, *, scope=None, account_global=False):
+    scope = _scope(index) if scope is None else scope
     collections = get(index, 'collections', dict)
     envelopes = collections.get(kind)
     if not isinstance(envelopes, list) or len(envelopes) != 1:
@@ -43,17 +54,28 @@ def _rows(index, kind):
     envelope = envelopes[0]
     if not isinstance(envelope, dict) or envelope.get('type', kind) != kind:
         raise Unavailable('inventory kind mismatch: ' + kind)
+    if account_global:
+        account = scope.split('/')[0]
+        if (get(envelope, 'type', str) != kind or get(envelope, 'scope', str) != scope or
+                get(envelope, 'global', bool) is not True or
+                get(envelope, 'account_id', str) != account or
+                get(envelope, 'status', str) not in ('collected', 'empty')):
+            raise Unavailable('complete account-global inventory unavailable: ' + kind)
+        get(envelope, 'items', list)
     if envelope.get('scope') != scope:
         if not (envelope.get('global') is True and envelope.get('account_id') == scope.split('/')[0]):
             raise Unavailable('foreign inventory scope: ' + kind)
     rows = complete_items(index, kind)
-    wrappers = index.get(kind)
+    wrappers = get(index, kind, list) if account_global else index.get(kind)
     if not isinstance(wrappers, list) or len(wrappers) != len(rows):
         raise Unavailable('projected inventory cardinality mismatch: ' + kind)
     for wrapper, row in zip(wrappers, rows):
         if (not isinstance(wrapper, dict) or wrapper.get('type', kind) != kind or
                 wrapper.get('scope') != envelope.get('scope') or wrapper.get('data') != row):
             raise Unavailable('foreign or malformed projected inventory row: ' + kind)
+        if account_global and (get(wrapper, 'type', str) != kind or
+                get(wrapper, 'scope', str) != scope or get(wrapper, 'data', dict) != row):
+            raise Unavailable('unreadable projected account inventory row: ' + kind)
     if envelope.get('status') == 'empty' and rows:
         raise Unavailable('nonempty inventory marked empty: ' + kind)
     if 'items' in envelope and envelope['items'] != rows:
@@ -61,8 +83,8 @@ def _rows(index, kind):
     return rows
 
 
-def _subject(item, index, kind, field):
-    rows = _rows(index, kind)
+def _subject(item, index, kind, field, *, scope=None, account_global=False):
+    rows = _rows(index, kind, scope=scope, account_global=account_global)
     key = get(item, field, str)
     if not key or sum(get(row, field, str) == key for row in rows) != 1:
         raise Unavailable('resource missing or ambiguous in scoped inventory')
@@ -179,7 +201,7 @@ def _detail(item, field):
 def _lock_state(item):
     version, _ = _detail(item, 'Versioning')
     lock, absent = _detail(item, 'ObjectLock')
-    version_status = version.get('Status')
+    version_status = optional(version, 'Status', None, str)
     if version_status not in (None, 'Enabled', 'Suspended'):
         raise Unavailable('unrecognized versioning status')
     if absent:
@@ -188,15 +210,15 @@ def _lock_state(item):
     enabled = get(config, 'ObjectLockEnabled', str)
     if enabled != 'Enabled':
         raise Unavailable('unrecognized Object Lock state')
-    rule = config.get('Rule')
+    rule = optional(config, 'Rule', None, dict)
     retention = get(rule, 'DefaultRetention', dict) if rule is not None else None
     if retention is not None:
         mode = get(retention, 'Mode', str)
         if mode not in ('GOVERNANCE', 'COMPLIANCE'):
             raise Unavailable('unrecognized retention mode')
-        days = retention.get('Days')
-        years = retention.get('Years')
-        if (type(days) is not int or days <= 0) and (type(years) is not int or years <= 0):
+        days = optional(retention, 'Days', None, int)
+        years = optional(retention, 'Years', None, int)
+        if (days is None) == (years is None) or (days is not None and days <= 0) or (years is not None and years <= 0):
             raise Unavailable('malformed retention period')
     return version_status == 'Enabled', True, retention
 
@@ -403,16 +425,100 @@ def incident_evidence_retention(item, index):
     return result(not (versioned and locked and days >= minimum), bucket=bucket, retention_days_lower_bound=days, required_days=minimum)
 
 
-@_register('aws_log_archive_immutable', 's3_bucket', 'CloudTrail archives have effective immutable retention', 'high', 'hardening', 'Enable Object Lock default retention and versioning on log archive buckets.', ['s3_bucket', 'cloudtrail'])
-def log_archive_immutable(item, index):
-    bucket = _subject(item, index, 's3_bucket', 'Name')
-    trails = _rows(index, 'cloudtrail')
+def _archive_destinations(index, trails, scope):
+    # SW35's signed helper validates unique native home observations and their
+    # DescribeTrails provenance. Reuse it before inspecting archive destinations.
+    import sys
+    sw35 = sys.modules.get('peaso.checks._bulk_pending_compliance_new_sw35')
+    if sw35 is None or not callable(getattr(sw35, '_trails', None)) or not hasattr(sw35, '_TRAIL_ARN'):
+        raise Unavailable('signed CloudTrail home-trail helper unavailable')
+    account = scope.split('/')[0]
+    context = get(index, 'context', dict)
+    captured = get(context, 'created_at', str)
+    metadata = get(context, 'metadata', dict)
+    discovery = get(metadata, 'region_discovery', list)
+    proofs = [proof for proof in discovery if get(proof, 'account_id', str) == account]
+    if len(proofs) != 1:
+        raise Unavailable('unique account Region discovery unavailable')
+    proof = proofs[0]
+    partition = get(proof, 'partition', str)
+    regions = get(proof, 'regions', list)
+    if (get(proof, 'caller_account_id', str) != account or
+            get(proof, 'scope', str) != scope or
+            get(proof, 'source_operation', str) != 'ec2:DescribeRegions' or
+            get(proof, 'all_regions', bool) is not True or
+            get(proof, 'read_only', bool) is not True or
+            get(proof, 'status', str) != 'collected' or
+            get(proof, 'observed_at', str) != captured or
+            not re.fullmatch(r'aws(?:-[a-z0-9-]+)?', partition) or
+            not regions or len(regions) != len(set(regions)) or
+            any(not isinstance(region, str) or not re.fullmatch(r'[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+', region) for region in regions)):
+        raise Unavailable('complete account Region authority unavailable')
     destinations = set()
     for trail in trails:
+        arn = get(trail, 'TrailARN', str)
+        match = sw35._TRAIL_ARN.fullmatch(arn)
+        home = get(trail, 'HomeRegion', str)
+        source = get(trail, 'SourceRegion', str)
+        trail_name = get(trail, 'Name', str)
+        org = get(trail, 'IsOrganizationTrail', bool)
+        if (match is None or match.group(1) != partition or match.group(2) != home or
+                home not in regions or source != home or not trail_name or
+                get(trail, 'AccountId', str) != account or
+                (match.group(3) != account and not org)):
+            raise Unavailable('CloudTrail ARN, partition, home, or account unavailable')
+        provenance = get(trail, '_provenance', dict)
+        if (get(provenance, 'operation', str) != 'cloudtrail:DescribeTrails' or
+                get(provenance, 'native_response_complete', bool) is not True):
+            raise Unavailable('CloudTrail native provenance unavailable')
+        binding = get(trail, '_account_trail_binding', dict)
+        if (get(binding, 'caller_account_id', str) != account or
+                get(binding, 'trail_arn', str) != arn or
+                get(binding, 'identity_operation', str) != 'sts:GetCallerIdentity' or
+                get(binding, 'describe_operation', str) != 'cloudtrail:DescribeTrails' or
+                get(binding, 'include_shadow_trails', bool) is not True or
+                get(binding, 'capture_observed_at', str) != captured):
+            raise Unavailable('CloudTrail account binding unavailable')
+        observations = get(trail, '_account_trail_observations', list)
+        if not observations or sum(get(copy, 'SourceRegion', str) == home for copy in observations) != 1:
+            raise Unavailable('unique CloudTrail home observation unavailable')
+        for copy in observations:
+            if (get(copy, 'TrailARN', str) != arn or get(copy, 'HomeRegion', str) != home or
+                    get(copy, 'Name', str) != trail_name or
+                    get(copy, 'IsOrganizationTrail', bool) != org or
+                    get(copy, 'IsMultiRegionTrail', bool) != get(trail, 'IsMultiRegionTrail', bool) or
+                    get(copy, 'SourceRegion', str) not in regions):
+                raise Unavailable('inconsistent CloudTrail native observation')
+        if not any(verified == trail for verified in sw35._trails(index, account, home, scope)):
+            raise Unavailable('signed CloudTrail home observation unavailable')
         name = get(trail, 'S3BucketName', str)
         if not name:
             raise Unavailable('CloudTrail destination unavailable')
         destinations.add(name)
+    return destinations
+
+
+def _archive_authority(index, scope):
+    # One immutable account join per engine index, shared by every bucket.
+    def build():
+        by_name = {}
+        for row in _rows(index, 's3_bucket', scope=scope, account_global=True):
+            name = get(row, 'Name', str)
+            if not name or name in by_name:
+                raise Unavailable('bucket identity missing or duplicated')
+            by_name[name] = row
+        trails = _rows(index, 'cloudtrail_account_inventory', scope=scope, account_global=True)
+        return by_name, _archive_destinations(index, trails, scope)
+    return memoized(index, ('sw36_archive_authority', scope), build)
+
+
+@_register('aws_log_archive_immutable', 's3_bucket', 'CloudTrail archives have effective immutable retention', 'high', 'hardening', 'Enable Object Lock default retention and versioning on log archive buckets.', ['s3_bucket', 'cloudtrail_account_inventory'])
+def log_archive_immutable(item, index):
+    scope = _archive_scope(index)
+    bucket = get(item, 'Name', str)
+    buckets, destinations = _archive_authority(index, scope)
+    if bucket not in buckets or buckets[bucket] != item:
+        raise Unavailable('bucket absent from bound account inventory')
     if bucket not in destinations:
         return 'NOT_APPLICABLE', {'reason': 'not a CloudTrail destination bucket', 'bucket': bucket}
     versioned, locked, retention = _lock_state(item)

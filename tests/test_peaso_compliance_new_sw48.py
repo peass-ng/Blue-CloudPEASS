@@ -32,7 +32,11 @@ def test_signed_metadata_and_no_duplicate_ids():
         matches = [c for c in CHECKS if c.id == identifier]
         assert len(matches) == 1
         check = matches[0]
-        assert (check.provider,check.kind,check.category,check.severity,check.title) == ('aws',kind,category,severity,title)
+        expected_title = ('Secrets Manager secret uses an enabled AWS or customer managed KMS key'
+                          if identifier == 'aws.pci.secretsmanager.kms_encryption_any' else title)
+        expected_category = ('hardening' if identifier == 'aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled'
+                             else category)
+        assert (check.provider,check.kind,check.category,check.severity,check.title) == ('aws',kind,expected_category,severity,expected_title)
 
 
 def test_config_recorder():
@@ -67,17 +71,38 @@ def test_config_recorder():
 
 
 def test_secret_kms_and_rotation():
-    secret = {'ARN':'arn:aws:secretsmanager:us-east-1:123456789012:secret:abc','KmsKeyId':'key-1',
+    # Match the registered native KMS check's ListKeys/DescribeKey and
+    # identity-bound DescribeSecret facts; a short alias-like key is unresolved.
+    account, region = SCOPE.split('/')
+    key_id = '11111111-2222-3333-4444-555555555555'
+    key_arn = f'arn:aws:kms:{region}:{account}:key/{key_id}'
+    secret = {'ARN':f'arn:aws:secretsmanager:{region}:{account}:secret:fixture-abcdef',
+              'Name':'fixture', 'AccountId':account, 'Region':region,
+              'KmsKeyId':key_arn,
+              '_coverage':{'KmsKeyId':{'status':'collected',
+                                       'source_operation':'secretsmanager:DescribeSecret'}},
               'RotationEnabled':True,'RotationRules':{'AutomaticallyAfterDays':30},
-              'RotationLambdaRequired':True,'RotationLambdaARN':'arn:lambda'}
-    key = {'KeyId':'key-1','Metadata':{'KeyMetadata':{'KeyManager':'CUSTOMER','KeyState':'Enabled'}}}
-    facts = index({'secret':[secret],'kms_key':[key]})
+              'RotationLambdaRequired':True,
+              'RotationLambdaARN':f'arn:aws:lambda:{region}:{account}:function:rotate'}
+    key = {'KeyArn':key_arn, 'KeyId':key_id, 'AccountId':account, 'Region':region,
+           'Metadata':{'collection_status':'collected','KeyMetadata':{
+               'Arn':key_arn,'KeyId':key_id,'KeyManager':'CUSTOMER','KeyState':'Enabled'}}}
+    def native_index(secret_row, key_row):
+        facts = index({'secret':[secret_row],'kms_key':[key_row]})
+        facts['context']['metadata']['caller_identities'] = [{
+            'Account':account, 'Arn':f'arn:aws:iam::{account}:user/reviewer'}]
+        for kind in ('secret','kms_key'):
+            facts['collections'][kind][0]['account_id'] = account
+            facts['collections'][kind][0]['global'] = False
+            facts[kind][0]['provider'] = 'aws'
+        return facts
+    facts = native_index(secret, key)
     for identifier in ('aws.pci.secretsmanager.kms_encryption_any','aws_nist_secretsmanager_secret_automatic_rotation_enabled'):
         assert evaluate(identifier,secret,facts) == 'PASS'
     bad = copy.deepcopy(secret); bad['KmsKeyId'] = ''
-    assert evaluate('aws.pci.secretsmanager.kms_encryption_any',bad,index({'secret':[bad],'kms_key':[key]})) == 'UNKNOWN'
+    assert evaluate('aws.pci.secretsmanager.kms_encryption_any',bad,native_index(bad,key)) == 'UNKNOWN'
     bad = copy.deepcopy(key); bad['Metadata']['KeyMetadata']['KeyState'] = 'Disabled'
-    assert evaluate('aws.pci.secretsmanager.kms_encryption_any',secret,index({'secret':[secret],'kms_key':[bad]})) == 'FAIL'
+    assert evaluate('aws.pci.secretsmanager.kms_encryption_any',secret,native_index(secret,bad)) == 'FAIL'
     bad = copy.deepcopy(secret); bad['RotationEnabled'] = False
     assert evaluate('aws_nist_secretsmanager_secret_automatic_rotation_enabled',bad,index({'secret':[bad]})) == 'FAIL'
     bad = copy.deepcopy(secret); bad['RotationRules'] = {'AutomaticallyAfterDays':'thirty'}
@@ -96,7 +121,23 @@ def test_redshift_expected_settings():
 
 
 def test_classic_elb_policies():
-    from elb_native_policy_fixture import bind_policy_sources
+    def bind_policy_sources(row):
+        row = copy.deepcopy(row)
+        policies = row.pop('PolicyDescriptions')
+        names = sorted({name for listener in row['ListenerDescriptions']
+                        if listener['Listener']['Protocol'] in ('HTTPS', 'SSL')
+                        for name in listener['PolicyNames']})
+        account, region = SCOPE.split('/')
+        for field, request in (('SSLPolicyDetails', {'LoadBalancerName': row['LoadBalancerName'],
+                                                     'PolicyNames': names}),
+                               ('SSLPolicyCatalog', {})):
+            row[field] = {'collection_status': 'collected',
+                          'PolicyDescriptions': copy.deepcopy(policies),
+                          '_provenance': {'operation': 'elb:DescribeLoadBalancerPolicies',
+                                          'account_id': account, 'region': region,
+                                          'request': request, 'read_only': True,
+                                          'captured_at': '2026-10-12T00:00:00+00:00'}}
+        return row
     custom, predefined = 'aws.pci.classic_elb.custom_ssl_policy','aws.pci.classic_elb.predefined_ssl_policy'
     row = bind_policy_sources({'LoadBalancerName':'elb','ListenerDescriptions':[{'Listener':{'Protocol':'HTTPS','LoadBalancerPort':443},'PolicyNames':['p']}],
            'PolicyDescriptions':[{'PolicyName':'p','PolicyTypeName':'SSLNegotiationPolicyType',
@@ -155,12 +196,17 @@ def test_recovery_group():
 
 def test_rds_monitoring():
     identifier = 'aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled'
-    row = {'DBInstanceIdentifier':'db1','MonitoringInterval':60,'MonitoringRoleArn':'arn:role','EnhancedMonitoringResourceArn':'arn:resource'}
-    cluster = {'DBClusterMembers':[{'DBInstanceIdentifier':'db1'}]}
+    row = {'DBInstanceIdentifier':'db1','DBInstanceArn':'arn:aws:rds:us-east-1:123456789012:db:db1',
+           'DBClusterIdentifier':'c1','MonitoringInterval':60,
+           'MonitoringRoleArn':'arn:aws:iam::123456789012:role/monitor',
+           'EnhancedMonitoringResourceArn':'arn:aws:logs:us-east-1:123456789012:log-group:RDSOSMetrics'}
+    cluster = {'DBClusterIdentifier':'c1','DBClusterArn':'arn:aws:rds:us-east-1:123456789012:cluster:c1',
+               'DBClusterMembers':[{'DBInstanceIdentifier':'db1'}]}
     assert evaluate(identifier,row,index({'rds_instance':[row],'rds_cluster':[cluster]})) == 'PASS'
     bad = copy.deepcopy(row); bad['MonitoringInterval'] = 0
     assert evaluate(identifier,bad,index({'rds_instance':[bad],'rds_cluster':[cluster]})) == 'FAIL'
-    missing = {'DBClusterMembers':[{'DBInstanceIdentifier':'db2'}]}
+    missing = {'DBClusterIdentifier':'c1','DBClusterArn':'arn:aws:rds:us-east-1:123456789012:cluster:c1',
+               'DBClusterMembers':[{'DBInstanceIdentifier':'db2'}]}
     assert evaluate(identifier,row,index({'rds_instance':[row],'rds_cluster':[missing]})) == 'UNKNOWN'
 
 
@@ -242,7 +288,3 @@ def test_every_check_rejects_incomplete_malformed_and_missing_inventory():
         foreign = copy.deepcopy(facts)
         foreign['context']['scope'] = '999999999999/eu-west-1'
         assert evaluate(identifier,subject,foreign) == 'UNKNOWN'
-
-
-def teardown_module(module):
-    CHECKS[:] = [check for check in CHECKS if check.id not in sw.SPECS]

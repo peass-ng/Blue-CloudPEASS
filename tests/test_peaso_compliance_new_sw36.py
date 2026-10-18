@@ -5,7 +5,8 @@ import copy
 import pytest
 
 from peaso.checks import CHECKS, evaluate_check
-from peaso.checks import compliance_new_sw36 as sw
+import sys
+sw = sys.modules['peaso.checks._bulk_pending_compliance_new_sw36']
 
 SCOPE = '123456789012/us-east-1'
 INSTANCE = 'i-12345678'
@@ -33,6 +34,32 @@ def index(kind, rows, *, inputs=None, extras=None):
         'created_at': '2026-10-12T12:00:00+00:00',
         'metadata': {'compliance_inputs': inputs or {}}},
         'collections': collections, **projected}
+
+
+def archive_index(item):
+    arn = 'arn:aws:cloudtrail:us-east-1:123456789012:trail/a'
+    observed = {'TrailARN': arn, 'Name': 'a', 'HomeRegion': 'us-east-1',
+        'SourceRegion': 'us-east-1', 'IsOrganizationTrail': False, 'IsMultiRegionTrail': True}
+    trail = {**observed, 'AccountId': '123456789012', 'S3BucketName': BUCKET,
+        '_provenance': {'operation': 'cloudtrail:DescribeTrails', 'native_response_complete': True},
+        '_account_trail_observations': [observed], '_account_trail_binding': {
+        'caller_account_id': '123456789012', 'trail_arn': arn,
+        'identity_operation': 'sts:GetCallerIdentity',
+        'describe_operation': 'cloudtrail:DescribeTrails', 'include_shadow_trails': True,
+        'capture_observed_at': '2026-10-12T12:00:00+00:00'}}
+    facts = index('s3_bucket', [item], extras={'cloudtrail_account_inventory': [trail]})
+    facts['context']['scope'] = '123456789012/global'
+    facts['context']['metadata']['region_discovery'] = [{'account_id': '123456789012',
+        'caller_account_id': '123456789012', 'scope': '123456789012/global',
+        'partition': 'aws', 'source_operation': 'ec2:DescribeRegions',
+        'all_regions': True, 'read_only': True, 'status': 'collected',
+        'observed_at': '2026-10-12T12:00:00+00:00', 'regions': ['us-east-1']}]
+    for kind, envelopes in facts['collections'].items():
+        for envelope in envelopes:
+            envelope.update({'scope': '123456789012/global', 'global': True, 'account_id': '123456789012'})
+        for wrapper in facts[kind]:
+            wrapper['scope'] = '123456789012/global'
+    return facts
 
 
 def managed(**fields):
@@ -110,8 +137,7 @@ def case(check_id):
             lambda facts: _set_bucket(facts, 'Versioning', {'collection_status': 'collected', 'Status': 'Suspended'}),
             lambda facts: facts['context']['metadata']['compliance_inputs'].update(incident_evidence_bucket_names=['other'])),
         'aws_log_archive_immutable': (b,
-            index('s3_bucket', [b], extras={'cloudtrail': [{'TrailARN': 'arn:aws:cloudtrail:us-east-1:123456789012:trail/a',
-                'S3BucketName': BUCKET}]}),
+            archive_index(b),
             lambda facts: _set_bucket(facts, 'ObjectLock', {'collection_status': 'empty'}),
             lambda facts: _set_cloudtrail(facts, 'S3BucketName', 'other')),
         'aws_s3_delete_lifecycle': (b,
@@ -181,8 +207,8 @@ def _set_event(facts, field, value):
 
 
 def _set_cloudtrail(facts, field, value):
-    facts['cloudtrail'][0]['data'][field] = value
-    facts['collections']['cloudtrail'][0]['items'][0][field] = copy.deepcopy(value)
+    facts['cloudtrail_account_inventory'][0]['data'][field] = value
+    facts['collections']['cloudtrail_account_inventory'][0]['items'][0][field] = copy.deepcopy(value)
 
 
 def evaluate(check_id, item, facts):

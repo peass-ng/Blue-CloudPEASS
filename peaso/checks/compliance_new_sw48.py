@@ -6,7 +6,7 @@ import json
 import re
 
 from . import CHECKS, register, result, unknown
-from .facts import Unavailable, complete_items, get, guard
+from .facts import Unavailable, complete_items, get, guard, optional
 
 # (kind, category, severity, title, signed digest, remediation)
 SPECS = {
@@ -187,17 +187,53 @@ def _rotation(item, index):
     enabled = get(item, 'RotationEnabled', bool)
     if not enabled:
         return result(True, reason='automatic rotation disabled')
-    rules = get(item, 'RotationRules', dict)
-    schedule = rules.get('ScheduleExpression')
-    days = rules.get('AutomaticallyAfterDays')
-    valid = (isinstance(schedule, str) and bool(re.fullmatch(r'rate\([1-9][0-9]* days?\)|cron\(.+\)', schedule))) or _positive_int(days)
-    if not valid:
-        if schedule is None and days is None:
-            return result(True, reason='rotation schedule absent')
+    rules_marker = item.get('_coverage', {}).get('RotationRules')
+    if 'RotationRules' not in item and isinstance(rules_marker, dict) and (
+            rules_marker.get('status') == 'empty' and
+            rules_marker.get('source_operation') == 'secretsmanager:DescribeSecret' and
+            rules_marker.get('native_member_present') is False):
+        rules = {}
+    else:
+        rules = get(item, 'RotationRules', dict)
+    # Read each present fact through the strict accessor, including nested
+    # coverage. An unreadable or malformed alternate cannot be ignored merely
+    # because the other schedule form looks valid.
+    schedule = optional(rules, 'ScheduleExpression', None, str)
+    days = optional(rules, 'AutomaticallyAfterDays', None, int)
+    if schedule is not None and not re.fullmatch(r'rate\([1-9][0-9]* days?\)|cron\(.+\)', schedule):
         raise Unavailable('malformed rotation schedule')
-    if get(item, 'RotationLambdaRequired', bool) and not get(item, 'RotationLambdaARN', str):
+    if days is not None and not _positive_int(days):
+        raise Unavailable('malformed rotation schedule')
+    if schedule is None and days is None:
+        return result(True, reason='rotation schedule absent')
+
+    required = (get(item, 'RotationLambdaRequired', bool) if
+                'RotationLambdaRequired' in item or 'RotationLambdaRequired' in item.get('_coverage', {}) else None)
+    lambda_arn = (get(item, 'RotationLambdaARN', str) if
+                  'RotationLambdaARN' in item or 'RotationLambdaARN' in item.get('_coverage', {}) else None)
+    owner = (get(item, 'OwningService', str) if
+             'OwningService' in item or 'OwningService' in item.get('_coverage', {}) else None)
+    if lambda_arn is not None and not lambda_arn:
+        raise Unavailable('malformed rotation Lambda ARN')
+    if owner is not None and not owner:
+        raise Unavailable('malformed owning service')
+    if required is True and not lambda_arn:
+        if owner == 'rds':
+            raise Unavailable('rotation method evidence contradictory')
         return result(True, reason='required rotation Lambda absent')
-    return result(False)
+    # RDS-owned managed secret rotation is native and does not use a Lambda.
+    # A new PASS requires a DescribeSecret-bound witness; retain the legacy
+    # explicit requirement contract for callers that already supply it.
+    coverage = item.get('_coverage', {})
+    def native(field):
+        marker = coverage.get(field)
+        return (isinstance(marker, dict) and marker.get('status') == 'collected'
+                and marker.get('source_operation') == 'secretsmanager:DescribeSecret')
+    if required is False or (lambda_arn and (native('RotationLambdaARN') or required is not None)):
+        return result(False)
+    if owner == 'rds' and native('OwningService'):
+        return result(False)
+    return unknown('rotation method or managed owner unavailable')
 
 
 def _redshift(item, index):

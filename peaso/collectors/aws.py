@@ -963,7 +963,7 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
             # ListSecrets can lag changes by five minutes. DescribeSecret gives
             # more recent per-secret metadata, though both reads are eventual.
             arn = item.get("ARN")
-            for field in ("RotationEnabled", "RotationRules", "RotationLambdaARN", "KmsKeyId"):
+            for field in ("RotationEnabled", "RotationRules", "RotationLambdaARN", "OwningService", "RotationLambdaRequired", "KmsKeyId"):
                 item.pop(field, None)
                 item.setdefault("_coverage", {}).pop(field, None)
             valid_arn = (isinstance(account, str) and re.fullmatch(r"[0-9]{12}", account) is not None
@@ -1016,6 +1016,15 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
                         "documentation": "https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_DescribeSecret.html#SecretsManager-DescribeSecret-response-RotationEnabled"}
                 else:
                     item["_coverage"]["RotationEnabled"] = {"status": "malformed", "source_operation": "secretsmanager:DescribeSecret"}
+                if "OwningService" in rotation:
+                    owner = rotation["OwningService"]
+                    if isinstance(owner, str) and owner:
+                        item["OwningService"] = owner
+                        item["_coverage"]["OwningService"] = {
+                            "status": "collected", "source_operation": "secretsmanager:DescribeSecret"}
+                    else:
+                        item["_coverage"]["OwningService"] = {
+                            "status": "malformed", "source_operation": "secretsmanager:DescribeSecret"}
                 for field, typ in (("RotationRules", dict), ("RotationLambdaARN", str)):
                     if field in rotation:
                         if isinstance(rotation[field], typ):
@@ -1023,11 +1032,15 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
                             item["_coverage"][field] = {"status": "collected", "source_operation": "secretsmanager:DescribeSecret"}
                         else:
                             item["_coverage"][field] = {"status": "malformed", "source_operation": "secretsmanager:DescribeSecret"}
+                if "RotationRules" not in rotation:
+                    item["_coverage"]["RotationRules"] = {
+                        "status": "empty", "source_operation": "secretsmanager:DescribeSecret",
+                        "native_member_present": False}
             else:
                 status = state if state in {"denied", "timeout", "not_collected", "partial", "malformed", "unknown"} else "unknown"
                 code = rotation.get("error", {}).get("code") if isinstance(rotation.get("error"), dict) else None
                 code = code if isinstance(code, str) and re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", code) else "detail_unavailable"
-                for field in ("RotationEnabled", "RotationRules", "RotationLambdaARN", "KmsKeyId"):
+                for field in ("RotationEnabled", "RotationRules", "RotationLambdaARN", "OwningService", "KmsKeyId"):
                     item["_coverage"][field] = {"status": status, "reason": code, "source_operation": "secretsmanager:DescribeSecret"}
             item["Policy"] = detail("secretsmanager", "get_resource_policy", SecretId=arn) if valid_arn else {"collection_status": "malformed"}
             if "ResourcePolicy" in item["Policy"]:

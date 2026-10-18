@@ -39,6 +39,8 @@ def render_documents() -> dict[Path, bytes]:
     validate_launch_ip_rows(descriptions["checks"])
     from peaso.checks.cloudtrail_management_description_overlay import validate_rows as validate_trail_rows
     validate_trail_rows(descriptions["checks"])
+    from peaso.checks.native_rotation_archive_description_overlay import validate_rows as validate_rotation_archive_rows
+    validate_rotation_archive_rows(descriptions["checks"])
     canonical = full_requirements()
     if lookup_index(canonical, requirements["full_pack_sha256"]) != requirements:
         raise ValueError("Compact lookup differs from canonical signed requirement pack")
