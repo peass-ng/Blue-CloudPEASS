@@ -26,6 +26,7 @@ from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .aws_s3_bucket import normalize_aws_s3_bucket
 from .aws_sqs_queue import normalize_aws_sqs_queue
+from .aws_sns_topic import normalize_aws_sns_topic
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -47,8 +48,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "fa3a4843cee564e74391c260894163c9357145da"
-DEFAULT_RULE_PACK_SHA256 = "87586439c5ed7c1f775c9375b12fa637fea0862e270e6b9df11c0eacc53827fd"
+DEFAULT_RULE_REF = "81062edeae920123dd4cf3e1d304e7fa8b1b9fd7"
+DEFAULT_RULE_PACK_SHA256 = "59c4359f609f40de4b732c64b773905a2363951d157c14886f3968a6280d007b"
 
 
 @dataclass(frozen=True)
@@ -166,6 +167,7 @@ def detect_aws_events(
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
         s3_bucket = normalize_aws_s3_bucket(record)
         sqs_queue = normalize_aws_sqs_queue(record)
+        sns_topic = normalize_aws_sns_topic(record)
         return (([base] if base is not None else [])
                 + ([profile] if profile is not None else [])
                 + ([updated_profile] if updated_profile is not None else [])
@@ -174,7 +176,8 @@ def detect_aws_events(
                 + ([trust] if trust is not None else [])
                 + ([keyspaces_credential] if keyspaces_credential is not None else [])
                 + ([s3_bucket] if s3_bucket is not None else [])
-                + ([sqs_queue] if sqs_queue is not None else []))
+                + ([sqs_queue] if sqs_queue is not None else [])
+                + ([sns_topic] if sns_topic is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
