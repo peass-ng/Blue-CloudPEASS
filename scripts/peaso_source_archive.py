@@ -9,6 +9,11 @@ import tempfile
 import zipfile
 import zlib
 
+try:
+    from zopfli.zlib import compress as zopfli_compress
+except ImportError:
+    zopfli_compress = None
+
 PROFILES = ((9, 9, zlib.Z_DEFAULT_STRATEGY), (9, 9, zlib.Z_FILTERED),
             (6, 9, zlib.Z_DEFAULT_STRATEGY), (1, 9, zlib.Z_DEFAULT_STRATEGY),
             (9, 6, zlib.Z_DEFAULT_STRATEGY), (9, 6, zlib.Z_FILTERED),
@@ -67,6 +72,11 @@ def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompre
                         candidate = compressor.compress(data) + compressor.flush()
                         if len(candidate) < len(packed):
                             packed, selected = candidate, f"{level}/{memory}/{strategy}"
+                    if zopfli_compress and member.filename in {
+                            "release.json", "peaso/rulepacks/compliance_lookup.json"}:
+                        candidate = zopfli_compress(data, numiterations=15)[2:-4]
+                        if len(candidate) < len(packed):
+                            packed, selected = candidate, "zopfli/15"
                     choices[selected] += 1
                     name = member.filename.encode("utf-8")
                     if len(name) > 65535:

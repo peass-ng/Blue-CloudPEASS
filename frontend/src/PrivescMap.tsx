@@ -74,7 +74,7 @@ const NODE_W = 300,
 const READABLE_ZOOM = 0.62,
   ANCHOR_ZOOM = 0.72;
 const nodeWidth = (n: { kind?: string }) => (n.kind === "aggregate" ? AGG_W : NODE_W);
-const SIDEBAR_KEY = "peaso.privesc.sidebar";
+const SIDEBAR_KEY = "hacktricks-cspm.privesc.sidebar";
 const SEV_RANK: Record<string, number> = {
   critical: 4,
   high: 3,

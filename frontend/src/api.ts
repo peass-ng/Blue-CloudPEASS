@@ -17,9 +17,19 @@ export class ApiError extends Error {
 }
 /** Lightweight framework/checklist catalog (no per-check rows or native_check_ids). */
 export const catalogFrameworksPath = "/catalog/frameworks";
-export const tokenKey = "peaso.api-token";
-export const authSessionChangedEvent = "peaso-auth-session-changed";
-export const workspaceKey = "peaso.workspace-id";
+export const tokenKey = "hacktricks-cspm.api-token";
+export const authSessionChangedEvent = "hacktricks-cspm-auth-session-changed";
+export const workspaceKey = "hacktricks-cspm.workspace-id";
+// Migrate tabs opened before the product rename without dropping their session.
+for (const [oldKey, newKey] of [
+  ["peaso.api-token", tokenKey],
+  ["peaso.workspace-id", workspaceKey],
+]) {
+  const previousValue = sessionStorage.getItem(oldKey);
+  if (previousValue !== null && sessionStorage.getItem(newKey) === null)
+    sessionStorage.setItem(newKey, previousValue);
+  sessionStorage.removeItem(oldKey);
+}
 
 async function authenticatedFetch(url: string, init: RequestInit = {}) {
   const token = sessionStorage.getItem(tokenKey);
@@ -124,7 +134,7 @@ export async function downloadReport(
       [
         format === "json"
           ? JSON.stringify(report, null, 2)
-          : "# PEASO fixture report\n\nExplicit demo data; not a cloud assessment.",
+          : "# HackTricks CSPM fixture report\n\nExplicit demo data; not a cloud assessment.",
       ],
       { type: format === "json" ? "application/json" : "text/markdown" },
     );
@@ -151,7 +161,7 @@ export async function downloadReport(
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `peaso-${id}.${format === "json" ? "json" : "md"}`;
+  a.download = `hacktricks-cspm-${id}.${format === "json" ? "json" : "md"}`;
   a.click();
   URL.revokeObjectURL(url);
 }

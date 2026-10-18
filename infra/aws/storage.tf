@@ -39,6 +39,7 @@ locals {
     { "96369f6236d3d2d803c75f8c982e9828c6ce5eda4697d5c39f91451478350cb2" = "${path.module}/customer-role-96369f6236d3d2d803c75f8c982e9828c6ce5eda4697d5c39f91451478350cb2.json" },
     { "c6549e16bbd36c1a7bd66aaf2a620906832097af64b244e6d999d456c594baed" = "${path.module}/customer-role-c6549e16bbd36c1a7bd66aaf2a620906832097af64b244e6d999d456c594baed.json" },
     { "4ea77d8e8f9ec707db8536313086cac740a37083280085054de0cf93b8420794" = "${path.module}/customer-role-4ea77d8e8f9ec707db8536313086cac740a37083280085054de0cf93b8420794.json" },
+    { "a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02" = "${path.module}/customer-role-a33c84bde052ee1dd9ff393cfa702f56bbfa76db954c4f9f18a5e64150f72d02.json" },
     { (local.customer_role_template_sha256) = "${path.module}/customer-role.json" }
   )
 }

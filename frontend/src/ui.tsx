@@ -290,7 +290,7 @@ export function Evidence({ data }: { data: unknown }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "peaso-evidence.json";
+    a.download = "hacktricks-cspm-evidence.json";
     a.click();
     URL.revokeObjectURL(url);
   }

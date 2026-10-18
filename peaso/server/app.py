@@ -27,7 +27,7 @@ from peaso.storage.runtime import stores, WorkflowDispatcher
 from peaso.storage.reports import finding_summary
 from .config import Settings
 from .models import ConnectorCreate, ConnectorCheck, ConnectorPatch, ScanCreate, ScheduleCreate, SchedulePatch, ReachabilityQuery, ReachabilityBatchQuery, ReachabilityMatrixQuery, ReachabilityGridQuery, WorkspaceCreate, WorkspaceInvite, WorkspaceRole
-from .validation import validate_connector, validate_selectors, auth_capabilities, COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL
+from .validation import validate_connector, validate_selectors, auth_capabilities, COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL, EXTERNAL_ID_PREFIX
 
 
 def _safe_api_failure_details(exc):
@@ -174,7 +174,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         return JSONResponse({"detail": [{"loc": e["loc"], "type": e["type"], "msg": "Invalid field"} for e in exc.errors()]}, status_code=422)
 
     def account_identity(request: Request, authorization: str | None = Header(default=None)):
-        if authorization and authorization.startswith("Bearer peaso_") and parse_key(authorization[7:]):
+        if authorization and authorization.startswith("Bearer ") and parse_key(authorization[7:]):
             token = authorization[7:]
             key_id = parse_key(token)
             value = store.api_key(key_id) if key_id else None
@@ -438,7 +438,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if expiry is not None and expiry <= now:
             raise HTTPException(422, "Expiry must be in the future")
         key_id, plaintext, digest = mint_key()
-        record = {"id": key_id, "name": body.name, "prefix": f"peaso_{key_id}_",
+        record = {"id": key_id, "name": body.name, "prefix": f"hacktricks_cspm_{key_id}_",
                   "secret_sha256": digest, "created_at": now, "expires_at": expiry,
                   "cognito_username": user.cognito_username if settings.auth_mode == "cognito" else None}
         stored = store.create_api_key(user.tenant_id, record)
@@ -469,7 +469,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             public = {"service_account_email": PLATFORM_EMAIL, "project_label_key": generated["project_proof_label"], "project_label_value": PROOF_VALUE}
         else:
             import secrets
-            generated = {"external_id": "peaso-" + secrets.token_urlsafe(24)}
+            generated = {"external_id": EXTERNAL_ID_PREFIX + secrets.token_urlsafe(24)}
             public = {"external_id": generated["external_id"], "collector_role_arn": COLLECTOR_ROLE_ARN, "template_url": CUSTOMER_ROLE_TEMPLATE_URL}
         prepared_id = cipher.encrypt({"tenant": user.tenant_id, "provider": provider, "auth": generated, "expires": time.time() + 3600})
         return {"prepared_id": prepared_id, **public}
@@ -586,7 +586,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def report(ident: str, format: Literal["json", "markdown"] = "json", user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         ext = "md" if format == "markdown" else "json"
-        filename = f"peaso-{row['id']}.{ext}"
+        filename = f"hacktricks-cspm-{row['id']}.{ext}"
         if bundle.get("bundle_version") == 1:
             reference = bundle["report_markdown" if format == "markdown" else "report_json"]
             if hasattr(artifacts, "presign"):
@@ -599,7 +599,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             content, media, ext = render_markdown(value), "text/markdown", "md"
         else:
             content, media, ext = json.dumps(value, indent=2), "application/json", "json"
-        return Response(content, media_type=media, headers={"Content-Disposition": f'attachment; filename="peaso-{store.job(user.tenant_id, ident)["id"]}.{ext}"'})
+        return Response(content, media_type=media, headers={"Content-Disposition": f'attachment; filename="hacktricks-cspm-{store.job(user.tenant_id, ident)["id"]}.{ext}"'})
 
     @app.get("/api/scans/{ident}/findings")
     def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, group_by: Literal["service", "check_id", "resource_id"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):

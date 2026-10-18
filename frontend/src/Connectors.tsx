@@ -390,7 +390,7 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
   return (
     <>
       <div className="section-top">
-        <p>Give PEASO a read-only view of your environments.</p>
+        <p>Give HackTricks CSPM a read-only view of your environments.</p>
         <button
           className="button primary"
           disabled={demo || !canWrite}
@@ -481,7 +481,7 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
         <p>
           Credentials are encrypted by the API, redacted in responses, and
           cleared from this form after submission. Default chains and local
-          profiles run on the server hosting PEASO.
+          profiles run on the server hosting HackTricks CSPM.
         </p>
       </div>
       {onboarding && (
@@ -553,64 +553,43 @@ function AuthSetupGuide({ provider, method, label, hosted, prepared }: { provide
   const hostedGcp = hosted && provider === "gcp" && method === "platform-service-account";
   const externalId = prepared?.external_id || "REPLACE_WITH_EXTERNAL_ID_FROM_THIS_GUIDE";
   const collectorArn = prepared?.collector_role_arn || COLLECTOR_ROLE_ARN;
-  const hostedAwsAccess = { label: "AWS CLI: create trusted customer role", value: [
-    "ROLE_NAME='HackTricksCspmReadOnly'",
-    `EXTERNAL_ID='${externalId}'`,
-    "cat > hacktricks-cspm-trust.json <<EOF",
-    `{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"${collectorArn}\"},\"Action\":\"sts:AssumeRole\",\"Condition\":{\"StringEquals\":{\"sts:ExternalId\":\"${externalId}\"}}}]}`,
-    "EOF",
-    'aws iam create-role --role-name "$ROLE_NAME" --assume-role-policy-document file://hacktricks-cspm-trust.json',
-    'aws iam get-role --role-name "$ROLE_NAME" --query Role.Arn --output text',
-  ].join("\n") };
-  const hostedAwsGrant = { label: "AWS CLI: attach all collector read policies", value: [
-    "ROLE_NAME='HackTricksCspmReadOnly'",
-    'ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"',
-    'PARTITION="$(aws sts get-caller-identity --query Arn --output text | cut -d: -f2)"',
+  const hostedAwsAccess = { label: "AWS CLI: create role and grant access", value: [
     `curl -fsSL '${prepared?.template_url || TEMPLATE_URL}' -o hacktricks-cspm-customer-role.json`,
-    "# Review this template before creating the four exact collector policies.",
-    "for N in 1 2 3 4; do",
-    '  jq -c --arg n "$N" --arg account "$ACCOUNT_ID" --arg partition "$PARTITION" \'.Resources[("CspmConfigurationReadOnly" + $n)].Properties.PolicyDocument | walk(if type == "object" and has("Fn::Sub") then .["Fn::Sub"] | gsub("\\$\\{AWS::Partition\\}"; $partition) | gsub("\\$\\{AWS::AccountId\\}"; $account) else . end)\' hacktricks-cspm-customer-role.json > "hacktricks-cspm-policy-$N.json"',
-    '  POLICY_ARN="$(aws iam create-policy --policy-name "HackTricksCspmReadOnly$N" --policy-document "file://hacktricks-cspm-policy-$N.json" --query Policy.Arn --output text)"',
-    '  aws iam attach-role-policy --role-name "$ROLE_NAME" --policy-arn "$POLICY_ARN"',
-    "done",
+    `aws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${externalId}`,
   ].join("\n") };
   const gcpEmail = prepared?.service_account_email || "hacktricks-cspm-sa-acc-third-p@billing-static-info-no-delete.iam.gserviceaccount.com";
   const gcpKey = prepared?.project_label_key || "REPLACE_WITH_CONNECTOR_APPROVAL_LABEL";
   const gcpAccess = { label: "gcloud CLI: approve customer project for this connector", value: [
-    "PROJECT_ID='REPLACE_WITH_CUSTOMER_PROJECT_ID'",
-    `SCANNER_SA='${gcpEmail}'`,
-    `gcloud alpha projects update "$PROJECT_ID" --update-labels='${gcpKey}=approved'`,
+    `gcloud alpha projects update REPLACE_WITH_CUSTOMER_PROJECT_ID --update-labels='${gcpKey}=approved'`,
   ].join("\n") };
   const gcpGrant = { label: "gcloud CLI: grant project inventory roles", value: [
-    "PROJECT_ID='REPLACE_WITH_CUSTOMER_PROJECT_ID'",
-    `SCANNER_SA='${gcpEmail}'`,
     `for ROLE in ${gcpRoles.join(" ")}; do`,
-    '  gcloud projects add-iam-policy-binding "$PROJECT_ID" --member="serviceAccount:$SCANNER_SA" --role="$ROLE" --quiet',
+    `  gcloud projects add-iam-policy-binding REPLACE_WITH_CUSTOMER_PROJECT_ID --member=serviceAccount:${gcpEmail} --role="$ROLE" --quiet`,
     "done",
   ].join("\n") };
   const accessCommands = hostedAwsRole ? [hostedAwsAccess] : hostedGcp ? [gcpAccess] : guide.commands.slice(0, guide.accessCommandCount);
-  const grantCommands = hostedAwsRole ? [hostedAwsGrant] : hostedGcp ? [gcpGrant] : guide.commands.slice(guide.accessCommandCount);
+  const grantCommands = hostedGcp ? [gcpGrant] : guide.commands.slice(guide.accessCommandCount);
   return <details key={`${provider}-${method}`} className="auth-setup-guide">
     <summary>How to set up {label}</summary>
     <div className="auth-guide-content">
       <section className="auth-guide-step">
         <span className="auth-guide-step-number">1</span>
         <div className="auth-guide-step-body">
-          <h4>Create access</h4><p>{hostedAwsRole ? `Create a role in each customer AWS account that trusts ${collectorArn}. This connector's unique External ID is ${externalId}. Run the command in each target account, then enter each resulting role ARN below.` : hostedGcp ? `The scanning identity already exists: ${gcpEmail}. Add this connector's approval label to each customer project. The platform project is excluded.` : guide.access}</p>
+          <h4>{hostedAwsRole ? "Create role and grant access" : "Create access"}</h4><p>{hostedAwsRole ? `In each customer AWS account, review and deploy the template. It creates a role that trusts ${collectorArn} using this connector's External ID, and attaches all four collector read policies. Enter the resulting role ARN below.` : hostedGcp ? `The scanning identity already exists: ${gcpEmail}. Add this connector's approval label to each customer project. The platform project is excluded.` : guide.access}</p>
           {accessCommands.map((command) => <GuideCommand key={command.label} label={command.label} value={command.value} />)}
         </div>
       </section>
-      <section className="auth-guide-step">
+      {!hostedAwsRole && <section className="auth-guide-step">
         <span className="auth-guide-step-number">2</span>
         <div className="auth-guide-step-body">
           <h4>Grant permissions</h4>
-          <p>{hostedAwsRole ? "Attach the four collector-specific read policies from the reviewed customer-role template. They cover inventory and IAM Access Analyzer reads plus credential-report generation. Run this in each target account after creating its role." : hostedGcp ? "Grant the shared scanning service account these seven project roles in each customer project. Repeat for each selected project." : guide.permissions}</p>
-          {!hostedAwsRole && guide.permissionIds && <ul className="auth-guide-policy-list">
+          <p>{hostedGcp ? "Grant the shared scanning service account these seven project roles in each customer project. Repeat for each selected project." : guide.permissions}</p>
+          {guide.permissionIds && <ul className="auth-guide-policy-list">
             {guide.permissionIds.map((id) => <li key={id}><code>{id}</code></li>)}
           </ul>}
           {grantCommands.map((command) => <GuideCommand key={command.label} label={command.label} value={command.value} />)}
         </div>
-      </section>
+      </section>}
       {guide.optionalSetup && <details className="auth-guide-optional">
         <summary>{guide.optionalSetup.title}</summary>
         <p>{guide.optionalSetup.description}</p>
@@ -627,9 +606,9 @@ function HostedOnboarding({ details }: { details: NonNullable<Connector["onboard
   }] }, null, 2);
   const template = details.template_url || TEMPLATE_URL;
   const quickCreate = details.quick_create_template_url
-    ? `https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=${encodeURIComponent(details.quick_create_template_url)}&stackName=PeasoCspmReadOnly&param_ExternalId=${encodeURIComponent(details.external_id)}`
+    ? `https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=${encodeURIComponent(details.quick_create_template_url)}&stackName=HackTricksCspmReadOnly&param_ExternalId=${encodeURIComponent(details.external_id)}`
     : null;
-  const cli = `aws cloudformation create-stack --stack-name PeasoCspmReadOnly --template-body file://customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${details.external_id}`;
+  const cli = `curl -fsSL '${template}' -o hacktricks-cspm-customer-role.json\naws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${details.external_id}`;
   return <div className="form">
     <p>Trust the HackTricks CSPM IAM collector role in each target account. The server generated this connector’s ExternalID.</p>
     <CopyValue label="Collector role ARN" value={details.collector_role_arn || COLLECTOR_ROLE_ARN} />
@@ -647,7 +626,7 @@ function HostedOnboarding({ details }: { details: NonNullable<Connector["onboard
           const url = URL.createObjectURL(new Blob([trust], { type: "application/json" }));
           const link = document.createElement("a");
           link.href = url;
-          link.download = "peaso-role-trust-policy.json";
+          link.download = "hacktricks-cspm-role-trust-policy.json";
           link.click();
           URL.revokeObjectURL(url);
         });
@@ -1498,7 +1477,7 @@ function ConnectorForm({
           </p>
         )}
         <p className="muted small">
-          Server identity modes use credentials already available to the PEASO
+          Server identity modes use credentials already available to the HackTricks CSPM
           server. Web federation uses the server SDK environment. Advanced JSON
           supports native role chains, impersonation source credentials and
           collector limits.

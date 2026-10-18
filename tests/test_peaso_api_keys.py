@@ -63,7 +63,7 @@ def test_key_lifecycle_read_contract_and_tenant_isolation(client):
     bob = store.add_connector("bob", {"name": "Bob", "provider": "aws", "auth": {}, "scopes": [], "options": {}}, http.app.state.cipher.encrypt({"auth": {"token": "other-private"}}))
     created = create_key(http)
     token = created.pop("key")
-    assert token.startswith("peaso_") and len(token) == 82
+    assert token.startswith("hacktricks_cspm_") and len(token) == 92
     persisted = store.api_key(created["id"])
     assert persisted["secret_sha256"] == hashlib.sha256(token.encode()).hexdigest()
     assert token not in repr(persisted)

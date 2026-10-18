@@ -6,6 +6,6 @@
 .remediation-command { margin: .75rem 0; border: 1px solid var(--border, #d4d9e0); border-radius: .55rem; overflow: hidden; }
 .remediation-command-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .45rem .7rem; background: var(--surface-muted, #f5f7fa); font-size: .85rem; }
 .remediation-command-heading .button { padding: .25rem .55rem; }
-.remediation-command pre { overflow-x: auto; padding: .8rem; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8rem; }
+.remediation-command pre { overflow-x: auto; padding: .8rem; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; }
 .remediation-note { font-size: .85rem; opacity: .8; }
 .remediation-iac { overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: .8rem; border: 1px solid var(--border, #d4d9e0); border-radius: .55rem; }

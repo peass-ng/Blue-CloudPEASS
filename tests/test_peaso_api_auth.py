@@ -228,7 +228,7 @@ def test_hosted_external_id_is_server_generated_and_unique(cognito_settings, mon
         first = client.post("/api/connectors", json=body)
         second = client.post("/api/connectors", json=body)
         assert first.status_code == second.status_code == 201
-        assert first.json()["onboarding"]["external_id"].startswith("peaso-")
+        assert first.json()["onboarding"]["external_id"].startswith("hacktricks-cspm-")
         assert first.json()["onboarding"]["collector_role_arn"] == "arn:aws:iam::202533532952:role/HackTricks-CSPM"
         assert first.json()["onboarding"]["target_role_arns"] == [role]
         assert first.json()["onboarding"]["template_url"] == "https://cspm.hacktricks.wiki/aws/customer-role.json"
@@ -255,7 +255,7 @@ def test_customer_credentials_preserve_existing_role_chain_external_id(cognito_s
     assert auth["method"] == "assume_role" and auth["aws_secret_access_key"] == "customer-secret-fixture"
     unlisted = {"method": "assume_role", "role_arn": "arn:aws:iam::123456789012:role/Unlisted"}
     validate_connector("aws", unlisted, {}, cognito_settings)
-    assert unlisted["external_id"].startswith("peaso-")
+    assert unlisted["external_id"].startswith("hacktricks-cspm-")
 
 
 @pytest.mark.parametrize("bad_auth", [

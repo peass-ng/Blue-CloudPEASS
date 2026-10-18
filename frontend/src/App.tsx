@@ -183,9 +183,9 @@ export function App() {
           href="#Dashboard"
           onClick={() => navigate("Dashboard")}
         >
-          <img src="/icons/peaso.svg" alt="" width={34} height={36} />
+          <img src="/icons/hacktricks-cspm.svg" alt="" width={34} height={36} />
           <div>
-            PEASO<span>CLOUD SECURITY</span>
+            HackTricks CSPM<span>CLOUD SECURITY</span>
           </div>
         </a>
         <div className="workspace-selector">
@@ -269,7 +269,7 @@ export function App() {
         <main id="main-content">
           <div className="page-heading">
             <div>
-              <div className="eyebrow">PEASO INTELLIGENCE</div>
+              <div className="eyebrow">HACKTRICKS CSPM</div>
               <h1>{page}</h1>
               <p>{pageInfo.description}</p>
             </div>
@@ -441,7 +441,7 @@ export function App() {
               >
                 Source code
               </a>{" "}
-              · PEASO · HackTricks Cloud
+              · HackTricks CSPM
             </span>
           </footer>
         </main>

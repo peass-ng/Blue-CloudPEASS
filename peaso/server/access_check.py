@@ -83,7 +83,7 @@ def _aws(auth, scopes, options, issues, principals):
     from botocore.config import Config
     region = (options.get("regions") or ["us-east-1"])[0]
     hosted = (auth.get("method") in {"assume_role", "task_role"}
-              and str(auth.get("external_id", "")).startswith("peaso-")
+              and str(auth.get("external_id", "")).startswith(("hacktricks-cspm-", "peaso-"))
               and not auth.get("aws_access_key_id")
               and bool(auth.get("assume_roles") or auth.get("role_arn")))
     config = Config(connect_timeout=5, read_timeout=10, retries={"max_attempts": 1})
@@ -92,7 +92,7 @@ def _aws(auth, scopes, options, issues, principals):
         from .validation import COLLECTOR_ROLE_ARN, PLATFORM_ACCOUNT_IDS
         source_session, _ = _session({"method": "default"}, region)
         collector = source_session.client("sts", config=config).assume_role(
-            RoleArn=COLLECTOR_ROLE_ARN, RoleSessionName="peaso-access-check", DurationSeconds=3600)["Credentials"]
+            RoleArn=COLLECTOR_ROLE_ARN, RoleSessionName="hacktricks-cspm-access-check", DurationSeconds=3600)["Credentials"]
         session = boto3.Session(aws_access_key_id=collector["AccessKeyId"],
                                 aws_secret_access_key=collector["SecretAccessKey"],
                                 aws_session_token=collector["SessionToken"], region_name=region)
@@ -102,7 +102,7 @@ def _aws(auth, scopes, options, issues, principals):
             source["method"] = "profile" if auth.get("profile") else "default"
         session, _ = _session(source, region)
     def assume(base, role_arn, external):
-        params = {"RoleArn": role_arn, "RoleSessionName": "peaso-access-check", "DurationSeconds": 3600}
+        params = {"RoleArn": role_arn, "RoleSessionName": "hacktricks-cspm-access-check", "DurationSeconds": 3600}
         if external:
             params["ExternalId"] = external
         result = base.client("sts", config=config).assume_role(**params)["Credentials"]
@@ -142,7 +142,7 @@ def _aws(auth, scopes, options, issues, principals):
                 external = (target.get("external_id") if isinstance(target, dict) else None) or auth.get("external_id")
                 if hosted:
                     try:
-                        session.client("sts", config=config).assume_role(RoleArn=role_arn, RoleSessionName="peaso-trust-check", DurationSeconds=3600)
+                        session.client("sts", config=config).assume_role(RoleArn=role_arn, RoleSessionName="hacktricks-cspm-trust-check", DurationSeconds=3600)
                     except Exception:
                         pass
                     else:

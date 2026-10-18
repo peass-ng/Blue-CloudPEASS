@@ -11,7 +11,8 @@ from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-KEY_PATTERN = re.compile(r"peaso_([a-f0-9]{32})_([A-Za-z0-9_-]{43})\Z")
+KEY_PREFIX = "hacktricks_cspm"
+KEY_PATTERN = re.compile(r"(?:hacktricks_cspm|peaso)_([a-f0-9]{32})_([A-Za-z0-9_-]{43})\Z")
 KEY_ID_PATTERN = re.compile(r"[a-f0-9]{32}\Z")
 MAX_UNREVOKED_KEYS = 20
 MAX_LIST_PAGE = 50
@@ -41,12 +42,12 @@ class ApiKeyCreate(BaseModel):
 def mint_key() -> tuple[str, str, str]:
     """Return (id, plaintext, SHA-256 hex digest); callers persist only digest."""
     key_id = secrets.token_hex(16)
-    token = f"peaso_{key_id}_{secrets.token_urlsafe(32)}"
+    token = f"{KEY_PREFIX}_{key_id}_{secrets.token_urlsafe(32)}"
     return key_id, token, hashlib.sha256(token.encode("ascii")).hexdigest()
 
 
 def parse_key(token: str) -> str | None:
-    if not isinstance(token, str) or len(token) != 82:
+    if not isinstance(token, str) or len(token) not in (82, len(KEY_PREFIX) + 1 + 32 + 1 + 43):
         return None
     match = KEY_PATTERN.fullmatch(token)
     return match.group(1) if match else None
