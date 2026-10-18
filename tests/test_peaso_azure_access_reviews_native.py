@@ -109,3 +109,62 @@ def test_native_users_never_claim_role_or_pim_coverage(cid,monkeypatch):
  report=evaluate_snapshot(snapshot,checks=[cid],include_not_applicable=True)
  findings=[f for f in report['findings'] if f['check_id']==cid]
  assert findings and all(f['status']=='UNKNOWN' for f in findings)
+
+@pytest.mark.parametrize('mode,expected',[
+ ('complete',['PASS','PASS']),('deny_decision',['PASS','PASS']),
+ ('no_definitions',['UNKNOWN','UNKNOWN']),('missing_decisions',['UNKNOWN','UNKNOWN']),
+ ('not_reviewed',['UNKNOWN','UNKNOWN']),('late_latest',['UNKNOWN','UNKNOWN']),
+ ('new_guest',['UNKNOWN','UNKNOWN']),('old_instances',['UNKNOWN','UNKNOWN']),
+ ('gap',['UNKNOWN','UNKNOWN']),('dynamic',['UNKNOWN','UNKNOWN']),
+ ('application_scope',['UNKNOWN','UNKNOWN']),('future_decision',['UNKNOWN','UNKNOWN']),
+ ('denied_users',['DENIED','DENIED']),('denied_definitions',['DENIED','DENIED']),
+ ('denied_instances',['DENIED','DENIED']),('denied_decisions',['DENIED','DENIED']),
+ ('partial_definitions',['UNKNOWN','UNKNOWN']),('foreign_tenant',['UNKNOWN','UNKNOWN']),
+ ('no_guest',['NOT_APPLICABLE','NOT_APPLICABLE'])])
+def test_source_wide_no_company_policy_with_real_collector(mode,expected,monkeypatch):
+ api=API(mode)
+ if mode=='foreign_tenant':api.tenant=api.verified_tenant='99999999-9999-9999-9999-999999999999'
+ monkeypatch.setattr(azure,'AzureTransport',lambda auth:api)
+ connector={'provider':'azure','scopes':[SUB],'options':{'retries':0}}
+ snapshot=collect_live(connector,plan_collection({'connector':connector,'checks':CHECKS}))
+ assert not snapshot['metadata'].get('compliance_policy')
+ report=evaluate_snapshot(snapshot,checks=CHECKS,include_not_applicable=True)
+ actual={cid:[f['status'] for f in report['findings'] if f['check_id']==cid] for cid in CHECKS}
+ assert all(actual[cid] and set(actual[cid])=={value} for cid,value in zip(CHECKS,expected)),actual
+ assert all(body is None or url.startswith(azure.ARM+'/providers/Microsoft.ResourceGraph/resources?')
+            for url,audience,body in api.calls)
+
+@pytest.mark.parametrize('policy',[
+ {'sw25':{'status':'collected','scope':'/subscriptions/99999999-9999-9999-9999-999999999999','checks':{}}},
+ {'sw25':{'status':'partial','scope':SCOPE,'checks':{}}}])
+def test_explicit_malformed_company_policy_does_not_default(policy,monkeypatch):
+ api=API('complete');monkeypatch.setattr(azure,'AzureTransport',lambda auth:api)
+ connector={'provider':'azure','scopes':[SUB],'options':{'retries':0,'compliance_policy':policy}}
+ snapshot=collect_live(connector,plan_collection({'connector':connector,'checks':CHECKS}))
+ report=evaluate_snapshot(snapshot,checks=CHECKS,include_not_applicable=True)
+ actual={cid:[f['status'] for f in report['findings'] if f['check_id']==cid] for cid in CHECKS}
+ assert all(actual[cid] and set(actual[cid])=={'UNKNOWN'} for cid in CHECKS),actual
+
+def test_source_wide_calendar_month_31_day_case_is_unknown_not_permissive_pass(monkeypatch):
+ api=API('complete')
+ api.now=datetime(2026,4,1,12,tzinfo=timezone.utc)
+ begin=datetime(2026,3,1,12,tzinfo=timezone.utc)
+ api.instances=[{'id':'77777777-7777-7777-7777-777777777771',
+                 'startDateTime':begin.isoformat(),
+                 'endDateTime':(begin+timedelta(hours=12)).isoformat(),
+                 'status':'Completed'}]
+ original_request=api.request
+ def request(url,*,body=None,audience=azure.ARM):
+  answer=original_request(url,body=body,audience=audience)
+  if urlsplit(url).path==ROOT and answer.get('value'):
+   answer['value'][0]['settings']['recurrence']['pattern']={
+    'type':'absoluteMonthly','interval':1,'dayOfMonth':1}
+  return answer
+ api.request=request
+ monkeypatch.setattr(azure,'AzureTransport',lambda auth:api)
+ connector={'provider':'azure','scopes':[SUB],'options':{'retries':0}}
+ snapshot=collect_live(connector,plan_collection({'connector':connector,'checks':CHECKS}))
+ report=evaluate_snapshot(snapshot,checks=CHECKS,include_not_applicable=True)
+ actual={cid:[f['status'] for f in report['findings'] if f['check_id']==cid] for cid in CHECKS}
+ assert all(actual[cid] and set(actual[cid])=={'UNKNOWN'} for cid in CHECKS),actual
+ assert all(body is None for url,audience,body in api.calls)

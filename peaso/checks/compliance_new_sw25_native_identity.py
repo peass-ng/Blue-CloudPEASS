@@ -81,15 +81,25 @@ def native_guest_reviews(cid,index):
     if cid not in (MONTHLY_ID,REGULAR_ID):
         return unknown('Native directory-user subjects do not resolve effective directory role/PIM assignments')
     metadata=get(index,'context.metadata',dict)
-    if 'sw25_policy' in metadata:
-        policy=_policy(index,cid)
-    else:
-        root=get(metadata,'compliance_policy.sw25',dict)
-        if get(root,'status',str)!='collected' or get(root,'scope',str).casefold()!=_scope(index).casefold():
-            raise Unavailable('guest review owner policy scope unresolved')
-        checks=get(root,'checks',dict);policy=checks.get(cid)
-        if not isinstance(policy,dict):raise Unavailable('guest review owner policy unavailable')
-    now=_now(index);age=31 if cid==MONTHLY_ID else get(policy,'maxReviewAgeDays',int)
+    # An explicit historical policy remains authoritative, including malformed
+    # or foreign policy input.  Absence alone selects the source-wide witness.
+    root=metadata.get('compliance_policy')
+    explicit='sw25_policy' in metadata or isinstance(root,dict) and 'sw25' in root
+    if explicit:
+        if 'sw25_policy' in metadata:
+            policy=_policy(index,cid)
+        else:
+            sw25=get(metadata,'compliance_policy.sw25',dict)
+            if get(sw25,'status',str)!='collected' or get(sw25,'scope',str).casefold()!=_scope(index).casefold():
+                raise Unavailable('guest review owner policy scope unresolved')
+            checks=get(sw25,'checks',dict);policy=checks.get(cid)
+            if not isinstance(policy,dict):raise Unavailable('guest review owner policy unavailable')
+    elif root is not None and not isinstance(root,dict):
+        raise Unavailable('malformed explicit compliance policy')
+    now=_now(index)
+    # 28 days is a sufficient, conservative monthly witness across February;
+    # absence of this stronger witness never establishes a monthly violation.
+    age=(31 if cid==MONTHLY_ID else get(policy,'maxReviewAgeDays',int)) if explicit else 28
     if type(age) is not int or not 1<=age<=3660:raise Unavailable('guest review age invalid')
     since=now-timedelta(days=age)
     subjects=_rows(index,'access_review_subject',graph=True)
@@ -121,7 +131,7 @@ def native_guest_reviews(cid,index):
             if definition.get('instanceEnumerationScope') is not None:raise Unavailable('enumerated review scope unsupported')
             gid=_group(get(definition,'scope',dict),groups)
             children=[r for r in instances if r['definitionId']==definition['id']]
-            windows=_schedule(definition,children,now,cid==MONTHLY_ID)
+            windows=_schedule(definition,children,now,cid==MONTHLY_ID or not explicit)
             for begin,end,instance in windows:
                 if instance.get('scope') is not None and _group(instance['scope'],groups)!=gid:
                     raise Unavailable('native instance scope differs from definition')
@@ -160,6 +170,16 @@ def native_guest_reviews(cid,index):
         except Unavailable:created=now
         if pending or created>due_begin:uncertain.append(uid)
         else:failures.append(uid)
+    if not explicit:
+        # A complete positive witness is allowed; missing 28-day evidence may
+        # reflect a calendar month or a slower regular cadence.  An unsupported
+        # definition also prevents a claim of complete native proof.
+        if unresolved or failures or uncertain:
+            return unknown('Source-wide monthly review witness incomplete or unsupported',
+                           unreviewed_guest_count=len(failures),uncertain_guest_count=len(uncertain))
+        return result(False,reviewed_guest_count=len(set(reviewed)),
+                      native_timestamp='decision.reviewedDateTime',native_completed_state='Completed',
+                      witness_days=28,source_wide=True)
     if failures:return result(True,unreviewed_guest_ids=failures,uncertain_guest_count=len(uncertain))
     if uncertain:return unknown('Guest review scope, schedule, principal or chronology incomplete',uncertain_guest_count=len(uncertain))
     return result(False,reviewed_guest_count=len(set(reviewed)),native_timestamp='decision.reviewedDateTime',native_completed_state='Completed')

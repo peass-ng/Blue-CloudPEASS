@@ -1341,24 +1341,6 @@
       "reason": "The native consideration branch still requires policy(index,cid); the full branch requires documented review and approved scope.",
       "source": "peaso/checks/compliance_new_sw13.py::geographic_review"
     },
-    "azure.cis.guest_users_reviewed_monthly_basis": {
-      "mandatory_external_fields": [
-        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
-      ],
-      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
-      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
-      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
-      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
-    },
-    "azure.cis.guest_users_reviewed_regular_basis": {
-      "mandatory_external_fields": [
-        "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
-      ],
-      "native_alternative": "Fixed monthly interval does not remove the policy gate.",
-      "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
-      "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
-      "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
-    },
     "azure.cis.intune_logs_captured_sent_log_analytics": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw16[ID].{status,scope,requiredIntuneCategories,approvedWorkspaceIds}"

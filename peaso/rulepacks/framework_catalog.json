@@ -5773,6 +5773,7 @@
         "azure.cis.app_service_entra_registration_enabled",
         "azure.cis.auto_provision_vulnerability_assessment_machines",
         "azure.cis.enforce_ssl_connection_mysql_server",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_non_privileged_users",
@@ -5897,7 +5898,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 130,
+      "supported_native_checks": 131,
       "source_checks": 117,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -5912,7 +5913,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 8
+      "excluded_custom_checks": 7
     },
     {
       "id": "cis_2.1_azure",
@@ -5932,6 +5933,7 @@
         "azure.cis.auto_provision_vulnerability_assessment_machines",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.enforce_ssl_connection_mysql_server",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_non_privileged_users",
@@ -6056,7 +6058,7 @@
         "azure.vm.managed_disks",
         "azure.vm.trusted_launch"
       ],
-      "supported_native_checks": 131,
+      "supported_native_checks": 132,
       "source_checks": 114,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -6071,7 +6073,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 7
+      "excluded_custom_checks": 6
     },
     {
       "id": "cis_3.0_azure",
@@ -6092,6 +6094,7 @@
         "azure.cis.app_service_entra_registration_enabled",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.file_integrity_monitoring_component_status",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_non_privileged_users",
@@ -6225,7 +6228,7 @@
         "azure.vm.managed_disks",
         "azure.vm.trusted_launch"
       ],
-      "supported_native_checks": 141,
+      "supported_native_checks": 142,
       "source_checks": 112,
       "pending_source_checks": 0,
       "manual_requirements": 3,
@@ -6240,7 +6243,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 7
+      "excluded_custom_checks": 6
     },
     {
       "id": "cis_4.0_azure",
@@ -6255,6 +6258,7 @@
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.file_integrity_monitoring_component_status",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.resource_manager_delete_locks_applied_storage_accounts",
@@ -6359,7 +6363,7 @@
         "azure.storage.no_shared_key",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 106,
+      "supported_native_checks": 107,
       "source_checks": 93,
       "pending_source_checks": 0,
       "manual_requirements": 0,
@@ -6374,7 +6378,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 9
+      "excluded_custom_checks": 8
     },
     {
       "id": "cis_5.0_azure",
@@ -6389,6 +6393,7 @@
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.file_integrity_monitoring_component_status",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.resource_manager_delete_locks_applied_storage_accounts",
@@ -6506,7 +6511,7 @@
         "azure.vault.purge_protection",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 119,
+      "supported_native_checks": 120,
       "source_checks": 95,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -6521,7 +6526,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 11
+      "excluded_custom_checks": 10
     },
     {
       "id": "cis_6.0_azure",
@@ -6536,6 +6541,7 @@
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.file_integrity_monitoring_component_status",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.resource_manager_delete_locks_applied_storage_accounts",
         "azure.claude.activity_log_alert_nsg_delete",
@@ -6636,7 +6642,7 @@
         "azure.vault.purge_protection",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 102,
+      "supported_native_checks": 103,
       "source_checks": 85,
       "pending_source_checks": 0,
       "manual_requirements": 1,
@@ -6651,7 +6657,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 9
+      "excluded_custom_checks": 8
     },
     {
       "id": "ens_rd2022_azure",
@@ -15466,6 +15472,7 @@
         "azure.app.minimum_tls",
         "azure.cis.app_service_entra_registration_enabled",
         "azure.cis.enforce_ssl_connection_mysql_server",
+        "azure.cis.guest_users_reviewed_monthly_basis",
         "azure.cis.latest_os_patches_vms_applied",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_privileged_users",
@@ -15558,7 +15565,7 @@
         "azure.storage.no_blob_public_access",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 98,
+      "supported_native_checks": 99,
       "source_checks": 111,
       "pending_source_checks": 0,
       "manual_requirements": 35,
@@ -15573,7 +15580,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 6
+      "excluded_custom_checks": 5
     },
     {
       "id": "azure-compliance.benchmark.cis_v140",
@@ -15592,6 +15599,7 @@
         "azure.app.minimum_tls",
         "azure.cis.app_service_entra_registration_enabled",
         "azure.cis.enforce_ssl_connection_mysql_server",
+        "azure.cis.guest_users_reviewed_monthly_basis",
         "azure.cis.latest_os_patches_vms_applied",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
@@ -15690,7 +15698,7 @@
         "azure.storage.no_blob_public_access",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 104,
+      "supported_native_checks": 105,
       "source_checks": 115,
       "pending_source_checks": 0,
       "manual_requirements": 34,
@@ -15705,7 +15713,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 6
+      "excluded_custom_checks": 5
     },
     {
       "id": "azure-compliance.benchmark.cis_v150",
@@ -15724,6 +15732,7 @@
         "azure.cis.app_service_entra_registration_enabled",
         "azure.cis.auto_provision_vulnerability_assessment_machines",
         "azure.cis.enforce_ssl_connection_mysql_server",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_non_privileged_users",
@@ -15855,7 +15864,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 137,
+      "supported_native_checks": 138,
       "source_checks": 146,
       "pending_source_checks": 0,
       "manual_requirements": 45,
@@ -15870,7 +15879,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 9
+      "excluded_custom_checks": 8
     },
     {
       "id": "azure-compliance.benchmark.cis_v200",
@@ -15890,6 +15899,7 @@
         "azure.cis.auto_provision_vulnerability_assessment_machines",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.enforce_ssl_connection_mysql_server",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_non_privileged_users",
@@ -16030,7 +16040,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 147,
+      "supported_native_checks": 148,
       "source_checks": 154,
       "pending_source_checks": 0,
       "manual_requirements": 46,
@@ -16045,7 +16055,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 8
+      "excluded_custom_checks": 7
     },
     {
       "id": "azure-compliance.benchmark.cis_v210",
@@ -16065,6 +16075,7 @@
         "azure.cis.auto_provision_vulnerability_assessment_machines",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.enforce_ssl_connection_mysql_server",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_non_privileged_users",
@@ -16203,7 +16214,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 145,
+      "supported_native_checks": 146,
       "source_checks": 152,
       "pending_source_checks": 0,
       "manual_requirements": 48,
@@ -16218,7 +16229,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 7
+      "excluded_custom_checks": 6
     },
     {
       "id": "azure-compliance.benchmark.cis_v300",
@@ -16239,6 +16250,7 @@
         "azure.cis.app_service_entra_registration_enabled",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.file_integrity_monitoring_component_status",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server",
         "azure.cis.legacy_vhds_encrypted",
         "azure.cis.multifactor_auth_status_non_privileged_users",
@@ -16386,7 +16398,7 @@
         "azure.vault.rbac",
         "azure.vm.managed_disks"
       ],
-      "supported_native_checks": 155,
+      "supported_native_checks": 156,
       "source_checks": 162,
       "pending_source_checks": 0,
       "manual_requirements": 53,
@@ -16401,7 +16413,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 7
+      "excluded_custom_checks": 6
     },
     {
       "id": "azure-compliance.benchmark.cis_v400",
@@ -16416,6 +16428,7 @@
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.file_integrity_monitoring_component_status",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.mysql_flexible_cmk",
@@ -16579,7 +16592,7 @@
         "azure.vault.no_public_network",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 165,
+      "supported_native_checks": 166,
       "source_checks": 192,
       "pending_source_checks": 0,
       "manual_requirements": 53,
@@ -16594,7 +16607,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 11
+      "excluded_custom_checks": 10
     },
     {
       "id": "azure-compliance.benchmark.cis_v500",
@@ -16609,6 +16622,7 @@
         "azure.cis.agentless_scanning_machines_component_status",
         "azure.cis.defender_external_attack_surface_monitoring_easm",
         "azure.cis.file_integrity_monitoring_component_status",
+        "azure.cis.guest_users_reviewed_regular_basis",
         "azure.cis.multifactor_authentication_policy_exists_users",
         "azure.cis.multifactor_authentication_risky_sign_ins",
         "azure.cis.resource_manager_delete_locks_applied_storage_accounts",
@@ -16737,7 +16751,7 @@
         "azure.vault.purge_protection",
         "azure.vault.rbac"
       ],
-      "supported_native_checks": 130,
+      "supported_native_checks": 131,
       "source_checks": 155,
       "pending_source_checks": 0,
       "manual_requirements": 42,
@@ -16752,7 +16766,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 11
+      "excluded_custom_checks": 10
     },
     {
       "id": "azure-compliance.benchmark.fedramp_high",
