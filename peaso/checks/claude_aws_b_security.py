@@ -4,6 +4,7 @@ WAF Classic (global/regional), WAFv2 and Well-Architected."""
 from __future__ import annotations
 
 from datetime import timedelta
+import re
 
 from . import result
 from .facts import Unavailable, get, list_of_objects, complete_items, guard
@@ -453,11 +454,42 @@ def _opt(item, field, expected=str):
     return absent_or(item, "ARN", field, None, expected)
 
 
+def _rotation_rules(item, index):
+    """Honor a proven DescribeSecret omission when rotation is disabled."""
+    marker = item.get("_coverage", {}).get("RotationRules")
+    flag_marker = item.get("_coverage", {}).get("RotationEnabled")
+    if "RotationRules" not in item and marker is None and flag_marker is not None:
+        raise Unavailable("RotationRules omission has no native coverage proof")
+    if isinstance(marker, dict) and marker.get("status") == "empty" and "RotationRules" in item:
+        raise Unavailable("contradictory RotationRules omission")
+    if (item.get("RotationEnabled") is False and "RotationRules" not in item
+            and isinstance(marker, dict) and marker.get("status") == "empty"
+            and marker.get("source_operation") == "secretsmanager:DescribeSecret"
+            and marker.get("native_member_present") is False):
+        arn = item.get("ARN")
+        matched = re.fullmatch(r"arn:(aws|aws-us-gov|aws-cn):secretsmanager:([^:]+):([0-9]{12}):secret:[^:]+", arn) if isinstance(arn, str) else None
+        context = index.get("context", {}) if isinstance(index, dict) else {}
+        scope = context.get("scope") if isinstance(context, dict) else None
+        primary = item.get("PrimaryRegion")
+        identity_bound = (matched is not None and isinstance(scope, str)
+            and scope == matched.group(3) + "/" + matched.group(2)
+            and item.get("AccountId") == matched.group(3)
+            and item.get("Region") == matched.group(2)
+            and item.get("id") == arn)
+        # Do not infer a disabled setting from an absent or denied flag read.
+        if (identity_bound and primary in (None, matched.group(2))
+                and isinstance(flag_marker, dict) and flag_marker.get("status") == "collected"
+                and flag_marker.get("source_operation") == "secretsmanager:DescribeSecret"
+                and _opt(item, "RotationEnabled", bool) is False):
+            return None
+    return _opt(item, "RotationRules", dict)
+
+
 @install("aws.cb.secretsmanager.rotation_rules_present", "secret", "Secret has automatic rotation rules",
     _secret(RotationRules=RULES), _secret(), rows=[C + "secretsmanager_secret_automatic_rotation_enabled"], severity="medium", control="IA-5",
     remediation="Configure automatic rotation for the secret.", docs=[D_SEC], note="Steampipe alarms when rotation_rules is null (distinct from prowler's RotationEnabled, merged into aws.secretsmanager.rotation).")
 def sec_rules(item, index):
-    rules = _opt(item, "RotationRules", dict)
+    rules = _rotation_rules(item, index)
     return result(rules is None, rotation_rules=rules)
 
 
@@ -466,7 +498,10 @@ def sec_rules(item, index):
     rows=[C + "secretsmanager_secret_automatic_rotation_lambda_enabled"], severity="medium", control="IA-5",
     remediation="Configure a rotation Lambda function and rotation schedule for the secret.", docs=[D_SEC])
 def sec_lambda(item, index):
-    rules, fn = _opt(item, "RotationRules", dict), _opt(item, "RotationLambdaARN")
+    rules = _rotation_rules(item, index)
+    if rules is None:
+        return result(True, rotation_lambda=None)
+    fn = _opt(item, "RotationLambdaARN")
     return result(not (rules is not None and fn), rotation_lambda=fn)
 
 
@@ -551,7 +586,7 @@ def sec_sched(item, index):
     primary = _opt(item, "PrimaryRegion")
     if primary and primary != region_of(index):
         return "NOT_APPLICABLE", {"primary_region": primary}
-    rules = _opt(item, "RotationRules", dict)
+    rules = _rotation_rules(item, index)
     if rules is None:
         return result(True, rotation_rules=None)
     after = rules.get("AutomaticallyAfterDays")

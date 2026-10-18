@@ -17613,11 +17613,9 @@
         "azure.sql.tde_enabled",
         "azure.storage.default_deny",
         "azure.storage.https_only",
-        "azure.vm.encryption_at_host",
-        "azure_role_assignment_iam_user_with_owner_permission_on_subscription_mfa_enabled_8bf88f9",
-        "azure_role_assignment_iam_user_with_write_permission_on_subscription_mfa_enabled_d1806c1"
+        "azure.vm.encryption_at_host"
       ],
-      "supported_native_checks": 36,
+      "supported_native_checks": 34,
       "source_checks": 36,
       "pending_source_checks": 0,
       "manual_requirements": 6,
@@ -17632,7 +17630,7 @@
       },
       "pending_automatable_requirements": 0,
       "requirement_counts_scope": "reviewed_source_reference",
-      "excluded_custom_checks": 1
+      "excluded_custom_checks": 3
     },
     {
       "id": "azure-compliance.benchmark.rbi_itf_nbfc_v2017",

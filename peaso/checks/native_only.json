@@ -3511,6 +3511,26 @@
       "source": "peaso/checks/compliance_new_sw32.py::_required_roles",
       "source_gate_evidence": "SW32 required role assignments require owner list and scope completeness"
     },
+    "azure_role_assignment_iam_user_with_owner_permission_on_subscription_mfa_enabled_8bf88f9": {
+      "mandatory_external_fields": [
+        "context.metadata.compliance_policy.ancestorScopes",
+        "context.metadata.compliance_policy.approvedAuthenticationStrengthIds",
+        "resolved_effective_sign_in_path_universe"
+      ],
+      "native_alternative": null,
+      "reason": "The registered SW18 Owner MFA predicate unconditionally resolves customer-approved ancestor scopes and authentication strengths plus supplemental effective sign-in paths. Its current adapter requires an approved guest baseline even for Graph-only subjects; no policy-free native implementation of this exact contract exists. Preserve the signed source while excluding this custom predicate from the automatic read-only product.",
+      "source": "peaso/checks/compliance_new_sw18.py::_base,_paths,_rbac_mfa,owner_mfa; peaso/collectors/azure_guest_configuration_native.py::_policy"
+    },
+    "azure_role_assignment_iam_user_with_write_permission_on_subscription_mfa_enabled_d1806c1": {
+      "mandatory_external_fields": [
+        "context.metadata.compliance_policy.ancestorScopes",
+        "context.metadata.compliance_policy.approvedAuthenticationStrengthIds",
+        "resolved_effective_sign_in_path_universe"
+      ],
+      "native_alternative": null,
+      "reason": "The registered SW18 subscription-writer MFA predicate requires customer-approved ancestor scopes and authentication strengths plus supplemental effective sign-in paths; the shared evidence adapter requires an approved guest baseline. This exact predicate has no policy-free native path. Keep real native MFA policy checks active and preserve this signed custom contract only in the archive.",
+      "source": "peaso/checks/compliance_new_sw18.py::_base,_paths,_rbac_mfa,writer_mfa; peaso/collectors/azure_guest_configuration_native.py::_policy"
+    },
     "azure_route_table_network_http_internet_access_restricted_5cd2484": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw33.{status,scope,routeDestinations}"
