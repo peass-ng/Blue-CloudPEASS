@@ -125,18 +125,16 @@ def test_observed_seccomp_declaration_and_historical_applicability():
     assert evaluate_check(cid, {"component": "kube-apiserver", "configuration": configuration}, {})[0] == "NOT_APPLICABLE"
 
 
-def test_active_pid_and_seccomp_use_paged_current_node_and_attested_operator_rows():
+def test_attested_pid_and_seccomp_rows_do_not_bypass_native_only_admission():
     rows = [{"component": "kubelet", "node_name": name, "node_uid": uid,
              "observed_at": NOW, "configuration": {"podPidsLimit": 4096, "seccompDefault": True}}
             for name, uid in NODES]
     snapshot = collect(request(rows=rows), api=NodeAPI())
     assert snapshot["metadata"]["component_configuration_coverage"]["status"] == "attested_complete"
-    report = evaluate_snapshot(snapshot, checks=new.IDS[:2])
-    assert report["stats"]["by_status"] == {"PASS": 4}
-    assert {finding["check_id"] for finding in report["findings"]} == set(new.IDS[:2])
-    assert all(finding["evidence"]["runtime_verified"] is False for finding in report["findings"])
-    assert all(finding["evidence"]["cluster_declaration_coverage"] == "attested_complete"
-               for finding in report["findings"])
+    # Operator declarations remain archived; staged evaluator registration must
+    # never make their owner-attested inputs eligible for automated assessments.
+    with pytest.raises(ValueError, match="requires external policy or manual evidence"):
+        evaluate_snapshot(snapshot, checks=new.IDS[:2])
 
 
 def test_held_rotation_callback_keeps_historical_applicability_without_registry_claim():

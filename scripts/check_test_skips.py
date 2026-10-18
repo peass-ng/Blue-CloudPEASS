@@ -27,6 +27,8 @@ PYTEST_ALLOWED = (
      'private live-cluster QA snapshot (tests/test_peaso_network_k8s_qa.py)'),
     (r'private QA capture is unavailable; no live collection attempted', 3,
      'private captured cloud snapshots under .cache/peaso-qa (tests/test_peaso_reachability.py)'),
+    (r'saved native snapshot is not part of the portable source checkout', 1,
+     'optional private PSP replay; synthetic applicability regressions remain mandatory'),
 )
 PLAYWRIGHT_ALLOWED = (
     # One env-gated test per spec; each needs an isolated real backend or captured snapshot.

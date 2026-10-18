@@ -55,7 +55,7 @@ def test_explicit_staged_registry_replaces_only_original_overlaps_and_restores()
 def test_reviewed_draft_allowlist_matches_imports():
     assert len(DRAFT_TEST_MODULES) == 20
     assert len(STAGED_UNSELECTED_TEST_MODULES) == 68
-    assert sum(map(len, STAGED_UNSELECTED_TEST_MODULES.values())) == 72
+    assert sum(map(len, STAGED_UNSELECTED_TEST_MODULES.values())) == 70
     for name in ("test_peaso_collectors_aws_apigateway_stage_ids.py", "test_peaso_compliance_new_aws_apigateway.py",
                  "test_peaso_compliance_new_aws_inspector_ec2.py", "test_peaso_compliance_new_gcp_api_keys.py"):
         assert name not in DRAFT_TEST_MODULES

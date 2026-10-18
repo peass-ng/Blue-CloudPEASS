@@ -67,7 +67,9 @@ STAGED_UNSELECTED_TEST_MODULES = {
     'test_peaso_compliance_new_sw33.py': ('compliance_new_sw33',),
     'test_peaso_compliance_new_sw34.py': ('compliance_new_sw34',),
     'test_peaso_compliance_new_sw35.py': ('compliance_new_sw35',),
-    'test_peaso_compliance_new_sw36.py': ('compliance_new_sw36',),
+    # Reads the admitted bulk module and removes its IDs during teardown;
+    # it must remain excluded from ordinary collection despite importing no draft.
+    'test_peaso_compliance_new_sw36.py': (),
     'test_peaso_compliance_new_sw37.py': ('compliance_new_sw37',),
     'test_peaso_compliance_new_sw38.py': ('compliance_new_sw38',),
     'test_peaso_compliance_new_sw39.py': ('compliance_new_sw39',),
@@ -75,7 +77,8 @@ STAGED_UNSELECTED_TEST_MODULES = {
     'test_peaso_compliance_new_sw40_kms.py': ('compliance_new_sw40',),
     'test_peaso_compliance_new_sw41.py': ('compliance_new_sw41',),
     'test_peaso_compliance_new_sw42.py': ('compliance_new_sw42',),
-    'test_peaso_compliance_new_sw43.py': ('compliance_new_sw43',),
+    # Like sw36, this fixture uses admitted bulk evaluators and tears them down.
+    'test_peaso_compliance_new_sw43.py': (),
     'test_peaso_compliance_new_sw44.py': ('compliance_new_sw44',),
     'test_peaso_compliance_new_sw45.py': ('compliance_new_sw45',),
     'test_peaso_compliance_new_sw46.py': ('compliance_new_sw46',),
