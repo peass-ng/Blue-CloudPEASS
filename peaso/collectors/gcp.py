@@ -2081,23 +2081,30 @@ class GCPCollector:
             service_locations("cloudscheduler", "v1"),
             lambda location: f"https://cloudscheduler.googleapis.com/v1/{scope}/locations/{location}/jobs", "jobs", scheduler_scrub))
         def shared_vpc():
-            failure = None
-            try:
-                data, request_id = self.read(f"{compute}/getXpnHost", scope)
-                if data == {"_noXpnHost": True}:
-                    yield [], request_id
-                elif isinstance(data.get("name"), str) and data["name"]:
-                    yield [{"name": f"{scope}/getXpnHost", "relationshipType": "getXpnHost", "host": data,
-                        "hostProject": data["name"], "serviceProject": scope}], request_id
-                else:
-                    raise ReadError("malformed", "malformed_xpn_host")
-            except ReadError as exc:
-                failure = exc
-            for items, request_id in self.pages(f"{compute}/getXpnResources", scope, key="resources", page_size_key="maxResults"):
-                yield [{"name": f"{scope}/getXpnResources/{item.get('id')}", "relationshipType": "getXpnResources",
-                    "hostProject": scope, "serviceProject": item.get("id"), "resources": [item]} for item in items], request_id
-            if failure:
-                raise failure
+            # projects.get distinguishes HOST from the only other documented
+            # status. Do not infer host applicability from a getXpnResources 400.
+            project_data, project_request = self.read(compute, scope)
+            if not isinstance(project_data, dict) or project_data.get("kind") != "compute#project" or \
+                    project_data.get("name") != project or \
+                    ("selfLink" in project_data and project_data["selfLink"] not in (
+                        f"https://www.googleapis.com/compute/v1/projects/{project}", compute)):
+                raise ReadError("malformed", "malformed_xpn_project_identity")
+            role = project_data.get("xpnProjectStatus")
+            if role not in ("HOST", "UNSPECIFIED_XPN_PROJECT_STATUS"):
+                raise ReadError("unavailable", "unknown_xpn_project_status")
+            yield [], project_request
+            data, request_id = self.read(f"{compute}/getXpnHost", scope)
+            if data == {"_noXpnHost": True}:
+                yield [], request_id
+            elif isinstance(data, dict) and isinstance(data.get("name"), str) and data["name"]:
+                yield [{"name": f"{scope}/getXpnHost", "relationshipType": "getXpnHost", "host": data,
+                    "hostProject": data["name"], "serviceProject": scope}], request_id
+            else:
+                raise ReadError("malformed", "malformed_xpn_host")
+            if role == "HOST":
+                for items, request_id in self.pages(f"{compute}/getXpnResources", scope, key="resources", page_size_key="maxResults"):
+                    yield [{"name": f"{scope}/getXpnResources/{item.get('id')}", "relationshipType": "getXpnResources",
+                        "hostProject": scope, "serviceProject": item.get("id"), "resources": [item]} for item in items], request_id
         add("shared_vpc", "compute", shared_vpc)
         if "activity" in self.needed:
             days = bound(self.options, "activity_days", 30, 1, 365)

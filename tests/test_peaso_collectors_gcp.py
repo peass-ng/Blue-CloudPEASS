@@ -305,12 +305,16 @@ def test_unsupported_scope_inventory_is_explicit():
 
 def test_shared_vpc_host_project_reference_never_broadens_scope():
     def resolve(request):
+        if request["url"].endswith("/projects/p-one"):
+            return {"kind": "compute#project", "name": "p-one", "xpnProjectStatus": "HOST"}
         if request["url"].endswith("getXpnHost"):
             return {"name": "host-project", "id": "654"}
         return {"resources": [{"id": "p-one", "type": "PROJECT"}]}
     result, transport = snapshot(["shared_vpc"], resolve)
     assert len(collection(result, "shared_vpc")["items"]) == 2
-    assert all("projects/p-one/" in r["url"] for r in transport.requests)
+    project_url = "https://compute.googleapis.com/compute/v1/projects/p-one"
+    assert all(r["url"] == project_url or r["url"].startswith(project_url + "/")
+               for r in transport.requests)
 
 
 def test_service_account_keys_are_metadata_only_and_no_parent_visibility_is_not_empty():
@@ -728,6 +732,8 @@ def test_delegated_impersonation_accepts_only_the_explicit_pinned_gcloud_source(
 
 def test_shared_vpc_resources_page_without_losing_host_ownership():
     def resolve(request):
+        if request["url"].endswith("/projects/p-one"):
+            return {"kind": "compute#project", "name": "p-one", "xpnProjectStatus": "HOST"}
         if request["url"].endswith("getXpnHost"):
             return {"name": "host"}
         if request["params"].get("pageToken"):
@@ -737,7 +743,7 @@ def test_shared_vpc_resources_page_without_losing_host_ownership():
     items = collection(result, "shared_vpc")["items"]
     assert len(items) == 3
     assert {item["serviceProject"] for item in items} == {"projects/p-one", "p-a", "p-b"}
-    assert transport.calls == 3
+    assert transport.calls == 4
 
 
 def test_project_iam_denial_still_collects_available_resource_iam():

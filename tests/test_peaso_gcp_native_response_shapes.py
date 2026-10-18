@@ -89,6 +89,8 @@ def test_other_empty_responses_remain_malformed(url, status, payload):
 
 def test_no_host_and_denied_resources_remains_unknown():
     def resolve(url):
+        if url.endswith("/projects/p-one"):
+            return {"kind": "compute#project", "name": "p-one", "xpnProjectStatus": "HOST"}
         if url.endswith("getXpnHost"):
             return {"_noXpnHost": True}
         raise gcp.ReadError("unavailable", "api_error", http_status=400)
@@ -99,12 +101,16 @@ def test_no_host_and_denied_resources_remains_unknown():
 
 def test_no_host_with_successful_resources_is_empty():
     row, _ = collect("shared_vpc", "projects/p-one", lambda url:
+        {"kind": "compute#project", "name": "p-one", "xpnProjectStatus": "HOST"}
+        if url.endswith("/projects/p-one") else
         {"_noXpnHost": True} if url.endswith("getXpnHost") else {"resources": []})
     assert row["status"] == "empty"
 
 
 def test_host_response_without_name_cannot_pass():
     row, _ = collect("shared_vpc", "projects/p-one", lambda url:
+        {"kind": "compute#project", "name": "p-one", "xpnProjectStatus": "HOST"}
+        if url.endswith("/projects/p-one") else
         {} if url.endswith("getXpnHost") else {"resources": []})
     assert row["status"] == "malformed"
 
