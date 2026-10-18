@@ -789,7 +789,7 @@ SPECS = {
     "opensearch_domain": ("opensearch", "list_domain_names", "DomainNames"),
     "dynamodb_table": ("dynamodb", "list_tables", "TableNames"),
 }
-GLOBAL_TYPES = {"iam_managed_policy", "aws_account", "aws_account_configuration", "cloudtrail_account_inventory", "config_account_region_coverage", "config_account_aggregator_inventory", "config_delegated_administrator", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "iam_access_key", "iam_virtual_mfa_device", "iam_server_certificate", "bucket", "s3_account_public_access_block", "organization_account", "organization_parent", "scp_policy"}
+GLOBAL_TYPES = {"iam_customer_policy", "iam_managed_policy", "aws_account", "aws_account_configuration", "cloudtrail_account_inventory", "config_account_region_coverage", "config_account_aggregator_inventory", "config_delegated_administrator", "iam_user", "iam_group", "iam_role", "iam_policy", "iam_account_summary", "iam_password_policy", "iam_credential_report", "iam_access_key", "iam_virtual_mfa_device", "iam_server_certificate", "bucket", "s3_account_public_access_block", "organization_account", "organization_parent", "scp_policy"}
 AWS_TYPES = sorted(set(SPECS) | GLOBAL_TYPES)
 GLOBAL_SCOPE = "global"
 FETCHERS = {}
@@ -841,7 +841,7 @@ _NATIVE_IDS = {
     "iam_access_key": "AccessKeyFingerprint", "iam_virtual_mfa_device": "SerialNumber", "iam_server_certificate": "Arn",
     "aws_cloudtrail_activity": "EventId",
     "aws_identity_center_user": "id", "aws_identity_center_permission_set": "id",
-    "iam_user": "Arn", "iam_group": "Arn", "iam_role": "Arn", "iam_policy": "Arn", "iam_managed_policy": "Arn",
+    "iam_user": "Arn", "iam_group": "Arn", "iam_role": "Arn", "iam_policy": "Arn", "iam_managed_policy": "Arn", "iam_customer_policy": "Arn",
     "bucket": "Name", "vpc": "VpcId", "subnet": "SubnetId", "route_table": "RouteTableId",
     "security_group": "GroupId", "network_acl": "NetworkAclId", "network_interface": "NetworkInterfaceId",
     "instance": "InstanceId", "ebs_volume": "VolumeId", "internet_gateway": "InternetGatewayId",
@@ -2062,6 +2062,9 @@ def collect(connector, requirements=None):
             return metric_alarm_rows(regional_job, session, identity, regions_for(account))
         if kind == "bucket":
             return _buckets(requests, session, region)
+        if kind == "iam_customer_policy":
+            from .aws_customer_policies import collect as collect_customer_policies
+            return collect_customer_policies(requests, session, region, account)
         if kind == "iam_managed_policy":
             from .aws_all_policies import collect as collect_all_policies
             return collect_all_policies(requests, session, region, account)

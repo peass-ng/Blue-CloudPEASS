@@ -16,14 +16,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -40,45 +40,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -95,16 +72,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "fail_index": {
       "context": {
@@ -113,14 +88,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -137,45 +112,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -192,16 +144,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "unknown_index": {
       "context": {
@@ -210,14 +160,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "partial",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -234,45 +184,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -289,16 +216,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "missing": {},
     "malformed": {
@@ -322,14 +247,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -346,45 +271,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -401,16 +303,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "fail_index": {
       "context": {
@@ -419,14 +319,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -443,45 +343,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -498,16 +375,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "unknown_index": {
       "context": {
@@ -516,14 +391,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "partial",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -540,45 +415,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -595,16 +447,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "missing": {},
     "malformed": {
@@ -628,14 +478,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -652,45 +502,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -707,16 +534,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "fail_index": {
       "context": {
@@ -725,14 +550,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -749,45 +574,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -804,16 +606,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "unknown_index": {
       "context": {
@@ -822,14 +622,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "partial",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -846,45 +646,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -901,16 +678,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "missing": {},
     "malformed": {
@@ -934,14 +709,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -958,45 +733,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1013,16 +765,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "fail_index": {
       "context": {
@@ -1031,14 +781,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1055,45 +805,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1110,16 +837,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "unknown_index": {
       "context": {
@@ -1128,14 +853,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "partial",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1152,45 +877,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1207,16 +909,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "missing": {},
     "malformed": {
@@ -1240,14 +940,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1264,45 +964,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1319,16 +996,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "fail_index": {
       "context": {
@@ -1337,14 +1012,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1361,45 +1036,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1416,16 +1068,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "unknown_index": {
       "context": {
@@ -1434,14 +1084,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "partial",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1458,45 +1108,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1513,16 +1140,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "missing": {},
     "malformed": {
@@ -1546,14 +1171,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1570,45 +1195,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1625,16 +1227,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "fail_index": {
       "context": {
@@ -1643,14 +1243,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "collected",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1660,52 +1260,29 @@
                       {
                         "Effect": "Allow",
                         "Action": "s3:*",
-                        "Resource": "arn:aws:s3:::bucket/object"
+                        "Resource": "*"
                       }
                     ]
                   }
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1715,23 +1292,21 @@
                   {
                     "Effect": "Allow",
                     "Action": "s3:*",
-                    "Resource": "arn:aws:s3:::bucket/object"
+                    "Resource": "*"
                   }
                 ]
               }
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "unknown_index": {
       "context": {
@@ -1740,14 +1315,14 @@
         "Account": "123456789012"
       },
       "collections": {
-        "iam_managed_policy": [
+        "iam_customer_policy": [
           {
-            "type": "iam_managed_policy",
+            "type": "iam_customer_policy",
             "scope": "123456789012/global",
             "status": "partial",
             "items": [
               {
-                "Arn": "arn:aws:iam::aws:policy/Test",
+                "Arn": "arn:aws:iam::123456789012:policy/Test",
                 "DefaultVersionId": "v1",
                 "DefaultDocument": {
                   "collection_status": "collected",
@@ -1764,45 +1339,22 @@
                 },
                 "_provenance": {
                   "operation": "iam:ListPolicies",
-                  "managed_scope": "All",
+                  "managed_scope": "Local",
                   "only_attached": false,
-                  "account_id": "123456789012"
+                  "account_id": "123456789012",
+                  "default_operation": "iam:GetPolicyVersion"
                 }
               }
             ]
           }
-        ],
-        "iam_user": [
-          {
-            "type": "iam_user",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_group": [
-          {
-            "type": "iam_group",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
-        ],
-        "iam_role": [
-          {
-            "type": "iam_role",
-            "scope": "123456789012/global",
-            "status": "empty",
-            "items": []
-          }
         ]
       },
-      "iam_managed_policy": [
+      "iam_customer_policy": [
         {
-          "type": "iam_managed_policy",
+          "type": "iam_customer_policy",
           "scope": "123456789012/global",
           "data": {
-            "Arn": "arn:aws:iam::aws:policy/Test",
+            "Arn": "arn:aws:iam::123456789012:policy/Test",
             "DefaultVersionId": "v1",
             "DefaultDocument": {
               "collection_status": "collected",
@@ -1819,16 +1371,14 @@
             },
             "_provenance": {
               "operation": "iam:ListPolicies",
-              "managed_scope": "All",
+              "managed_scope": "Local",
               "only_attached": false,
-              "account_id": "123456789012"
+              "account_id": "123456789012",
+              "default_operation": "iam:GetPolicyVersion"
             }
           }
         }
-      ],
-      "iam_user": [],
-      "iam_group": [],
-      "iam_role": []
+      ]
     },
     "missing": {},
     "malformed": {

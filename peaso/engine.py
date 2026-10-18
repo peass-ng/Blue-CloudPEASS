@@ -362,9 +362,11 @@ def plan_collection(request):
             raise ValueError("inventories must be supported resource types")
         required = set(inventories)
     if default_full and inventories is None:
-        # The full default plan keeps every inventory (graphs, cards and resource views read beyond the
-        # declared dependencies) except bulk event streams that nothing reads unless explicitly requested.
-        return sorted(available - BULK_STREAM_TYPES.get(provider, frozenset()))
+        # The full default plan keeps inventories used by graphs, cards and resource views.
+        # Bulk event streams and the AWS-owned managed policy library are opt-in
+        # when no selected check or analysis consumer declares them.
+        return sorted(available - BULK_STREAM_TYPES.get(provider, frozenset())
+                      - ({"iam_managed_policy"} if provider == "aws" and "iam_managed_policy" not in required else set()))
     from .collectors.bulk_evidence import declared_types, expand_native_requirements
     required = expand_native_requirements(provider, required)
     # Explicit check selections can request declared evidence contracts; the

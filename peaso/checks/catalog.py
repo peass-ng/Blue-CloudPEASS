@@ -78,6 +78,9 @@ def full_requirements():
 
 
 def description_for(check_id):
+    from .aws_policy_source_correction import CORRECTIONS, description as aws_policy_description
+    if check_id in CORRECTIONS:
+        return aws_policy_description(check_id)
     """Reviewed condition, fields and rationale, or None while the pack is pending."""
     if check_id == 'azure_vm_8_2_1_1_712e1ad':
         from .azure_vm_ssh_source_correction import description
@@ -121,6 +124,12 @@ def proposal_provenance_for(check_id):
             raise ValueError("Historical Cloud SQL lockout proposal hash changed")
         provenance["signed_spec_status"] = "historical_superseded_for_this_check"
         provenance["source_correction"] = correction_provenance()
+    from .aws_policy_source_correction import PRIOR, correction_provenance
+    if check_id in PRIOR:
+        if provenance["signed_spec_sha256"] != PRIOR[check_id]:
+            raise ValueError("Historical IAM wildcard proposal hash changed")
+        provenance["signed_spec_status"] = "historical_superseded_for_this_check"
+        provenance["source_correction"] = correction_provenance(check_id)
     return provenance
 
 

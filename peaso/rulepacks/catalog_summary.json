@@ -194,6 +194,7 @@
         "iam_access_key",
         "iam_account_summary",
         "iam_credential_report",
+        "iam_customer_policy",
         "iam_group",
         "iam_identity",
         "iam_managed_policy",

@@ -79,6 +79,9 @@ def render_documents() -> dict[Path, bytes]:
     source_corrections = {module.CHECK_ID: {"spec": module.CORRECTED_SPEC,
                                           "provenance": module.correction_provenance()}
                           for module in (azure_vm_ssh_source_correction, gcp_cloudsql_lockout_source_correction)}
+    from peaso.checks.aws_policy_source_correction import CORRECTIONS
+    source_corrections.update({cid: {"spec": row["spec"], "provenance": row["provenance"]}
+                               for cid, row in CORRECTIONS.items()})
     public = [check.public() for check in active]
     if {check["id"] for check in public} != {check.id for check in active}:
         raise ValueError("Public native catalog differs from the registry")
