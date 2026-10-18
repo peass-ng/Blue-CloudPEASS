@@ -192,7 +192,9 @@ def _run(auth, scopes, options, source, *, analyze):
             "coverage": "Azure Activity Log read succeeded for the selected subscription and last 24 hours. An empty response does not prove that all operations were logged or retained.",
         }
     from peaso.attack_detection.azure import correlate_azure_self_grants
+    from peaso.attack_detection.azure_rg_owner_next import correlate_azure_rg_owner_self_grants
     candidates = correlate_azure_self_grants(role_rows, subscription=subscription)
+    candidates.extend(correlate_azure_rg_owner_self_grants(role_rows, subscription=subscription))
     candidates.extend(diagnostic_candidates)
     candidates.extend(vm_dcr_candidates)
     from peaso.attack_detection import detect_azure_events

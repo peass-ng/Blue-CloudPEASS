@@ -20,20 +20,24 @@ from .aws import normalize_aws_cloudtrail
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
+from .aws_role_boundary_next import normalize_aws_role_boundary_delete
+from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
 from .gcp_logging_next import normalize_gcp_default_sink_disabled
 from .gcp_logging_tamper_next import normalize_gcp_data_access_exclusion_created, normalize_gcp_data_access_log_delete
+from .gcp_hmac_next import normalize_gcp_hmac_key_created
 from .kubernetes import normalize_kubernetes_audit
 from .kubernetes_next import normalize_kubernetes_cluster_admin_grant
 from .kubernetes_pod_next import normalize_kubernetes_privileged_host_pod
 from .kubernetes_ephemeral_next import normalize_kubernetes_privileged_ephemeral_update
+from .kubernetes_runtime_socket_next import normalize_kubernetes_runtime_socket_pod
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "0a38af3d9a6445e74a92ce6ad15e59aa0256cd66"
-DEFAULT_RULE_PACK_SHA256 = "8e9946062ad5750617746a17e5932099f85e83eb726572c71a798ead23f4bb34"
+DEFAULT_RULE_REF = "8e8345f04b27a29a25ec1514247b67b413f07353"
+DEFAULT_RULE_PACK_SHA256 = "f3f1909e246a5795dd169854421a9d9f1cb4550df0cb4fd1182d75f2389ddaf8"
 
 
 @dataclass(frozen=True)
@@ -144,9 +148,13 @@ def detect_aws_events(
                 or normalize_aws_trail_update(record))
         profile = normalize_aws_other_user_login_profile(record)
         updated_profile = normalize_aws_other_user_login_profile_update(record)
+        boundary = normalize_aws_role_boundary_delete(record)
+        trust = normalize_aws_wildcard_role_trust(record)
         return (([base] if base is not None else [])
                 + ([profile] if profile is not None else [])
-                + ([updated_profile] if updated_profile is not None else []))
+                + ([updated_profile] if updated_profile is not None else [])
+                + ([boundary] if boundary is not None else [])
+                + ([trust] if trust is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
@@ -160,12 +168,14 @@ def detect_gcp_events(
         sink = normalize_gcp_default_sink_disabled(record)
         deleted = normalize_gcp_data_access_log_delete(record)
         exclusion = normalize_gcp_data_access_exclusion_created(record)
+        hmac_key = normalize_gcp_hmac_key_created(record)
         return (([base] if base is not None else [])
                 + normalize_gcp_project_self_iam_bindings(record)
                 + normalize_gcp_cross_project_sa_grants(record)
                 + ([sink] if sink is not None else [])
                 + ([deleted] if deleted is not None else [])
-                + ([exclusion] if exclusion is not None else []))
+                + ([exclusion] if exclusion is not None else [])
+                + ([hmac_key] if hmac_key is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="gcp"), normalize, "gcp")
 
@@ -179,10 +189,12 @@ def detect_kubernetes_events(
         next_event = normalize_kubernetes_cluster_admin_grant(record)
         pod = normalize_kubernetes_privileged_host_pod(record)
         ephemeral = normalize_kubernetes_privileged_ephemeral_update(record)
+        socket = normalize_kubernetes_runtime_socket_pod(record)
         return (([base] if base is not None else [])
                 + ([next_event] if next_event is not None else [])
                 + ([pod] if pod is not None else [])
-                + ([ephemeral] if ephemeral is not None else []))
+                + ([ephemeral] if ephemeral is not None else [])
+                + ([socket] if socket is not None else []))
 
     return _detect_events(records, rules if rules is not None else load_rules(product="kubernetes"), normalize, "kubernetes")
 
