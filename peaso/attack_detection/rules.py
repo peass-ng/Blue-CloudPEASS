@@ -234,6 +234,13 @@ def _detect_events(
     # selectors can match this event. Rules without those selectors remain in
     # wildcard buckets and retain the same matching semantics.
     any_value = object()
+    def exact(actual: Any, expected: Any) -> bool:
+        # Python considers True == 1 and False == 0. Sigma scalar selectors
+        # must not turn numeric telemetry into a boolean proof field.
+        if isinstance(actual, bool) or isinstance(expected, bool):
+            return type(actual) is type(expected) and actual == expected
+        return actual == expected
+
     def index_value(value: Any) -> Any:
         try:
             hash(value)
@@ -269,7 +276,9 @@ def _detect_events(
                 candidate_indexes.update(buckets.get(key, ()))
             for index in sorted(candidate_indexes):
                 rule = rules[index]
-                if all(event.get(field) in expected if isinstance(expected, list) else event.get(field) == expected for field, expected in rule.selection.items()):
+                if all(any(exact(event.get(field), choice) for choice in expected)
+                       if isinstance(expected, list) else exact(event.get(field), expected)
+                       for field, expected in rule.selection.items()):
                     evidence = {field: event[field] for field in rule.selection}
                     correlation = event.get("correlation_evidence")
                     if isinstance(correlation, Mapping):

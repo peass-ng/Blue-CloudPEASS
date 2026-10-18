@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 import pytest
 
-from peaso.attack_detection import Rule, detect_aws_events, load_rules, normalize_aws_cloudtrail
+from peaso.attack_detection import Rule, detect_aws_events, detect_azure_events, load_rules, normalize_aws_cloudtrail
 
 
 ADMIN = {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}
@@ -33,6 +33,17 @@ def event(name: str, request: dict, *, user: str = "alice", error: str | None = 
 def synthetic_rule(selection: dict) -> Rule:
     return Rule(id="unit-test", title="Synthetic example", level="low", description="Test only",
                 technique_id="synthetic", product="aws", selection=selection)
+
+
+def test_boolean_proof_selector_does_not_match_numeric_telemetry() -> None:
+    rule = Rule(id="strict-bool", title="Strict boolean", level="low", description="Test only",
+                technique_id="synthetic", product="azure", selection={"request.confirmed": True})
+    event = {"event.id": "one", "event.time": "2026-10-18T00:00:00Z",
+             "account.id": "scope", "actor.id": "actor", "target.id": "target",
+             "request.confirmed": 1}
+    assert detect_azure_events([event], [rule]) == []
+    event["request.confirmed"] = True
+    assert len(detect_azure_events([event], [rule])) == 1
 
 
 def test_loads_synthetic_sigma_subset_from_explicit_directory(tmp_path) -> None:
