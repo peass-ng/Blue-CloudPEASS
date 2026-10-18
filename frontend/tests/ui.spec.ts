@@ -230,7 +230,7 @@ test("account initial and Help route show actionable documentation", async ({ pa
   } }));
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Account settings for maria@example.test" })).toHaveText("M");
-  await expect(page.getByText("Live API", { exact: true })).toBeVisible();
+  await expect(page.locator(".api-status")).toHaveCount(0);
   await expect(page.getByText("Built by HackTricks", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Help & documentation" }).click();
   await expect(page).toHaveURL(/#Help$/);

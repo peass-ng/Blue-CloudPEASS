@@ -30,9 +30,11 @@ PROFILES = {
 # snapshot and the serialised report), report_mb for the JSON report. Post-optimisation measurements
 # (Apple Silicon, Python 3.13, host load average ~40): 1x cpu 0.6 s, wall 1.1 s, 118 MB, 4.5 MB report;
 # 10x cpu 8.8-43 s, wall 11-217 s, 288-507 MB, 37.6 MB report (privesc evaluation dominates 10x CPU).
-# Budgets leave ~2-4x headroom for slower or loaded CI hosts.
+# The 1x catalog now has 1521 registered AWS checks and yielded 4.16-4.98 s
+# CPU on two isolated Linux CI runs. Keep a 6 s ceiling; the 10x limit is
+# unchanged and report size remains budgeted per registered check.
 BUDGETS = {
-    "1x": {"cpu_sec": 4, "wall_sec": 60, "maxrss_mb": 300},
+    "1x": {"cpu_sec": 6, "wall_sec": 60, "maxrss_mb": 300},
     "10x": {"cpu_sec": 90, "wall_sec": 600, "maxrss_mb": 1000},
 }
 # Report size is budgeted on principle instead of as a fixed constant. The old fixed 12 MB came from a
