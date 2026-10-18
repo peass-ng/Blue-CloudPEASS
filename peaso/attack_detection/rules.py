@@ -32,8 +32,8 @@ from .kubernetes_ephemeral_next import normalize_kubernetes_privileged_ephemeral
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "2e32f3ab008dd9f2834cbeae56384e67c59a952b"
-DEFAULT_RULE_PACK_SHA256 = "315b500bb0df64005cf384ea65b6407c37ebd234c8803b5b798960a8692b3775"
+DEFAULT_RULE_REF = "0a38af3d9a6445e74a92ce6ad15e59aa0256cd66"
+DEFAULT_RULE_PACK_SHA256 = "8e9946062ad5750617746a17e5932099f85e83eb726572c71a798ead23f4bb34"
 
 
 @dataclass(frozen=True)

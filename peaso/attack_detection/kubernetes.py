@@ -128,6 +128,7 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
         "target.id": binding_name,
         "target.principal": f"system:serviceaccount:{privileged_subject['namespace']}:{privileged_subject['name']}",
         "rbac.role": "cluster-admin",
+        "rbac.binding_kind": expected_kind,
         "rbac.observed_cluster_admin_binding": True,
         "rbac.change_effect": "observed_state",
         "rbac.non_system_service_account": True,

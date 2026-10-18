@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `2e32f3ab008dd9f2834cbeae56384e67c59a952b` by
+pack at pinned commit `0a38af3d9a6445e74a92ce6ad15e59aa0256cd66` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -164,6 +164,10 @@ restore rule reports the returned identity, not retained permissions or usable
 credentials. Kubernetes binding
 updates are normalized as observed state, but do not emit a privilege-gain
 detection without a before/after comparison.
+
+The workload service-account cluster administrator rule requires a returned
+`ClusterRoleBinding`; a namespaced `RoleBinding` is reported by its separate
+namespace rule and does not establish cluster-wide access.
 
 The AWS UpdateTrail rules require successful requests and matching responses.
 One reports validation explicitly disabled; the other requires both

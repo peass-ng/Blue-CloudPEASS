@@ -140,6 +140,7 @@ def test_namespace_self_rolebinding_requires_same_actor_namespace_and_confirmed_
     assert len(match) == 1
     assert match[0].actor_id == "system:serviceaccount:app:worker"
     assert normalize_kubernetes_audit(good)["target.principal"] == "system:serviceaccount:app:worker"
+    assert normalize_kubernetes_audit(good)["rbac.binding_kind"] == "RoleBinding"
     negatives = []
     for edit in ("denied", "dry_run", "request_only", "missing_object", "other_actor", "other_subject",
                  "other_namespace", "missing_namespace", "wrong_role", "wrong_kind", "system_namespace"):
@@ -161,6 +162,21 @@ def test_namespace_self_rolebinding_requires_same_actor_namespace_and_confirmed_
             row["user"]["username"] = "system:serviceaccount:kube-system:worker"
         negatives.append(row)
     assert detect_kubernetes_events(negatives, [K8S_SELF_ROLEBINDING_RULE]) == []
+
+
+def test_cluster_wide_service_account_rule_excludes_namespaced_rolebinding() -> None:
+    cluster = k8s_binding_event()
+    namespaced = k8s_self_rolebinding_event()
+    assert normalize_kubernetes_audit(cluster)["rbac.binding_kind"] == "ClusterRoleBinding"
+    rule = Rule(
+        id="cluster-wide-only", title="Cluster-wide service account grant", level="high",
+        description="Exact binding kind", technique_id="synthetic", product="kubernetes",
+        selection={"event.name": "create", "event.outcome": "success",
+                   "rbac.role": "cluster-admin", "rbac.binding_kind": "ClusterRoleBinding",
+                   "rbac.non_system_service_account": True},
+    )
+    assert [hit.rule_id for hit in detect_kubernetes_events([cluster], [rule])] == [rule.id]
+    assert detect_kubernetes_events([namespaced], [rule]) == []
 
 
 def test_gke_wrapper_namespace_self_rolebinding_requires_returned_object_and_no_dry_run() -> None:
