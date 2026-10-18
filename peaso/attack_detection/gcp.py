@@ -16,6 +16,81 @@ _POLICY_TYPE = "type.googleapis.com/google.iam.v1.Policy"
 _REQUEST_TYPE = "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
 
 
+def normalize_gcp_generated_access_token(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Observe a successful cross-principal service-account token mint.
+
+    A successful mint is not evidence that the token was used or that the
+    impersonation was unauthorized. Token values are never returned.
+    """
+    if not isinstance(record, Mapping):
+        return None
+    log_name = record.get("logName")
+    log_match = re.fullmatch(r"projects/([^/]+)/logs/cloudaudit\.googleapis\.com%2Fdata_access", log_name) if isinstance(log_name, str) else None
+    if log_match is None or _PROJECT.fullmatch(log_match.group(1)) is None:
+        return None
+    project = log_match.group(1)
+    resource = record.get("resource")
+    if not isinstance(resource, Mapping) or resource.get("type") != "service_account":
+        return None
+    labels = resource.get("labels")
+    if not isinstance(labels, Mapping) or labels.get("project_id") != project:
+        return None
+    target_email = labels.get("email_id")
+    if not isinstance(target_email, str) or _ACCOUNT_EMAIL.fullmatch(target_email) is None:
+        return None
+    if not target_email.endswith(f"@{project}.iam.gserviceaccount.com"):
+        return None
+    payload = record.get("protoPayload")
+    if not isinstance(payload, Mapping) or payload.get("@type") != _AUDIT_TYPE:
+        return None
+    if payload.get("serviceName") != "iamcredentials.googleapis.com" or payload.get("methodName") != "GenerateAccessToken":
+        return None
+    status = payload.get("status")
+    if not isinstance(status, Mapping) or status.get("code") != 0 or isinstance(status.get("code"), bool):
+        return None
+    auth = payload.get("authenticationInfo")
+    request = payload.get("request")
+    if not isinstance(auth, Mapping) or not isinstance(request, Mapping):
+        return None
+    if request.get("@type") != "type.googleapis.com/google.iam.credentials.v1.GenerateAccessTokenRequest":
+        return None
+    target = request.get("name")
+    if target != f"projects/-/serviceAccounts/{target_email}":
+        return None
+    actor = auth.get("principalEmail")
+    if not isinstance(actor, str) or _PRINCIPAL_EMAIL.fullmatch(actor) is None or actor.lower() == target_email:
+        return None
+    named_resource = payload.get("resourceName")
+    if named_resource is not None:
+        named_match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([^/]+)", named_resource) if isinstance(named_resource, str) else None
+        if named_match is None or named_match.group(1) not in ("-", project):
+            return None
+        label_id = labels.get("unique_id")
+        if named_match.group(2) != target_email and (not isinstance(label_id, str) or named_match.group(2) != label_id):
+            return None
+    operation = record.get("operation")
+    if operation is not None and (not isinstance(operation, Mapping) or operation.get("first") is True and operation.get("last") is not True):
+        return None
+    event_id = record.get("insertId")
+    event_time = record.get("timestamp")
+    if not isinstance(event_id, str) or not event_id or not isinstance(event_time, str) or not event_time:
+        return None
+    return {
+        "cloud.provider": "gcp",
+        "event.name": "GenerateAccessToken",
+        "event.source": "iamcredentials.googleapis.com",
+        "event.outcome": "success",
+        "event.id": event_id,
+        "event.time": event_time,
+        "account.id": project,
+        "actor.id": actor.lower(),
+        "target.id": target,
+        "target.service_account": target_email,
+        "request.cross_principal": True,
+        "credential.token_mint_observed": True,
+    }
+
+
 def normalize_gcp_undeleted_service_account(record: Mapping[str, Any]) -> dict[str, Any] | None:
     """Observe a restored service-account identity, without inferring access.
 
@@ -262,6 +337,9 @@ def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -
 
 
 def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    minted_token = normalize_gcp_generated_access_token(record)
+    if minted_token is not None:
+        return minted_token
     restored_account = normalize_gcp_undeleted_service_account(record)
     if restored_account is not None:
         return restored_account
