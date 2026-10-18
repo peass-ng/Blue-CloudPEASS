@@ -16,6 +16,80 @@ _POLICY_TYPE = "type.googleapis.com/google.iam.v1.Policy"
 _REQUEST_TYPE = "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
 
 
+def normalize_gcp_undeleted_service_account(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Observe a restored service-account identity, without inferring access.
+
+    The returned unique ID proves which deleted identity was restored. Its
+    permissions and usable credentials require separate evidence.
+    """
+    if not isinstance(record, Mapping):
+        return None
+    log_name = record.get("logName")
+    log_match = re.fullmatch(r"projects/([^/]+)/logs/cloudaudit\.googleapis\.com%2Factivity", log_name) if isinstance(log_name, str) else None
+    if log_match is None or _PROJECT.fullmatch(log_match.group(1)) is None:
+        return None
+    project = log_match.group(1)
+    resource = record.get("resource")
+    if not isinstance(resource, Mapping) or resource.get("type") != "service_account":
+        return None
+    labels = resource.get("labels")
+    if isinstance(labels, Mapping) and labels.get("project_id") not in (None, project):
+        return None
+    payload = record.get("protoPayload")
+    if not isinstance(payload, Mapping) or payload.get("@type") != _AUDIT_TYPE:
+        return None
+    if payload.get("serviceName") != "iam.googleapis.com" or payload.get("methodName") != "google.iam.admin.v1.UndeleteServiceAccount":
+        return None
+    status = payload.get("status")
+    if status is not None and (not isinstance(status, Mapping) or status.get("code") not in (None, 0) or isinstance(status.get("code"), bool)):
+        return None
+    auth = payload.get("authenticationInfo")
+    request = payload.get("request")
+    response = payload.get("response")
+    if not isinstance(auth, Mapping) or not isinstance(request, Mapping) or not isinstance(response, Mapping):
+        return None
+    if request.get("@type") != "type.googleapis.com/google.iam.admin.v1.UndeleteServiceAccountRequest":
+        return None
+    if response.get("@type") != "type.googleapis.com/google.iam.admin.v1.UndeleteServiceAccountResponse":
+        return None
+    actor = auth.get("principalEmail")
+    if not isinstance(actor, str) or _PRINCIPAL_EMAIL.fullmatch(actor) is None:
+        return None
+    requested_name = request.get("name")
+    requested_match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([0-9]{21})", requested_name) if isinstance(requested_name, str) else None
+    if requested_match is None or requested_match.group(1) not in ("-", project):
+        return None
+    unique_id = requested_match.group(2)
+    named_resource = payload.get("resourceName")
+    named_match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([0-9]{21})", named_resource) if isinstance(named_resource, str) else None
+    if named_match is None or named_match.group(1) not in ("-", project) or named_match.group(2) != unique_id:
+        return None
+    restored = response.get("restoredAccount")
+    if not isinstance(restored, Mapping) or restored.get("projectId") != project or restored.get("uniqueId") != unique_id:
+        return None
+    email = restored.get("email")
+    if not isinstance(email, str) or _owned_service_account_path(restored.get("name"), project) != email:
+        return None
+    event_id = record.get("insertId")
+    event_time = record.get("timestamp")
+    if not isinstance(event_id, str) or not event_id or not isinstance(event_time, str) or not event_time:
+        return None
+    return {
+        "cloud.provider": "gcp",
+        "event.name": "google.iam.admin.v1.UndeleteServiceAccount",
+        "event.source": "iam.googleapis.com",
+        "event.outcome": "success",
+        "event.id": event_id,
+        "event.time": event_time,
+        "account.id": project,
+        "actor.id": actor.lower(),
+        "target.id": restored["name"],
+        "target.service_account": email,
+        "identity.unique_id": unique_id,
+        "identity.restore_observed": True,
+    }
+
+
 def _owned_service_account_path(value: Any, project: str) -> str | None:
     if not isinstance(value, str):
         return None
@@ -188,11 +262,16 @@ def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -
 
 
 def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    restored_account = normalize_gcp_undeleted_service_account(record)
+    if restored_account is not None:
+        return restored_account
     uploaded_key = normalize_gcp_uploaded_service_account_key(record)
     if uploaded_key is not None:
         return uploaded_key
     payload = record.get("protoPayload") if isinstance(record, Mapping) else None
-    if isinstance(payload, Mapping) and payload.get("methodName") == "google.iam.admin.v1.UploadServiceAccountKey":
+    if isinstance(payload, Mapping) and payload.get("methodName") in {
+        "google.iam.admin.v1.UploadServiceAccountKey", "google.iam.admin.v1.UndeleteServiceAccount",
+    }:
         return None
     policy_binding = normalize_gcp_token_creator_binding_observation(record)
     if policy_binding is not None:

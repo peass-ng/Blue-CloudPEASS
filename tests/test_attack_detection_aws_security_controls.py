@@ -128,7 +128,7 @@ def test_detector_requires_literal_false_and_exact_id() -> None:
         if edit == "string_false": request["enable"] = "false"
         if edit == "numeric_zero": request["enable"] = 0
         if edit == "missing_id": request.pop("detectorId")
-        if edit == "malformed_id": request["detectorId"] = "not-a-detector"
+        if edit == "malformed_id": request["detectorId"] = " "
         if edit == "wrong_action": row["eventName"] = "GetDetector"
         if edit == "wrong_region": row["awsRegion"] = "not-a-region"
         if edit == "missing_event_id": row.pop("eventID")

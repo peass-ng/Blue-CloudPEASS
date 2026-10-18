@@ -5,13 +5,29 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from datetime import datetime
+from ipaddress import ip_address
 from typing import Any
 
 
 _REGION = re.compile(r"[a-z]{2}(?:-[a-z]+)+-\d+")
 _ACCOUNT = re.compile(r"\d{12}")
 _TRAIL_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{1,126}[A-Za-z0-9]")
-_DETECTOR_ID = re.compile(r"[0-9a-f]{32}")
+
+
+def _detector_id(value: Any) -> bool:
+    # GuardDuty documents 1..300 characters but no tighter lexical pattern.
+    return (isinstance(value, str) and 1 <= len(value) <= 300
+            and value == value.strip() and all(ord(char) >= 32 for char in value))
+
+
+def _trail_name(value: str) -> bool:
+    if not _TRAIL_NAME.fullmatch(value) or re.search(r"[._-]{2}", value):
+        return False
+    try:
+        ip_address(value)
+    except ValueError:
+        return True
+    return False
 
 
 def _arn(value: Any) -> list[str] | None:
@@ -44,7 +60,9 @@ def normalize_aws_security_control(record: Mapping[str, Any]) -> dict[str, Any] 
     name = record.get("eventName")
     if (source, name) not in {
         ("cloudtrail.amazonaws.com", "StopLogging"),
+        ("cloudtrail.amazonaws.com", "DeleteTrail"),
         ("guardduty.amazonaws.com", "UpdateDetector"),
+        ("guardduty.amazonaws.com", "DeleteDetector"),
     }:
         return None
     request = record.get("requestParameters")
@@ -81,7 +99,7 @@ def normalize_aws_security_control(record: Mapping[str, Any]) -> dict[str, Any] 
         "event.id": event_id, "event.time": event_time,
         "account.id": account, "actor.id": identity["arn"], "actor.kind": identity["type"],
     }
-    if name == "StopLogging":
+    if name in {"StopLogging", "DeleteTrail"}:
         trail_ref = request.get("name")
         if not isinstance(trail_ref, str):
             return None
@@ -94,15 +112,19 @@ def normalize_aws_security_control(record: Mapping[str, Any]) -> dict[str, Any] 
             trail_name = trail_arn[5][len("trail/"):]
         else:
             trail_name = trail_ref
-        if not _TRAIL_NAME.fullmatch(trail_name) or re.search(r"[._-]{2}", trail_name):
+        if not _trail_name(trail_name):
             return None
         result.update({"target.id": trail_ref, "request.trail_name": trail_name,
-                       "request.stop_logging_observed": True})
+                       "request.stop_logging_observed": name == "StopLogging",
+                       "request.delete_trail_observed": name == "DeleteTrail"})
     else:
         detector_id = request.get("detectorId")
-        if (not isinstance(detector_id, str) or not _DETECTOR_ID.fullmatch(detector_id)
-                or request.get("enable") is not False):
+        if not _detector_id(detector_id):
+            return None
+        if name == "UpdateDetector" and request.get("enable") is not False:
             return None
         result.update({"target.id": detector_id, "request.detector_id": detector_id,
-                       "request.enable": False, "request.detector_disable_requested": True})
+                       "request.enable": False if name == "UpdateDetector" else None,
+                       "request.detector_disable_requested": name == "UpdateDetector",
+                       "request.detector_delete_observed": name == "DeleteDetector"})
     return result

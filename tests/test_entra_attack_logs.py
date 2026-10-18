@@ -56,7 +56,7 @@ def test_check_one_bounded_graph_get_and_tenant_binding(monkeypatch):
     api = with_api(monkeypatch, [{"value": []}])
     result = check_entra_source(AUTH, [], {}, SOURCE)
     assert result["source_status"] == "accessible"
-    assert result["coverage"]["detection_status"] == "not_implemented"
+    assert result["coverage"]["detection_status"] == "credential_add_only"
     assert result["coverage"]["pages_read"] == 1
     assert api.closed and len(api.urls) == 1
     parsed = urlsplit(api.urls[0])
@@ -102,7 +102,7 @@ def test_analyze_returns_only_redacted_metadata_and_no_detection_claim(monkeypat
     assert result["coverage"]["events_read"] == 3
     assert result["coverage"]["events_normalized"] == 1
     assert result["coverage"]["events_ignored"] == 2
-    assert result["coverage"]["detection_status"] == "not_implemented"
+    assert result["coverage"]["detection_status"] == "credential_add_only"
     assert result["detections"] == []
     assert len(result["events"]) == 1
     projected = json.dumps(result)

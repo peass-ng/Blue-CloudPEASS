@@ -23,8 +23,8 @@ from .kubernetes import normalize_kubernetes_audit
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "7395af98c1088b70959a9552dd28dbd0832a8b51"
-DEFAULT_RULE_PACK_SHA256 = "9f0785d135b5ae84b764bae504c96800846718152e5a1f3d5808cbdae935d9f5"
+DEFAULT_RULE_REF = "73503b614c029d413d7b64790ab9d8336effc682"
+DEFAULT_RULE_PACK_SHA256 = "dc4793bf6c403f786f54d9e39d8a2db80d4705981769cf98f396f0bf54fae4ef"
 
 
 @dataclass(frozen=True)
@@ -95,7 +95,7 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
         detection = source.get("detection")
         if not isinstance(logsource, Mapping) or (logsource.get("product"), logsource.get("service")) not in {
             ("aws", "cloudtrail"), ("gcp", "audit"), ("kubernetes", "audit"),
-            ("azure", "activity"),
+            ("azure", "activity"), ("azure", "entra"),
         } or set(logsource) != {"product", "service"}:
             raise ValueError(f"Unsupported log source: {name}")
         if not isinstance(detection, Mapping) or set(detection) != {"selection", "condition"} or detection["condition"] != "selection":

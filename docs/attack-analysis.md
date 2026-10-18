@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `7395af98c1088b70959a9552dd28dbd0832a8b51` by
+pack at pinned commit `73503b614c029d413d7b64790ab9d8336effc682` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -31,7 +31,7 @@ The current evaluator deliberately
 accepts a small portable subset: one exact-match selection, conjunction across
 fields, and OR lists within a field. Unsupported Sigma constructs fail closed.
 Raw provider events are normalized to common `event.*`, `actor.*`, `target.*`
-and `cloud.provider` fields before matching. Azure first joins the Started
+and `cloud.provider` fields before matching. Azure Activity Log first joins the Started
 request with the Succeeded outcome for one role-assignment operation; the
 pinned Sigma selection then decides which joined grants to report. This join
 is application code, not portable Sigma correlation syntax. The event IDs and
@@ -53,6 +53,8 @@ same window and reports a successfully correlated Owner or User Access
 Administrator self-assignment at subscription scope. The Started event carries
 the assignee and role, while a matching Succeeded event supplies the outcome.
 This proves the assignment operation, not malicious intent or net new access.
+The separate Microsoft Entra source reads the connector tenant's directory
+audits and currently evaluates one service-principal credential-add activity.
 The current
 request stops at 2,000 events, and AWS S3 stops at five objects and rejects
 any object above the decompression bound. The response reports read coverage
@@ -94,9 +96,9 @@ ClickHouse local documentation: <https://clickhouse.com/docs/operations/utilitie
   needs separate workspace access.
 - Microsoft Entra directory audit: a bounded Microsoft Graph read checks
   `AuditLog.Read.All` application permission with tenant admin consent. The
-  connector token must belong to its configured tenant. This source currently
-  checks access only; no Entra attack rule runs and no result is described as
-  evidence of attack or its absence.
+  connector token must belong to its configured tenant. Its reviewed rule
+  reports successful additions of service-principal credentials; it does not
+  infer credential use, privilege gain or malicious intent.
 - Kubernetes: generic clusters may write audit events to a file or webhook;
   `kubectl get events` is not an audit-log source.
 
@@ -108,14 +110,17 @@ Kubernetes: <https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/>
 
 ## Detection quality
 
-The pinned pack has fourteen activity rules: eight AWS, three GCP, one
+The pinned pack has eighteen activity rules: ten AWS, four GCP, two
 Azure, and two Kubernetes. The AWS role attachment rule requires the exact
 AdministratorAccess policy and evidence that the target is the issuing role.
 The GCP Token Creator rule reports a binding in the resulting service-account
 policy; a SetIAMPolicy log entry alone cannot prove the binding was newly
 added. The uploaded-key rule retains only its key resource name. Successful
-CloudTrail StopLogging and GuardDuty UpdateDetector operations are reported as
-requests, with no claim about present monitoring state. Kubernetes binding
+CloudTrail and GuardDuty disabling or deletion operations are reported as
+requests, with no claim about present monitoring state. The GCP service-account
+restore rule reports the returned identity, not retained permissions or usable
+credentials. The Entra rule reports a service-principal credential addition,
+not subsequent use or elevated rights. Kubernetes binding
 updates are normalized as observed state, but do not emit a privilege-gain
 detection without a before/after comparison.
 

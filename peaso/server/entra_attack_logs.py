@@ -111,10 +111,11 @@ def _metadata(row, *, after, before):
     }
 
 
-def _read(transport, *, analyze, now):
+def _read(transport, *, analyze, now, tenant):
     url, interval = _initial_url(now)
     after = now - WINDOW
     events = []
+    candidates = []
     read = ignored = pages = 0
     truncated = False
     seen_urls = {url}
@@ -136,6 +137,13 @@ def _read(transport, *, analyze, now):
                     ignored += 1
                 else:
                     events.append(metadata)
+                    from peaso.attack_detection.entra import normalize_entra_credential_add
+                    candidate = normalize_entra_credential_add(
+                        row, tenant=tenant,
+                        event_id=metadata["event_id_sha256"], event_time=metadata["time"],
+                    )
+                    if candidate is not None:
+                        candidates.append(candidate)
         next_url = page.get("@odata.nextLink")
         if next_url is not None:
             _validate_next_link(next_url, interval)
@@ -153,7 +161,7 @@ def _read(transport, *, analyze, now):
         url = next_url
     else:
         truncated = bool(next_url)
-    return read, pages, events, ignored, truncated
+    return read, pages, events, candidates, ignored, truncated
 
 
 def _run(auth, scopes, options, source, *, analyze):
@@ -166,17 +174,21 @@ def _run(auth, scopes, options, source, *, analyze):
         raise LogAccessError("entra_graph_token_unavailable") from None
     try:
         _verified_graph_token(transport, tenant)
-        read, pages, events, ignored, truncated = _read(transport, analyze=analyze, now=datetime.now(timezone.utc))
+        read, pages, events, candidates, ignored, truncated = _read(
+            transport, analyze=analyze, now=datetime.now(timezone.utc), tenant=tenant)
     finally:
         transport.close()
     coverage = {"source": "entra_directory_audit", "tenant_id": tenant, "window_hours": 24,
                 "pages_read": pages, "events_read": read, "events_normalized": len(events),
                 "events_ignored": ignored, "truncated": truncated,
-                "detection_status": "not_implemented"}
+                "credential_add_candidates": len(candidates),
+                "detection_status": "credential_add_only"}
     if not analyze:
         return {"source_status": "accessible", "coverage": coverage,
                 "note": "Graph directoryAudits read succeeded. Empty results do not prove that all activities were logged or retained."}
-    return {"coverage": coverage, "events": events, "detections": []}
+    from peaso.attack_detection import detect_azure_events
+    return {"coverage": coverage, "events": events,
+            "detections": [item.__dict__ for item in detect_azure_events(candidates)] if candidates else []}
 
 
 def check_entra_source(auth, scopes, options, source):

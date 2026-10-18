@@ -57,9 +57,10 @@ def test_access_token_is_bound_to_source_and_tenant(tmp_path, monkeypatch):
         assert "Connector settings changed" in stale.json()["detail"]
 
 
-def test_entra_access_check_does_not_authorize_analysis_without_rules(tmp_path, monkeypatch):
+def test_entra_access_check_requires_an_entra_rule_before_analysis(tmp_path, monkeypatch):
     monkeypatch.setattr("peaso.server.entra_attack_logs.check_entra_source", lambda *args: {
         "source_status": "accessible", "coverage": {"events_read": 0, "detection_status": "not_implemented"}})
+    monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (TEST_RULE,))
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
     with TestClient(create_app(settings, authenticator=IdentityStub()), base_url="http://localhost:8000") as client:
         client.headers["Authorization"] = "Bearer owner"
@@ -69,9 +70,18 @@ def test_entra_access_check_does_not_authorize_analysis_without_rules(tmp_path, 
         assert saved.status_code == 201, saved.text
         source = {"connector_id": saved.json()["id"], "kind": "entra_directory_audit", "region": "us-east-1"}
         checked = client.post("/api/attack-analysis/check-access", json=source)
-        assert checked.status_code == 200 and checked.json()["status"] == "warning"
+        assert checked.status_code == 200 and checked.json()["status"] == "blocked"
         assert "check_token" not in checked.json()
         assert client.post("/api/attack-analysis/run", json={**source, "check_token": "invalid"}).status_code == 422
+        entra_rule = Rule(id="synthetic-entra", title="test", level="low", description="test",
+                          technique_id="test", product="azure", selection={"event.source": "entra.directoryAudit"})
+        monkeypatch.setattr("peaso.attack_detection.load_rules", lambda *args, **kwargs: (entra_rule,))
+        monkeypatch.setattr("peaso.server.entra_attack_logs.analyze_entra_source", lambda *args: {
+            "coverage": {"events_read": 0, "detection_status": "credential_add_only"}, "detections": []})
+        checked = client.post("/api/attack-analysis/check-access", json=source)
+        assert checked.status_code == 200 and checked.json()["status"] == "pass"
+        run = client.post("/api/attack-analysis/run", json={**source, "check_token": checked.json()["check_token"]})
+        assert run.status_code == 200 and run.json()["coverage"]["detection_status"] == "credential_add_only"
 
 
 def test_s3_check_proves_get_object_and_reports_empty_without_token(monkeypatch):
