@@ -13,6 +13,7 @@ import re
 from urllib.parse import unquote
 
 from . import CHECKS, register, result, unknown
+from .aws_all_policies import scan as _customer_policy_scan
 from .facts import Unavailable, complete_items, get
 
 _ACCOUNT = re.compile(r"^[0-9]{12}$")
@@ -728,8 +729,8 @@ _EVALUATORS = {
     "aws.pci.iam.nonconsole_mfa_policy": _nonconsole_mfa,
     "aws.pci.iam.policy_attached_to_active_principal": _policy_attachment,
     "aws.pci.iam.wildcard_action_scoped_resource": _policy_scoped_action,
-    "aws_fedramp_iam_all_policies_no_admin_star": lambda item, index: _policy_scan(index, "effective_star"),
-    "aws_fedramp_iam_all_policies_no_service_wildcard": lambda item, index: _policy_scan(index, "effective_service"),
+    "aws_fedramp_iam_all_policies_no_admin_star": lambda item, index: _customer_policy_scan(index, "star"),
+    "aws_fedramp_iam_all_policies_no_service_wildcard": lambda item, index: _customer_policy_scan(index, "service"),
     "aws_g6_iam_all_policy_service_wildcard": lambda item, index: _policy_scan(index, "scoped_service"),
     "aws_g6_iam_all_policy_star_star": lambda item, index: _policy_scan(index, "star"),
     "aws_nist_iam_all_policy_no_service_wild_card": lambda item, index: _policy_scan(index, "service"),
@@ -746,9 +747,13 @@ _SCOPE_IDS = {
     "aws_g6_iam_all_policy_service_wildcard", "aws_g6_iam_all_policy_star_star",
     "aws_nist_iam_all_policy_no_service_wild_card", "aws_nist_iam_policy_no_star_star",
 }
+_FEDRAMP_CUSTOMER_POLICY_IDS = {
+    "aws_fedramp_iam_all_policies_no_admin_star", "aws_fedramp_iam_all_policies_no_service_wildcard",
+}
 
 for _id, _spec in SPECS.items():
-    _deps = (["iam_policy", "iam_user", "iam_group", "iam_role"] if _id in _SCOPE_IDS and
+    _deps = (["iam_customer_policy"] if _id in _FEDRAMP_CUSTOMER_POLICY_IDS else
+             ["iam_policy", "iam_user", "iam_group", "iam_role"] if _id in _SCOPE_IDS and
              _id != "aws.nist.all_managed_policies_no_service_wildcard" else
              ["iam_policy"] if _spec["resource_kind"] == "iam_policy" else
              ["kms_key", "kms_grant"] if _id in {"aws.pci.kms.key_custodian_access", "aws_kms_customer_key_control"} else

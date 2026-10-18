@@ -1,4 +1,4 @@
-"""Six explicit successors to signed local IAM proposals, grounded in pinned upstream SQL.
+"""Source successors for signed IAM proposals, grounded in pinned upstream SQL.
 
 The signed JSON and compiled lookup stay immutable historical ancestry. These
 successors correct their claimed compliance scope without inventing a broader
@@ -18,10 +18,66 @@ PRIOR = {
     'aws_nist_iam_all_policy_no_service_wild_card': '8cd167ae327ff4efe12f8c28986c399d605e064161ded7eab02253939443be75',
     'aws_g6_iam_all_policy_star_star': 'b48a7c0d1eeed48c7b08a682b9084e0f3f4e8f33520df3604e28f3d9e99f6643',
     'aws_g6_iam_all_policy_service_wildcard': '52becf18c443df1aca7d30bb8fbdd00ced195f31a499d4ea78c737b90c1dcf0e',
+    'aws_fedramp_iam_all_policies_no_admin_star': 'a3e80ebf0b15f8577c7f3b174dcaa5b245ffd56ad0f26e0f7e73f7bafb84a71c',
+    'aws_fedramp_iam_all_policies_no_service_wildcard': 'c0569f92cc41cf75a31733af082730c5acd882f0ee88aed46665d2d4bd17817d',
 }
 SERVICE = {'aws.nist.all_managed_policies_no_service_wildcard', 'aws_nist_iam_all_policy_no_service_wild_card',
-           'aws_g6_iam_all_policy_service_wildcard'}
+           'aws_g6_iam_all_policy_service_wildcard', 'aws_fedramp_iam_all_policies_no_service_wildcard'}
+FEDRAMP = {'aws_fedramp_iam_all_policies_no_admin_star', 'aws_fedramp_iam_all_policies_no_service_wildcard'}
+FEDRAMP_FROZEN = {'aws_fedramp_iam_all_policies_no_service_wildcard': {'id': 'aws_fedramp_iam_all_policies_no_service_wildcard',
+                                                      'provider': 'aws',
+                                                      'resource_kind': 'iam_policy',
+                                                      'data_source': 'IAM ListPolicies/GetPolicyVersion '
+                                                                     'plus '
+                                                                     'ListUserPolicies/GetUserPolicy, '
+                                                                     'ListRolePolicies/GetRolePolicy, '
+                                                                     'ListGroupPolicies/GetGroupPolicy, '
+                                                                     'and attached AWS-managed policy '
+                                                                     'versions',
+                                                      'predicate': 'FAIL if an effective Allow in any '
+                                                                   'attached managed or inline IAM '
+                                                                   'policy grants service:* on Resource '
+                                                                   '* without a restricting condition '
+                                                                   'or applicable explicit Deny; PASS '
+                                                                   'when no in-scope policy does; '
+                                                                   'UNKNOWN if an attached policy '
+                                                                   'version cannot be read.',
+                                                      'severity': 'medium',
+                                                      'category': 'compliance',
+                                                      'title': 'All IAM policy types avoid unrestricted '
+                                                               'service access',
+                                                      'description': 'Extends customer-managed policy '
+                                                                     'coverage to attached AWS-managed '
+                                                                     'and inline policies.',
+                                                      'remediation_hint': 'Configure the named AWS '
+                                                                          'resource to satisfy the '
+                                                                          'predicate and verify all '
+                                                                          'in-scope resources.'},
+ 'aws_fedramp_iam_all_policies_no_admin_star': {'id': 'aws_fedramp_iam_all_policies_no_admin_star',
+                                                'provider': 'aws',
+                                                'resource_kind': 'iam_policy',
+                                                'data_source': 'IAM ListPolicies/GetPolicyVersion plus '
+                                                               'inline user, role, and group policy '
+                                                               'reads and attached AWS-managed policy '
+                                                               'versions',
+                                                'predicate': 'FAIL if any in-scope attached managed or '
+                                                             'inline policy contains effective Allow '
+                                                             'with Action * and Resource * without '
+                                                             'restrictive condition or applicable Deny; '
+                                                             'PASS if none do; UNKNOWN if policy '
+                                                             'documents or attachments are incomplete.',
+                                                'severity': 'medium',
+                                                'category': 'compliance',
+                                                'title': 'All IAM policy types avoid star-star '
+                                                         'administration',
+                                                'description': 'Tests unrestricted full administrator '
+                                                               'grants across managed and inline policy '
+                                                               'types.',
+                                                'remediation_hint': 'Configure the named AWS resource '
+                                                                    'to satisfy the predicate and '
+                                                                    'verify all in-scope resources.'}}
 FROZEN = json.loads(Path(__file__).with_name('aws_all_policies.json').read_text())
+FROZEN.update(FEDRAMP_FROZEN)
 FROZEN_SPEC_KEYS = ('id', 'provider', 'resource_kind', 'data_source', 'predicate', 'severity',
                     'category', 'title', 'description', 'remediation_hint')
 
@@ -52,11 +108,12 @@ def _entry(cid):
     spec = {key: old[key] for key in ('id', 'provider', 'resource_kind', 'severity', 'category', 'remediation_hint')}
     spec.update(data_source='iam:ListPolicies Scope=Local OnlyAttached=False; iam:GetPolicyVersion default version document',
                 predicate=predicate, title=title, description=description)
+    source_line = '#L1343-L1381' if service else '#L865-L904'
     provenance = {
         'version': 'peaso-source-correction-v1', 'status': 'source_erratum_successor',
         'prior_frozen_signed_spec_sha256': PRIOR[cid], 'prior_frozen_status': 'historical_superseded_for_this_check',
         'current_canonical_spec_sha256': _digest(spec), 'current_predicate_sha256': _digest(predicate),
-        'source_url': SOURCE_URL + ('#L1240-L1277' if service else '#L782-L820'),
+        'source_url': SOURCE_URL + source_line,
         'source_query': query, 'source_evaluator_sha256': source_sha,
         'criterion_scope': 'All customer-managed default policies including unattached; excludes AWS-managed and inline; literal Resource=*',
     }

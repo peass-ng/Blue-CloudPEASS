@@ -1154,10 +1154,7 @@
       "proposed_spec_sha256": "a3e80ebf0b15f8577c7f3b174dcaa5b245ffd56ad0f26e0f7e73f7bafb84a71c",
       "source_module": "compliance_new_sw40",
       "dependencies": [
-        "iam_policy",
-        "iam_user",
-        "iam_group",
-        "iam_role"
+        "iam_customer_policy"
       ]
     },
     "aws_fedramp_iam_all_policies_no_service_wildcard": {
@@ -1167,10 +1164,7 @@
       "proposed_spec_sha256": "c0569f92cc41cf75a31733af082730c5acd882f0ee88aed46665d2d4bd17817d",
       "source_module": "compliance_new_sw40",
       "dependencies": [
-        "iam_policy",
-        "iam_user",
-        "iam_group",
-        "iam_role"
+        "iam_customer_policy"
       ]
     },
     "aws_g6_api_stage_effective_waf_acl": {
@@ -6092,7 +6086,7 @@
     "compliance_new_sw37": "63e73e26ef553d9646272ceb6bcf2d9cf46fd673b4ccc4c1e7dfdd55efe530d7",
     "compliance_new_sw38": "8349853eb7eca42fb60ca5a61c46a5b2eb40db5456eac982189864b06811392c",
     "compliance_new_sw39": "e6aace895230544c7f388e147f3bb7da3930820626143e8d36b4823dcaf79c18",
-    "compliance_new_sw40": "75a182ed700d192a347a598ff9ad2d8ceb35e48cd868d58315ddfb945dd3719a",
+    "compliance_new_sw40": "fc8201f8cbfc9e85d30e9c4d8f579a804008ad602ec96de3737dfc1d4fbe519c",
     "compliance_new_sw41": "a0f2d7995b87a09022c4caf905a603b62f7a633df5da0fb0030b526d1a58f610",
     "compliance_new_sw42": "264cd2f96c7683079f2d9a7b2cf9bb51394e6df849625638222cf6254e41eef3",
     "compliance_new_sw43": "ff5de6855d362b7bc0c62d2decb4ed894e0195ca50a7fc846076e9d3786d9295",

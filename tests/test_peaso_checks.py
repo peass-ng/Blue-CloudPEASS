@@ -12,6 +12,14 @@ from peaso.engine import hydrate_frameworks
 _bulk_cases = json.loads((Path(__file__).parent / 'fixtures/bulk_pending_behavior.json').read_text())
 _bulk_ids = set(json.loads((Path(__file__).resolve().parents[1] / 'peaso/checks/bulk_pending.json').read_text())['checks'])
 assert set(_bulk_cases) == _bulk_ids, 'bulk behavior fixture IDs must match admitted definitions'
+# These two historical cases used the superseded All/inline marker contract.
+# Reuse the pinned customer-policy cases after their source-correction successor.
+_customer_cases = json.loads((Path(__file__).resolve().parents[1] /
+                              'peaso/checks/aws_all_policies_fixtures.json').read_text())
+_bulk_cases['aws_fedramp_iam_all_policies_no_admin_star'] = copy.deepcopy(
+    _customer_cases['aws.nist.all_iam_policies_no_star_star'])
+_bulk_cases['aws_fedramp_iam_all_policies_no_service_wildcard'] = copy.deepcopy(
+    _customer_cases['aws.nist.all_managed_policies_no_service_wildcard'])
 CASES.update(_bulk_cases)
 
 

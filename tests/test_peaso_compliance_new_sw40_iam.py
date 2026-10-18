@@ -45,8 +45,6 @@ def status(cid, row, facts=None):
 @pytest.mark.parametrize("cid,mode", [
     ("aws.nist.all_iam_policies_no_star_star", "star"),
     ("aws.nist.all_managed_policies_no_service_wildcard", "service"),
-    ("aws_fedramp_iam_all_policies_no_admin_star", "star"),
-    ("aws_fedramp_iam_all_policies_no_service_wildcard", "service"),
     ("aws_g6_iam_all_policy_star_star", "star"),
     ("aws_nist_iam_policy_no_star_star", "star"),
     ("aws_nist_iam_all_policy_no_service_wild_card", "service"),
