@@ -378,6 +378,8 @@ def test_native_service_coverage_and_configuration_fixture():
         url = request["url"]
         if url == 'https://cloudresourcemanager.googleapis.com/v3/projects/p-one':
             return {'name': 'projects/123456789012', 'projectId': 'p-one'}
+        if url == 'https://compute.googleapis.com/compute/v1/projects/p-one':
+            return {'kind': 'compute#project', 'name': 'p-one', 'xpnProjectStatus': 'HOST'}
         if ':getEffectivePolicy' in url:
             constraint = url.rsplit('/policies/', 1)[1].split(':', 1)[0]
             return {'name': 'projects/123456789012/policies/' + constraint, 'spec': {'rules': []}}
@@ -436,6 +438,7 @@ def test_native_service_coverage_and_configuration_fixture():
     result, transport = snapshot(kinds, resolve, cloud_identity_customers=["Cfixture"], regions=["r"],
         sw51_policy={'scope': 'projects/p-one', 'status': 'collected', 'approved_asset_types': ['compute.googleapis.com/Instance']})
     assert {c["type"] for c in result["collections"]} == set(kinds)
+    assert collection(result, "shared_vpc")["status"] == "collected"
     assert not any(c["status"] in ("malformed", "unknown") for c in result["collections"])
     assert "do-not-store" not in json.dumps(result)
     assert collection(result, "workload_identity_provider")["items"][0]["attributeCondition"]
@@ -1420,7 +1423,7 @@ def test_cloud_run_lists_v1_locations_and_skips_location_policy_regions():
     assert not any("/v2/projects/p-one/locations" == r["url"][-len("/v2/projects/p-one/locations"):] for r in transport.requests)
 
 
-def test_service_disabled_in_target_project_is_empty_but_quota_project_disablement_stays_unknown():
+def test_service_disabled_in_target_project_is_unknown_and_quota_project_disablement_stays_unknown():
     def resolve(request):
         url = request["url"]
         if "run.googleapis.com" in url:
@@ -1435,13 +1438,76 @@ def test_service_disabled_in_target_project_is_empty_but_quota_project_disableme
     result, transport = snapshot(["cloudrun_service", "dataproc_cluster", "access_approval_settings"], resolve)
     for kind in ("cloudrun_service", "dataproc_cluster"):
         found = collection(result, kind)
-        assert found["status"] == "empty" and "error" not in found
+        assert found["status"] == "unknown" and found["coverage_status"] == "unavailable"
+        assert found["error"]["reason"] == "SERVICE_DISABLED"
         assert found["service_state"]["state"] == "disabled" and found["service_state"]["source_requests"]
         assert set(found["service_state"]["source_requests"]) <= set(found["source_requests"])
     # one disabled-service error per inventory, not one per region
     assert sum("dataproc" in r["url"] for r in transport.requests) == 1
     approval = collection(result, "access_approval_settings")
     assert approval["status"] == "unknown" and approval["error"]["consumer"] == "projects/32555940559"
+
+
+@pytest.mark.parametrize("kind,service,host", [
+    ("bucket", "storage.googleapis.com", "storage.googleapis.com"),
+    ("bigquery_dataset", "bigquery.googleapis.com", "bigquery.googleapis.com"),
+])
+def test_disabled_data_service_for_numeric_project_preserves_unknown_and_control_coverage(kind, service, host):
+    from peaso.engine import evaluate_snapshot
+
+    def resolve(request):
+        assert host in request["url"]
+        raise disabled("projects/123", service)
+
+    result, transport = snapshot([kind], resolve, scopes=["projects/123"])
+    found = collection(result, kind, "projects/123")
+    assert found["status"] == "unknown" and found["coverage_status"] == "unavailable"
+    assert found["items"] == []
+    assert found["error"] == {"kind": "unavailable", "code": "api_error", "http_status": 403,
+        "reason": "SERVICE_DISABLED", "consumer": "projects/123", "service": service}
+    assert found["service_state"] == {"state": "disabled", "reason": "SERVICE_DISABLED",
+        "service": service, "consumer": "projects/123", "source_requests": found["source_requests"]}
+    check_id = "gcp.storage.uniform_access" if kind == "bucket" else "gcp.reviewed.bigquery.cmek"
+    report = evaluate_snapshot(result, checks=[check_id])
+    assert transport.calls == 1
+    assert any(f["check_id"] == check_id and f["status"] == "UNKNOWN" for f in report["findings"])
+    assert not any(f["check_id"] == check_id and f["status"] in ("NOT_APPLICABLE", "PASS", "EMPTY")
+                   for f in report["findings"])
+
+
+@pytest.mark.parametrize("kind,response", [("bucket", {"items": []}), ("bigquery_dataset", {"datasets": []})])
+def test_successful_empty_data_service_inventory_is_still_empty(kind, response):
+    result, _ = snapshot([kind], lambda request: response, scopes=["projects/123"])
+    found = collection(result, kind, "projects/123")
+    assert found["status"] == found["coverage_status"] == "empty"
+    assert found["items"] == [] and "error" not in found and "service_state" not in found
+
+
+def test_disabled_quota_project_does_not_mark_numeric_target_service_disabled():
+    def resolve(request):
+        raise disabled("projects/999", "storage.googleapis.com")
+
+    result, _ = snapshot(["bucket"], resolve, scopes=["projects/123"])
+    found = collection(result, "bucket", "projects/123")
+    assert found["status"] == "unknown" and found["coverage_status"] == "unavailable"
+    assert found["error"]["consumer"] == "projects/999" and "service_state" not in found
+
+
+def test_disabled_service_after_rows_keeps_partial_inventory_and_metadata():
+    transport = FixtureTransport(lambda request: {"items": []})
+    collector = gcp.GCPCollector(connector(["bigquery_dataset"], scopes=["projects/123"]), transport=transport)
+    error = disabled("projects/123", "bigquery.googleapis.com")
+    error.request_id = "request-2"
+
+    def fetch():
+        yield [{"name": "projects/123/datasets/existing", "datasetReference": {"datasetId": "existing"}}], "request-1"
+        raise error
+
+    found = collector.envelope("bigquery_dataset", "projects/123", "bigquery", fetch)
+    assert found["status"] == found["coverage_status"] == "partial"
+    assert len(found["items"]) == 1 and found["error"]["reason"] == "SERVICE_DISABLED"
+    assert found["source_requests"] == ["request-1", "request-2"]
+    assert found["service_state"]["source_requests"] == ["request-2"]
 
 
 def test_service_account_activity_attaches_policy_analyzer_facts_only_for_listed_accounts():

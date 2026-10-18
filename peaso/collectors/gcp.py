@@ -552,8 +552,8 @@ class Transport:
             # to this request, so do not mutate that shared exception instance.
             cached["error"] = ReadError(exc.status, exc.error["code"], http_status=exc.error.get("http_status"),
                                         reason=exc.error.get("reason"))
-            # SERVICE_DISABLED consumer/service decide whether the target's own
-            # service is off (empty) or only the quota project's (unknown).
+            # Keep the disabled service's consumer/service for collection
+            # metadata; neither target nor quota disablement proves absence.
             cached["error"].error.update({key: exc.error[key] for key in ("consumer", "service", "resource") if key in exc.error})
         except Exception:
             error = ReadError("unavailable", "read_failed")
@@ -1092,10 +1092,9 @@ class GCPCollector:
             state, error = exc.status, {"kind": exc.status, **exc.error}
             if getattr(exc, "request_id", None):
                 source_requests.append(exc.request_id)
-            if exc.error.get("reason") == "SERVICE_DISABLED" and exc.error.get("consumer") == scope and not items:
-                # The read target's own service is disabled, so the API holds no
-                # readable inventory there; reported as empty with explicit state.
-                state, error = "collected", None
+            if exc.error.get("reason") == "SERVICE_DISABLED" and exc.error.get("consumer") == scope:
+                # A disabled API cannot inventory retained resources (for example,
+                # Cloud Storage buckets or BigQuery datasets). Preserve the error.
                 service_state = {"state": "disabled", "reason": "SERVICE_DISABLED", "service": exc.error.get("service"),
                     "consumer": scope, "source_requests": [exc.request_id] if getattr(exc, "request_id", None) else []}
         except Exception:
