@@ -110,14 +110,6 @@ export function Dashboard({
         <div className="orb-scene" aria-hidden="true">
           <div className="orb-halo" />
           <img className="orb" src="/icons/peaso-badge.svg" alt="" />
-          <span className="orb-chip chip-one">
-            <ShieldCheck size={14} />
-            Native evidence
-          </span>
-          <span className="orb-chip chip-two">
-            <Cloud size={14} />
-            Four cloud providers
-          </span>
         </div>
       </div>
       <State loading={loading} error={error} onRetry={onRetry}>

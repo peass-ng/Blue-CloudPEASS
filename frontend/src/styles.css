@@ -650,29 +650,6 @@ h1 {
   border-radius: 50%;
   background: rgba(130, 255, 211, 0.1);
 }
-.orb-chip {
-  position: absolute;
-  font-size: 9px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(28, 53, 59, 0.8);
-  border: 1px solid #486e67;
-  border-radius: 7px;
-  box-shadow: 0 4px 30px #040f13aa;
-  color: #b7eed7;
-  padding: 9px 11px;
-  backdrop-filter: blur(10px);
-  transform: rotate(-3deg);
-}
-.chip-one {
-  top: 87px;
-  right: 9px;
-}
-.chip-two {
-  bottom: 30px;
-  left: 4px;
-}
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2289,9 +2266,6 @@ summary {
     top: 35px;
     opacity: 0.35;
     transform: scale(0.85);
-  }
-  .orb-chip {
-    display: none;
   }
   .hero-copy {
     position: relative;

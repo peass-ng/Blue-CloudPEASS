@@ -264,12 +264,12 @@ export function App() {
             Workspace <span>/</span> {page}
           </span>
           <div className="topbar-actions">
-            <label className="demo-switch">
-              <input type="checkbox" checked={demo} disabled={signedIn || identity.isPending} onChange={switchDemo} />
+            {!identity.isPending && !signedIn && <label className="demo-switch">
+              <input type="checkbox" checked={demo} onChange={switchDemo} />
               <span className="switch-track" />
               Fixture demo
-            </label>
-            {!identity.isPending && <span className={`api-status${health.error && !demo ? " offline" : ""}`}><span className="status-dot" />{demo ? "Demo data" : health.error ? "API unavailable" : "Live API"}</span>}
+            </label>}
+            {!identity.isPending && !signedIn && <span className={`api-status${health.error && !demo ? " offline" : ""}`}><span className="status-dot" />{demo ? "Demo data" : health.error ? "API unavailable" : "Live API"}</span>}
             {!identity.isPending && !signedIn && <div className="topbar-auth-actions">
               <a className="button" href={authLink("login")}>Log in</a>
               <a className="button primary" href={authLink("register")}>Register</a>
