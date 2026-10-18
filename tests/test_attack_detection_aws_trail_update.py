@@ -54,6 +54,34 @@ def test_sigma_selection_reports_the_three_confirmed_settings_only() -> None:
     assert detect_aws_events([partial], [rule]) == []
 
 
+def test_independent_hacktricks_trail_techniques_require_their_own_confirmed_fields() -> None:
+    validation = Rule(
+        id="validation", title="Validation off", level="high", description="Observed",
+        technique_id="validation", product="aws",
+        selection={"event.source": "cloudtrail.amazonaws.com", "event.name": "UpdateTrail",
+                   "event.outcome": "success", "request.integrity_validation_disabled": True},
+    )
+    region_global = Rule(
+        id="region-global", title="Region/global off", level="high", description="Observed",
+        technique_id="region-global", product="aws",
+        selection={"event.source": "cloudtrail.amazonaws.com", "event.name": "UpdateTrail",
+                   "event.outcome": "success", "request.multi_region_logging_disabled": True,
+                   "request.global_service_logging_disabled": True},
+    )
+    only_validation = _record()
+    only_validation["requestParameters"] = {"name": "audit-trail", "enableLogFileValidation": False}
+    only_validation["responseElements"] = {"trailARN": TRAIL_ARN, "name": "audit-trail",
+                                          "logFileValidationEnabled": False}
+    assert [hit.rule_id for hit in detect_aws_events([only_validation], [validation, region_global])] == ["validation"]
+    only_region_global = _record()
+    only_region_global["requestParameters"].pop("enableLogFileValidation")
+    only_region_global["responseElements"].pop("logFileValidationEnabled")
+    assert [hit.rule_id for hit in detect_aws_events([only_region_global], [validation, region_global])] == ["region-global"]
+    contradictory = deepcopy(only_region_global)
+    contradictory["responseElements"]["includeGlobalServiceEvents"] = True
+    assert detect_aws_events([contradictory], [validation, region_global]) == []
+
+
 @pytest.mark.parametrize("request_field,response_field,normalized_field", [
     ("enableLogFileValidation", "logFileValidationEnabled", "request.integrity_validation_disabled"),
     ("isMultiRegionTrail", "isMultiRegionTrail", "request.multi_region_logging_disabled"),
