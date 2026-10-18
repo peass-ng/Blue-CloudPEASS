@@ -596,6 +596,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             "object_size_changed": "A CloudTrail object changed while it was being read; retry the analysis.",
             "decompressed_object_too_large": "A CloudTrail object exceeds the bounded preview size; select a smaller source window.",
             "malformed_cloudtrail_object": "A selected S3 object is not a valid CloudTrail gzip record set.",
+            "log_prefix_listing_incomplete": "The selected S3 prefix contains more pages than this preview can inspect; choose a narrower prefix.",
             "select_valid_customer_project": "Enter a valid customer GCP project ID.",
             "platform_project_forbidden": "The HackTricks platform project cannot be a log target.",
             "project_outside_connector_scope": "Add this project to the GCP connector scope before reading its logs.",

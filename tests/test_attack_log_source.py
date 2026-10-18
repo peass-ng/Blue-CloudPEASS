@@ -131,6 +131,44 @@ def test_s3_analysis_filters_foreign_account_and_denied_events(monkeypatch):
     assert [item["event_id"] for item in result["detections"]] == ["evt-1"]
 
 
+def test_s3_listing_cap_is_reported_as_partial_and_never_as_empty(monkeypatch):
+    raw = gzip.compress(json.dumps({"Records": []}).encode())
+    class Client:
+        def __init__(self, include_record):
+            self.calls = 0
+            self.include_record = include_record
+
+        def list_objects_v2(self, **kwargs):
+            self.calls += 1
+            return {
+                "Contents": ([{"Key": "trail.json.gz", "Size": len(raw)}] if self.include_record and self.calls == 1 else []),
+                "NextContinuationToken": f"page-{self.calls}",
+                "IsTruncated": True,
+            }
+
+        def get_object(self, **kwargs):
+            return {"Body": io.BytesIO(raw)}
+
+    class Session:
+        def __init__(self, include_record):
+            self.client_instance = Client(include_record)
+
+        def client(self, service, **kwargs):
+            return self.client_instance
+
+    source = SimpleNamespace(kind="aws_cloudtrail_s3", region="us-east-1", role_arn=None,
+                             bucket="audit-bucket", prefix="AWSLogs/123456789012/CloudTrail/", day="2020-01-01")
+    monkeypatch.setattr("peaso.server.attack_logs._target_session",
+                        lambda *args: (Session(False), "123456789012"))
+    with pytest.raises(LogAccessError, match="log_prefix_listing_incomplete"):
+        check_aws_source({}, {}, source)
+    monkeypatch.setattr("peaso.server.attack_logs._target_session",
+                        lambda *args: (Session(True), "123456789012"))
+    result = analyze_aws_source({}, {}, source)
+    assert result["coverage"]["truncated"] is True
+    assert result["coverage"]["objects_read"] == 1
+
+
 def test_hosted_source_never_uses_platform_account(monkeypatch):
     from peaso.server.attack_logs import _target_session
     from peaso.server.validation import COLLECTOR_ROLE_ARN
