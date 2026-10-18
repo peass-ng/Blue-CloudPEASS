@@ -24,6 +24,7 @@ def pair(*, role=OWNER, resource=RESOURCE, principal=ACTOR):
         "subscriptionId": SUB, "category": {"value": "Administrative"},
         "operationName": {"value": "Microsoft.Authorization/roleAssignments/write"},
         "status": {"value": "Started"}, "operationId": OPERATION,
+        "caller": "actor@example.invalid",
         "resourceId": resource, "eventDataId": "start-event", "eventTimestamp": "2026-10-18T08:00:00Z",
         "claims": {"http://schemas.microsoft.com/identity/claims/objectidentifier": ACTOR},
         "properties": {"requestbody": json.dumps({"id": ASSIGNMENT, "properties": {
@@ -33,6 +34,7 @@ def pair(*, role=OWNER, resource=RESOURCE, principal=ACTOR):
     }
     success = deepcopy(started)
     success["status"] = {"value": "Succeeded"}
+    success["subStatus"] = {"value": "Created (HTTP Status Code: 201)"}
     success["eventDataId"] = "success-event"
     success["eventTimestamp"] = "2026-10-18T08:01:00Z"
     success["properties"] = {"statusCode": "Created"}
@@ -66,10 +68,30 @@ def test_user_access_admin_self_grant_and_duplicate_success_deduped():
     assert matches[0]["request.role_name"] == "User Access Administrator"
 
 
+def test_updated_assignment_is_not_reported_as_created():
+    started, success = pair()
+    success["subStatus"] = {"value": "OK (HTTP Status Code: 200)"}
+    assert correlate_azure_self_grants([started, success], subscription=SUB) == []
+
+
+def test_ambiguous_operation_pairs_do_not_claim_self_grant():
+    started, success = pair()
+    other_start = deepcopy(started)
+    other_start["eventDataId"] = "other-start-event"
+    other_start["properties"]["requestbody"] = json.dumps({"id": ASSIGNMENT, "properties": {
+        "principalId": OTHER,
+        "roleDefinitionId": f"/providers/Microsoft.Authorization/roleDefinitions/{OWNER}"}})
+    assert correlate_azure_self_grants([started, other_start, success], subscription=SUB) == []
+    other_success = deepcopy(success)
+    other_success["eventDataId"] = "other-success-event"
+    assert correlate_azure_self_grants([started, success, other_success], subscription=SUB) == []
+
+
 @pytest.mark.parametrize("change", [
     "failed", "no_request", "other_principal", "other_actor", "other_operation",
     "other_resource", "too_late", "wrong_category", "wrong_subscription",
     "wrong_request_id", "no_actor_oid", "success_before_started",
+    "missing_created", "different_caller", "conflicting_repeat", "same_event_id",
 ])
 def test_incomplete_or_mismatched_operations_do_not_match(change):
     started, success = pair()
@@ -101,6 +123,17 @@ def test_incomplete_or_mismatched_operations_do_not_match(change):
         started["claims"] = {}
     elif change == "success_before_started":
         success["eventTimestamp"] = "2026-10-18T07:59:00Z"
+    elif change == "missing_created":
+        success.pop("subStatus")
+    elif change == "different_caller":
+        success["caller"] = "different@example.invalid"
+    elif change == "same_event_id":
+        success["eventDataId"] = started["eventDataId"]
+    elif change == "conflicting_repeat":
+        repeated = deepcopy(started)
+        repeated["caller"] = "different@example.invalid"
+        assert correlate_azure_self_grants([started, repeated, success], subscription=SUB) == []
+        return
     assert correlate_azure_self_grants([started, success], subscription=SUB) == []
 
 
