@@ -58,18 +58,24 @@ def test_gcp_requires_confirmed_success_and_target() -> None:
     matches = detect_gcp_events([good], [GCP_TEST_RULE])
     assert len(matches) == 1
     assert matches[0].target_id == "projects/-/serviceAccounts/target@customer.iam.gserviceaccount.com"
+    assert normalize_gcp_audit(good)["account.id"] == "customer"
     returned = deepcopy(good)
     returned["protoPayload"].pop("status")
     returned["protoPayload"]["response"] = {"name": "projects/customer/serviceAccounts/target@customer.iam.gserviceaccount.com/keys/abc"}
     assert len(detect_gcp_events([returned], [GCP_TEST_RULE])) == 1
     negatives = []
-    for edit in ("failure", "unknown", "data_log", "wrong_method", "wrong_target"):
+    for edit in ("failure", "unknown", "data_log", "wrong_method", "wrong_target",
+                 "foreign_target", "foreign_returned_key", "foreign_resource", "malformed_log"):
         row = deepcopy(good)
         if edit == "failure": row["protoPayload"]["status"] = {"code": 7}
         if edit == "unknown": row["protoPayload"].pop("status")
         if edit == "data_log": row["logName"] = row["logName"].replace("activity", "data_access")
         if edit == "wrong_method": row["protoPayload"]["methodName"] = "google.iam.admin.v1.GetServiceAccountKey"
         if edit == "wrong_target": row["protoPayload"]["request"]["name"] = "invalid"
+        if edit == "foreign_target": row["protoPayload"]["request"]["name"] = "projects/-/serviceAccounts/target@foreign.iam.gserviceaccount.com"
+        if edit == "foreign_returned_key": row["protoPayload"]["response"] = {"name": "projects/foreign/serviceAccounts/target@foreign.iam.gserviceaccount.com/keys/abc"}
+        if edit == "foreign_resource": row["resource"] = {"type": "service_account", "labels": {"project_id": "foreign"}}
+        if edit == "malformed_log": row["logName"] = "organizations/123/logs/cloudaudit.googleapis.com%2Factivity"
         negatives.append(row)
     assert detect_gcp_events(negatives, [GCP_TEST_RULE]) == []
     assert normalize_gcp_audit(good)["credential.effect_confirmed"] is True
