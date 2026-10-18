@@ -224,7 +224,20 @@ def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argumen
             return ReadResult([], parents.status, parents.error)
         items, failures = [], []
         for parent in parents.items:
+            # GetApis is the authority for v2 protocol. A retained value with
+            # field-level denial must never be used to classify a stage.
+            if not isinstance(parent, dict) or parent.get("collection_status", "collected") != "collected":
+                return ReadResult(items, "partial" if items else "malformed", {"code": "malformed_parent_api"})
+            coverage = parent.get("_coverage", {})
+            if not isinstance(coverage, dict):
+                return ReadResult(items, "partial" if items else "malformed", {"code": "malformed_parent_api_coverage"})
+            if any(key in coverage and (not isinstance(coverage[key], dict) or coverage[key].get("status") != "collected")
+                   for key in ((parent_key, "ProtocolType") if service == "apigatewayv2" else (parent_key,))):
+                return ReadResult(items, "partial" if items else "malformed", {"code": "apigateway_parent_field_unavailable"})
             api_id = parent.get(parent_key)
+            protocol = parent.get("ProtocolType") if service == "apigatewayv2" else None
+            if service == "apigatewayv2" and protocol not in ("HTTP", "WEBSOCKET"):
+                return ReadResult(items, "partial" if items else "malformed", {"code": "apigateway_parent_protocol_unavailable"})
             if not isinstance(api_id, str):
                 return ReadResult(items, "partial" if items else "malformed", {"code": "malformed_parent_api"})
             children = requests.pages(session, service, region, "get_stages", child_expr, **{argument: api_id})
@@ -236,8 +249,12 @@ def _api_stages(service, parent_op, parent_expr, parent_key, child_expr, argumen
                     return ReadResult(items, "partial" if items else "malformed", {"code": "malformed_stage"})
                 row = _metadata(child)
                 row["ParentApiId"] = api_id
+                if service == "apigatewayv2":
+                    row["ParentProtocolType"] = protocol
                 row["id"] = f"arn:{partition}:apigateway:{region}::/{stage_path}/{api_id}/stages/{name}"
                 row["_provenance"] = {"source_operation": "get_stages", "parent_api_id": api_id, "read_only": True}
+                if service == "apigatewayv2":
+                    row["_provenance"]["parent_protocol_source_operation"] = "get_apis"
                 if service == 'apigateway':
                     # AccessLogSettings is optional in the complete native
                     # Stage response and survives the metadata projection.

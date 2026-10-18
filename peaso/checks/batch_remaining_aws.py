@@ -521,12 +521,22 @@ def _rds_instance(item,index):
 def _dynamodb(item,index):
     identity=_member(item,index,'dynamodb_table');detail=get(item,'Table.Table',dict)
     if get(detail,'TableName',str)!=identity:raise Unavailable('DynamoDB table detail identity mismatch')
+    from peaso.collectors.aws_config_account_native import region_partition
+    account,region=_scope(index)[1].split('/')
+    partition=region_partition(region)
+    if 'TableArn' in detail:
+        if get(detail,'TableArn',str)!=f'arn:{partition}:dynamodb:{region}:{account}:table/{identity}':
+            raise Unavailable('DynamoDB table detail ARN identity mismatch')
     if 'SSEDescription' not in detail and 'SSEDescription' not in detail.get('_coverage',{}):
         return result(True,table_name=identity,reason='complete table detail has no KMS SSE description')
     sse=get(detail,'SSEDescription',dict)
     sse_type=get(sse,'SSEType',str);arn=get(sse,'KMSMasterKeyArn',str);state=get(sse,'Status',str)
     if sse_type not in ('KMS','AES256') or state not in ('ENABLED','ENABLING','DISABLING','DISABLED','UPDATING'):
         return unknown('unrecognized DynamoDB encryption state')
+    if state in ('ENABLING','DISABLING','UPDATING'):
+        return unknown('SSE change in progress',table_name=identity,state=state)
+    if arn and not re.fullmatch(rf'arn:{re.escape(str(partition))}:kms:{re.escape(region)}:{account}:key/[A-Za-z0-9_-]+',arn):
+        raise Unavailable('DynamoDB KMS key ARN is malformed or outside table scope')
     return result(sse_type!='KMS' or not arn or state!='ENABLED',table_name=identity,sse_type=sse_type,key_arn_present=bool(arn),state=state)
 
 

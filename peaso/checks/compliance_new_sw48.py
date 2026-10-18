@@ -182,6 +182,76 @@ def _kms(item, index):
     return result(meta['KeyState'] != 'Enabled', key_id=key)
 
 
+
+def _valid_rotation_schedule(expression):
+    """Conservative subset of AWS Secrets Manager's rate/cron grammar."""
+    if len(expression) > 256:
+        return False
+    rate = re.fullmatch(r'rate\(([1-9][0-9]*) (hour|hours|day|days)\)', expression)
+    if rate:
+        value = int(rate.group(1))
+        unit = rate.group(2)
+        if (value == 1) != (not unit.endswith('s')):
+            return False
+        return 4 <= value <= 999 * 24 if unit.startswith('hour') else 1 <= value <= 999
+    cron = re.fullmatch(r'cron\(([^()]*)\)', expression)
+    if not cron:
+        return False
+    fields = cron.group(1).split()
+    if len(fields) != 6:
+        return False
+    minute, hour, month_day, month, week_day, year = fields
+    if minute != '0' or year != '*' or ((month_day == '?') == (week_day == '?')):
+        return False
+
+    def values(field, low, high, names=()):
+        if field == '*':
+            return set(range(low, high + 1))
+        result = set()
+        for part in field.split(','):
+            endpoints = part.split('-')
+            if len(endpoints) > 2 or not all(endpoints):
+                return None
+            numbers = []
+            for endpoint in endpoints:
+                if endpoint in names:
+                    numbers.append(low + names.index(endpoint))
+                elif re.fullmatch(r'[0-9]{1,2}', endpoint):
+                    numbers.append(int(endpoint))
+                else:
+                    return None
+            if any(number < low or number > high for number in numbers):
+                return None
+            if len(numbers) == 2 and numbers[0] > numbers[1]:
+                return None
+            result.update(range(numbers[0], numbers[-1] + 1))
+        return result
+
+    if hour.startswith('/') or '/' in hour:
+        match = re.fullmatch(r'([0-9]{0,2})/([0-9]{1,2})', hour)
+        if not match:
+            return False
+        start = int(match.group(1) or 0)
+        step = int(match.group(2))
+        if start > 23 or not 4 <= step <= 23:
+            return False
+        hours = list(range(start, 24, step))
+    else:
+        hours = sorted(values(hour, 0, 23) or ())
+    if not hours or min(b - a for a, b in zip(hours, hours[1:] + [hours[0] + 24])) < 4:
+        return False
+    months = values(month, 1, 12, ('JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                                    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'))
+    if not months:
+        return False
+    if month_day != '?' and not values(month_day, 1, 31):
+        return False
+    if week_day != '?' and not values(week_day, 1, 7,
+                                      ('SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT')):
+        return False
+    return True
+
+
 def _rotation(item, index):
     _inventory(index, 'secret', item)
     enabled = get(item, 'RotationEnabled', bool)
@@ -200,8 +270,8 @@ def _rotation(item, index):
     # because the other schedule form looks valid.
     schedule = optional(rules, 'ScheduleExpression', None, str)
     days = optional(rules, 'AutomaticallyAfterDays', None, int)
-    if schedule is not None and not re.fullmatch(r'rate\([1-9][0-9]* days?\)|cron\(.+\)', schedule):
-        raise Unavailable('malformed rotation schedule')
+    if schedule is not None and not _valid_rotation_schedule(schedule):
+        raise Unavailable('rotation schedule is malformed or outside the supported grammar')
     if days is not None and not _positive_int(days):
         raise Unavailable('malformed rotation schedule')
     if schedule is None and days is None:

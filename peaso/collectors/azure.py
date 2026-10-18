@@ -1424,14 +1424,35 @@ def collect(connector, requirements=None, *, transport=None):
                     cache[key] = transport.request(url, body=body, audience=audience)
                 return cache[key]
         jobs = []
-        if discover_all or "subscription" in wanted:
+        if discover_all:
             reader.run([("subscription", tenant_scope, "Microsoft.Resources", lambda: reader.pages(request, ARM + "/subscriptions?api-version=2022-12-01"))])
-            if discover_all:
-                scopes = [item["id"] for item in reader.collections[-1]["items"] if isinstance(item.get("subscriptionId"), str)]
-                if max_scopes is not None and len(scopes) > max_scopes:
-                    scopes = scopes[:max_scopes]
-                    scopes_limited = True
-                    reader.collections[-1].update(status="partial", error={"code": "scope_limit"})
+            scopes = [item["id"] for item in reader.collections[-1]["items"] if isinstance(item.get("subscriptionId"), str)]
+            if max_scopes is not None and len(scopes) > max_scopes:
+                scopes = scopes[:max_scopes]
+                scopes_limited = True
+                reader.collections[-1].update(status="partial", error={"code": "scope_limit"})
+        elif "subscription" in wanted:
+            # An explicit scan must not turn a tenant-wide subscription LIST
+            # into subjects for checks bound to the selected subscription.
+            for scope in scopes:
+                def selected_subscription(scope=scope):
+                    value = reader.call(request, ARM + scope + "?api-version=2022-12-01")
+                    guid = r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}"
+                    selected_id = scope.rsplit("/", 1)[-1]
+                    subscription_id = value.get("subscriptionId") if isinstance(value, dict) else None
+                    tenant_id = value.get("tenantId") if isinstance(value, dict) else None
+                    expected_tenants = (auth.get("tenant_id"), getattr(transport, "verified_tenant", None))
+                    if (not isinstance(value, dict) or not isinstance(value.get("id"), str)
+                            or value["id"].lower() != scope.lower()
+                            or not isinstance(subscription_id, str) or not re.fullmatch(guid, subscription_id)
+                            or subscription_id.lower() != selected_id.lower()
+                            or not isinstance(tenant_id, str) or not re.fullmatch(guid, tenant_id)
+                            or any(expected is not None and
+                                (not isinstance(expected, str) or expected.lower() != tenant_id.lower())
+                                for expected in expected_tenants)):
+                        raise ValueError("subscription tenant binding unavailable")
+                    yield [value]
+                reader.run([("subscription", scope, "Microsoft.Resources", selected_subscription)])
         if discover_all:bind_tls_scopes(tls_owner, scopes)
         if "tenant" in wanted:
             jobs.append(("tenant", tenant_scope, "Microsoft.Resources", lambda: reader.pages(request, ARM + "/tenants?api-version=2022-12-01")))

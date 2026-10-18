@@ -6,8 +6,9 @@ from copy import deepcopy
 import hashlib
 import json
 
-VERSION = "native-rotation-archive-description-overlay-v1"
+VERSION = "native-rotation-archive-description-overlay-v2"
 OFFICIAL_REFERENCES = [
+ "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_schedule.html",
  "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotate-secrets_managed.html",
  "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html",
  "https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_DescribeTrails.html",
@@ -75,7 +76,12 @@ ROWS = {'aws_log_archive_immutable': {'base_row_sha256': '5c08fccafa55ffde6e9640
                                                                                          'invocation '
                                                                                          'permissions '
                                                                                          'are '
-                                                                                         'correct.',
+                                                                                         'correct. '
+                                                                                         'Unsupported '
+                                                                                         'schedule '
+                                                                                         'forms '
+                                                                                         'remain '
+                                                                                         'UNKNOWN.',
                                                                           'evaluated': ['secret.ARN '
                                                                                         'bound to '
                                                                                         'native '

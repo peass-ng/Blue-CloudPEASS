@@ -456,8 +456,8 @@ def test_azure_secret_metadata_and_vm_sensitive_fields_never_retained():
 
 @pytest.mark.parametrize("next_link", ["https://attacker.example/list", "https://management.azure.com/subscriptions/unselected/list", "https://user@management.azure.com/list"])
 def test_azure_untrusted_continuation_not_followed(next_link):
-    api = FakeAzure(lambda *_: {"value": [{"id": "/subscriptions/sub-a"}], "nextLink": next_link})
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["subscription"], transport=api)
+    api = FakeAzure(lambda *_: {"value": [{"id": "/subscriptions/sub-a", "subscriptionId": "sub-a"}], "nextLink": next_link})
+    snapshot = azure.collect({"scopes": ["*"]}, ["subscription"], transport=api)
     assert collection(snapshot, "subscription")["status"] == "partial"
     assert len(api.calls) == 1
 
@@ -590,7 +590,7 @@ def test_concurrency_retry_and_global_call_budget(monkeypatch):
 @pytest.mark.parametrize("provider", ["azure", "k8s"])
 def test_page_and_resource_caps_are_partial(provider):
     if provider == "azure":
-        snapshot = azure.collect({"scopes": ["sub-a"], "options": {"max_pages": 1}}, ["subscription"], transport=FakeAzure(lambda url, *_: {"value": [{"id": "/subscriptions/sub-a"}], "nextLink": url + "&page=2"}))
+        snapshot = azure.collect({"scopes": ["*"], "options": {"max_pages": 1}}, ["subscription"], transport=FakeAzure(lambda url, *_: {"value": [{"id": "/subscriptions/sub-a", "subscriptionId": "sub-a"}], "nextLink": url + "&page=2"}))
         assert collection(snapshot, "subscription")["status"] == "partial"
     else:
         snapshot = k8s.collect({"scopes": ["team-a"], "options": {"max_resources": 1}}, ["pod"], api=FakeKube(lambda *_: kube_list([kube_item("a"), kube_item("b")])))

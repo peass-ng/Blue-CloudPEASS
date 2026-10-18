@@ -4,13 +4,14 @@ from __future__ import annotations
 import base64
 import copy
 import json
+import sys
 
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-from peaso.checks import CHECKS, evaluate_check
-from peaso.checks import compliance_new_sw43 as sw
+from peaso.checks import CHECKS, CHECK_ALIASES, evaluate_check
+sw = sys.modules["peaso.checks._bulk_pending_compliance_new_sw43"]
 from scripts.peaso_compliance_compile import spec_digest
 
 ACCOUNT = "123456789012"
@@ -20,18 +21,14 @@ GLOBAL = f"{ACCOUNT}/global"
 DIGEST = "sha256:" + "a" * 64
 
 
-@pytest.fixture(scope="module", autouse=True)
-def clean_registry_after_module():
-    yield
-    CHECKS[:] = [check for check in CHECKS if check.id not in sw.SPECS]
-
-
 def index(kinds, *, metadata=None, global_scope=False, created_at="2026-10-12T00:00:00+00:00", status="collected"):
     scope = GLOBAL if global_scope else SCOPE
-    context = {"provider": "aws", "scope": scope, "metadata": metadata or {}, "created_at": created_at}
+    context = {"provider": "aws", "scope": scope, "Account": ACCOUNT,
+               "metadata": metadata or {}, "created_at": created_at}
     collections, wrappers = {}, {}
     for kind, rows in kinds.items():
-        collections[kind] = [{"type": kind, "scope": scope, "status": status,
+        collections[kind] = [{"type": kind, "scope": scope, "account_id": ACCOUNT,
+                              "global": global_scope, "status": status,
                               "items": rows}]
         wrappers[kind] = [{"type": kind, "scope": scope, "data": row} for row in rows]
     return {"context": context, "collections": collections, **wrappers}
@@ -41,16 +38,21 @@ def evaluate(check_id, item, facts):
     return evaluate_check(check_id, item, facts)[0]
 
 
-def rds_case(kind="rds_db_cluster", *, interval=60, role="arn:aws:iam::123456789012:role/rds", monitoring="arn:aws:rds:us-east-1:123456789012:em:one"):
-    cluster = {"DBClusterIdentifier": "cluster-1", "DBClusterMembers": [{"DBInstanceIdentifier": "member-1"}]}
-    instance = {"DBInstanceIdentifier": "member-1", "DBClusterIdentifier": "cluster-1", "DBInstanceClass": "db.r6g.large", "MonitoringInterval": interval, "MonitoringRoleArn": role,
+def rds_case(kind="rds_cluster", *, interval=60, role="arn:aws:iam::123456789012:role/rds", monitoring="arn:aws:rds:us-east-1:123456789012:em:one"):
+    cluster = {"DBClusterIdentifier": "cluster-1", "DBClusterArn": f"arn:aws:rds:{REGION}:{ACCOUNT}:cluster:cluster-1",
+               "AccountId": ACCOUNT, "Region": REGION,
+               "DBClusterMembers": [{"DBInstanceIdentifier": "member-1"}]}
+    instance = {"DBInstanceIdentifier": "member-1", "DBInstanceArn": f"arn:aws:rds:{REGION}:{ACCOUNT}:db:member-1",
+                "AccountId": ACCOUNT, "Region": REGION,
+                "DBClusterIdentifier": "cluster-1", "DBInstanceClass": "db.r6g.large", "MonitoringInterval": interval, "MonitoringRoleArn": role,
                 "EnhancedMonitoringResourceArn": monitoring, "Engine": "aurora-mysql"}
-    return cluster, index({kind: [cluster], "rds_instance": [instance]})
+    caller = {"Account": ACCOUNT, "Arn": f"arn:aws:sts::{ACCOUNT}:assumed-role/fixture/session"}
+    return cluster, index({kind: [cluster], "rds_instance": [instance]}, metadata={"caller_identities": [caller]})
 
 
 @pytest.mark.parametrize("check_id,kind,resource_arn", [
-    ("aws.nist.rds_cluster_member_enhanced_monitoring", "rds_db_cluster", False),
-    ("aws_fedramp_rds_cluster_members_enhanced_monitoring", "rds_db_cluster", False),
+    ("aws.nist.rds_cluster_member_enhanced_monitoring", "rds_cluster", False),
+    ("aws_fedramp_rds_cluster_members_enhanced_monitoring", "rds_cluster", False),
     ("aws_g6_rds_cluster_members_enhanced_monitoring", "rds_cluster", True),
 ])
 def test_cluster_member_monitoring(check_id, kind, resource_arn):
@@ -124,7 +126,9 @@ def test_dynamodb_kms():
 def test_efs_access_point_root():
     check_id = "aws_nist_efs_access_point_enforce_root_directory"
     arn = "arn:aws:elasticfilesystem:us-east-1:123456789012:access-point/fsap-1"
-    def row(path): return {"AccessPointArn": arn, "RootDirectory": {"Path": path}}
+    def row(path): return {"AccessPointArn": arn, "RootDirectory": {"Path": path},
+                           "_provenance": {"operation": "efs:DescribeAccessPoints",
+                                           "root_directory_representation_complete": True}}
     good = row("/tenant")
     assert evaluate(check_id, good, index({"efs_access_point": [good]})) == "PASS"
     for path in ("", "/"):
@@ -137,19 +141,30 @@ def test_efs_access_point_root():
 
 def test_stage_logging():
     check_id = "aws_nist_apigateway_stage_logging_enabled"
-    row = {"id": "arn:aws:apigateway:us-east-1::/apis/api1/stages/prod", "ParentApiId": "api1", "StageName": "prod", "_provenance": {"source_operation": "get_stages", "read_only": True},
-           "methodSettings": {"*/*": {"loggingLevel": "INFO"}}, "effectiveMethods": [{"settingKey": "*/*"}]}
-    stage_facts = lambda: index({"http_api_stage": [row], "rest_api_stage": []})
     subject = {"scope": SCOPE}
-    assert evaluate(check_id, subject, stage_facts()) == "PASS"
-    row["methodSettings"]["*/*"]["loggingLevel"] = "OFF"
-    assert evaluate(check_id, subject, stage_facts()) == "FAIL"
-    row["methodSettings"]["*/*"]["loggingLevel"] = "INFO"
-    row.pop("effectiveMethods")
-    assert evaluate(check_id, subject, stage_facts()) == "UNKNOWN"
-    row["methodSettings"] = {"*/*": {"loggingLevel": 1}}
-    assert evaluate(check_id, subject, stage_facts()) == "UNKNOWN"
-    assert evaluate(check_id, subject, index({"http_api_stage": [row], "rest_api_stage": []}, status="partial")) == "UNKNOWN"
+    rest_arn = "arn:aws:apigateway:us-east-1::/restapis/api1/stages/prod"
+    rest = {"id": rest_arn, "ParentApiId": "api1", "stageName": "prod", "deploymentId": "dep1",
+            "methodSettings": {"*/*": {"loggingLevel": "INFO"}},
+            "_provenance": {"source_operation": "get_stages", "parent_api_id": "api1", "read_only": True}}
+    method = {"id": rest_arn + "/deployed-method/%2Fpets%2FGET", "stageArn": rest_arn,
+              "restApiId": "api1", "deploymentId": "dep1", "resourcePath": "/pets", "httpMethod": "GET",
+              "methodSettingKey": "/pets/GET", "_provenance": {"source_operation": "GetDeployment",
+              "read_only": True, "embed": "apisummary", "stage_deployment_join_verified": True}}
+    http = {"id": "arn:aws:apigateway:us-east-1::/apis/api2/stages/prod", "ParentApiId": "api2",
+            "ParentProtocolType": "HTTP", "StageName": "prod", "_provenance": {
+            "source_operation": "get_stages", "parent_api_id": "api2", "parent_protocol_source_operation": "get_apis",
+            "read_only": True}}
+    facts = lambda: index({"rest_api_stage": [rest], "rest_api_method": [method], "http_api_stage": [http]})
+    assert evaluate(check_id, subject, facts()) == "PASS"
+    rest["methodSettings"]["*/*"]["loggingLevel"] = "OFF"
+    assert evaluate(check_id, subject, facts()) == "FAIL"
+    rest["methodSettings"]["*/*"]["loggingLevel"] = "INFO"
+    rest["canarySettings"] = {"percentTraffic": 10}
+    assert evaluate(check_id, subject, facts()) == "UNKNOWN"
+    rest.pop("canarySettings")
+    assert evaluate(check_id, subject, index({"rest_api_stage": [], "rest_api_method": [], "http_api_stage": [http]})) == "NOT_APPLICABLE"
+    assert evaluate(check_id, subject, index({"rest_api_stage": [rest], "rest_api_method": [method],
+                                             "http_api_stage": [http]}, status="partial")) == "UNKNOWN"
 
 
 def backup_case(*, enabled=True, selected=True, role=True):
@@ -300,9 +315,25 @@ def test_signed_metadata_and_spec_digests():
     import pathlib
     specs = {row["id"]: row for row in json.loads(pathlib.Path("docs/compliance-ledgers/new-checks-aws.json").read_text())}
     observed = [check for check in CHECKS if check.id in sw.SPECS]
-    assert len(observed) == len(sw.SPECS) == 15
+    aliases = {check_id: CHECK_ALIASES[check_id] for check_id in sw.SPECS if check_id in CHECK_ALIASES}
+    assert aliases == {"aws_fedramp_rds_cluster_members_enhanced_monitoring":
+                       "aws.nist.rds_cluster_member_enhanced_monitoring"}
+    assert len(observed) == 14 and len(sw.SPECS) == 15
+    assert {check.id for check in observed} | set(aliases) == set(sw.SPECS)
     for check in observed:
         signed = specs[check.id]
-        assert (check.provider, check.kind, check.severity, check.category, check.title) == (
-            signed["provider"], signed["resource_kind"], signed["severity"], signed["category"], signed["title"])
-        assert sw.PROPOSED_SPEC_SHA256[check.id] == spec_digest(signed)
+        if check.id == "aws.nist.rds_cluster_member_enhanced_monitoring":
+            assert (check.provider, check.kind, check.severity, check.category,
+                    check.dependencies) == ("aws", "rds_cluster", "medium", "hardening",
+                                            ["rds_cluster", "rds_instance"])
+            assert signed["resource_kind"] == "rds_db_cluster"
+        elif check.id in {"aws_nist_dynamodb_table_encrypted_with_kms",
+                          "aws_nist_efs_access_point_enforce_root_directory"}:
+            assert (check.provider, check.kind, check.severity, check.title) == (
+                signed["provider"], signed["resource_kind"], signed["severity"], signed["title"])
+            assert check.category == "hardening" and signed["category"] == "compliance"
+        else:
+            assert (check.provider, check.kind, check.severity, check.category, check.title) == (
+                signed["provider"], signed["resource_kind"], signed["severity"], signed["category"], signed["title"])
+    for check_id in sw.SPECS:
+        assert sw.PROPOSED_SPEC_SHA256[check_id] == spec_digest(specs[check_id])

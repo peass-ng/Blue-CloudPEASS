@@ -197,3 +197,53 @@ def test_explicit_null_alternative_remains_unknown_after_sdk_collection(monkeypa
     _item(snap)['RotationRules'] = rules
     snap.pop('snapshot_id', None)
     assert _status(snap) == 'UNKNOWN'
+
+
+@pytest.mark.parametrize('expression', [
+    'rate(4 hours)', 'rate(1 day)', 'rate(10 days)', 'rate(999 days)',
+    'cron(0 /8 * * ? *)', 'cron(0 8/8 * * ? *)',
+    'cron(0 2/10 * * ? *)', 'cron(0 10 * * ? *)',
+    'cron(0 18 ? * SAT *)', 'cron(0 8 1 * ? *)',
+    'cron(0 8 ? * MON-FRI *)', 'cron(0 16 1,15 * ? *)',
+    'cron(0 8 1-15 JAN-MAR ? *)',
+])
+def test_sdk_documented_rate_and_supported_cron(monkeypatch, expression):
+    snap = _collect(monkeypatch, {'RotationEnabled': True, 'OwningService': 'rds',
+        'RotationRules': {'ScheduleExpression': expression}})
+    assert _item(snap)['RotationRules']['ScheduleExpression'] == expression
+    assert _status(snap) == 'PASS'
+
+
+@pytest.mark.parametrize('expression', [
+    'rate(0 hours)', 'rate(1 hour)', 'rate(1 hours)', 'rate(3 hours)',
+    'rate(1000 days)', 'rate(4 minutes)', 'rate(4 hour)',
+    'cron(0 10 * * ?)', 'cron(0 10 * * ? * extra)',
+    'cron(1 10 * * ? *)', 'cron(0 10 * * ? 2026)',
+    'cron(0 24 * * ? *)', 'cron(0 0-23 * * ? *)',
+    'cron(0 1/2 * * ? *)', 'cron(0 10 32 * ? *)',
+    'cron(0 10 1 13 ? *)', 'cron(0 10 1 3-1 ? *)',
+    'cron(0 10 ? * FOO *)',
+    'cron(0 10 ? * 8 *)', 'cron(0 10 ? * 5-2 *)',
+    'cron(0 10 1 * MON *)', 'cron(0 10 ? * ? *)',
+    'cron(0 10 L * ? *)', 'cron(0 0 ? * SUN#1 *)',
+])
+def test_sdk_malformed_or_unsupported_schedule_stays_unknown(monkeypatch, expression):
+    snap = _collect(monkeypatch, {'RotationEnabled': True, 'OwningService': 'rds',
+        'RotationRules': {'ScheduleExpression': expression}})
+    assert _status(snap) == 'UNKNOWN'
+
+
+def test_sdk_denied_and_explicit_null_schedule_cannot_pass(monkeypatch):
+    detail = {'RotationEnabled': True, 'OwningService': 'rds',
+        'RotationRules': {'ScheduleExpression': 'rate(4 hours)'}}
+    assert _status(_collect(monkeypatch, detail, denied=True)) == 'UNKNOWN'
+    snap = _collect(monkeypatch, detail)
+    _item(snap)['RotationRules']['ScheduleExpression'] = None
+    snap.pop('snapshot_id', None)
+    assert _status(snap) == 'UNKNOWN'
+
+
+def test_sdk_current_days_regression_remains_pass(monkeypatch):
+    snap = _collect(monkeypatch, {'RotationEnabled': True, 'OwningService': 'rds',
+        'RotationRules': {'AutomaticallyAfterDays': 30}})
+    assert _status(snap) == 'PASS'

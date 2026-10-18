@@ -110,6 +110,16 @@ def render_documents() -> dict[Path, bytes]:
         "spec": scoped_iam_correction.CORRECTED_SPEC,
         "provenance": scoped_iam_correction.correction_provenance(),
     }
+    from peaso.checks import aws_apigateway_logging_source_correction as apigw_logging_correction
+    prior_apigw_logging = next((row for row in canonical["proposed_checks"]
+                               if row["id"] == apigw_logging_correction.CHECK_ID), None)
+    if prior_apigw_logging is None:
+        raise ValueError("Historical API Gateway logging proposal missing")
+    apigw_logging_correction.validate_prior_spec(prior_apigw_logging)
+    source_corrections[apigw_logging_correction.CHECK_ID] = {
+        "spec": apigw_logging_correction.CORRECTED_SPEC,
+        "provenance": apigw_logging_correction.correction_provenance(),
+    }
     public = [check.public() for check in active]
     if {check["id"] for check in public} != {check.id for check in active}:
         raise ValueError("Public native catalog differs from the registry")

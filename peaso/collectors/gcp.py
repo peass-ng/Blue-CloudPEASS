@@ -1107,6 +1107,7 @@ class GCPCollector:
             if previous:
                 output = {x["_resource_id"]: x for x in previous["items"]}
                 iam_by_native_id = {}
+                iam_collision = False
                 if kind == "iam_policy":
                     for row in output.values():
                         iam_by_native_id.setdefault(row["native_id"], []).append(row)
@@ -1121,7 +1122,7 @@ class GCPCollector:
                             continue
                         if prior and not (len(prior) == 1 and
                                           _iam_distinct_root_views(scope, prior[0], item)):
-                            envelope["error"] = {"kind": "malformed", "code": "conflicting_iam_policy_identity"}
+                            iam_collision = True
                         if rid in output:
                             ordinal = 2
                             native_id = item["native_id"]
@@ -1134,6 +1135,19 @@ class GCPCollector:
                         iam_by_native_id.setdefault(item["native_id"], []).append(item)
                 envelope["items"] = list(output.values())
                 envelope["source_requests"] = sorted(set(previous["source_requests"] + envelope["source_requests"]))
+                if kind == "iam_policy":
+                    collision = {"kind": "malformed", "code": "conflicting_iam_policy_identity"}
+                    causes = [error for error in (previous.get("error"), envelope.get("error"))
+                              if error and error != collision]
+                    if causes:
+                        # A read, pagination, or resource failure has stronger
+                        # authority than identity classification of retained rows.
+                        # Keep both substantive causes if separate adds failed.
+                        envelope["error"] = copy.deepcopy(causes[0])
+                        if len(causes) > 1 and causes[1] != causes[0]:
+                            envelope["error"]["additional_errors"] = copy.deepcopy(causes[1:])
+                    elif iam_collision or previous.get("error") or envelope.get("error"):
+                        envelope["error"] = collision
                 if previous.get("error") or envelope.get("error"):
                     envelope["error"] = envelope.get("error") or previous["error"]
                     state = "partial" if output else envelope["error"]["kind"]
@@ -2532,6 +2546,11 @@ class GCPCollector:
                         getattr(self.transport, "evidence", []))
                 except AliasUnavailable:
                     continue
+                if (policy_envelope.get("status"), policy_envelope.get("coverage_status")) == ("partial", "partial"):
+                    # Only the exact root collision proved above is repaired.
+                    # Its request ledger and all retained rows remain intact.
+                    policy_envelope["status"] = policy_envelope["coverage_status"] = "collected"
+                    policy_envelope.pop("error", None)
                 proven_alias_positions[scope] = binding.alias_position
                 self.proven_project_alias_scopes.add(scope)
         from peaso.gcp_project_alias import root_candidate

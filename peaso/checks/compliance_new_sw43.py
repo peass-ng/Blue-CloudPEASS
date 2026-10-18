@@ -9,7 +9,7 @@ from dataclasses import replace
 from datetime import datetime, timezone, timedelta
 
 from . import CHECKS, register, result, unknown
-from .facts import Unavailable, complete_items, get, guard
+from .facts import Unavailable, complete_items, get, guard, optional
 
 SPECS = {'aws.nist.rds_cluster_member_enhanced_monitoring': {'category': 'hardening',
                                                      'hint': 'Enable Enhanced Monitoring and a '
@@ -140,7 +140,7 @@ _GLOBAL = {"organization_account", "scp_policy", "aws_account_configuration"}
 _IDS = {"rds_db_cluster": "DBClusterIdentifier", "rds_cluster": "DBClusterIdentifier",
         "rds_instance": "DBInstanceIdentifier", "efs_file_system": "FileSystemArn",
         "efs_access_point": "AccessPointArn", "dynamodb_table": "TableName",
-        "http_api_stage": "id", "rest_api_stage": "id", "backup_plan": "BackupPlanArn",
+        "http_api_stage": "id", "rest_api_stage": "id", "rest_api_method": "id", "backup_plan": "BackupPlanArn",
         "backup_selection": "id", "backup_restore_job": "RestoreJobId",
         "ecr_image": "imageDigest", "ecr_oci_artifact": "artifactDigest",
         "organization_account": "Id", "scp_policy": "Id", "capacity_group": "id"}
@@ -335,44 +335,153 @@ def _efs_root(item, index):
     return result(False, access_point_arn=arn, path=path)
 
 
-def _stage_one(stage):
+def _logging_level(settings, key, inherited=None):
+    # GetStages returns sparse method/route overrides; a truly omitted field
+    # inherits the default. Explicit null, malformed values and field denial do not.
+    level = optional(settings, key, inherited, str)
+    if level not in {"OFF", "INFO", "ERROR"}:
+        raise Unavailable("logging level unavailable or unrecognized")
+    return level
+
+
+def _stage_bound(stage, family):
     arn = get(stage, "id", str)
     if get(stage, "_provenance.source_operation", str) != "get_stages" or get(stage, "_provenance.read_only", bool) is not True:
-        raise Unavailable("GetStages provenance unavailable")
-    settings = get(stage, "methodSettings", dict)
-    methods = get(stage, "effectiveMethods", list)
-    if any(not isinstance(x, dict) for x in methods):
-        raise Unavailable("malformed effective method inventory")
-    if not settings or "*/*" not in settings:
-        raise Unavailable("effective method wildcard coverage unavailable")
-    levels = {}
-    for key, value in settings.items():
-        if not isinstance(key, str) or not isinstance(value, dict):
-            raise Unavailable("malformed method settings")
-        level = get(value, "loggingLevel", str)
-        if level not in {"OFF", "INFO", "ERROR"}:
-            raise Unavailable("unrecognized logging level")
-        levels[key] = level
-    seen = set()
+        raise Unavailable("GetStages provenance unavailable: " + family)
+    api = get(stage, "ParentApiId", str)
+    if get(stage, "_provenance.parent_api_id", str) != api or not api:
+        raise Unavailable("stage parent API binding unavailable: " + family)
+    name = get(stage, "stageName" if family == "REST" else "StageName", str)
+    path = "restapis" if family == "REST" else "apis"
+    if (not re.fullmatch(r"[a-z0-9]{1,32}", api) or
+            not re.fullmatch(r"[A-Za-z0-9_$-]{1,128}", name) or
+            not re.fullmatch(r"arn:aws(?:-[a-z0-9-]+)?:apigateway:[a-z0-9-]+::/" +
+                             path + "/" + re.escape(api) + "/stages/" + re.escape(name), arn)):
+        raise Unavailable("stage ARN parent API binding unavailable: " + family)
+    from peaso.collectors.aws_config_account_native import region_partition
+    parts = arn.split(":", 5)
+    if region_partition(parts[3]) != parts[1]:
+        raise Unavailable("stage ARN partition differs from its Region")
+    return arn
+
+
+def _rest_stage(stage, methods):
+    arn = _stage_bound(stage, "REST")
+    deployment = get(stage, "deploymentId", str)
+    if not deployment:
+        raise Unavailable("REST deployment binding unavailable")
+    canary = optional(stage, "canarySettings", None, dict)
+    if canary is not None:
+        percent = optional(canary, "percentTraffic", 0)
+        if type(percent) not in (int, float) or percent != 0:
+            raise Unavailable("REST canary deployment coverage unavailable")
+    settings = optional(stage, "methodSettings", {}, dict)
+    if not methods:
+        raise Unavailable("stage-bound deployed REST method inventory unavailable")
+    setting_keys = set(settings) | set(settings.get("_coverage", {}))
+    setting_keys.discard("_coverage")
+    for key in setting_keys:
+        if not isinstance(key, str) or not key:
+            raise Unavailable("malformed REST method settings")
+        setting = get(settings, key, dict)
+        # Read all present levels, including overrides outside this deployment.
+        if "loggingLevel" in setting or "loggingLevel" in setting.get("_coverage", {}):
+            _logging_level(setting, "loggingLevel")
+    wildcard = get(settings, "*/*", dict) if "*/*" in setting_keys else None
+    baseline = _logging_level(wildcard, "loggingLevel") if wildcard is not None else None
+    disabled, seen = [], set()
     for method in methods:
-        key = _nonempty(method, "settingKey")
-        if key in seen or key not in settings:
-            raise Unavailable("effective method is duplicate or unresolved")
+        if get(method, "stageArn", str) != arn or get(method, "restApiId", str) != get(stage, "ParentApiId", str) or get(method, "deploymentId", str) != deployment:
+            raise Unavailable("foreign REST method/deployment binding")
+        if (get(method, "_provenance.source_operation", str) != "GetDeployment" or
+                get(method, "_provenance.read_only", bool) is not True or
+                get(method, "_provenance.embed", str) != "apisummary" or
+                get(method, "_provenance.stage_deployment_join_verified", bool) is not True):
+            raise Unavailable("REST deployment summary provenance unavailable")
+        path, verb = get(method, "resourcePath", str), get(method, "httpMethod", str)
+        if not path.startswith("/") or verb not in {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "ANY"}:
+            raise Unavailable("malformed deployed REST method")
+        if get(method, "methodSettingKey", str) != path + "/" + verb:
+            raise Unavailable("deployed REST method setting key mismatch")
+        key = path.replace("~", "~0").replace("/", "~1") + "/" + verb
+        if key in seen:
+            raise Unavailable("duplicate deployed REST method")
         seen.add(key)
-    return arn, [key for key, level in levels.items() if level == "OFF"], len(methods)
+        if key in setting_keys:
+            specific = get(settings, key, dict)
+            level = _logging_level(specific, "loggingLevel", baseline)
+        else:
+            if baseline is None:
+                raise Unavailable("REST method logging inheritance unavailable")
+            level = baseline
+        if level == "OFF":
+            disabled.append(arn + ":" + key)
+    if setting_keys - ({"*/*"} | seen):
+        raise Unavailable("REST method setting precedence outside bound deployment unsupported")
+    return disabled, len(methods)
+
+
+def _websocket_stage(stage):
+    arn = _stage_bound(stage, "WEBSOCKET")
+    if get(stage, "ParentProtocolType", str) != "WEBSOCKET" or get(stage, "_provenance.parent_protocol_source_operation", str) != "get_apis":
+        raise Unavailable("WebSocket parent protocol authority unavailable")
+    default = get(stage, "DefaultRouteSettings", dict)
+    baseline = _logging_level(default, "LoggingLevel")
+    overrides = optional(stage, "RouteSettings", {}, dict)
+    override_keys = set(overrides) | set(overrides.get("_coverage", {}))
+    override_keys.discard("_coverage")
+    for key in override_keys:
+        if not isinstance(key, str) or not key:
+            raise Unavailable("malformed WebSocket route settings")
+        setting = get(overrides, key, dict)
+        level = _logging_level(setting, "LoggingLevel", baseline)
+        if level == "OFF":
+            # A configured override is not proof that its route is deployed.
+            raise Unavailable("WebSocket override OFF; deployed route binding unavailable")
+    if baseline == "OFF":
+        # An all-route default is not evidence that any deployed route lacks
+        # an effective route-specific override.
+        raise Unavailable("WebSocket default OFF; deployed route binding unavailable")
+    return arn, len(override_keys)
 
 
 def _stage_logging(item, index):
     _, scope, _, region = _context(index)
     if region == "global" or get(item, "scope", str) != scope:
         raise Unavailable("stage scope unavailable")
-    stages = _inventory(index, "rest_api_stage") + _inventory(index, "http_api_stage")
-    failures, count = [], 0
-    for stage in stages:
-        arn, disabled, checked = _stage_one(stage)
-        failures.extend(f"{arn}:{key}" for key in disabled)
-        count += checked
-    return result(bool(failures), disabled_stage_method_settings=failures, evaluated_methods=count)
+    rest = _inventory(index, "rest_api_stage")
+    v2 = _inventory(index, "http_api_stage")
+    method_rows = _inventory(index, "rest_api_method")
+    by_stage = {get(stage, "id", str): [] for stage in rest}
+    for method in method_rows:
+        arn = get(method, "stageArn", str)
+        if arn not in by_stage:
+            raise Unavailable("deployed REST method has no bound stage")
+        by_stage[arn].append(method)
+    failures, evaluated, websockets, http = [], 0, 0, 0
+    for stage in rest:
+        arn = get(stage, "id", str)
+        disabled, checked = _rest_stage(stage, by_stage[arn])
+        failures.extend(disabled)
+        evaluated += checked
+    for stage in v2:
+        _stage_bound(stage, "V2")
+        protocol = get(stage, "ParentProtocolType", str)
+        if get(stage, "_provenance.parent_protocol_source_operation", str) != "get_apis":
+            raise Unavailable("v2 parent protocol authority unavailable")
+        if protocol == "HTTP":
+            http += 1
+        elif protocol == "WEBSOCKET":
+            _websocket_stage(stage)
+            websockets += 1
+        else:
+            raise Unavailable("unknown v2 API protocol")
+    if not (rest or websockets):
+        return "NOT_APPLICABLE", {"reason": "no applicable REST or WebSocket stages; HTTP execution logging unsupported",
+                                  "http_not_applicable_stages": http}
+    return result(bool(failures), disabled_deployed_rest_methods=failures,
+                  evaluated_rest_methods=evaluated, configured_websocket_stages=websockets,
+                  http_not_applicable_stages=http)
 
 
 def _selection_matches(selection, arn, tags, *, require_role):
@@ -714,7 +823,7 @@ _EVALUATORS = {
     "aws_nist_rds_db_cluster_aurora_backtracking_enabled": (_backtracking, ["rds_cluster"], "resource"),
     "aws_nist_dynamodb_table_encrypted_with_kms": (_dynamodb, ["dynamodb_table"], "resource"),
     "aws_nist_efs_access_point_enforce_root_directory": (_efs_root, ["efs_access_point"], "resource"),
-    "aws_nist_apigateway_stage_logging_enabled": (_stage_logging, ["http_api_stage", "rest_api_stage"], "scope"),
+    "aws_nist_apigateway_stage_logging_enabled": (_stage_logging, ["http_api_stage", "rest_api_stage", "rest_api_method"], "scope"),
     "aws_nist_efs_file_system_in_backup_plan": (lambda item, index: _efs_backup(item, index, effective=False), ["efs_file_system", "backup_plan"], "resource"),
     "aws_g6_efs_effective_backup_plan_selection": (lambda item, index: _efs_backup(item, index, effective=True), ["efs_file_system", "backup_plan"], "resource"),
     "aws.nist.sc_5_2_coverage": (_capacity, ["capacity_group"], "resource"),

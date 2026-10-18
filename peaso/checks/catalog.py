@@ -78,6 +78,9 @@ def full_requirements():
 
 
 def description_for(check_id):
+    if check_id == "aws_nist_apigateway_stage_logging_enabled":
+        from .aws_apigateway_logging_source_correction import description
+        return description()
     if check_id == 'aws.pci.iam.wildcard_action_scoped_resource':
         from .aws_pci_iam_scoped_source_correction import description
         return description()
@@ -160,6 +163,13 @@ def proposal_provenance_for(check_id):
             raise ValueError('Historical scoped IAM customer-policy proposal hash changed')
         provenance['signed_spec_status'] = 'historical_superseded_for_this_check'
         provenance['source_correction'] = correction_provenance()
+    if check_id == "aws_nist_apigateway_stage_logging_enabled":
+        from .aws_apigateway_logging_source_correction import PRIOR_FROZEN_SPEC_SHA256, correction_provenance, validate_prior_spec
+        validate_prior_spec()
+        if provenance["signed_spec_sha256"] != PRIOR_FROZEN_SPEC_SHA256:
+            raise ValueError("Historical API Gateway logging proposal hash changed")
+        provenance["signed_spec_status"] = "historical_superseded_for_this_check"
+        provenance["source_correction"] = correction_provenance()
     from .aws_policy_source_correction import PRIOR, correction_provenance
     if check_id in PRIOR:
         if provenance["signed_spec_sha256"] != PRIOR[check_id]:

@@ -36,11 +36,17 @@ def _get(obj, key, kind):
     return value
 
 
-def _complete(envelope, scope, kind):
+def _complete(envelope, scope, kind, *, root_collision=False):
     if _get(envelope, 'scope', str) != scope or _get(envelope, 'type', str) != kind:
         raise AliasUnavailable('foreign collection')
-    if _get(envelope, 'status', str) != 'collected' or _get(envelope, 'coverage_status', str) != 'collected':
-        raise AliasUnavailable('incomplete collection')
+    statuses = (_get(envelope, 'status', str), _get(envelope, 'coverage_status', str))
+    if statuses != ('collected', 'collected'):
+        # The collector retains both observations on an identity collision.
+        # This one error can be discharged by the independent proof below;
+        # denied reads, pagination failures, and other conflicts cannot.
+        if not root_collision or statuses != ('partial', 'partial') or _get(envelope, 'error', dict) != {
+                'kind': 'malformed', 'code': 'conflicting_iam_policy_identity'}:
+            raise AliasUnavailable('incomplete collection')
     requests = _get(envelope, 'source_requests', list)
     if not requests or any(type(v) is not str or not v for v in requests):
         raise AliasUnavailable('missing collection provenance')
@@ -88,7 +94,7 @@ def prove_project_alias(scope, project_envelope, policy_envelope, request_ledger
     if type(scope) is not str or not re.fullmatch(r'projects/[a-z0-9][a-z0-9-]*', scope, re.ASCII):
         raise AliasUnavailable('unsupported scope')
     projects = _complete(project_envelope, scope, 'project')
-    policies = _complete(policy_envelope, scope, 'iam_policy')
+    policies = _complete(policy_envelope, scope, 'iam_policy', root_collision=True)
     if len(projects) != 1:
         raise AliasUnavailable('ambiguous project inventory')
     candidates = [(i, row) for i, row in enumerate(policies) if root_candidate(row)]
@@ -110,6 +116,14 @@ def prove_project_alias(scope, project_envelope, policy_envelope, request_ledger
     direct_pos = direct_indices[0]
     alias_pos = next(i for i, _ in candidates if i != direct_pos)
     direct, alias = policies[direct_pos], policies[alias_pos]
+    # A collision elsewhere in the CAI inventory cannot be cleared by proving
+    # this root pair. Preserve its partial collection state.
+    identities = {}
+    for position, item in enumerate(policies):
+        identities.setdefault(_get(item, 'native_id', str), []).append(position)
+    if any(len(positions) > 1 and set(positions) != {direct_pos, alias_pos}
+           for positions in identities.values()):
+        raise AliasUnavailable('other policy identity collision')
     allowed = {'name', 'bindings', 'auditConfigs', 'version', 'etag', 'assetType',
                'project', 'folders', '_coverage', '_provenance', '_resource_id',
                'native_id', '_relationships', 'collection_status'}
@@ -126,7 +140,9 @@ def prove_project_alias(scope, project_envelope, policy_envelope, request_ledger
     provenance = _get(direct, '_provenance', dict)
     if _get(provenance, 'representation', str) != 'full':
         raise AliasUnavailable('direct root not authoritative')
-    if (_get(alias, 'name', str) != '//cloudresourcemanager.googleapis.com/' + number_name
+    if (_get(alias, 'name', str) not in {
+            '//cloudresourcemanager.googleapis.com/' + number_name,
+            '//cloudresourcemanager.googleapis.com/projects/' + project_id}
         or _get(alias, 'assetType', str) != 'cloudresourcemanager.googleapis.com/Project'
         or _get(alias, 'project', str) != number_name):
         raise AliasUnavailable('unbound CAI projection identity')
@@ -166,6 +182,8 @@ KNOWN_RESOURCE_PEERS = frozenset({
     "compute.googleapis.com/Instance",
     "pubsub.googleapis.com/Topic",
     "cloudfunctions.googleapis.com/CloudFunction",
+    "cloudkms.googleapis.com/KeyRing",
+    "cloudkms.googleapis.com/CryptoKey",
 })
 
 def root_candidate(row):
@@ -187,6 +205,15 @@ def root_candidate(row):
         if representation == "full":
             return True
         asset_type = _get(row, "assetType", str)
+        if asset_type in {"cloudkms.googleapis.com/KeyRing", "cloudkms.googleapis.com/CryptoKey"}:
+            # These are resource peers only with a structurally nested KMS
+            # name and a readable numeric owning-project marker.
+            project = _get(row, "project", str)
+            suffix = r"(?:/cryptoKeys/[^/]+)?" if asset_type.endswith("/CryptoKey") else ""
+            if (not re.fullmatch(r"projects/[1-9][0-9]*", project, re.ASCII)
+                    or not re.fullmatch(r"//cloudkms\.googleapis\.com/projects/[^/]+/locations/[^/]+/keyRings/[^/]+" + suffix,
+                                        name, re.ASCII)):
+                return True
         return asset_type not in KNOWN_RESOURCE_PEERS
     except AliasUnavailable:
         return True
