@@ -17,13 +17,14 @@ from typing import Any
 import yaml
 
 from .aws import normalize_aws_cloudtrail
+from .aws_security_controls import normalize_aws_security_control
 from .gcp import normalize_gcp_audit
 from .kubernetes import normalize_kubernetes_audit
 
 
 DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "fd10e6856aa6b1f4208352ed963434889643e2f8"
-DEFAULT_RULE_PACK_SHA256 = "d6634358f0165d34687ba9807c82d74ee45a6faaf7ee7303ef9148bb96e9af0e"
+DEFAULT_RULE_REF = "7395af98c1088b70959a9552dd28dbd0832a8b51"
+DEFAULT_RULE_PACK_SHA256 = "9f0785d135b5ae84b764bae504c96800846718152e5a1f3d5808cbdae935d9f5"
 
 
 @dataclass(frozen=True)
@@ -129,7 +130,10 @@ def detect_aws_events(
     records: Iterable[Mapping[str, Any]], rules: Sequence[Rule] | None = None,
 ) -> list[Detection]:
     """Return evidence for matching records; no compromise verdict is implied."""
-    return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize_aws_cloudtrail, "aws")
+    def normalize(record: Mapping[str, Any]) -> dict[str, Any] | None:
+        return normalize_aws_cloudtrail(record) or normalize_aws_security_control(record)
+
+    return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
 
 
 def detect_gcp_events(

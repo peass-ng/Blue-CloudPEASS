@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `fd10e6856aa6b1f4208352ed963434889643e2f8` by
+pack at pinned commit `7395af98c1088b70959a9552dd28dbd0832a8b51` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
@@ -103,13 +103,16 @@ Kubernetes: <https://kubernetes.io/docs/tasks/debug/debug-cluster/audit/>
 
 ## Detection quality
 
-The pinned pack has eleven activity rules: six AWS, two GCP, one
+The pinned pack has fourteen activity rules: eight AWS, three GCP, one
 Azure, and two Kubernetes. The AWS role attachment rule requires the exact
 AdministratorAccess policy and evidence that the target is the issuing role.
 The GCP Token Creator rule reports a binding in the resulting service-account
 policy; a SetIAMPolicy log entry alone cannot prove the binding was newly
-added. Kubernetes binding updates are normalized as observed state, but do
-not emit a privilege-gain detection without a before/after comparison.
+added. The uploaded-key rule retains only its key resource name. Successful
+CloudTrail StopLogging and GuardDuty UpdateDetector operations are reported as
+requests, with no claim about present monitoring state. Kubernetes binding
+updates are normalized as observed state, but do not emit a privilege-gain
+detection without a before/after comparison.
 
 The rules require successful operations and concrete parameters. A denied API
 call, incomplete policy document, foreign account event, or bare enumeration

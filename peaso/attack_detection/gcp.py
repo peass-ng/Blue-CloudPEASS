@@ -16,6 +16,95 @@ _POLICY_TYPE = "type.googleapis.com/google.iam.v1.Policy"
 _REQUEST_TYPE = "type.googleapis.com/google.iam.v1.SetIamPolicyRequest"
 
 
+def _owned_service_account_path(value: Any, project: str) -> str | None:
+    if not isinstance(value, str):
+        return None
+    match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([^/]+)", value)
+    if match is None or match.group(1) not in ("-", project):
+        return None
+    email = match.group(2)
+    if _ACCOUNT_EMAIL.fullmatch(email) is None or not email.endswith(f"@{project}.iam.gserviceaccount.com"):
+        return None
+    return email
+
+
+def normalize_gcp_uploaded_service_account_key(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Observe a completed uploaded public key, without retaining key material.
+
+    This proves that the IAM operation returned a key resource. It does not
+    establish whether the corresponding private key was subsequently used.
+    """
+    if not isinstance(record, Mapping):
+        return None
+    log_name = record.get("logName")
+    log_match = re.fullmatch(r"projects/([^/]+)/logs/cloudaudit\.googleapis\.com%2Factivity", log_name) if isinstance(log_name, str) else None
+    if log_match is None or _PROJECT.fullmatch(log_match.group(1)) is None:
+        return None
+    project = log_match.group(1)
+    resource = record.get("resource")
+    if not isinstance(resource, Mapping) or resource.get("type") != "service_account":
+        return None
+    labels = resource.get("labels")
+    if isinstance(labels, Mapping) and labels.get("project_id") not in (None, project):
+        return None
+    payload = record.get("protoPayload")
+    if not isinstance(payload, Mapping) or payload.get("@type") != _AUDIT_TYPE:
+        return None
+    if payload.get("serviceName") != "iam.googleapis.com" or payload.get("methodName") != "google.iam.admin.v1.UploadServiceAccountKey":
+        return None
+    status = payload.get("status")
+    if status is not None and (not isinstance(status, Mapping) or status.get("code") not in (None, 0) or isinstance(status.get("code"), bool)):
+        return None
+    auth = payload.get("authenticationInfo")
+    request = payload.get("request")
+    response = payload.get("response")
+    if not isinstance(auth, Mapping) or not isinstance(request, Mapping) or not isinstance(response, Mapping):
+        return None
+    if request.get("@type") != "type.googleapis.com/google.iam.admin.v1.UploadServiceAccountKeyRequest":
+        return None
+    if response.get("@type") != "type.googleapis.com/google.iam.admin.v1.ServiceAccountKey":
+        return None
+    actor = auth.get("principalEmail")
+    if not isinstance(actor, str) or _PRINCIPAL_EMAIL.fullmatch(actor) is None:
+        return None
+    target_email = _owned_service_account_path(request.get("name"), project)
+    if target_email is None:
+        return None
+    key_name = response.get("name")
+    if not isinstance(key_name, str):
+        return None
+    key_match = re.fullmatch(r"(projects/[^/]+/serviceAccounts/[^/]+)/keys/([A-Za-z0-9_-]+)", key_name)
+    if key_match is None or _owned_service_account_path(key_match.group(1), project) != target_email:
+        return None
+    if response.get("keyOrigin") not in (None, "USER_PROVIDED"):
+        return None
+    named_resource = payload.get("resourceName")
+    if named_resource is not None:
+        named_match = re.fullmatch(r"projects/([^/]+)/serviceAccounts/([^/]+)", named_resource) if isinstance(named_resource, str) else None
+        if named_match is None or named_match.group(1) not in ("-", project):
+            return None
+        if not (named_match.group(2).isdigit() or named_match.group(2) == target_email):
+            return None
+    event_id = record.get("insertId")
+    event_time = record.get("timestamp")
+    if not isinstance(event_id, str) or not event_id or not isinstance(event_time, str) or not event_time:
+        return None
+    return {
+        "cloud.provider": "gcp",
+        "event.name": "google.iam.admin.v1.UploadServiceAccountKey",
+        "event.source": "iam.googleapis.com",
+        "event.outcome": "success",
+        "event.id": event_id,
+        "event.time": event_time,
+        "account.id": project,
+        "actor.id": actor.lower(),
+        "target.id": request["name"],
+        "credential.key_name": key_name,
+        "credential.key_origin": "USER_PROVIDED",
+        "credential.upload_observed": True,
+    }
+
+
 def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -> dict[str, Any] | None:
     """Return a policy-binding observation for a separately reviewed rule.
 
@@ -99,10 +188,15 @@ def normalize_gcp_token_creator_binding_observation(record: Mapping[str, Any]) -
 
 
 def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
+    uploaded_key = normalize_gcp_uploaded_service_account_key(record)
+    if uploaded_key is not None:
+        return uploaded_key
+    payload = record.get("protoPayload") if isinstance(record, Mapping) else None
+    if isinstance(payload, Mapping) and payload.get("methodName") == "google.iam.admin.v1.UploadServiceAccountKey":
+        return None
     policy_binding = normalize_gcp_token_creator_binding_observation(record)
     if policy_binding is not None:
         return policy_binding
-    payload = record.get("protoPayload")
     if not isinstance(payload, Mapping) or payload.get("@type") != "type.googleapis.com/google.cloud.audit.AuditLog":
         return None
     if payload.get("serviceName") != "iam.googleapis.com":
