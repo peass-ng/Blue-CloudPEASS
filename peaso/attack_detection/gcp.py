@@ -363,9 +363,10 @@ def normalize_gcp_audit(record: Mapping[str, Any]) -> dict[str, Any] | None:
     if uploaded_key is not None:
         return uploaded_key
     payload = record.get("protoPayload") if isinstance(record, Mapping) else None
-    if isinstance(payload, Mapping) and payload.get("methodName") in {
+    if (isinstance(payload, Mapping) and isinstance(payload.get("methodName"), str)
+            and payload.get("methodName") in {
         "google.iam.admin.v1.UploadServiceAccountKey", "google.iam.admin.v1.UndeleteServiceAccount",
-    }:
+    }):
         return None
     policy_binding = normalize_gcp_token_creator_binding_observation(record)
     if policy_binding is not None:

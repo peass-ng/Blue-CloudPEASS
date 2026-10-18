@@ -75,6 +75,13 @@ def test_gcp_requires_confirmed_success_and_target() -> None:
     assert normalize_gcp_audit(good)["credential.effect_confirmed"] is True
 
 
+def test_malformed_gcp_method_does_not_abort_following_valid_record() -> None:
+    good = gcp_key_event()
+    malformed = deepcopy(good)
+    malformed["protoPayload"]["methodName"] = []
+    assert [hit.event_id for hit in detect_gcp_events([malformed, good], [GCP_TEST_RULE])] == ["key-1"]
+
+
 def test_kubernetes_requires_completed_create_and_returned_privileged_binding() -> None:
     good = k8s_binding_event()
     matches = detect_kubernetes_events([good], [K8S_TEST_RULE])
@@ -94,6 +101,17 @@ def test_kubernetes_requires_completed_create_and_returned_privileged_binding() 
         negatives.append(row)
     assert detect_kubernetes_events(negatives, [K8S_TEST_RULE]) == []
     assert normalize_kubernetes_audit(good)["target.principal"] == "system:serviceaccount:app:worker"
+
+
+def test_malformed_kubernetes_verb_and_uri_do_not_abort_following_valid_record() -> None:
+    good = k8s_binding_event()
+    malformed_verb = deepcopy(good)
+    malformed_verb["verb"] = []
+    malformed_uri = deepcopy(good)
+    malformed_uri["requestURI"] = "http://["
+    assert [hit.event_id for hit in detect_kubernetes_events(
+        [malformed_verb, malformed_uri, good], [K8S_TEST_RULE]
+    )] == ["audit-1"]
 
 
 def test_gke_cloud_logging_wrapper_requires_returned_object_and_excludes_dry_run() -> None:

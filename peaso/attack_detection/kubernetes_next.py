@@ -90,8 +90,12 @@ def normalize_kubernetes_cluster_admin_grant(record: Mapping[str, Any]) -> dict[
             or record.get("stage") != "ResponseComplete" or record.get("verb") != "create"):
         return None
     request_uri = record.get("requestURI")
-    if (isinstance(request_uri, str) and any(key.lower() == "dryrun" for key, _ in
-            parse_qsl(urlsplit(request_uri).query, keep_blank_values=True))):
+    try:
+        parsed_uri = urlsplit(request_uri) if isinstance(request_uri, str) else None
+    except ValueError:
+        return None
+    if parsed_uri is not None and any(key.lower() == "dryrun" for key, _ in
+            parse_qsl(parsed_uri.query, keep_blank_values=True)):
         return None
     ref = record.get("objectRef")
     status = record.get("responseStatus")

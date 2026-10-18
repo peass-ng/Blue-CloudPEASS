@@ -118,8 +118,12 @@ def normalize_kubernetes_privileged_ephemeral_update(record: Mapping[str, Any]) 
             or record.get("stage") != "ResponseComplete" or record.get("verb") != "update"):
         return None
     uri = record.get("requestURI")
-    if isinstance(uri, str) and any(key.lower() == "dryrun" for key, _ in
-            parse_qsl(urlsplit(uri).query, keep_blank_values=True)):
+    try:
+        parsed_uri = urlsplit(uri) if isinstance(uri, str) else None
+    except ValueError:
+        return None
+    if parsed_uri is not None and any(key.lower() == "dryrun" for key, _ in
+            parse_qsl(parsed_uri.query, keep_blank_values=True)):
         return None
     ref = record.get("objectRef")
     status = record.get("responseStatus")

@@ -79,6 +79,8 @@ def normalize_aws_security_control(record: Mapping[str, Any]) -> dict[str, Any] 
     """
     source = record.get("eventSource")
     name = record.get("eventName")
+    if not isinstance(source, str) or not isinstance(name, str):
+        return None
     if (source, name) not in {
         ("cloudtrail.amazonaws.com", "StopLogging"),
         ("cloudtrail.amazonaws.com", "DeleteTrail"),

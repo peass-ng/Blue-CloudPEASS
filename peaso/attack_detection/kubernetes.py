@@ -61,10 +61,16 @@ def normalize_kubernetes_audit(record: Mapping[str, Any]) -> dict[str, Any] | No
     if record.get("apiVersion") != "audit.k8s.io/v1" or record.get("kind") != "Event":
         return None
     verb = record.get("verb")
-    if record.get("stage") != "ResponseComplete" or verb not in {"create", "update", "patch"}:
+    if (record.get("stage") != "ResponseComplete" or not isinstance(verb, str)
+            or verb not in {"create", "update", "patch"}):
         return None
     request_uri = record.get("requestURI")
-    if isinstance(request_uri, str) and any(key.lower() == "dryrun" for key, _ in parse_qsl(urlsplit(request_uri).query, keep_blank_values=True)):
+    try:
+        parsed_uri = urlsplit(request_uri) if isinstance(request_uri, str) else None
+    except ValueError:
+        return None
+    if parsed_uri is not None and any(key.lower() == "dryrun" for key, _ in
+            parse_qsl(parsed_uri.query, keep_blank_values=True)):
         return None
     object_ref = record.get("objectRef")
     object_ref = object_ref if isinstance(object_ref, Mapping) else {}

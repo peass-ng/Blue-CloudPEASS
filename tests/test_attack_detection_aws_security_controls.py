@@ -51,6 +51,13 @@ def test_successful_stop_logging_has_exact_trail_and_event_evidence() -> None:
     assert matches[0].event_time == "2026-10-18T10:00:00Z"
 
 
+def test_malformed_event_source_does_not_abort_following_valid_record() -> None:
+    good = _record("cloudtrail.amazonaws.com", "StopLogging", {"name": "audit-trail"})
+    malformed = deepcopy(good)
+    malformed["eventSource"] = []
+    assert [hit.event_id for hit in detect_aws_events([malformed, good], [STOP_RULE])] == ["event-123"]
+
+
 def test_stop_logging_accepts_a_same_account_same_region_trail_arn() -> None:
     record = _record("cloudtrail.amazonaws.com", "StopLogging", {
         "name": "arn:aws:cloudtrail:eu-west-1:123456789012:trail/audit-trail",
