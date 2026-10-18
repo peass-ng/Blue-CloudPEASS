@@ -74,3 +74,33 @@ def validate_rows(checks):
     """Materializer gate for the original CloudTrail description row."""
     for check_id in ROWS:
         description(check_id, checks.get(check_id))
+
+
+REMEDIATION_VERSION = "cloudtrail-management-remediation-overlay-v1"
+REMEDIATION_BASE_SHA256 = "947f2ead115e93140f502bd9bf321f4253bd18941b22ce1ef15a925ec1fc3b4d"
+
+
+def remediation(original):
+    """Correct only the exact previously reviewed template; preserve its source."""
+    if not isinstance(original, dict) or _row_sha256(original) != REMEDIATION_BASE_SHA256:
+        raise ValueError("CloudTrail original remediation row changed")
+    value = deepcopy(original)
+    value["summary"] = ("Configure basic or supported advanced selectors to include both read and write "
+                        "management events without gaps in management event sources.")
+    value["steps"] = [
+        "Read GetEventSelectors for the exact trail ARN and inspect its basic or advanced selector family.",
+        "In the owning declaration, configure complete read/write management coverage; preserve required data-event selectors and review exclusions before applying a change.",
+        "Read the selectors again and rerun aws.cloudtrail.management_events. Unsupported or unreadable selector evidence remains UNKNOWN.",
+    ]
+    value["caveats"] = [
+        "Selector configuration does not prove that logging is active, delivery succeeds, or every region is covered.",
+        "Supported advanced management selector unions are evaluated automatically; unsupported fields and operators remain UNKNOWN unless an independent selector proves full coverage.",
+        "Do not replace existing advanced selectors with basic selectors without reviewing required data events and dependent services.",
+    ]
+    value["field_binding"]["path"] += ", EventSelectors.AdvancedEventSelectors, TrailARN"
+    value["iac"]["code"] = ("Update the existing CloudTrail declaration with complete basic or supported advanced management selectors. "
+                            "Preserve required data-event selectors, review exclusions and the plan, then verify the selector configuration after applying the approved change.")
+    value["references"] += [{"title": "CloudTrail advanced field selectors", "url": OFFICIAL_REFERENCES[0]}]
+    value["source_correction"] = {"version": REMEDIATION_VERSION, "base_row_sha256": REMEDIATION_BASE_SHA256,
+                                  "source_relationship": SOURCE_RELATIONSHIP}
+    return value

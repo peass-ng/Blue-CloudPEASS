@@ -10,7 +10,7 @@ import json
 import re
 
 from . import register, result, unknown, statements, array
-from .facts import Unavailable, complete_items, get, list_of_objects, memoized, optional
+from .facts import Unavailable, complete_items, get, guard, list_of_objects, memoized, optional
 
 SPECS = {
     'aws_security_group_common_ports_ipv6_all': ('security_group', 'hardening', 'medium', 'Security groups restrict common IPv6 ports', 'Remove world IPv6 ingress on common service ports.', 'scope'),
@@ -250,17 +250,199 @@ def _alarm_match(alarm,namespace,metric,dimension,value):
     return isinstance(actions,list) and bool(actions) and all(isinstance(x,str) and x for x in actions)
 
 
+# Only these two expression forms have a bounded, local namespace proof. A
+# non-matching expression remains relevant to every namespace for absence checks.
+_INSIGHTS_SCHEMA = re.compile(
+    r'\s*SELECT\s+(?:AVG|COUNT|MAX|MIN|SUM)\s*\(\s*(?:[A-Za-z_][A-Za-z0-9_]*|"[A-Za-z_][A-Za-z0-9_]*")\s*\)'
+    r'\s+FROM\s+SCHEMA\s*\(\s*"([A-Za-z0-9_./-]+)"'
+    r'(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*\s*\)\s*', re.IGNORECASE)
+_MATH_TOKEN = re.compile(r'\s*([A-Za-z][A-Za-z0-9_]*|(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?|[()+\-*/,])')
+_QUERY_ID = re.compile(r'[a-z][A-Za-z0-9_]*\Z')
+
+
+def _closed_alarm_math(expression, ids):
+    """Return local query references for basic arithmetic/FILL; never evaluate it."""
+    if not isinstance(expression, str) or not 0 < len(expression) <= 2048:
+        return None
+    tokens = []
+    pos = 0
+    while pos < len(expression) and len(tokens) < 256:
+        match = _MATH_TOKEN.match(expression, pos)
+        if match is None:
+            return None
+        tokens.append(match.group(1))
+        pos = match.end()
+    if pos != len(expression) or not tokens:
+        return None
+    cursor = 0
+    refs = set()
+
+    def peek():
+        return tokens[cursor] if cursor < len(tokens) else None
+
+    def take(expected=None):
+        nonlocal cursor
+        token = peek()
+        if token is None or expected is not None and token != expected:
+            raise ValueError('unsupported math syntax')
+        cursor += 1
+        return token
+
+    def number():
+        token = peek()
+        if token in ('+', '-'):
+            take()
+            token = peek()
+        if token is None or not re.fullmatch(r'(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?', token):
+            raise ValueError('unsupported numeric literal')
+        take()
+
+    def factor(depth):
+        if depth > 32:
+            raise ValueError('math nesting limit')
+        token = peek()
+        if token in ('+', '-'):
+            take()
+            factor(depth + 1)
+        elif token == '(':
+            take('(')
+            expression_part(depth + 1)
+            take(')')
+        elif token == 'FILL':
+            take('FILL')
+            take('(')
+            ref = take()
+            if ref not in ids:
+                raise ValueError('unknown local query')
+            refs.add(ref)
+            take(',')
+            number()
+            take(')')
+        elif token in ids:
+            refs.add(take())
+        else:
+            number()
+
+    def term(depth):
+        factor(depth)
+        while peek() in ('*', '/'):
+            take()
+            factor(depth)
+
+    def expression_part(depth):
+        term(depth)
+        while peek() in ('+', '-'):
+            take()
+            term(depth)
+
+    try:
+        expression_part(0)
+        if cursor != len(tokens) or not refs:
+            return None
+    except ValueError:
+        return None
+    return refs
+
+
+def _alarm_source_namespaces(row):
+    """Return bound input namespaces, or None when an alarm could use any."""
+    try:
+        # Only a genuine omitted direct-metric identity permits a math proof.
+        # A retained null, stale field, or field coverage marker is unresolved.
+        guard(row)
+        coverage = row.get('_coverage', {})
+        if any(field in row or field in coverage for field in ('Namespace', 'MetricName')):
+            return None
+        queries = get(row, 'Metrics', list)
+        if not 0 < len(queries) <= 20:
+            return None
+        by_id = {}
+        for query in queries:
+            ident = get(query, 'Id', str)
+            if not _QUERY_ID.fullmatch(ident) or ident in by_id:
+                return None
+            stat = optional(query, 'MetricStat', None, dict)
+            expression = optional(query, 'Expression', None, str)
+            if (stat is None) == (expression is None):
+                return None
+            # Bound every expression before either SQL or math namespace proof.
+            if expression is not None and not 0 < len(expression) <= 2048:
+                return None
+            by_id[ident] = (stat, expression)
+        namespaces = set()
+        references = {}
+        for ident, (stat, expression) in by_id.items():
+            if stat is not None:
+                metric = get(stat, 'Metric', dict)
+                ns = get(metric, 'Namespace', str)
+                name = get(metric, 'MetricName', str)
+                dimensions = list_of_objects(optional(metric, 'Dimensions', [], list))
+                for dimension in dimensions:
+                    get(dimension, 'Name', str)
+                    get(dimension, 'Value', str)
+                period = get(stat, 'Period', int)
+                statistic = get(stat, 'Stat', str)
+                if not ns or not name or period <= 0 or not statistic:
+                    return None
+                namespaces.add(ns)
+                references[ident] = set()
+            else:
+                sql = _INSIGHTS_SCHEMA.fullmatch(expression)
+                if sql is not None:
+                    namespaces.add(sql.group(1))
+                    references[ident] = set()
+                else:
+                    refs = _closed_alarm_math(expression, by_id)
+                    if refs is None:
+                        return None
+                    references[ident] = refs
+    except Unavailable:
+        return None
+    # Local names must lead to a metric source; cycles and constant-only
+    # expressions do not establish a sound namespace boundary.
+    completed = set()
+    def visit(ident, active):
+        if ident in active:
+            return False
+        if ident in completed:
+            return True
+        if not all(visit(ref, active | {ident}) for ref in references[ident]):
+            return False
+        completed.add(ident)
+        return True
+    if not all(visit(ident, set()) for ident in by_id) or not namespaces:
+        return None
+    return frozenset(namespaces)
+
+
 def _alarm(item,index,kind,namespace,metric,dimension,value):
     identity=_member(item,index,kind)
     def build():
         by_metric={}
-        unresolved=[]
+        unresolved_by_namespace={}
+        unresolved_any=[]
         # Validate collection identity/completeness before considering any
-        # positive. An unsupported sibling cannot negate a proved match, but
-        # still prevents proving absence across the entire alarm inventory.
+        # positive. Unsupported same-namespace alarms block absence only there.
         for row in _rows(index,'cloudwatch_alarm'):
             try:
-                ns=get(row,'Namespace',str);name=get(row,'MetricName',str)
+                ns=get(row,'Namespace',str)
+            except Unavailable as exc:
+                source_namespaces=_alarm_source_namespaces(row)
+                targets=unresolved_any if source_namespaces is None else None
+                if targets is not None:
+                    targets.append(str(exc))
+                else:
+                    for source_namespace in source_namespaces:
+                        unresolved_by_namespace.setdefault(source_namespace,[]).append(str(exc))
+                continue
+            if not ns:
+                unresolved_any.append('empty metric namespace')
+                continue
+            if 'Metrics' in row or 'Metrics' in row.get('_coverage', {}):
+                unresolved_any.append('mixed or unread metric-data-query alarm')
+                continue
+            try:
+                name=get(row,'MetricName',str)
                 dimensions=list_of_objects(get(row,'Dimensions',list))
                 parsed=[(get(d,'Name',str),get(d,'Value',str)) for d in dimensions]
                 if len(parsed)!=1:continue
@@ -269,13 +451,14 @@ def _alarm(item,index,kind,namespace,metric,dimension,value):
                 if not actions or any(not isinstance(a,str) or not a for a in actions):continue
                 by_metric.setdefault((ns,name,*parsed[0]),[]).append(get(row,'AlarmArn',str))
             except Unavailable as exc:
-                unresolved.append(str(exc))
-        return by_metric,unresolved
-    alarms,unresolved=memoized(index,('batch_aws_alarm_map',),build)
+                unresolved_by_namespace.setdefault(ns,[]).append(str(exc))
+        return by_metric,unresolved_by_namespace,unresolved_any
+    alarms,by_namespace,unresolved_any=memoized(index,('batch_aws_alarm_map',),build)
     matches=alarms.get((namespace,metric,dimension,value),[])
-    if not matches and unresolved:
+    unresolved_count=len(unresolved_any)+len(by_namespace.get(namespace,[]))
+    if not matches and unresolved_count:
         return unknown('alarm absence cannot be established from unresolved native alarms',
-                       unresolved_alarm_count=len(unresolved))
+                       unresolved_alarm_count=unresolved_count)
     return result(not matches,resource_id=identity,matching_alarm_arns=matches)
 
 

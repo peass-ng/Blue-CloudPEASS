@@ -120,7 +120,11 @@ def test_reviewed_entries_are_assigned_native_checks_with_exact_kind():
         assert binding["kind"] == checks[check_id].kind
         assert binding["target"] == checks[check_id].target
         assert any(binding.get(field) for field in ("field", "fields", "path", "predicate", "label"))
-        assert template(check_id) == (entry if entry["review_status"] == "approved" else None)
+        expected = entry if entry["review_status"] == "approved" else None
+        if check_id == "aws.cloudtrail.management_events":
+            from peaso.checks.cloudtrail_management_description_overlay import remediation
+            expected = remediation(entry)
+        assert template(check_id) == expected
 
 
 def test_api_gateway_stage_entries_match_signed_native_predicates_and_preserve_legacy_bytes():
