@@ -1,4 +1,4 @@
-"""Pinned private GitHub rule reads with mocked network responses."""
+"""Pinned public GitHub rule reads with mocked network responses."""
 from __future__ import annotations
 
 import base64
@@ -56,7 +56,7 @@ class Network:
         assert timeout == 15
         assert request.full_url.startswith("https://api.github.com/repos/acme/rules/git/")
         assert request.get_method() == "GET"
-        assert request.get_header("Authorization") == "Bearer secret"
+        assert request.get_header("Authorization") is None
         self.calls.append(request.full_url)
         path = request.full_url.split("/git", 1)[1].split("?", 1)[0]
         value = self.responses[path]
@@ -72,7 +72,7 @@ def mock_network(monkeypatch, responses):
 
 
 def fetch():
-    return source.fetch_rules("acme/rules", COMMIT, "secret")
+    return source.fetch_rules("acme/rules", COMMIT)
 
 
 def test_fetches_pinned_tree_and_verifies_blob(monkeypatch):
@@ -86,18 +86,16 @@ def test_fetches_pinned_tree_and_verifies_blob(monkeypatch):
     assert network.replies[2].read_limits == [source.MAX_BLOB_RESPONSE_BYTES + 1]
 
 
-@pytest.mark.parametrize("repo,commit,token,code", [
-    ("https://github.com/acme/rules", COMMIT, "secret", "invalid_repo"),
-    ("acme/rules/other", COMMIT, "secret", "invalid_repo"),
-    ("acme/../rules", COMMIT, "secret", "invalid_repo"),
-    ("acme/rules", "main", "secret", "invalid_commit_sha"),
-    ("acme/rules", COMMIT, "", "invalid_token"),
-    ("acme/rules", COMMIT, "secret\nother", "invalid_token"),
+@pytest.mark.parametrize("repo,commit,code", [
+    ("https://github.com/acme/rules", COMMIT, "invalid_repo"),
+    ("acme/rules/other", COMMIT, "invalid_repo"),
+    ("acme/../rules", COMMIT, "invalid_repo"),
+    ("acme/rules", "main", "invalid_commit_sha"),
 ])
-def test_rejects_untrusted_parameters_before_network(monkeypatch, repo, commit, token, code):
+def test_rejects_untrusted_parameters_before_network(monkeypatch, repo, commit, code):
     monkeypatch.setattr(source, "build_opener", lambda *args: pytest.fail("network called"))
     with pytest.raises(source.RuleSourceError, match=code):
-        source.fetch_rules(repo, commit, token)
+        source.fetch_rules(repo, commit)
 
 
 def test_rejects_truncated_tree(monkeypatch):
@@ -179,7 +177,7 @@ def test_rejects_blob_hash_mismatch_without_leaking_content(monkeypatch):
     with pytest.raises(source.RuleSourceError) as error:
         fetch()
     assert error.value.code == "blob_sha_mismatch"
-    assert "secret" not in str(error.value)
+    assert "reviewed example" not in str(error.value)
 
 
 def test_rejects_redirect_without_following_destination():

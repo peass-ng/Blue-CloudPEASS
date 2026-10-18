@@ -21,6 +21,10 @@ from .gcp import normalize_gcp_audit
 from .kubernetes import normalize_kubernetes_audit
 
 
+DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
+DEFAULT_RULE_REF = "da2956222ef073887caca8228a5015ed3782e453"
+
+
 @dataclass(frozen=True)
 class Rule:
     id: str
@@ -50,36 +54,27 @@ class RuleSourceError(ValueError):
 
 
 @lru_cache(maxsize=4)
-def _github_rule_texts(repo: str, ref: str, secret_arn: str) -> tuple[tuple[str, str], ...]:
-    if not repo or not ref or not secret_arn:
-        raise RuleSourceError("private_rule_source_not_configured")
+def _github_rule_texts(repo: str, ref: str) -> tuple[tuple[str, str], ...]:
+    if not repo or not ref:
+        raise RuleSourceError("rule_source_not_configured")
     try:
-        import boto3
-        from botocore.config import Config
         from .github_source import fetch_rules
-
-        secret = boto3.client("secretsmanager", config=Config(connect_timeout=5, read_timeout=10,
-            retries={"max_attempts": 1})).get_secret_value(SecretId=secret_arn)
-        token = secret.get("SecretString")
-        if not isinstance(token, str) or not token or len(token) > 4096:
-            raise ValueError("invalid token secret")
-        return tuple(sorted(fetch_rules(repo, ref, token).items()))
+        return tuple(sorted(fetch_rules(repo, ref).items()))
     except Exception:
-        raise RuleSourceError("private_rule_source_unavailable") from None
+        raise RuleSourceError("rule_source_unavailable") from None
 
 
 def _rule_texts(directory: Path | None) -> tuple[tuple[str, str], ...]:
     if directory is not None:
         return tuple((path.name, path.read_text(encoding="utf-8")) for path in sorted(directory.glob("*.yml")))
-    repo = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REPO", "")
-    ref = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REF", "")
-    secret = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_TOKEN_SECRET_ARN", "")
-    if repo or ref or secret or os.getenv("PEASO_AUTH_MODE") == "cognito":
-        return _github_rule_texts(repo, ref, secret)
+    repo_override = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REPO", "")
+    ref_override = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REF", "")
     local = os.getenv("HACKTRICKS_CSPM_RULES_DIR", "")
-    if not local:
-        raise RuleSourceError("private_rule_source_not_configured")
-    return _rule_texts(Path(local))
+    if local and os.getenv("PEASO_AUTH_MODE") != "cognito" and not repo_override and not ref_override:
+        return _rule_texts(Path(local))
+    if repo_override and not ref_override:
+        raise RuleSourceError("rule_source_ref_required")
+    return _github_rule_texts(repo_override or DEFAULT_RULE_REPO, ref_override or DEFAULT_RULE_REF)
 
 
 def load_rules(directory: Path | None = None, *, product: str | None = None) -> tuple[Rule, ...]:

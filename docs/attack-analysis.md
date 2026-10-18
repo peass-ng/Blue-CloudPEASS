@@ -8,26 +8,21 @@ the environment was attack free.
 
 ## Rule and event format
 
-The canonical detection rules are Sigma YAML in the private
+The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `b3a9d30638e6cbfc8c3190c60b790e6a8a0f771d` through the
-server-side private source configured by `HACKTRICKS_CSPM_RULES_GITHUB_REPO`,
-`HACKTRICKS_CSPM_RULES_GITHUB_REF`, and
-`HACKTRICKS_CSPM_RULES_GITHUB_TOKEN_SECRET_ARN`. Rule YAML is not shipped in
-this public source repository or its Python package. If the private source
+pack at pinned commit `da2956222ef073887caca8228a5015ed3782e453` by
+default. Rule YAML is not shipped in
+this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
 without detections. Public tests use synthetic rules only.
 
-To activate hosted loading, create a fine-grained GitHub token limited to this
-repository with **Contents: read**. Store the raw token as a Secrets Manager
-`SecretString`; grant the API task role `secretsmanager:GetSecretValue` on that
-exact secret ARN and outbound HTTPS to `api.github.com`. Configure the three
-environment variables above with the repository name, exact commit SHA and
-secret ARN, then roll the API service. Never use a broad personal `repo` token
-or put the token in a connector, source file, image or log. The first successful
-read is cached per process for that exact commit; changing the pin requires a
-service restart. Local development may use `HACKTRICKS_CSPM_RULES_DIR` to point
-at a private checkout; hosted Cognito mode never falls back to this directory.
+Hosted loading needs outbound HTTPS to `api.github.com`. No GitHub token or AWS
+Secrets Manager access is needed. An operator may override the default with
+`HACKTRICKS_CSPM_RULES_GITHUB_REF`; overriding the repository through
+`HACKTRICKS_CSPM_RULES_GITHUB_REPO` also requires an exact commit ref. The first
+successful read is cached per process for that commit. Local development may
+use `HACKTRICKS_CSPM_RULES_DIR` to point at a checkout; hosted Cognito mode
+never falls back to this directory.
 
 The current evaluator deliberately
 accepts a small portable subset: one exact-match selection, conjunction across

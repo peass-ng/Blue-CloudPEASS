@@ -640,7 +640,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 product = "kubernetes" if body.kind == "gke_audit" else provider
                 load_rules(product=product)
             except Exception:
-                return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Configure the private rule source and retry."}
+                return {"status": "blocked", **result, "reason": "Reviewed detection rules are unavailable. Check the pinned rule repository and retry."}
         payload = body.model_dump()
         token = cipher.encrypt({"tenant": user.tenant_id, "digest": connector_digest(payload),
                                 "expires": time.time() + 600})
@@ -672,7 +672,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         except (LogAccessError, GcpLogAccessError) as exc:
             raise HTTPException(422, "Log analysis stopped: " + attack_log_error(exc.code)) from None
         except RuleSourceError:
-            raise HTTPException(503, "Reviewed detection rules are unavailable; retry after the private rule source is restored.") from None
+            raise HTTPException(503, "Reviewed detection rules are unavailable; retry after the pinned rule repository is restored.") from None
         except Exception:
             raise HTTPException(502, "Log source could not be read. Check connector and log access again.") from None
 
