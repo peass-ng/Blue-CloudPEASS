@@ -66,7 +66,7 @@ REPRODUCTION_INPUT_PATTERNS = (
     "tests/fixtures/batch_remaining_azure_vm_storage/full-id-disposition.json",
     "Blue-AWSPEAS.py", "tests/test_blue_awspeas_access_analyzer_read_only.py",
     "tests/fixtures/privesc/synthetic_aws.py", "tests/fixtures/privesc/catalog/*/fixture.yaml",
-    "tests/release_successor_history.py",
+    "tests/release_successor_history.py", "tests/aws_tag_policy_fixture.py",
     "tests/release_test_inputs.py", "tests/fixtures/release-test-inputs.json.xz",
     "tests/fixtures/post_dfaf_integration/pre_bulk_views.json.gz",
     "tests/fixtures/post_dfaf_integration/sprint_source_changes.json",

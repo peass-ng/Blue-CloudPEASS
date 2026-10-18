@@ -705,6 +705,7 @@ class DeploymentGuards(unittest.TestCase):
             "docs/handoff/compliance-requirements-matrix.json.gz", "docs/handoff/compliance-requirements-summary.json",
             "docs/handoff/compliance-runtime-coverage.json",
             "tests/conftest.py", "tests/compliance_draft_isolation.py", "tests/compliance_source_conservation.py",
+            "tests/aws_tag_policy_fixture.py",
             "tests/test_combined_release_gate.py", "tests/fixtures/remediation_aws_reviewed_overlay.json",
             "tests/fixtures/markdown_anchor_expected.json",
             "tests/test_next20_aws.py",
