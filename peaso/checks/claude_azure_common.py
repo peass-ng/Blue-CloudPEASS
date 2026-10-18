@@ -16,12 +16,13 @@ DEFAULT_REMEDIATION = ("Review the declared configuration for the intended workl
 
 
 def claude(slug, kind, title, *, severity="medium", control="CM-6", remediation=None, category="hardening",
-           target="resource", dependencies=None):
+           target="resource", dependencies=None, allow_incomplete_failure=False):
     """Register ``azure.claude.<slug>``; dependencies default to the evaluated kind."""
     cid = PREFIX + slug
     CHECK_IDS.append(cid)
     return register(cid, "azure", category, kind, title, severity, control, remediation or DEFAULT_REMEDIATION,
-                    target=target, dependencies=list(dependencies or [kind]))
+                    target=target, dependencies=list(dependencies or [kind]),
+                    allow_incomplete_failure=allow_incomplete_failure)
 
 
 def cid(slug):
@@ -238,7 +239,7 @@ def subscription_builtin_assignments(index, scope):
     seen = set()
     mg = r'/providers/Microsoft\.Management/managementGroups/[^/?#]+'
     for row in scoped(index, 'policy_assignment'):
-        if get(row, 'name', str) != 'SecurityCenterBuiltIn':
+        if get(row, 'name', str).casefold() != 'securitycenterbuiltin':
             continue
         rid = get(row, 'id', str)
         declared = get(row, 'properties.scope', str)

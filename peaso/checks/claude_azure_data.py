@@ -281,7 +281,7 @@ CASES[cid("defender_container_registry_vulnerability_scanning")] = {
 def asc_default(item, index):
     rows = subscription_builtin_assignments(index, get(item, "scope", str))
     if not rows:
-        return _manual("SecurityCenterBuiltIn is not assigned at this scope; review management-group inheritance")
+        return _na("No SecurityCenterBuiltIn assignment applies to this subscription in the complete policy assignment list")
     disabled = []
     for row in rows:
         parameters = optional(get(row, "properties", dict), "parameters", {}, dict)
@@ -295,10 +295,9 @@ def asc_default(item, index):
 _assignment = lambda value: {"id": "/subscriptions/s/providers/Microsoft.Authorization/policyAssignments/SecurityCenterBuiltIn",
                              "name": "SecurityCenterBuiltIn", "properties": {"scope": "/subscriptions/s", "parameters": {"systemUpdatesMonitoringEffect": {"value": value}}}}
 CASES[cid("defender_default_initiative_no_disabled_effects")] = {
-    "pass": SCOPE, "fail": SCOPE, "manual": SCOPE,
+    "pass": SCOPE, "fail": SCOPE,
     "pass_index": scope_index({"policy_assignment": [_assignment("AuditIfNotExists")]}),
-    "fail_index": scope_index({"policy_assignment": [_assignment("Disabled")]}),
-    "manual_index": scope_index({"policy_assignment": []})}
+    "fail_index": scope_index({"policy_assignment": [_assignment("Disabled")]})}
 
 
 ASSESSMENT_STATES = ("Healthy", "Unhealthy", "NotApplicable")
@@ -354,21 +353,25 @@ _assessment_check("defender_assessment_system_updates",
                   "Defender system-update assessments have no unhealthy machines")
 
 
-@_scope_check("defender_iot_security_solution_enabled", "iot_security_solution", "Defender for IoT security solutions are enabled", control="SI-4")
+@_scope_check("defender_iot_security_solution_enabled", "iot_security_solution", "Defender for IoT security solutions are enabled", dependencies=["iot_security_solution", "iot_hub"], allow_incomplete_failure=True, control="SI-4")
 def iot_solutions(item, index):
     rows = scoped(index, "iot_security_solution")
     if not rows:
-        return _manual("No Defender for IoT security solution exists; confirm whether IoT Hubs are deployed")
+        hubs = scoped(index, "iot_hub")
+        if not hubs:
+            return _na("No IoT security solution or IoT Hub exists in the complete subscription inventories")
+        return unknown("IoT Hubs exist, but the selected subscription's solution list cannot prove whether another subscription's solution covers them",
+                       iot_hub_ids=[get(hub, "id", str) for hub in hubs],
+                       missing_native_evidence="complete cross-subscription IoT security solution inventory and hub binding")
     states = [get(r, "properties.status", str) for r in rows]
     if any(state not in ("Enabled", "Disabled") for state in states):
         return unknown("unrecognized IoT security solution status")
     return result("Disabled" in states, statuses=states)
 _iot = lambda status: {"id": "/subscriptions/s/resourceGroups/r/providers/Microsoft.Security/iotSecuritySolutions/i", "name": "i", "properties": {"status": status}}
 CASES[cid("defender_iot_security_solution_enabled")] = {
-    "pass": SCOPE, "fail": SCOPE, "manual": SCOPE,
-    "pass_index": scope_index({"iot_security_solution": [_iot("Enabled")]}),
-    "fail_index": scope_index({"iot_security_solution": [_iot("Disabled")]}),
-    "manual_index": scope_index({"iot_security_solution": []})}
+    "pass": SCOPE, "fail": SCOPE,
+    "pass_index": scope_index({"iot_security_solution": [_iot("Enabled")], "iot_hub": []}),
+    "fail_index": scope_index({"iot_security_solution": [_iot("Disabled")], "iot_hub": []})}
 
 
 # --- Service Bus -------------------------------------------------------------------------------------------

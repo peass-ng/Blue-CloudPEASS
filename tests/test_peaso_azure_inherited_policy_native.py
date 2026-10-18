@@ -116,7 +116,7 @@ def test_direct_contract_unchanged(monkeypatch, effect, mode, expected):
 def test_child_retained_but_not_subscription_verdict(monkeypatch):
     child = assignment('Disabled', 'DoNotEnforce', SCOPE + '/resourceGroups/child')
     found, snapshot, _ = scan(monkeypatch, [child])
-    assert found == {EFFECT: 'MANUAL', ENFORCE: 'NOT_APPLICABLE'}
+    assert found == {EFFECT: 'NOT_APPLICABLE', ENFORCE: 'NOT_APPLICABLE'}
     collection = next(c for c in snapshot['collections'] if c['type'] == 'policy_assignment')
     assert collection['status'] == 'collected' and collection['items'][0]['id'] == child['id']
 
@@ -138,7 +138,7 @@ def test_native_list_with_detail_get_retains_subscription_binding(monkeypatch):
 
 def test_empty_signed_branches(monkeypatch):
     found, _, _ = scan(monkeypatch, [])
-    assert found == {EFFECT: 'MANUAL', ENFORCE: 'NOT_APPLICABLE'}
+    assert found == {EFFECT: 'NOT_APPLICABLE', ENFORCE: 'NOT_APPLICABLE'}
 
 
 @pytest.mark.parametrize('fault', ['denied', 'partial', 'filtered_continuation', 'wrong_version_continuation'])

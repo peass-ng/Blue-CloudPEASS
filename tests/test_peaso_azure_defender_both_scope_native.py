@@ -67,7 +67,7 @@ def test_direct_assignment_independent_criteria(monkeypatch,assignment,effect,en
 def test_child_only_retained_but_cannot_decide_subscription(monkeypatch,effect,mode):
     child=row(effect,mode,SCOPE+'/resourceGroups/child')
     found,snapshot,calls=scan(monkeypatch,[child])
-    assert found=={EFFECT:'MANUAL',ENFORCE:'NOT_APPLICABLE'}
+    assert found=={EFFECT:'NOT_APPLICABLE',ENFORCE:'NOT_APPLICABLE'}
     inventory=[c for c in snapshot['collections'] if c['type']=='policy_assignment']
     assert len(inventory)==1 and inventory[0]['status']=='collected'
     assert [r['id'] for r in inventory[0]['items']]==[child['id']]
@@ -107,4 +107,4 @@ def test_assignment_scope_binding_for_both(monkeypatch,case):
 
 def test_signed_absence_branches_preserved(monkeypatch):
     found,_,_=scan(monkeypatch,[])
-    assert found=={EFFECT:'MANUAL',ENFORCE:'NOT_APPLICABLE'}
+    assert found=={EFFECT:'NOT_APPLICABLE',ENFORCE:'NOT_APPLICABLE'}

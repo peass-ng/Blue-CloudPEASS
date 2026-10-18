@@ -94,3 +94,21 @@ def test_reviewed_compiler_outputs_are_identical_across_hash_seeds(tmp_path):
     assert len(forward) == 22953  # Original associations plus the 552 signed successor definitions.
     assert forward == _edges_from_reverse(requirements["by_check"])
     assert forward == _edges_from_reverse(lookup["by_check"])
+
+
+def test_current_azure_descriptions_are_hash_bound_overlays_of_signed_rows():
+    from peaso.checks.catalog import description_for
+    from peaso.checks.azure_defender_applicability_description_overlay import ROWS
+
+    signed = json.loads((PACK / "check_descriptions.json").read_bytes())["checks"]
+    native = {row["id"]: row for row in json.loads((PACK / "native_catalog.json").read_bytes())["checks"]}
+    for check_id, overlay in ROWS.items():
+        original = signed[check_id]
+        original_hash = hashlib.sha256(json.dumps(
+            original, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
+        assert original_hash == overlay["base_row_sha256"]
+        current = description_for(check_id)
+        assert current != original
+        for field in ("description", "evaluated", "pass_when", "fail_when",
+                      "not_applicable_when", "description_correction"):
+            assert native[check_id][field] == current[field]
