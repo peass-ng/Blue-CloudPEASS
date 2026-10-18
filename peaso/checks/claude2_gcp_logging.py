@@ -218,8 +218,23 @@ def channel_state(alert, index):
         inventory = {get(c, "name", str): c for c in complete_items(index, CHANNEL_KIND)}
     except Unavailable:
         return "pending", {"notification_channels": names, "channel_inventory": "not collected"}
-    enabled = [n for n in names if n in inventory and optional(inventory[n], "enabled", True, bool)]
-    return ("enabled" if enabled else "none"), {"notification_channels": names, "enabled_channels": enabled}
+    enabled, unresolved = [], []
+    for name in names:
+        if name not in inventory:
+            continue
+        channel = inventory[name]
+        # NotificationChannel.enabled is an optional BoolValue. The list read
+        # uses a fields projection, and absence does not attest enabled=true.
+        try:
+            if get(channel, "enabled", bool):
+                enabled.append(name)
+        except Unavailable:
+            # A sibling's unreadable field cannot erase an independently
+            # verified enabled channel, but cannot itself prove delivery.
+            unresolved.append(name)
+    state = "enabled" if enabled else "pending" if unresolved else "none"
+    return state, {"notification_channels": names, "enabled_channels": enabled,
+                   "unresolved_channels": unresolved}
 
 
 def metric_alert(name):

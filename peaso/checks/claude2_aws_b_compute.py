@@ -1001,12 +1001,12 @@ def _group_lc(item, index):
     docs=[D_LC], dependencies=["autoscaling_group", "launch_configuration"],
     extra={"pass_index": inventory("launch_configuration", [_lc(AssociatePublicIpAddress=False)]), "fail_index": inventory("launch_configuration", [_lc(AssociatePublicIpAddress=True)]),
            "not_applicable": _asg(LaunchTemplate={"LaunchTemplateId": "lt-1"})},
-    note="Prowler: groups using a launch configuration; AssociatePublicIpAddress true FAIL (omitted = false). Groups without a launch configuration are NOT_APPLICABLE.")
+    note="Prowler: groups using a launch configuration; AssociatePublicIpAddress true FAIL. An omitted value inherits subnet public-IP assignment and cannot prove disabled exposure. Groups without a launch configuration are NOT_APPLICABLE.")
 def asg_lc_ip(item, index):
     lc = _group_lc(item, index)
     if lc is None:
         return "NOT_APPLICABLE", {"launch_configuration": None}
-    value = absent_or(lc, "LaunchConfigurationARN", "AssociatePublicIpAddress", False, bool)
+    value = get(lc, "AssociatePublicIpAddress", bool)
     return result(value, associate_public_ip_address=value)
 
 
@@ -1040,8 +1040,8 @@ def asg_lc_imds(item, index):
 flag("aws.c2b.autoscaling.lc_no_public_ip", "launch_configuration", "Launch configuration does not associate public IP addresses", "AssociatePublicIpAddress",
     rows=[C + "autoscaling_launch_config_public_ip_disabled", C + "foundational_security_autoscaling_5", X + "autoscaling_launch_config_public_ip_disabled"],
     severity="high", category="exposure", control="SC-7", remediation="Create a replacement launch configuration/template with AssociatePublicIpAddress false.",
-    sentinel="LaunchConfigurationARN", good=False, bad=True, default=False, docs=[D_LC],
-    note="Steampipe/perimeter: associate_public_ip_address true alarms; omitted is ok.")
+    sentinel="LaunchConfigurationARN", good=False, bad=True, docs=[D_LC],
+    note="Steampipe/perimeter: associate_public_ip_address true alarms. An omitted value inherits subnet public-IP assignment and cannot prove disabled exposure.")
 
 
 @install("aws.c2b.autoscaling.lc_imdsv2_required", "launch_configuration", "Launch configuration requires IMDSv2 (HttpTokens required)",

@@ -35,6 +35,8 @@ def render_documents() -> dict[Path, bytes]:
     requirements, descriptions = packed
     from peaso.checks.ecs_uid_description_overlay import validate_rows as validate_ecs_description_rows
     validate_ecs_description_rows(descriptions["checks"])
+    from peaso.checks.aws_launch_ip_description_overlay import validate_rows as validate_launch_ip_rows
+    validate_launch_ip_rows(descriptions["checks"])
     canonical = full_requirements()
     if lookup_index(canonical, requirements["full_pack_sha256"]) != requirements:
         raise ValueError("Compact lookup differs from canonical signed requirement pack")

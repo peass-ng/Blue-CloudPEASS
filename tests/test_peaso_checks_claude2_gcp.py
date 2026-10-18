@@ -155,7 +155,7 @@ METRIC = {"name": "projects/p/metrics/m", "filter": CIS_FILTERS["route_changes"]
 THRESHOLD = {"conditionThreshold": {"filter": 'metric.type="logging.googleapis.com/user/m" resource.type="global"'}}
 ALERT = {"name": "projects/p/alertPolicies/a", "enabled": True, "notificationChannels": ["projects/p/notificationChannels/1"],
          "conditions": [THRESHOLD]}
-CHANNEL = {"name": "projects/p/notificationChannels/1", "type": "email"}
+CHANNEL = {"name": "projects/p/notificationChannels/1", "type": "email", "enabled": True}
 SINK = {"name": "projects/p/sinks/_Required", "destination": "logging.googleapis.com/projects/p/locations/global/buckets/_Required"}
 
 

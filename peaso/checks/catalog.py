@@ -102,6 +102,9 @@ def description_for(check_id):
     if check_id in ("aws.b.ecs.declared_nonroot_users", "aws.b.ecs.host_network_nonprivileged"):
         from .ecs_uid_description_overlay import description
         return description(check_id, original)
+    if check_id in ("aws.c2b.autoscaling.lc_no_public_ip", "aws.c2b.autoscaling.group_lc_no_public_ip"):
+        from .aws_launch_ip_description_overlay import description
+        return description(check_id, original)
     return deepcopy(original)
 
 
