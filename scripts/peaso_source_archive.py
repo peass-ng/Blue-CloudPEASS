@@ -10,7 +10,10 @@ import zipfile
 import zlib
 
 PROFILES = ((9, 9, zlib.Z_DEFAULT_STRATEGY), (9, 9, zlib.Z_FILTERED),
-            (6, 9, zlib.Z_DEFAULT_STRATEGY), (1, 9, zlib.Z_DEFAULT_STRATEGY))
+            (6, 9, zlib.Z_DEFAULT_STRATEGY), (1, 9, zlib.Z_DEFAULT_STRATEGY),
+            (9, 6, zlib.Z_DEFAULT_STRATEGY), (9, 6, zlib.Z_FILTERED),
+            (9, 7, zlib.Z_DEFAULT_STRATEGY), (9, 7, zlib.Z_FILTERED),
+            (9, 8, zlib.Z_FILTERED))
 
 
 def optimize_source_archive(path, *, max_members, max_member_bytes, max_uncompressed_bytes):
