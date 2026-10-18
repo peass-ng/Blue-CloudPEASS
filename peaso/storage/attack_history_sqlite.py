@@ -506,14 +506,8 @@ class SQLiteAttackHistoryStore:
                         obj.etag, obj.size, object_sha256, checkpoint.ref, checkpoint.sha256):
                     raise AttackHistoryError(409, "Committed CloudTrail object changed")
                 return
-            unique_ids = set()
-            for event_id, payload_sha in event_hashes:
-                row = db.execute("SELECT payload_sha256 FROM attack_cloudtrail_events WHERE job_id=? AND event_id=?",
-                                 (job_id, event_id)).fetchone()
-                if row is not None and row["payload_sha256"] != payload_sha:
-                    raise AttackHistoryError(409, "CloudTrail event identity conflict")
-                if row is None:
-                    unique_ids.add(event_id)
+            existing_events = self._existing_cloudtrail_events(db, job_id, event_hashes)
+            unique_ids = {event_id for event_id, _ in event_hashes if event_id not in existing_events}
             for chunk in saved["finding_chunks"]:
                 try:
                     findings = self.ledger.get_finding_chunk(tenant, job_id, chunk)
@@ -552,6 +546,23 @@ class SQLiteAttackHistoryStore:
                 raise AttackHistoryError(409, "Committed CloudTrail checkpoint is invalid") from None
             return {"etag": row["etag"], "size": row["size"], "sha256": row["object_sha256"]}
 
+    @staticmethod
+    def _existing_cloudtrail_events(db: sqlite3.Connection, job_id: str,
+                                    event_hashes: list[tuple[str, str]]) -> dict[str, str]:
+        """Read existing event identities in bounded batches for old SQLite builds."""
+        existing: dict[str, str] = {}
+        for offset in range(0, len(event_hashes), 500):
+            ids = [event_id for event_id, _ in event_hashes[offset:offset + 500]]
+            placeholders = ",".join("?" for _ in ids)
+            rows = db.execute(
+                f"SELECT event_id,payload_sha256 FROM attack_cloudtrail_events "
+                f"WHERE job_id=? AND event_id IN ({placeholders})", (job_id, *ids))
+            existing.update((row["event_id"], row["payload_sha256"]) for row in rows)
+        for event_id, digest in event_hashes:
+            if event_id in existing and existing[event_id] != digest:
+                raise AttackHistoryError(409, "CloudTrail event identity conflict")
+        return existing
+
     def cloudtrail_new_event_ids(self, tenant: str, job_id: str, owner: str,
                                  generation: int, event_hashes: list[tuple[str, str]],
                                  *, now: float | None = None) -> set[str]:
@@ -563,15 +574,8 @@ class SQLiteAttackHistoryStore:
         now = time.time() if now is None else float(now)
         with self._connect() as db:
             self._fenced(db, tenant, job_id, owner, generation, now)
-            new = set()
-            for event_id, digest in event_hashes:
-                row = db.execute("SELECT payload_sha256 FROM attack_cloudtrail_events WHERE job_id=? AND event_id=?",
-                                 (job_id, event_id)).fetchone()
-                if row is not None and row["payload_sha256"] != digest:
-                    raise AttackHistoryError(409, "CloudTrail event identity conflict")
-                if row is None:
-                    new.add(event_id)
-            return new
+            existing = self._existing_cloudtrail_events(db, job_id, event_hashes)
+            return {event_id for event_id, _ in event_hashes if event_id not in existing}
 
     @staticmethod
     def _cloudtrail_digests(db: sqlite3.Connection, job_id: str, partition_id: str) -> tuple[str, str, list[dict]]:

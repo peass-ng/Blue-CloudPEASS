@@ -7,6 +7,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+from uuid import UUID
 
 from peaso.attack_detection.history_worker_s3 import _process
 from peaso.attack_detection.history_s3 import HistorySourceGap
@@ -163,3 +164,18 @@ def test_worker_deduplicates_same_event_across_objects(tmp_path: Path) -> None:
     result = store.read_result("tenant-a", job)
     assert result["summary"]["event_count"] == 1
     assert result["summary"]["detection_count"] == 1
+
+
+def test_worker_deduplicates_across_multiple_sqlite_lookup_batches(tmp_path: Path) -> None:
+    store, job, generation = prepared(tmp_path)
+    first = [event(str(UUID(int=index + 1))) for index in range(1000)]
+    second = [event(str(UUID(int=index + 1))) for index in range(500, 1500)]
+    data = {PREFIX + "one.json.gz": compressed(*first),
+            PREFIX + "two.json.gz": compressed(*second)}
+    receipt = _process(store, "tenant-a", job, "worker-a", generation,
+                       FakeS3(data), (RULE,), grace_seconds=3600,
+                       clock=lambda: CLOCK)
+    assert receipt["state"] == "complete_as_of"
+    result = store.read_result("tenant-a", job)
+    assert result["summary"]["event_count"] == 1500
+    assert result["summary"]["detection_count"] == 1500
