@@ -209,6 +209,30 @@ def detect_azure_events(
 def _detect_events(
     records: Iterable[Mapping[str, Any]], selected_rules: Sequence[Rule], normalizer: Any, product: str,
 ) -> list[Detection]:
+    # Most packs contain many rules for a small set of event sources. Keep the
+    # caller's rule order while considering only rules whose exact source/name
+    # selectors can match this event. Rules without those selectors remain in
+    # wildcard buckets and retain the same matching semantics.
+    any_value = object()
+    def index_value(value: Any) -> Any:
+        try:
+            hash(value)
+        except TypeError:
+            return any_value
+        return value
+
+    rules = [rule for rule in selected_rules if rule.product == product]
+    buckets: dict[tuple[Any, Any], set[int]] = {}
+    for index, rule in enumerate(rules):
+        values = []
+        for field in ("event.source", "event.name"):
+            value = rule.selection.get(field, any_value)
+            choices = value if isinstance(value, list) else [value]
+            values.append([index_value(item) for item in choices])
+        for source in values[0]:
+            for name in values[1]:
+                buckets.setdefault((source, name), set()).add(index)
+
     matches: list[Detection] = []
     for record in records:
         normalized = normalizer(record)
@@ -216,9 +240,15 @@ def _detect_events(
         for event in events:
             if not isinstance(event, Mapping):
                 continue
-            for rule in selected_rules:
-                if rule.product != product:
-                    continue
+            source = event.get("event.source")
+            name = event.get("event.name")
+            source = index_value(source)
+            name = index_value(name)
+            candidate_indexes: set[int] = set()
+            for key in ((source, name), (source, any_value), (any_value, name), (any_value, any_value)):
+                candidate_indexes.update(buckets.get(key, ()))
+            for index in sorted(candidate_indexes):
+                rule = rules[index]
                 if all(event.get(field) in expected if isinstance(expected, list) else event.get(field) == expected for field, expected in rule.selection.items()):
                     evidence = {field: event[field] for field in rule.selection}
                     correlation = event.get("correlation_evidence")
