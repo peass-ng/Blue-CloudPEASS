@@ -552,6 +552,8 @@ def vm_backup_daily_retention(item, index):
     items = _backup_items(item, index)
     if not items:
         return "NOT_APPLICABLE", {"reason": "VM is not protected by Azure Backup"}
+    if len(items) != 1:
+        raise Unavailable("ambiguous VM backup protected-item match")
     policy_id = _lower_id(get(items[0], "properties.policyId", str))
     policies = [p for p in scoped(index, "backup_policy") if _lower_id(get(p, "id", str)) == policy_id]
     if len(policies) != 1:

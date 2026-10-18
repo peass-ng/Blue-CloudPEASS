@@ -142,3 +142,17 @@ def test_databricks_subnet_missing_from_vnet_is_unknown():
     index = scope_index({"vnet": [{"id": compute._DBX_VNET, "properties": {"subnets": [compute._sub("priv", True)]}}]})
     assert run(slug, compute._dbx_ws, index) == "UNKNOWN"
     assert run(slug, compute._dbx_ws, scope_index({"vnet": []})) == "UNKNOWN"
+
+
+@pytest.mark.parametrize("second_days", [2, 30, None])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_backup_retention_ambiguous_protected_item_is_unknown(second_days, reverse):
+    rows = [compute._BI("/vm1"), compute._BI("/vm1", "/policy2")]
+    policies = [compute._BP(30)]
+    if second_days is not None:
+        other = compute._BP(second_days)
+        other["id"] = "/policy2"
+        policies.append(other)
+    index = scope_index({"backup_protected_item": list(reversed(rows)) if reverse else rows,
+                         "backup_policy": policies})
+    assert run(cid("vm_backup_daily_retention_7_days"), {"id": "/vm1"}, index) == "UNKNOWN"
