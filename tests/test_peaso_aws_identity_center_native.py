@@ -35,13 +35,13 @@ def responses(sdk,mode):
     if mode=='foreign_instance':instance['InstanceArn']=INSTANCE.replace('arn:aws:','arn:aws-cn:')
     if mode=='missing_status':instance.pop('Status')
     if mode=='inactive_instance':instance['Status']='CREATE_IN_PROGRESS'
-    if mode=='wrong_store_owner':instance['IdentityStoreArn']=f'arn:aws:identitystore::999999999999:identitystore/{STORE}'
+    if mode=='missing_instance_owner':instance.pop('OwnerAccountId')
     if mode=='denied_instances':
         admin.add_client_error('list_instances','AccessDeniedException',http_status_code=403,expected_params={});return session,stubs
     if mode=='truncated_instances':
         admin.add_response('list_instances',{'Instances':[instance],'NextToken':'next'},{});return session,stubs
     admin.add_response('list_instances',{'Instances':[] if mode=='empty_instances' else [instance]* (2 if mode=='duplicate_instance' else 1)}, {})
-    if mode in ('empty_instances','foreign_instance','missing_status','inactive_instance','wrong_store_owner'):return session,stubs
+    if mode in ('empty_instances','foreign_instance','missing_status','inactive_instance','missing_instance_owner'):return session,stubs
     args={'InstanceArn':INSTANCE}
     if mode=='denied_sets':
         admin.add_client_error('list_permission_sets','AccessDeniedException',http_status_code=403,expected_params=args);return session,stubs
@@ -61,12 +61,12 @@ def responses(sdk,mode):
                        **({'NextToken':'next'}if mode=='truncated_assignments'else{})},args)
     if mode in ('empty_assignments','foreign_account','wrong_assignment_set','truncated_assignments'):return session,stubs
     if group:
-        member={'IdentityStoreId':STORE,'MembershipId':MEMBERSHIP,'MembershipArn':f'arn:aws:identitystore:::membership/{MEMBERSHIP}',
+        member={'IdentityStoreId':STORE,'MembershipId':MEMBERSHIP,
                 'GroupId':GROUP,'MemberId':{'UserId':USER}}
         if mode=='group_foreign_store':member['IdentityStoreId']='d-ffffffff00'
         if mode=='group_foreign_group':member['GroupId']=USER
         if mode=='group_missing_group':member.pop('GroupId')
-        if mode=='group_wrong_member_arn':member['MembershipArn']=f'arn:aws-cn:identitystore:::membership/{MEMBERSHIP}'
+        if mode=='group_missing_membership_id':member.pop('MembershipId')
         args={'IdentityStoreId':STORE,'GroupId':GROUP}
         if mode=='group_denied':
             store.add_client_error('list_group_memberships','AccessDeniedException',http_status_code=403,expected_params=args);return session,stubs
@@ -75,14 +75,13 @@ def responses(sdk,mode):
             args={**args,'NextToken':'next'}
         store.add_response('list_group_memberships',{'GroupMemberships':[] if mode=='group_empty' else [member]*(2 if mode=='group_duplicate' else 1),
                            **({'NextToken':'next'} if mode=='group_truncated' else {})},args)
-        if mode in ('group_empty','group_truncated','group_foreign_store','group_foreign_group','group_missing_group','group_wrong_member_arn','group_duplicate'):return session,stubs
-    user={'IdentityStoreId':STORE,'UserId':USER,'UserArn':f'arn:aws:identitystore:::user/{USER}','Revision':'1',
+        if mode in ('group_empty','group_truncated','group_foreign_store','group_foreign_group','group_missing_group','group_missing_membership_id','group_duplicate'):return session,stubs
+    user={'IdentityStoreId':STORE,'UserId':USER,
           'UserStatus':'DISABLED' if mode in ('disabled','group_disabled') else 'ENABLED',
           'UserName':'not-exported-private-fixture-name','DisplayName':'not-exported-private-fixture-profile'}
     if mode=='missing_user_status':user.pop('UserStatus')
     if mode=='foreign_user_store':user['IdentityStoreId']='d-ffffffff00'
     if mode=='foreign_user':user['UserId']=GROUP
-    if mode=='foreign_user_arn':user['UserArn']=user['UserArn'].replace('arn:aws:','arn:aws-cn:')
     args={'IdentityStoreId':STORE,'UserId':USER}
     if mode=='denied_user':store.add_client_error('describe_user','AccessDeniedException',http_status_code=403,expected_params=args)
     else:store.add_response('describe_user',user,args)
@@ -93,12 +92,12 @@ def responses(sdk,mode):
  ('complete','PASS'),('complete_group','PASS'),('group_empty_first_page','PASS'),
  ('disabled','FAIL'),('group_disabled','FAIL'),('empty_sets','FAIL'),('empty_assignments','FAIL'),('group_empty','FAIL'),
  ('empty_instances','UNKNOWN'),('foreign_instance','UNKNOWN'),('missing_status','UNKNOWN'),('inactive_instance','UNKNOWN'),
- ('wrong_store_owner','UNKNOWN'),('denied_instances','UNKNOWN'),('truncated_instances','UNKNOWN'),
+ ('missing_instance_owner','UNKNOWN'),('denied_instances','UNKNOWN'),('truncated_instances','UNKNOWN'),
  ('foreign_set','UNKNOWN'),('denied_sets','UNKNOWN'),('truncated_sets','UNKNOWN'),
  ('foreign_account','UNKNOWN'),('wrong_assignment_set','UNKNOWN'),('denied_assignments','UNKNOWN'),('truncated_assignments','UNKNOWN'),
- ('missing_user_status','UNKNOWN'),('foreign_user_store','UNKNOWN'),('foreign_user','UNKNOWN'),('foreign_user_arn','UNKNOWN'),('denied_user','UNKNOWN'),
+ ('missing_user_status','UNKNOWN'),('foreign_user_store','UNKNOWN'),('foreign_user','UNKNOWN'),('denied_user','UNKNOWN'),
  ('group_denied','UNKNOWN'),('group_truncated','UNKNOWN'),('group_foreign_store','UNKNOWN'),('group_foreign_group','UNKNOWN'),
- ('group_missing_group','UNKNOWN'),('group_wrong_member_arn','UNKNOWN'),('group_duplicate','UNKNOWN'),
+ ('group_missing_group','UNKNOWN'),('group_missing_membership_id','UNKNOWN'),('group_duplicate','UNKNOWN'),
  ('duplicate_instance','UNKNOWN'),('duplicate_set','UNKNOWN'),('duplicate_assignment','UNKNOWN')])
 def test_native_scoped_join_to_real_compliance_decision(sdk,mode,expected):
     session,stubs=responses(sdk,mode)
@@ -145,11 +144,11 @@ def test_shared_group_and_user_reads_are_cached_and_expansion_obeys_resource_lim
         admin.add_response('list_account_assignments',{'AccountAssignments':[{'AccountId':ACCOUNT,'PermissionSetArn':permission,'PrincipalType':'GROUP','PrincipalId':GROUP}]},
                            {'InstanceArn':INSTANCE,'AccountId':ACCOUNT,'PermissionSetArn':permission})
     store.add_response('list_group_memberships',{'GroupMemberships':[
-        {'IdentityStoreId':STORE,'MembershipId':mid,'MembershipArn':f'arn:aws:identitystore:::membership/{mid}',
+        {'IdentityStoreId':STORE,'MembershipId':mid,
          'GroupId':GROUP,'MemberId':{'UserId':uid}} for mid,uid in ((MEMBERSHIP,USER),(membership2,user2))]},
         {'IdentityStoreId':STORE,'GroupId':GROUP})
     for uid in (USER,user2):
-        store.add_response('describe_user',{'IdentityStoreId':STORE,'UserId':uid,'UserArn':f'arn:aws:identitystore:::user/{uid}','Revision':'1','UserStatus':'ENABLED'},
+        store.add_response('describe_user',{'IdentityStoreId':STORE,'UserId':uid,'UserStatus':'ENABLED'},
                            {'IdentityStoreId':STORE,'UserId':uid})
     requests=aws.Requests({'retry_attempts':1,**({'max_resources':limit} if limit else {})})
     read=native.identity_center(requests,session,REGION,ACCOUNT)

@@ -62,7 +62,7 @@ jobs:
           'azure-identity==1.25.1' 'azure-mgmt-resource==24.0.0' 'azure-mgmt-authorization==4.0.0'
           'azure-mgmt-monitor==7.0.0' 'kubernetes==35.0.0' 'termcolor==3.2.0' 'tqdm==4.67.1'
           'duckdb==1.5.6' 'jsonschema==4.26.0' 'moto[dynamodb,s3,stepfunctions]==5.2.3' 'httpx==0.28.1'
-          'pytest==9.0.2' 'pytest-xdist==3.8.0'
+          'pytest==9.0.2' 'pytest-xdist==3.8.0' 'setuptools==84.0.0' 'wheel==0.48.0'
       - name: Install Terraform (compiles the hosted workflow definition in tests)
         run: |
           base="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}"
@@ -82,12 +82,27 @@ jobs:
           assert revisions and all(re.fullmatch(r'[0-9a-f]{40}', rev) for rev in revisions)
           subprocess.run(['git', '-C', '.hacktricks-cloud', 'fetch', '--no-tags', '--depth=1', 'origin', *revisions], check=True)
           PYTHON
+      - name: Run the performance gate in isolation
+        id: benchmark
+        # Measure before the large suite imports its fixtures and allocates worker heaps.
+        run: python -m pytest -q -s -p no:cacheprovider -rs --junitxml=benchmark-report.xml tests/test_peaso_perf_benchmark.py
+      - name: Profile a failed performance gate
+        if: ${{ failure() && steps.benchmark.outcome == 'failure' }}
+        run: |
+          python -m cProfile -o "$RUNNER_TEMP/evaluate.prof" tests/test_peaso_perf_benchmark.py 1x
+          python - "$RUNNER_TEMP/evaluate.prof" <<'PYTHON'
+          import pstats, sys
+          pstats.Stats(sys.argv[1]).strip_dirs().sort_stats('cumulative').print_stats(30)
+          PYTHON
       - name: Run the test suite
         env:
           HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud:${{ github.workspace }}/.hacktricks-cloud-azure:${{ github.workspace }}/.hacktricks-cloud-k8s
           PEASO_HACKTRICKS_ROOT: ${{ github.workspace }}/.hacktricks-cloud
         # --dist loadfile keeps each module's expensive fixtures on one worker.
-        run: python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs --junitxml=pytest-report.xml tests
+        run: python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs --junitxml=pytest-report.xml --ignore=tests/test_peaso_perf_benchmark.py tests
+      - name: Fail on unexpected performance skips
+        if: ${{ !cancelled() && steps.benchmark.outcome != 'skipped' }}
+        run: python scripts/check_test_skips.py pytest benchmark-report.xml
       - name: Fail on unexpected skips
         if: ${{ !cancelled() }}
         run: python scripts/check_test_skips.py pytest pytest-report.xml

@@ -1,8 +1,8 @@
 """End-to-end evaluate benchmarks on synthetic AWS snapshots (no real account data).
 
 The "10x" profile matches the audited 10x scale (~5.8k resources, ~3.1k principals, mixed policies,
-privesc-relevant grants, VPC/subnet/ENI/instance hierarchy). Each run is a fresh subprocess so
-ru_maxrss is the evaluation's own peak. Budgets were set from post-optimisation measurements
+privesc-relevant grants, VPC/subnet/ENI/instance hierarchy). Each run is a fresh subprocess; on Linux
+VmHWM measures that process's peak without an inherited pre-exec ru_maxrss floor. Budgets were set from post-optimisation measurements
 (see BUDGETS) with headroom for loaded CI hosts; CPU time is asserted because wall time is noisy.
 
     pytest tests/test_peaso_perf_benchmark.py                  # 1x profile only
@@ -10,6 +10,7 @@ ru_maxrss is the evaluation's own peak. Budgets were set from post-optimisation 
 """
 import json
 import os
+import resource
 import subprocess
 import sys
 from pathlib import Path
@@ -49,6 +50,24 @@ BUDGETS = {
 #    resources per check type, so its rate is the 1x rate scaled by 10 (not separately re-measured).
 FINDING_BYTES = 600
 REPORT_KB_PER_CHECK = {"1x": 14, "10x": 140}
+
+
+def _linux_peak_rss_mb(status_text):
+    for line in status_text.splitlines():
+        if line.startswith("VmHWM:"):
+            parts = line.split()
+            if len(parts) == 3 and parts[0] == "VmHWM:" and parts[2] == "kB":
+                return int(parts[1]) / 1024
+    raise ValueError("Linux /proc/self/status has no valid VmHWM")
+
+
+def _process_peak_rss_mb():
+    if sys.platform.startswith("linux"):
+        # Linux getrusage preserves ru_maxrss across execve. Under xdist this
+        # can report the much larger pytest worker's former address space.
+        return _linux_peak_rss_mb(Path("/proc/self/status").read_text())
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return peak / (1 << 20) if sys.platform == "darwin" else peak / 1024
 
 
 def synthetic_snapshot(vpcs, subnets, groups_count, instances, principals, iam_groups):
@@ -195,7 +214,6 @@ def synthetic_snapshot(vpcs, subnets, groups_count, instances, principals, iam_g
 
 
 def measure(profile):
-    import resource
     import time
     sys.path.insert(0, str(ROOT))
     from peaso import privesc
@@ -208,12 +226,12 @@ def measure(profile):
     # Count the exact default-JSON bytes without holding a second full report
     # string beside the report while measuring process peak RSS.
     report_bytes = sum(map(len, json.JSONEncoder().iterencode(report)))
-    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    peak_mb = _process_peak_rss_mb()
     from peaso.checks import CHECKS
     registered = sum(1 for check in CHECKS if check.provider == "aws")
     return {"profile": profile, "resources": report["stats"]["resource_count"], "findings": report["stats"]["finding_count"],
             "wall_sec": round(wall, 2), "cpu_sec": round(after.ru_utime - before.ru_utime + after.ru_stime - before.ru_stime, 2),
-            "maxrss_mb": round(peak / (1 << 20) if sys.platform == "darwin" else peak / 1024),
+            "maxrss_mb": round(peak_mb),
             "report_mb": round(report_bytes / 1e6, 1), "snapshot_mb": round(len(json.dumps(snapshot)) / 1e6, 1),
             "finding_bytes": round(len(json.dumps(report["findings"])) / max(1, len(report["findings"]))),
             "registered_checks": registered, "unknown_findings": sum(f["status"] == "UNKNOWN" for f in report["findings"]),
@@ -242,6 +260,10 @@ def test_benchmark_1x_synthetic_evaluate():
     # findings; newly admitted checks may need facts this fixture omits.
     assert result["unknown_findings"] < 0.2 * result["findings"], result
     check(result)
+
+
+def test_linux_peak_rss_uses_current_process_vm_high_water_mark():
+    assert _linux_peak_rss_mb("VmRSS:\t2048 kB\nVmHWM:\t307200 kB\n") == 300
 
 
 @pytest.mark.skipif(not os.environ.get("PEASO_BENCH"), reason="set PEASO_BENCH=1 to run the 10x synthetic benchmark")
