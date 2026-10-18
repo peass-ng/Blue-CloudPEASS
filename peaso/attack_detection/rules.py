@@ -34,6 +34,7 @@ class Rule:
     technique_id: str
     product: str
     selection: Mapping[str, Any]
+    falsepositives: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,8 @@ class Detection:
     actor_id: str | None
     target_id: str | None
     evidence: Mapping[str, Any]
+    description: str
+    legitimate_context: tuple[str, ...]
 
 
 class RuleSourceError(ValueError):
@@ -99,12 +102,17 @@ def load_rules(directory: Path | None = None, *, product: str | None = None) -> 
             raise ValueError(f"Unsupported detection values: {name}")
         if product is not None and logsource["product"] != product:
             continue
+        falsepositives = source.get("falsepositives", [])
+        if (not isinstance(falsepositives, list) or len(falsepositives) > 10
+                or any(not isinstance(item, str) or not item or len(item) > 500 for item in falsepositives)):
+            raise ValueError(f"Invalid legitimate context: {name}")
         loaded.append(Rule(
             id=str(source["id"]), title=str(source["title"]),
             level=str(source["level"]), description=str(source["description"]),
             technique_id=str(source["x_hacktricks_technique_id"]),
             product=logsource["product"],
             selection=dict(selection),
+            falsepositives=tuple(falsepositives),
         ))
     if not loaded:
         raise ValueError("No detection rules found")
@@ -153,5 +161,7 @@ def _detect_events(
                     account_id=event["account.id"],
                     actor_id=event["actor.id"], target_id=event["target.id"],
                     evidence={field: event[field] for field in rule.selection},
+                    description=rule.description,
+                    legitimate_context=rule.falsepositives,
                 ))
     return matches
