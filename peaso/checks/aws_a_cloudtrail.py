@@ -65,14 +65,14 @@ def trail_bucket(item, index):
 
 
 @register("aws.a.cloudtrail.bucket_mfa_delete", "aws", "hardening", "cloudtrail", "Logging CloudTrail trail's in-scope bucket has MFA Delete enabled",
-    "medium", "AU-9", "Review MFA Delete on the trail bucket, or attest an out-of-scope bucket's configuration.", dependencies=["cloudtrail", "bucket"])
+    "medium", "AU-9", "Review MFA Delete on the trail bucket; an unreadable destination remains UNKNOWN.", dependencies=["cloudtrail", "bucket"])
 def bucket_mfa(item, index):
     logging = get(item, "Status.IsLogging", bool)
     if not logging:
         return "NOT_APPLICABLE", {"is_logging": False}
     bucket = trail_bucket(item, index)
     if bucket is None:
-        return "MANUAL", {"reason": "Trail bucket is outside verified same-account snapshot scope"}
+        return unknown("trail bucket is outside verified same-account snapshot scope")
     config = get(bucket, "Versioning", dict)
     if "MFADelete" not in config:
         if config.get("collection_status") == "collected":
@@ -91,12 +91,12 @@ NATIVE_IDS.append("aws.a.cloudtrail.bucket_mfa_delete")
 
 
 @register("aws.a.cloudtrail.bucket_access_logging", "aws", "hardening", "cloudtrail", "Named CloudTrail trail's in-scope bucket has server access logging",
-    "medium", "AU-2", "Configure bucket access logging or attest an out-of-scope destination's configuration.", dependencies=["cloudtrail", "bucket"])
+    "medium", "AU-2", "Configure bucket access logging; an unreadable destination remains UNKNOWN.", dependencies=["cloudtrail", "bucket"])
 def bucket_logging(item, index):
     get(item, "Name", str)
     bucket = trail_bucket(item, index)
     if bucket is None:
-        return "MANUAL", {"reason": "Trail bucket is outside verified same-account snapshot scope"}
+        return unknown("trail bucket is outside verified same-account snapshot scope")
     config = get(bucket, "Logging", dict)
     if "LoggingEnabled" not in config:
         if config.get("collection_status") == "collected":

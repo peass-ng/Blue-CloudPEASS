@@ -124,6 +124,10 @@ def test_reviewed_entries_are_assigned_native_checks_with_exact_kind():
         if check_id == "aws.cloudtrail.management_events":
             from peaso.checks.cloudtrail_management_description_overlay import remediation
             expected = remediation(entry)
+        if check_id in ("aws.a.cloudtrail.bucket_access_logging", "aws.a.cloudtrail.bucket_mfa_delete",
+                        "aws.a.iam.attached_policy_no_star_star"):
+            from peaso.checks.aws_native_status_description_overlay import remediation
+            expected = remediation(check_id, entry)
         assert template(check_id) == expected
 
 
@@ -425,7 +429,7 @@ def test_immutability_and_source_scope_are_preserved():
     assert "MANUAL" in " ".join(entries["aws.b.acm.pending_validation_review"]["caveats"])
     assert "not proof" in " ".join(entries["aws.b.rds_instance.nondefault_admin"]["caveats"])
     assert "does not prove physical possession" in " ".join(entries["aws.a.iam.root_hardware_mfa"]["caveats"])
-    assert "MANUAL" in " ".join(entries["aws.a.cloudtrail.bucket_mfa_delete"]["caveats"])
+    assert "UNKNOWN" in " ".join(template("aws.a.cloudtrail.bucket_mfa_delete")["caveats"])
     assert "not proof of effective public access" in " ".join(entries["aws.a.cloudtrail.joined_bucket_declared_public_grants"]["caveats"])
     assert "never collected" in " ".join(entries["aws.htbp.lambda.env_var_names_not_credentials"]["caveats"])
     assert "MANUAL" in " ".join(entries["aws.htbp.ecr.registry_policy_trust_boundary"]["caveats"])

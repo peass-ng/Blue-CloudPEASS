@@ -162,6 +162,9 @@ def rules() -> dict:
         if conflicts:
             raise ValueError("reviewed remediation shard conflicts with approved IDs: " + ", ".join(sorted(conflicts)[:10]))
     _merge_compliance_reviewed(value)
+    from .checks.aws_native_status_description_overlay import ROWS as aws_status_rows, remediation as aws_status_remediation
+    for check_id in aws_status_rows:
+        value[check_id] = aws_status_remediation(check_id, value.get(check_id))
     from .checks.cloudtrail_management_description_overlay import remediation as trail_remediation
     if "aws.cloudtrail.management_events" in value:
         value["aws.cloudtrail.management_events"] = trail_remediation(value["aws.cloudtrail.management_events"])

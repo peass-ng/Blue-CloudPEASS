@@ -81,6 +81,73 @@ def test_gcp_requires_confirmed_success_and_target() -> None:
     assert normalize_gcp_audit(good)["credential.effect_confirmed"] is True
 
 
+def test_gcp_numeric_key_parent_requires_exact_resource_identity_bridge() -> None:
+    unique_id = "123456789012345678901"
+    email = "target@customer.iam.gserviceaccount.com"
+    labels = {"project_id": "customer", "email_id": email, "unique_id": unique_id}
+    returned = gcp_key_event()
+    returned["resource"] = {"type": "service_account", "labels": labels}
+    returned["protoPayload"].pop("status")
+    returned["protoPayload"]["response"] = {
+        "name": f"projects/customer/serviceAccounts/{unique_id}/keys/abc"}
+    assert normalize_gcp_audit(returned)["credential.key_name"] == returned["protoPayload"]["response"]["name"]
+    assert len(detect_gcp_events([returned], [GCP_TEST_RULE])) == 1
+
+    numeric_request = deepcopy(returned)
+    numeric_request["protoPayload"]["request"]["name"] = f"projects/-/serviceAccounts/{unique_id}"
+    numeric_request["protoPayload"]["resourceName"] = f"projects/customer/serviceAccounts/{unique_id}"
+    assert normalize_gcp_audit(numeric_request)["target.id"] == f"projects/-/serviceAccounts/{unique_id}"
+    assert len(detect_gcp_events([numeric_request], [GCP_TEST_RULE])) == 1
+    numeric_request_code_zero = deepcopy(numeric_request)
+    numeric_request_code_zero["protoPayload"].pop("response")
+    numeric_request_code_zero["protoPayload"]["status"] = {"code": 0}
+    assert len(detect_gcp_events([numeric_request_code_zero], [GCP_TEST_RULE])) == 1
+
+    no_bridge = deepcopy(returned)
+    no_bridge.pop("resource")
+    assert normalize_gcp_audit(no_bridge) is None
+    no_bridge_request = deepcopy(numeric_request)
+    no_bridge_request.pop("resource")
+    assert normalize_gcp_audit(no_bridge_request) is None
+
+
+def test_gcp_key_creation_rejects_conflicting_audit_identity() -> None:
+    unique_id = "123456789012345678901"
+    email = "target@customer.iam.gserviceaccount.com"
+    good = gcp_key_event()
+    good["resource"] = {"type": "service_account", "labels": {
+        "project_id": "customer", "email_id": email, "unique_id": unique_id}}
+    good["protoPayload"]["resourceName"] = f"projects/customer/serviceAccounts/{email}"
+    assert normalize_gcp_audit(good) is not None
+
+    mismatched_email = deepcopy(good)
+    mismatched_email["resource"]["labels"]["email_id"] = "different@customer.iam.gserviceaccount.com"
+    mismatched_unique = deepcopy(good)
+    mismatched_unique["protoPayload"]["resourceName"] = "projects/customer/serviceAccounts/999999999999999999999"
+    foreign_name = deepcopy(good)
+    foreign_name["protoPayload"]["resourceName"] = "projects/foreign/serviceAccounts/target@foreign.iam.gserviceaccount.com"
+    other_email_name = deepcopy(good)
+    other_email_name["protoPayload"]["resourceName"] = "projects/customer/serviceAccounts/different@customer.iam.gserviceaccount.com"
+    malformed_name = deepcopy(good)
+    malformed_name["protoPayload"]["resourceName"] = []
+    for row in (mismatched_email, mismatched_unique, foreign_name, other_email_name, malformed_name):
+        assert normalize_gcp_audit(row) is None
+
+    numeric_return = deepcopy(good)
+    numeric_return["protoPayload"].pop("status")
+    numeric_return["protoPayload"]["response"] = {
+        "name": f"projects/customer/serviceAccounts/{unique_id}/keys/abc"}
+    bad_unique_label = deepcopy(numeric_return)
+    bad_unique_label["resource"]["labels"]["unique_id"] = "999999999999999999999"
+    assert normalize_gcp_audit(bad_unique_label) is None
+    missing_email_label = deepcopy(numeric_return)
+    del missing_email_label["resource"]["labels"]["email_id"]
+    assert normalize_gcp_audit(missing_email_label) is None
+    missing_project_label = deepcopy(numeric_return)
+    del missing_project_label["resource"]["labels"]["project_id"]
+    assert normalize_gcp_audit(missing_project_label) is None
+
+
 def test_malformed_gcp_method_does_not_abort_following_valid_record() -> None:
     good = gcp_key_event()
     malformed = deepcopy(good)

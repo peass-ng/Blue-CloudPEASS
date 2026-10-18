@@ -96,6 +96,16 @@ def _candidate(record: Any, subscription: str | None):
         return None
     if status == "succeeded" and (_value(record.get("subStatus")) or "").lower() not in _CREATED:
         return None
+    if status == "succeeded":
+        properties = record.get("properties")
+        if isinstance(properties, Mapping):
+            status_codes = (value for key, value in properties.items()
+                            if isinstance(key, str) and key.lower() == "statuscode")
+            if any(not isinstance(code, str) or code.lower() not in _CREATED
+                   for code in status_codes):
+                return None
+        elif properties is not None:
+            return None
     resource = record.get("resourceId")
     match = _ASSIGNMENT.fullmatch(resource) if isinstance(resource, str) else None
     if not match:
@@ -133,9 +143,18 @@ def correlate_azure_self_grants(records: Iterable[Mapping[str, Any]], *, subscri
     """Produce narrow canonical events for separately reviewed detection rules."""
     starts: dict[tuple[str, str], list[tuple[Mapping[str, Any], Any, datetime, str]]] = {}
     successes: dict[tuple[str, str], list[tuple[Mapping[str, Any], Any, datetime, str]]] = {}
+    event_rows: dict[str, Mapping[str, Any]] = {}
+    conflicting_ids: set[str] = set()
     for index, record in enumerate(records):
         if index >= 2_000:
             break
+        if isinstance(record, Mapping):
+            event_id = record.get("eventDataId")
+            if isinstance(event_id, str) and 0 < len(event_id) <= 256:
+                if event_id in event_rows and event_rows[event_id] != record:
+                    conflicting_ids.add(event_id)
+                else:
+                    event_rows[event_id] = record
         candidate = _candidate(record, subscription)
         if candidate is None:
             continue
@@ -144,8 +163,11 @@ def correlate_azure_self_grants(records: Iterable[Mapping[str, Any]], *, subscri
     candidates = []
     seen = set()
     for key, begun in starts.items():
+        finished = successes.get(key, [])
+        if any(row[0]["eventDataId"] in conflicting_ids for row in (*begun, *finished)):
+            continue
         begun = _unique_rows(begun)
-        completed = _unique_rows(successes.get(key, []))
+        completed = _unique_rows(finished)
         if begun is None or completed is None or len(begun) != 1 or len(completed) != 1:
             continue
         for start, match, start_time, actor in begun:

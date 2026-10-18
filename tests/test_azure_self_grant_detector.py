@@ -63,9 +63,61 @@ def test_owner_self_grant_requires_review_with_only_bound_evidence():
 
 def test_user_access_admin_self_grant_and_duplicate_success_deduped():
     started, success = pair(role=USER_ACCESS_ADMINISTRATOR)
-    matches = correlate_azure_self_grants([started, success, deepcopy(success)], subscription=SUB)
+    matches = correlate_azure_self_grants(
+        [started, deepcopy(started), success, deepcopy(success)], subscription=SUB)
     assert len(matches) == 1
     assert matches[0]["request.role_name"] == "User Access Administrator"
+
+
+@pytest.mark.parametrize("field", ["operationId", "resourceId"])
+def test_conflicting_event_id_across_keys_suppresses_candidate(field):
+    started, success = pair()
+    conflicting = deepcopy(started)
+    if field == "operationId":
+        conflicting[field] = OTHER
+    else:
+        conflicting[field] = RESOURCE.replace(ASSIGNMENT, OTHER)
+    assert len(correlate_azure_self_grants([started, success], subscription=SUB)) == 1
+    assert correlate_azure_self_grants([started, conflicting, success], subscription=SUB) == []
+
+
+@pytest.mark.parametrize("status_code", ["Created", "Created (HTTP Status Code: 201)", "201"])
+def test_matching_native_status_code_keeps_candidate(status_code):
+    started, success = pair()
+    success["properties"]["statusCode"] = status_code
+    assert len(correlate_azure_self_grants([started, success], subscription=SUB)) == 1
+
+
+def test_absent_optional_status_code_keeps_candidate():
+    started, success = pair()
+    success.pop("properties")
+    assert len(correlate_azure_self_grants([started, success], subscription=SUB)) == 1
+
+
+@pytest.mark.parametrize("status", ["Failed", "Succeeded"])
+def test_duplicate_ineligible_outcome_conflicts_with_valid_event_id(status):
+    started, success = pair()
+    contradictory = deepcopy(success)
+    contradictory["status"] = {"value": status}
+    contradictory["subStatus"] = {"value": "OK (HTTP Status Code: 200)"}
+    contradictory["properties"]["statusCode"] = "OK"
+    assert correlate_azure_self_grants([started, success, contradictory], subscription=SUB) == []
+
+
+def test_unrelated_ineligible_event_does_not_hide_valid_pair():
+    started, success = pair()
+    unrelated = deepcopy(success)
+    unrelated["eventDataId"] = "unrelated-update-event"
+    unrelated["subStatus"] = {"value": "OK (HTTP Status Code: 200)"}
+    unrelated["properties"]["statusCode"] = "OK"
+    assert len(correlate_azure_self_grants([started, success, unrelated], subscription=SUB)) == 1
+
+
+@pytest.mark.parametrize("status_code", ["OK", "OK (HTTP Status Code: 200)", "200", None, 201, {}])
+def test_conflicting_or_malformed_status_code_suppresses_candidate(status_code):
+    started, success = pair()
+    success["properties"]["statusCode"] = status_code
+    assert correlate_azure_self_grants([started, success], subscription=SUB) == []
 
 
 def test_updated_assignment_is_not_reported_as_created():

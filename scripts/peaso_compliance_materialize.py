@@ -45,6 +45,8 @@ def render_documents() -> dict[Path, bytes]:
     validate_gcp_inherited_rows(descriptions["checks"])
     from peaso.checks.azure_defender_applicability_description_overlay import validate_rows as validate_azure_defender_rows
     validate_azure_defender_rows(descriptions["checks"])
+    from peaso.checks.aws_native_status_description_overlay import validate_rows as validate_aws_status_rows
+    validate_aws_status_rows(descriptions["checks"])
     canonical = full_requirements()
     if lookup_index(canonical, requirements["full_pack_sha256"]) != requirements:
         raise ValueError("Compact lookup differs from canonical signed requirement pack")

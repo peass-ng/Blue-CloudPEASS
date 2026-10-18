@@ -30,8 +30,8 @@ PUBLISHED_SPRINT_ARCHIVE = ROOT / "infra/aws/build/peaso-source-414e037b411d4e5a
 SOURCE414_VERSION = "414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4dfbe6d"
 SOURCE414_NATIVE_MEMBER = "peaso/rulepacks/native_catalog.json"
 SOURCE414_NATIVE_DELTA = "tests/fixtures/post_dfaf_integration/source414-native-catalog-delta.json.gz"
-SOURCE414_NATIVE_DELTA_SHA256 = "f3f5fe3dbd87740d379ed20ab2042e39817cc888c23234db1e760e3af498ef87"
-SOURCE414_NATIVE_BASE_SHA256 = "35c0dd6dca7865995b8525161d2bca6608b4c183bc82eb713d8dd3a3446c4fa6"
+SOURCE414_NATIVE_DELTA_SHA256 = "eb8e5f44af26d656cabed2aa8420f45c03fd906189f5b31dfa22f8ca7a33788b"
+SOURCE414_NATIVE_BASE_SHA256 = "53e49812f0afd4fd9a1d30ca7ceb6c5ea27bf575d269233c691a3a84173a270b"
 SOURCE414_NATIVE_SHA256 = "9007b31199e3cbe2f9866057d6ac46c04c62e7c83a3ee78c61a70ffb30c1fbba"
 
 
@@ -277,7 +277,7 @@ def _source414_native_catalog(release):
             not isinstance(order, list) or len(order) != 3986 or
             any(type(index) is not int or not 0 <= index < len(rows) for index in order) or
             len(set(order)) != len(rows) or
-            not isinstance(replacements, dict) or len(replacements) != 43 or
+            not isinstance(replacements, dict) or len(replacements) != 46 or
             any(not key.isdecimal() or str(int(key)) != key or int(key) >= len(order)
                 for key in replacements)):
         raise ValueError("Historical native catalog delta shape differs")
