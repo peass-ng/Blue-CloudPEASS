@@ -90,7 +90,8 @@ def _host_root_mount(spec: Mapping[str, Any]) -> tuple[str, str] | None:
         if not isinstance(security, Mapping) or security.get("privileged") is not True or not isinstance(mounts, list):
             continue
         for mount in mounts:
-            if (isinstance(mount, Mapping) and mount.get("name") in root_volumes
+            if (isinstance(mount, Mapping) and isinstance(mount.get("name"), str)
+                    and mount.get("name") in root_volumes
                     and isinstance(mount.get("mountPath"), str) and mount["mountPath"].startswith("/")
                     and mount.get("readOnly", False) is False
                     and not mount.get("subPath") and not mount.get("subPathExpr")):
@@ -108,8 +109,12 @@ def normalize_kubernetes_privileged_host_pod(record: Mapping[str, Any]) -> dict[
             or record.get("stage") != "ResponseComplete" or record.get("verb") != "create"):
         return None
     uri = record.get("requestURI")
-    if isinstance(uri, str) and any(key.lower() == "dryrun" for key, _ in
-            parse_qsl(urlsplit(uri).query, keep_blank_values=True)):
+    try:
+        parsed_uri = urlsplit(uri) if isinstance(uri, str) else None
+    except ValueError:
+        return None
+    if parsed_uri is not None and any(key.lower() == "dryrun" for key, _ in
+            parse_qsl(parsed_uri.query, keep_blank_values=True)):
         return None
     ref = record.get("objectRef")
     status = record.get("responseStatus")

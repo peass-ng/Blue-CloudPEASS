@@ -90,7 +90,7 @@ def test_explicit_read_write_and_gke_response_object_are_supported() -> None:
     "subpath", "subpath_expression", "init_container_only",
     "wrong_resource", "wrong_response_kind", "wrong_name", "wrong_namespace",
     "system_namespace", "windows_pod", "missing_actor", "missing_event_id",
-    "missing_time", "missing_cluster", "malformed_mount",
+    "missing_time", "missing_cluster", "malformed_mount", "list_mount_name", "malformed_uri",
 ])
 def test_unproven_or_benign_native_pod_does_not_match(change: str) -> None:
     record = _pod_record()
@@ -129,6 +129,8 @@ def test_unproven_or_benign_native_pod_does_not_match(change: str) -> None:
     if change == "missing_time": record.pop("stageTimestamp")
     if change == "missing_cluster": record.pop("cluster_id")
     if change == "malformed_mount": container["volumeMounts"] = ["host-volume"]
+    if change == "list_mount_name": mount["name"] = ["host-volume"]
+    if change == "malformed_uri": record["requestURI"] = "http://["
     assert normalize_kubernetes_privileged_host_pod(record) is None
 
 
