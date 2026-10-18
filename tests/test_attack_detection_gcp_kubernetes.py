@@ -14,6 +14,12 @@ GCP_TEST_RULE = Rule(id="unit-gcp", title="Synthetic credential event", level="l
 K8S_TEST_RULE = Rule(id="unit-k8s", title="Synthetic RBAC event", level="low",
                      description="Test only", technique_id="synthetic", product="kubernetes",
                      selection={"event.outcome": "success", "rbac.non_system_service_account": True})
+K8S_SELF_ROLEBINDING_RULE = Rule(
+    id="unit-k8s-self", title="Synthetic self RoleBinding event", level="low",
+    description="Test only", technique_id="synthetic", product="kubernetes",
+    selection={"event.outcome": "success", "rbac.self_namespace_service_account": True,
+               "rbac.role": "cluster-admin"},
+)
 
 
 def gcp_key_event() -> dict:
@@ -116,3 +122,68 @@ def test_gke_cloud_logging_wrapper_requires_returned_object_and_excludes_dry_run
         if edit == "dry_run": row["labels"] = {"command.gke.io/dryRun": "All"}
         negatives.append(row)
     assert detect_kubernetes_events(negatives, [K8S_TEST_RULE]) == []
+
+
+def k8s_self_rolebinding_event() -> dict:
+    record = k8s_binding_event()
+    record["user"]["username"] = "system:serviceaccount:app:worker"
+    record["objectRef"]["resource"] = "rolebindings"
+    record["objectRef"]["namespace"] = "app"
+    record["responseObject"]["kind"] = "RoleBinding"
+    record["responseObject"]["metadata"]["namespace"] = "app"
+    return record
+
+
+def test_namespace_self_rolebinding_requires_same_actor_namespace_and_confirmed_create() -> None:
+    good = k8s_self_rolebinding_event()
+    match = detect_kubernetes_events([good], [K8S_SELF_ROLEBINDING_RULE])
+    assert len(match) == 1
+    assert match[0].actor_id == "system:serviceaccount:app:worker"
+    assert normalize_kubernetes_audit(good)["target.principal"] == "system:serviceaccount:app:worker"
+    negatives = []
+    for edit in ("denied", "dry_run", "request_only", "missing_object", "other_actor", "other_subject",
+                 "other_namespace", "missing_namespace", "wrong_role", "wrong_kind", "system_namespace"):
+        row = deepcopy(good)
+        if edit == "denied": row["responseStatus"] = {"code": 403, "status": "Failure"}
+        if edit == "dry_run": row["requestURI"] = "/apis/rbac.authorization.k8s.io/v1/namespaces/app/rolebindings?dryRun=All"
+        if edit == "request_only": row["stage"] = "RequestReceived"
+        if edit == "missing_object": row.pop("responseObject")
+        if edit == "other_actor": row["user"]["username"] = "system:serviceaccount:app:other"
+        if edit == "other_subject": row["responseObject"]["subjects"][0]["name"] = "other"
+        if edit == "other_namespace": row["objectRef"]["namespace"] = "other"
+        if edit == "missing_namespace": row["responseObject"]["metadata"].pop("namespace")
+        if edit == "wrong_role": row["responseObject"]["roleRef"]["name"] = "view"
+        if edit == "wrong_kind": row["responseObject"]["kind"] = "ClusterRoleBinding"
+        if edit == "system_namespace":
+            row["objectRef"]["namespace"] = "kube-system"
+            row["responseObject"]["metadata"]["namespace"] = "kube-system"
+            row["responseObject"]["subjects"][0]["namespace"] = "kube-system"
+            row["user"]["username"] = "system:serviceaccount:kube-system:worker"
+        negatives.append(row)
+    assert detect_kubernetes_events(negatives, [K8S_SELF_ROLEBINDING_RULE]) == []
+
+
+def test_gke_wrapper_namespace_self_rolebinding_requires_returned_object_and_no_dry_run() -> None:
+    binding = k8s_self_rolebinding_event()["responseObject"]
+    wrapped = {
+        "logName": "projects/customer/logs/cloudaudit.googleapis.com%2Factivity",
+        "insertId": "gke-rolebinding-1", "timestamp": "2026-10-18T00:00:00Z",
+        "resource": {"type": "k8s_cluster", "labels": {"cluster_name": "demo"}},
+        "protoPayload": {
+            "@type": "type.googleapis.com/google.cloud.audit.AuditLog", "serviceName": "k8s.io",
+            "methodName": "io.k8s.authorization.rbac.v1.rolebindings.create",
+            "authenticationInfo": {"principalEmail": "system:serviceaccount:app:worker"},
+            "status": {"code": 0}, "response": binding,
+        },
+    }
+    assert len(detect_kubernetes_events([wrapped], [K8S_SELF_ROLEBINDING_RULE])) == 1
+    negatives = []
+    for edit in ("denied", "dry_run", "missing_response", "other_actor", "other_namespace"):
+        row = deepcopy(wrapped)
+        if edit == "denied": row["protoPayload"]["status"] = {"code": 7}
+        if edit == "dry_run": row["labels"] = {"command.gke.io/dryRun": "All"}
+        if edit == "missing_response": row["protoPayload"].pop("response")
+        if edit == "other_actor": row["protoPayload"]["authenticationInfo"]["principalEmail"] = "other@example.com"
+        if edit == "other_namespace": row["protoPayload"]["response"]["subjects"][0]["namespace"] = "other"
+        negatives.append(row)
+    assert detect_kubernetes_events(negatives, [K8S_SELF_ROLEBINDING_RULE]) == []

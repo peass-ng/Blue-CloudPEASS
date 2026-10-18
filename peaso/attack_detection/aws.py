@@ -29,6 +29,8 @@ def _unconditional_admin_grant(value: Any) -> bool:
         statements = [statements]
     if not isinstance(statements, list):
         return False
+    if any(isinstance(statement, Mapping) and statement.get("Effect") == "Deny" for statement in statements):
+        return False
     for statement in statements:
         if not isinstance(statement, Mapping) or statement.get("Effect") != "Allow":
             continue
@@ -60,6 +62,26 @@ def normalize_aws_cloudtrail(record: Mapping[str, Any]) -> dict[str, Any] | None
     actor_user = identity.get("userName") if actor_kind == "IAMUser" else None
     target_user = request.get("userName")
     account_id = record.get("recipientAccountId") or identity.get("accountId")
+    target_role = request.get("roleName")
+    session = identity.get("sessionContext")
+    session = session if isinstance(session, Mapping) else {}
+    issuer = session.get("sessionIssuer")
+    issuer = issuer if isinstance(issuer, Mapping) else {}
+    issuer_arn = issuer.get("arn")
+    actor_arn = identity.get("arn")
+    identity_account = identity.get("accountId")
+    issuer_parts = issuer_arn.split(":", 5) if isinstance(issuer_arn, str) else []
+    self_role = (
+        actor_kind == "AssumedRole"
+        and isinstance(target_role, str) and bool(target_role)
+        and issuer.get("type") == "Role" and issuer.get("userName") == target_role
+        and len(issuer_parts) == 6 and issuer_parts[2] == "iam"
+        and issuer_parts[5].startswith("role/") and issuer_parts[5].rsplit("/", 1)[-1] == target_role
+        and isinstance(account_id, str) and issuer_parts[4] == account_id
+        and identity_account == account_id
+        and isinstance(actor_arn, str)
+        and actor_arn.startswith(f"arn:{issuer_parts[1]}:sts::{account_id}:assumed-role/{target_role}/")
+    )
     return {
         "cloud.provider": "aws",
         "event.name": record.get("eventName"),
@@ -71,11 +93,13 @@ def normalize_aws_cloudtrail(record: Mapping[str, Any]) -> dict[str, Any] | None
         "actor.id": identity.get("arn"),
         "actor.kind": actor_kind,
         "actor.user_name": actor_user,
-        "target.id": target_user or request.get("policyArn"),
+        "target.id": target_user or target_role or request.get("policyArn"),
         "request.user_name": target_user,
         "request.policy_arn": request.get("policyArn"),
+        "request.role_name": target_role,
         "request.set_as_default": request.get("setAsDefault") is True or request.get("setAsDefault") == "true",
         "request.unconditional_admin_grant": _unconditional_admin_grant(request.get("policyDocument")),
         "request.self_user": isinstance(actor_user, str) and bool(actor_user) and target_user == actor_user,
+        "request.self_role": self_role,
         "request.other_user": isinstance(actor_user, str) and bool(actor_user) and isinstance(target_user, str) and bool(target_user) and target_user != actor_user,
     }

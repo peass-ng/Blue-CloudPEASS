@@ -10,7 +10,7 @@ the environment was attack free.
 
 The canonical detection rules are Sigma YAML in the public
 `peass-ng/hacktricks-cspm-detections` repository. The server can load the reviewed
-pack at pinned commit `da2956222ef073887caca8228a5015ed3782e453` by
+pack at pinned commit `7943488f8e9d3e69ca3ef3dbdfdddff2876c28a3` by
 default. Rule YAML is not shipped in
 this public source repository or its Python package. If the pinned source
 cannot be read, the access check blocks analysis instead of silently running
