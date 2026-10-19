@@ -135,3 +135,11 @@ The advanced authentication upload and collector-options JSON each have expandab
 
 
 Temporary credentials do not require a manually entered expiration. Access checks authenticate with the provider and perform read probes. Unknown expiry does not block a working credential. A known expired credential is rejected; a known lifetime below one hour is advisory. Temporary credentials can still expire during a scan, which remains visible in collection coverage.
+
+### Delete scans or workspace scan data
+
+In **Scans**, use the trash button on a finished or cancelled scan to permanently delete its history and all stored evidence. Active scans must be cancelled or finish first. Deletion does not restore assessment quota. Deleting a connector separately retains its previous scans.
+
+In **Settings → Delete workspace data**, workspace administrators can remove all scans, evidence, connectors (including stored cloud credentials), and schedules in the selected workspace. Type `DELETE` to confirm. Cleanup runs in batches and can be retried after a failure. Account identity, workspace membership, API keys, quota and billing remain. No customer cloud resources are changed. Previously downloaded reports are outside the application's storage.
+
+Each connector has a **Launch scan** button that opens the assessment form with that connector selected. Scan names use the connector name saved when the scan started, followed by the UTC date; repeated names on the same day also show the time. Coverage pagination has compact arrow controls and direct page selection.

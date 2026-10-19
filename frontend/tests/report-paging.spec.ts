@@ -110,7 +110,7 @@ test("23k coverage uses a bounded DOM window, direct final-page offset, retry, a
     return true;
   });
   await page.goto("/#Scans");
-  await page.getByRole("button", { name: scan.id, exact: true }).click();
+  await page.locator(".scan-row .scan-id").first().click();
   const dialog = page.getByRole("dialog");
   const rows = dialog.locator(".coverage-list").first().locator(".coverage-row");
   await expect(rows).toHaveCount(200);
@@ -124,7 +124,7 @@ test("23k coverage uses a bounded DOM window, direct final-page offset, retry, a
   await expect(dialog.getByText("coverage-599")).toBeVisible();
   await expect(rows).toHaveCount(400);
   await dialog.getByLabel("Go to coverage records page").fill("116");
-  await dialog.getByRole("button", { name: "Go", exact: true }).click();
+  await dialog.getByRole("button", { name: "Go to page", exact: true }).click();
   await expect(dialog.getByRole("alert")).toContainText("Data could not be loaded");
   await dialog.getByRole("button", { name: "Try again" }).click();
   await expect(rows).toHaveCount(5);

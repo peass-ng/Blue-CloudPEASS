@@ -142,6 +142,7 @@ export type Scan = {
   updated_at?: string;
   timeline?: { status: string; at: string }[];
   display_name?: string;
+  connector_name?: string;
   connector_id: string;
   status: string;
   created_at: string;

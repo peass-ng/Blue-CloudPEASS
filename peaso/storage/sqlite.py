@@ -348,6 +348,22 @@ class SQLiteStore:
         with self.connect() as db:
             return [(transform or self.public_job)(row) for row in db.execute("SELECT * FROM jobs WHERE tenant=? ORDER BY created DESC", (tenant,))]
 
+    def deletion_job(self, tenant, ident):
+        return self.job(tenant, ident)
+
+    def deletion_jobs(self, tenant):
+        with self.connect() as db:
+            return [dict(row) for row in db.execute("SELECT id,status,deadline FROM jobs WHERE tenant=?", (tenant,))]
+
+    def delete_job(self, tenant, ident):
+        with self.transaction() as db:
+            row = db.execute("SELECT status,deadline FROM jobs WHERE tenant=? AND id=?", (tenant, ident)).fetchone()
+            if not row:
+                raise StoreError(404, "Scan not found")
+            if row["status"] not in TERMINAL and row["deadline"] > time.time():
+                raise StoreError(409, "Cancel the scan or wait for it to finish before deleting it")
+            db.execute("DELETE FROM jobs WHERE tenant=? AND id=?", (tenant, ident))
+
     def usage(self, tenant, now=None):
         with self.connect() as db:
             row = db.execute("SELECT used FROM quota WHERE tenant=? AND week=?", (tenant, week(time.time() if now is None else now))).fetchone()

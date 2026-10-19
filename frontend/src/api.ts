@@ -38,7 +38,7 @@ async function authenticatedFetch(url: string, init: RequestInit = {}) {
   if (init.body && !headers.has("Content-Type"))
     headers.set("Content-Type", "application/json");
   const workspaceId = sessionStorage.getItem(workspaceKey);
-  if (workspaceId && workspaceId !== "personal") headers.set("X-Workspace-Id", workspaceId);
+  if (!headers.has("X-Workspace-Id") && workspaceId && workspaceId !== "personal") headers.set("X-Workspace-Id", workspaceId);
   const addedBearer = !!token && !headers.has("Authorization");
   if (addedBearer) headers.set("Authorization", `Bearer ${token}`);
   const options: RequestInit = { ...init, credentials: "include", headers };

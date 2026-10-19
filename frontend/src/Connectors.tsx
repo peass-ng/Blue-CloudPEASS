@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, Check, Copy } from "lucide-react";
-import { items, json, request, useApi } from "./api";
+import { Plus, Pencil, Trash2, Check, Copy, Play } from "lucide-react";
+import { catalogFrameworksPath, items, json, request, useApi } from "./api";
 import { authGuides, gcpRoles } from "./authGuides";
 import { ConnectorFieldHelp } from "./ConnectorFieldHelp";
 import { providers } from "./types";
-import type { Connector, Me, Provider } from "./types";
+import type { Catalog, Connector, Me, Provider } from "./types";
 import { Badge, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
+import { LaunchForm } from "./Scans";
 const COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/HackTricks-CSPM";
 const ROLE_ARN = /^arn:aws:iam::[0-9]{12}:role\/[A-Za-z0-9+=,.@_/-]{1,512}$/;
 const TEMPLATE_URL = "https://cspm.hacktricks.wiki/aws/customer-role.json";
@@ -388,6 +389,8 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
   const [edit, setEdit] = useState<Connector | null | undefined>();
   const [onboarding, setOnboarding] = useState<Connector>();
   const [remove, setRemove] = useState<Connector>();
+  const [launchConnector, setLaunchConnector] = useState<string>();
+  const catalog = useApi<Catalog>(catalogFrameworksPath, demo, !!launchConnector);
   const del = useMutation({
     mutationFn: (id: string) =>
       request(
@@ -465,6 +468,9 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
                       : c.status || "configured"
                   }
                 />
+                <button className="button" disabled={demo || !canWrite}
+                  aria-label={`Launch scan for ${c.name}`} onClick={() => setLaunchConnector(c.id)}>
+                  <Play size={15} />Launch scan</button>
                 {(c.onboarding || c.gcp_onboarding) && (
                   <button className="button" onClick={() => setOnboarding(c)}>
                     Onboarding
@@ -491,6 +497,9 @@ export function Connectors({ demo, canWrite = true }: { demo: boolean; canWrite?
           </div>
         )}
       </Panel>
+      {launchConnector && <LaunchForm demo={demo} connectors={items(query.data)} connectorError={query.error}
+        catalog={{ data: catalog.data, isPending: catalog.isPending, error: catalog.error }}
+        initialConnectorId={launchConnector} onClose={() => setLaunchConnector(undefined)} />}
       {onboarding && (
         <Inspector
           title={onboarding.gcp_onboarding ? "Google Cloud onboarding" : "Hosted role onboarding"}

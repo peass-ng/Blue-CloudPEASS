@@ -22,6 +22,7 @@ resource "aws_iam_role_policy" "api" {
     { Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"], Resource = ["${aws_cloudwatch_log_group.api.arn}:*", "${aws_cloudwatch_log_group.scheduler.arn}:*"] },
     { Effect = "Allow", Action = ["dynamodb:DescribeTable", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:ConditionCheckItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:TransactWriteItems"], Resource = aws_dynamodb_table.metadata.arn },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
+    { Effect = "Allow", Action = ["s3:ListBucket"], Resource = aws_s3_bucket.artifacts.arn, Condition = { StringLike = { "s3:prefix" = "artifacts/*" } } },
     { Effect = "Allow", Action = ["cognito-idp:AdminGetUser", "cognito-idp:ListUsers", "cognito-idp:ListUserPoolClients", "cognito-idp:DescribeUserPoolClient"], Resource = local.pool_arn },
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn, local.stripe_arn] },
     { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = local.customer_trust_arn },

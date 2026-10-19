@@ -28,14 +28,14 @@ WHEN = datetime(2026, 10, 18, 8, 11, tzinfo=timezone.utc).timestamp()
 def test_all_cloud_names_and_regional_account_deduplication(provider, auth, scopes, expected):
     assert display_name({"created_at": "2026-10-18T08:11:00Z"},
                         {"provider": provider, "name": "connector", "scopes": scopes},
-                        identity_hint(provider, {"auth": auth})) == expected
+                        identity_hint(provider, {"auth": auth})) == "connector · 18.10.26"
 
 
 def test_multiple_account_scan_is_not_named_as_one_account():
     hint = identity_hint("aws", {"auth": {"assume_roles": [
         {"role_arn": "arn:aws:iam::123456789098:role/ReadOnly"},
         {"role_arn": "arn:aws:iam::123456789099:role/ReadOnly"}]}})
-    assert display_name({"created_at": "2026-10-18"}, {"provider": "aws"}, hint) == "aws-ReadOnly-2-accounts-18.10.26"
+    assert display_name({"created_at": "2026-10-18"}, {"provider": "aws"}, hint) == "Assessment · 18.10.26"
 
 
 def test_selected_account_uses_its_role_not_other_configured_targets():
@@ -59,7 +59,7 @@ def test_imported_scan_uses_recorded_target_role_not_default_or_source_identity(
     ]}}}}
     scopes = ["123456789098/us-east-1", "123456789098/eu-west-1"]
     assert display_name({"created_at": "2026-10-18"}, {"provider": "aws", "scopes": scopes},
-                        identity_hint("aws", private, scopes)) == "aws-pentest-readonly-123456789098-18.10.26"
+                        identity_hint("aws", private, scopes)) == "Assessment · 18.10.26"
 
 
 def test_list_and_detail_keep_frozen_identity_after_connector_deletion(tmp_path, monkeypatch):
@@ -76,7 +76,7 @@ def test_list_and_detail_keep_frozen_identity_after_connector_deletion(tmp_path,
         client.headers["Authorization"] = "Bearer alice"
         detail = client.get(f"/api/scans/{scan['id']}")
         assert detail.status_code == 200
-        assert detail.json()["display_name"] == "aws-ReadOnly-123456789098-18.10.26"
+        assert detail.json()["display_name"] == "Old connector · 18.10.26"
         # Naming must not turn the list into one database lookup per scan.
         monkeypatch.setattr(store, "job", lambda *args: pytest.fail("Unexpected extra job lookup"))
         original = CredentialCipher.decrypt
@@ -89,7 +89,7 @@ def test_list_and_detail_keep_frozen_identity_after_connector_deletion(tmp_path,
         assert listed.status_code == 200
         assert listed.json()["items"][0]["display_name"] == detail.json()["display_name"]
         assert scan["id"] in {item["id"] for item in listed.json()["items"]}
-        assert decryptions == [encrypted]
+        assert decryptions == []
         assert "MARKER" not in json.dumps(listed.json())
         client.headers["Authorization"] = "Bearer bob"
         assert client.get("/api/scans").json() == {"items": []}
@@ -114,9 +114,8 @@ def test_legacy_scan_without_usable_ciphertext_does_not_break_list_or_detail(tmp
         assert listed.status_code == 200
         items = {item["id"]: item for item in listed.json()["items"]}
         assert set(items) == {old["id"], current["id"]}
-        assert items[current["id"]]["display_name"] == "aws-ReadOnly-123456789098-18.10.26"
-        assert items[old["id"]]["display_name"].startswith("aws-")
-        assert "123456789098" in items[old["id"]]["display_name"]
+        assert items[current["id"]]["display_name"] == "Historical · 18.10.26"
+        assert items[old["id"]]["display_name"] == "Historical · 18.10.26"
         detail = client.get(f"/api/scans/{old['id']}")
         assert detail.status_code == 200
         assert detail.json()["display_name"] == items[old["id"]]["display_name"]

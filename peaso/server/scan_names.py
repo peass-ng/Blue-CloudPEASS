@@ -87,27 +87,11 @@ def identity_hint(provider, private, scopes=()):
 
 
 def display_name(job, connector, hint):
-    provider = connector.get("provider", "cloud")
-    principal, accounts, default_scope = hint
-    scopes = connector.get("scopes", [])
-    scopes = scopes if isinstance(scopes, list) else []
-    if provider == "aws":
-        supplied = [match[0] for scope in scopes if isinstance(scope, str)
-                    for match in [re.findall(r"(?<!\d)\d{12}(?!\d)", scope)] if match]
-        scopes = list(dict.fromkeys(supplied or accounts))
-    elif provider == "gcp":
-        scopes = list(dict.fromkeys(s.removeprefix("projects/").split("/", 1)[0] for s in scopes if isinstance(s, str)))
-    elif provider == "azure":
-        scopes = list(dict.fromkeys(s.removeprefix("/subscriptions/").split("/", 1)[0][:8] for s in scopes if isinstance(s, str)))
-    elif provider == "k8s" and default_scope:
-        scopes = [default_scope]
-    scopes = [s for s in scopes if s and s != "*"]
-    scope_kind = {"aws": "accounts", "gcp": "projects", "azure": "subscriptions", "k8s": "clusters"}.get(provider, "scopes")
-    scope = scopes[0] if len(scopes) == 1 else f"{len(scopes)}-{scope_kind}" if scopes else default_scope or "all-scopes"
-    principal = principal or connector.get("name") or "default-identity"
     try:
         created = datetime.fromisoformat(job["created_at"].replace("Z", "+00:00"))
         date = (created if created.tzinfo else created.replace(tzinfo=timezone.utc)).astimezone(timezone.utc).strftime("%d.%m.%y")
     except (KeyError, TypeError, ValueError, AttributeError):
         date = "undated"
-    return f"{_short(provider, 'cloud')}-{_short(principal, 'identity')}-{_short(scope, 'scope')}-{date}"
+    name = connector.get("name")
+    name = name.strip() if isinstance(name, str) and name.strip() else "Assessment"
+    return f"{name} · {date}"

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, KeyRound, ShieldCheck } from "lucide-react";
-import { ApiError, tokenKey, useApi } from "./api";
+import { ApiError, request, tokenKey, useApi } from "./api";
 import type { Me } from "./types";
-import { Badge, Inspector, Panel, State } from "./ui";
+import { Badge, Inspector, Panel, State, humanError } from "./ui";
 import { ApiKeys } from "./ApiKeys";
 import { Workspaces } from "./Workspaces";
 import { authLink } from "./authLinks";
@@ -12,10 +12,27 @@ const quotaValue = (value: unknown) => typeof value === "number" ? value : undef
 
 export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = () => {} }: { demo: boolean; workspaceId?: string; onWorkspaceCreated?: (id: string) => void }) {
   const me = useApi<Me>("/me", demo);
+  const workspaces = useApi<{ items: { id: string; role: string }[] }>("/workspaces", demo, !demo);
   const health = useApi<{ auth_mode?: string }>("/health", demo);
   const client = useQueryClient();
   const [token, setToken] = useState("");
   const [tokenDialog, setTokenDialog] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [confirmation, setConfirmation] = useState("");
+  const [deleteMessage, setDeleteMessage] = useState("");
+  const cleanup = useMutation({
+    mutationFn: async () => {
+      let remaining = true;
+      let batches = 0;
+      while (remaining) {
+        if (++batches > 200) throw new Error("Cleanup has removed 1,000 scans. Run it again to continue.");
+        const result = await request<{ remaining: boolean }>("/workspace-data?confirmation=DELETE", { method: "DELETE", headers: { "X-Workspace-Id": workspaceId } });
+        remaining = result.remaining;
+      }
+    },
+    onSuccess: () => { setDeleteDialog(false); setConfirmation(""); setDeleteMessage("Workspace scan data deleted."); void client.resetQueries({ queryKey: ["live"] }); },
+    onError: () => { void client.invalidateQueries({ queryKey: ["live"] }); },
+  });
   const authRequired = !demo && me.error instanceof ApiError && me.error.status === 401;
   const localMode = health.data?.auth_mode === "local";
   useEffect(() => { if (authRequired && localMode) setTokenDialog(true); }, [authRequired, localMode]);
@@ -76,9 +93,20 @@ export function Settings({ demo, workspaceId = "personal", onWorkspaceCreated = 
         )}
       </Panel>
       {showWorkspaceTools && <ApiKeys />}
+      {showWorkspaceTools && (workspaceId === "personal" || workspaces.data?.items.some(workspace => workspace.id === workspaceId && workspace.role === "admin")) && <Panel title="Delete workspace data" kicker="DATA">
+        <p className="muted small">Permanently remove all scans, evidence, connectors, stored cloud credentials and schedules in this workspace. Your account, membership, API keys and billing stay in place. Cloud resources are not changed.</p>
+        {deleteMessage && <p role="status">{deleteMessage}</p>}
+        <button className="button danger" onClick={() => { cleanup.reset(); setConfirmation(""); setDeleteDialog(true); }}>Delete workspace data</button>
+      </Panel>}
       </div>
       {showWorkspaceTools && <div className="settings-column"><Workspaces me={me.data} workspaceId={workspaceId} onWorkspaceCreated={onWorkspaceCreated} /></div>}
       </div>
+      {deleteDialog && <Inspector title="Delete workspace data" onClose={() => { if (!cleanup.isPending) setDeleteDialog(false); }}>
+        <p>This permanently deletes the selected workspace’s scans, evidence, connectors, stored cloud credentials and schedules. It cannot be undone. Cancel active scans first.</p>
+        <label>Type DELETE to confirm<input aria-label="Type DELETE to confirm" value={confirmation} disabled={cleanup.isPending} onChange={event => setConfirmation(event.target.value)} /></label>
+        {cleanup.error && <p role="alert">{humanError(cleanup.error)} Some completed deletions may already have taken effect; you can retry.</p>}
+        <button className="button danger" disabled={confirmation !== "DELETE" || cleanup.isPending} onClick={() => cleanup.mutate()}>{cleanup.isPending ? "Deleting workspace data…" : "Permanently delete workspace data"}</button>
+      </Inspector>}
       {tokenDialog && localMode && !demo && <Inspector title="Local API authentication" onClose={() => setTokenDialog(false)}>
         <form className="form" onSubmit={(event) => { event.preventDefault(); save(); }}>
           <p className="muted small">Enter a token issued by your local API. It is kept in this browser tab only.</p>
