@@ -138,7 +138,6 @@ test("automatic assessment selects both ENIs of a multi-interface instance", asy
   let selected: string[] = [];
   await serve(page,graph,body=>{selected = body.endpoint_resource_ids;return {snapshot_id:"synthetic",results:[]};});
   await expect.poll(()=>selected).toEqual(["resource:eni-a","resource:eni-secondary"]);
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("2 of 2 loaded endpoints");
 });
 
 test("automatic assessment retains the instance when one attached ENI is unresolved", async ({page}) => {
@@ -184,13 +183,11 @@ test("live map automatically assesses directed pairs across networks and inside 
         provider:"aws",snapshot_id:"synthetic",endpoints:{},routes:[],policy_decisions:[],translations:[],unresolved_dependencies:[],evidence_refs:[],modeled_configuration:true,application_listening:"unknown",new_flow_only:true,
       })))};
   });
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("directed pairs evaluated");
   expect(requests).toBeGreaterThan(0);
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]').first()).toBeVisible();
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"] path.react-flow__edge-path').first()).toHaveAttribute("marker-end",/url\(/);
   await page.locator('.react-flow__node[data-id="network:vpc-alpha"] .network-node-heading').click();
   await page.locator('.react-flow__node[data-id="area:subnet-a"] .network-node-heading').click();
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("directed pairs evaluated");
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).not.toHaveCount(0);
   await page.getByText(/Automatically assessed arrow groups ·/).click();
   await page.getByRole("region",{name:"Automatically assessed arrow groups"}).getByRole("button").first().click();
@@ -201,13 +198,16 @@ test("automatic arrows reject mismatched route assessment responses", async ({pa
   const graph: Graph = structuredClone(architectureFixture);
   graph.nodes.push({id:"instance-c",type:"instance",label:"instance-c",provider:"aws",
     scope:"111111111111/us-east-1",parent_id:"subnet-a",resource_id:"resource:instance-c"});
-  await serve(page,graph,body => ({snapshot_id:"synthetic",results:body.endpoint_resource_ids.flatMap((source_resource_id:string) =>
-    body.endpoint_resource_ids.filter((destination_resource_id:string)=>destination_resource_id!==source_resource_id)
-      .map((destination_resource_id:string)=>({decision:"allowed",provider:"aws",snapshot_id:"synthetic",
-        query:{source_resource_id,destination_resource_id,protocol:"tcp",source_port:54321,
-          destination_port:8443,address_family:"ipv4"},modeled_configuration:true,new_flow_only:true}))) }));
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"}))
-    .toContainText("response incomplete or mismatched");
+  let assessed = false;
+  await serve(page,graph,body => {
+    assessed = true;
+    return {snapshot_id:"synthetic",results:body.endpoint_resource_ids.flatMap((source_resource_id:string) =>
+      body.endpoint_resource_ids.filter((destination_resource_id:string)=>destination_resource_id!==source_resource_id)
+        .map((destination_resource_id:string)=>({decision:"allowed",provider:"aws",snapshot_id:"synthetic",
+          query:{source_resource_id,destination_resource_id,protocol:"tcp",source_port:54321,
+            destination_port:8443,address_family:"ipv4"},modeled_configuration:true,new_flow_only:true})))};
+  });
+  await expect.poll(()=>assessed).toBe(true);
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).toHaveCount(0);
 });
 
@@ -248,7 +248,6 @@ test("assessed paths inside a collapsed VPC remain visible and become arrows whe
       .map((destination_resource_id:string)=>({decision:source_resource_id==="resource:instance-a"?"allowed":"blocked",
         query:{source_resource_id,destination_resource_id,protocol:"tcp",source_port:54321,destination_port:443,address_family:"ipv4"},
         provider:"aws",snapshot_id:"synthetic",endpoints:{},routes:[],policy_decisions:[],translations:[],unresolved_dependencies:[],evidence_refs:[],modeled_configuration:true,application_listening:"unknown",new_flow_only:true}))) }));
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("2 pairs inside collapsed groups");
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).toHaveCount(0);
   await page.locator('.react-flow__node[data-id="area:subnet-internal"] .network-node-internal').click();
   await expect(page.getByRole("dialog")).toContainText("2 directed TCP/54321→443 IPv4 pairs");
@@ -290,9 +289,8 @@ test("automatic map windows reach a thirteenth loaded endpoint with a peer", asy
   });
   await page.locator('.react-flow__node[data-id="network:vpc-window"] .network-node-heading').click();
   await page.locator('.react-flow__node[data-id="area:subnet-window"] .network-node-heading').click();
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("window 1 of 2");
+  await expect(page.getByRole("button",{name:"Next 12 endpoints"})).toBeEnabled();
   await page.getByRole("button",{name:"Next 12 endpoints"}).click();
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("2 directed pairs evaluated");
   expect(requests.at(-1)).toEqual(["resource:instance-11","resource:instance-12"]);
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).toHaveCount(2);
   await page.getByLabel("Compare endpoint window").selectOption("0");
@@ -530,12 +528,14 @@ test("provider tabs, nested networks, boundary edges, service icons and human in
   for (const name of ["AWS", "Google Cloud", "Azure", "Kubernetes"]) await expect(page.getByRole("tab", {name:new RegExp(name)})).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="network:vpc-alpha"]')).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="network:vpc-beta"]')).toBeVisible();
+  await expect(page.getByText("Lines show resource links;",{exact:false})).toHaveCount(0);
+  await expect(page.getByText("Automatic IPv4 TCP/54321→443 assessment:",{exact:false})).toHaveCount(0);
   await expect(page.locator('.react-flow__node[data-id="area:subnet-a"]')).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="asset:sg-a"]')).toBeVisible();
   mkdirSync("evidence", { recursive:true });
   await page.screenshot({path:"evidence/network-overview-multivpc-desktop.png",fullPage:true});
-  await expect(page.locator(".react-flow__edge").first()).toBeVisible();
-  await expect(page.locator('.react-flow__edge g[data-route="elk"]')).toHaveCount(2);
+  await expect(page.locator('.react-flow__edge g[data-route="elk"] path.react-flow__edge-path').first()).toHaveAttribute("d",/^M /);
+  await expect.poll(()=>page.locator('.react-flow__edge g[data-route="elk"]').count()).toBeGreaterThan(2);
   await expect(page.locator('.react-flow__edge g[data-route="elk"] path.react-flow__edge-path').first()).toHaveAttribute("d",/^M .+L /);
   // Peering metadata is a candidate relationship, not a measured path in either direction.
   await expect(page.locator('.react-flow__edge g[data-relationship^="Peering configured"] path.react-flow__edge-path')).not.toHaveAttribute("marker-end", /url\(/);
@@ -551,6 +551,7 @@ test("provider tabs, nested networks, boundary edges, service icons and human in
   await page.screenshot({ path:"evidence/network-aws-desktop.png", fullPage:true });
   const areaBox = await page.locator('.react-flow__node[data-id="area:subnet-a"]').boundingBox();
   const eniBox = await eni.boundingBox();
+  expect(eniBox?.width).toBeLessThanOrEqual(152);
   expect(areaBox && eniBox && eniBox.x >= areaBox.x && eniBox.y >= areaBox.y && eniBox.x + eniBox.width <= areaBox.x + areaBox.width && eniBox.y + eniBox.height <= areaBox.y + areaBox.height).toBe(true);
   const instanceBox = await page.locator('.react-flow__node[data-id="asset:instance-a"]').boundingBox();
   const rootBox = await page.locator('.react-flow__node[data-id="network:vpc-alpha"]').boundingBox();
@@ -580,7 +581,7 @@ test("provider tabs, nested networks, boundary edges, service icons and human in
   await page.getByRole("tab", {name:/Kubernetes/}).click();
   await page.locator('.react-flow__node[data-id="network:cluster:cluster-prod"] .network-node-heading').click();
   await expect(page.locator('.react-flow__node[data-id="area:ns-app"]')).toBeVisible();
-  await expect(page.locator('.react-flow__node[data-id="area:ns-app"]')).toContainText("Namespace · workload group");
+  await expect(page.locator('.react-flow__node[data-id="area:ns-app"] .network-node')).toHaveAttribute("title",/Namespace · workload group/);
   await page.locator('.react-flow__node[data-id="area:ns-app"] .network-node-heading').click();
   await expect(page.locator('.react-flow__node[data-id="asset:pod-a"]')).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="asset:policy-app"] [aria-label="networkpolicy icon"]')).toBeVisible();

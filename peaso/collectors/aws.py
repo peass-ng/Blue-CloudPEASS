@@ -1,7 +1,7 @@
-"""Read-only AWS configuration inventory; all clients remain inside collection.
+"""AWS configuration inventory with scoped temporary Access Analyzer lifecycle.
 
-There is deliberately no legacy scanner import: importing it installs process
-signal handlers, and its normal execution may create Access Analyzers.
+General requests remain read-only; scan-owned analyzers are created and cleaned
+up by a dedicated handler. The legacy scanner is never imported.
 """
 from __future__ import annotations
 
@@ -2155,6 +2155,8 @@ def collect(connector, requirements=None):
         return ReadResult([], "not_collected", {"code": "unsupported_inventory"})
 
     def regional_job(session, identity, region, kind):
+        if kind == "access_analyzer":
+            return analyzer_lifecycle.collect(session, identity, region, ENRICHERS[kind])
         if kind == 'lightsail_bucket' and lightsail_iam_only:
             from .aws_lightsail_iam_native import bucket_metadata
             return bucket_metadata(requests, session, region, identity['Account'])
@@ -2270,12 +2272,19 @@ def collect(connector, requirements=None):
     # own thread instead of occupying a shared service worker for minutes.
     activity_workers = _bound(options, "activity_concurrency", min(32, max(1, len(regions) * min(scope_workers, max(1, len(contexts))))), maximum=32)
     metadata["activity_concurrency"] = activity_workers
-    with ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
+    from .aws_access_analyzer_lifecycle import AnalyzerLifecycle
+    metadata["access_analyzer_lifecycle"] = []
+    if "access_analyzer" in wanted:
+        metadata["collection"] = "read-only-with-temporary-access-analyzers"
+    analyzer_lifecycle = AnalyzerLifecycle(requests, metadata["access_analyzer_lifecycle"], progress_callback)
+    with analyzer_lifecycle, ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
             ThreadPoolExecutor(max_workers=activity_workers, thread_name_prefix="aws-activity") as activity_pool:
         for offset in range(0, len(contexts), scope_workers):
             scope_batch = contexts[offset:offset + scope_workers]
             jobs, activity_jobs = [], {}
             for session, identity in scope_batch:
+                if "access_analyzer" in wanted and identity["Account"] not in region_discovery_errors:
+                    analyzer_lifecycle.prepare(session, identity, regions_for(identity["Account"]))
                 # Activity reads start first: they are the longest rate-limited chains.
                 if "aws_cloudtrail_activity" in wanted and identity["Account"] not in region_discovery_errors:
                     for region in regions_for(identity["Account"]):

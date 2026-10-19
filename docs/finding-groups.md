@@ -25,7 +25,8 @@ Coverage continues to record the individual evaluations.
 ## Collection and evaluation
 
 AWS global inventory is collected once per account. Scoped checks whose declared
-dependencies are all global run once at `<account>/global`, including when the
+dependencies are all global run once at `<account>/global`, unless their native
+evaluator explicitly requires a regional context. This also applies when the
 inventory is missing. Regional checks still evaluate every selected Region;
 their results are combined for presentation. Resource checks evaluate each
 resource. A globally enumerated resource can still have a physical Region,

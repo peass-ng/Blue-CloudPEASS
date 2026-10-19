@@ -29,12 +29,13 @@ ANY = _Any()  # "the permission on at least one resource"
 
 class Grant:
     """Why a requirement holds: confidence + bounded evidence refs + condition notes."""
-    __slots__ = ("confidence", "refs", "conditions")
+    __slots__ = ("confidence", "refs", "conditions", "permission_refs")
 
-    def __init__(self, confidence="derived", refs=(), conditions=()):
+    def __init__(self, confidence="derived", refs=(), conditions=(), permission_refs=()):
         self.confidence = confidence
         self.refs = tuple(refs)[:MAX_REFS]
         self.conditions = tuple(dict.fromkeys(conditions))
+        self.permission_refs = tuple(permission_refs)[:MAX_REFS]
 
     def __repr__(self):
         return f"Grant({self.confidence}, {len(self.refs)} refs, {self.conditions})"
@@ -48,11 +49,12 @@ def combine(*grants):
     if len(grants) == 1:
         return grants[0]
     confidence = max((g.confidence for g in grants), key=CONF_RANK.__getitem__)
-    refs, conditions = [], []
+    refs, conditions, permission_refs = [], [], []
     for g in grants:
         refs.extend(r for r in g.refs if r not in refs)
         conditions.extend(g.conditions)
-    return Grant(confidence, refs, conditions)
+        permission_refs.extend(r for r in g.permission_refs if r not in permission_refs)
+    return Grant(confidence, refs, conditions, permission_refs)
 
 
 def best(a, b):
@@ -70,7 +72,7 @@ def downgrade(grant, confidence, condition=None):
     if CONF_RANK[confidence] <= CONF_RANK[grant.confidence] and not condition:
         return grant
     level = max(grant.confidence, confidence, key=CONF_RANK.__getitem__)
-    return Grant(level, grant.refs, grant.conditions + ((condition,) if condition else ()))
+    return Grant(level, grant.refs, grant.conditions + ((condition,) if condition else ()), grant.permission_refs)
 
 
 class AllTargets:

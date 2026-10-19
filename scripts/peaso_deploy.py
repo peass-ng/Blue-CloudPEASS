@@ -41,6 +41,7 @@ REPRODUCTION_INPUT_PATTERNS = (
     "docs/evidence-reviews/*.json", "docs/finding-groups.md", "docs/check-scope-review.csv",
     "scripts/audit_observed_evidence.py", "scripts/sync_evidence_explanation_copy.py",
     "tests/test_gcp_evidence_explanations_review.py",
+    "tests/test_attack_detection*.py",
     "tests/fixtures/aws_evidence_review.json.gz", "tests/fixtures/azure_evidence_review.json.gz",
     "tests/fixtures/gcp-reviewed-evidence.json", "tests/fixtures/shared_evidence_review.json",
     "docs/compliance-ledgers/*.json", "docs/compliance-ledgers/*.md",
@@ -151,7 +152,7 @@ aws_iam_role.customer_trust aws_iam_role_policy.customer_trust
 # The hosted Python 3.12 manylinux package has 4,671 members after optional
 # installer markers are removed. Historical approval contracts retain their
 # own 4,600-member limit; this bound applies to the current package build.
-CURRENT_API_MEMBER_LIMIT = 4800
+CURRENT_API_MEMBER_LIMIT = 4900  # Current reviewed package adds the AWS detection normalizers.
 # Current complete API expands to ~231 MB. Lambda permits 250 MiB including
 # layers (these functions declare none); keep >17 MB of service-quota margin.
 # Historical artifact-update approvals retain their original byte limits.
@@ -160,7 +161,7 @@ CURRENT_API_UNCOMPRESSED_LIMIT = 245_000_000
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
-CURRENT_SOURCE_MEMBER_LIMIT = 2750  # Includes per-check evidence reviews and their replay inputs.
+CURRENT_SOURCE_MEMBER_LIMIT = 2850  # Includes the AWS detection-rule replay tests.
 CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 290_000_000
 CURRENT_SOURCE_ARCHIVE_LIMIT = 38_000_000  # Bounds the reviewed evidence ledgers; historical contracts stay at 32 MB.
 

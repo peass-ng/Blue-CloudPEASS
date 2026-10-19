@@ -3,9 +3,19 @@
 `peaso.collectors.aws.collect(connector, requirements=None)` returns a sealed schema
 1.0 snapshot. It collects AWS configuration and declared permissions for offline
 defensive review. The operation allowlist contains 87 read/configuration APIs,
-including STS authentication; it contains no resource mutations, secret-value
-reads, object downloads, log-event reads, Access Analyzer creation, network probes,
-or exploit/path validation. No Steampipe, Powerpipe or Prowler runtime is used.
+including STS authentication; general reads exclude resource mutations, secret-value
+reads, object downloads, log-event reads, network probes, and exploit/path validation.
+A dedicated Access Analyzer lifecycle creates missing external analyzers per scanned
+Region and one unused analyzer per account/partition when authorized. It waits at
+least 180 seconds, collects available findings and their details, then deletes only
+scan-created analyzers, including after errors or cancellation. Existing analyzers
+in scanned Regions are reused and retained. Temporary unused analyzers use a 90-day
+inactivity window and incur AWS charges. Initial findings may still be incomplete;
+temporary evidence remains partial. Snapshot metadata records creation and cleanup
+outcomes and ARNs under `access_analyzer_lifecycle`. This lifecycle requires
+`IAMAccessAnalyzerFullAccess` or equivalent permissions; the hosted metadata-only
+role template does not itself grant creation or deletion. No Steampipe, Powerpipe
+or Prowler runtime is used.
 
 ## Selection, credentials and account identity
 

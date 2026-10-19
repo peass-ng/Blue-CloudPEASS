@@ -14,14 +14,11 @@ export type AuthGuide = {
 export const awsPolicyArns = [
   "arn:aws:iam::aws:policy/ReadOnlyAccess",
   "arn:aws:iam::aws:policy/SecurityAudit",
-  "arn:aws:iam::aws:policy/IAMAccessAnalyzerReadOnlyAccess",
+  "arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess",
 ];
 const awsPolicyList = awsPolicyArns.join(" ");
-const awsPermissions = "Attach these three AWS managed policies to the scanning identity. It reads existing IAM Access Analyzers and their findings; it does not create analyzers.";
-export const awsHostedPermissions = "Deploy the customer role template from Onboarding in each target account. It creates the role, External ID trust, and collector-specific read policies. The scanning role reads existing IAM Access Analyzers; it does not create them.";
-const awsAnalyzerSetup = { title: "Optional: set up Access Analyzer findings", description: "The command below creates an external access analyzer (ACCOUNT) in one selected Region. External access analysis has no additional charge; enable it only in Regions where you want regional resource-sharing findings. An unused access analyzer is different: it analyzes global IAM users and roles, is billed, and needs only one analyzer across Regions in an AWS partition. Run setup with an administrator identity, not the scanning identity. The administrator may use arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess, which includes access-analyzer:CreateAnalyzer and the service-linked role permission.", commands: [{ label: "AWS CLI: create external access analyzer as administrator", value: [
-  'aws accessanalyzer create-analyzer --analyzer-name hacktricks-cspm-account --type ACCOUNT --region REPLACE_WITH_AWS_REGION',
-].join("\n") }] };
+const awsPermissions = "Attach these three AWS managed policies to the scanning identity. IAMAccessAnalyzerFullAccess allows the scan to create missing analyzers, wait at least three minutes, collect findings, and delete only analyzers it created. External analyzers are regional; one unused analyzer covers the account and partition and incurs AWS charges.";
+export const awsHostedPermissions = "Deploy the customer role template from Onboarding in each target account. It creates the role, External ID trust, and collector-specific read policies. The scanning role also needs IAMAccessAnalyzerFullAccess to create temporary analyzers when they are missing, collect findings, and delete scan-created analyzers.";
 const awsRoleGrant = { label: "AWS CLI: attach policies to role", value: [
   "ROLE_NAME='REPLACE_WITH_SCANNING_ROLE_NAME'",
   "for POLICY_ARN in " + awsPolicyList + "; do",
@@ -292,7 +289,7 @@ const k8sCertAccess = { label: "kubectl: request and approve a scanning client c
   'kubectl certificate approve hacktricks-cspm-scan',
   'kubectl get csr hacktricks-cspm-scan -o jsonpath=\'{.status.certificate}\' | base64 --decode > hacktricks-cspm-scan.crt',
 ].join("\n") };
-const aws = (access: string, url: string, commands = [awsRoleGrant], accessCommandCount = 0): AuthGuide => ({ access, permissions: awsPermissions, permissionIds: awsPolicyArns, optionalSetup: awsAnalyzerSetup, url, link: "AWS setup guide", commands, accessCommandCount });
+const aws = (access: string, url: string, commands = [awsRoleGrant], accessCommandCount = 0): AuthGuide => ({ access, permissions: awsPermissions, permissionIds: awsPolicyArns, url, link: "AWS setup guide", commands, accessCommandCount });
 const gcp = (access: string, url: string, commands = [gcpGrant()], accessCommandCount = 0): AuthGuide => ({ access, permissions: gcpPermissions, permissionIds: gcpRoles, url, link: "Google Cloud setup guide", commands, accessCommandCount });
 const azure = (access: string, url: string, commands = [azureAppGrant, azureVaultGrant, azureGraphGrant], accessCommandCount = 0): AuthGuide => ({ access, permissions: azurePermissions, permissionIds: azureRoleIds, url, link: "Microsoft setup guide", commands, accessCommandCount });
 const k8s = (access: string, url: string, commands = [k8sCreateServiceAccount, k8sServiceAccountGrant, k8sExtraSaGrant, k8sSecretGrant], accessCommandCount = 0): AuthGuide => ({ access, permissions: k8sPermissions, url, link: "Kubernetes setup guide", commands, accessCommandCount });

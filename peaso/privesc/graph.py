@@ -148,13 +148,15 @@ class GraphBuilder:
             detail = {"id": technique, "title": title or (entry or {}).get("title") or technique,
                       "severity": (entry or {}).get("severity"), "confidence": grant.confidence,
                       "evidence_refs": list(grant.refs[:MAX_EVIDENCE]), "conditions": list(grant.conditions),
+                      "granting_permissions": list(getattr(grant, "permission_refs", ())),
                       "mitigation": mitigation or (entry or {}).get("mitigation") or "", "finding": finding_id}
             if entry:
                 detail.update(_outcome(entry))
             edge["technique_details"].append(detail)
         elif CONF_RANK[grant.confidence] < CONF_RANK[detail["confidence"]]:
             detail.update(confidence=grant.confidence, evidence_refs=list(grant.refs[:MAX_EVIDENCE]),
-                          conditions=list(grant.conditions))
+                          conditions=list(grant.conditions),
+                          granting_permissions=list(getattr(grant, "permission_refs", ())))
         edge["technique_details"].sort(key=lambda d: (CONF_RANK[d["confidence"]], d["id"]))
         return edge["id"]
 
@@ -232,7 +234,7 @@ class GraphBuilder:
                 node = self.nodes.get(target_id) or {"id": target_id}
                 targets_public.append({k: node.get(k) for k in ("id", "label", "type", "kind", "scope", "underlying_count") if k in node})
         confidence = min((g.confidence for g in grants), key=CONF_RANK.__getitem__)
-        refs, conditions, seen_refs, seen_conditions = [], [], set(), set()
+        refs, conditions, permission_refs, seen_refs, seen_conditions = [], [], [], set(), set()
         for g in grants:
             for r in g.refs:
                 if len(refs) >= MAX_EVIDENCE:
@@ -246,7 +248,12 @@ class GraphBuilder:
                 if key not in seen_conditions:
                     seen_conditions.add(key)
                     conditions.append(c)
-        merged = Grant(confidence, refs, conditions)
+            for pair in getattr(g, "permission_refs", ()):
+                if len(permission_refs) >= MAX_EVIDENCE:
+                    break
+                if pair not in permission_refs:
+                    permission_refs.append(pair)
+        merged = Grant(confidence, refs, conditions, permission_refs)
         src = source if not reach.source_group else None
         self.findings.append(self._finding(fid, technique, entry["title"], src, entry.get("service"), entry.get("severity", "medium"),
                                            entry.get("mitigation"), merged, targets_public, count, entry, compiled["blockers_not_evaluated"],
@@ -408,7 +415,9 @@ class GraphBuilder:
                           "source_revision": entry.get("source_revision") if entry else None,
                           "summary": entry.get("summary") if entry else None},
             "source": source_public, "targets": targets, "target_count": count,
-            "granting_statements": granting, "conditions": list(grant.conditions),
+            "granting_statements": granting,
+            "granting_permissions": list(getattr(grant, "permission_refs", ())),
+            "conditions": list(grant.conditions),
             "confidence": grant.confidence,
             # Edges this finding contributes to; several techniques on one (source, target) share one edge.
             "edge_ids": list(edge_ids or [])[:MAX_FINDING_TARGETS],

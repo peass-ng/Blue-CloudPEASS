@@ -1,7 +1,7 @@
 """Every check is classified; account-global questions never fan out by Region."""
 import pytest
 
-from peaso.check_scope import evaluation_scope, scope_audit, aws_global_types
+from peaso.check_scope import evaluation_scope, explicit_scope, scope_audit, aws_global_types
 from peaso.checks import CHECKS
 from peaso.engine import _registry, _scope_check_scopes, evaluate_snapshot
 from peaso.snapshot import make_snapshot
@@ -20,8 +20,9 @@ def test_every_registered_check_has_a_scope_and_grouping_contract():
 
 
 def test_all_account_only_scope_checks_run_once_per_account_even_when_evidence_is_missing():
-    checks = [check for check in _registry() if check.provider == "aws" and check.target == "scope" and set(check.dependencies) <= aws_global_types()]
-    assert len(checks) >= 36
+    checks = [check for check in _registry() if check.provider == "aws" and check.target == "scope"
+              and set(check.dependencies) <= aws_global_types() and explicit_scope(check) != "aws_region"]
+    assert len(checks) >= 34
     scopes = [account + "/" + region for account in (A, B) for region in REGIONS]
     for check in checks:
         assert evaluation_scope(check) == "aws_account", check.id

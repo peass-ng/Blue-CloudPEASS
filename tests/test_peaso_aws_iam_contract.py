@@ -17,6 +17,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 TABLE = "aws_dynamodb_table.metadata.arn"
 OBJECTS = "${aws_s3_bucket.artifacts.arn}/*"
+BUCKET = "aws_s3_bucket.artifacts.arn"
 CREDENTIALS = "aws_secretsmanager_secret.credentials.arn"
 KEY = "aws_kms_key.connectors.arn"
 MODULES = (
@@ -51,7 +52,7 @@ def dotted(node):
 def operation(name):
     # SDK spelling differs from IAM for batch operations and S3 HEAD.
     return {"batch_get_item": "BatchGetItem", "batch_write_item": "BatchWriteItem",
-            "head_object": "GetObject"}.get(name, "".join(part.title() for part in name.split("_")))
+            "head_object": "GetObject", "delete_objects": "DeleteObject"}.get(name, "".join(part.title() for part in name.split("_")))
 
 
 @dataclass(frozen=True)
@@ -197,6 +198,17 @@ class Graph:
                     if method == "generate_presigned_url":
                         assert isinstance(node.args[0], ast.Constant)
                         method = node.args[0].value
+                    elif method == "get_paginator":
+                        assert len(node.args) == 1 and isinstance(node.args[0], ast.Constant)
+                        assert node.args[0].value == "list_objects_v2"
+                        assert any(
+                            isinstance(call, ast.Call) and dotted(call.func) == "paginator.paginate"
+                            and dotted(next((kw.value for kw in call.keywords if kw.arg == "Bucket"), None)) == "self.bucket"
+                            and dotted(next((kw.value for kw in call.keywords if kw.arg == "Prefix"), None)) == "target"
+                            for call in nodes
+                        )
+                        require("s3:ListBucket", BUCKET, node.lineno)
+                        continue
                     else:
                         bucket = next(kw.value for kw in node.keywords if kw.arg == "Bucket")
                         assert dotted(bucket) == "self.bucket"
@@ -312,6 +324,7 @@ class Statement:
     resources: tuple[str, ...]
     conditional: bool = False
     not_actions: bool = False
+    artifact_prefix: bool = False
 
 
 def policies(text):
@@ -342,7 +355,8 @@ def policies(text):
                 except AssertionError:
                     actions = values(obj, "NotAction")
                     not_actions = True
-                statements.append(Statement(effect, actions, values(obj, "Resource"), conditional, not_actions))
+                artifact_prefix = any(obj[i:i + 3] == ['"s3:prefix"', "=", '"artifacts/*"'] for i in range(len(obj) - 2))
+                statements.append(Statement(effect, actions, values(obj, "Resource"), conditional, not_actions, artifact_prefix))
         assert statements, f"No IAM statements parsed for {name}"
         result.setdefault(role, []).extend(statements)
     return result
@@ -355,7 +369,11 @@ def grants(statements, action, resource):
         action_matches = any(fnmatchcase(action.lower(), value.lower()) for value in statement.actions)
         return resources and (not action_matches if statement.not_actions else action_matches)
     # This contract has no condition context; any matching deny fails closed.
-    return any(s.effect == "Allow" and not s.conditional and matches(s) for s in statements) and not any(s.effect == "Deny" and matches(s) for s in statements)
+    def valid_condition(statement):
+        return not statement.conditional or (
+            action == "s3:ListBucket" and resource == BUCKET and statement.artifact_prefix
+        )
+    return any(s.effect == "Allow" and valid_condition(s) and matches(s) for s in statements) and not any(s.effect == "Deny" and matches(s) for s in statements)
 
 
 def missing(requirements, text):

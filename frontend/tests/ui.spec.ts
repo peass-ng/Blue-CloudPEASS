@@ -87,9 +87,9 @@ test("every authentication option explains access and permission setup", async (
   await awsGuide.locator("summary").first().click();
   for (const arn of awsPolicyArns) await expect(awsGuide).toContainText(arn);
   await expect(awsGuide.locator(".auth-guide-step").nth(1).locator("pre").first()).toContainText("aws iam attach-role-policy");
-  await awsGuide.getByText("Optional: set up Access Analyzer findings").click();
+  await expect(awsGuide.getByText("Optional: set up Access Analyzer findings")).toHaveCount(0);
   await expect(awsGuide).toContainText("arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess");
-  await expect(awsGuide.locator("pre").last()).toContainText("aws accessanalyzer create-analyzer");
+  await expect(awsGuide).not.toContainText("arn:aws:iam::aws:policy/IAMAccessAnalyzerReadOnlyAccess");
 });
 test("connector methods start with common choices and explain environment credentials", async ({ page }) => {
   await emptyApi(page);
@@ -251,7 +251,7 @@ test("failed scan shows its curated role refusal in history and details", async 
   await page.goto("/");
   await nav(page, "Scans");
   await expect(page.getByRole("alert").filter({ hasText: reason })).toBeVisible();
-  await page.getByRole("button", { name: "refused-scan" }).click();
+  await page.getByRole("article").filter({ hasText: reason }).locator("button.scan-id").click();
   await expect(page.getByRole("dialog").getByRole("alert").filter({ hasText: reason })).toBeVisible();
   await expect(page.getByRole("dialog")).toContainText("credential_access_denied");
   await page.getByRole("dialog").getByRole("button", { name: "Show 3 supplied fields" }).click();
@@ -1064,7 +1064,7 @@ test("human asset labels preserve routing IDs and exact checklist filtering", as
       },
     }),
   );
-  await page.route("**/api/scans/labels/summary", (r) =>
+  await page.route("**/api/scans/labels/summary**", (r) =>
     r.fulfill({
       json: { provider: "aws", stats: { resource_count: 1, finding_count: 1 } },
     }),
