@@ -1037,11 +1037,11 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         tags = data.get("Tags", [])
         if not name and isinstance(tags, list):
             name = next((tag.get("Value") for tag in tags if isinstance(tag, dict) and tag.get("Key") == "Name" and isinstance(tag.get("Value"), str)), None)
+        finding["native_resource_id"] = resource["native_id"]
         from .finding_groups import placement
-        _, location = placement(finding, data)
+        _, location = placement(finding, data, kind=resource["type"])
         if location:
             finding["region"] = location
-        finding["native_resource_id"] = resource["native_id"]
         finding["resource_name"] = name if isinstance(name, str) else resource["native_id"]
     selected_framework_versions = []
     from .checks.catalog import _framework_rows

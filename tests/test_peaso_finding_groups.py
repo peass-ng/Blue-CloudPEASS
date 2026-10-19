@@ -66,6 +66,32 @@ def test_native_location_and_scope_based_location_are_provider_specific():
     assert placement({"provider": "gcp", "scope": "projects/proj", "native_resource_id": "projects/proj/zones/us-east1-b/instances/vm"}) == ("proj", "us-east1")
 
 
+@pytest.mark.parametrize("location,expected", [
+    ({"collection_status": "collected", "LocationConstraint": "EU"}, "eu-west-1"),
+    ({"collection_status": "collected"}, "us-east-1"),
+    ({"collection_status": "collected", "LocationConstraint": "ap-south-1"}, "ap-south-1"),
+    ({"collection_status": "denied"}, ""),
+    ({"collection_status": "collected", "LocationConstraint": "not-a-region"}, ""),
+])
+def test_global_bucket_inventory_uses_its_native_storage_location(location, expected):
+    finding = {"provider": "aws", "service": "s3", "scope": "123456789012/global"}
+    assert placement(finding, {"Name": "logs", "Location": location}) == ("123456789012", expected)
+
+
+def test_bucket_location_survives_evaluation_and_grouped_report():
+    from peaso.checks.claude_aws_a_s3 import B
+    from peaso.engine import evaluate_snapshot
+    from peaso.snapshot import make_snapshot
+    bucket = deepcopy(B)
+    bucket["Location"] = {"collection_status": "collected", "LocationConstraint": "ap-south-1"}
+    snapshot = make_snapshot("aws", ["123456789012/us-east-1"], [{
+        "type": "bucket", "scope": "123456789012/global", "global": True,
+        "account_id": "123456789012", "status": "collected", "items": [bucket]}])
+    report = evaluate_snapshot(snapshot, checks=["aws.claude_a.s3.prowler_bucket_level_public_access_block"])
+    assert report["findings"] and all(row["region"] == "ap-south-1" for row in report["findings"])
+    assert group_report(report)["findings"][0]["affected_regions"] == ["ap-south-1"]
+
+
 def test_grouping_contract_covers_every_registered_check_without_dropping_members():
     from peaso.engine import _registry
     from peaso.checks import CHECKS
