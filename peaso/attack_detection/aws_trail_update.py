@@ -66,6 +66,12 @@ def normalize_aws_trail_update(record: Mapping[str, Any]) -> dict[str, Any] | No
         label: request.get(request_key) is False and response.get(response_key) is False
         for label, (request_key, response_key) in explicit.items()
     }
+    requested_bucket = request.get("s3BucketName")
+    observed["trail_s3_bucket_destination_set"] = (
+        isinstance(requested_bucket, str)
+        and re.fullmatch(r"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]", requested_bucket) is not None
+        and response.get("s3BucketName") == requested_bucket
+    )
     if not any(observed.values()):
         return None
     return {

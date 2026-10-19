@@ -35,7 +35,7 @@ def project(provider, resources):
             card["suggestions"].append(suggestion)
 
     if provider == "aws":
-        coverage["limitations"].append("Only ACTIVE findings from an existing UNUSED_ACCESS analyzer support unused-permission advice. No analyzer is created by a scan.")
+        coverage["limitations"].append("Only ACTIVE findings from an UNUSED_ACCESS analyzer support unused-permission advice. Temporary analyzers wait at least three minutes; initial findings may still be incomplete.")
         analyzers = 0
         for row in resources:
             if row.get("type") != "access_analyzer":

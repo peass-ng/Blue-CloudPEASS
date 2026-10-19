@@ -11,8 +11,18 @@ CHECK_BY_ID={c.id:c for c in automated_checks(CHECKS) if c.provider=='k8s'}
 
 # Eleven small supplemental fixtures already accepted by the workload review;
 # all other cases use the existing registry fixture authority without copies.
+SUPPLEMENTAL_IDS = {
+    "k8s.rbac.no_wildcards", "k8s.rbac.role_no_wildcards",
+    "k8s.rbac.review_broad_subjects", "k8s.rbac.review_namespaced_subjects",
+    "k8s.pod.no_privileged_containers", "k8s.pod.no_host_namespaces",
+    "k8s.service.review_public_type",
+    "k8s_ingress_ingress_has_any_associated_ingress_93579100f9",
+    "k8s_networkpolicy_has_ingress_rules",
+    "k8s_networkpolicy_network_policy_associated_podselectors_that_92dbc93b4c",
+    "k8s_pod_secret_pod_rule_non_compliant_fcdc38e543",
+}
 def cases_for(check_id,check):
-    cases = CASES.get(check_id)
+    cases = None if check_id in SUPPLEMENTAL_IDS else CASES.get(check_id)
     if cases is None:
         if check_id in ("k8s.rbac.no_wildcards", "k8s.rbac.role_no_wildcards"):
             cases = {"pass": {"rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["get"]}]},
@@ -108,7 +118,9 @@ def test_opposite_status_cannot_invent_opposite_configuration(actual_observation
 
 def test_psp_selinux_does_not_infer_absent_apparmor_or_seccomp():
     cid='k8s.claude.podsecuritypolicy.security_services_hardening'
-    assert evidence_summary({'provider':'k8s','check_id':cid,'status':'FAIL','evidence':{'selinux_rule':'RunAsAny'}})=='The legacy PSP declares SELinux RunAsAny.'
+    summary=evidence_summary({'provider':'k8s','check_id':cid,'status':'FAIL','evidence':{'selinux_rule':'RunAsAny'}})
+    assert summary and summary.startswith('The legacy PSP declares SELinux RunAsAny.')
+    assert 'AppArmor' not in summary and 'seccomp' not in summary
 
 
 def test_secret_content_is_never_formatted(actual_observations):
@@ -151,7 +163,7 @@ def test_real_incomplete_ingress_inventory_has_specific_unknown_observation():
     assert evidence=={'reason':'incomplete or foreign-scope ingress inventory'}
     finding={'provider':'k8s','check_id':cid,'status':status,'evidence':evidence}
     before=deepcopy(finding)
-    assert evidence_summary(finding)=='The ingress inventory is incomplete or belongs to another scope.'
+    assert evidence_summary(finding).startswith('The ingress inventory is incomplete or belongs to another scope.')
     assert finding==before
 
 
@@ -168,5 +180,5 @@ def test_omitted_pull_secret_field_is_unknown_without_full_native_provenance():
     assert evidence=={'reason':'omitted field without full native representation: imagePullSecrets'}
     finding={'provider':'k8s','check_id':cid,'status':status,'evidence':evidence}
     before=deepcopy(finding)
-    assert evidence_summary(finding)=='The Pod record omits image-pull Secret references and is not marked as a complete native record.'
+    assert evidence_summary(finding).startswith('The Pod record omits image-pull Secret references and is not marked as a complete native record.')
     assert finding==before

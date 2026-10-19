@@ -70,7 +70,7 @@ def supplemental_cases(cid):
 
 def reviewed_cases(cid):
     if cid in exclusions():
-        return CASES.get(cid) or supplemental_cases(cid)
+        return supplemental_cases(cid) or CASES.get(cid)
     return cases_for(cid, K8S[cid])
 
 

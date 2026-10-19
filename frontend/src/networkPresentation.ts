@@ -187,8 +187,8 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
     const areaItems: VisibleItem[] = directAreas.map(area => {
       const areaAssets = assets.filter(n => model.area.get(n.id) === area.id);
       const count = areaWeights.get(area.id) || memberWeight(area);
-      const width = areaAssets.length ? 20 + Math.min(4, areaAssets.length) * 210 : 198;
-      const height = areaAssets.length ? 86 + Math.ceil(areaAssets.length / 4) * 78 : 70;
+      const width = areaAssets.length ? 220 : 180;
+      const height = areaAssets.length ? 120 : 48;
       displayed.add(area.id);
       representative.set(area.id, `area:${area.id}`);
       return { id:`area:${area.id}`, title:label(area), subtitle:`${provider === "k8s" ? "Namespace · workload group" : "Subnet"} · ${count} resources`, kind:kind(area), parentId:rootId, width, height, count, hidden:Math.max(0,count-memberWeight(area)-areaAssets.reduce((sum,n)=>sum+memberWeight(n),0)), node:area, aggregate:!!area.aggregate };
@@ -200,30 +200,17 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
     const serviceItems: VisibleItem[] = directServices.map(n => {
       displayed.add(n.id);
       representative.set(n.id, `asset:${n.id}`);
-      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:rootId, width:194, height:62, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
+      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:rootId, width:152, height:40, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
     });
-    const assetItems: VisibleItem[] = assets.map((n,index) => {
+    const assetItems: VisibleItem[] = assets.map(n => {
       displayed.add(n.id);
       representative.set(n.id, `asset:${n.id}`);
-      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:`area:${selectedArea}`, x:12+(index%4)*210, y:76+Math.floor(index/4)*78, width:194, height:62, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
+      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:`area:${selectedArea}`, width:152, height:40, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
     });
     if (group.root) displayed.add(group.root.id);
     const direct = [...areaItems, ...serviceItems];
-    let width = 320, height = 128;
-    if (direct.length) {
-      const columns = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(direct.length))));
-      width = Math.max(340, 24 + columns * 218);
-      if (selectedArea && expanded && areaItems.length) {
-        const area = areaItems[0];
-        width = Math.max(width, area.width + 24);
-        area.x = 12; area.y = 76;
-        serviceItems.forEach((item,i) => { item.x = 12+(i%columns)*218; item.y = 92+area.height+Math.floor(i/columns)*94; });
-        height = 108 + area.height + Math.ceil(serviceItems.length/columns)*94;
-      } else {
-        direct.forEach((item,i) => { item.x = 12+(i%columns)*218; item.y = 76+Math.floor(i/columns)*94; });
-        height = 92 + Math.ceil(direct.length/columns)*94;
-      }
-    }
+    const width = direct.length ? 240 : 180;
+    const height = direct.length ? 120 : 48;
     const visibleWeight = group.members.filter(n => displayed.has(n.id)).reduce((sum,n)=>sum+memberWeight(n),0);
     items.push({ id:rootId, title:group.title, subtitle:`${group.count.toLocaleString()} resources · ${group.unresolvedCount} unresolved · ${group.root?.scope || group.members[0]?.scope || "scope unknown"}`, kind: provider === "k8s" ? "cluster" : kind(group.root || {id:"",type:"network"}), width, height, count:group.count, hidden:Math.max(0,group.count-visibleWeight), node:group.root, group });
     items.push(...areaItems,...serviceItems,...assetItems);

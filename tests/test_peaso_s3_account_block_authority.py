@@ -17,7 +17,7 @@ def test_unreadable_global_account_identity_cannot_supply_block_proof(cid):
 @pytest.mark.parametrize("error,expected",[(None,"FAIL"),({"code":"NoSuchPublicAccessBlockConfiguration"},"FAIL"),({"code":"AccessDenied"},"UNKNOWN"),({"code":"WrongError"},"UNKNOWN")])
 def test_empty_inventory_rejects_explicit_contradictory_error(error,expected):
     scope=s3.ACCOUNT+"/us-east-1"
-    collection={"type":"s3_account_public_access_block","scope":scope,"status":"empty","items":[]}
+    collection={"type":"s3_account_public_access_block","scope":s3.ACCOUNT+"/global","global":True,"account_id":s3.ACCOUNT,"status":"empty","items":[]}
     if error is not None:collection["error"]=error
     snap=make_snapshot("aws",[scope],[collection],created_at="2026-10-17T00:00:00Z")
     cid="aws.claude_a.s3.account_public_access_block_all"

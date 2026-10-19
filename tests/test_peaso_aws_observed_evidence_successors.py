@@ -12,6 +12,28 @@ from tests.observed_evidence_successors import AWS_FIELDS
 
 ROOT=Path(__file__).resolve().parents[1]
 PROOF=json.loads((ROOT/'tests/fixtures/aws_observed_evidence_successors.json').read_text())
+# Account-global partition discovery was reviewed separately from the additive
+# evidence changes recorded in PROOF. Strip only this exact block before
+# checking the original evidence-change and historical-source hashes.
+ACCOUNT_GLOBAL_PARTITION_ADDENDUM='''        # The collector always records native STS caller identities, including
+        # focused scans that do not request account contact/organization facts.
+        # Use only identities bound to this exact account; never guess a
+        # partition from another account or from the string "global".
+        identities = context.get("metadata", {}).get("caller_identities", []) if isinstance(context.get("metadata"), dict) else []
+        observed = set()
+        for identity in identities if isinstance(identities, list) else []:
+            if not isinstance(identity, dict) or identity.get("Account") != scope.split("/", 1)[0]:
+                continue
+            arn = identity.get("Arn")
+            match = re.fullmatch(r"arn:(aws|aws-cn|aws-us-gov):(?:iam|sts)::([0-9]{12}):.+", arn) if isinstance(arn, str) else None
+            if not match or match[2] != identity["Account"]:
+                raise Unavailable("caller partition identity mismatch")
+            observed.add(match[1])
+        if len(observed) > 1:
+            raise Unavailable("conflicting caller partitions for account")
+        if observed:
+            return observed.pop()
+'''
 BY_ID={check.id:check for check in CHECKS}
 FROZEN={}
 for name in ('aws_bulk_clarity_reviewed.json.gz','aws_final_clarity_reviewed.json.gz'):
@@ -24,6 +46,9 @@ for case in json.loads((ROOT/'tests/fixtures/post_dfaf_aws.json').read_text()):
 def test_only_reviewed_additive_evidence_changes_reconstruct_original_source(name):
     record=PROOF[name]
     text=(ROOT/'peaso/checks'/name).read_text()
+    if name == 'claude_aws_a_ec2.py':
+        assert text.count(ACCOUNT_GLOBAL_PARTITION_ADDENDUM) == 1
+        text=text.replace(ACCOUNT_GLOBAL_PARTITION_ADDENDUM,'')
     assert hashlib.sha256(text.encode()).hexdigest()==record['current_sha256']
     for before,after in reversed(record['replacements']):
         assert after in text

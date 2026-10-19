@@ -6580,7 +6580,7 @@ ROWS = json.loads(r'''
       "kind": "cloudtrail",
       "module": "peaso.checks.claude2_aws_a_cloudtrail",
       "predicate_sources": {
-        "peaso.checks.aws_a_facts.scope_subject": "2760f605db629c9bdb82c40fc799b58b0900ca08fdd6f2c56af9b6a803667a6c",
+        "peaso.checks.aws_a_facts.scope_subject": "62bc5357134a524d5770ee434cc692a77118e8f4501625e5e79fdcd6d519507e",
         "peaso.checks.claude2_aws_a_cloudtrail.region_logging": "8ac8f493a3634c947bfd6f306766ad1f744885c4a96fd408263e0ebb889ecc4e"
       },
       "source_qualname": "region_logging"

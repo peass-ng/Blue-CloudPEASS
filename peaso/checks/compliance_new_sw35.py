@@ -558,5 +558,7 @@ for _id, _meta in META.items():
               _meta["remediation_hint"], target="scope", dependencies=_deps)
     def _registered(item, index, check_id=_id):
         return _evaluate(check_id, item, index)
+    if _meta["resource_kind"] == "cloudtrail":
+        _registered.evaluation_scope = "aws_region"
     if CHECKS[-1].category != _meta["category"]:
         CHECKS[-1] = replace(CHECKS[-1], category=_meta["category"])

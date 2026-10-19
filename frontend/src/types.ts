@@ -272,6 +272,7 @@ export type PrivescEdge = {
   confidence: PrivescConfidence;
   evidence_refs?: PrivescEvidenceRef[];
   findings?: string[];
+  technique_details?: { id: string; granting_permissions?: { permission: string; grant: PrivescEvidenceRef }[] }[];
   via_aggregate?: string;
 };
 export type PrivescGraph = {
@@ -328,6 +329,7 @@ export type PrivescFindingEvidence = {
   targets?: PrivescNode[];
   target_count?: number;
   granting_statements?: PrivescEvidenceRef[];
+  granting_permissions?: { permission: string; grant: PrivescEvidenceRef }[];
   conditions?: string[];
   confidence?: PrivescConfidence;
   technique_conditions?: { id: string; description?: string }[];
@@ -347,6 +349,11 @@ export type PrivescPrincipalCard = {
   may_act_as: string[];
   is_admin: boolean;
   findings?: Finding[];
+  technique_details?: Record<string, { required_permissions?: {
+    all_of?: string[];
+    any_of?: string[][];
+    leaves?: string[];
+  } }>;
   outgoing_total?: number;
   incoming_total?: number;
 };
