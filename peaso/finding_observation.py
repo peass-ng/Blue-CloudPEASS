@@ -15,6 +15,11 @@ def evidence_summary(finding):
             return None
         from peaso.analysis.finding_clarity import evidence_summary as analysis
         return analysis(finding)
+    if provider in ('azure', 'gcp'):
+        from peaso.checks.provider_scope_observed_evidence import provider_scope
+        observation = provider_scope(finding)
+        if observation:
+            return observation
     if provider == 'k8s':
         # No static failure-prose fallback: malformed witnesses stay unclaimed.
         from peaso.checks.k8s_observed_configuration import evidence_summary as k8s
