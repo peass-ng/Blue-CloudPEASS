@@ -14,6 +14,7 @@ import { sharedElk } from "./elkWorker";
 import type { ELK as ElkInstance, ElkNode } from "elkjs";
 import {
   ArrowRight,
+  ChevronDown,
   Crown,
   ExternalLink,
   Filter,
@@ -137,6 +138,8 @@ type PeFlowNode = Node<
     highlighted: boolean;
     dimmed: boolean;
     focused: boolean;
+    onFocus: () => void;
+    onPaths: () => void;
   },
   "pe"
 >;
@@ -232,6 +235,13 @@ export function formatRef(ref: PrivescEvidenceRef): string {
   return fields.length ? fields.join(" · ") : "Reference fields were not supplied";
 }
 
+function grantSource(ref: PrivescEvidenceRef): string | undefined {
+  if (typeof ref.policy === "string" && ref.policy.startsWith("arn:aws:")) return ref.policy;
+  const value = ref.role || ref.role_definition || ref.role_definition_id ||
+    ref.binding || ref.assignment || ref.app_role_assignment || ref.policy;
+  return typeof value === "string" && value ? value : undefined;
+}
+
 const PeNodeView = memo(function PeNodeView({ data }: NodeProps<PeFlowNode>) {
   const n = data.node;
   const unresolved = isUnresolved(n);
@@ -285,6 +295,34 @@ const PeNodeView = memo(function PeNodeView({ data }: NodeProps<PeFlowNode>) {
         </strong>
         <span>{subtitle}</span>
       </span>
+      {!unresolved && !aggregate && (
+        <span className="pe-node-actions" role="group" aria-label={`Actions for ${nodeLabel(n)}`}>
+          <button
+            type="button"
+            className="pe-node-action nodrag nopan"
+            aria-label={`Focus neighbourhood of ${nodeLabel(n)}`}
+            title="Focus neighbourhood"
+            onClick={(event) => {
+              event.stopPropagation();
+              data.onFocus();
+            }}
+          >
+            <Focus size={15} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="pe-node-action nodrag nopan"
+            aria-label={`Paths from ${nodeLabel(n)}`}
+            title="Paths from this principal"
+            onClick={(event) => {
+              event.stopPropagation();
+              data.onPaths();
+            }}
+          >
+            <Route size={15} aria-hidden="true" />
+          </button>
+        </span>
+      )}
       {aggregate && (
         <span className="pe-node-count" aria-label={`${count ?? "unknown"} members`}>
           {count ?? "?"}
@@ -642,6 +680,25 @@ export function PrivescMap({
       ? { nodes: new Set([edge.source, edge.target]), edges: new Set([edge.id]) }
       : highlight;
   }, [layout, hoveredRelation, highlight]);
+  const focusOn = useCallback((id: string) => {
+    setFocus(id);
+    setSelected(id);
+    setHighlight(null);
+    const parents = index.memberOfTarget.get(id) || [];
+    if (!index.out.has(id) && !index.inc.has(id) && parents.length)
+      setExpanded((prev) => new Set([...prev, parents[0]]));
+  }, [index]);
+  const pathsFrom = useCallback((id: string) => {
+    setSelected(id);
+    setQuery("from");
+    setSidebarOpen(true);
+    try {
+      localStorage.setItem(SIDEBAR_KEY, "open");
+    } catch {
+      // The sidebar still opens when local storage is unavailable.
+    }
+    setCard(null);
+  }, []);
   const flowNodes = useMemo<PeFlowNode[]>(
     () =>
       (layout?.nodes || []).map((n) => ({
@@ -658,11 +715,16 @@ export function PrivescMap({
           highlighted: !!renderHighlight?.nodes.has(n.id),
           dimmed: !!renderHighlight && !renderHighlight.nodes.has(n.id),
           focused: focus === n.id || selected === n.id,
+          onFocus: () => {
+            focusOn(n.id);
+            setCard(null);
+          },
+          onPaths: () => pathsFrom(n.id),
         },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
       })),
-    [layout, positions, index, expanded, renderHighlight, focus, selected, card],
+    [layout, positions, index, expanded, renderHighlight, focus, selected, card, focusOn, pathsFrom],
   );
   const flowEdges = useMemo<Edge[]>(
     () =>
@@ -865,16 +927,6 @@ export function PrivescMap({
     setSelected(id);
     setCard({ type: "principal", id });
   }, []);
-  const focusOn = useCallback((id: string) => {
-    setFocus(id);
-    setSelected(id);
-    setHighlight(null);
-    // Make sure a member hidden inside a collapsed aggregate becomes visible.
-    const parents = index.memberOfTarget.get(id) || [];
-    if (!index.out.has(id) && !index.inc.has(id) && parents.length)
-      setExpanded((prev) => new Set([...prev, parents[0]]));
-  }, [index]);
-
   const counts = useMemo(() => {
     let principals = 0,
       aggregates = 0,
@@ -1143,6 +1195,7 @@ export function PrivescMap({
                     else openPrincipal(node.id);
                   }}
                   onEdgeClick={(_, e) => {
+                    setHoveredRelation("");
                     const current = displayedPaths.current;
                     const path = current?.query === query
                       ? current.paths.find((item) => item.steps.some(
@@ -1255,18 +1308,10 @@ export function PrivescMap({
           id={card.id}
           index={index}
           findings={findingList}
+          severity={edgeSeverity}
           onClose={() => setCard(null)}
           onEdge={(id) => setCard({ type: "edge", id })}
           onPrincipal={openPrincipal}
-          onFocus={(id) => {
-            focusOn(id);
-            setCard(null);
-          }}
-          onPaths={(id) => {
-            setSelected(id);
-            setQuery("from");
-            setCard(null);
-          }}
         />
       )}
       {card?.type === "unresolved" && (
@@ -1930,22 +1975,20 @@ function PrincipalCard({
   id,
   index,
   findings,
+  severity,
   onClose,
   onEdge,
   onPrincipal,
-  onFocus,
-  onPaths,
 }: {
   scanId: string;
   demo: boolean;
   id: string;
   index: PrivescIndex;
   findings: Finding[];
+  severity: (edge: PrivescEdge) => string;
   onClose: () => void;
   onEdge: (id: string) => void;
   onPrincipal: (id: string) => void;
-  onFocus: (id: string) => void;
-  onPaths: (id: string) => void;
 }) {
   const q = usePrivescPrincipal(scanId, demo, id);
   const local = useMemo(() => principalCard(index, id), [index, id]);
@@ -1974,21 +2017,23 @@ function PrincipalCard({
         )}
       </div>
       {q.isPending && <p className="muted small-text">Loading the principal card…</p>}
-      <h3>Identity</h3>
-      <dl className="pe-dl">
-        <dt>Provider</dt>
-        <dd>{PROVIDER_NAME[String(node.provider)] || String(node.provider || "—")}</dd>
-        <dt>Type</dt>
-        <dd>{humanType(node.type)}</dd>
-        <dt>Scope</dt>
-        <dd>{node.scope || "—"}</dd>
-        {attrs.map(([k, v]) => (
-          <div key={k} className="pe-dl-row">
-            <dt>{k.replaceAll("_", " ")}</dt>
-            <dd>{typeof v === "object" && v !== null ? <EvidenceFields data={v} /> : text(v)}</dd>
-          </div>
-        ))}
-      </dl>
+      <details className="pe-identity">
+        <summary>Identity <ChevronDown size={15} aria-hidden="true" /></summary>
+        <dl className="pe-dl">
+          <dt>Provider</dt>
+          <dd>{PROVIDER_NAME[String(node.provider)] || String(node.provider || "—")}</dd>
+          <dt>Type</dt>
+          <dd>{humanType(node.type)}</dd>
+          <dt>Scope</dt>
+          <dd>{node.scope || "—"}</dd>
+          {attrs.map(([k, v]) => (
+            <div key={k} className="pe-dl-row">
+              <dt>{k.replaceAll("_", " ")}</dt>
+              <dd>{typeof v === "object" && v !== null ? <EvidenceFields data={v} /> : text(v)}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
       {(card.member_of_aggregates?.length > 0 || card.may_act_as?.length > 0) && (
         <>
           <h3>Membership</h3>
@@ -2004,14 +2049,6 @@ function PrincipalCard({
           ))}
         </>
       )}
-      <div className="button-row">
-        <button className="button" onClick={() => onFocus(id)}>
-          <Focus size={14} /> Focus neighbourhood
-        </button>
-        <button className="button" onClick={() => onPaths(id)}>
-          <Route size={14} /> Paths from this principal
-        </button>
-      </div>
       <h3>
         Outgoing escalation · {card.outgoing_total ?? card.outgoing.length}
       </h3>
@@ -2019,31 +2056,32 @@ function PrincipalCard({
         <p className="muted small-text">No escalation edges start at this node.</p>
       )}
       {card.outgoing.map((e) => (
-        <div key={e.id} className="pe-edge-row">
-          <div className="pe-edge-row-head">
-            <span>
-              → <button className="text-button inline" onClick={() => onPrincipal(e.target)}>{label(e.target)}</button>
-            </span>
-            <Badge value={e.confidence} />
-          </div>
+        <div key={e.id} className="pe-edge-row pe-outgoing-row">
           {e.techniques.map((t) => {
             const f = findingFor(t, e.source, card.findings, findings);
+            const tech = ((f?.evidence || {}) as PrivescFindingEvidence).technique;
+            const title = f?.title || tech?.title;
+            const explanation = tech?.summary || f?.description || f?.evidence_summary;
             return (
-              <div key={t} className="pe-tech-line">
-                <strong>{f?.title || t}</strong>
-                {f && <Badge value={String(f.severity)} />}
-                {!!f?.remediation && (
-                  <div><span className="pe-k">Mitigation</span> {typeof f.remediation === "object" ? <EvidenceFields data={f.remediation} /> : text(f.remediation)}</div>
-                )}
+              <div key={t} className="pe-outgoing-technique">
+                <div className="pe-outgoing-title">
+                  {title && <strong>{title}</strong>}
+                  <Badge value={String(f?.severity || severity(e))} />
+                </div>
+                {explanation && <p>{explanation}</p>}
               </div>
             );
           })}
-          {(e.evidence_refs || []).map((r, i) => (
-            <div key={i} className="pe-ref evidence-policy-statement"><strong>Evidence reference {i + 1}</strong><p>{formatRef(r)}</p><EvidenceFields data={r} /></div>
-          ))}
-          <button className="text-button" onClick={() => onEdge(e.id)}>
-            View technique details <ArrowRight size={13} />
-          </button>
+          <div className="pe-outgoing-footer">
+            <span className="pe-outgoing-target">
+              <span className="pe-k">Escalates to</span>
+              <button className="text-button inline" onClick={() => onPrincipal(e.target)}>{label(e.target)}</button>
+              {e.confidence !== "derived" && <Badge value={e.confidence} />}
+            </span>
+            <button className="text-button" onClick={() => onEdge(e.id)}>
+              View technique details <ArrowRight size={13} />
+            </button>
+          </div>
         </div>
       ))}
       <h3>Inbound · {card.incoming_total ?? card.incoming.length}</h3>
@@ -2095,6 +2133,7 @@ function EdgeCard({
     }
     return undefined;
   }, [index, id]);
+  const sourceQ = usePrivescPrincipal(scanId, demo, edge?.source || "");
   if (!edge)
     return (
       <Inspector title="Escalation technique" onClose={onClose}>
@@ -2123,14 +2162,6 @@ function EdgeCard({
           </span>
         )}
       </div>
-      <h3>Granting evidence</h3>
-      {(edge.evidence_refs || []).length ? (
-        edge.evidence_refs!.map((r, i) => (
-          <div key={i} className="pe-ref evidence-policy-statement"><strong>Evidence reference {i + 1}</strong><p>{formatRef(r)}</p><EvidenceFields data={r} /></div>
-        ))
-      ) : (
-        <p className="muted small-text">No granting statement recorded.</p>
-      )}
       {edge.techniques.map((t, i) => (
         <TechniqueSection
           key={t}
@@ -2139,6 +2170,8 @@ function EdgeCard({
           technique={t}
           findingId={edge.findings?.[i] || `privesc:${t}:${edge.source}`}
           summary={findingFor(t, edge.source, findings)}
+          edgeGrants={edge.technique_details?.find((detail) => detail.id === t)?.granting_permissions}
+          catalogRequired={sourceQ.data?.technique_details?.[t]?.required_permissions}
         />
       ))}
     </Inspector>
@@ -2151,12 +2184,16 @@ function TechniqueSection({
   technique,
   findingId,
   summary,
+  edgeGrants,
+  catalogRequired,
 }: {
   scanId: string;
   demo: boolean;
   technique: string;
   findingId: string;
   summary?: Finding;
+  edgeGrants?: { permission: string; grant: PrivescEvidenceRef }[];
+  catalogRequired?: { all_of?: string[]; any_of?: string[][]; leaves?: string[] };
 }) {
   const q = useApi<Finding>(
     privescApi.finding(scanId, findingId),
@@ -2168,6 +2205,12 @@ function TechniqueSection({
   const tech = ev.technique || {};
   const requires = tech.requires ?? ev.required_permissions;
   const href = hacktricksUrl(tech.source);
+  const grants = [...new Map((edgeGrants || ev.granting_permissions || [])
+    .filter((item) => item.permission && grantSource(item.grant))
+    .map((item) => [`${item.permission}\n${grantSource(item.grant)}`, item])).values()];
+  const required = [...new Set(grants.map((item) => item.permission))];
+  const legacySources = [...new Set((ev.granting_statements || [])
+    .map(grantSource).filter((source): source is string => !!source))];
   const conditions = [
     ...(ev.conditions || []).map((code) => explainPrivescCondition(code)),
     ...(ev.technique_conditions || []).map((c) => explainPrivescCondition(c.id, c.description)),
@@ -2185,7 +2228,8 @@ function TechniqueSection({
       {q.isPending && technique !== "admin-equivalent" && !summary && (
         <p className="muted small-text">Loading technique evidence…</p>
       )}
-      {tech.summary && <p>{tech.summary}</p>}
+      {(tech.summary || finding?.description || finding?.evidence_summary) &&
+        <p>{tech.summary || finding?.description || finding?.evidence_summary}</p>}
       {ev.confidence === "conditional" && (
         <p className="pe-path-explanation">
           Conditional path: the permissions and target are modelled. The
@@ -2201,6 +2245,9 @@ function TechniqueSection({
       {technique === "admin-equivalent" && (
         <p>The source already holds an administrator-equivalent grant on this scope; no technique is needed.</p>
       )}
+      {typeof ev.target_count === "number" && (
+        <p className="muted small-text">Reaches {plural(ev.target_count, "underlying target")}.</p>
+      )}
       <h4>Required permissions</h4>
       {Array.isArray(requires) && requires.length ? (
         <ul className="pe-perms">
@@ -2212,21 +2259,39 @@ function TechniqueSection({
             </li>
           ))}
         </ul>
-      ) : ev.granting_statements?.length ? (
+      ) : catalogRequired?.all_of?.length || catalogRequired?.any_of?.length ? (
         <ul className="pe-perms">
-          {ev.granting_statements.map((r, i) => <li key={i}>{formatRef(r)}</li>)}
+          {(catalogRequired.all_of || []).map((permission, i) => <li key={`all-${i}`}>{permission}</li>)}
+          {!!catalogRequired.any_of?.length &&
+            <li>One of: {catalogRequired.any_of.map((group) => group.join(" and ")).join("; or ")}</li>}
+        </ul>
+      ) : required.length ? (
+        <ul className="pe-perms">
+          {required.map((permission) => <li key={permission}><code>{permission}</code></li>)}
         </ul>
       ) : (
         <p className="muted small-text">
-          The catalog requirement list is in the technique source; the granting evidence above shows the statements that satisfy it.
+          See the technique source for its permission requirements.
         </p>
       )}
-      {href && (
-        <a className="button pe-source" href={href} target="_blank" rel="noopener noreferrer">
-          HackTricks Cloud source <ExternalLink size={13} />
-        </a>
+      <h4>Granting permissions</h4>
+      {grants.length ? (
+        <ul className="pe-grants">
+          {grants.map((item) => (
+            <li key={`${item.permission}\n${grantSource(item.grant)}`}>
+              <code>{item.permission}</code>
+              <span>{grantSource(item.grant)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : legacySources.length ? (
+        <>
+          <p className="muted small-text">This report records the grant sources without a permission-by-permission match.</p>
+          <ul className="pe-grants">{legacySources.map((source) => <li key={source}><span>{source}</span></li>)}</ul>
+        </>
+      ) : (
+        <p className="muted small-text">No granting policy or role was recorded.</p>
       )}
-      {tech.source_revision && <p className="muted small-text">Catalog revision {tech.source_revision}</p>}
       <h4>Mitigation</h4>
       <Remediation legacy={finding?.remediation || "Remove the granting permission or scope it to the intended resources."} details={finding?.remediation_details} />
       {conditions.length > 0 && (
@@ -2239,9 +2304,12 @@ function TechniqueSection({
           </ul>
         </>
       )}
-      {typeof ev.target_count === "number" && (
-        <p className="muted small-text">Reaches {plural(ev.target_count, "underlying target")}.</p>
+      {href && (
+        <a className="button pe-source" href={href} target="_blank" rel="noopener noreferrer">
+          HackTricks Cloud source <ExternalLink size={13} />
+        </a>
       )}
+      {tech.source_revision && <p className="muted small-text">Catalog revision {tech.source_revision}</p>}
     </section>
   );
 }

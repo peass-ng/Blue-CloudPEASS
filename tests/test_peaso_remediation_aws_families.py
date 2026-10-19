@@ -134,6 +134,10 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
             matches = [text for text in source_lines if text.startswith('_ram("' + kind + '"')]
             assert len(matches) == 1
             source_line = matches[0]
+        elif row["source_proof"].get("generated_family") == "INSTANCE_PORTS":
+            matches = [text for text in source_lines if 'install("aws.claude_a.ec2.instance_port_%s_not_internet_exposed"' in text]
+            assert len(matches) == 1
+            source_line = matches[0]
         elif row["source_proof"].get("generated_family") in {
                 None, "SNS_ACTIONS", "SSM_COMPLIANCE", "NEP_SUBNET",
                 "LIGHTSAIL_PORT", "S3_PUBLIC_CASE"}:

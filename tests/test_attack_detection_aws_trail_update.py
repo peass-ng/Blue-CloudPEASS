@@ -39,6 +39,17 @@ def test_three_explicit_settings_returned_by_update_trail() -> None:
     assert normalized["request.global_service_logging_disabled"] is True
 
 
+def test_explicit_s3_destination_requires_matching_response() -> None:
+    record = _record()
+    record["requestParameters"] = {"name": "audit-trail", "s3BucketName": "synthetic-log-destination"}
+    record["responseElements"] = {"trailARN": TRAIL_ARN, "name": "audit-trail",
+                                  "s3BucketName": "synthetic-log-destination"}
+    normalized = normalize_aws_trail_update(record)
+    assert normalized is not None and normalized["request.trail_s3_bucket_destination_set"] is True
+    record["responseElements"]["s3BucketName"] = "different-bucket"
+    assert normalize_aws_trail_update(record) is None
+
+
 def test_sigma_selection_reports_the_three_confirmed_settings_only() -> None:
     rule = Rule(
         id="test-trail-update", title="Trail settings", level="high",

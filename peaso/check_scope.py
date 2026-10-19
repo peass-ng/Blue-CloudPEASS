@@ -16,7 +16,7 @@ def explicit_scope(check):
             break
         seen.add(id(callback))
         declared = getattr(callback, "evaluation_scope", None)
-        if declared in ("aws_account", "tenant"):
+        if declared in ("aws_account", "aws_region", "tenant"):
             return declared
         callback = getattr(callback, "__wrapped__", None)
     return None
@@ -25,7 +25,10 @@ def explicit_scope(check):
 def evaluation_scope(check):
     """All-global dependencies imply an account question, including missing facts."""
     dependencies = tuple(check.dependencies)
-    if check.provider == "aws" and (explicit_scope(check) == "aws_account" or dependencies and set(dependencies) <= aws_global_types()):
+    declared = explicit_scope(check)
+    if check.provider == "aws" and declared == "aws_region":
+        return "aws_region" if check.target == "scope" else "regional_resource"
+    if check.provider == "aws" and (declared == "aws_account" or dependencies and set(dependencies) <= aws_global_types()):
         return "aws_account" if check.target == "scope" else "global_resource"
     if check.provider == "aws":
         return "aws_region" if check.target == "scope" else "regional_resource"

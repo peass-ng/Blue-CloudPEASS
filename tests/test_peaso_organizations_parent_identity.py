@@ -8,7 +8,10 @@ from tests.test_peaso_organizations_ou_account_state import case, CONTROL, SCOPE
 
 
 def verdict(index):
-    snapshot = make_snapshot('aws', [SCOPE], [e for envs in index['collections'].values() for e in envs],
+    collections = [dict(envelope, scope=MANAGEMENT+'/global', account_id=MANAGEMENT, **{'global': True},
+        items=[dict(item, AccountId=MANAGEMENT) for item in envelope['items']])
+        for envs in index['collections'].values() for envelope in envs]
+    snapshot = make_snapshot('aws', [SCOPE], collections,
         metadata=index['context']['metadata'])
     return next(f['status'] for f in evaluate_snapshot(snapshot, checks=[CONTROL])['findings'] if f['check_id'] == CONTROL)
 

@@ -489,7 +489,8 @@ def test_api_hydrates_per_check_fields_for_filters_facets_summary_and_detail(tmp
         assert client.get(f"/api/scans/{ident}/findings", params={"search": title, "limit": 500}).json()["total"] >= 1
         detail = client.get(f"/api/scans/{ident}/findings/{override['id']}").json()
         assert detail["guidance_refresh"] == {"version":"archived-finding-presentation-v1", "status":"current_text", "basis":"matching_archived_criteria", "allow_summary":True}
-        assert {k: v for k, v in detail.items() if k not in {"runtime", "remediation_details", "guidance_refresh"}} == full[override["id"]]
+        assert {k: v for k, v in detail.items() if k not in {"runtime", "remediation_details", "guidance_refresh", "evidence_summary"}} == full[override["id"]]
+        assert isinstance(detail.get("evidence_summary"), str) and detail["evidence_summary"]
         from peaso.remediation import template
         expected = bundle["remediation_templates"][override["check_id"]]
         assert template(override["check_id"], override["provider"])["review_status"] == "approved"
