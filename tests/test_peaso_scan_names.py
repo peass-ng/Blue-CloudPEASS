@@ -93,3 +93,30 @@ def test_list_and_detail_keep_frozen_identity_after_connector_deletion(tmp_path,
         assert "MARKER" not in json.dumps(listed.json())
         client.headers["Authorization"] = "Bearer bob"
         assert client.get("/api/scans").json() == {"items": []}
+
+
+@pytest.mark.parametrize("legacy_auth", [None, {}, [], 42, "", "not-encrypted"])
+def test_legacy_scan_without_usable_ciphertext_does_not_break_list_or_detail(tmp_path, legacy_auth):
+    settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity")
+    cipher = CredentialCipher(settings.identity_dir)
+    store = SQLiteStore(settings.state_dir)
+    encrypted = cipher.encrypt({"auth": {"role_arn": "arn:aws:iam::123456789098:role/ReadOnly"}, "options": {}})
+    connector = store.add_connector("alice", {"provider": "aws", "name": "Historical", "scopes": ["123456789098"]}, encrypted)
+    old = store.enqueue("alice", {"connector_id": connector["id"]}, now=WHEN)
+    current = store.enqueue("alice", {"connector_id": connector["id"]}, now=WHEN + 1, limit=2)
+    frozen = json.loads(store.job("alice", old["id"])["connector"])
+    frozen["auth"] = legacy_auth
+    with store.transaction() as db:
+        db.execute("UPDATE jobs SET connector=? WHERE id=?", (json.dumps(frozen), old["id"]))
+    with TestClient(create_app(settings, store=store, artifacts=FileArtifacts(settings.state_dir / "artifacts"), authenticator=Identities()), base_url="http://127.0.0.1:8000") as client:
+        client.headers["Authorization"] = "Bearer alice"
+        listed = client.get("/api/scans")
+        assert listed.status_code == 200
+        items = {item["id"]: item for item in listed.json()["items"]}
+        assert set(items) == {old["id"], current["id"]}
+        assert items[current["id"]]["display_name"] == "aws-ReadOnly-123456789098-18.10.26"
+        assert items[old["id"]]["display_name"].startswith("aws-")
+        assert "123456789098" in items[old["id"]]["display_name"]
+        detail = client.get(f"/api/scans/{old['id']}")
+        assert detail.status_code == 200
+        assert detail.json()["display_name"] == items[old["id"]]["display_name"]
