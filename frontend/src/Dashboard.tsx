@@ -419,7 +419,7 @@ function CoverageWindow({ scanId, demo }: { scanId: string; demo: boolean }) {
         onPrevious={() => void query.fetchPreviousPage({ cancelRefetch: false })}
         onNext={() => void query.fetchNextPage({ cancelRefetch: false })}
         onRetry={() => void (query.isFetchPreviousPageError ? query.fetchPreviousPage({ cancelRefetch: false }) : query.fetchNextPage({ cancelRefetch: false }))}
-        onJump={setAnchorOffset} nextLabel="Load more coverage" />
+        onJump={setAnchorOffset} nextLabel="Load more coverage" compact />
     </State>
   );
 }

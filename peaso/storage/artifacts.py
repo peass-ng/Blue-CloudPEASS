@@ -3,6 +3,7 @@ import hashlib
 import gzip
 import json
 import os
+import shutil
 from pathlib import Path
 import re
 import uuid
@@ -29,10 +30,31 @@ def reference_for(tenant, job_id, kind):
     return reference
 
 
+def job_prefix(tenant, job_id):
+    if not isinstance(job_id, str) or not re.fullmatch(r"[a-f0-9]{32}", job_id):
+        raise ValueError("Invalid scan ID")
+    return f"{prefix(tenant)}/{job_id}/"
+
+
 class FileArtifacts:
     def __init__(self, root: Path):
         self.root = root
         root.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+    def delete_workspace(self, tenant):
+        directory = self.root / prefix(tenant)
+        if directory.parent.resolve() != self.root.resolve() or directory.is_symlink():
+            raise ValueError("Invalid artifact directory")
+        if directory.exists():
+            shutil.rmtree(directory)
+
+    def delete_job(self, tenant, job_id):
+        directory = self.root / job_prefix(tenant, job_id)
+        expected_parent = self.root.resolve() / prefix(tenant)
+        if directory.parent.resolve() != expected_parent or directory.is_symlink():
+            raise ValueError("Invalid artifact directory")
+        if directory.exists():
+            shutil.rmtree(directory)
 
     def put(self, tenant, job_id, kind, value):
         return self._write(tenant, job_id, kind, json.dumps(value, separators=(",", ":"), allow_nan=False))
@@ -78,6 +100,25 @@ class S3Artifacts:
             import boto3
             client = boto3.client("s3")
         self.client, self.bucket, self.kms_key = client, bucket, kms_key
+
+    def delete_job(self, tenant, job_id):
+        # The bucket is private and unversioned. Never enumerate another scan.
+        self._delete_prefix("artifacts/" + job_prefix(tenant, job_id))
+
+    def delete_workspace(self, tenant):
+        self._delete_prefix("artifacts/" + prefix(tenant) + "/")
+
+    def _delete_prefix(self, target):
+        paginator = self.client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=self.bucket, Prefix=target):
+            keys = [item["Key"] for item in page.get("Contents", [])]
+            if any(not key.startswith(target) for key in keys):
+                raise ValueError("Artifact listing escaped scan prefix")
+            for start in range(0, len(keys), 1000):
+                result = self.client.delete_objects(Bucket=self.bucket, Delete={
+                    "Objects": [{"Key": key} for key in keys[start:start + 1000]], "Quiet": True})
+                if result.get("Errors"):
+                    raise RuntimeError("Some scan artifacts could not be deleted; retry")
 
     def put(self, tenant, job_id, kind, value):
         body = json.dumps(value, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()

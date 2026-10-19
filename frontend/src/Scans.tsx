@@ -61,6 +61,7 @@ export function Scans({
   const [launch, setLaunch] = useState(false);
   const [schedule, setSchedule] = useState<Schedule | null | undefined>();
   const [inspect, setInspect] = useState<Scan>();
+  const [remove, setRemove] = useState<Scan>();
   const [error, setError] = useState("");
   function refresh() {
     void client.invalidateQueries({ queryKey: [demo ? "demo" : "live"] });
@@ -70,6 +71,10 @@ export function Scans({
       request(`/scans/${encodeURIComponent(id)}/cancel`, json({}), demo),
     onSuccess: refresh,
     onError: (e) => setError(e.message),
+  });
+  const deleteScan = useMutation({
+    mutationFn: (id: string) => request(`/scans/${encodeURIComponent(id)}`, { method: "DELETE" }, demo),
+    onSuccess: () => { setRemove(undefined); setInspect(undefined); refresh(); },
   });
   const updateSchedule = useMutation({
     mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
@@ -204,6 +209,10 @@ export function Scans({
                   </button>
                 )
               )}
+              <button className="icon-button danger" aria-label={`Delete scan ${names.get(s.id)}`}
+                disabled={demo || !canWrite || !terminalStatuses.includes(s.status)}
+                title={terminalStatuses.includes(s.status) ? "Delete scan and its evidence" : "Cancel this scan before deleting it"}
+                onClick={() => { deleteScan.reset(); setRemove(s); }}><Trash2 size={17} /></button>
             </article>
           ))}
         </div>
@@ -282,6 +291,12 @@ export function Scans({
           </>
         </State>
       </Panel>
+      {remove && <Inspector title="Delete scan" onClose={() => setRemove(undefined)}>
+        <p>Permanently delete “{names.get(remove.id)}” and all its stored evidence? This cannot be undone.</p>
+        {deleteScan.error && <p role="alert">{humanError(deleteScan.error)}</p>}
+        <button className="button danger" disabled={deleteScan.isPending} onClick={() => deleteScan.mutate(remove.id)}>
+          {deleteScan.isPending ? "Deleting…" : "Delete scan"}</button>
+      </Inspector>}
       {launch && (
         <LaunchForm
           demo={demo}
@@ -358,13 +373,14 @@ function CatalogSupport({ catalog, loading, error }: { catalog?: Catalog; loadin
     {!loading && !error && (versions.length ? <details><summary>{versions.length} checklist versions with Not assessed requirements</summary><ul className="coverage-list">{versions.map(row => <li key={row.id} className="coverage-row"><strong>{row.name}</strong><span>Not assessed · {row.notAssessed.toLocaleString()} requirements</span></li>)}</ul></details> : <p className="muted">No Not assessed requirement counts are supplied by the current catalog.</p>)}
   </Panel>;
 }
-function LaunchForm({
+export function LaunchForm({
   demo,
   connectors,
   connectorError,
   catalog,
   onClose,
   schedule,
+  initialConnectorId,
 }: {
   demo: boolean;
   connectors: Connector[];
@@ -372,10 +388,11 @@ function LaunchForm({
   catalog: { data?: Catalog; isPending: boolean; error: unknown };
   onClose: () => void;
   schedule?: Schedule | null;
+  initialConnectorId?: string;
 }) {
   const client = useQueryClient();
   const [connector, setConnector] = useState(
-    schedule?.connector_id || connectors[0]?.id || "",
+    schedule?.connector_id || initialConnectorId || connectors[0]?.id || "",
   );
   const [selected, setSelected] = useState<string[]>(
     schedule?.categories || categories.map((c) => c.id),

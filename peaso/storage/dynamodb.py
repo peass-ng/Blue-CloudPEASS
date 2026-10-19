@@ -551,6 +551,28 @@ class DynamoStore:
     def jobs(self, tenant, transform=None):
         return [(transform or self.public_job)(value) for value in sorted(self._query(tenant, "job"), key=lambda x: x["created"], reverse=True) if value.get("expires_at", float("inf")) > self.clock()]
 
+    def deletion_job(self, tenant, ident):
+        # TTL expiry hides scans from normal reads, but their objects still need deletion.
+        value = self._get(tenant, "job", ident)
+        if not value:
+            raise StoreError(404, "Scan not found")
+        return value
+
+    def deletion_jobs(self, tenant):
+        return self._query(tenant, "job")
+
+    def delete_job(self, tenant, ident):
+        self.deletion_job(tenant, ident)
+        try:
+            self.client.delete_item(TableName=self.table, Key=attrs(self.key(tenant, "job", ident)),
+                ConditionExpression="attribute_exists(PK) AND (#status IN (:done,:failed,:cancelled,:timed) OR deadline<=:now)",
+                ExpressionAttributeNames={"#status": "status"}, ExpressionAttributeValues=attrs({
+                    ":done": "completed", ":failed": "failed", ":cancelled": "cancelled", ":timed": "timed_out", ":now": time.time()}))
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                raise StoreError(409, "Scan changed; refresh and retry") from None
+            raise
+
     def queued_jobs(self):
         return [item for item in self._scan("job") if item["status"] == "queued"]
 

@@ -3500,3 +3500,12 @@ textarea:focus-visible,
 .pe-canvas .react-flow__node.draggable { cursor: grab; }
 .pe-canvas .react-flow__node.draggable:active,
 .pe-canvas .react-flow__node.dragging { cursor: grabbing; }
+
+/* Small coverage navigation; icon labels remain available to assistive tools. */
+.pagination-compact { padding: 8px 12px; gap: 8px; }
+.pagination-compact .button-row { gap: 4px; }
+.pagination-compact button { display: inline-flex; align-items: center; justify-content: center; padding: 4px; min-width: 26px; min-height: 26px; border-radius: 6px; }
+.pagination-compact form { display: flex; align-items: center; gap: 4px; margin: 0; }
+.pagination-compact label { margin: 0; }
+.pagination-compact input { width: 45px; padding: 3px 5px; font-size: 11px; min-height: 26px; text-align: center; }
+.pagination-compact .pager-total { white-space: nowrap; font-size: 11px; }

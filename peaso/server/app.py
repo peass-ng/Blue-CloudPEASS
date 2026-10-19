@@ -614,30 +614,15 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if user.auth_kind != "api_key":
             store.expire()
         # Jobs contain the frozen connector input, including deleted connectors.
-        # Decrypt each distinct identity once; return only the human name.
-        hints = {}
-        return {"items": store.jobs(user.tenant_id, transform=lambda row: public_scan(row, hints))}
+        # Naming uses the frozen public connector name, never credentials.
+        return {"items": store.jobs(user.tenant_id, transform=public_scan)}
 
-    def public_scan(row, hints=None):
-        from .scan_names import display_name, identity_hint
-        from cryptography.fernet import InvalidToken
+    def public_scan(row):
+        from .scan_names import display_name
         value = store.public_job(row)
         frozen = json.loads(row["connector"])
-        data = frozen["data"]
-        cache = hints if hints is not None else {}
-        scopes = data.get("scopes") or []
-        # Historical/imported jobs may not retain encrypted credentials. Naming
-        # is optional metadata and must not make their list/detail unavailable.
-        encrypted_auth = frozen.get("auth")
-        encrypted_auth = encrypted_auth if isinstance(encrypted_auth, str) else None
-        key = (data.get("provider"), encrypted_auth, tuple(scopes))
-        if key not in cache:
-            try:
-                private = cipher.decrypt(encrypted_auth) if encrypted_auth else {}
-                cache[key] = identity_hint(data.get("provider"), private, scopes)
-            except (InvalidToken, ValueError, TypeError, KeyError):
-                cache[key] = (None, [], None)
-        return dict(value, display_name=display_name(value, data, cache[key]))
+        data = frozen.get("data", {})
+        return dict(value, display_name=display_name(value, data, None), connector_name=data.get("name"))
 
     def attack_source(body, user):
         if body.kind == "aws_cloudtrail_s3" and (not body.bucket or not body.prefix or not body.prefix.endswith("/")):
@@ -790,6 +775,47 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if value["status"] == "queued":
             dispatcher.dispatch(user.tenant_id, value)
         return value
+
+    def remove_scan_data(tenant, ident):
+        from peaso.storage.sqlite import TERMINAL
+        row = store.deletion_job(tenant, ident)
+        if row["status"] not in TERMINAL and row["deadline"] > time.time():
+            raise HTTPException(409, "Cancel the scan or wait for it to finish before deleting it")
+        # Retain the metadata if object deletion fails, so cleanup can be retried.
+        artifacts.delete_job(tenant, ident)
+        store.delete_job(tenant, ident)
+
+    @app.delete("/api/scans/{ident}", status_code=204)
+    def delete_scan(ident: str, user=Depends(identity)):
+        remove_scan_data(user.tenant_id, ident)
+        return Response(status_code=204)
+
+    @app.delete("/api/workspace-data")
+    def delete_workspace_data(confirmation: Literal["DELETE"], user=Depends(identity)):
+        from peaso.storage.sqlite import TERMINAL
+        if user.workspace_role != "admin":
+            raise HTTPException(403, "Workspace administrator access is required")
+        tenant = user.tenant_id
+        jobs = store.deletion_jobs(tenant)
+        if any(job["status"] not in TERMINAL and job["deadline"] > time.time() for job in jobs):
+            raise HTTPException(409, "Cancel active scans or wait for them to finish before deleting workspace data")
+        # Bounded batches keep hosted requests short and make partial cleanup retryable.
+        deleted = {"scans": 0, "connectors": 0, "schedules": 0}
+        for schedule in store.schedules(tenant):
+            store.delete_schedule(tenant, schedule["id"])
+            deleted["schedules"] += 1
+        for job in jobs[:5]:
+            remove_scan_data(tenant, job["id"])
+            deleted["scans"] += 1
+        if not store.deletion_jobs(tenant):
+            for connector in store.connectors(tenant):
+                store.delete_connector(tenant, connector["id"])
+                deleted["connectors"] += 1
+        remaining = bool(store.deletion_jobs(tenant) or store.connectors(tenant) or store.schedules(tenant))
+        if not remaining:
+            # Also remove orphaned artifacts whose metadata has already expired by TTL.
+            artifacts.delete_workspace(tenant)
+        return {"deleted": deleted, "remaining": remaining}
 
     @app.get("/api/scans/{ident}")
     def scan(ident: str, user=Depends(identity)):

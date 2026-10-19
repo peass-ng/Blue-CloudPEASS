@@ -6,19 +6,18 @@ function scanDate(scan: Scan): Date | undefined {
 }
 
 function fallbackName(scan: Scan, connector?: Connector): string {
-  const short = (value: string) => value.trim().replace(/[^\p{L}\p{N}_.-]+/gu, "-").slice(0, 48);
-  const provider = connector?.provider || scan.report?.provider || "cloud";
-  const scopes = [...new Set((connector?.scopes || scan.report?.scopes || [])
-    .map(scope => provider === "aws" ? scope.match(/\d{12}/)?.[0] || scope : scope.replace(/^projects\//, "").split("/")[0]))];
-  const scope = scopes.length > 1 ? `${scopes.length}-scopes` : scopes[0] || "all-scopes";
   const date = scanDate(scan)?.toISOString().slice(0, 10).split("-").reverse();
   const day = date ? `${date[0]}.${date[1]}.${date[2].slice(-2)}` : "undated";
-  return `${provider}-${short(connector?.name || "assessment") || "assessment"}-${short(scope) || "all-scopes"}-${day}`;
+  return `${scan.connector_name || connector?.name || "Assessment"} · ${day}`;
 }
 
 export function scanNames(scans: Scan[], connectors: Connector[]): Map<string, string> {
   const byConnector = new Map(connectors.map(connector => [connector.id, connector]));
-  const base = new Map(scans.map(scan => [scan.id, scan.display_name || fallbackName(scan, byConnector.get(scan.connector_id))]));
+  const base = new Map(scans.map(scan => [scan.id,
+    (scan.connector_name || byConnector.has(scan.connector_id))
+      ? fallbackName(scan, byConnector.get(scan.connector_id))
+      : scan.display_name || fallbackName(scan),
+  ]));
   const counts = new Map<string, number>();
   for (const name of base.values()) counts.set(name, (counts.get(name) || 0) + 1);
   const result = new Map<string, string>();

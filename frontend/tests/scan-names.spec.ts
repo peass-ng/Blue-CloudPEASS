@@ -14,10 +14,10 @@ async function scansApi(page: Page, scans: unknown[], connectors: unknown[] = []
   });
 }
 
-test("picker and scan history show cloud identity scope and date while retaining scan IDs for selection", async ({ page }) => {
-  const labels = ["aws-ReadOnly-123456789098-18.10.26", "gcp-security-reader-my-project-18.10.26",
-    "azure-abcdef01-12345678-18.10.26", "k8s-security-reader-prod-cluster-18.10.26"];
-  const scans = labels.map((display_name, index) => ({ id: `opaque-id-${index}`, display_name,
+test("picker and scan history show connector name and date while retaining scan IDs for selection", async ({ page }) => {
+  const labels = ["AWS Production · 18.10.26", "GCP Production · 18.10.26",
+    "Azure Production · 18.10.26", "Kubernetes Production · 18.10.26"];
+  const scans = labels.map((display_name, index) => ({ id: `opaque-id-${index}`, display_name, connector_name: display_name.split(" · ")[0],
     connector_id: "deleted-connector", status: "completed", created_at: "2026-10-18T08:11:00Z", categories: [] }));
   await scansApi(page, scans);
   await page.goto("/");
@@ -50,6 +50,6 @@ test("legacy and demo rows use readable metadata instead of an opaque ID", async
     [{ id: "c", name: "ReadOnly", provider: "aws", scopes: ["123456789098/us-east-1", "123456789098/eu-west-1"] }]);
   await page.goto("/");
   await expect(page.getByRole("combobox", { name: "Selected assessment" }).getByRole("option", {
-    name: "aws-ReadOnly-123456789098-18.10.26", exact: true,
+    name: "ReadOnly · 18.10.26", exact: true,
   })).toHaveCount(1);
 });
