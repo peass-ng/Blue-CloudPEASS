@@ -101,3 +101,47 @@ def test_current_source_reviewer_accepts_exact_byte_budget_and_rejects_one_byte_
     monkeypatch.setattr(release.deploy, "CURRENT_SOURCE_ARCHIVE_LIMIT", measured - 1)
     with pytest.raises(ValueError, match="reviewed size"):
         release.verify_source_archive(manifest)
+
+
+def _sized_api_archive(path, expanded_bytes):
+    import zipfile
+    # A real compressed stream keeps disk/RAM use bounded while exercising
+    # actual ZIP sizes, not a mocked central directory or relaxed test budget.
+    block=b'0'*(1024*1024)
+    with zipfile.ZipFile(path,'w',zipfile.ZIP_DEFLATED) as target:
+        with target.open('payload.bin','w') as member:
+            while expanded_bytes:
+                chunk=block[:min(len(block),expanded_bytes)]
+                member.write(chunk)
+                expanded_bytes-=len(chunk)
+
+
+@pytest.mark.parametrize('over_budget',[0,1])
+def test_current_api_expanded_budget_accepts_exact_limit_and_rejects_one_byte_over(tmp_path,monkeypatch,over_budget):
+    limit=release.deploy.CURRENT_API_UNCOMPRESSED_LIMIT
+    assert limit==245_000_000 and limit<250*1024*1024
+    _sized_api_archive(tmp_path/'api.zip',limit+over_budget)
+    monkeypatch.setattr(release.deploy,'BUILD',tmp_path)
+    if over_budget:
+        with pytest.raises(ValueError,match='expands beyond reviewed size'):
+            release.verify_api_archive()
+    else:
+        release.verify_api_archive()
+
+
+def test_api_producer_enforces_shared_expanded_budget_before_zip_write(tmp_path,monkeypatch):
+    deploy=release.deploy
+    source=tmp_path/'source';source.mkdir()
+    for name in ('peaso','risk_rules','bluepeass','scripts'):(source/name).mkdir()
+    for name in ('bluepeass/__init__.py','bluepeass/k8s.py','bluepeass/k8s_risks.py','scripts/cloud_permission_risks.py'):
+        (source/name).write_text('public source\n')
+    build=tmp_path/'build'
+    monkeypatch.setattr(deploy,'BUILD',build)
+    monkeypatch.setattr(deploy,'source_root',lambda:source)
+    # Isolate only dependency installation: this test exercises package_api's
+    # real copy, permissions, member stat and pre-ZIP byte guard.
+    monkeypatch.setattr(deploy,'run',lambda *args,**kwargs:None)
+    monkeypatch.setattr(deploy,'CURRENT_API_UNCOMPRESSED_LIMIT',1)
+    with pytest.raises(RuntimeError,match='API uncompressed byte limit exceeded'):
+        deploy.package_api()
+    assert not (build/'api.zip').exists()

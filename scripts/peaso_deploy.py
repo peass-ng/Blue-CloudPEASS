@@ -147,6 +147,11 @@ aws_iam_role.customer_trust aws_iam_role_policy.customer_trust
 # installer markers are removed. Historical approval contracts retain their
 # own 4,600-member limit; this bound applies to the current package build.
 CURRENT_API_MEMBER_LIMIT = 4800
+# Current complete API expands to ~231 MB. Lambda permits 250 MiB including
+# layers (these functions declare none); keep >17 MB of service-quota margin.
+# Historical artifact-update approvals retain their original byte limits.
+# https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
+CURRENT_API_UNCOMPRESSED_LIMIT = 245_000_000
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
@@ -534,6 +539,10 @@ def package_api():
     if len(members) > CURRENT_API_MEMBER_LIMIT:
         raise RuntimeError("API member limit exceeded after optional metadata omission: "
                            f"{len(members)} > {CURRENT_API_MEMBER_LIMIT}")
+    expanded_bytes = sum(path.stat().st_size for path in members)
+    if expanded_bytes > CURRENT_API_UNCOMPRESSED_LIMIT:
+        raise RuntimeError("API uncompressed byte limit exceeded: "
+                           f"{expanded_bytes} > {CURRENT_API_UNCOMPRESSED_LIMIT}")
     with zipfile.ZipFile(package, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in members:
             info = zipfile.ZipInfo(path.relative_to(target).as_posix(), date_time=(1980, 1, 1, 0, 0, 0))
