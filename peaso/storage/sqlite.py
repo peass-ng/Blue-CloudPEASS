@@ -335,9 +335,9 @@ class SQLiteStore:
                 raise StoreError(404, "Scan not found")
             return dict(row)
 
-    def jobs(self, tenant):
+    def jobs(self, tenant, transform=None):
         with self.connect() as db:
-            return [self.public_job(row) for row in db.execute("SELECT * FROM jobs WHERE tenant=? ORDER BY created DESC", (tenant,))]
+            return [(transform or self.public_job)(row) for row in db.execute("SELECT * FROM jobs WHERE tenant=? ORDER BY created DESC", (tenant,))]
 
     def usage(self, tenant, now=None):
         with self.connect() as db:

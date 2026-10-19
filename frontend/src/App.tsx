@@ -35,7 +35,8 @@ const PrivescMap = lazy(() =>
 import { Scans } from "./Scans";
 import { Settings } from "./Settings";
 import type { Connector, Me, Report, Scan, Workspace } from "./types";
-import { Panel, State, date, sourceHref } from "./ui";
+import { Panel, State, sourceHref } from "./ui";
+import { scanNames } from "./scanNames";
 const pages = [
   {
     label: "Dashboard",
@@ -123,6 +124,7 @@ export function App() {
   const connectors = useApi<{ items: Connector[] }>("/connectors", demo);
   const scans = useApi<{ items: Scan[] }>("/scans", demo, true, true);
   const available = items(scans.data);
+  const names = scanNames(available, items(connectors.data));
   const scanId =
     selected || available.find((s) => s.status === "completed")?.id || "";
   const current = available.find((s) => s.id === scanId);
@@ -307,7 +309,7 @@ export function App() {
                     .filter((s) => s.status === "completed")
                     .map((s) => (
                       <option key={s.id} value={s.id}>
-                        {s.id} · {date(s.created_at)}
+                        {names.get(s.id)}
                       </option>
                     ))}
                 </select>

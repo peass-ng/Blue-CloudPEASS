@@ -15,6 +15,7 @@ import type { Catalog, Connector, Scan, Schedule } from "./types";
 import { catalogFrameworksPath, downloadReport, items, json, request, useApi } from "./api";
 import { Badge, date, Evidence, humanError, Inspector, Panel, State } from "./ui";
 import { CoverageView } from "./Dashboard";
+import { scanNames } from "./scanNames";
 type FrameworkChoice = { value: string; label: string; group: "family" | "version" };
 function frameworkChoices(catalog: Catalog | undefined, provider: Connector["provider"] | undefined): FrameworkChoice[] {
   if (!provider) return [];
@@ -55,6 +56,7 @@ export function Scans({
   const schedulesQuery = useApi<{ items: Schedule[] }>("/schedules", demo);
   const frameworkCatalog = useApi<Catalog>(catalogFrameworksPath, demo, true);
   const client = useQueryClient();
+  const names = scanNames(items(scansQuery.data), items(connectorsQuery.data));
   const [launch, setLaunch] = useState(false);
   const [schedule, setSchedule] = useState<Schedule | null | undefined>();
   const [inspect, setInspect] = useState<Scan>();
@@ -155,13 +157,12 @@ export function Scans({
                   className="text-button scan-id"
                   onClick={() => setInspect(s)}
                 >
-                  {s.id}
+                  {names.get(s.id)}
                 </button>
                 <p>
-                  {items(connectorsQuery.data).find(
+                  {[items(connectorsQuery.data).find(
                     (c) => c.id === s.connector_id,
-                  )?.name || s.connector_id}{" "}
-                  · {date(s.created_at)}
+                  )?.name, date(s.created_at)].filter(Boolean).join(" · ")}
                 </p>
                 {s.status === "failed" && s.error && (
                   <p role="alert">{humanError(s.error)}</p>
@@ -301,6 +302,7 @@ export function Scans({
       )}
       {inspect && (
         <Inspector title="Scan details" onClose={() => setInspect(undefined)}>
+          <p>{names.get(inspect.id)}</p>
           <Badge value={inspect.status} />
           {inspect.status === "failed" && inspect.error && (
             <p role="alert">{humanError(inspect.error)}</p>

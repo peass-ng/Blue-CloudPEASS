@@ -327,7 +327,7 @@ test("coverage is in completed Scan details and all finding columns sort", async
     await expect.poll(() => requests.at(-1)?.searchParams.get("sort_order")).toBe("desc");
   }
   await page.getByRole("navigation").getByRole("button", { name: "Scans", exact: true }).click();
-  await page.getByRole("button", { name: "scan-1", exact: true }).click();
+  await page.locator(".scan-row .scan-id").click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Coverage & limitations")).toBeVisible();
   await expect(dialog.getByText("coverage-check")).toBeVisible();

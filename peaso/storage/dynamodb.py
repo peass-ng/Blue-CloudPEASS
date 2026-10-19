@@ -531,8 +531,8 @@ class DynamoStore:
             raise StoreError(404, "Scan not found")
         return value
 
-    def jobs(self, tenant):
-        return [self.public_job(value) for value in sorted(self._query(tenant, "job"), key=lambda x: x["created"], reverse=True) if value.get("expires_at", float("inf")) > self.clock()]
+    def jobs(self, tenant, transform=None):
+        return [(transform or self.public_job)(value) for value in sorted(self._query(tenant, "job"), key=lambda x: x["created"], reverse=True) if value.get("expires_at", float("inf")) > self.clock()]
 
     def queued_jobs(self):
         return [item for item in self._scan("job") if item["status"] == "queued"]
