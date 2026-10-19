@@ -61,6 +61,7 @@ def trace_read_requests(monkeypatch):
 @pytest.fixture(scope='module',autouse=True)
 def save_receipts():
     yield
+    RECEIPTS.parent.mkdir(parents=True, exist_ok=True)
     RECEIPTS.write_text(json.dumps({'test_source_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         'pipeline':fingerprint(),'receipts':RECORDS},indent=2,sort_keys=True)+'\n')
 
