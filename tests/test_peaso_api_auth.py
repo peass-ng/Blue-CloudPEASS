@@ -218,7 +218,7 @@ def test_hosted_unsafe_fields_rejected_before_persistence_and_quota(cognito_sett
         assert client.get("/api/me").json()["weekly_used"] == 0
 
 
-def test_hosted_external_id_is_server_generated_and_unique(cognito_settings, monkeypatch):
+def test_hosted_external_id_is_server_generated_and_stable_within_workspace(cognito_settings, monkeypatch):
     role = "arn:aws:iam::123456789012:role/Audit"
     monkeypatch.delenv("PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL", raising=False)
     auth, key, claims = jwt_auth(cognito_settings)
@@ -241,7 +241,7 @@ def test_hosted_external_id_is_server_generated_and_unique(cognito_settings, mon
         assert client.get("/api/connectors/" + first.json()["id"]).json()["onboarding"]["quick_create_template_url"] is None
         monkeypatch.setenv("PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL", public_url)
         assert client.get("/api/connectors").json()["items"][0]["onboarding"]["external_id"] == first.json()["onboarding"]["external_id"]
-        assert first.json()["onboarding"] != second.json()["onboarding"]
+        assert first.json()["onboarding"] == second.json()["onboarding"]
         assert client.patch("/api/connectors/" + first.json()["id"], json={"name": "updated"}).status_code == 200
         body["auth"]["external_id"] = "attacker-controlled"
         assert client.post("/api/connectors", json=body).status_code == 422

@@ -98,11 +98,11 @@ test("connector methods start with common choices and explain environment creden
   const authentication = page.getByLabel("Authentication", { exact: true });
   await expect(authentication.locator("option").first()).toHaveValue("default");
   await authentication.selectOption("instance");
-  await expect(page.locator(".connector-inspector > .form > .notice")).toContainText("ejecuta primero PEASS'o CSPM en esa instancia EC2");
+  await expect(page.locator(".connector-inspector > .form > .notice")).toContainText("Run PEASS'o CSPM on the EC2 instance");
   await page.getByLabel("Cloud provider").selectOption("gcp");
   await expect(authentication.locator("option").first()).toHaveValue("adc");
   await authentication.selectOption("metadata");
-  await expect(page.locator(".connector-inspector > .form > .notice")).toContainText("ejecuta primero PEASS'o CSPM en esa VM de Google Cloud");
+  await expect(page.locator(".connector-inspector > .form > .notice")).toContainText("Run PEASS'o CSPM on the Google Cloud VM");
   const sizes = await page.evaluate(() => ({
     label: parseFloat(getComputedStyle(document.querySelector(".connector-inspector .form > label")!).fontSize),
     input: parseFloat(getComputedStyle(document.querySelector(".connector-inspector .form input")!).fontSize),

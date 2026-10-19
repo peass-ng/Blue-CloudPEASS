@@ -15,6 +15,7 @@ import type { Catalog, Connector, Scan, Schedule } from "./types";
 import { catalogFrameworksPath, downloadReport, items, json, request, useApi } from "./api";
 import { Badge, date, Evidence, humanError, Inspector, Panel, State } from "./ui";
 import { CoverageView } from "./Dashboard";
+import { scanDuration } from "./scanDuration";
 import { scanNames } from "./scanNames";
 type FrameworkChoice = { value: string; label: string; group: "family" | "version" };
 function frameworkChoices(catalog: Catalog | undefined, provider: Connector["provider"] | undefined): FrameworkChoice[] {
@@ -162,7 +163,7 @@ export function Scans({
                 <p>
                   {[items(connectorsQuery.data).find(
                     (c) => c.id === s.connector_id,
-                  )?.name, date(s.created_at)].filter(Boolean).join(" · ")}
+                  )?.name, date(s.created_at), scanDuration(s)].filter(Boolean).join(" · ")}
                 </p>
                 {s.status === "failed" && s.error && (
                   <p role="alert">{humanError(s.error)}</p>
@@ -304,6 +305,7 @@ export function Scans({
         <Inspector title="Scan details" onClose={() => setInspect(undefined)}>
           <p>{names.get(inspect.id)}</p>
           <Badge value={inspect.status} />
+          {scanDuration(inspect) && <p title="Total time from launch, including queue and processing time.">{scanDuration(inspect)}</p>}
           {inspect.status === "failed" && inspect.error && (
             <p role="alert">{humanError(inspect.error)}</p>
           )}

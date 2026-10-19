@@ -33,7 +33,7 @@ def test_platform_mode_is_advertised_only_when_secret_is_configured():
 
 def test_server_creates_proof_and_rejects_forgery_or_platform_project():
     auth = {"method": "platform-service-account"}
-    validate_connector("gcp", auth, {"all_projects": True}, SETTINGS, scopes=["*"])
+    validate_connector("gcp", auth, {}, SETTINGS, scopes=["customer-project"])
     assert auth["project_proof_label"].startswith("hacktricks-cspm-")
     with pytest.raises(HTTPException) as error:
         validate_connector("gcp", {"method": "platform-service-account", "project_proof_label": LABEL},
@@ -56,19 +56,16 @@ def test_platform_key_cannot_be_uploaded_as_a_customer_key():
     assert error.value.status_code == 422
 
 
-def test_discovery_keeps_only_projects_with_this_connectors_label():
-    collector = GCPCollector(connector(["*"], discover=True), requirements=["project"], transport=object())
-    own = project(PLATFORM_PROJECT, 100)
-    customer = project("customer-project", 101)
-    another_tenant = project("another-project", 102, label="hacktricks-cspm-11111111111111111111")
-    collector.pages = lambda *args, **kwargs: iter([([own, customer, another_tenant], "request-1")])
-    try:
-        collector.discover()
-        assert collector.scopes == ["projects/customer-project"]
-        assert [item["projectId"] for item in collector.collections[("project", "discovery")]["items"]] == ["customer-project"]
-        assert not collector.options["all_hierarchy"]
-    finally:
-        collector.hydration_pool.shutdown(wait=True)
+@pytest.mark.parametrize("scopes,options", [(["*"], {"all_projects": True}), ([], {}),
+    (["customer-project"], {"all_projects": True}), (["customer-project"], {"discover_projects": True})])
+def test_shared_identity_rejects_discovery_before_provider_calls(scopes, options):
+    with pytest.raises(HTTPException) as error:
+        validate_connector("gcp", {"method": "platform-service-account"}, options, SETTINGS, scopes=scopes)
+    assert error.value.status_code == 422
+    config = connector(scopes)
+    config["options"].update(options)
+    with pytest.raises(ValueError, match="exact project IDs"):
+        GCPCollector(config, requirements=["project"], transport=object())
 
 
 def test_explicit_customer_project_requires_current_proof_before_collection():

@@ -36,6 +36,7 @@ class ConnectorCheck(ConnectorCreate):
 
 
 class ConnectorPatch(StrictModel):
+    prepared_id: str | None = None
     name: str | None = Field(default=None, min_length=1, max_length=200)
     auth: dict | None = None
     scopes: list[str] | None = None

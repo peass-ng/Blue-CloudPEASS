@@ -17,18 +17,21 @@ class IdentityStub:
         return True
 
 
-def test_temporary_credentials_need_one_hour(monkeypatch):
+def test_temporary_credentials_use_live_checks_without_unknown_expiry(monkeypatch):
     calls = []
     monkeypatch.setattr("peaso.server.access_check._aws", lambda *args: calls.append(args))
     auth = {"method": "access_keys", "aws_session_token": "temporary"}
     settings = Settings()
     missing = check_access("aws", auth, [], {}, settings)
-    assert missing["status"] == "blocked" and not calls
+    assert missing["status"] == "pass" and len(calls) == 1
     soon = (datetime.now(timezone.utc) + timedelta(minutes=59)).isoformat()
-    assert check_access("aws", auth, [], {}, settings, credential_expires_at=soon)["status"] == "blocked"
+    assert check_access("aws", auth, [], {}, settings, credential_expires_at=soon)["status"] == "warning"
     later = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
     assert check_access("aws", auth, [], {}, settings, credential_expires_at=later)["status"] == "pass"
-    assert len(calls) == 1
+    assert len(calls) == 3
+    expired = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+    assert check_access("aws", auth, [], {}, settings, credential_expires_at=expired)["status"] == "blocked"
+    assert len(calls) == 3
 
 
 def test_hosted_single_role_access_check_uses_customer_broker(monkeypatch):

@@ -456,21 +456,14 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
                     raise HTTPException(422, "Missing server-generated GCP project proof label")
             else:
                 auth["project_proof_label"] = new_proof_label()
-            if scopes is not None:
-                try:
-                    selected = [project_id(scope) for scope in scopes if scope != "*"]
-                    if any(value == PLATFORM_PROJECT for value in selected):
-                        raise ValueError("platform project selected")
-                    if any(scope == "*" for scope in scopes) and not options.get("all_projects"):
-                        raise ValueError("wildcard requires discovery")
-                    if not selected and not options.get("all_projects"):
-                        raise ValueError("project selection required")
-                    if any(scope.startswith(("organizations/", "folders/")) for scope in scopes):
-                        raise ValueError("organization or folder scopes unsupported")
-                except (ValueError, TypeError):
-                    raise HTTPException(422, "Enter the IDs of the projects you want to scan, or enable project discovery") from None
-            if options.get("discover_projects") or options.get("all_hierarchy"):
-                raise HTTPException(422, "Hosted GCP platform identity only scans verified projects")
+            if not scopes or any(options.get(key) for key in ("all_projects", "discover_projects", "all_hierarchy")):
+                raise HTTPException(422, "The shared HackTricks GCP account requires exact project IDs; project discovery is unavailable")
+            try:
+                selected = [project_id(scope) for scope in scopes]
+                if PLATFORM_PROJECT in selected:
+                    raise ValueError("platform project selected")
+            except (ValueError, TypeError):
+                raise HTTPException(422, "Enter exact customer project IDs for the shared HackTricks GCP account") from None
         elif auth.get("method") == "external-account":
             try:
                 from peaso.collectors.gcp import validate_external_config

@@ -894,6 +894,8 @@ class GCPCollector:
             if (not isinstance(info, dict) or info.get("project_id") != PLATFORM_PROJECT
                     or info.get("client_email") != PLATFORM_EMAIL or not info.get("private_key")):
                 raise ValueError("Hosted GCP service account identity is invalid")
+            if not self.scopes or "*" in self.scopes or any(self.options.get(key) for key in ("all_projects", "discover_projects", "all_hierarchy")):
+                raise ValueError("Shared HackTricks GCP identity requires exact project IDs; discovery is unavailable")
             label = self.auth.get("project_proof_label")
             if not isinstance(label, str) or not PROOF_LABEL.fullmatch(label):
                 raise ValueError("Hosted GCP project proof is missing")

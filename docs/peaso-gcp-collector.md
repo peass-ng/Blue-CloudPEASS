@@ -43,7 +43,7 @@ An explicitly selected project outside the restrictions fails validation before
 authentication. Neither inheritance nor Shared VPC references select other
 projects automatically.
 
-`options.all_projects=true` explicitly requests Resource Manager
+With customer-supplied credentials, `options.all_projects=true` explicitly requests Resource Manager
 `projects:search` discovery of accessible active projects. Use `scopes=["*"]`
 for this selection when calling the collector directly, or an explicit project
 with `all_projects=true` through the engine. Organization/folder descendant
@@ -340,3 +340,8 @@ The SBOM path reads Artifact Registry Docker-image metadata and Container Analys
 Put this declaration directly in connector `options.sw52`, not `compliance_policy`. The actual selected project scopes must equal the single declared project. The collector joins each approved service's observed generation and serving or tagged revisions to a ready native Cloud Run v1 revision and its resolved `status.imageDigest`, then matches repository/image identity and SBOM occurrence metadata. Calls use literal registered regional metadata endpoints and bounded field masks.
 
 Coverage is explicitly limited to the owner-approved service subset; it never implies that every workload in the project has an SBOM. Missing review, foreign project, unresolved traffic or digest, multiple containers, non-ready revision, inaccessible or incomplete inventories and unsupported image formats remain UNKNOWN. Container commands, environments, image layers, SBOM document contents and secret values are not fetched.
+
+
+### Shared hosted identity: explicit projects only
+
+The shared HackTricks service account requires exact customer project IDs. Empty scopes, wildcards, `all_projects`, `discover_projects`, and hierarchy discovery are rejected by hosted validation and the native collector. Access checks also reject discovery before loading shared credentials. Each selected project must carry this connector's generated approval label; permission checks preserve and verify that label. Discovery remains available with customer-supplied credentials and respects project restriction lists.
