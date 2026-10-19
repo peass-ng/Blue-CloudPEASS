@@ -17,10 +17,37 @@ import unittest
 from unittest.mock import patch
 import warnings
 import zipfile
+import pytest
 
 spec = importlib.util.spec_from_file_location("peaso_deploy_guards", Path(__file__).parents[1] / "scripts/peaso_deploy.py")
 deploy = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(deploy)
+
+
+def test_current_freeze_uses_its_own_byte_budget_and_rejects_one_byte_over(tmp_path, monkeypatch):
+    from scripts import peaso_source_archive
+
+    authored = tmp_path / "authored"
+    authored.mkdir()
+    (authored / "README.md").write_text("Reproducible corresponding source.\n")
+    build = tmp_path / "build"
+    monkeypatch.setattr(deploy, "ROOT", authored)
+    monkeypatch.setattr(deploy, "BUILD", build)
+    # Historic approvals keep their own cap; they must not govern a new freeze.
+    assert deploy.artifact_update.MAX_SOURCE_ARCHIVE_BYTES == 32_000_000
+    monkeypatch.setattr(deploy.artifact_update, "MAX_SOURCE_ARCHIVE_BYTES", 1)
+    release = deploy.freeze_release()
+    archive = build / f"peaso-source-{release['source_version']}.zip"
+    measured = archive.stat().st_size
+    monkeypatch.setattr(deploy, "CURRENT_SOURCE_ARCHIVE_LIMIT", measured)
+    assert deploy.freeze_release() == release
+    assert archive.stat().st_size == measured
+    # A valid but incompressible archive still has to fail when one byte over.
+    with patch.object(peaso_source_archive, "optimize_source_archive", return_value={}) as optimizer:
+        monkeypatch.setattr(deploy, "CURRENT_SOURCE_ARCHIVE_LIMIT", measured - 1)
+        with pytest.raises(RuntimeError, match="current archive byte limit"):
+            deploy.freeze_release()
+        optimizer.assert_called_once()
 
 
 def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():

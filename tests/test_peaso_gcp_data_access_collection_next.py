@@ -1,3 +1,4 @@
+# Historical archived-check predicate/collector contract; product selection rejects these IDs.
 """Registered GCP Data Access checks require a unique project-root read."""
 
 import copy
@@ -7,7 +8,7 @@ import pytest
 from peaso.checks.gcp_data_access import CHECK_SERVICES
 from peaso.collectors import gcp
 from peaso.gcp_data_access_policy import OPTION, normalize_owner_policy
-from peaso.engine import evaluate_snapshot
+from tests.gcp_archived_native_contract import evaluate_historical_snapshot
 from peaso.snapshot import make_snapshot
 from test_peaso_gcp_data_access import ORG, PROJECT, config, owner, policy, report
 
@@ -15,7 +16,7 @@ from test_peaso_gcp_data_access import ORG, PROJECT, config, owner, policy, repo
 def _findings(check_id, base, items):
     collection = {**base["collections"][0], "items": items}
     snapshot = make_snapshot("gcp", base["scopes"], [collection], metadata=base["metadata"])
-    result = evaluate_snapshot(snapshot, checks=[check_id], categories=["hardening"])
+    result = evaluate_historical_snapshot(snapshot, checks=[check_id], categories=["hardening"])
     return [finding for finding in result["findings"] if finding["check_id"] == check_id
             and not finding["resource_id"].startswith("inventory:")]
 
@@ -103,7 +104,7 @@ def test_duplicate_ancestor_roots_never_supply_complete_effective_audit(check_id
         snapshot = make_snapshot("gcp", [PROJECT], [{"type": "iam_policy", "scope": PROJECT,
             "status": "collected", "items": [item]}],
             metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-        result = evaluate_snapshot(snapshot, checks=[check_id], categories=["hardening"])
+        result = evaluate_historical_snapshot(snapshot, checks=[check_id], categories=["hardening"])
         findings = [row for row in result["findings"] if row["check_id"] == check_id
                     and not row["resource_id"].startswith("inventory:")]
         assert {row["status"] for row in findings} == {"UNKNOWN"}

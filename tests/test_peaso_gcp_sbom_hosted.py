@@ -58,8 +58,9 @@ def test_cyclic_nested_observation_is_rejected_without_traversal_or_serializatio
  with pytest.raises(HTTPException) as error:validate_connector('gcp',copy.deepcopy(AUTH),{'sw52':review},SimpleNamespace(auth_mode='cognito'))
  assert error.value.status_code==422
 
-@pytest.mark.parametrize('mode,expected',[('complete','PASS'),('missing','FAIL'),('no_policy','UNKNOWN')])
-def test_real_http_persist_encrypted_worker_roundtrip_reaches_native_collector(mode,expected,tmp_path,monkeypatch):
+@pytest.mark.parametrize('mode',['complete','missing','no_policy'])
+@pytest.mark.parametrize('check_id,accepted',[('gcp_c5_sbom',False),('gcp_pci_iam_policy_ca1281da7ab2',False),('gcp_pci_iam_policy_9a8ce875703d',False),('gcp-compliance.control.cis_v120_6_2_13',False),('custom.unknown_owner_policy',False),('gcp.storage.uniform_access',True)])
+def test_real_http_persists_encrypted_connector_and_admits_only_active_native_check(mode,check_id,accepted,tmp_path,monkeypatch):
  import importlib,importlib.util,json
  from pathlib import Path
  from fastapi.testclient import TestClient
@@ -76,7 +77,8 @@ def test_real_http_persist_encrypted_worker_roundtrip_reaches_native_collector(m
  api=native.API('missing' if mode=='missing' else 'complete')
  monkeypatch.setattr(gcp,'Credentials',lambda *a,**kw:None);monkeypatch.setattr(gcp,'Transport',lambda *a,**kw:api)
  app_module=importlib.import_module('peaso.server.app')
- monkeypatch.setattr(app_module,'WorkflowDispatcher',lambda:SimpleNamespace(dispatch=lambda *a,**kw:None))
+ dispatched=[]
+ monkeypatch.setattr(app_module,'WorkflowDispatcher',lambda:SimpleNamespace(dispatch=lambda *a,**kw:dispatched.append((a,kw))))
  class Identities:
   def authenticate(self,*args):return Identity('sbom-customer',True,cognito_username='sbom-customer')
   def is_paid(self,*args):return True
@@ -116,15 +118,15 @@ def test_real_http_persist_encrypted_worker_roundtrip_reaches_native_collector(m
   assert rejected.status_code==422
   saved=CredentialCipher(settings.identity_dir).decrypt(store.connector('sbom-customer',ident)['auth'])
   assert saved['options']==options
-  job=client.post('/api/scans',json={'connector_id':ident,'checks':[native.CHECK]})
-  assert job.status_code==201,job.text
-  assert Worker('collector',settings,store=store,artifacts=artifacts,authenticator=Identities()).run_once()
-  current=store.job('sbom-customer',job.json()['id']);assert current['status']=='collected',current
-  assert len(captured)==1 and captured[0]['connector']['options']==dict(options,hosted=True)
-  assert captured[0]['connector']['auth']==AUTH and captured[0]['connector']['scopes']==[SCOPE]
-  snapshot=artifacts.get('sbom-customer',current['snapshot'])
-  if mode!='no_policy':assert snapshot['metadata']['sw52']==REVIEW
-  else:assert 'sw52' not in snapshot['metadata']
-  result=evaluate_snapshot(snapshot,checks=[native.CHECK],include_not_applicable=True)
-  findings=[f for f in result['findings'] if f['check_id']==native.CHECK]
-  assert len(findings)==1 and findings[0]['status']==expected,findings
+  if not accepted:
+   def forbidden_enqueue(*args,**kwargs):
+    pytest.fail('Unsupported owner/manual check reached the enqueue boundary')
+   monkeypatch.setattr(store,'enqueue',forbidden_enqueue)
+  job=client.post('/api/scans',json={'connector_id':ident,'checks':[check_id]})
+  assert job.status_code==(201 if accepted else 422),job.text
+  if not accepted:
+   assert any(word in job.text.lower() for word in ('not available','unsupported','manual evidence','unknown check'))
+  assert len(dispatched)==int(accepted)
+  assert len(store.jobs('sbom-customer'))==int(accepted)
+  assert captured==[] and api.requests==[]
+  assert store.connector('sbom-customer',ident)['auth']==row['auth']

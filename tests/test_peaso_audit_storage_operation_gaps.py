@@ -4,7 +4,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.test_peaso_azure_audit_storage_history import requirements as historical_requirements, evaluate as historical_evaluate
 from tests.test_peaso_azure_audit_storage_native import API, ACCOUNT, SERVICE, SCOPE, options, native
 
 
@@ -53,8 +53,8 @@ def test_native_operation_gaps_without_delivery_claim(monkeypatch, mode, missing
     monkeypatch.setattr(azure, 'AzureTransport', lambda auth: api)
     connector = {'provider': 'azure', 'scopes': [SCOPE], 'auth': {
         'method': 'token', 'arm_token': 'inert', 'storage_token': 'inert'}, 'options': options('absent')}
-    snapshot = collect_live(connector, plan_collection({'connector': connector, 'checks': [native.CID]}))
-    findings = evaluate_snapshot(snapshot, checks=[native.CID], include_not_applicable=True)['findings']
+    snapshot = collect_live(connector, historical_requirements())
+    findings = historical_evaluate(snapshot)
     assert {f['status'] for f in findings} == {'FAIL' if missing else 'UNKNOWN'}, findings
     if missing:
         assert all(f['evidence']['missing_blob_access_log_operations'] == missing for f in findings)

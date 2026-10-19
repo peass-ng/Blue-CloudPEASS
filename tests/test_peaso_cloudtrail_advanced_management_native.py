@@ -102,10 +102,13 @@ def test_public_remediation_preserves_reviewed_source_and_matches_native_contrac
     saved = copy.deepcopy(raw)
     assert hashlib.sha256(json.dumps(raw, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest() == REMEDIATION_BASE_SHA256
     corrected = remediation(raw)
-    assert raw == saved and template(CHECK) == corrected
+    assert raw == saved
+    from tests.reviewed_guidance_presentation import assert_approved_presentation
+    current = assert_approved_presentation(CHECK, corrected)
     public = next(check for check in CHECKS if check.id == CHECK).public()
-    assert public["remediation"] == corrected["summary"]
-    assert "advanced" in public["remediation"] and "manual" not in public["remediation"].lower()
+    assert public["remediation"] == current["summary"]
+    assert "advanced" in public["description"] and "manual" not in public["remediation"].lower()
+    assert "management events" in current["summary"] and "data-event" in current["summary"]
     assert "MANUAL" not in " ".join(corrected["caveats"])
     assert corrected["cli"] == raw["cli"]  # Inspection remains read-only.
     assert "configuration does not prove" in corrected["caveats"][0]

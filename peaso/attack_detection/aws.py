@@ -114,6 +114,7 @@ def normalize_aws_cloudtrail(record: Mapping[str, Any]) -> dict[str, Any] | None
         "target.id": target_user or target_role or request.get("policyArn"),
         "request.user_name": target_user,
         "request.policy_arn": request.get("policyArn"),
+        "request.status": request.get("status"),
         "request.role_name": target_role,
         "request.set_as_default": request.get("setAsDefault") is True or request.get("setAsDefault") == "true",
         "request.unconditional_admin_grant": _unconditional_admin_grant(request.get("policyDocument")),

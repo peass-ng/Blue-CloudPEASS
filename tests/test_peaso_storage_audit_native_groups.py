@@ -4,7 +4,7 @@ from urllib.parse import urlsplit,parse_qs
 import json
 import pytest
 from peaso.collectors import azure,collect_live
-from peaso.engine import plan_collection,evaluate_snapshot
+from tests.test_peaso_azure_audit_storage_history import requirements as historical_requirements, evaluate as historical_evaluate
 from tests.test_peaso_azure_audit_storage_native import API,ACCOUNT,SERVICE,SCOPE,BASE,options,native
 
 class GroupAPI(API):
@@ -48,10 +48,10 @@ MODES=[('disabled_audit',['read','write','delete']),('disabled_audit_plus_read',
 def test_native_group_operation_evidence(monkeypatch,mode,missing):
     api=GroupAPI(mode);monkeypatch.setattr(azure,'AzureTransport',lambda auth:api)
     connector={'provider':'azure','scopes':[SCOPE],'auth':{'method':'token','arm_token':'inert','storage_token':'inert'},'options':options('absent')}
-    requirements=plan_collection({'connector':connector,'checks':[native.CID]})
+    requirements=historical_requirements()
     assert set(requirements)=={'storage_account',native.KIND}
     snapshot=collect_live(connector,requirements)
-    findings=evaluate_snapshot(snapshot,checks=[native.CID],include_not_applicable=True)['findings']
+    findings=historical_evaluate(snapshot)
     assert findings and {f['status'] for f in findings}==({'FAIL'} if missing else {'UNKNOWN'}),findings
     if missing:assert all(f['evidence']['missing_blob_access_log_operations']==missing for f in findings)
     assert 'PASS' not in {f['status'] for f in findings}

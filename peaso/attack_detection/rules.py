@@ -44,9 +44,9 @@ from .kubernetes_aggregate_view_next import normalize_aggregate_view_secret_read
 from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
-DEFAULT_RULE_REPO = "peass-ng/hacktricks-cspm-detections"
-DEFAULT_RULE_REF = "72b9db15f28e1e09e94bb5ba980e7695ac37375d"
-DEFAULT_RULE_PACK_SHA256 = "f4d517a2daae468adc9c394d9316e7211e531746330de6ceb318588557694143"
+DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
+DEFAULT_RULE_REF = "bbf89c5e54cf970a24f13c3c91038efa33388baa"
+DEFAULT_RULE_PACK_SHA256 = "c0c465eb02dd91161c789832dedf1c8e3edfebb38f9e040f2d3db8d88b68ea98"
 
 
 @dataclass(frozen=True)
@@ -96,7 +96,8 @@ def _github_rule_texts(repo: str, ref: str) -> tuple[tuple[str, str], ...]:
 
 def _rule_texts(directory: Path | None) -> tuple[tuple[str, str], ...]:
     if directory is not None:
-        return tuple((path.name, path.read_text(encoding="utf-8")) for path in sorted(directory.glob("*.yml")))
+        return tuple((path.relative_to(directory).as_posix(), path.read_text(encoding="utf-8"))
+                     for path in sorted(directory.rglob("*.yml")))
     repo_override = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REPO", "")
     ref_override = os.getenv("HACKTRICKS_CSPM_RULES_GITHUB_REF", "")
     local = os.getenv("HACKTRICKS_CSPM_RULES_DIR", "")

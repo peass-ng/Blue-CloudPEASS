@@ -1,10 +1,11 @@
+# Historical archived-check predicate/collector contract; product selection rejects these IDs.
 """A duplicate hierarchy root must survive collection as ambiguity."""
 from threading import Lock
 
 import pytest
 
 from peaso.collectors import gcp
-from peaso.engine import evaluate_snapshot
+from tests.gcp_archived_native_contract import evaluate_historical_snapshot
 from peaso.gcp_data_access_policy import OPTION, normalize_owner_policy
 from peaso.snapshot import make_snapshot
 from test_peaso_gcp_data_access import ORG, PROJECT, config, owner, policy
@@ -33,7 +34,7 @@ def test_conflicting_root_peers_in_live_envelope_cannot_pass():
     collector.annotate_effective_audit()
     snapshot = make_snapshot("gcp", [PROJECT], [envelope],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {"UNKNOWN"}
 
@@ -53,7 +54,7 @@ def test_unreadable_root_audit_configs_cannot_pass_after_annotation():
     collector.annotate_effective_audit()
     snapshot = make_snapshot("gcp", [PROJECT], [envelope],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {"UNKNOWN"}
 
@@ -76,7 +77,7 @@ def test_unreadable_resource_policy_identity_cannot_certify_unique_root(field):
     collector.annotate_effective_audit()
     snapshot = make_snapshot("gcp", [PROJECT], [envelope],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert "PASS" not in {row["status"] for row in findings}
 
@@ -98,7 +99,7 @@ def test_canonical_cai_project_view_remains_ambiguous_without_number_binding():
     collector.annotate_effective_audit()
     snapshot = make_snapshot("gcp", [PROJECT], [envelope],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {"UNKNOWN"}
     assert root["_coverage"]["effectiveAuditConfigs"]["status"] == "partial"
@@ -121,7 +122,7 @@ def test_partial_ancestor_envelope_cannot_prove_complete_chain():
     snapshot = make_snapshot("gcp", [PROJECT], [{"type": "iam_policy", "scope": PROJECT,
         "status": "collected", "items": [project]}],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {"UNKNOWN"}
 
@@ -145,7 +146,7 @@ def test_other_unavailable_root_audit_config_markers_remain_unknown(marker, incl
     collector.annotate_effective_audit()
     snapshot = make_snapshot("gcp", [PROJECT], [envelope],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {"UNKNOWN"}
 
@@ -171,7 +172,7 @@ def test_identical_repeated_root_page_keeps_complete_authority():
     collector.annotate_effective_audit()
     snapshot = make_snapshot("gcp", [PROJECT], [envelope],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {"PASS"}
 
@@ -196,6 +197,6 @@ def test_omitted_root_audit_configs_need_full_or_legacy_authority(provenance, as
     collector.annotate_effective_audit()
     snapshot = make_snapshot("gcp", [PROJECT], [envelope],
         metadata={OPTION: normalize_owner_policy([owner(service)], [PROJECT])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
         if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {wanted}

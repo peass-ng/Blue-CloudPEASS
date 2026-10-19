@@ -40,7 +40,7 @@ def verify_source_archive(manifest: dict) -> Path:
     if not isinstance(version, str) or not re.fullmatch(r'[0-9a-f]{64}', version):
         raise ValueError('Frozen source version is invalid')
     source_zip = deploy.BUILD / f'peaso-source-{version}.zip'
-    if not source_zip.is_file() or source_zip.stat().st_size > 36_000_000:
+    if not source_zip.is_file() or source_zip.stat().st_size > deploy.CURRENT_SOURCE_ARCHIVE_LIMIT:
         raise ValueError('Frozen source archive is missing or exceeds reviewed size')
     with zipfile.ZipFile(source_zip) as archive:
         members = archive.infolist()

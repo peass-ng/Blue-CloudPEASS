@@ -1,8 +1,9 @@
+# Historical owner-scoped SBOM fixture contract; this is not an automated scan plan.
 import copy,threading
 from urllib.parse import urlsplit
 import pytest
 from peaso.collectors import collect_live,gcp
-from peaso.engine import evaluate_snapshot,plan_collection
+from tests.gcp_archived_native_contract import (evaluate_historical_snapshot, historical_collection_types)
 SCOPE='projects/demo-project';REGION='us-central1';SERVICE=SCOPE+'/locations/'+REGION+'/services/app';REPO=SCOPE+'/locations/'+REGION+'/repositories/images';DIGEST='sha256:'+'a'*64;URI=REGION+'-docker.pkg.dev/demo-project/images/app@'+DIGEST;CHECK='gcp_c5_sbom'
 class API:
  def __init__(self,mode):self.mode=mode;self.calls=0;self.lock=threading.Lock();self.requests=[];self.evidence=[]
@@ -59,7 +60,7 @@ def test_native_sbom_pipeline(mode,expected,monkeypatch):
  c={'provider':'gcp','scopes':[SCOPE],'options':{'resource_iam':False,'metrics_scopes':False,'include_inherited':False,'artifactregistry_locations':[REGION],'cloudrun_locations':[REGION],'max_pages':1 if mode!='occurrences_second_page' else 2,'sw52':{'status':'collected','scope':SCOPE,'sbomCloudRunServices':[SERVICE]}}}
  if mode=='no_policy':c['options'].pop('sw52')
  if mode=='foreign_policy':c['options']['sw52']['sbomCloudRunServices']=[SERVICE.replace(SCOPE,'projects/foreign-project')]
- snap=collect_live(c,plan_collection({'connector':c,'checks':[CHECK]}));r=evaluate_snapshot(snap,checks=[CHECK],include_not_applicable=True);f=[f for f in r['findings'] if f['check_id']==CHECK]
+ snap=collect_live(c,historical_collection_types(CHECK));r=evaluate_historical_snapshot(snap,checks=[CHECK],include_not_applicable=True);f=[f for f in r['findings'] if f['check_id']==CHECK]
  assert len(f)==1 and f[0]['status']==expected,f
  if mode=='complete':
   repos=next(col for col in snap['collections'] if col['type']=='artifact_repository')
@@ -102,9 +103,9 @@ def test_actual_collection_cannot_use_intake_policy_for_different_selected_scope
  scopes=[SCOPE,'projects/second-project'] if mode=='multiple' else ['projects/second-project']
  c={'provider':'gcp','scopes':scopes,'options':{'resource_iam':False,'metrics_scopes':False,'include_inherited':False,'artifactregistry_locations':[REGION],'cloudrun_locations':[REGION],'sw52':review}}
  if mode=='foreign':
-  with pytest.raises(ValueError):collect_live(c,plan_collection({'connector':c,'checks':[CHECK]}))
+  with pytest.raises(ValueError):collect_live(c,historical_collection_types(CHECK))
  else:
-  snap=collect_live(c,plan_collection({'connector':c,'checks':[CHECK]}));r=evaluate_snapshot(snap,checks=[CHECK],include_not_applicable=True)
+  snap=collect_live(c,historical_collection_types(CHECK));r=evaluate_historical_snapshot(snap,checks=[CHECK],include_not_applicable=True)
   f=[f for f in r['findings'] if f['check_id']==CHECK]
   scoped=[finding for finding in f if finding['scope']==SCOPE]
   assert scoped and all(finding['status']=='UNKNOWN' for finding in scoped),f

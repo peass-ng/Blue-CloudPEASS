@@ -19,7 +19,7 @@ An unresolved instance-profile role or managed policy join is UNKNOWN.
 from __future__ import annotations
 
 from . import result
-from .facts import Unavailable, get, list_of_objects, optional
+from .facts import Unavailable, get, list_of_objects, optional, memoized
 from .claude_aws_a_common import items, absent_or, as_list, strings, iam_pattern_matches, policy_document, idx
 from .claude_aws_a_ec2 import w, INST, DROP
 from .claude_aws_a_iam import ROLE, default_document, pol, allow, doc
@@ -219,11 +219,13 @@ def instance_roles(item, index):
     if profile is None:
         return None
     arn = get(profile, "Arn", str)
-    roles = [r for r in items(index, "iam_role")
-             if any(get(p, "Arn", str) == arn for p in list_of_objects(absent_or(r, "RoleName", "InstanceProfileList", [], list)))]
-    if not roles:
-        raise Unavailable("instance profile role not in inventory: " + arn)
-    return roles
+    def resolve():
+        roles = [r for r in items(index, "iam_role")
+                 if any(get(p, "Arn", str) == arn for p in list_of_objects(absent_or(r, "RoleName", "InstanceProfileList", [], list)))]
+        if not roles:
+            raise Unavailable("instance profile role not in inventory: " + arn)
+        return roles
+    return memoized(index, ("aws_gap_ec2.instance_profile_roles", arn), resolve)
 
 
 def granted(role, index, actions):

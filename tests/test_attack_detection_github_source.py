@@ -100,6 +100,8 @@ def test_bad_parameters_never_make_a_request(monkeypatch, repo, commit, expected
 
 @pytest.mark.parametrize("name,kind", [
     (f"{ROOT}/rules/nested/sample.yml", tarfile.REGTYPE),
+    (f"{ROOT}/rules/gcp/nested/sample.yml", tarfile.REGTYPE),
+    (f"{ROOT}/rules/aws/iam/deeper/sample.yml", tarfile.REGTYPE),
     (f"{ROOT}/rules/../sample.yml", tarfile.REGTYPE),
     (f"{ROOT}/other.yml", tarfile.REGTYPE),
     (f"{ROOT}/rules/other.yaml", tarfile.REGTYPE),
@@ -118,6 +120,23 @@ def test_rejects_duplicate_and_wrong_root(monkeypatch):
     mock_network(monkeypatch, archive(("other/rules/sample.yml", TEXT.encode(), tarfile.REGTYPE)))
     with pytest.raises(source.RuleSourceError, match="invalid_rule_archive_path"):
         fetch()
+
+
+def test_accepts_provider_and_aws_service_directories(monkeypatch):
+    name = "aws/iam/sample.yml"
+    raw = TEXT.encode()
+    expected = hashlib.sha256(name.encode() + b"\0" + raw + b"\0").hexdigest()
+    mock_network(monkeypatch, archive(
+        (ROOT, b"", tarfile.DIRTYPE),
+        (f"{ROOT}/WORK_PLAN.md", b"plan", tarfile.REGTYPE),
+        (f"{ROOT}/scripts", b"", tarfile.DIRTYPE),
+        (f"{ROOT}/scripts/live_iam_batch.py", b"print('test')", tarfile.REGTYPE),
+        (f"{ROOT}/rules", b"", tarfile.DIRTYPE),
+        (f"{ROOT}/rules/aws", b"", tarfile.DIRTYPE),
+        (f"{ROOT}/rules/aws/iam", b"", tarfile.DIRTYPE),
+        (f"{ROOT}/rules/{name}", raw, tarfile.REGTYPE),
+    ))
+    assert fetch(expected) == {name: TEXT}
 
 
 def test_rejects_oversized_archive_rule_and_bad_digest(monkeypatch):

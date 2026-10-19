@@ -303,7 +303,8 @@ ROWS = {'aws.c2b.acm.in_use_not_expiring_7_days': {'description_base_sha256': '8
                                  'remediation_fields': {'caveats': ['Use only a compatible target returned '
                                                                     'for this cluster; if none is available, '
                                                                     'investigate before upgrading. Version '
-                                                                    'downgrades are unsupported.'],
+                                                                    'downgrades are unsupported.',
+                                                                              'Obtain a fresh DescribeClusterV2 Version concurrency token before an approved upgrade; review client compatibility, broker availability, maintenance timing and rollback.'],
                                                         'steps': ['Schedule a tested upgrade to an active '
                                                                   'version supported by this cluster.'],
                                                         'summary': 'Schedule a tested upgrade to an active '
@@ -319,7 +320,9 @@ ROWS = {'aws.c2b.acm.in_use_not_expiring_7_days': {'description_base_sha256': '8
                                               'remediation_fields': {'caveats': ['Enabling the setting does '
                                                                                  'not create database users '
                                                                                  'or grant IAM connection '
-                                                                                 'permissions.'],
+                                                                                 'permissions.',
+                                                                              'Missing or conflicting engine/version/class capability evidence is UNKNOWN; do not change clustered instances or RDS on Outposts through this standalone-instance guidance.',
+                                                                              'Review database users, TLS, token refresh and connection pooling first; schedule the change in its maintenance window unless immediate application is separately reviewed.'],
                                                                      'steps': ['If applications will use IAM '
                                                                                'authentication, enable it '
                                                                                'and configure their database '

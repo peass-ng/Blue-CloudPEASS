@@ -71,7 +71,8 @@ def test_reviewed_entries_are_assigned_native_checks_with_exact_kind():
     assert batch[successor_id]["review_status"] == "source_bound_pending_review"
     assert batch[successor_id]["proposed_spec_sha256"] == signed_sha
     assert batch[successor_id]["summary"] == signed["remediation_hint"]
-    assert template(successor_id) is None
+    from tests.reviewed_guidance_presentation import assert_reviewed_text_only_admission
+    assert_reviewed_text_only_admission(successor_id)
     next20 = {
         "aws_backup_plan_rule_required_frequency": "backup_plan",
         "aws_cis_elbv2_only_tls_listeners": "load_balancer",
@@ -86,13 +87,16 @@ def test_reviewed_entries_are_assigned_native_checks_with_exact_kind():
         assert batch[check_id]["proposed_spec_sha256"] == spec_digest(signed_spec)
         assert batch[check_id]["summary"] == signed_spec["remediation_hint"]
         assert batch[check_id]["review_status"] == "source_bound_pending_review"
-        assert template(check_id) is None
+        if check_id == "aws_backup_plan_rule_required_frequency":
+            assert template(check_id) is None  # Archived operator-specific frequency baseline.
+        else:
+            assert_reviewed_text_only_admission(check_id)
     next_group_pending = {"aws.nist.rds_cluster_member_enhanced_monitoring", "aws.pci.secretsmanager.kms_encryption_any"}
     _, signed_next_group = signed_proposals(ROOT / "docs/compliance-ledgers")
     for check_id in next_group_pending:
         assert check_id in checks
         assert batch[check_id]["proposed_spec_sha256"] == spec_digest(signed_next_group[check_id])
-        assert template(check_id) is None
+        assert_reviewed_text_only_admission(check_id)
     pending = batch_pending | {successor_id} | set(next20) | next_group_pending
     assert len(pending) == 11 and pending <= set(batch)
     assert all(batch[cid]["review_status"] == "source_bound_pending_review" for cid in pending)
@@ -128,7 +132,12 @@ def test_reviewed_entries_are_assigned_native_checks_with_exact_kind():
                         "aws.a.iam.attached_policy_no_star_star"):
             from peaso.checks.aws_native_status_description_overlay import remediation
             expected = remediation(check_id, entry)
-        assert template(check_id) == expected
+        from tests.reviewed_guidance_presentation import assert_approved_presentation, assert_reviewed_text_only_admission
+        if expected is not None:
+            assert_approved_presentation(check_id, expected)
+        else:
+            assert check_id in {'aws.pci.apigateway.all_methods_cache_encrypted', 'aws.pci.apigateway.all_methods_logging'}
+            assert_reviewed_text_only_admission(check_id)
 
 
 def test_api_gateway_stage_entries_match_signed_native_predicates_and_preserve_legacy_bytes():
@@ -147,7 +156,11 @@ def test_api_gateway_stage_entries_match_signed_native_predicates_and_preserve_l
     for check_id, (spec_sha, observed_field, fail_evidence) in expected.items():
         entry, check = entries[check_id], checks[check_id]
         binding = entry["field_binding"]
-        assert entry["review_status"] == "draft" and template(check_id) is None
+        assert entry["review_status"] == "draft"
+        from tests.reviewed_guidance_presentation import assert_reviewed_text_only_admission
+        current=assert_reviewed_text_only_admission(check_id)
+        assert current["field_binding"]==binding
+        assert "UNKNOWN" in " ".join(current["caveats"])
         assert entry["proposed_spec_sha256"] == spec_sha
         assert binding["evaluator_family"] == check.evaluate.__module__
         assert binding["kind"] == check.kind == "rest_api_stage"
@@ -221,7 +234,13 @@ def test_api_gateway_stage_entries_match_signed_native_predicates_and_preserve_l
     assert hashlib.sha256(historical_iam).hexdigest() == repin["source_sha256"]
     # Retain the exact accepted source digest without claiming a full replay
     # of the unpublished local 706b archive.
-    assert hashlib.sha256((ROOT / repin["source_path"]).read_bytes()).hexdigest() == "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
+    from tests.release_successor_history import _source414_reviewed_baseline
+    current_iam = (ROOT / repin["source_path"]).read_bytes()
+    # The successor contains only four explicitly reversible evidence additions;
+    # reconstruct the exact original bytes instead of silently repinning them.
+    restored_iam = _source414_reviewed_baseline(repin["source_path"], current_iam,
+        "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423")
+    assert hashlib.sha256(restored_iam).hexdigest() == "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
     family_raw = (ROOT / repin["path"]).read_bytes()
     assert hashlib.sha256(family_raw).hexdigest() == repin["post_sha256"]
     family_prior = json.loads(family_raw)
@@ -275,7 +294,14 @@ def test_wafv2_reviews_match_signed_predicates_and_do_not_invent_rule_policy():
     for check_id, (digest, field, control_count, source_line) in expected.items():
         entry, check, signed = entries[check_id], checks[check_id], ledger[check_id]
         binding = entry["field_binding"]
-        assert entry["review_status"] == "approved" and template(check_id) == entry
+        assert entry["review_status"] == "approved"
+        from tests.reviewed_guidance_presentation import assert_approved_presentation
+        current=assert_approved_presentation(check_id,entry)
+        if check_id.endswith("metrics"):
+            assert "fresh lock token" in " ".join(current["caveats"])
+            assert "preserve all rules" in " ".join(current["caveats"])
+        else:
+            assert "no approved rule baseline" in " ".join(current["caveats"])
         assert entry["proposed_spec_sha256"] == digest
         assert (binding["evaluator_family"], binding["kind"], binding["target"]) == (
             check.evaluate.__module__, check.kind, check.target)
@@ -595,7 +621,10 @@ def test_eks_cluster_security_group_guidance_matches_presence_and_platform_state
 def test_msk_version_guidance_uses_cluster_specific_targets_and_current_token():
     family = json.loads((ROOT / "peaso/rulepacks/remediation_aws_families_reviewed.json").read_text())
     entry = family["aws.cb.kafka.latest_version"]
-    assert template("aws.cb.kafka.latest_version") == entry
+    from tests.reviewed_guidance_presentation import assert_approved_presentation
+    current=assert_approved_presentation("aws.cb.kafka.latest_version",entry)
+    assert "fresh DescribeClusterV2 Version" in " ".join(current["caveats"])
+    assert "compatible target returned for this cluster" in " ".join(current["caveats"])
     assert entry["review_status"] == "approved"
     binding = entry["field_binding"]
     assert binding["kind"] == "msk_cluster" and binding["target"] == "resource"
@@ -622,7 +651,8 @@ def test_rds_audit_and_tls_guidance_uses_engine_specific_parameter_values():
                             ("aws.cb.rds.instance_tls_parameters", instance),
                             ("aws.cb.rds.mariadb_require_secure_transport", maria)):
         assert entry["review_status"] == "approved"
-        assert template(check_id) == entry
+        from tests.reviewed_guidance_presentation import assert_approved_presentation
+        assert_approved_presentation(check_id,entry)
         assert entry["source_proof"]["evaluator"].startswith("peaso/checks/claude_aws_b_db.py:")
         assert "UNKNOWN" in " ".join(entry["steps"] + entry["caveats"])
         assert "--cli-input-json file://<REVIEWED_RDS_" in entry["cli"][-1]["code"]
@@ -643,7 +673,10 @@ def test_rds_instance_iam_auth_guidance_requires_exact_supported_standalone_opti
     family = json.loads((ROOT / "peaso/rulepacks/remediation_aws_families_reviewed.json").read_text())
     check_id = "aws.cb.rds.instance_iam_auth_all_engines"
     entry = family[check_id]
-    assert template(check_id) == entry
+    from tests.reviewed_guidance_presentation import assert_approved_presentation
+    current=assert_approved_presentation(check_id,entry)
+    assert "conflicting" in " ".join(current["caveats"])
+    assert "maintenance window" in " ".join(current["caveats"])
     assert entry["review_status"] == "approved"
     assert entry["source_proof"]["evaluator"] == "peaso/checks/claude_aws_b_db.py:515"
     path = entry["field_binding"]["path"]

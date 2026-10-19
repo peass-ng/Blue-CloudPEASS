@@ -78,6 +78,10 @@ def test_review_binds_actual_predicate_and_source_severity(cid):
 @pytest.mark.parametrize('cid',SELECTED)
 def test_actual_native_outcomes_and_concise_observations_do_not_mutate_evidence(cid):
     cases=CASES.get(cid) or json.loads((Path(__file__).parent/'fixtures/aws_compute_storage_signed_cases.json').read_text()).get(cid)
+    if cid=='aws_g6_ecs_fargate_storage_encryption':
+        # Legacy tests replace this global CASES entry with intentionally
+        # incomplete examples. Replay the reviewed immutable authority fixture.
+        cases=json.loads((Path(__file__).parent/'fixtures/aws_compute_storage_signed_cases.json').read_text())[cid]
     if cid=='aws.ec2.imdsv2':
         cases={'pass':{'MetadataOptions':{'HttpEndpoint':'enabled','HttpTokens':'required'}},'fail':{'MetadataOptions':{'HttpEndpoint':'enabled','HttpTokens':'optional'}},'unknown':{'MetadataOptions':{'HttpEndpoint':'broken'}}}
     assert cases is not None

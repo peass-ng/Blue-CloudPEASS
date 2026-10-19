@@ -6,6 +6,7 @@ from pathlib import Path
 from peaso.checks import CHECKS
 from peaso.checks.claude_azure_network import LOOSE_ALERTS, STRICT_ALERTS
 from peaso.remediation import template
+from tests.reviewed_guidance_presentation import assert_approved_presentation
 
 
 PATH = Path(__file__).resolve().parents[1] / "peaso/rulepacks/remediation_azure_reviewed.json"
@@ -25,7 +26,7 @@ def test_reviewed_azure_ids_match_native_kind_target_and_evaluator_family():
         assert binding["target"] == check.target
         assert binding["evaluator_family"] == check.evaluate.__module__
         assert entry["steps"] and entry["references"]
-        assert template(check_id) == (entry if entry["review_status"] == "approved" else None)
+        assert_approved_presentation(check_id, entry)
 
 
 def test_entra_authorization_policy_guidance_uses_exact_tenant_fields():

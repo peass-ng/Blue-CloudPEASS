@@ -1,4 +1,5 @@
-"""Native, offline project alias proof through the real GCP transport and engine.
+# Historical archived-check predicate/collector contract; product selection rejects these IDs.
+"""Native, offline project alias proof through the real GCP transport and registered historical predicate.
 
 The fake session supplies inert HTTP responses; Transport.request, the collector,
 its annotations, snapshot construction, and registered checks all run unchanged.
@@ -11,7 +12,7 @@ import pytest
 
 from peaso.checks.gcp_data_access import CHECK_SERVICES
 from peaso.collectors import gcp
-from peaso.engine import evaluate_snapshot
+from tests.gcp_archived_native_contract import evaluate_historical_snapshot
 from peaso.gcp_data_access_policy import OPTION
 from peaso.snapshot import digest, make_snapshot, resource_id
 
@@ -121,7 +122,7 @@ def collect(case, *, owner_services=(), owner_rows=None):
 
 
 def findings(snapshot, check_id):
-    return [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    return [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
             if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
 
 

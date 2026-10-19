@@ -3,7 +3,8 @@ from copy import deepcopy
 import pytest
 
 from peaso.collectors import azure, collect_live
-from peaso.engine import collect_snapshot, evaluate_snapshot, plan_collection
+from peaso.engine import collect_snapshot
+from tests.test_peaso_azure_audit_storage_history import requirements as historical_requirements, evaluate as historical_evaluate
 from peaso.snapshot import make_snapshot
 from tests.test_peaso_azure_audit_storage_native import API, SCOPE, SERVICE, options, native
 
@@ -13,7 +14,7 @@ def _assess(monkeypatch, field):
     monkeypatch.setattr(azure, "AzureTransport", lambda auth: api)
     connector = {"provider": "azure", "scopes": [SCOPE], "auth": {
         "method": "token", "arm_token": "inert", "storage_token": "inert"}, "options": options("absent")}
-    captured = collect_live(connector, plan_collection({"connector": connector, "checks": [native.CID]}))
+    captured = collect_live(connector, historical_requirements())
     account = next(c for c in captured["collections"] if c["type"] == "storage_account")["items"][0]
     row = next(c for c in captured["collections"] if c["type"] == native.KIND)["items"][0]
     if field == "parent_diagnostics":
@@ -55,9 +56,8 @@ def _assess(monkeypatch, field):
     row["payload"]["account_configuration_sha256"] = native.digest(native.projection(account))
     snapshot = make_snapshot("azure", [SCOPE], captured["collections"], created_at=captured["created_at"], metadata=captured["metadata"])
     before = deepcopy(snapshot)
-    imported = collect_snapshot({"connector": {"provider": "azure", "scopes": [SCOPE], "options": {"snapshot": snapshot}},
-        "checks": [native.CID]})
-    findings = [f for f in evaluate_snapshot(imported, checks=[native.CID])["findings"] if f["check_id"] == native.CID]
+    imported = collect_snapshot({"connector": {"provider": "azure", "scopes": [SCOPE], "options": {"snapshot": snapshot}}})
+    findings = [f for f in historical_evaluate(imported) if f["check_id"] == native.CID]
     assert len(findings) == 1 and snapshot == before and imported == before and api.closed
     return findings[0]
 
