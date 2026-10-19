@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections import defaultdict
 from fnmatch import fnmatchcase
 
-from peaso.analysis.common import as_list, externality, native_id
+from peaso.analysis.common import as_list, externality, native_id, with_analysis_context
 from peaso.analysis.iam import document, grants
 from peaso.analysis.internet_exposure import assess, describe, Assessment, pset, union, _public_ip
 from peaso.analysis.trust import restrictive_conditions, aws_federated_trust, _k8s_self_info_binding
@@ -47,6 +47,7 @@ def _cluster(row):
     return str((data.get("provenance") or {}).get("cluster_id") or (data.get("metadata") or {}).get("cluster_id") or row.get("scope", "cluster").split("/", 1)[0])
 
 
+@with_analysis_context
 def project(snapshot, resources):
     """Return principal records with reproducible native evidence and explicit uncertainty."""
     provider = snapshot["provider"]

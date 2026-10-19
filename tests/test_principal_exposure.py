@@ -71,6 +71,30 @@ def test_azure_foreign_application_is_external_and_federation_is_conditional():
     assert next(e for e in card["exposures"] if e["kind"] == "federated_trust")["state"] == "conditional"
 
 
+def test_azure_directory_index_is_built_once_and_does_not_cross_snapshots(monkeypatch):
+    from peaso.analysis import trust
+    from peaso.analysis.common import _CONTEXT
+
+    original = trust._azure_foreign
+    indexed = []
+
+    def counted(snap):
+        indexed.append(snap)
+        return original(snap)
+
+    monkeypatch.setattr(trust, "_azure_foreign", counted)
+    identities = {"directory_service_principal": [
+        {"id": f"sp{i}", "appOwnerOrganizationId": "owner"} for i in range(3)]}
+    external = snapshot("azure", identities, {"tenant_id": "other"})
+    home = snapshot("azure", identities, {"tenant_id": "owner"})
+    before = copy.deepcopy(external)
+    assert _CONTEXT.get() is None
+    assert all(card["exposures"] for card in project(external, resources(external)).values())
+    assert not any(card["exposures"] for card in project(home, resources(home)).values())
+    assert len(indexed) == 2 and indexed[0] is external and indexed[1] is home
+    assert external == before and _CONTEXT.get() is None
+
+
 def kube(public=True, automount=True, selector=True):
     service = {"metadata": {"name": "web", "namespace": "app"},
         "spec": {"type": "LoadBalancer", "ports": [{"port": 80, "targetPort": 8080}], "selector": {"app": "web"} if selector else {}},
