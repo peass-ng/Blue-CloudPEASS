@@ -64,13 +64,17 @@ def actual_observations():
 def test_all_927_controls_have_actual_supported_observations(actual_observations):
     assert len(CHECK_BY_ID)==927
     counts=Counter()
+    missing=[]
     for finding in actual_observations:
         before=deepcopy(finding)
         summary=evidence_summary(finding)
-        assert isinstance(summary,str) and summary, finding
-        assert '\n' not in summary and len(summary)<600
+        if not isinstance(summary,str) or not summary:
+            missing.append(finding)
+        else:
+            assert '\n' not in summary and len(summary)<600
         assert finding==before
         counts[finding['status']]+=1
+    assert not missing, 'All missing observations: '+repr(missing)
     assert counts['PASS']==926 and counts['FAIL']==927
     # Other native test modules may install additional valid UNKNOWN fixtures.
     assert counts['UNKNOWN']>=920 and set(counts)=={'PASS','FAIL','UNKNOWN'}
@@ -148,4 +152,21 @@ def test_real_incomplete_ingress_inventory_has_specific_unknown_observation():
     finding={'provider':'k8s','check_id':cid,'status':status,'evidence':evidence}
     before=deepcopy(finding)
     assert evidence_summary(finding)=='The ingress inventory is incomplete or belongs to another scope.'
+    assert finding==before
+
+
+def test_omitted_pull_secret_field_is_unknown_without_full_native_provenance():
+    cid='k8s_pod_secret_pod_rule_non_compliant_fcdc38e543'
+    check=CHECK_BY_ID[cid];case=cases_for(cid,check)
+    item=deepcopy(case['pass']);index=deepcopy(case.get('pass_index',case.get('index',{})))
+    item['spec'].pop('imagePullSecrets')
+    item['provenance']['evidence']='partial'
+    index['collections']['pod'][0]['items']=[item]
+    index['pod'][0]['data']=item
+    status,evidence=check.evaluate(item,index)
+    assert status=='UNKNOWN'
+    assert evidence=={'reason':'omitted field without full native representation: imagePullSecrets'}
+    finding={'provider':'k8s','check_id':cid,'status':status,'evidence':evidence}
+    before=deepcopy(finding)
+    assert evidence_summary(finding)=='The Pod record omits image-pull Secret references and is not marked as a complete native record.'
     assert finding==before
