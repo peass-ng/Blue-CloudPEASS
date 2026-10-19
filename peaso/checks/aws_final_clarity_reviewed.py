@@ -1076,7 +1076,7 @@ ROWS = json.loads(r'''
       "predicate_qualname": "callback.<locals>.evaluate",
       "predicate_source_sha256": "a3515888007b6245ca46be046ad55d6d9479170e99b7845c65a89988ff8d5a2d",
       "delegate_sources": {
-        "fn": "802acf9cffa376d052f46cdb653c8d096dc6bdd6bbe7b9a32d64a2d903e0232c"
+        "fn": "be8c5c71f5fda828355a8b726b0e35965dbc61499e0e2390cb3f60cffe0789b8"
       }
     }
   },
@@ -1164,7 +1164,7 @@ ROWS = json.loads(r'''
       "predicate_qualname": "callback.<locals>.evaluate",
       "predicate_source_sha256": "a3515888007b6245ca46be046ad55d6d9479170e99b7845c65a89988ff8d5a2d",
       "delegate_sources": {
-        "fn": "1d9883657eae46ba41fe765ff0047d373391ed9ccbff88d037b04b76b5e994f0"
+        "fn": "9f5b7d48aee4a7314a74fb70d02ef55879873a5a7b88dd751cc3a5990b93dfd2"
       }
     }
   },
@@ -1208,7 +1208,7 @@ ROWS = json.loads(r'''
       "predicate_qualname": "callback.<locals>.evaluate",
       "predicate_source_sha256": "a3515888007b6245ca46be046ad55d6d9479170e99b7845c65a89988ff8d5a2d",
       "delegate_sources": {
-        "fn": "ba135c45502e94ab4a094aa1e95ef0852ecd6cd7067c796134934d7e9851c494"
+        "fn": "9ed7beb8b41175ba2d755664b724393696dedc4d08be1825e578a63327ee9bc2"
       }
     }
   },
@@ -1252,7 +1252,7 @@ ROWS = json.loads(r'''
       "predicate_qualname": "callback.<locals>.evaluate",
       "predicate_source_sha256": "a3515888007b6245ca46be046ad55d6d9479170e99b7845c65a89988ff8d5a2d",
       "delegate_sources": {
-        "fn": "121f33d6515819c2804ff68803c0466b0a9f7a0cf43c40ef91ea065005c55971"
+        "fn": "9eb1f6afc507104ea1bd101655697b4a267fadcf5b17104781859c6b879282b6"
       }
     }
   },
@@ -1296,7 +1296,7 @@ ROWS = json.loads(r'''
       "predicate_qualname": "callback.<locals>.evaluate",
       "predicate_source_sha256": "a3515888007b6245ca46be046ad55d6d9479170e99b7845c65a89988ff8d5a2d",
       "delegate_sources": {
-        "fn": "82fb320053d5628a08a2fe5ff128e2898409c336b7c5bfc43218190b970036a2"
+        "fn": "fdce52587a94f52c4c316c8f4beff701c4d2fd369359627ab83a9fc5ccb14da5"
       }
     }
   },

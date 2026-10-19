@@ -65,7 +65,8 @@ account_rule("compute_instance_with_no_default_service_account_with_full_access"
 def no_forward(item, index):
     if declared_gke(item):
         return "NOT_APPLICABLE", {"reason": "Explicit source GKE-node scope exclusion"}
-    return result(get(item, "canIpForward", bool), semantics="IP forwarding configuration only")
+    forwarding = get(item, "canIpForward", bool)
+    return result(forwarding, can_ip_forward=forwarding, semantics="IP forwarding configuration only")
 
 
 rule("compute_instance_ip_forwarding_disabled", "instance", "VM avoids explicit IP forwarding outside GKE source scope", no_forward,
@@ -75,7 +76,8 @@ rule("compute_instance_ip_forwarding_disabled", "instance", "VM avoids explicit 
 def block_project_keys(item, index):
     if declared_gke(item):
         return "NOT_APPLICABLE", {"reason": "Explicit source GKE-node scope exclusion"}
-    return result(not metadata_flag(item, "metadata.items", "block-project-ssh-keys"))
+    blocked = metadata_flag(item, "metadata.items", "block-project-ssh-keys")
+    return result(not blocked, block_project_ssh_keys=blocked)
 
 
 rule("compute_instance_block_project_wide_ssh_enabled", "instance", "VM explicitly blocks project SSH keys outside GKE source scope", block_project_keys,

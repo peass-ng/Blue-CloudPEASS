@@ -470,7 +470,7 @@ def _reachability(item,index):
         arn=_account_arn(get(path,'load_balancer_arn',str),index,'elasticloadbalancing')
         if get(path,'internet_facing',bool) and get(path,'active_target',bool) and get(path,'listener_reaches_target_port',bool):
             found.append({'load_balancer_arn':arn})
-    return (True,{'instance_id':instance,'public_paths':found}) if found else (False,{'instance_id':instance})
+    return (True,{'instance_id':instance,'public_paths':found}) if found else (False,{'instance_id':instance,'public_paths':[]})
 
 @ signed('aws.nist.ec2_instance_effective_public_reachability',dependencies=['ec2_instance','ec2_effective_ingress'])
 def nist_reach(item,index):

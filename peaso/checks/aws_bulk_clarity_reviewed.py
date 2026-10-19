@@ -147,7 +147,11 @@ ROWS=json.loads(r'''
       "summary": "Restrict only unnecessary ingress sources, ports or listeners on the identified path."
     },
     "reviewed_binding": {
+      "kind": "ec2_instance",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
+      "source_qualname": "nist_reach",
       "closure": {},
+      "defaults": null,
       "constants": {
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58::GLOBAL_KINDS": [
           "cloudfront_distribution",
@@ -164,20 +168,16 @@ ROWS=json.loads(r'''
           "shield_subscription"
         ]
       },
-      "defaults": null,
-      "kind": "ec2_instance",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw37._account:110": "0557de7589935ca7b17b5b8dc886a28467bd2215fbea66e5f56b4a1d2b9cc0a3",
         "peaso.checks._bulk_pending_compliance_new_sw37._account_arn:118": "cbe535c81de20cad9dfe261f71512b3fbf0dd31e80f22074851df19136624e09",
         "peaso.checks._bulk_pending_compliance_new_sw37._arn:112": "02e5f0b4567d6d6d86e112d77838553a42c689d583f06de9bc12577c5c8dd7ef",
         "peaso.checks._bulk_pending_compliance_new_sw37._member:76": "fda5bf12e8ded3a344b7c874792e44850970b257a931b645269ff38a2629c81f",
-        "peaso.checks._bulk_pending_compliance_new_sw37._reachability:437": "4aecd58c50c5bd3d36a99e5865a5d13139cdeafeaf10a8b0cc9158731513d30b",
+        "peaso.checks._bulk_pending_compliance_new_sw37._reachability:437": "357dd32f925f816f886add4925521a711d6c3d733537c144a3a8a09d962801cc",
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58": "8f7abdaf6cebf992749e3e83418d8091f5891d38bb9c1bd1bbe61277d5daf8c3",
         "peaso.checks._bulk_pending_compliance_new_sw37._scope:49": "9af44f1b2451ca6be4b5bf54996ddc2943adac973d2722464f7d18e54302b501",
         "peaso.checks._bulk_pending_compliance_new_sw37.nist_reach:475": "b33a8b0ff9cc8416e162375ec23e4935106cc7fd10a0a3525a6425895c2576bf"
-      },
-      "source_qualname": "nist_reach"
+      }
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
@@ -551,24 +551,25 @@ ROWS=json.loads(r'''
       "summary": "Remove unused policies or attach only where required after reviewing actual usage."
     },
     "reviewed_binding": {
-      "closure": {},
-      "constants": {
-        "peaso.checks._bulk_pending_compliance_new_sw40._context:35::_ACCOUNT": {
-          "flags": 32,
-          "regex": "^[0-9]{12}$"
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114::_ARN": {
-          "flags": 32,
-          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$"
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw40._native_policy_attachment:233::_ARN": {
-          "flags": 32,
-          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$"
-        }
-      },
-      "defaults": null,
       "kind": "iam_policy",
       "module": "peaso.checks._bulk_pending_compliance_new_sw40",
+      "source_qualname": "_policy_attachment",
+      "closure": {},
+      "defaults": null,
+      "constants": {
+        "peaso.checks._bulk_pending_compliance_new_sw40._context:35::_ACCOUNT": {
+          "regex": "^[0-9]{12}$",
+          "flags": 32
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw40._native_policy_attachment:233::_ARN": {
+          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$",
+          "flags": 32
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114::_ARN": {
+          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):iam::([0-9]{12}|aws):policy/.+$",
+          "flags": 32
+        }
+      },
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw40._context:35": "24a3c8c283d7e2dfbeafd355205c183825acd121eaf5fdf0fa2bae69b6fbcd4d",
         "peaso.checks._bulk_pending_compliance_new_sw40._declared_role_trust:378": "42340d84284104aa79293cd08e7629f61c91c0ff129d4f5693181075caab79ac",
@@ -576,10 +577,9 @@ ROWS=json.loads(r'''
         "peaso.checks._bulk_pending_compliance_new_sw40._managed_document:114": "1cc91d504ae556180a871779574b22e5ef7f695b046d417fb55b1b1fa921bfe5",
         "peaso.checks._bulk_pending_compliance_new_sw40._native_policy_attachment:233": "a5b87fc74d8e4f40f988152706bf8d3a5b866263aff5bb49665672be982db81a",
         "peaso.checks._bulk_pending_compliance_new_sw40._one_policy:199": "6ee380ad5a0b2960cebbffa47092548f43b2eb0de3833993e630d04ca8281d69",
-        "peaso.checks._bulk_pending_compliance_new_sw40._policy_attachment:417": "1462529d62f8e6c7d9b26c2bc8b51ea129630cb26956f4ab71d04d5ff7ed3436",
+        "peaso.checks._bulk_pending_compliance_new_sw40._policy_attachment:417": "c23ca6c480aabdd58eff36a2502c84adcc3201cfa0fec0978cc3f2d7b2a3bb2c",
         "peaso.checks._bulk_pending_compliance_new_sw40._rows:46": "71e3728469f5a6dc199c8eafcdbedfd62ba427a00c7d102d47bb64e881bc2811"
-      },
-      "source_qualname": "_policy_attachment"
+      }
     },
     "reviewed_severity": "info",
     "reviewed_source_severity": "medium",
@@ -930,10 +930,22 @@ ROWS=json.loads(r'''
       "summary": "Confirm the detected credential, rotate it if real and move authentication out of user data."
     },
     "reviewed_binding": {
+      "kind": "autoscaling_launch_configuration",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
+      "source_qualname": "_install.<locals>.check",
       "closure": {
         "identifier": "aws_autoscaling_userdata_plaintext_aws_key"
       },
+      "defaults": null,
       "constants": {
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
+          "regex": "^[0-9]{12}/[a-z0-9-]+$",
+          "flags": 32
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
+          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$",
+          "flags": 32
+        },
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811::EVALUATORS": {
           "aws.nist.sc_36_coverage": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._recovery"
@@ -980,25 +992,13 @@ ROWS=json.loads(r'''
           "aws_vpn_tunnel_encryption_configuration": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._vpn"
           }
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
-          "flags": 32,
-          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$"
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
-          "flags": 32,
-          "regex": "^[0-9]{12}/[a-z0-9-]+$"
         }
       },
-      "defaults": null,
-      "kind": "autoscaling_launch_configuration",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811": "ae35cf3acf73d2d9b595a8f64672eba95725a8530d896346dfb770b772644588",
         "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34": "28c7fa38621503a88a0564acb5b0abd82e7036874d3c1edd271d85c2aecb2d9e",
-        "peaso.checks._bulk_pending_compliance_new_sw48._userdata:691": "9b236733ac205a964589ecbe99c888e5a4983db7f95e2a6220efb1ecab587d68"
-      },
-      "source_qualname": "_install.<locals>.check"
+        "peaso.checks._bulk_pending_compliance_new_sw48._userdata:691": "7f17e4839c2352be0a68c3596c21ece5af57c7533f13557e07603faa9ebb898d"
+      }
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "high",
@@ -1525,16 +1525,16 @@ ROWS=json.loads(r'''
       "summary": "Configure the missing destination or delivery-role permissions needed by the trail."
     },
     "reviewed_binding": {
+      "kind": "cloudtrail_trail",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw47",
+      "source_qualname": "_evaluate",
       "closure": {},
+      "defaults": [
+        {
+          "callable": "peaso.checks._bulk_pending_compliance_new_sw47._cloudwatch_integration"
+        }
+      ],
       "constants": {
-        "peaso.checks._bulk_pending_compliance_new_sw47._arn:153::_ARN": {
-          "flags": 32,
-          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):([^:]+):([^:]*):([0-9]{12}):(.+)$"
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw47._context:143::_SCOPE": {
-          "flags": 32,
-          "regex": "^[0-9]{12}/[a-z]{2}(?:-[a-z]+)+-[0-9]$"
-        },
         "peaso.checks._bulk_pending_compliance_new_sw47._rows:162::_IDS": {
           "backup_recovery_point": "RecoveryPointArn",
           "backup_vault": "BackupVaultArn",
@@ -1551,6 +1551,10 @@ ROWS=json.loads(r'''
           "k8s_admission_policy": "cluster_arn",
           "kms_key": "KeyArn"
         },
+        "peaso.checks._bulk_pending_compliance_new_sw47._arn:153::_ARN": {
+          "regex": "^arn:(aws(?:-[a-z0-9-]+)?):([^:]+):([^:]*):([0-9]{12}):(.+)$",
+          "flags": 32
+        },
         "peaso.checks._bulk_pending_compliance_new_sw47._subject:195::_IDS": {
           "backup_recovery_point": "RecoveryPointArn",
           "backup_vault": "BackupVaultArn",
@@ -1566,26 +1570,22 @@ ROWS=json.loads(r'''
           "iam_role": "Arn",
           "k8s_admission_policy": "cluster_arn",
           "kms_key": "KeyArn"
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw47._context:143::_SCOPE": {
+          "regex": "^[0-9]{12}/[a-z]{2}(?:-[a-z]+)+-[0-9]$",
+          "flags": 32
         }
       },
-      "defaults": [
-        {
-          "callable": "peaso.checks._bulk_pending_compliance_new_sw47._cloudwatch_integration"
-        }
-      ],
-      "kind": "cloudtrail_trail",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw47",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw47._arn:153": "bdb87f5416ecd5919e4ada7124bd335ada2977617a05a135f1dcc473a3927eb3",
-        "peaso.checks._bulk_pending_compliance_new_sw47._cloudwatch_integration:379": "1e10c61b3e3ce9e1b4b8c09c47e9f9ee69cc03f48ddcb81e6bc0a9aa40f39e38",
+        "peaso.checks._bulk_pending_compliance_new_sw47._cloudwatch_integration:379": "91cc38e4f2c1ccd59e072ada8c89c393a18062b08eda55a446053a55d773abca",
         "peaso.checks._bulk_pending_compliance_new_sw47._context:143": "921e78f0da06442a08d6bb00bea89450b296576f4a0f1433dabd18b0c0252c77",
         "peaso.checks._bulk_pending_compliance_new_sw47._delivery_permission:360": "4bd57f6d7d215093898fa4d177b2b55a6df3da93e674a2b7c8e6dc7252c7883c",
         "peaso.checks._bulk_pending_compliance_new_sw47._evaluate:832": "99bdd26e9c1fc8833e997fdbc16598cf633a793518a7f6fc7509becf02358868",
         "peaso.checks._bulk_pending_compliance_new_sw47._rows:162": "c9d3f7c33713c0eabea34df7098e0f2d11ee9174ed8ec911a081ef62af7eec26",
         "peaso.checks._bulk_pending_compliance_new_sw47._subject:195": "267076456b4804b7b80f24325a64c65536bfa2729c172e8ced675fd19b753956",
         "peaso.checks._bulk_pending_compliance_new_sw47._trail_status:304": "db0819d9cf3e30ec96e23ca7bbcf44bd04cc9cba3cbaa8a2cee6a71e66fbcabe"
-      },
-      "source_qualname": "_evaluate"
+      }
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
@@ -1623,7 +1623,11 @@ ROWS=json.loads(r'''
       "summary": "Restrict only unnecessary ingress sources, ports or listeners on the identified path."
     },
     "reviewed_binding": {
+      "kind": "ec2_instance",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
+      "source_qualname": "fedramp_reach",
       "closure": {},
+      "defaults": null,
       "constants": {
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58::GLOBAL_KINDS": [
           "cloudfront_distribution",
@@ -1640,20 +1644,16 @@ ROWS=json.loads(r'''
           "shield_subscription"
         ]
       },
-      "defaults": null,
-      "kind": "ec2_instance",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw37",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw37._account:110": "0557de7589935ca7b17b5b8dc886a28467bd2215fbea66e5f56b4a1d2b9cc0a3",
         "peaso.checks._bulk_pending_compliance_new_sw37._account_arn:118": "cbe535c81de20cad9dfe261f71512b3fbf0dd31e80f22074851df19136624e09",
         "peaso.checks._bulk_pending_compliance_new_sw37._arn:112": "02e5f0b4567d6d6d86e112d77838553a42c689d583f06de9bc12577c5c8dd7ef",
         "peaso.checks._bulk_pending_compliance_new_sw37._member:76": "fda5bf12e8ded3a344b7c874792e44850970b257a931b645269ff38a2629c81f",
-        "peaso.checks._bulk_pending_compliance_new_sw37._reachability:437": "4aecd58c50c5bd3d36a99e5865a5d13139cdeafeaf10a8b0cc9158731513d30b",
+        "peaso.checks._bulk_pending_compliance_new_sw37._reachability:437": "357dd32f925f816f886add4925521a711d6c3d733537c144a3a8a09d962801cc",
         "peaso.checks._bulk_pending_compliance_new_sw37._rows:58": "8f7abdaf6cebf992749e3e83418d8091f5891d38bb9c1bd1bbe61277d5daf8c3",
         "peaso.checks._bulk_pending_compliance_new_sw37._scope:49": "9af44f1b2451ca6be4b5bf54996ddc2943adac973d2722464f7d18e54302b501",
         "peaso.checks._bulk_pending_compliance_new_sw37.fedramp_reach:479": "04919e19b4fd4deb85140758da46d1784cb4d76d008645e1c20c9f3635212bdb"
-      },
-      "source_qualname": "fedramp_reach"
+      }
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
@@ -1973,22 +1973,22 @@ ROWS=json.loads(r'''
       "summary": "Configure appropriate Identity Center account assignments if centralized SSO is required."
     },
     "reviewed_binding": {
-      "closure": {},
-      "constants": {
-        "peaso.checks._bulk_pending_compliance_new_sw44._inventory:37::_SCOPE": {
-          "flags": 32,
-          "regex": "^([0-9]{12})/([a-z]{2}(?:-[a-z0-9]+)+-[0-9])$"
-        }
-      },
-      "defaults": null,
       "kind": "identity_center",
       "module": "peaso.checks._bulk_pending_compliance_new_sw44",
+      "source_qualname": "identity_center",
+      "closure": {},
+      "defaults": null,
+      "constants": {
+        "peaso.checks._bulk_pending_compliance_new_sw44._inventory:37::_SCOPE": {
+          "regex": "^([0-9]{12})/([a-z]{2}(?:-[a-z0-9]+)+-[0-9])$",
+          "flags": 32
+        }
+      },
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw44._inventory:37": "1ca26c1109be269b1f41477cba4821a2735aa6472fa41dfd8147ecb10b1fcff7",
         "peaso.checks._bulk_pending_compliance_new_sw44._nonempty:94": "02de01ce8c9c420fbc6ae2a651497039dfa6e588da7e5315296141e3ed62ef75",
-        "peaso.checks._bulk_pending_compliance_new_sw44.identity_center:196": "a305729984dfce3f174014bbcd0c468ab5f276362b51fde7a143a50dc20ae170"
-      },
-      "source_qualname": "identity_center"
+        "peaso.checks._bulk_pending_compliance_new_sw44.identity_center:196": "ccece33a8206c3634ed49d291e9c6460a9e9ef19dc53145d7eda0a09e73b2e1f"
+      }
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
@@ -2787,10 +2787,22 @@ ROWS=json.loads(r'''
       "summary": "Configure the required rotation schedule and method if automatic rotation is appropriate."
     },
     "reviewed_binding": {
+      "kind": "secret",
+      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
+      "source_qualname": "_install.<locals>.check",
       "closure": {
         "identifier": "aws_nist_secretsmanager_secret_automatic_rotation_enabled"
       },
+      "defaults": null,
       "constants": {
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
+          "regex": "^[0-9]{12}/[a-z0-9-]+$",
+          "flags": 32
+        },
+        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
+          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$",
+          "flags": 32
+        },
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811::EVALUATORS": {
           "aws.nist.sc_36_coverage": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._recovery"
@@ -2837,27 +2849,15 @@ ROWS=json.loads(r'''
           "aws_vpn_tunnel_encryption_configuration": {
             "callable": "peaso.checks._bulk_pending_compliance_new_sw48._vpn"
           }
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_ARN": {
-          "flags": 32,
-          "regex": "^arn:aws(?:-[a-z0-9-]+)?:[^:]+:[a-z0-9-]*:[0-9]{12}:.+$"
-        },
-        "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34::_SCOPE": {
-          "flags": 32,
-          "regex": "^[0-9]{12}/[a-z0-9-]+$"
         }
       },
-      "defaults": null,
-      "kind": "secret",
-      "module": "peaso.checks._bulk_pending_compliance_new_sw48",
       "predicate_sources": {
         "peaso.checks._bulk_pending_compliance_new_sw48._install.<locals>.check:811": "ae35cf3acf73d2d9b595a8f64672eba95725a8530d896346dfb770b772644588",
         "peaso.checks._bulk_pending_compliance_new_sw48._inventory:34": "28c7fa38621503a88a0564acb5b0abd82e7036874d3c1edd271d85c2aecb2d9e",
         "peaso.checks._bulk_pending_compliance_new_sw48._positive_int:71": "de07747c00353dda877ce4b36eecc9d03f7694a69b9fa35deb025a9c1c072141",
-        "peaso.checks._bulk_pending_compliance_new_sw48._rotation:255": "5f432933d2d039803d51627282c6363140b1b44d195c492621647ca53f6b7a1a",
+        "peaso.checks._bulk_pending_compliance_new_sw48._rotation:255": "3d0afc1b3c2bc448ca41c5adb038708115c411a64c29f04225b3a3aca758309f",
         "peaso.checks._bulk_pending_compliance_new_sw48._valid_rotation_schedule:186": "40050b7cb74c0707d4c426b9355bc16362d9118c174ca2e055537952def1e448"
-      },
-      "source_qualname": "_install.<locals>.check"
+      }
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",

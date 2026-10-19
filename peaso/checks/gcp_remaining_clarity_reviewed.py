@@ -9024,7 +9024,7 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.gcp_ports_metadata",
       "predicate_bindings": {},
       "predicate_qualname": "dataset_public",
-      "predicate_source_sha256": "c4937f1c63f92a958f1127dace199eeda75eedaecca2b979b0fa29a8e018d87c",
+      "predicate_source_sha256": "93b87289349aed55d4647ae8e20af201437c677482e42ec13d60a3203e793225",
       "source_qualname": "dataset_public"
     },
     "reviewed_severity": "high",
@@ -9546,7 +9546,7 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.gcp_ports_compute",
       "predicate_bindings": {},
       "predicate_qualname": "block_project_keys",
-      "predicate_source_sha256": "cd62258640c4817efe04d38b3d59cfdedb42f8db0f614409cfb01a3413354629",
+      "predicate_source_sha256": "c6b9d9fbc3fe818a21cfe49cf85fe70f56e6a38edaa4f5f933cd802d91d1ce81",
       "source_qualname": "block_project_keys"
     },
     "reviewed_severity": "medium",
@@ -9591,7 +9591,7 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.gcp_ports_compute",
       "predicate_bindings": {},
       "predicate_qualname": "no_forward",
-      "predicate_source_sha256": "4caf4ddda890a9eda9d2dfcd3d3b7606e95d8950f4c63fcb7a1174c7f69ed1de",
+      "predicate_source_sha256": "8f08b37cb508a68ef6cbf3fa3aadf34e29d968a53c8034e94a118790f51e9910",
       "source_qualname": "no_forward"
     },
     "reviewed_severity": "medium",
@@ -13026,7 +13026,7 @@ ROWS = json.loads(r'''
         "criterion": "private_network"
       },
       "predicate_qualname": "sql_address.<locals>.evaluate",
-      "predicate_source_sha256": "4c8db669f7e7e3fdaa6c25498919cf8f4afdbb495480aee97f52141cc7c10362",
+      "predicate_source_sha256": "3ab14333c095aeb73b48224e0057da4d68153592c4516a825904eb01bb88e9cf",
       "source_qualname": "sql_address.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
@@ -14080,7 +14080,7 @@ ROWS = json.loads(r'''
         "criterion": "source_second_gen"
       },
       "predicate_qualname": "sql_address.<locals>.evaluate",
-      "predicate_source_sha256": "4c8db669f7e7e3fdaa6c25498919cf8f4afdbb495480aee97f52141cc7c10362",
+      "predicate_source_sha256": "3ab14333c095aeb73b48224e0057da4d68153592c4516a825904eb01bb88e9cf",
       "source_qualname": "sql_address.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
@@ -14113,7 +14113,7 @@ ROWS = json.loads(r'''
         "criterion": "primary"
       },
       "predicate_qualname": "sql_address.<locals>.evaluate",
-      "predicate_source_sha256": "4c8db669f7e7e3fdaa6c25498919cf8f4afdbb495480aee97f52141cc7c10362",
+      "predicate_source_sha256": "3ab14333c095aeb73b48224e0057da4d68153592c4516a825904eb01bb88e9cf",
       "source_qualname": "sql_address.<locals>.evaluate"
     },
     "reviewed_severity": "medium",

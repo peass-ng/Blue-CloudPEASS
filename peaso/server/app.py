@@ -335,23 +335,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 archived_template=archived, current_evaluator_contract=evaluator_contract_fingerprint())
         if not allow_summary:
             return finding
-        from peaso.checks.k8s_component_finding_summary import component_evidence_summary
-        from peaso.checks.k8s_workload_finding_summary import workload_evidence_summary
-        from peaso.checks.k8s_gc_threshold_source_correction import evidence_summary as gc_evidence_summary
-        from peaso.checks.gcp_remaining_finding_summary import evidence_summary as gcp_evidence_summary
-        from peaso.checks.aws_database_clarity_reviewed import evidence_summary as database_evidence_summary
-        from peaso.analysis.finding_clarity import evidence_summary as analysis_evidence_summary
-        from peaso.checks.azure_bulk_finding_summary import evidence_summary as azure_bulk_evidence_summary
-        from peaso.checks.aws_remaining_finding_summary import evidence_summary as aws_remaining_evidence_summary
-        from peaso.checks.aws_final_clarity_reviewed import evidence_summary as final_aws_evidence_summary
-        from peaso.checks.aws_bulk_finding_summary import evidence_summary as bulk_aws_evidence_summary
-        from peaso.checks.aws_compute_storage_finding_summary import evidence_summary as compute_aws_evidence_summary
-        observation = (final_aws_evidence_summary(finding) or bulk_aws_evidence_summary(finding)
-                       or compute_aws_evidence_summary(finding) or aws_remaining_evidence_summary(finding)
-                       or azure_bulk_evidence_summary(finding) or analysis_evidence_summary(finding)
-                       or database_evidence_summary(finding) or component_evidence_summary(finding)
-                       or workload_evidence_summary(finding) or gc_evidence_summary(finding)
-                       or gcp_evidence_summary(finding))
+        from peaso.finding_observation import evidence_summary
+        observation = evidence_summary(finding)
         if observation:
             finding = dict(finding, evidence_summary=observation)
         details = finding.get("remediation_details")

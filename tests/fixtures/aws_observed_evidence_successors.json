@@ -1,0 +1,221 @@
+{
+  "claude2_aws_b_data.py": {
+    "original_sha256": "bed8804b3a3be035965a02842e13f53a585ca4e7413854f8f0b03cc2e9064e8b",
+    "current_sha256": "5916d6a78cffd92a3aaacf9d1498df334170f43e760752ca28f470f5c19689b8",
+    "exact_evidence_only_reverse_proof": true,
+    "replacements": [
+      [
+        "return result(resource_policy_public(statements))",
+        "return result(public := resource_policy_public(statements), public_policy=public)"
+      ],
+      [
+        "return result(not hit, resource_arn=arn)",
+        "return result(not hit, resource_arn=arn, protected_resource=hit)"
+      ],
+      [
+        "return result(not (_table_wildcards(arn) & set(resources)), resource_arn=arn)",
+        "return result(not (matches := _table_wildcards(arn) & set(resources)), resource_arn=arn, backup_selection_match=bool(matches))"
+      ],
+      [
+        "return result(True, resource_arn=arn, tag_keys=sorted(keys))",
+        "return result(True, resource_arn=arn, tag_keys=sorted(keys), backup_selection_match=False)"
+      ],
+      [
+        "return result(any(\"all\" in values for values in _snap_values(item)))",
+        "return result(public := any(\"all\" in values for values in _snap_values(item)), public_attribute=public)"
+      ],
+      [
+        "return result(is_policy_public(statements, account(index), is_cross_account_allowed=False))",
+        "return result(public := is_policy_public(statements, account(index), is_cross_account_allowed=False), cross_account_policy=public)"
+      ]
+    ]
+  },
+  "post_dfaf_aws.py": {
+    "original_sha256": "f89e43b6ec0b18c0f8dcd96d648db16e1336888384d7f3f887c628eb75bccc9d",
+    "current_sha256": "d7b41a3a3d86242c60f22dd412688f0b2ae1ec4fff8b78c930f2678668b6fb48",
+    "exact_evidence_only_reverse_proof": true,
+    "replacements": [
+      [
+        "return all_rows(['RequesterVpcInfo','AccepterVpcInfo'],lambda side:result(not get(item,side+'.PeeringOptions.AllowDnsResolutionFromRemoteVpc',bool)))",
+        "outcome = all_rows(['RequesterVpcInfo','AccepterVpcInfo'],lambda side:result(not (enabled := get(item,side+'.PeeringOptions.AllowDnsResolutionFromRemoteVpc',bool)), peering_side=side, remote_dns_resolution=enabled))\n    if outcome[0] == 'PASS':\n        return outcome[0], {'dns_options': {side: get(item,side+'.PeeringOptions.AllowDnsResolutionFromRemoteVpc',bool) for side in ('RequesterVpcInfo','AccepterVpcInfo')}}\n    return outcome"
+      ],
+      [
+        "return result(not any(get(c,'CertificateArn',str) for c in certs),protocol=protocol)",
+        "return result(not (has_cert := any(get(c,'CertificateArn',str) for c in certs)),protocol=protocol,certificate_configured=has_cert)"
+      ],
+      [
+        "return all_rows(list_of_objects(envelope.get('items')),check,status in ('collected','empty') and (items_coverage or {}).get('status')!='partial')",
+        "outcome = all_rows(list_of_objects(envelope.get('items')),check,status in ('collected','empty') and (items_coverage or {}).get('status')!='partial')\n    if outcome[0] == 'PASS':\n        return outcome[0], {'listener_protocols': [row['Protocol'] for row in envelope['items']], 'evaluated_listener_count': len(envelope['items'])}\n    return outcome"
+      ],
+      [
+        "return result(state!='ENABLED')",
+        "return result(state!='ENABLED', response_status=state)"
+      ],
+      [
+        "def certificate(item,index):\n    cid=get(item,'clientCertificateId',str)\n    if not cid:return result(True,reason='no client certificate')\n    detail=item.get('ClientCertificate')\n    if not isinstance(detail,dict):raise Unavailable('missing certificate detail')\n    if detail.get('absent') is True and detail.get('collection_status')=='empty':return result(True,reason='certificate not found')\n    if detail.get('collection_status')!='collected':raise Unavailable('certificate detail denied or incomplete')\n    if get(detail,'clientCertificateId',str)!=cid:raise Unavailable('foreign certificate identity')\n    def date(v):\n        if not isinstance(v,str):raise Unavailable('malformed capture or expiry date')\n        t=datetime.fromisoformat(v.replace('Z','+00:00'))\n        if t.tzinfo is None:raise Unavailable('date timezone missing')\n        return t.astimezone(timezone.utc)\n    return result(date(get(detail,'expirationDate',str))<=date(get(index,'context.created_at',str)))",
+        "def certificate(item,index):\n    cid=get(item,'clientCertificateId',str)\n    if not cid:return result(True,reason='no client certificate')\n    detail=item.get('ClientCertificate')\n    if not isinstance(detail,dict):raise Unavailable('missing certificate detail')\n    if detail.get('absent') is True and detail.get('collection_status')=='empty':return result(True,reason='certificate not found')\n    if detail.get('collection_status')!='collected':raise Unavailable('certificate detail denied or incomplete')\n    if get(detail,'clientCertificateId',str)!=cid:raise Unavailable('foreign certificate identity')\n    def date(v):\n        if not isinstance(v,str):raise Unavailable('malformed capture or expiry date')\n        t=datetime.fromisoformat(v.replace('Z','+00:00'))\n        if t.tzinfo is None:raise Unavailable('date timezone missing')\n        return t.astimezone(timezone.utc)\n    return result(date(get(detail,'expirationDate',str))<=date(get(index,'context.created_at',str)), certificate_expires_at=get(detail,'expirationDate',str), evaluation_time=get(index,'context.created_at',str))"
+      ],
+      [
+        "def shield_health(item,index):\n    ids=get(item,'HealthCheckIds',list)\n    if any(not isinstance(x,str) or not x for x in ids) or len(set(ids))!=len(ids):raise Unavailable('malformed health-check IDs')\n    if not ids:return result(True,reason='no health checks')\n    details=list_of_objects(get(item,'HealthChecks',list))\n    def check(identity):\n        hits=[r for r in details if r.get('Id')==identity]\n        if len(hits)!=1:raise Unavailable('health-check detail missing')\n        row=hits[0]\n        if row.get('collection_status')=='empty' and row.get('absent') is True:return result(True,reason='health check does not exist')\n        if row.get('collection_status')!='collected':raise Unavailable('health check read unavailable')\n        if get(row,'HealthCheck.Id',str)!=identity:raise Unavailable('foreign health-check identity')\n        return result(False)\n    return all_rows(ids,check)",
+        "def shield_health(item,index):\n    ids=get(item,'HealthCheckIds',list)\n    if any(not isinstance(x,str) or not x for x in ids) or len(set(ids))!=len(ids):raise Unavailable('malformed health-check IDs')\n    if not ids:return result(True,reason='no health checks')\n    details=list_of_objects(get(item,'HealthChecks',list))\n    def check(identity):\n        hits=[r for r in details if r.get('Id')==identity]\n        if len(hits)!=1:raise Unavailable('health-check detail missing')\n        row=hits[0]\n        if row.get('collection_status')=='empty' and row.get('absent') is True:return result(True,reason='health check does not exist')\n        if row.get('collection_status')!='collected':raise Unavailable('health check read unavailable')\n        if get(row,'HealthCheck.Id',str)!=identity:raise Unavailable('foreign health-check identity')\n        return result(False)\n    outcome = all_rows(ids,check)\n    return (outcome[0], dict(outcome[1], verified_health_check_ids=ids)) if outcome[0]=='PASS' else outcome"
+      ],
+      [
+        "def autoscaling(item,index):\n    zones=get(item,'AvailabilityZones',list)\n    if any(not isinstance(z,str) or not z for z in zones):raise Unavailable('malformed AZs')\n    if len(set(zones))<2:return result(True,reason='fewer than two zones')\n    overrides=list_of_objects(get(item,'MixedInstancesPolicy.LaunchTemplate.Overrides',list))\n    types=set();unresolved=False\n    for row in overrides:\n        if 'InstanceRequirements' in row or 'InstanceType' not in row:unresolved=True;continue\n        types.add(get(row,'InstanceType',str))\n    if '' in types:raise Unavailable('empty instance type')\n    if len(types)>=2:return result(False)\n    if unresolved or not overrides:raise Unavailable('effective launch-template type selection unresolved')\n    return result(True,reason='one explicit instance type')",
+        "def autoscaling(item,index):\n    zones=get(item,'AvailabilityZones',list)\n    if any(not isinstance(z,str) or not z for z in zones):raise Unavailable('malformed AZs')\n    if len(set(zones))<2:return result(True,reason='fewer than two zones')\n    overrides=list_of_objects(get(item,'MixedInstancesPolicy.LaunchTemplate.Overrides',list))\n    types=set();unresolved=False\n    for row in overrides:\n        if 'InstanceRequirements' in row or 'InstanceType' not in row:unresolved=True;continue\n        types.add(get(row,'InstanceType',str))\n    if '' in types:raise Unavailable('empty instance type')\n    if len(types)>=2:return result(False, instance_types=sorted(types), availability_zones=zones)\n    if unresolved or not overrides:raise Unavailable('effective launch-template type selection unresolved')\n    return result(True,reason='one explicit instance type')"
+      ]
+    ]
+  },
+  "compliance_new_sw48.py": {
+    "original_sha256": "b7fb3345208dd50b452f89452f790be6cc8bbcd023446a57f347e08f9998f369",
+    "current_sha256": "06e31d89fec3197438f8cecc2867f4c23a9c06df095ae00fcbdb3338ee8a2cd4",
+    "exact_evidence_only_reverse_proof": true,
+    "replacements": [
+      [
+        "return result(get(indicators,'HasAwsKeyPair',bool))",
+        "return result(found := get(indicators,'HasAwsKeyPair',bool), has_aws_key_pair=found)"
+      ],
+      [
+        "def _rotation(item, index):\n    _inventory(index, 'secret', item)\n    enabled = get(item, 'RotationEnabled', bool)\n    if not enabled:\n        return result(True, reason='automatic rotation disabled')\n    rules_marker = item.get('_coverage', {}).get('RotationRules')\n    if 'RotationRules' not in item and isinstance(rules_marker, dict) and (\n            rules_marker.get('status') == 'empty' and\n            rules_marker.get('source_operation') == 'secretsmanager:DescribeSecret' and\n            rules_marker.get('native_member_present') is False):\n        rules = {}\n    else:\n        rules = get(item, 'RotationRules', dict)\n    # Read each present fact through the strict accessor, including nested\n    # coverage. An unreadable or malformed alternate cannot be ignored merely\n    # because the other schedule form looks valid.\n    schedule = optional(rules, 'ScheduleExpression', None, str)\n    days = optional(rules, 'AutomaticallyAfterDays', None, int)\n    if schedule is not None and not _valid_rotation_schedule(schedule):\n        raise Unavailable('rotation schedule is malformed or outside the supported grammar')\n    if days is not None and not _positive_int(days):\n        raise Unavailable('malformed rotation schedule')\n    if schedule is None and days is None:\n        return result(True, reason='rotation schedule absent')\n\n    required = (get(item, 'RotationLambdaRequired', bool) if\n                'RotationLambdaRequired' in item or 'RotationLambdaRequired' in item.get('_coverage', {}) else None)\n    lambda_arn = (get(item, 'RotationLambdaARN', str) if\n                  'RotationLambdaARN' in item or 'RotationLambdaARN' in item.get('_coverage', {}) else None)\n    owner = (get(item, 'OwningService', str) if\n             'OwningService' in item or 'OwningService' in item.get('_coverage', {}) else None)\n    if lambda_arn is not None and not lambda_arn:\n        raise Unavailable('malformed rotation Lambda ARN')\n    if owner is not None and not owner:\n        raise Unavailable('malformed owning service')\n    if required is True and not lambda_arn:\n        if owner == 'rds':\n            raise Unavailable('rotation method evidence contradictory')\n        return result(True, reason='required rotation Lambda absent')\n    # RDS-owned managed secret rotation is native and does not use a Lambda.\n    # A new PASS requires a DescribeSecret-bound witness; retain the legacy\n    # explicit requirement contract for callers that already supply it.\n    coverage = item.get('_coverage', {})\n    def native(field):\n        marker = coverage.get(field)\n        return (isinstance(marker, dict) and marker.get('status') == 'collected'\n                and marker.get('source_operation') == 'secretsmanager:DescribeSecret')\n    if required is False or (lambda_arn and (native('RotationLambdaARN') or required is not None)):\n        return result(False)\n    if owner == 'rds' and native('OwningService'):\n        return result(False)\n    return unknown('rotation method or managed owner unavailable')",
+        "def _rotation(item, index):\n    _inventory(index, 'secret', item)\n    enabled = get(item, 'RotationEnabled', bool)\n    if not enabled:\n        return result(True, reason='automatic rotation disabled')\n    rules_marker = item.get('_coverage', {}).get('RotationRules')\n    if 'RotationRules' not in item and isinstance(rules_marker, dict) and (\n            rules_marker.get('status') == 'empty' and\n            rules_marker.get('source_operation') == 'secretsmanager:DescribeSecret' and\n            rules_marker.get('native_member_present') is False):\n        rules = {}\n    else:\n        rules = get(item, 'RotationRules', dict)\n    # Read each present fact through the strict accessor, including nested\n    # coverage. An unreadable or malformed alternate cannot be ignored merely\n    # because the other schedule form looks valid.\n    schedule = optional(rules, 'ScheduleExpression', None, str)\n    days = optional(rules, 'AutomaticallyAfterDays', None, int)\n    if schedule is not None and not _valid_rotation_schedule(schedule):\n        raise Unavailable('rotation schedule is malformed or outside the supported grammar')\n    if days is not None and not _positive_int(days):\n        raise Unavailable('malformed rotation schedule')\n    if schedule is None and days is None:\n        return result(True, reason='rotation schedule absent')\n\n    required = (get(item, 'RotationLambdaRequired', bool) if\n                'RotationLambdaRequired' in item or 'RotationLambdaRequired' in item.get('_coverage', {}) else None)\n    lambda_arn = (get(item, 'RotationLambdaARN', str) if\n                  'RotationLambdaARN' in item or 'RotationLambdaARN' in item.get('_coverage', {}) else None)\n    owner = (get(item, 'OwningService', str) if\n             'OwningService' in item or 'OwningService' in item.get('_coverage', {}) else None)\n    if lambda_arn is not None and not lambda_arn:\n        raise Unavailable('malformed rotation Lambda ARN')\n    if owner is not None and not owner:\n        raise Unavailable('malformed owning service')\n    if required is True and not lambda_arn:\n        if owner == 'rds':\n            raise Unavailable('rotation method evidence contradictory')\n        return result(True, reason='required rotation Lambda absent')\n    # RDS-owned managed secret rotation is native and does not use a Lambda.\n    # A new PASS requires a DescribeSecret-bound witness; retain the legacy\n    # explicit requirement contract for callers that already supply it.\n    coverage = item.get('_coverage', {})\n    def native(field):\n        marker = coverage.get(field)\n        return (isinstance(marker, dict) and marker.get('status') == 'collected'\n                and marker.get('source_operation') == 'secretsmanager:DescribeSecret')\n    if required is False or (lambda_arn and (native('RotationLambdaARN') or required is not None)):\n        return result(False, rotation_enabled=enabled)\n    if owner == 'rds' and native('OwningService'):\n        return result(False, rotation_enabled=enabled)\n    return unknown('rotation method or managed owner unavailable')"
+      ]
+    ]
+  },
+  "compliance_new_sw40.py": {
+    "original_sha256": "cf08769492415452de5c8ffc17e14dfed9d937fdbd411328b5325110f7e23c2d",
+    "current_sha256": "1602607d6b91e8d9acc4fb73ad9c996963f52be32c95e8d48dfdd215388b4867",
+    "exact_evidence_only_reverse_proof": true,
+    "replacements": [
+      [
+        "return result(True, policy_arn=arn)",
+        "return result(True, policy_arn=arn, usable_attachment=False)"
+      ]
+    ]
+  },
+  "compliance_new_sw44.py": {
+    "original_sha256": "3079dbbb1fa0e9e7f9aa11a0ab1f69dd4df1a7ea31be7c65bb937dc6109f790a",
+    "current_sha256": "054528b128bd4e68dfb0778ff2efcf5553e317afe5e789f65715baf3dc2cbfc0",
+    "exact_evidence_only_reverse_proof": true,
+    "replacements": [
+      [
+        "return result(not enabled_assignment, account_id=account, instance_count=len(instances))",
+        "return result(not enabled_assignment, account_id=account, instance_count=len(instances), enabled_assignment=enabled_assignment)"
+      ]
+    ]
+  },
+  "compliance_new_sw47.py": {
+    "original_sha256": "5c57aa4be9b3178be05fbc0ca19c60606cf12b130af48291cda6e15ac6736d78",
+    "current_sha256": "d80899e8dbba985bf536528f9b3ebb411ad7405508977631464d378c8cc1f5f5",
+    "exact_evidence_only_reverse_proof": true,
+    "replacements": [
+      [
+        "return result(not allowed, trail_arn=identity, log_group_arn=destination,",
+        "return result(not allowed, trail_arn=identity, log_group_arn=destination, simulation_allowed=allowed,"
+      ]
+    ]
+  },
+  "claude_aws_b_db.py": {
+    "original_sha256": "826b63d29b29bad3ec231d756b9adcf01d39367eaa2305e98f57e46d104f7290",
+    "current_sha256": "8227cbaa81c08fecc5a23257dc5280dbebf87a47c5f590b6fec8ea02368af92a",
+    "exact_evidence_only_reverse_proof": true,
+    "replacements": [
+      [
+        "return result(any(\"all\" in values for _, values in attrs), attributes=[n for n, _ in attrs])",
+        "return result(public := any(\"all\" in values for _, values in attrs), attributes=[n for n, _ in attrs], public_attribute=public)"
+      ]
+    ]
+  },
+  "claude_aws_a_ec2.py": {
+    "original_sha256": "a511c7b062b25279b2096b993d58a254c04bc280f8d779df7ea91f906abb3976",
+    "replacements": [
+      [
+        "def ebs_has_snapshot(item, index):\n    vid = get(item, \"VolumeId\", str)\n    return result(vid not in _snapshot_volume_ids(index), volume_id=vid)",
+        "def ebs_has_snapshot(item, index):\n    vid = get(item, \"VolumeId\", str)\n    return result(not (found := vid in _snapshot_volume_ids(index)), volume_id=vid, snapshot_found=found)"
+      ],
+      [
+        "def ebs_protected(item, index):\n    arn = ec2_arn(index, \"volume\", get(item, \"VolumeId\", str))\n    return result(not _protected(index, \"EBS\", arn), volume_arn=arn)",
+        "def ebs_protected(item, index):\n    arn = ec2_arn(index, \"volume\", get(item, \"VolumeId\", str))\n    return result(not (found := _protected(index, \"EBS\", arn)), volume_arn=arn, protected_resource=found)"
+      ],
+      [
+        "def ebs_in_plan_resources(item, index):\n    arn = ec2_arn(index, \"volume\", get(item, \"VolumeId\", str))\n    wildcard = \"arn:%s:ec2:*:*:volume/*\" % partition(index)\n    resources = set()\n    for selection in items(index, \"backup_selection\"):\n        resources.update(optional(selection, \"Resources\", [], list))\n    return result(not ({arn, wildcard, \"*\"} & resources), volume_arn=arn)",
+        "def ebs_in_plan_resources(item, index):\n    arn = ec2_arn(index, \"volume\", get(item, \"VolumeId\", str))\n    wildcard = \"arn:%s:ec2:*:*:volume/*\" % partition(index)\n    resources = set()\n    for selection in items(index, \"backup_selection\"):\n        resources.update(optional(selection, \"Resources\", [], list))\n    return result(not (found := {arn, wildcard, \"*\"} & resources), volume_arn=arn, backup_selection_match=bool(found))"
+      ],
+      [
+        "def inst_backup(item, index):\n    arn = ec2_arn(index, \"instance\", get(item, \"InstanceId\", str))\n    return result(not _protected(index, \"EC2\", arn), instance_arn=arn)",
+        "def inst_backup(item, index):\n    arn = ec2_arn(index, \"instance\", get(item, \"InstanceId\", str))\n    return result(not (found := _protected(index, \"EC2\", arn)), instance_arn=arn, protected_resource=found)"
+      ],
+      [
+        "def inst_ssm(item, index):\n    value = state(item)\n    if value == \"stopped\":\n        return _na(value)\n    iid = get(item, \"InstanceId\", str)\n    managed = any(m.get(\"InstanceId\") == iid for m in items(index, \"ssm_managed_instance\"))\n    return result(not managed, instance_id=iid)",
+        "def inst_ssm(item, index):\n    value = state(item)\n    if value == \"stopped\":\n        return _na(value)\n    iid = get(item, \"InstanceId\", str)\n    managed = any(m.get(\"InstanceId\") == iid for m in items(index, \"ssm_managed_instance\"))\n    return result(not managed, instance_id=iid, ssm_managed=managed)"
+      ],
+      [
+        "def inst_ssm_prowler(item, index):\n    value = state(item)\n    if value in (\"pending\", \"terminated\", \"stopped\"):\n        return _na(value)\n    iid = get(item, \"InstanceId\", str)\n    managed = any(m.get(\"InstanceId\") == iid for m in items(index, \"ssm_managed_instance\"))\n    return result(not managed, instance_id=iid)",
+        "def inst_ssm_prowler(item, index):\n    value = state(item)\n    if value in (\"pending\", \"terminated\", \"stopped\"):\n        return _na(value)\n    iid = get(item, \"InstanceId\", str)\n    managed = any(m.get(\"InstanceId\") == iid for m in items(index, \"ssm_managed_instance\"))\n    return result(not managed, instance_id=iid, ssm_managed=managed)"
+      ],
+      [
+        "def lt_public_ip(item, index):\n    for version in _versions(item):\n        data = get(version, \"LaunchTemplateData\", dict)\n        for nic in list_of_objects(optional(data, \"NetworkInterfaces\", [], list)):\n            if nic.get(\"AssociatePublicIpAddress\") is True:\n                return result(True, version=version.get(\"VersionNumber\"))\n            if nic.get(\"NetworkInterfaceId\"):\n                raise Unavailable(\"launch template references an existing ENI; its public addressing is not joined\")\n    return result(False)",
+        "def lt_public_ip(item, index):\n    for version in _versions(item):\n        data = get(version, \"LaunchTemplateData\", dict)\n        for nic in list_of_objects(optional(data, \"NetworkInterfaces\", [], list)):\n            if nic.get(\"AssociatePublicIpAddress\") is True:\n                return result(True, version=version.get(\"VersionNumber\"))\n            if nic.get(\"NetworkInterfaceId\"):\n                raise Unavailable(\"launch template references an existing ENI; its public addressing is not joined\")\n    return result(False, public_ip_assignment_found=False)"
+      ],
+      [
+        "def _instance_port_check(ports):\n    def evaluate(item, index):\n        get(item, \"InstanceId\", str)\n        for sg in _instance_sgs(item, index):\n            for rule in list_of_objects(get(sg, \"IpPermissions\", list)):\n                if prowler_sg_open(rule, \"tcp\", ports, any_address=True):\n                    return result(True, security_group=sg.get(\"GroupId\"), ports=ports)\n        return result(False, ports=ports)\n    return evaluate",
+        "def _instance_port_check(ports):\n    def evaluate(item, index):\n        get(item, \"InstanceId\", str)\n        for sg in _instance_sgs(item, index):\n            for rule in list_of_objects(get(sg, \"IpPermissions\", list)):\n                if prowler_sg_open(rule, \"tcp\", ports, any_address=True):\n                    return result(True, security_group=sg.get(\"GroupId\"), ports=ports)\n        return result(False, ports=ports, checked_ports_world_ingress=False)\n    return evaluate"
+      ]
+    ],
+    "exact_evidence_only_reverse_proof": true,
+    "current_sha256": "82245c49a9226f63eef806bbd809b76a1596fb466d68542ac2c9ed44d6a2ffd7"
+  },
+  "claude2_aws_b_edge.py": {
+    "original_sha256": "267a88b718bfb7b44e56f7c0b28e3a7467ea836c666f043de2fca031b88deb4e",
+    "replacements": [
+      [
+        "def v2_http_redirect(item, index):\n    kind = _type(item)\n    if kind != \"application\":\n        return \"NOT_APPLICABLE\", {\"type\": kind}\n    def redirects(actions):\n        \"\"\"Return None when the terminal routing action is missing or malformed.\"\"\"\n        actions = list_of_objects(actions)\n        routing = []\n        for action in actions:\n            action_type = get(action, \"Type\", str)\n            if action_type in (\"forward\", \"redirect\", \"fixed-response\"):\n                routing.append(action)\n            elif action_type not in (\"authenticate-oidc\", \"authenticate-cognito\", \"jwt-validation\"):\n                return None\n        if len(routing) != 1 or routing[0] is not actions[-1]:\n            return None\n        action = routing[0]\n        if get(action, \"Type\", str) != \"redirect\":\n            return False\n        config = get(action, \"RedirectConfig\", dict)\n        # AWS retains the request protocol for #{protocol} or an omitted field.\n        protocol = optional(config, \"Protocol\", \"#{protocol}\", str)\n        return protocol == \"HTTPS\" if protocol in (\"HTTP\", \"HTTPS\", \"#{protocol}\") else None\n\n    listeners = get(item, \"Listeners\", dict)\n    get(listeners, \"items\", list)  # A collected container without items is incomplete.\n    plain, unresolved = [], []\n    for row in _listeners(item):\n        try:\n            arn = get(row, \"ListenerArn\", str)\n            protocol = _protocol(row)\n        except Unavailable:\n            unresolved.append(\"listener with incomplete identity or protocol\")\n            continue\n        if protocol not in (\"HTTP\", \"HTTPS\"):\n            unresolved.append(arn)\n            continue\n        if protocol != \"HTTP\":\n            continue\n        try:\n            default_redirect = redirects(get(row, \"DefaultActions\", list))\n            rules_container = get(row, \"Rules\", dict)\n            get(rules_container, \"items\", list)\n            rules = detail_list(row, \"Rules\")\n            default_rules = [rule for rule in rules if get(rule, \"IsDefault\", bool)]\n            if len(default_rules) != 1 or not rules:\n                raise Unavailable(\"default listener rule missing or duplicated\")\n            rule_redirects = [redirects(get(rule, \"Actions\", list)) for rule in rules]\n            default_rule_redirect = rule_redirects[rules.index(default_rules[0])]\n            if default_redirect is None or any(value is None for value in rule_redirects) or default_redirect != default_rule_redirect:\n                raise Unavailable(\"listener rule actions incomplete or inconsistent with default action\")\n            if not default_redirect or not all(rule_redirects):\n                plain.append(arn)\n        except Unavailable:\n            unresolved.append(arn)\n    if plain:\n        return result(True, http_listeners_without_redirect=plain)\n    if unresolved:\n        return unknown(\"listener rules or actions incomplete\", listeners=unresolved)\n    return result(False)",
+        "def v2_http_redirect(item, index):\n    kind = _type(item)\n    if kind != \"application\":\n        return \"NOT_APPLICABLE\", {\"type\": kind}\n    def redirects(actions):\n        \"\"\"Return None when the terminal routing action is missing or malformed.\"\"\"\n        actions = list_of_objects(actions)\n        routing = []\n        for action in actions:\n            action_type = get(action, \"Type\", str)\n            if action_type in (\"forward\", \"redirect\", \"fixed-response\"):\n                routing.append(action)\n            elif action_type not in (\"authenticate-oidc\", \"authenticate-cognito\", \"jwt-validation\"):\n                return None\n        if len(routing) != 1 or routing[0] is not actions[-1]:\n            return None\n        action = routing[0]\n        if get(action, \"Type\", str) != \"redirect\":\n            return False\n        config = get(action, \"RedirectConfig\", dict)\n        # AWS retains the request protocol for #{protocol} or an omitted field.\n        protocol = optional(config, \"Protocol\", \"#{protocol}\", str)\n        return protocol == \"HTTPS\" if protocol in (\"HTTP\", \"HTTPS\", \"#{protocol}\") else None\n\n    listeners = get(item, \"Listeners\", dict)\n    get(listeners, \"items\", list)  # A collected container without items is incomplete.\n    plain, unresolved = [], []\n    for row in _listeners(item):\n        try:\n            arn = get(row, \"ListenerArn\", str)\n            protocol = _protocol(row)\n        except Unavailable:\n            unresolved.append(\"listener with incomplete identity or protocol\")\n            continue\n        if protocol not in (\"HTTP\", \"HTTPS\"):\n            unresolved.append(arn)\n            continue\n        if protocol != \"HTTP\":\n            continue\n        try:\n            default_redirect = redirects(get(row, \"DefaultActions\", list))\n            rules_container = get(row, \"Rules\", dict)\n            get(rules_container, \"items\", list)\n            rules = detail_list(row, \"Rules\")\n            default_rules = [rule for rule in rules if get(rule, \"IsDefault\", bool)]\n            if len(default_rules) != 1 or not rules:\n                raise Unavailable(\"default listener rule missing or duplicated\")\n            rule_redirects = [redirects(get(rule, \"Actions\", list)) for rule in rules]\n            default_rule_redirect = rule_redirects[rules.index(default_rules[0])]\n            if default_redirect is None or any(value is None for value in rule_redirects) or default_redirect != default_rule_redirect:\n                raise Unavailable(\"listener rule actions incomplete or inconsistent with default action\")\n            if not default_redirect or not all(rule_redirects):\n                plain.append(arn)\n        except Unavailable:\n            unresolved.append(arn)\n    if plain:\n        return result(True, http_listeners_without_redirect=plain)\n    if unresolved:\n        return unknown(\"listener rules or actions incomplete\", listeners=unresolved)\n    return result(False, http_listeners_without_redirect=[])"
+      ]
+    ],
+    "exact_evidence_only_reverse_proof": true,
+    "current_sha256": "5c8168aa4d1d1abf504182f2c76e61a494a24768870453a394c3d047d577fe4b"
+  },
+  "compliance_new_sw37.py": {
+    "original_sha256": "63e73e26ef553d9646272ceb6bcf2d9cf46fd673b4ccc4c1e7dfdd55efe530d7",
+    "replacements": [
+      [
+        "def _reachability(item,index):\n    instance=_member(item,index,'ec2_instance','InstanceId')\n    rows=[r for r in _rows(index,'ec2_effective_ingress') if get(r,'InstanceId',str)==instance]\n    if len(rows)!=1: raise Unavailable('effective ingress join missing')\n    row=rows[0]\n    if row.get('proof_model')=='aws-public-config-witness-v1':\n        from peaso.analysis.aws_public_ingress import DEPENDENCIES, witness, prepare\n        from peaso.snapshot import make_snapshot\n        from peaso.checks.facts import memoized\n        def build_model():\n            collections=[]\n            for kind in sorted(DEPENDENCIES):\n                native_rows=_rows(index,kind)\n                collections.append({'type':kind,'scope':_scope(index),'status':'collected'if native_rows else'empty','items':native_rows})\n            snap=make_snapshot('aws',[_scope(index)],collections)\n            return snap,prepare(snap,_scope(index))\n        snap,model=memoized(index,('public_ingress_native_model',),build_model)\n        if model is None:raise Unavailable('native public-ingress model incomplete or unsupported')\n        native_instance=model.find('instance',instance,_scope(index))\n        if native_instance is None or native_instance['data']!=item:\n            raise Unavailable('instance projection disagrees with independent native instance')\n        proof=memoized(index,('public_ingress_native_witness',instance),lambda:witness(snap,_scope(index),instance,prepared=model))\n        if proof is None or row.get('configured_path_witness')!=proof:\n            raise Unavailable('no independently verified configured direct IPv4 witness; remaining paths unresolved')\n        return True,{'instance_id':instance,'configured_path_witness':proof,'all_paths_evaluated':False}\n    if get(row,'joins_complete',bool) is not True: raise Unavailable('network join incomplete')\n    direct=get(row,'direct_public_paths',list); lbs=get(row,'public_listener_target_paths',list)\n    found=[]\n    for path in direct:\n        address=get(path,'address',str)\n        if not ipaddress.ip_address(address).is_global: raise Unavailable('direct path address is not public')\n        if get(path,'internet_route',bool) and get(path,'permitted_ingress',bool): found.append({'direct_address':address})\n    for path in lbs:\n        arn=_account_arn(get(path,'load_balancer_arn',str),index,'elasticloadbalancing')\n        if get(path,'internet_facing',bool) and get(path,'active_target',bool) and get(path,'listener_reaches_target_port',bool):\n            found.append({'load_balancer_arn':arn})\n    return (True,{'instance_id':instance,'public_paths':found}) if found else (False,{'instance_id':instance})",
+        "def _reachability(item,index):\n    instance=_member(item,index,'ec2_instance','InstanceId')\n    rows=[r for r in _rows(index,'ec2_effective_ingress') if get(r,'InstanceId',str)==instance]\n    if len(rows)!=1: raise Unavailable('effective ingress join missing')\n    row=rows[0]\n    if row.get('proof_model')=='aws-public-config-witness-v1':\n        from peaso.analysis.aws_public_ingress import DEPENDENCIES, witness, prepare\n        from peaso.snapshot import make_snapshot\n        from peaso.checks.facts import memoized\n        def build_model():\n            collections=[]\n            for kind in sorted(DEPENDENCIES):\n                native_rows=_rows(index,kind)\n                collections.append({'type':kind,'scope':_scope(index),'status':'collected'if native_rows else'empty','items':native_rows})\n            snap=make_snapshot('aws',[_scope(index)],collections)\n            return snap,prepare(snap,_scope(index))\n        snap,model=memoized(index,('public_ingress_native_model',),build_model)\n        if model is None:raise Unavailable('native public-ingress model incomplete or unsupported')\n        native_instance=model.find('instance',instance,_scope(index))\n        if native_instance is None or native_instance['data']!=item:\n            raise Unavailable('instance projection disagrees with independent native instance')\n        proof=memoized(index,('public_ingress_native_witness',instance),lambda:witness(snap,_scope(index),instance,prepared=model))\n        if proof is None or row.get('configured_path_witness')!=proof:\n            raise Unavailable('no independently verified configured direct IPv4 witness; remaining paths unresolved')\n        return True,{'instance_id':instance,'configured_path_witness':proof,'all_paths_evaluated':False}\n    if get(row,'joins_complete',bool) is not True: raise Unavailable('network join incomplete')\n    direct=get(row,'direct_public_paths',list); lbs=get(row,'public_listener_target_paths',list)\n    found=[]\n    for path in direct:\n        address=get(path,'address',str)\n        if not ipaddress.ip_address(address).is_global: raise Unavailable('direct path address is not public')\n        if get(path,'internet_route',bool) and get(path,'permitted_ingress',bool): found.append({'direct_address':address})\n    for path in lbs:\n        arn=_account_arn(get(path,'load_balancer_arn',str),index,'elasticloadbalancing')\n        if get(path,'internet_facing',bool) and get(path,'active_target',bool) and get(path,'listener_reaches_target_port',bool):\n            found.append({'load_balancer_arn':arn})\n    return (True,{'instance_id':instance,'public_paths':found}) if found else (False,{'instance_id':instance,'public_paths':[]})"
+      ]
+    ],
+    "exact_evidence_only_reverse_proof": true,
+    "current_sha256": "13b8af96092045ed2358142e5d0d697c5686f868411cec6f36fc6a2ba9abd2a4"
+  },
+  "compliance_new_sw41.py": {
+    "original_sha256": "a0f2d7995b87a09022c4caf905a603b62f7a633df5da0fb0030b526d1a58f610",
+    "replacements": [
+      [
+        "return result(admin,function_arn=arn,role_arn=get(role,'Arn',str))",
+        "return result(admin,function_arn=arn,role_arn=get(role,'Arn',str), unconditional_admin=admin)"
+      ]
+    ],
+    "exact_evidence_only_reverse_proof": true,
+    "current_sha256": "aeeb919118fe888e0bcfc10462c53e7d7ca7f3871d2d96d8cb5582712fc6ee46"
+  },
+  "aws_gap_metrics.py": {
+    "original_sha256": "dee1ba0989aba24187d3b02a327b57b0fa294a3b125a9b70bc1e7bd78b10ede3",
+    "replacements": [
+      [
+        "return result(False, trail=trail.get(\"TrailARN\"), log_group=group, region=region)",
+        "return result(False, trail=trail.get(\"TrailARN\"), log_group=group, region=region, matching_metric_alarm=True, trail_logging=True)"
+      ]
+    ],
+    "exact_evidence_only_reverse_proof": true,
+    "current_sha256": "d9c25cba1caa5b04cf754a25a4e34741c44214fe0021e7c88b5014b26f3c5795"
+  },
+  "claude_aws_a_s3.py": {
+    "original_sha256": "008ad08a28146b6cfe297a727287d09ddfac786985e8d29c57d92d2c0dbef8d0",
+    "replacements": [
+      [
+        "def prowler_bucket_level(item, index):\n    flags = bucket_blocks(item)\n    if flags[\"IgnorePublicAcls\"] and flags[\"RestrictPublicBuckets\"]:\n        return result(False, level=\"bucket\")\n    acct = account_blocks(index)\n    ok = acct[\"IgnorePublicAcls\"] and acct[\"RestrictPublicBuckets\"]\n    return result(not ok, level=\"account\" if ok else None)",
+        "def prowler_bucket_level(item, index):\n    flags = bucket_blocks(item)\n    if flags[\"IgnorePublicAcls\"] and flags[\"RestrictPublicBuckets\"]:\n        return result(False, level=\"bucket\", settings=flags)\n    acct = account_blocks(index)\n    ok = acct[\"IgnorePublicAcls\"] and acct[\"RestrictPublicBuckets\"]\n    return result(not ok, level=\"account\" if ok else None, settings=acct)"
+      ]
+    ],
+    "exact_evidence_only_reverse_proof": true,
+    "current_sha256": "18c38c1034a800039d7a11eec8c0d281d42c63051c1d90d02b1a0ba15a4e1160"
+  }
+}

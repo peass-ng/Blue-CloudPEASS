@@ -300,9 +300,9 @@ def _rotation(item, index):
         return (isinstance(marker, dict) and marker.get('status') == 'collected'
                 and marker.get('source_operation') == 'secretsmanager:DescribeSecret')
     if required is False or (lambda_arn and (native('RotationLambdaARN') or required is not None)):
-        return result(False)
+        return result(False, rotation_enabled=enabled)
     if owner == 'rds' and native('OwningService'):
-        return result(False)
+        return result(False, rotation_enabled=enabled)
     return unknown('rotation method or managed owner unavailable')
 
 
@@ -693,7 +693,7 @@ def _userdata(item, index):
     indicators = get(item,'UserDataIndicators',dict)
     if get(indicators,'InspectionStatus',str) != 'collected':
         return unknown('user data could not be read or decoded')
-    return result(get(indicators,'HasAwsKeyPair',bool))
+    return result(found := get(indicators,'HasAwsKeyPair',bool), has_aws_key_pair=found)
 
 
 def _clarify(item, index):

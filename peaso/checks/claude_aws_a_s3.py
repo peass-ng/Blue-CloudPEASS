@@ -252,10 +252,10 @@ def prowler_account(context, index):
 def prowler_bucket_level(item, index):
     flags = bucket_blocks(item)
     if flags["IgnorePublicAcls"] and flags["RestrictPublicBuckets"]:
-        return result(False, level="bucket")
+        return result(False, level="bucket", settings=flags)
     acct = account_blocks(index)
     ok = acct["IgnorePublicAcls"] and acct["RestrictPublicBuckets"]
-    return result(not ok, level="account" if ok else None)
+    return result(not ok, level="account" if ok else None, settings=acct)
 
 
 # =========================================================================== encryption / versioning / lifecycle / lock / replication

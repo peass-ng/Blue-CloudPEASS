@@ -421,7 +421,7 @@ def vault_policy_not_public(item, index):
     statements = _vault_policy(item)
     if statements is None:
         return result(False, policy=None)
-    return result(resource_policy_public(statements))
+    return result(public := resource_policy_public(statements), public_policy=public)
 
 
 def _protected_index(arn, rtype):
@@ -447,7 +447,7 @@ def _table_body(item):
 def table_protected(item, index):
     arn = get(_table_body(item), "TableArn", str)
     hit = any(get(r, "ResourceArn", str) == arn and get(r, "ResourceType", str) == "DynamoDB" for r in protected_resources(index))
-    return result(not hit, resource_arn=arn)
+    return result(not hit, resource_arn=arn, protected_resource=hit)
 
 
 @install("aws.c2b.efs.file_system_protected_resource", "efs_file_system", "EFS file system is an AWS Backup protected resource",
@@ -461,7 +461,7 @@ def table_protected(item, index):
 def efs_protected(item, index):
     arn = get(item, "FileSystemArn", str)
     hit = any(get(r, "ResourceArn", str) == arn and get(r, "ResourceType", str) == "EFS" for r in protected_resources(index))
-    return result(not hit, resource_arn=arn)
+    return result(not hit, resource_arn=arn, protected_resource=hit)
 
 
 def _plan_index(resources, tag_keys=()):
@@ -497,7 +497,7 @@ def _table_wildcards(arn):
 def table_selected(item, index):
     arn = get(_table_body(item), "TableArn", str)
     resources = selection_resources(index)
-    return result(not (_table_wildcards(arn) & set(resources)), resource_arn=arn)
+    return result(not (matches := _table_wildcards(arn) & set(resources)), resource_arn=arn, backup_selection_match=bool(matches))
 
 
 def _table_tags(item):
@@ -525,7 +525,7 @@ def table_selected_or_tag(item, index):
         conditions = list_of_objects(optional(selection, "ListOfTags", [], list))
         if keys & {c.get("ConditionKey") for c in conditions}:
             return result(False, matched="tag", resource_arn=arn)
-    return result(True, resource_arn=arn, tag_keys=sorted(keys))
+    return result(True, resource_arn=arn, tag_keys=sorted(keys), backup_selection_match=False)
 
 
 # =========================================================================== DataSync
@@ -857,7 +857,7 @@ def docdb_snap_public(item, index):
     skip = _docdb(item)
     if skip:
         return "NOT_APPLICABLE", skip
-    return result(any("all" in values for values in _snap_values(item)))
+    return result(public := any("all" in values for values in _snap_values(item)), public_attribute=public)
 
 
 @install("aws.c2b.documentdb.backup_retention_7", "docdb_cluster", "DocumentDB cluster retains automated backups at least 7 days",
@@ -1003,7 +1003,7 @@ def table_cross_account(item, index):
     if body is None:
         return "NOT_APPLICABLE", {"reason": "table has no resource policy"}
     statements = policy_document(get(body, "Policy"))
-    return result(is_policy_public(statements, account(index), is_cross_account_allowed=False))
+    return result(public := is_policy_public(statements, account(index), is_cross_account_allowed=False), cross_account_policy=public)
 
 
 # =========================================================================== ElastiCache

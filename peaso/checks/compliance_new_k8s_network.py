@@ -147,7 +147,7 @@ def no_world_ingress(item, index):
                       semantics="Per-policy declared allow only; selected Pods, CNI enforcement and effective policy union unproved")
     if uncertain:
         return unknown("one or more ingress peer declarations malformed or unavailable")
-    return result(False, assessed_rules=len(rules),
+    return result(False, assessed_rules=len(rules), all_source_rules=[],
                   semantics="Per-policy declared allow only; selected Pods, CNI enforcement and effective policy union unproved")
 
 
@@ -175,7 +175,7 @@ def no_world_remote_admin(item, index):
                       semantics="Per-policy declared allow only; no actual service listener, CNI enforcement or reachability inferred")
     if uncertain:
         return unknown("one or more ingress peer/port declarations malformed or unresolved")
-    return result(False, assessed_rules=len(rules),
+    return result(False, assessed_rules=len(rules), all_source_tcp_remote_admin_rules=[],
                   semantics="Per-policy declared allow only; no actual service listener, CNI enforcement or reachability inferred")
 
 
