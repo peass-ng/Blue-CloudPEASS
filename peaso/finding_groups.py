@@ -35,7 +35,7 @@ def member_scopes(finding):
     return sorted(set(scopes))
 
 
-def placement(finding, native=None):
+def placement(finding, native=None, *, kind=None):
     provider = finding.get("provider")
     scope = str(finding.get("scope") or "")
     identifier = str(finding.get("native_resource_id") or finding.get("resource_id") or "")
@@ -49,6 +49,15 @@ def placement(finding, native=None):
         arn = re.match(r"arn:[^:]+:[^:]*:([^:]*):(\d{12}):", identifier)
         account = account or (arn[2] if arn else "")
         region = region or (arn[1] if arn else "") or scoped_region
+        if (kind == "bucket" or finding.get("service") == "s3") and "Location" in native:
+            # ListBuckets is account-global; its collection scope is not the
+            # bucket's storage location. Use only the readable native response.
+            from peaso.checks.claude_aws_a_s3 import bucket_region
+            from peaso.checks.facts import Unavailable
+            try:
+                region = bucket_region(native)
+            except Unavailable:
+                region = ""
         if finding.get("check_id") in regionless_checks():
             region = ""
     elif provider == "gcp":
