@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 FIXTURE = Path(__file__).parent / "fixtures/aws-customer-policy-history-synthetic.json.gz"
-FIXTURE_SHA256 = "df93903fe1b1608dc1b21e1e1aece2f54f4a8df492bf7ce02a764ffe68a28451"
+FIXTURE_SHA256 = "ec5645c47a286863f9caa5f058ad827ff374fde9169b5835fef21d753245bf73"
 
 
 @lru_cache(maxsize=1)

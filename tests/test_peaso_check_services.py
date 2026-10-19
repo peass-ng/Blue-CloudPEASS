@@ -21,6 +21,28 @@ def test_every_registered_check_has_a_non_generic_service():
         assert service and service not in {"azure", "aws", "gcp"}
 
 
+def test_new_gcp_content_and_literal_kinds_group_with_their_source_service():
+    # Source review: gcp.py dependent_jobs and the bounded content readers
+    # name the product that supplied each observation. Composer DAG content
+    # belongs to the Composer finding even when fetched from its GCS bucket.
+    expected = {
+        "app_engine_version_secret": "appengine", "appengine_deployment_source": "appengine",
+        "artifact_image": "artifactregistry", "artifact_selected_file": "artifactregistry",
+        "batch_job": "batch", "cloudbuild_artifact_source": "cloudbuild",
+        "cloudbuild_build": "cloudbuild", "cloudbuild_log_source": "cloudbuild",
+        "clouddeploy_release_source": "clouddeploy", "composer_dag_source": "composer",
+        "dataflow_job": "dataflow", "dataform_selected_file": "dataform",
+        "dataproc_job": "dataproc", "function_source_archive": "cloudfunctions",
+        "gcs_selected_archive": "storage", "gcs_selected_object": "storage",
+        "gke_workload_literal": "container", "log_secret_sample": "logging.googleapis.com",
+        "source_repository_file": "sourcerepo", "workflow_source": "workflows",
+    }
+    assert len(expected) == 20
+    for kind, service in expected.items():
+        assert _manifest()["gcp"][kind] == service
+        assert service_for("gcp", kind) == service
+
+
 def test_manifest_covers_collector_services_and_all_kubernetes_kinds():
     from peaso.collectors.aws import SPECS
     from peaso.collectors.azure import ENDPOINTS, AUTHORIZATION, DIRECTORY, DIRECTORY_SINGLETONS

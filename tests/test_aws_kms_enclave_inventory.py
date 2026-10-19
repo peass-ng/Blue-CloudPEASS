@@ -28,7 +28,7 @@ class Client:
             raise ClientError({'Error': {'Code': 'AccessDeniedException', 'Message': 'not retained'}}, 'ListResourceTags')
         return {'Tags': [], 'Truncated': False}
     def describe_key(self, **kwargs):
-        return {'KeyMetadata': {'KeyManager': 'CUSTOMER', 'KeyState': 'Enabled', 'Description': 'ordinary'}}
+        return {'KeyMetadata': {'KeyId': kwargs['KeyId'], 'KeyManager': 'CUSTOMER', 'KeyState': 'Enabled', 'Description': 'ordinary'}}
     def get_key_rotation_status(self, **kwargs):
         return {'KeyRotationEnabled': True}
     def get_key_policy(self, **kwargs):
@@ -78,6 +78,8 @@ def test_kms_branch_preserves_metadata_and_policy_and_adds_inventory(monkeypatch
     rows = aws._enrich(request, session, 'us-east-1', 'kms_key', [{'KeyId': 'key-1'}])
     assert len(rows) == 1
     item = rows[0]
+    assert item['Metadata']['collection_status'] == 'collected'
+    assert item['Metadata']['KeyMetadata']['KeyId'] == item['KeyId']
     assert item['Metadata']['KeyMetadata']['KeyState'] == 'Enabled'
     assert item['Policy']['Policy']['Statement'][0]['Action'] == 'kms:Decrypt'
     assert item['Aliases'][0]['AliasName'] == 'alias/enclave-1'

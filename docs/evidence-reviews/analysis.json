@@ -68,7 +68,7 @@
       "examples": [
         {
           "status": "FAIL",
-          "example": "Principal \u201c*\u201d (anyone) is allowed to assume this IAM role. This may admit unintended callers; other policies may still block requests.",
+          "example": "Principal “*” (anyone) is allowed sts:AssumeRole on the resources covered by the statement. This may admit unintended callers; other policies may still block requests.",
           "evidence_keys": [
             "default_trusted_scopes",
             "effective_access",
@@ -117,7 +117,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "The scan lacks complete inventory for IAM users and IAM groups and 1 other required inventory. Missing records can hide grants or principals, so full access cannot be assessed.",
+          "example": "The scan lacks complete inventory for access analyzer and ecs service and 15 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"
@@ -302,7 +302,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "The scan lacks complete inventory for service accounts and IAM roles and 2 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
+          "example": "The scan lacks complete inventory for firewall policy and function and 7 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"
@@ -477,7 +477,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "The scan lacks complete inventory for directory users and directory groups and 1 other required inventory. Missing records can hide grants or principals, so full access cannot be assessed.",
+          "example": "The scan lacks complete inventory for container group and directory applications and 12 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"
@@ -497,7 +497,7 @@
       "examples": [
         {
           "status": "PASS",
-          "example": "The credential trusts subject \u201crepo:acme/app:ref:refs/heads/main\u201d from https://token.actions.githubusercontent.com. This limits declared token identity; audience and assigned permissions still affect access.",
+          "example": "The credential trusts subject “repo:acme/app:ref:refs/heads/main” from https://token.actions.githubusercontent.com. This limits declared token identity; audience and assigned permissions still affect access.",
           "evidence_keys": [
             "audiences",
             "claims_matching_expression",
@@ -649,7 +649,7 @@
       "examples": [
         {
           "status": "UNKNOWN",
-          "example": "The scan lacks complete inventory for namespace roles and namespace role bindings and 1 other required inventory. Missing records can hide grants or principals, so full access cannot be assessed.",
+          "example": "The scan lacks complete inventory for endpointslice and ingress and 5 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed.",
           "evidence_keys": [
             "gaps",
             "risk_state"

@@ -9,7 +9,8 @@ from peaso import aws_lightsail_owner_policy as policy
 from peaso.collectors import aws
 from peaso.server.validation import validate_connector
 
-ACCOUNT='111122223333'
+# Customer fixture is separate from the platform-role account used by API tests.
+ACCOUNT='999999999999'
 REGION='us-east-1'
 SCOPE=ACCOUNT+'/'+REGION
 NOW=datetime(2026,10,16,12,tzinfo=timezone.utc)

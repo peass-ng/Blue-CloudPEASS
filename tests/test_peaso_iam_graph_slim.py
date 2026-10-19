@@ -81,6 +81,10 @@ def test_predefined_role_used_in_fifty_projects_is_one_node():
     assert len(json.dumps(graph)) < 2_000_000
     # Findings stay per collected resource: 50 role reviews, computed from the complete grants.
     reviews = [f for f in analyze_findings(snap) if f["check_id"] == "analysis.grant_review" and f["service"] == "iam"]
+    native = {row["id"]: row for row in resources(snap)}
+    policy_reviews = [f for f in reviews if native[f["resource_id"]]["type"] == "iam_policy"]
+    assert len(policy_reviews) == 50 and all(f["status"] == "MANUAL" for f in policy_reviews)
+    reviews = [f for f in reviews if native[f["resource_id"]]["type"] == "iam_role"]
     assert len(reviews) == 50 and {f["scope"] for f in reviews} == {f"projects/{p}" for p in projects}
     assert all(len(f["evidence"]["grants"]) >= len(HIGH) for f in reviews)
 
@@ -142,7 +146,7 @@ def test_api_serves_the_complete_grant_list_behind_a_slim_card(tmp_path):
         connector = client.post("/api/connectors", json={"name": "slim", "provider": "gcp", "auth": {}, "scopes": snap["scopes"],
                                                          "options": {"snapshot": snap}})
         assert connector.status_code == 201, connector.text
-        job = client.post("/api/scans", json={"connector_id": connector.json()["id"], "categories": ["iam_graph", "least_privilege"]})
+        job = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector.json()["id"], "categories": ["iam_graph", "least_privilege"]})
         assert job.status_code == 201, job.text
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()
         ident = job.json()["id"]

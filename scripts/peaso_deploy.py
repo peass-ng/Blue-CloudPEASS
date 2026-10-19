@@ -162,12 +162,11 @@ aws_s3_bucket_policy.ai_transport aws_ecs_task_definition.ai aws_iam_role_policy
 aws_subnet.ai aws_route_table_association.ai aws_security_group.ai aws_network_acl.ai
 """.split())
 
-# The hosted Python 3.12 manylinux package has 4,671 members after optional
-# installer markers are removed. Historical approval contracts retain their
-# own 4,600-member limit; this bound applies to the current package build.
-CURRENT_API_MEMBER_LIMIT = 4900  # Current reviewed package adds the AWS detection normalizers.
-# Current complete API expands to ~231 MB. Lambda permits 250 MiB including
-# layers (these functions declare none); keep >17 MB of service-quota margin.
+# The verified Python 3.12 manylinux package contains 5,704 members after
+# optional installer markers are removed. Historical approval limits stay intact.
+CURRENT_API_MEMBER_LIMIT = 6000
+# Current complete API expands to 239.2 MB. Lambda permits 250 MiB including
+# layers (these functions declare none); keep >22 MB of service-quota margin.
 # Historical artifact-update approvals retain their original byte limits.
 # https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
 CURRENT_API_UNCOMPRESSED_LIMIT = 245_000_000

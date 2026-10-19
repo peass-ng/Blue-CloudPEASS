@@ -212,16 +212,30 @@ def test_malformed_resource_does_not_hide_another_public_policy():
     assert review_document(read.items[0]['Policy'])[0]
 
 
-def test_customer_role_expansion_preserves_grants_and_adds_only_reviewed_reads():
+def test_customer_role_expansion_preserves_grants_and_adds_only_reviewed_reads(tmp_path, monkeypatch):
+    import copy
     import hashlib
-    from scripts.peaso_deploy_customer_policy import build_policy, split_policy, policy_size, PRESERVED_TEMPLATE_READ_ACTIONS, IAM_REPORT_READ_REFERENCES
+    from scripts.peaso_deploy_customer_policy import build_policy, split_policy, policy_size, refresh, PRESERVED_TEMPLATE_READ_ACTIONS, IAM_REPORT_READ_REFERENCES
+    from tests.customer_policy_history import historical_role_template
     root = Path('infra/aws')
-    before = json.loads((root / 'customer-role-ae1b7534ceca1ddf593d1ba9cb04fd8baacf68eebc3bdc891a23d39d915a9893.json').read_text())
+    before = historical_role_template('ae1b7534ceca1ddf593d1ba9cb04fd8baacf68eebc3bdc891a23d39d915a9893')
     content = (root / 'customer-role.json').read_bytes()
-    after = json.loads(content)
     assert (root / f'customer-role-{hashlib.sha256(content).hexdigest()}.json').read_bytes() == content
-    assert after['Resources']['AuditRole'] == before['Resources']['AuditRole']
-    assert after['Parameters'] == before['Parameters'] and after['Outputs'] == before['Outputs']
+    # Regenerate the exact synthetic historical policy view locally; the private
+    # operator identity and role name are not inputs to the public regression.
+    path = tmp_path / 'infra/aws/customer-role.json'
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(before))
+    monkeypatch.syspath_prepend(str(tmp_path))  # restore refresh's sys.path change
+    refresh(tmp_path)
+    after = json.loads(path.read_text())
+    expected_role = copy.deepcopy(before['Resources']['AuditRole'])
+    expected_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']['AWS'] = {'Ref': 'CollectorRoleArn'}
+    assert after['Resources']['AuditRole'] == expected_role
+    assert after['Parameters'] == {**before['Parameters'], 'CollectorRoleArn': {
+        'Type': 'String', 'AllowedPattern': 'arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]+',
+        'Description': 'Collector role ARN shown by the CSPM connector setup'}}
+    assert after['Outputs'] == before['Outputs']
     assert all(after['Metadata'][key] == value for key, value in before['Metadata'].items())
     def grants(template):
         return {(statement['Effect'], action, json.dumps(statement['Resource'], sort_keys=True))
@@ -236,6 +250,8 @@ def test_customer_role_expansion_preserves_grants_and_adds_only_reviewed_reads()
     assert added and {action for effect, action, resource in added} <= reviewed
     assert all(effect == 'Allow' and '*' not in action for effect, action, resource in added)
     documents = [r['Properties']['PolicyDocument'] for name, r in sorted(after['Resources'].items()) if r['Type'] == 'AWS::IAM::ManagedPolicy']
+    published = json.loads(content)
+    assert documents == [r['Properties']['PolicyDocument'] for name, r in sorted(published['Resources'].items()) if r['Type'] == 'AWS::IAM::ManagedPolicy']
     # The current template includes resource-policy metadata and exactly the two
     # separately documented AWS Read-classified, selection-gated IAM report APIs.
     reads = aws.READ_ACTIONS | PRESERVED_TEMPLATE_READ_ACTIONS

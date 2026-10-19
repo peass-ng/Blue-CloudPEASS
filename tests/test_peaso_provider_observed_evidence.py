@@ -6,6 +6,8 @@ import pytest
 from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 from peaso.checks.gcp_observed_evidence import evidence_summary as gcp
+from peaso.finding_observation import evidence_summary as current_observation
+from peaso.checks.facts import MemoIndex
 from peaso.checks.azure_bulk_observed_evidence import evidence_summary as azure
 
 CHECK={c.id:c for c in CHECKS}
@@ -44,13 +46,30 @@ gcp_certificate_renewal_30_days'''.splitlines())
 BULK=json.loads(gzip.decompress((Path(__file__).parent/'fixtures/azure_bulk_clarity_reviewed.json.gz').read_bytes()))
 AZURE_IDS=tuple(cid for cid in BULK if cid in {c.id for c in __import__('peaso.checks.native_only',fromlist=['automated_checks']).automated_checks(CHECKS)})
 
+# These reviewed successors require native hierarchy/customer/Directory joins.
+# Keep historical CENTRAL unchanged; use their separately captured native cases.
+NATIVE_CASES=json.loads((Path(__file__).parent/'fixtures/gcp-native-review-behavior.json').read_text())['cases']
+NATIVE_SUCCESSORS={'gcp_pci_bucket_157fb0c69361',
+                   'gcp.identity.non_service_account_mfa',
+                   'gcp.identity.super_admin_recovery_group'}
+
+
+def current_case(cid, branch):
+ if cid in NATIVE_SUCCESSORS:
+  row=next(row for row in NATIVE_CASES
+           if row['check_id']==cid and row['expected_status']==branch.upper())
+  return deepcopy(row['item']),MemoIndex(deepcopy(row['index']))
+ fx=CASES[cid]
+ return deepcopy(fx[branch]),MemoIndex(deepcopy(fx.get(branch+'_index',fx.get('index',{}))))
+
 @pytest.mark.parametrize('cid',GCP_IDS)
 @pytest.mark.parametrize('branch',['pass','fail'])
 def test_gcp_actual_callbacks_have_brief_typed_observations(cid,branch):
- fx=CASES[cid];status,evidence=CHECK[cid].evaluate(deepcopy(fx[branch]),deepcopy(fx.get(branch+'_index',fx.get('index',{}))))
+ item,index=current_case(cid,branch)
+ status,evidence=CHECK[cid].evaluate(item,index)
  assert status==branch.upper()
  finding={'provider':'gcp','check_id':cid,'status':status,'evidence':evidence};before=deepcopy(finding)
- summary=gcp(finding)
+ summary=(current_observation if cid in NATIVE_SUCCESSORS else gcp)(finding)
  assert summary and len(summary)<=350
  assert 'semantics:'not in summary and 'supplied records'not in summary and 'More recorded details'not in summary
  assert finding==before
@@ -91,11 +110,12 @@ GCP_SUCCESS_IDS=tuple(c.id for c in __import__('peaso.checks.native_only',fromli
 
 @pytest.mark.parametrize('cid',GCP_SUCCESS_IDS)
 def test_every_available_active_gcp_success_callback_has_typed_observation(cid):
- fx=CASES[cid]
- status,evidence=CHECK[cid].evaluate(deepcopy(fx['pass']),deepcopy(fx.get('pass_index',fx.get('index',{}))))
+ item,index=current_case(cid,'pass')
+ status,evidence=CHECK[cid].evaluate(item,index)
  assert status=='PASS'
  finding={'provider':'gcp','check_id':cid,'status':status,'evidence':evidence};before=deepcopy(finding)
- text=gcp(finding)
+ # Exercise the renderer used by production, including newly admitted checks.
+ text=current_observation(finding)
  assert text and len(text)<400
  assert 'supplied records'not in text and 'More recorded details'not in text
  assert finding==before

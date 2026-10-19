@@ -7,6 +7,14 @@ from tests.test_peaso_aws_typed_finding_summary import actual
 @pytest.mark.parametrize('row',REVIEWED_SCOPES,ids=lambda r:r['id']+'-'+r['status'])
 def test_each_scope_sentence_uses_the_actual_registered_evaluator_witness(row):
  finding=actual(row['id'],row['case']);before=deepcopy(finding)
+ if row['id']=='aws.cb.sns.policy_prohibit_public_access_perimeter' and row['case']=='not_applicable':
+  # GetTopicAttributes may omit Policy due to caller authorization. The old
+  # applicability witness is historical, not proof of an absent policy now.
+  assert finding['status']=='UNKNOWN'
+  assert finding['evidence']=={'reason':'missing fact: Policy'}
+  assert evidence_summary(finding)is None
+  assert finding==before
+  return
  assert finding['status']==row['status']
  assert finding['evidence']==row['witness']
  text=evidence_summary(finding)

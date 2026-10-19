@@ -35,6 +35,8 @@ def _collect(monkeypatch, state):
         'Origin': 'AWS_KMS', 'KeyManager': 'CUSTOMER'}}, {'KeyId': KEY_ID})
     stubs['kms'].add_response('get_key_rotation_status', {'KeyRotationEnabled': False}, {'KeyId': KEY_ID})
     stubs['kms'].add_response('get_key_policy', {'Policy': '{}'}, {'KeyId': KEY_ID, 'PolicyName': 'default'})
+    stubs['kms'].add_response('list_resource_tags', {'Tags': [], 'Truncated': False}, {'KeyId': KEY_ID})
+    stubs['kms'].add_response('list_aliases', {'Aliases': [], 'Truncated': False}, {})
     monkeypatch.setattr(aws.Requests, 'client', lambda self, _session, service, region: clients[service])
     monkeypatch.setattr(aws, '_session', lambda auth, region: (session, 'inert'))
     try:
@@ -65,7 +67,7 @@ def test_native_describe_key_join(monkeypatch, state, expected):
     assert secret['KmsKeyId'] == KEY
     assert secret['_coverage']['KmsKeyId']['source_operation'] == 'secretsmanager:DescribeSecret'
     assert _finding(snap) == expected
-    assert snap['metadata']['calls'] == 9
+    assert snap['metadata']['calls'] == 10
 
 
 def test_native_detail_denial_stays_unknown(monkeypatch):

@@ -212,14 +212,21 @@ def aws_documents(item):
             documents.append(direct)
     except (Unavailable, ValueError):
         unresolved += 1
-    try:
-        versions = list_of_objects(optional(item, "PolicyVersionList", [], list))
-    except (Unavailable, ValueError):
-        versions, unresolved = [], unresolved + 1
-    for version in versions:
+    if "PolicyVersionList" in item or "DefaultVersionId" in item:
         try:
-            if get(version, "IsDefaultVersion", bool):
-                documents.append(get(version, "Document"))
+            default_id = get(item, "DefaultVersionId", str)
+            versions = list_of_objects(get(item, "PolicyVersionList", list))
+            version_ids = [get(version, "VersionId", str) for version in versions]
+            flags = [get(version, "IsDefaultVersion", bool) for version in versions]
+            if (not default_id.strip() or any(not ident.strip() for ident in version_ids)
+                    or len(version_ids) != len(set(version_ids))):
+                raise Unavailable("managed policy version identity is incomplete or duplicated")
+            selected = [version for version, flag in zip(versions, flags) if flag]
+            if len(selected) != 1 or get(selected[0], "VersionId", str) != default_id:
+                raise Unavailable("managed policy default version is inconsistent")
+            # Do not consume any managed document until all version identities
+            # and flags agree with the policy's selected native default.
+            documents.append(get(selected[0], "Document"))
         except (Unavailable, ValueError):
             unresolved += 1
     for key in ("UserPolicyList", "RolePolicyList", "GroupPolicyList"):

@@ -116,11 +116,18 @@ def test_opposite_status_cannot_invent_opposite_configuration(actual_observation
         assert summary is None or summary==evidence_summary(finding) or finding['check_id'] in allowed,(finding,summary)
 
 
-def test_psp_selinux_does_not_infer_absent_apparmor_or_seccomp():
+@pytest.mark.parametrize('status,rule,observation', [
+    ('FAIL', 'RunAsAny', 'The legacy Pod security policy allows any SELinux label.'),
+    ('PASS', 'MustRunAs', 'The legacy Pod security policy requires configured SELinux labels.'),
+])
+def test_psp_selinux_does_not_infer_absent_apparmor_or_seccomp(status,rule,observation):
     cid='k8s.claude.podsecuritypolicy.security_services_hardening'
-    summary=evidence_summary({'provider':'k8s','check_id':cid,'status':'FAIL','evidence':{'selinux_rule':'RunAsAny'}})
-    assert summary and summary.startswith('The legacy PSP declares SELinux RunAsAny.')
+    finding={'provider':'k8s','check_id':cid,'status':status,'evidence':{'selinux_rule':rule}}
+    before=deepcopy(finding)
+    summary=evidence_summary(finding)
+    assert summary and summary.startswith(observation)
     assert 'AppArmor' not in summary and 'seccomp' not in summary
+    assert finding==before
 
 
 def test_secret_content_is_never_formatted(actual_observations):

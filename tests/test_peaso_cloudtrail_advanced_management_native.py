@@ -85,7 +85,15 @@ def test_actual_collector_to_real_engine(monkeypatch, label, rows, wanted, ident
         if identity == "denied":
             assert "denied" in str(finding["evidence"]).lower()
         if identity in {"foreign", "missing"}:
-            assert "identity" in str(finding["evidence"]).lower() or "TrailARN" in str(finding["evidence"])
+            # The collector rejects unbound selector facts before evaluation;
+            # the engine reports the unavailable detail, not its error code.
+            trail = next(item for c in snap["collections"] if c["type"] == "cloudtrail"
+                         for item in c["items"] if item["TrailARN"] == ARN)
+            assert trail["EventSelectors"] == {
+                "collection_status": "malformed",
+                "error": {"code": "cloudtrail_selector_identity_mismatch"},
+            }
+            assert finding["evidence"] == {"reason": "resource detail unavailable: malformed"}
         for _, stub in clients.values():
             stub.assert_no_pending_responses()
 

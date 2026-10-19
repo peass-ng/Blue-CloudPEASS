@@ -128,7 +128,7 @@ def backup_restore_native_capture(index):
                for key in ('tenant_id', 'credential_context_id', 'customer_context_id')}
     for kind in ('recovery_vault', 'backup_protected_item', 'backup_job'):
         envelopes = get(index, 'collections', dict).get(kind, [])
-        expected_service = 'Microsoft.RecoveryServices' if kind == 'recovery_vault' else 'azure'
+        expected_service = 'Microsoft.RecoveryServices'
         if (len(envelopes) != 1 or get(envelopes[0], 'service', str) != expected_service
                 or get(envelopes[0], 'scope', str).casefold() != scope(index).casefold()):
             raise Unavailable('restore native source scope unresolved')

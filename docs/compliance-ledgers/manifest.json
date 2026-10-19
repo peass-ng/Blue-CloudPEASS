@@ -226,7 +226,7 @@
       "input_sha256": "8c02043f668918183e9afbf1a03810936e0ad29fa838f0ec9c098479136c6492",
       "path": "gcp-pci.json",
       "requirements_total": 1730,
-      "sha256": "8ebb75fdd0950e3689d3b531509140b020e4f9fdecca4114ccd8a50f48a686c2",
+      "sha256": "811b79589fc30fe7d2c68cd64d2ccd219f13cd9966e19d08f8bb67630c9cb49a",
       "verified": true
     },
     "k8s-cis": {

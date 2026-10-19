@@ -186,7 +186,7 @@ def api(tmp_path_factory, snap):
         client.headers["Authorization"] = "Bearer alice"
         connector = client.post("/api/connectors", json={"name": "scale", "provider": "aws", "auth": {}, "scopes": [SCOPE], "options": {"snapshot": snap}})
         assert connector.status_code == 201, connector.text
-        job = client.post("/api/scans", json={"connector_id": connector.json()["id"], "categories": ["iam_graph", "network", "privesc"]})
+        job = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector.json()["id"], "categories": ["iam_graph", "network", "privesc"]})
         assert job.status_code == 201, job.text
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()
         assert client.get(f"/api/scans/{job.json()['id']}").json()["status"] == "completed"
@@ -340,7 +340,7 @@ def test_unassigned_role_definitions_fold_into_stored_aggregates_with_member_pag
         connector = client.post("/api/connectors", json={"name": "agg", "provider": "azure", "auth": {}, "scopes": snapshot["scopes"],
                                                          "options": {"snapshot": snapshot}})
         assert connector.status_code == 201, connector.text
-        job = client.post("/api/scans", json={"connector_id": connector.json()["id"], "categories": ["iam_graph"]})
+        job = client.post("/api/scans", json={"ai_enabled": False, "connector_id": connector.json()["id"], "categories": ["iam_graph"]})
         assert job.status_code == 201, job.text
         assert Worker("collector", settings).run_once() and Worker("analyzer", settings).run_once()
         ident = job.json()["id"]

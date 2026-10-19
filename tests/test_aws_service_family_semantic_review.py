@@ -126,7 +126,7 @@ def test_cognito_native_describe_and_client_projection(sdk, variant):
     api.add_response('describe_risk_configuration', {'RiskConfiguration': {}}, args)
     api.add_response('list_user_pool_clients', {'UserPoolClients': [{'ClientId': client_id, 'UserPoolId': pool_id}]}, {**args, 'MaxResults': 60})
     api.add_response('describe_user_pool_client', {'UserPoolClient': {'ClientId': client_id, 'UserPoolId': pool_id,
-        'ClientSecret': 'never-retain-this-value', 'EnableTokenRevocation': variant == 'secure'}}, {**args, 'ClientId': client_id})
+        'ClientSecret': 'synthetic-client-secret-value', 'EnableTokenRevocation': variant == 'secure'}}, {**args, 'ClientId': client_id})
     item = aws_b_services._enricher('cognito_user_pool')(requests, session, REGION, [{'Id': pool_id}])[0]
     # Known optional MFA omission follows the source adapter's OFF contract.
     assert REGISTRY['aws.b.cognito.required_mfa'].evaluate(item, {})[0] == {

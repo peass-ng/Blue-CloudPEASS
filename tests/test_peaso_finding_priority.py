@@ -67,6 +67,22 @@ def test_every_active_control_has_an_explicit_reviewed_priority():
     assert active <= reviews().keys()
 
 
+def test_new_priority_reviews_bind_the_actual_registered_sources():
+    import json
+    from pathlib import Path
+    path = Path(__file__).resolve().parents[1] / "peaso/checks/reviewed_release_priorities_20261020.json"
+    rows = json.loads(path.read_text())
+    registered = {check.id: check for check in CHECKS}
+    assert len(rows) == 69
+    for cid, row in rows.items():
+        check = registered[cid]
+        assert (row["source_module"], row["source_kind"], row["source_title"]) == (
+            check.evaluate.__module__, check.kind, check.title)
+        assert row["current"] == check.severity
+        assert row["recommended"] == check.severity
+        assert row["reason"] and reviews()[cid] == {key: row[key] for key in ("current", "recommended", "reason")}
+
+
 @pytest.mark.parametrize("port,expected",[(443,"medium"),(80,"medium"),(22,"high"),(5432,"high")])
 def test_aws_priority_uses_real_registered_ingress_evidence(port,expected):
     c=next(c for c in CHECKS if c.id=="aws.ec2.restrict_internet_ingress")

@@ -54,7 +54,7 @@
     "case": "missing",
     "status": "UNKNOWN",
     "evidence": {
-      "reason": "missing fact: access_key_1_last_rotated"
+      "reason": "missing fact: access_key_1_active"
     }
   },
   {

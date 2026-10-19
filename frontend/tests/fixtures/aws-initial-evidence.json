@@ -30,9 +30,10 @@
   {
     "id": "aws.c2b.cloudfront.s3_origin_bucket_exists",
     "case": "fail",
-    "status": "FAIL",
+    "status": "UNKNOWN",
     "evidence": {
-      "missing_buckets": [
+      "reason": "origin bucket existence not resolvable",
+      "buckets": [
         "gone"
       ]
     }

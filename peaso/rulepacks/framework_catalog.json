@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "compliance_source_manifest_sha256": "2b6e09aa867063ec82de2df146ac085e08b09bc8e7bc8b6b9fdd3ae18325e399",
+  "compliance_source_manifest_sha256": "40b3abcf1395978d2c923e3908838949f53275a0a9ffbad724234cfffcc72039",
   "frameworks": [
     {
       "id": "cis_2.0_alibabacloud",

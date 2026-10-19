@@ -337,6 +337,6 @@ def test_runtime_catalog_does_not_load_pending_audit_definitions(monkeypatch):
     catalog_module._mappings.cache_clear()
     result = get_catalog()
     assert result["checks"]
-    assert result["upstream_coverage"]["runtime_scope_upstream_total"] == 5844
+    assert result["upstream_coverage"]["runtime_scope_upstream_total"] == 5846
     assert result["manual_requirements"] == []
     assert catalog_module.manual_requirements()  # Retained source references, outside scan scope.

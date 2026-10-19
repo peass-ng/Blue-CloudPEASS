@@ -129,6 +129,29 @@ class Graph:
                     assignments.setdefault(dotted(node.func.value), []).extend(node.args)
             return assignments
 
+        def expression(node, assignments, seen=frozenset()):
+            if isinstance(node, ast.Call) and dotted(node.func) == 'dict':
+                assert not node.args and all(kw.arg is not None for kw in node.keywords)
+                return ast.Dict(keys=[ast.Constant(value=kw.arg) for kw in node.keywords],
+                                values=[kw.value for kw in node.keywords])
+            if isinstance(node, ast.Name) and node.id in assignments:
+                assert node.id not in seen and len(assignments[node.id]) == 1
+                return expression(assignments[node.id][0], assignments, seen | {node.id})
+            if isinstance(node, ast.Call) and dotted(node.func).startswith('self.'):
+                callee = function.split('.')[0] + '.' + node.func.attr
+                assert callee in self.functions and callee not in seen
+                returns = [n.value for n in ast.walk(self.functions[callee]) if isinstance(n, ast.Return)]
+                assert len(returns) == 1, f'Unresolved transaction helper {callee}'
+                return expression(returns[0], bindings(self.nodes(callee, None)), seen | {callee})
+            if isinstance(node, ast.Subscript):
+                value = expression(node.value, assignments, seen)
+                assert isinstance(value, ast.Dict) and isinstance(node.slice, ast.Constant)
+                matches = [v for k, v in zip(value.keys, value.values)
+                           if isinstance(k, ast.Constant) and k.value == node.slice.value]
+                assert len(matches) == 1
+                return expression(matches[0], assignments, seen)
+            return node
+
         def resolve(node, assignments, seen=frozenset()):
             if isinstance(node, ast.Name):
                 if node.id in seen:
@@ -143,19 +166,43 @@ class Graph:
                                 for value in extra:
                                     yield from resolve(value, bindings(self.nodes(caller_name, None)), seen | {node.id})
                     return
+                parameters = [arg.arg for arg in self.functions[function].args.args if arg.arg != 'self']
+                parameter_marker = function + ':' + node.id
+                if node.id in parameters and parameter_marker not in seen:
+                    position = parameters.index(node.id)
+                    found = False
+                    for caller_name, caller in self.functions.items():
+                        if caller_name.split('.')[0] != function.split('.')[0]:
+                            continue
+                        for call in ast.walk(caller):
+                            if isinstance(call, ast.Call) and dotted(call.func) == 'self.' + function.split('.')[1]:
+                                actual = call.args[position:position + 1] + [kw.value for kw in call.keywords if kw.arg == node.id]
+                                caller_bindings = bindings(self.nodes(caller_name, None))
+                                for value in actual:
+                                    found = True
+                                    values = caller_bindings.get(value.id, []) if isinstance(value, ast.Name) else [value]
+                                    assert values, f'Unresolved caller transaction argument {caller_name}'
+                                    for actual_value in values:
+                                        yield from resolve(actual_value, caller_bindings, seen | {parameter_marker})
+                    assert found, f'Unresolved transaction argument {function}.{node.id}'
+                    if node.id not in assignments:
+                        return
                 assert node.id in assignments, f"Unresolved transaction variable {node.id}"
                 for value in assignments[node.id]:
                     yield from resolve(value, assignments, seen | {node.id})
             elif isinstance(node, ast.Dict):
                 assert node.keys and all(isinstance(key, ast.Constant) and key.value in TRANSACTION_ACTIONS for key in node.keys), f"Unknown transaction item in {function}"
                 for key, value in zip(node.keys, node.values):
-                    if isinstance(value, ast.Name):
-                        assert len(assignments.get(value.id, [])) == 1
-                        value = assignments[value.id][0]
+                    value = expression(value, assignments)
+                    assert isinstance(value, ast.Dict), f'Unresolved transaction body in {function}: {ast.dump(value)}'
                     yield key.value, value, key.lineno
             elif isinstance(node, (ast.List, ast.Tuple)):
                 for value in node.elts:
                     yield from resolve(value, assignments, seen)
+            elif isinstance(node, ast.Call):
+                value = expression(node, assignments)
+                assert value is not node, f'Unresolved transaction call in {function}'
+                yield from resolve(value, assignments, seen)
             elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
                 yield from resolve(node.left, assignments, seen)
                 yield from resolve(node.right, assignments, seen)
@@ -312,8 +359,21 @@ def field(stream, name):
 
 def values(stream, name):
     pos = field(stream, name)
+    if stream[pos] == 'compact':
+        assert stream[pos + 1:pos + 3] == ['(', '[']
+        content, _ = balanced(stream, pos + 2)
+        assert all(value not in {'{', '[', ']', '}'} for value in content)
+        return tuple(value.strip('"') for value in content if value != ',')
     if stream[pos] == "[":
         content, _ = balanced(stream, pos)
+        if content == tokens('for task in aws_ecs_task_definition.tasks : task.arn'):
+            assert name == 'Resource'
+            return tuple('aws_ecs_task_definition.tasks["' + role + '"].arn' for role in ('collector', 'analyzer'))
+        if content and content[0] == 'for':
+            # Conservatively broaden an unresolved Deny, never an Allow. The
+            # platform-account role comprehension cannot prove an exact grant.
+            assert name == 'Resource' and values(stream, 'Effect') == ('Deny',)
+            return ('*',)
         assert all(value not in {"{", "[", "]", "}"} for value in content)
         return tuple(value.strip('"') for value in content if value != ",")
     return (stream[pos].strip('"'),)
@@ -504,23 +564,24 @@ def assert_analyzer_kms_isolation(text):
             continue
         if "kms:Decrypt" in actions:
             decrypt.append(obj)
-    assert len(decrypt) == 2
+    assert len(decrypt) == 3
     allows = [obj for obj in decrypt if values(obj, "Effect") == ("Allow",)]
     denies = [obj for obj in decrypt if values(obj, "Effect") == ("Deny",)]
-    assert len(allows) == len(denies) == 1
+    assert len(allows) == 2 and len(denies) == 1
     assert values(allows[0], "Action") == ("kms:Decrypt",)
-    assert alternative_values(allows[0], "Resource", "NotResource") == ((AI_KEY,), False)
-    assert "Condition" not in allows[0]
+    assert {alternative_values(obj, "Resource", "NotResource") for obj in allows} == {
+        ((AI_KEY,), False), (('var.codex_token_kms_key_arn',), False)}
+    assert all('Condition' not in obj for obj in allows)
     obj = denies[0]
     assert values(obj, "Action") == ("kms:Decrypt",)
-    assert alternative_values(obj, "Resource", "NotResource") == ((AI_KEY,), True)
+    assert alternative_values(obj, "Resource", "NotResource") == ((AI_KEY, "var.codex_token_kms_key_arn"), True)
     condition, _ = balanced(obj, field(obj, "Condition"))
     assert condition == tokens('{ StringNotEquals = { "kms:ViaService" = "dynamodb.${var.region}.amazonaws.com" } }')[1:-1]
     statements = policies(text)["analyzer"]
     assert any(s.effect == "Deny" and not s.conditional and not s.not_actions and not s.not_resources
                and s.actions == ("sts:AssumeRole",) and s.resources == ("*",) for s in statements)
     assert any(s.effect == "Deny" and not s.conditional and not s.not_actions and s.not_resources
-               and s.actions == ("secretsmanager:GetSecretValue",) and s.resources == (AI_SECRET,) for s in statements)
+               and s.actions == ("secretsmanager:GetSecretValue",) and s.resources == (AI_SECRET, "var.codex_token_secret_arn") for s in statements)
     assert grants(statements, "secretsmanager:GetSecretValue", AI_SECRET)
 
 
@@ -543,10 +604,10 @@ def test_analyzer_decrypt_exception_mutations_fail_closed(iam, before, after):
 
 
 @pytest.mark.parametrize("before,after", [
-    ("NotResource = " + AI_KEY, "Resource = " + AI_KEY),
-    ("NotResource = " + AI_KEY, "NotResource = " + KEY),
-    ("NotResource = " + AI_SECRET, "Resource = " + AI_SECRET),
-    ("NotResource = " + AI_SECRET, "NotResource = " + CREDENTIALS),
+    ("NotResource = compact([" + AI_KEY, "Resource = compact([" + AI_KEY),
+    ("NotResource = compact([" + AI_KEY, "NotResource = compact([" + KEY),
+    ("NotResource = compact([" + AI_SECRET, "Resource = compact([" + AI_SECRET),
+    ("NotResource = compact([" + AI_SECRET, "NotResource = compact([" + CREDENTIALS),
     ('Effect = "Allow", Action = ["kms:Decrypt"], Resource = ' + AI_KEY,
      'Effect = "Deny", Action = ["kms:Decrypt"], Resource = ' + AI_KEY),
     ('Effect = "Allow", Action = ["kms:Decrypt"], Resource = ' + AI_KEY,
@@ -677,7 +738,7 @@ def test_worker_scoped_expiry_negative_fixtures_fail(role, action, mutation, gra
     elif mutation == "wrong-role":
         changed = original.replace(f"role = aws_iam_role.{role}.id", "role = aws_iam_role.execution.id")
     else:
-        marker = 'Statement = concat([' if role == 'collector' else 'Statement = ['
+        marker = 'Statement = concat(['
         changed = original.replace(marker, marker + f'{{ Effect = "Deny", Action = ["{action}"], Resource = "*" }},', 1)
     assert changed != original
     expiry = {r for r in graph.requirements(role, ["DynamoStore.expire_job"], role) if r.action == action}

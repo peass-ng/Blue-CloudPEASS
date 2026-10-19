@@ -57,12 +57,21 @@ jobs:
         # jsonschema (privesc schema cross-check) and fastapi/httpx (API tests).
         run: >-
           python -m pip install --retries 5 --timeout 30 --constraint infra/aws/sdk-constraints.txt
-          'PyYAML==6.0.3' 'fastapi==0.128.0' 'uvicorn==0.32.1' 'cryptography==46.0.3' 'PyJWT[crypto]==2.10.1'
-          'boto3==1.43.38' 'requests==2.32.5' 'google-auth==2.45.0'
+          'PyYAML==6.0.3' 'fastapi==0.143.0' 'uvicorn==0.54.0' 'cryptography==50.0.2' 'PyJWT[crypto]==2.15.1'
+          'boto3==1.43.38' 'requests==2.34.2' 'google-auth==2.45.0'
           'azure-identity==1.25.1' 'azure-mgmt-resource==24.0.0' 'azure-mgmt-authorization==4.0.0'
           'azure-mgmt-monitor==7.0.0' 'kubernetes==35.0.0' 'termcolor==3.2.0' 'tqdm==4.67.1'
           'duckdb==1.5.6' 'jsonschema==4.26.0' 'moto[dynamodb,s3,stepfunctions]==5.2.3' 'httpx==0.28.1'
           'pytest==9.0.2' 'pytest-xdist==3.8.0' 'setuptools==84.0.0' 'wheel==0.48.0'
+      - name: Install the pinned AI runtime dependencies
+        run: python -m pip install --constraint infra/aws/sdk-constraints.txt '.[ai]'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install the shipped Codex CLI for the local relay compatibility test
+        run: |
+          npm install --global @openai/codex@0.147.0
+          echo "PEASO_TEST_CODEX_BIN=$(command -v codex)" >> "$GITHUB_ENV"
       - name: Install Terraform (compiles the hosted workflow definition in tests)
         run: |
           base="https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}"

@@ -42,7 +42,7 @@ def test_claimed_review_never_bypasses_current_rating_or_identity(mutation):
 def documents():
  # Reuse the complete source/reference fixture; change only the named source ID.
  value=reviewed_catalogs(catalogs.__wrapped__())
- value=json.loads(json.dumps(value).replace('aws.storage.encryption',CID))
+ value=json.loads(json.dumps(value).replace('aws.ebs.encryption',CID))
  native=value['native_catalog.json']['checks'][0]
  native.update(severity='low',severity_review=review_metadata(CID,'medium'))
  spec={'id':CID,'provider':'aws','severity':'medium','category':'hardening','resource_kind':'bucket','predicate':'Versioning.Status is Enabled'}
@@ -88,7 +88,10 @@ def test_unsigned_catalog_review_still_rejects_forged_metadata():
 def test_compiler_registry_input_validates_the_entire_review_record():
  from scripts.peaso_compliance_compile import catalog_with_registered_checks
  check=next(c for c in CHECKS if c.id==CID);native={'checks':[row()]}
- assert catalog_with_registered_checks(native,[check])['checks']==native['checks']
+ compiled=catalog_with_registered_checks(native,[check])['checks'][0]
+ assert {key:value for key,value in compiled.items() if key!='_registered_contract'}==native['checks'][0]
+ assert compiled['_registered_contract']=={'type':check.kind,'category':check.category,
+     'severity':check.severity,'target':check.target}
  native['checks'][0]['severity_review']['version']='untrusted'
  with pytest.raises(ValueError):catalog_with_registered_checks(native,[check])
 

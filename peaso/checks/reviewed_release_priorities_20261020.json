@@ -1,0 +1,554 @@
+{
+  "aws.bedrock.agent_role_least_privilege": {
+    "current": "high",
+    "reason": "Bedrock execution or API-key authority is assessed from the declared IAM configuration. Retain the registered high source rating; no agent action was executed.",
+    "recommended": "high",
+    "source_kind": "bedrock_agent",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Bedrock agent execution role follows least privilege"
+  },
+  "aws.bedrock.agent_role_not_shared_across_agents": {
+    "current": "high",
+    "reason": "Bedrock execution or API-key authority is assessed from the declared IAM configuration. Retain the registered high source rating; no agent action was executed.",
+    "recommended": "high",
+    "source_kind": "bedrock_agent",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Bedrock agent execution roles are dedicated across the account"
+  },
+  "aws.bedrock.api_key_no_administrative_privileges": {
+    "current": "high",
+    "reason": "Bedrock execution or API-key authority is assessed from the declared IAM configuration. Retain the registered high source rating; no agent action was executed.",
+    "recommended": "high",
+    "source_kind": "iam_service_specific_credential",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Bedrock API key owner has no administrative permissions"
+  },
+  "aws.review.amplify_app.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "amplify_app review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "amplify_app",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Amplify app environment variable contents have no observed selected secret indicators"
+  },
+  "aws.review.batch_job_definition.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "batch_job_definition review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "batch_job_definition",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Batch classic container environment entries have no observed selected secret indicators"
+  },
+  "aws.review.cloudformation.output_secret_indicators": {
+    "current": "high",
+    "reason": "cloudformation_stack review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "cloudformation_stack",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "CloudFormation outputs have no observed high-confidence secret indicators"
+  },
+  "aws.review.cloudwatch.sampled_log_secret_indicators": {
+    "current": "high",
+    "reason": "log_group review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "log_group",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Sampled log window has no supported secret indicators"
+  },
+  "aws.review.codebuild_project.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "codebuild_project review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "codebuild_project",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "CodeBuild plaintext environment variables have no observed selected secret indicators"
+  },
+  "aws.review.codecommit.default_commit_secret_indicators": {
+    "current": "high",
+    "reason": "codecommit_repository review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "codecommit_repository",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Bounded default-commit files have no supported secret indicators"
+  },
+  "aws.review.cognito.app_client_refresh_token_rotation": {
+    "current": "medium",
+    "reason": "Cognito refresh-token rotation is a client configuration safeguard. Retain medium without inferring token theft.",
+    "recommended": "medium",
+    "source_kind": "cognito_user_pool_client",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Cognito app client enables refresh token rotation"
+  },
+  "aws.review.datapipeline_pipeline.payload_secret_indicators": {
+    "current": "high",
+    "reason": "datapipeline_pipeline review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "datapipeline_pipeline",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Data Pipeline latest literal definition values has no observed selected secret indicators"
+  },
+  "aws.review.ec2_launch_template.payload_secret_indicators": {
+    "current": "high",
+    "reason": "ec2_launch_template review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "ec2_launch_template",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Launch-template version user data has no observed selected secret indicators"
+  },
+  "aws.review.ecr_repository.package_content_secret_indicators": {
+    "current": "high",
+    "reason": "ecr_repository review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "ecr_repository",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Latest ECR image has no observed selected secret indicators"
+  },
+  "aws.review.ecs_task_definition.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "ecs_task_definition review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "ecs_task_definition",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "ECS container plaintext environment entries have no observed selected secret indicators"
+  },
+  "aws.review.eks.native_version_supported": {
+    "current": "medium",
+    "reason": "EKS support status is a version lifecycle setting, not observed exploitation. Retain medium.",
+    "recommended": "medium",
+    "source_kind": "eks_cluster",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "EKS cluster version has native AWS support"
+  },
+  "aws.review.elastic_beanstalk_environment.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "elastic_beanstalk_environment review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "elastic_beanstalk_environment",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Beanstalk configuration option values have no observed selected secret indicators"
+  },
+  "aws.review.glue_connection.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "glue_connection review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "glue_connection",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Glue visible connection property values have no observed selected secret indicators"
+  },
+  "aws.review.glue_job.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "glue_job review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "glue_job",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Glue job default and nonoverridable arguments have no observed selected secret indicators"
+  },
+  "aws.review.kms.enclave_attestation_enforced": {
+    "current": "high",
+    "reason": "kms_key attestation policy or observed measurement controls sensitive KMS use. Retain the registered high source rating without claiming key use or bypass occurred.",
+    "recommended": "high",
+    "source_kind": "kms_key",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Enclave KMS key requires attestation on sensitive policy Allows"
+  },
+  "aws.review.kms.enclave_debug_measurements": {
+    "current": "high",
+    "reason": "cloudtrail_event attestation policy or observed measurement controls sensitive KMS use. Retain the registered high source rating without claiming key use or bypass occurred.",
+    "recommended": "high",
+    "source_kind": "cloudtrail_event",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Observed enclave attestations avoid debug-mode measurements"
+  },
+  "aws.review.kms.enclave_deployment_binding": {
+    "current": "info",
+    "reason": "kms_key attestation policy or observed measurement controls sensitive KMS use. Retain the registered info source rating without claiming key use or bypass occurred.",
+    "recommended": "info",
+    "source_kind": "kms_key",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Attested KMS sensitive Allows bind an enclave deployment context"
+  },
+  "aws.review.kms.enclave_no_bypass": {
+    "current": "high",
+    "reason": "kms_key attestation policy or observed measurement controls sensitive KMS use. Retain the registered high source rating without claiming key use or bypass occurred.",
+    "recommended": "high",
+    "source_kind": "kms_key",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Enclave KMS key policy has no unattested sensitive Allow path"
+  },
+  "aws.review.lambda.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "lambda_function review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "lambda_function",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Lambda environment has no observed high-confidence secret indicators"
+  },
+  "aws.review.lambda.execution_role_policy_admin_grants": {
+    "current": "high",
+    "reason": "Lambda execution-role policy is checked for literal administrator Allow grants. Retain high for declared privilege without claiming use.",
+    "recommended": "high",
+    "source_kind": "lambda_function",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Lambda execution-role policies avoid literal administrator Allow patterns"
+  },
+  "aws.review.lambda_function.package_content_secret_indicators": {
+    "current": "high",
+    "reason": "lambda_function review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "lambda_function",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Lambda ZIP code has no observed selected secret indicators"
+  },
+  "aws.review.lambda_layer_version.package_content_secret_indicators": {
+    "current": "high",
+    "reason": "lambda_layer_version review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "lambda_layer_version",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Lambda layer ZIP has no observed selected secret indicators"
+  },
+  "aws.review.launch_configuration.payload_secret_indicators": {
+    "current": "high",
+    "reason": "launch_configuration review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "launch_configuration",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Additional launch-configuration private-key and password indicators has no observed selected secret indicators"
+  },
+  "aws.review.rest_api_stage.configuration_secret_indicators": {
+    "current": "high",
+    "reason": "rest_api_stage review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "rest_api_stage",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "REST API stage variable values have no observed selected secret indicators"
+  },
+  "aws.review.rolesanywhere.session_policy_constraints": {
+    "current": "high",
+    "reason": "Roles Anywhere session scope is checked from declared profile and role constraints. Retain the high source rating without claiming a session was issued.",
+    "recommended": "high",
+    "source_kind": "rolesanywhere_profile",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Enabled Roles Anywhere profile scopes sessions on roles with universal identity and boundary grants"
+  },
+  "aws.review.s3.sampled_object_acl_public_grants": {
+    "current": "medium",
+    "reason": "Only sampled current object ACL declarations are reviewed; public ACL exposure is possible but unsampled objects and actual reads are unproven. Retain medium.",
+    "recommended": "medium",
+    "source_kind": "bucket",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Sampled S3 current objects have no non-ignored public ACL grants"
+  },
+  "aws.review.sagemaker_notebook_instance.payload_secret_indicators": {
+    "current": "high",
+    "reason": "sagemaker_notebook_instance review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "sagemaker_notebook_instance",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Attached notebook lifecycle scripts has no observed selected secret indicators"
+  },
+  "aws.review.secretsmanager.explicit_principal_deny": {
+    "current": "high",
+    "reason": "Secret resource-policy guardrail is a declared access boundary; missing explicit denial can broaden potential principals. Retain the high source rating without claiming a secret was read.",
+    "recommended": "high",
+    "source_kind": "secret",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Secret policy explicitly denies access except concrete same-account IAM roles or users"
+  },
+  "aws.review.sfn_state_machine.payload_secret_indicators": {
+    "current": "high",
+    "reason": "sfn_state_machine review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "sfn_state_machine",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Step Functions current returned definitions has no observed selected secret indicators"
+  },
+  "aws.review.shield.drt_role_configured": {
+    "current": "low",
+    "reason": "Shield DRT role configuration affects response readiness for an active subscription. Retain low.",
+    "recommended": "low",
+    "source_kind": "shield_subscription",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Active Shield Advanced subscription has a configured DRT role"
+  },
+  "aws.review.ssm_document_metadata.payload_secret_indicators": {
+    "current": "high",
+    "reason": "ssm_document_metadata review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "ssm_document_metadata",
+    "source_module": "peaso.checks.aws_review_20261019",
+    "source_title": "Owned SSM document version content has no observed selected secret indicators"
+  },
+  "gcp.compute.os_config_fixable_vulnerabilities": {
+    "current": "high",
+    "reason": "OS Config reports fixable known vulnerabilities on a VM; high reflects observed remediation need without claiming exploitation.",
+    "recommended": "high",
+    "source_kind": "instance",
+    "source_module": "peaso.checks.gcp_os_security_update_review_20261019",
+    "source_title": "VM assessment has no fixable known vulnerabilities"
+  },
+  "gcp.review.app_engine_version.literal_environment_secret_indicators": {
+    "current": "high",
+    "reason": "app_engine_version_secret review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "app_engine_version_secret",
+    "source_module": "peaso.checks.gcp_additional_literal_secret_review_20261019",
+    "source_title": "App Engine version environment literals have no detected secrets"
+  },
+  "gcp.review.appengine.deployment_source_secret_indicators": {
+    "current": "high",
+    "reason": "appengine_deployment_source review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "appengine_deployment_source",
+    "source_module": "peaso.checks.gcp_appengine_source_secret_review_20261019",
+    "source_title": "Selected App Engine deployment source files have no detected secrets"
+  },
+  "gcp.review.artifact_image.content_secret_indicators": {
+    "current": "high",
+    "reason": "artifact_image review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "artifact_image",
+    "source_module": "peaso.checks.gcp_image_secret_review_20261019",
+    "source_title": "Selected Artifact Registry image has no detected secrets"
+  },
+  "gcp.review.artifactregistry.selected_file_secret_indicators": {
+    "current": "high",
+    "reason": "artifact_selected_file review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "artifact_selected_file",
+    "source_module": "peaso.checks.gcp_artifact_file_secret_review_20261019",
+    "source_title": "Selected Artifact Registry file has no detected secrets"
+  },
+  "gcp.review.batch_job.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "batch_job review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "batch_job",
+    "source_module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+    "source_title": "Batch job literal configuration has no detected secrets"
+  },
+  "gcp.review.cloudbuild.artifact_secret_indicators": {
+    "current": "high",
+    "reason": "cloudbuild_artifact_source review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "cloudbuild_artifact_source",
+    "source_module": "peaso.checks.gcp_cloudbuild_artifact_secret_review_20261019",
+    "source_title": "Observed Cloud Build output artifacts have no detected secrets"
+  },
+  "gcp.review.cloudbuild.stored_log_secret_indicators": {
+    "current": "high",
+    "reason": "cloudbuild_log_source review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "cloudbuild_log_source",
+    "source_module": "peaso.checks.gcp_cloudbuild_log_secret_review_20261019",
+    "source_title": "Observed Cloud Build stored log generation has no detected secrets"
+  },
+  "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "cloudbuild_build review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "cloudbuild_build",
+    "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
+    "source_title": "Cloud Build build literal configuration has no detected secrets"
+  },
+  "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "cloudbuild_trigger review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "cloudbuild_trigger",
+    "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
+    "source_title": "Cloud Build trigger literal configuration has no detected secrets"
+  },
+  "gcp.review.clouddeploy.release_source_secret_indicators": {
+    "current": "high",
+    "reason": "clouddeploy_release_source review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "clouddeploy_release_source",
+    "source_module": "peaso.checks.gcp_clouddeploy_source_secret_review_20261019",
+    "source_title": "Observed Cloud Deploy release source archive has no detected secrets"
+  },
+  "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "cloudrun_job review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "cloudrun_job",
+    "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
+    "source_title": "Cloud Run job literal configuration has no detected secrets"
+  },
+  "gcp.review.cloudrun_service.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "cloudrun_service review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "cloudrun_service",
+    "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
+    "source_title": "Cloud Run service literal configuration has no detected secrets"
+  },
+  "gcp.review.composer.dag_source_secret_indicators": {
+    "current": "high",
+    "reason": "composer_dag_source review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "composer_dag_source",
+    "source_module": "peaso.checks.gcp_composer_source_secret_review_20261019",
+    "source_title": "Observed Composer DAG source files have no detected secrets"
+  },
+  "gcp.review.composer_environment.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "composer_environment review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "composer_environment",
+    "source_module": "peaso.checks.gcp_notebook_airflow_secret_review_20261019",
+    "source_title": "Cloud Composer literal configuration has no detected secrets"
+  },
+  "gcp.review.dataflow_job.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "dataflow_job review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "dataflow_job",
+    "source_module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+    "source_title": "Dataflow job literal configuration has no detected secrets"
+  },
+  "gcp.review.dataform.selected_file_secret_indicators": {
+    "current": "high",
+    "reason": "dataform_selected_file review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "dataform_selected_file",
+    "source_module": "peaso.checks.gcp_dataform_secret_review_20261019",
+    "source_title": "Selected Dataform file has no detected secrets"
+  },
+  "gcp.review.dataproc_cluster.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "dataproc_cluster review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "dataproc_cluster",
+    "source_module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+    "source_title": "Dataproc cluster literal configuration has no detected secrets"
+  },
+  "gcp.review.dataproc_job.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "dataproc_job review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "dataproc_job",
+    "source_module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+    "source_title": "Dataproc job literal configuration has no detected secrets"
+  },
+  "gcp.review.function.literal_environment_secret_indicators": {
+    "current": "high",
+    "reason": "function review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "function",
+    "source_module": "peaso.checks.gcp_function_secret_review_20261019",
+    "source_title": "Cloud Function literal environment has no detected secrets"
+  },
+  "gcp.review.function.resolved_source_archive_secret_indicators": {
+    "current": "high",
+    "reason": "function_source_archive review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "function_source_archive",
+    "source_module": "peaso.checks.gcp_function_source_secret_review_20261019",
+    "source_title": "Function resolved source archive has no detected secrets"
+  },
+  "gcp.review.gke_workload.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "gke_workload_literal review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "gke_workload_literal",
+    "source_module": "peaso.checks.gcp_gke_literal_secret_review_20261019",
+    "source_title": "Returned GKE workload literals have no detected secrets"
+  },
+  "gcp.review.instance.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "instance review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "instance",
+    "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
+    "source_title": "Compute Engine instance literal configuration has no detected secrets"
+  },
+  "gcp.review.instance_template.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "instance_template review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "instance_template",
+    "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
+    "source_title": "Compute Engine instance template literal configuration has no detected secrets"
+  },
+  "gcp.review.logging.application_log_secret_indicators": {
+    "current": "high",
+    "reason": "log_secret_sample review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "log_secret_sample",
+    "source_module": "peaso.checks.gcp_log_secret_review_20261019",
+    "source_title": "Sampled application log messages have no detected secrets"
+  },
+  "gcp.review.project.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "project review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "project",
+    "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
+    "source_title": "Compute Engine project metadata literal configuration has no detected secrets"
+  },
+  "gcp.review.scheduler_job.literal_target_secret_indicators": {
+    "current": "high",
+    "reason": "scheduler_job review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "scheduler_job",
+    "source_module": "peaso.checks.gcp_additional_literal_secret_review_20261019",
+    "source_title": "Scheduler target literals have no detected secrets"
+  },
+  "gcp.review.sourcerepo.selected_file_secret_indicators": {
+    "current": "high",
+    "reason": "source_repository_file review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "source_repository_file",
+    "source_module": "peaso.checks.gcp_sourcerepo_secret_review_20261019",
+    "source_title": "Selected Source Repository files have no detected secrets"
+  },
+  "gcp.review.storage.selected_archive_secret_indicators": {
+    "current": "high",
+    "reason": "gcs_selected_archive review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "gcs_selected_archive",
+    "source_module": "peaso.checks.gcp_selected_archive_secret_review_20261019",
+    "source_title": "Selected Cloud Storage archive has no detected secrets"
+  },
+  "gcp.review.storage.selected_object_secret_indicators": {
+    "current": "high",
+    "reason": "gcs_selected_object review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "gcs_selected_object",
+    "source_module": "peaso.checks.gcp_selected_object_secret_review_20261019",
+    "source_title": "Selected Cloud Storage text object has no detected secrets"
+  },
+  "gcp.review.workbench.public_ip_disabled": {
+    "current": "medium",
+    "reason": "Workbench public-IP or root-access setting is a configuration exposure, not observed access. Retain medium.",
+    "recommended": "medium",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_review_20261019",
+    "source_title": "Workbench instance disables public IP assignment"
+  },
+  "gcp.review.workbench.root_access_disabled": {
+    "current": "medium",
+    "reason": "Workbench public-IP or root-access setting is a configuration exposure, not observed access. Retain medium.",
+    "recommended": "medium",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_review_20261019",
+    "source_title": "Workbench notebook root access is disabled"
+  },
+  "gcp.review.workbench_instance.literal_configuration_secret_indicators": {
+    "current": "high",
+    "reason": "workbench_instance review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_notebook_airflow_secret_review_20261019",
+    "source_title": "Workbench literal configuration has no detected secrets"
+  },
+  "gcp.review.workflow.deployed_source_secret_indicators": {
+    "current": "high",
+    "reason": "workflow_source review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
+    "recommended": "high",
+    "source_kind": "workflow_source",
+    "source_module": "peaso.checks.gcp_additional_literal_secret_review_20261019",
+    "source_title": "Workflows deployed source has no detected secrets"
+  }
+}

@@ -277,7 +277,8 @@ def test_gaad_default_version_integrity(sdk, mutation):
     elif mutation == 'two_defaults': versions.append({**versions[0], 'VersionId': 'v2'})
     elif mutation == 'wrong_default': item['DefaultVersionId'] = 'v2'
     else: versions[0]['IsDefaultVersion'] = 'true'
-    for cid in ['aws.claude_a.iam.custom_policy_no_star_star', 'aws.claude_a.iam.prowler_customer_attached_policy_no_admin']:
+    for cid in ['aws.claude_a.iam.custom_policy_no_star_star', 'aws.claude_a.iam.prowler_customer_attached_policy_no_admin',
+                'aws.a.iam.attached_policy_no_star_star']:
         assert REGISTRY[cid].evaluate(item, index('iam_policy', read))[0] == 'UNKNOWN'
 
 @pytest.mark.parametrize('state', ['good', 'no_mfa', 'malformed', 'duplicate', 'missing_member'])
@@ -301,9 +302,14 @@ def test_admin_group_native_user_membership_and_csv_join(sdk, state):
     cid = 'aws.claude_a.iam.prowler_admin_group_members_mfa'
     assert REGISTRY[cid].evaluate(reads['iam_group'].items[0], ix)[0] == {'good':'PASS','no_mfa':'FAIL','malformed':'UNKNOWN','duplicate':'UNKNOWN','missing_member':'UNKNOWN'}[state]
 
-@pytest.mark.parametrize('cid', ['aws.a.iam.attached_policy_no_star_star', 'aws.iam.no_full_admin'])
-def test_other_default_version_helpers_open_defect_receipt(sdk, cid):
+@pytest.mark.parametrize('cid,expected', [
+    ('aws.a.iam.attached_policy_no_star_star', 'UNKNOWN'),
+    ('aws.iam.no_full_admin', 'UNKNOWN'),
+])
+def test_other_default_version_helpers_review_disposition(sdk, cid, expected):
     read = policy_read(sdk, {'Statement': [{'Effect': 'Allow', 'Action': 's3:GetObject', 'Resource': '*'}]})
+    assert REGISTRY[cid].evaluate(read.items[0], index('iam_policy', read))[0] == 'PASS'
     item = read.items[0]; item['DefaultVersionId'] = 'v2'
-    # These distinct helpers are outside authorized runtime file ownership.
-    assert REGISTRY[cid].evaluate(item, index('iam_policy', read))[0] == 'PASS'
+    # Both reviewed helpers require the native selected default version.
+    # A contradictory flag cannot prove the active managed policy is safe.
+    assert REGISTRY[cid].evaluate(item, index('iam_policy', read))[0] == expected

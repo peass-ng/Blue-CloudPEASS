@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import inspect
 from pathlib import Path
 import shlex
 
@@ -38,7 +39,11 @@ def test_exact_three_reviewed_bindings_follow_registered_native_checks():
         assert binding["target"] == checks[cid].target == "resource"
         assert binding["path"] == proof["evaluated_field"]
         assert binding["evaluator_family"] == checks[cid].evaluate.__module__
-        assert cid in source[int(proof["evaluator"].rsplit(":", 1)[-1]) - 1]
+        # The review records its original line. Security fixes may shift that
+        # line; bind the current callback to the same file and exact decorator.
+        callback = inspect.unwrap(checks[cid].evaluate)
+        assert Path(inspect.getsourcefile(callback)).resolve() == (ROOT / proof["evaluator"].rsplit(":", 1)[0]).resolve()
+        assert cid in inspect.getsourcelines(callback)[0][0]
         from tests.reviewed_guidance_presentation import assert_approved_presentation
         current=assert_approved_presentation(cid,row)
         if cid==IDS[0]:

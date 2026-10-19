@@ -1,8 +1,8 @@
 """Native Budgets/tag metadata grants preserve the existing role boundary."""
 import copy,itertools,json,hashlib
-from pathlib import Path
 import pytest
 from scripts import peaso_deploy_customer_policy as policy
+from tests.customer_policy_history import historical_role_bytes, historical_derivative_sha256
 
 OPS=[('budgets','describe_budget_actions_for_account'),('budgets','describe_budget_action'),('ec2','describe_tags'),('lambda','list_tags')]
 ACTIONS=['budgets:DescribeBudgetActionsForAccount','budgets:DescribeBudgetAction','ec2:DescribeTags','lambda:ListTags']
@@ -33,13 +33,12 @@ def test_metadata_mapping_rejects_a_verified_but_wrong_alias(monkeypatch):
 
 
 def test_four_metadata_reads_preserve_previous_policy_partitions_and_trust():
- root=Path(__file__).resolve().parents[1]/'infra/aws'
  before_hash='0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d'
  after_hash='2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f'
- before_raw=(root/f'customer-role-{before_hash}.json').read_bytes()
- after_raw=(root/f'customer-role-{after_hash}.json').read_bytes()
- assert hashlib.sha256(before_raw).hexdigest()==before_hash
- assert hashlib.sha256(after_raw).hexdigest()==after_hash
+ before_raw=historical_role_bytes(before_hash)
+ after_raw=historical_role_bytes(after_hash)
+ assert hashlib.sha256(before_raw).hexdigest()==historical_derivative_sha256(before_hash)
+ assert hashlib.sha256(after_raw).hexdigest()==historical_derivative_sha256(after_hash)
  before=json.loads(before_raw);after=json.loads(after_raw)
  assert set(after['Resources'])==set(before['Resources'])
  for name,value in before['Resources'].items():
@@ -51,7 +50,7 @@ def test_four_metadata_reads_preserve_previous_policy_partitions_and_trust():
  extra=new[len(old):]
  assert extra==policy.build_policy(set(OPS),include_credential_report_generation=False)['Statement']
  assert {a for row in extra for a in ([row['Action']]if isinstance(row['Action'],str)else row['Action'])}==set(ACTIONS)
- assert all(policy.policy_size(after['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'])<=6144 for i in range(1,5))
+ assert [policy.policy_size(after['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument']) for i in range(1,5)]==[6136,6129,5819,1422]
 
 NEXT_OPS=[('route53resolver','list_firewall_domain_lists'),('sagemaker','list_endpoints'),('sagemaker','describe_endpoint'),('sagemaker','list_monitoring_executions')]
 NEXT_ACTIONS=['route53resolver:ListFirewallDomainLists','sagemaker:ListEndpoints','sagemaker:DescribeEndpoint','sagemaker:ListMonitoringExecutions']
@@ -70,13 +69,12 @@ def test_next_native_reads_are_exact_and_endpoint_metadata_is_account_scoped(ind
 
 def test_next_four_reads_preserve_current_published_role_and_add_only_four_grants():
  from peaso.collectors import aws
- root=Path(__file__).resolve().parents[1]/'infra/aws'
  before_hash='2b6825b57ea8d5a443b35e5fda86bc97eda6324721dcfd002b52a8cf356cd92f'
  after_hash='7da8ecb219db8799e87cab5b4a632f6d40c7e4d6f5cb5c4cd1eea1a6fbdd2fe6'
- before_raw=(root/f'customer-role-{before_hash}.json').read_bytes()
- after_raw=(root/f'customer-role-{after_hash}.json').read_bytes()
- assert hashlib.sha256(before_raw).hexdigest()==before_hash
- assert hashlib.sha256(after_raw).hexdigest()==after_hash
+ before_raw=historical_role_bytes(before_hash)
+ after_raw=historical_role_bytes(after_hash)
+ assert hashlib.sha256(before_raw).hexdigest()==historical_derivative_sha256(before_hash)
+ assert hashlib.sha256(after_raw).hexdigest()==historical_derivative_sha256(after_hash)
  before=json.loads(before_raw);after=json.loads(after_raw)
  assert set(NEXT_OPS)<=set(aws.READ_ACTIONS)
  assert set(after['Resources'])==set(before['Resources'])
@@ -89,4 +87,4 @@ def test_next_four_reads_preserve_current_published_role_and_add_only_four_grant
  extra=new[len(old):]
  assert extra==policy.build_policy(set(NEXT_OPS),include_credential_report_generation=False)['Statement']
  assert {a for row in extra for a in ([row['Action']]if isinstance(row['Action'],str)else row['Action'])}==set(NEXT_ACTIONS)
- assert all(policy.policy_size(after['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'])<=6144 for i in range(1,5))
+ assert [policy.policy_size(after['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument']) for i in range(1,5)]==[6136,6129,5819,1976]
