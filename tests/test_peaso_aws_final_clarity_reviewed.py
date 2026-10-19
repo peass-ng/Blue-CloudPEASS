@@ -1,3 +1,4 @@
+from tests.observed_evidence_successors import assert_original_evidence_preserved
 """Replay collected source tests and preserve each final AWS presentation contract."""
 from copy import deepcopy
 import gzip
@@ -61,7 +62,7 @@ def test_actual_registered_callback_fixture_verdicts_and_raw_evidence_unchanged(
         item,index=deepcopy(case['item']),deepcopy(case['index'])
         status,evidence=c.evaluate(item,index)
         assert status==expected
-        assert json.loads(json.dumps(evidence))==case['evidence']
+        assert_original_evidence_preserved(cid, json.loads(json.dumps(evidence)), case['evidence'])
         finding={'provider':'aws','check_id':cid,'status':status,'evidence':evidence};before=deepcopy(finding)
         text=evidence_summary(finding)
         assert finding==before

@@ -8,10 +8,10 @@ from peaso.remediation import template
 @pytest.mark.parametrize('provider',['aws','gcp','azure','k8s'])
 def test_network_rule_priority_never_confuses_web_and_admin_ports(provider,port,expected):
     rules={
-        'aws':{'IpProtocol':'tcp','FromPort':port,'ToPort':port},
-        'gcp':{'allowed':[{'IPProtocol':'tcp','ports':[str(port)]}]},
-        'azure':{'properties':{'protocol':'Tcp','destinationPortRange':str(port)}},
-        'k8s':{'ports':[{'protocol':'TCP','port':port}]},
+        'aws':{'IpProtocol':'tcp','FromPort':port,'ToPort':port,'IpRanges':[{'CidrIp':'0.0.0.0/0'}]},
+        'gcp':{'direction':'INGRESS','sourceRanges':['0.0.0.0/0'],'allowed':[{'IPProtocol':'tcp','ports':[str(port)]}]},
+        'azure':{'properties':{'protocol':'Tcp','destinationPortRange':str(port),'access':'Allow','direction':'Inbound','sourceAddressPrefix':'Internet'}},
+        'k8s':{'from':[{'ipBlock':{'cidr':'0.0.0.0/0'}}],'ports':[{'protocol':'TCP','port':port}]},
     }
     evidence={'rules':[{'native_rule':rules[provider]}]};before=deepcopy(evidence)
     assert network_priority(evidence)==expected
@@ -44,7 +44,7 @@ def test_projection_guidance_is_short_with_commands_and_refs_available(cid,provi
 
 def test_new_analysis_finding_has_specific_description_and_observation():
     resource={'provider':'aws','type':'security_group','id':'sg-1','scope':'123456789012/us-east-1','data':{'GroupId':'sg-1'}}
-    e={'rules':[{'native_rule':{'IpProtocol':'tcp','FromPort':443,'ToPort':443}}]}
+    e={'rules':[{'native_rule':{'IpProtocol':'tcp','FromPort':443,'ToPort':443,'IpRanges':[{'CidrIp':'0.0.0.0/0'}]}}]}
     actual=finding({},resource,'exposure','analysis.network_review','Review rule','high',e)
     assert actual['severity']=='medium'
     assert actual['status']=='MANUAL'

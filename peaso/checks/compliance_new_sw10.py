@@ -532,7 +532,7 @@ def _pod_evaluator(check_id, item, index):
                         subject_ns = _native_optional(subject, 'namespace', binding_ns, str, source=binding)
                         if subject_ns == namespace and subject_name == sa and (binding_ns is None or binding_ns == namespace):
                             matched = True
-        return result(not matched, namespace=namespace, pod=name, service_account=sa)
+        return result(not matched, namespace=namespace, pod=name, service_account=sa, matching_serviceaccount_binding=matched)
     if check_id == 'k8s.cis.consider_external_secret_storage':
         spec = get(item, 'spec', dict)
         if not _full_native(item):
@@ -577,7 +577,7 @@ def _pod_evaluator(check_id, item, index):
                     secret = True
         if not secret:
             return 'NOT_APPLICABLE', {'reason': 'Pod declares no native Secret reference'}
-        return result(not csi, namespace=namespace, pod=name, semantics='Pod declaration only')
+        return result(not csi, namespace=namespace, pod=name, semantics='Pod declaration only', native_secret_reference=True, secrets_store_csi_declared=csi)
     component = COMPONENT_POD_IDS.get(check_id)
     if component:
         flags = _component(item, component)
@@ -593,12 +593,12 @@ def _pod_evaluator(check_id, item, index):
                 pairs[key] = value
             if 'RotateKubeletServerCertificate' not in pairs:
                 return unknown('RotateKubeletServerCertificate declaration missing')
-            return result(pairs['RotateKubeletServerCertificate'] != 'true')
+            return result(pairs['RotateKubeletServerCertificate'] != 'true', rotate_kubelet_server_certificate=pairs['RotateKubeletServerCertificate'])
         if check_id == 'k8s.cis.the_service_account_extend_token_expiration_parameter_is_set_to_false':
             value = get(flags, 'service-account-extend-token-expiration', str)
             if value not in ('true', 'false'):
                 raise Unavailable('boolean component flag malformed')
-            return result(value != 'false')
+            return result(value != 'false', extend_serviceaccount_token_expiration=value)
         if check_id == 'k8s.cis.the_request_timeout_argument_is_set_as_appropriate':
             maximum = _policy(index, 'approved_max_request_timeout', int)
             if not 0 < maximum < (1 << 63):
@@ -657,7 +657,7 @@ def _networkpolicy_evaluator(check_id, item, index):
             values = _native_optional(expression, 'values', [], list, source=item)
             if any(not _label_value(value) for value in values) or (operator in ('In', 'NotIn')) != bool(values):
                 raise Unavailable('matchExpressions values malformed')
-        return result(not labels and not expressions)
+        return result(not labels and not expressions, selector_label_count=len(labels), selector_expression_count=len(expressions))
     raise Unavailable('unhandled NetworkPolicy check')
 
 

@@ -119,7 +119,7 @@ SNAP = {"SnapshotId": "snap-1", "VolumeId": "vol-1", "Encrypted": True, "State":
     note="Both sources join self-owned snapshots by VolumeId; requires the complete ebs_snapshot inventory.")
 def ebs_has_snapshot(item, index):
     vid = get(item, "VolumeId", str)
-    return result(vid not in _snapshot_volume_ids(index), volume_id=vid)
+    return result(not (found := vid in _snapshot_volume_ids(index)), volume_id=vid, snapshot_found=found)
 
 
 PROTECTED = [{"ResourceArn": "arn:aws:ec2:us-east-1:%s:volume/vol-1" % ACCOUNT, "ResourceType": "EBS"},
@@ -141,7 +141,7 @@ def _protected(index, rtype, arn):
     dependencies=["ebs_volume", "backup_protected_resource"])
 def ebs_protected(item, index):
     arn = ec2_arn(index, "volume", get(item, "VolumeId", str))
-    return result(not _protected(index, "EBS", arn), volume_arn=arn)
+    return result(not (found := _protected(index, "EBS", arn)), volume_arn=arn, protected_resource=found)
 
 
 SELECTION = {"BackupPlanId": "plan-1", "SelectionName": "s", "Resources": ["arn:aws:ec2:us-east-1:%s:volume/vol-1" % ACCOUNT], "ListOfTags": []}
@@ -182,7 +182,7 @@ def ebs_in_plan_resources(item, index):
     resources = set()
     for selection in items(index, "backup_selection"):
         resources.update(optional(selection, "Resources", [], list))
-    return result(not ({arn, wildcard, "*"} & resources), volume_arn=arn)
+    return result(not (found := {arn, wildcard, "*"} & resources), volume_arn=arn, backup_selection_match=bool(found))
 
 
 # =========================================================================== EBS snapshots
@@ -551,7 +551,7 @@ def inst_imdsv2_prowler(item, index):
     dependencies=["instance", "backup_protected_resource"])
 def inst_backup(item, index):
     arn = ec2_arn(index, "instance", get(item, "InstanceId", str))
-    return result(not _protected(index, "EC2", arn), instance_arn=arn)
+    return result(not (found := _protected(index, "EC2", arn)), instance_arn=arn, protected_resource=found)
 
 
 @install("aws.claude_a.ec2.instance_no_launch_wizard_sg", "instance", "EC2 instance does not use a launch-wizard security group",
@@ -736,7 +736,7 @@ def inst_ssm(item, index):
         return _na(value)
     iid = get(item, "InstanceId", str)
     managed = any(m.get("InstanceId") == iid for m in items(index, "ssm_managed_instance"))
-    return result(not managed, instance_id=iid)
+    return result(not managed, instance_id=iid, ssm_managed=managed)
 
 
 @install("aws.claude_a.ec2.active_instance_ssm_managed", "instance", "Running EC2 instance is managed by Systems Manager",
@@ -752,7 +752,7 @@ def inst_ssm_prowler(item, index):
         return _na(value)
     iid = get(item, "InstanceId", str)
     managed = any(m.get("InstanceId") == iid for m in items(index, "ssm_managed_instance"))
-    return result(not managed, instance_id=iid)
+    return result(not managed, instance_id=iid, ssm_managed=managed)
 
 
 IMG_USED = {"ImageId": "ami-1", "ImageOwnerAlias": "amazon", "DeprecationTime": "2027-01-01T00:00:00.000Z"}
@@ -943,7 +943,7 @@ def _instance_port_check(ports):
             for rule in list_of_objects(get(sg, "IpPermissions", list)):
                 if prowler_sg_open(rule, "tcp", ports, any_address=True):
                     return result(True, security_group=sg.get("GroupId"), ports=ports)
-        return result(False, ports=ports)
+        return result(False, ports=ports, checked_ports_world_ingress=False)
     return evaluate
 
 
@@ -1060,7 +1060,7 @@ def lt_public_ip(item, index):
                 return result(True, version=version.get("VersionNumber"))
             if nic.get("NetworkInterfaceId"):
                 raise Unavailable("launch template references an existing ENI; its public addressing is not joined")
-    return result(False)
+    return result(False, public_ip_assignment_found=False)
 
 
 LT_INST = w(INST, Tags=[{"Key": "aws:ec2launchtemplate:id", "Value": "lt-1"}],

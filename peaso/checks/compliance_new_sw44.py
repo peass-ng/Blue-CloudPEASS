@@ -211,7 +211,7 @@ def identity_center(item, index):
                 raise Unavailable('unknown identity-store user status')
             if status == 'ENABLED':
                 enabled_assignment = True
-    return result(not enabled_assignment, account_id=account, instance_count=len(instances))
+    return result(not enabled_assignment, account_id=account, instance_count=len(instances), enabled_assignment=enabled_assignment)
 
 
 def resolver_firewall(item, index):

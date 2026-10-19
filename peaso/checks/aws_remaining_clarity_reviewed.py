@@ -2264,16 +2264,16 @@ ROWS = json.loads(r'''
       "summary": "Restrict unnecessary public grants to intended principals and scoped conditions."
     },
     "reviewed_binding": {
-      "closure": {},
-      "constants": {},
       "kind": "backup_vault",
       "module": "peaso.checks.claude2_aws_b_data",
+      "source_qualname": "vault_policy_not_public",
+      "closure": {},
+      "constants": {},
       "predicate_sources": {
         "peaso.checks.claude2_aws_b_common.resource_policy_public": "e675cc9534fc3ddedf4600f65f65d7a21b63d1a02fc3f818132d34cfb969cae5",
         "peaso.checks.claude2_aws_b_data._vault_policy": "b42bbdad89024c0957f3628f2459568fb6f2d5610a59cd39271a206ab1be0462",
-        "peaso.checks.claude2_aws_b_data.vault_policy_not_public": "828cf99cb762d9c3f9748136e8f033bc5ecb5cf24ee9194f07316611f76732b6"
-      },
-      "source_qualname": "vault_policy_not_public"
+        "peaso.checks.claude2_aws_b_data.vault_policy_not_public": "61e1e4b05c8f788c3139a35fa0eeb0f4d9caa95064c6973b72abb830633c830a"
+      }
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "high",
@@ -3056,18 +3056,18 @@ ROWS = json.loads(r'''
       "summary": "Review the matching attribute and remove unnecessary public restore sharing."
     },
     "reviewed_binding": {
+      "kind": "rds_cluster_snapshot",
+      "module": "peaso.checks.claude2_aws_b_data",
+      "source_qualname": "docdb_snap_public",
       "closure": {},
       "constants": {
         "_CSNAP": "Attributes.DBClusterSnapshotAttributesResult.DBClusterSnapshotAttributes"
       },
-      "kind": "rds_cluster_snapshot",
-      "module": "peaso.checks.claude2_aws_b_data",
       "predicate_sources": {
         "peaso.checks.claude2_aws_b_data._docdb": "cfe5341d32b49a184c33908500790570bbca9d88ea07cbad31f81bc77d32c2b8",
         "peaso.checks.claude2_aws_b_data._snap_values": "a98dfa571c0376038d5cc0b7272349d60489c910961e0d7b31e22a4acb0507b6",
-        "peaso.checks.claude2_aws_b_data.docdb_snap_public": "a4047b7861c039eab70ae7aa974bc5ab0c63af12b2d770d257fc50d278810f51"
-      },
-      "source_qualname": "docdb_snap_public"
+        "peaso.checks.claude2_aws_b_data.docdb_snap_public": "61014358e4e6e34e0fd9cdaf98b1082de1e5d54e300b923e2a35bd4c17565cda"
+      }
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "critical",
@@ -3254,19 +3254,19 @@ ROWS = json.loads(r'''
       "summary": "Restrict only grants that exceed intended access; retain required partner-account access."
     },
     "reviewed_binding": {
-      "closure": {},
-      "constants": {},
       "kind": "dynamodb_table",
       "module": "peaso.checks.claude2_aws_b_data",
+      "source_qualname": "table_cross_account",
+      "closure": {},
+      "constants": {},
       "predicate_sources": {
         "peaso.checks.claude2_aws_b_common.detail": "24ef79499457c6519547eeb2b5dff453ac3347e57347cde5b7f4ac8e54452ab4",
         "peaso.checks.claude2_aws_b_data._table_body": "bb844f120eb692ac7894392c400fdbdd0be3e74244c8cb8a0a9cc12421d2cf99",
-        "peaso.checks.claude2_aws_b_data.table_cross_account": "d33605468f52d980177c17e7017a857ad35fe425342bc8df7e48b1389561502a",
+        "peaso.checks.claude2_aws_b_data.table_cross_account": "86d888d170f2ee779b8f42ea9d2de4fca3bd374ce20dd8665e5157308465089a",
         "peaso.checks.claude_aws_b_common.account": "e81980f4cab1bc0e206f42709aa2bc53c5ac0c54268c8cc9c11f58853bbc7bb0",
         "peaso.checks.claude_aws_b_common.is_policy_public": "80a33609944bd0a1df87c7b89bdc31093d82fc9a5544183e6926e7f4ef38032f",
         "peaso.checks.claude_aws_b_common.policy_document": "66644913c85538bcae6068f3403b52bc1e153cd29e05373531224ce905ac4e13"
-      },
-      "source_qualname": "table_cross_account"
+      }
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
@@ -3319,19 +3319,19 @@ ROWS = json.loads(r'''
       "summary": "Configure a backup selection that actually includes the table, checking both tag keys and values."
     },
     "reviewed_binding": {
-      "closure": {},
-      "constants": {},
       "kind": "dynamodb_table",
       "module": "peaso.checks.claude2_aws_b_data",
+      "source_qualname": "table_selected_or_tag",
+      "closure": {},
+      "constants": {},
       "predicate_sources": {
         "peaso.checks.claude2_aws_b_data._selections": "ade400deaecb37a025fb65b90887ade0b1ef1820c75a00e1ccbf27fea5131b70",
         "peaso.checks.claude2_aws_b_data._table_body": "bb844f120eb692ac7894392c400fdbdd0be3e74244c8cb8a0a9cc12421d2cf99",
         "peaso.checks.claude2_aws_b_data._table_tags": "ccf186e3170e38237a5c9e23cbc093028a25eb634e5c0e548175d301d2bb5658",
         "peaso.checks.claude2_aws_b_data._table_wildcards": "9d9cd72386829ef59b4e80edd47373ddb38aba753cd7cab94d4dfaee87cdc9df",
-        "peaso.checks.claude2_aws_b_data.table_selected_or_tag": "1e8566b4348f378a193aa5f65664b8649986f5b2b64a29d8e1f8d2f55d289422",
+        "peaso.checks.claude2_aws_b_data.table_selected_or_tag": "beab6861a0a605e5344dba21cede6ed55ef24ebcb90adfcb5aa984158c2fa1c8",
         "peaso.checks.claude_aws_b_common.strings": "14c4269098c145ff223dcc31ee6a7df80e81230a33a0c0efa5893c2b77e2ade2"
-      },
-      "source_qualname": "table_selected_or_tag"
+      }
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
@@ -3353,17 +3353,17 @@ ROWS = json.loads(r'''
       "summary": "Include the table in a suitable backup selection if scheduled protection is required."
     },
     "reviewed_binding": {
-      "closure": {},
-      "constants": {},
       "kind": "dynamodb_table",
       "module": "peaso.checks.claude2_aws_b_data",
+      "source_qualname": "table_selected",
+      "closure": {},
+      "constants": {},
       "predicate_sources": {
         "peaso.checks.claude2_aws_b_data._table_body": "bb844f120eb692ac7894392c400fdbdd0be3e74244c8cb8a0a9cc12421d2cf99",
         "peaso.checks.claude2_aws_b_data._table_wildcards": "9d9cd72386829ef59b4e80edd47373ddb38aba753cd7cab94d4dfaee87cdc9df",
-        "peaso.checks.claude2_aws_b_data.table_selected": "0e2071c3775f3b99ab5c5f73ef6db53dfe9a49758b90c8ebf935b3e99fa661c8",
+        "peaso.checks.claude2_aws_b_data.table_selected": "876639b285ef5528cb1e120985e36b481659982ea512cfdc0e9553f9914df58b",
         "peaso.checks.claude_aws_b_common.selection_resources": "1b3f6f283ebba3632ce1b69c735699e6bed8b19e30a0ef64ec89dec3a64c0443"
-      },
-      "source_qualname": "table_selected"
+      }
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
@@ -3385,16 +3385,16 @@ ROWS = json.loads(r'''
       "summary": "Configure suitable backup protection if this table requires it."
     },
     "reviewed_binding": {
-      "closure": {},
-      "constants": {},
       "kind": "dynamodb_table",
       "module": "peaso.checks.claude2_aws_b_data",
+      "source_qualname": "table_protected",
+      "closure": {},
+      "constants": {},
       "predicate_sources": {
         "peaso.checks.claude2_aws_b_data._table_body": "bb844f120eb692ac7894392c400fdbdd0be3e74244c8cb8a0a9cc12421d2cf99",
-        "peaso.checks.claude2_aws_b_data.table_protected": "6da8a4855307e6ed9c71d6e81f011bfede8fb26dcd35012295cacebf98849bac",
+        "peaso.checks.claude2_aws_b_data.table_protected": "8005f404eb0902296ab22c36d24f2488c3cee45dcc2b78a0f1d7b000726b0d86",
         "peaso.checks.claude_aws_b_common.protected_resources": "e0e174f9b196b5ecb5bea300e5462b559f383bac0dbdf1d15759ad76513ceca8"
-      },
-      "source_qualname": "table_protected"
+      }
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",

@@ -387,7 +387,7 @@ def _cloudwatch_integration(item, index):
     _arn(destination, service="logs", account=scope.split("/")[0], region=scope.split("/")[1])
     _arn(role, service="iam", account=scope.split("/")[0])
     allowed = _delivery_permission(index, scope, role, destination)
-    return result(not allowed, trail_arn=identity, log_group_arn=destination,
+    return result(not allowed, trail_arn=identity, log_group_arn=destination, simulation_allowed=allowed,
                   semantics="IAM simulation for CloudTrail log stream creation and event delivery")
 
 

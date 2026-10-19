@@ -124,9 +124,9 @@ def test_snapshot_attribute_names_are_not_public_attribute_values(cid):
     for branch in ['pass','fail']:
         status,evidence=CHECK_BY_ID[cid].evaluate(deepcopy(cases[branch]),deepcopy(cases.get(branch+'_index',cases.get('index',{}))))
         outcomes.append(evidence)
-        assert evidence=={'attributes':['restore']}
-        assert evidence_summary({'provider':'aws','status':'FAIL','check_id':cid,'evidence':evidence}) is None
-    assert outcomes[0]==outcomes[1]
+        assert evidence=={'attributes':['restore'], 'public_attribute': branch=='fail'}
+        assert evidence_summary({'provider':'aws','status':'FAIL','check_id':cid,'evidence':{'attributes':['restore']}}) is None
+    assert outcomes[0] != outcomes[1]
     assert evidence_summary({'provider':'aws','status':'FAIL','check_id':cid,'evidence':{'attributes':['restore'],'public_attribute_value_detected':True}})
 
 @pytest.mark.parametrize('cid',['aws.cb.rds.instance_default_master_username','aws.cb.rds.instance_multi_az_or_cluster'])

@@ -109,7 +109,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "ebs_volume",
       "predicate_qualname": "ebs_has_snapshot",
-      "predicate_source_sha256": "6ec587e998295a226c90958fcdd546d4d103e9a7bb746fc1b3279df245aa5fd4",
+      "predicate_source_sha256": "6f5b7cf030bc3c8eca95b0a3554062273081848284a74c0924835fdface88a78",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -136,7 +136,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "ebs_volume",
       "predicate_qualname": "ebs_protected",
-      "predicate_source_sha256": "a00d521029aa981f206225f087b6a528ed29092adc2be2859fc90f51c4b889f5",
+      "predicate_source_sha256": "7dbe66e090c6fa725e638d7b8f78425068cd8fd6ebaaba6263dde45ecbf27a40",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -190,7 +190,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "ebs_volume",
       "predicate_qualname": "ebs_in_plan_resources",
-      "predicate_source_sha256": "20b63c3b5c6ef2b4bc64398e182c35b80c313fc506bc5ac7805bdad8295454d9",
+      "predicate_source_sha256": "9c8437fba9371f761bdb29436ec1ff14bdff0aaee7df02b47d57a93da7400b8e",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -827,7 +827,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "inst_backup",
-      "predicate_source_sha256": "403732657c373669871fd2dcbdf9985d7188236ed4b9a3a90f3cd1c502d7e2ee",
+      "predicate_source_sha256": "6a6c47caee3aa306c2ba034a2171bbb231ae3af5a2453d026a5b6321c00f8349",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -1182,7 +1182,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "inst_ssm",
-      "predicate_source_sha256": "e32dc9d382e9d05d54bfbfaeccad1837188c81695dfa09bd1b221aad0f0a63f5",
+      "predicate_source_sha256": "362ba363259ee4e62760a433ddd34f9684120638bb8505766595b7ba4c301686",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -1209,7 +1209,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "inst_ssm_prowler",
-      "predicate_source_sha256": "c109506e8fa94e072170989423ea73d6774ebedac9f76388993bbd575368e6ef",
+      "predicate_source_sha256": "0f306b6c24660fdae0f8cde93d6bbe000a923da1dd338bbbe541ff280b166f72",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -1414,7 +1414,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           7000,
@@ -1449,7 +1449,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           139,
@@ -1481,7 +1481,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           9200,
@@ -1514,7 +1514,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           20,
@@ -1546,7 +1546,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           9092
@@ -1577,7 +1577,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           88,
@@ -1611,7 +1611,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           389,
@@ -1643,7 +1643,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           11211
@@ -1674,7 +1674,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           27017,
@@ -1706,7 +1706,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           3306
@@ -1737,7 +1737,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           1521,
@@ -1770,7 +1770,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           5432
@@ -1801,7 +1801,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           3389
@@ -1832,7 +1832,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           6379
@@ -1863,7 +1863,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           1433,
@@ -1895,7 +1895,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           22
@@ -1926,7 +1926,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "_instance_port_check.<locals>.evaluate",
-      "predicate_source_sha256": "7fc96b5c089b86dfbaff558af2e1c528d83f5e2b21d3fb1221c6437585c7af7e",
+      "predicate_source_sha256": "654811e74a8389bae376e9b8236a1b059667834ababefcbd57b33dc77461e055",
       "closure": {
         "ports": [
           23
@@ -2046,7 +2046,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "ec2_launch_template",
       "predicate_qualname": "lt_public_ip",
-      "predicate_source_sha256": "68ea821ce764e876d9baf55ac7011132bd52f3c2017d37ca9af6c5372e779c7b",
+      "predicate_source_sha256": "8332f08efa39fe32e335dc47c20ffe0f09dcc378174d6d4e2cc44ed6fc981fc0",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -2128,7 +2128,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "bucket",
       "predicate_qualname": "prowler_bucket_level",
-      "predicate_source_sha256": "2f6bc40604d3b965d92422aa411d7aed9b3336e7eac0c431eed2b1f5d62b1fee",
+      "predicate_source_sha256": "7ad2bac6eaaadac09a8bccb2348a8d83c921f8becd53c8468b47e8d78a540f72",
       "closure": {}
     }
   },
@@ -4496,7 +4496,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "efs_file_system",
       "predicate_qualname": "efs_protected",
-      "predicate_source_sha256": "edfa6512c4ad898dca416e25ade9370492696f917bc887dd870b5bce39519c49",
+      "predicate_source_sha256": "4397f9c2f3690acc68ad8cf00c5b791ef6bbed9142fd38c660e0bcf8fefc7907",
       "closure": {}
     }
   },
@@ -5909,7 +5909,7 @@ ROWS = json.loads(r'''
       "delegates": [
         {
           "qualname": "autoscaling",
-          "sha256": "063a4d53f0bad8e2d3ed237b6b8bfaf196575d6911854ac525f32c7b2978e4e7"
+          "sha256": "e2a1bd45a62b0a736e2999f12bc636b345930704c3d43089fce3c079bcdabc65"
         }
       ]
     }
@@ -6325,7 +6325,7 @@ ROWS = json.loads(r'''
       "delegates": [
         {
           "qualname": "_admin",
-          "sha256": "e8e3f4a8dde044eb881bbfbee2db7904f7c077f64ab0a749d188cfd2840c901a"
+          "sha256": "9e7485240d026315b5a8e354ce03272e57309c1f3c861f26a53802d5f34d7117"
         }
       ]
     }

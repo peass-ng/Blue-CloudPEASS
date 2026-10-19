@@ -724,7 +724,7 @@ def v2_http_redirect(item, index):
         return result(True, http_listeners_without_redirect=plain)
     if unresolved:
         return unknown("listener rules or actions incomplete", listeners=unresolved)
-    return result(False)
+    return result(False, http_listeners_without_redirect=[])
 
 
 def _acl_arns(index, kind):

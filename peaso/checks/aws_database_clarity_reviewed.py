@@ -882,7 +882,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "rds_snapshot",
       "predicate_qualname": "_snapshots.<locals>.prowler_public",
-      "predicate_source_sha256": "12126517e7aaddf3e3ca2fbcc3da468ddc8da10f7264c236a9c15212c1688400"
+      "predicate_source_sha256": "022e9444e49fd3e4caffda51540f6eaf9f4c1f906c0098b0a44d3601b0e63f14"
     }
   },
   "aws.cb.rds.instance_snapshot_shared_accounts_review": {
@@ -953,7 +953,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "rds_cluster_snapshot",
       "predicate_qualname": "_snapshots.<locals>.prowler_public",
-      "predicate_source_sha256": "12126517e7aaddf3e3ca2fbcc3da468ddc8da10f7264c236a9c15212c1688400"
+      "predicate_source_sha256": "022e9444e49fd3e4caffda51540f6eaf9f4c1f906c0098b0a44d3601b0e63f14"
     }
   },
   "aws.cb.rds.cluster_snapshot_shared_accounts_review": {

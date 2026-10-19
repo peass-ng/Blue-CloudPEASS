@@ -254,7 +254,7 @@ def literal_secret_env(item, index):
     if undetermined:
         return unknown("literal env value redacted without a length; re-collect with the current collector",
                        env_needing_review=undetermined)
-    return result(False, value_recorded=False)
+    return result(False, value_recorded=False, literal_credential_env=[])
 
 
 cases(track(kid("pod.no_literal_secret_env")),

@@ -88,7 +88,12 @@ policy_public("cloudrun_service_restrict_public_access", "cloudrun_service", inv
 def dataset_public(item, index):
     # datasets.get omits an empty ACL; absent is [] only on a full representation.
     access = list_of_objects(omitted(item, "access", [], list))
+    public = sorted({value for row in access for value in
+                     (row.get("specialGroup"), row.get("iamMember"))
+                     if value in ("allAuthenticatedUsers", "allUsers") and
+                     (row.get("specialGroup") == "allAuthenticatedUsers" or row.get("iamMember") == "allUsers")})
     return result(any(row.get("specialGroup") == "allAuthenticatedUsers" or row.get("iamMember") == "allUsers" for row in access),
+        public_acl_principals=public,
         semantics="Dataset public ACL declarations; authorized views and effective permissions are separate")
 
 
@@ -131,7 +136,7 @@ def sql_address(query, criterion):
             public_incoming = [value for value in types if value in ("PRIMARY", "MIGRATED_1ST_GEN")]
             return result(bool(public_incoming), address_types=types, public_incoming_types=public_incoming,
                 private_incoming_present="PRIVATE" in types, outgoing_source_present="OUTGOING" in types,
-                semantics="No observed public incoming SQL IP in the collected address declarations; OUTGOING is an outbound source and does not prove a private incoming endpoint or effective reachability")
+                semantics="Incoming public/private and outgoing source address declarations; network reachability is separate")
         # The other pinned source variants did not assess migrated V1 addresses.
         # Do not silently mark one safe when PRIMARY is absent.
         if "MIGRATED_1ST_GEN" in types and "PRIMARY" not in types:

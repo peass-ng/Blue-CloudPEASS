@@ -159,7 +159,7 @@ def network_namespace(query, direction, requires_deny):
         def per_policy(item, index):
             spec = get(item, "spec", dict)
             rules = list_of_objects(optional(spec, direction.lower(), [], list))
-            return result(any(rule == {} for rule in rules), direction=direction,
+            return result(any(rule == {} for rule in rules), direction=direction, unrestricted_rule_indexes=[i for i, rule in enumerate(rules) if rule == {}],
                 semantics="This policy declares an unrestricted peer/port rule for its selected pods; policy union and CNI enforcement are separate")
         named("networkpolicy", query, "NetworkPolicy avoids an unrestricted " + direction + " rule", per_policy,
             {"spec": {direction.lower(): []}}, {"spec": {direction.lower(): [{}]}})

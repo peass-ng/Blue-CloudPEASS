@@ -282,7 +282,7 @@ def _admin(item,index):
     if get(analysis,'collection_status',str)!='collected' or get(analysis,'role_arn',str)!=get(role,'Arn',str) or get(analysis,'complete',bool) is not True:
         raise Unavailable('effective role policy analysis incomplete')
     admin=get(analysis,'unconditional_action_resource_star',bool)
-    return result(admin,function_arn=arn,role_arn=get(role,'Arn',str))
+    return result(admin,function_arn=arn,role_arn=get(role,'Arn',str), unconditional_admin=admin)
 
 
 def _secrets(item,index):

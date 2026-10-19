@@ -490,7 +490,7 @@ def coverage(index, probes, global_events, strict):
                 raise Unavailable("trail log group belongs to another account")
             if _log_group_covered(row, region, account, group, probes, strict):
                 if logging is True:
-                    return result(False, trail=trail.get("TrailARN"), log_group=group, region=region)
+                    return result(False, trail=trail.get("TrailARN"), log_group=group, region=region, matching_metric_alarm=True, trail_logging=True)
                 unknown.append("trail logging status unavailable")
         except Unavailable as exc:
             unknown.append(str(exc))

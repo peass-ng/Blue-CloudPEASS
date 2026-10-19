@@ -1,3 +1,4 @@
+from tests.observed_evidence_successors import assert_original_evidence_preserved
 """Hash-bound guidance and independent native/signed-fixture callback replay."""
 from copy import deepcopy
 import gzip
@@ -88,7 +89,7 @@ def test_independent_native_and_signed_wave_fixture_replay(cid):
         item,index=deepcopy((case['item'],case['index']))
         status,evidence=CHECK_BY_ID[cid].evaluate(item,index)
         assert status==expected,(cid,expected,status,evidence)
-        assert json.loads(json.dumps(evidence,sort_keys=True))==case['evidence']
+        assert_original_evidence_preserved(cid, json.loads(json.dumps(evidence)), case['evidence'])
         finding={'provider':'aws','status':status,'check_id':cid,'evidence':evidence};before=deepcopy(finding)
         summary=evidence_summary(finding)
         if status != 'FAIL':assert summary is None

@@ -871,7 +871,7 @@ for _kind in ("rds_snapshot", "rds_cluster_snapshot"):
             if skip:
                 return "NOT_APPLICABLE", skip
             attrs = _snap_attrs(item, path)
-            return result(any("all" in values for _, values in attrs), attributes=[n for n, _ in attrs])
+            return result(public := any("all" in values for _, values in attrs), attributes=[n for n, _ in attrs], public_attribute=public)
 
         @install("aws.cb.rds." + label + "_snapshot_shared_accounts_review", kind, "RDS " + label + " snapshot is not shared outside the account without review",
             _snap(kind, []), _snap(kind, [], extra={}) , rows=[X + "rds_db_snapshot_shared_with_trusted_accounts"], severity="medium", category="exposure", control="AC-3",

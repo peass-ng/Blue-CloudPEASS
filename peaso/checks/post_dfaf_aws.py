@@ -105,7 +105,10 @@ def peering(item,index):
     if state!='active':
         if state not in ('initiating-request','pending-acceptance','provisioning','failed','rejected','expired','deleting','deleted'):raise Unavailable('unknown peering state')
         return 'NOT_APPLICABLE',{'reason':'peering is not active'}
-    return all_rows(['RequesterVpcInfo','AccepterVpcInfo'],lambda side:result(not get(item,side+'.PeeringOptions.AllowDnsResolutionFromRemoteVpc',bool)))
+    outcome = all_rows(['RequesterVpcInfo','AccepterVpcInfo'],lambda side:result(not (enabled := get(item,side+'.PeeringOptions.AllowDnsResolutionFromRemoteVpc',bool)), peering_side=side, remote_dns_resolution=enabled))
+    if outcome[0] == 'PASS':
+        return outcome[0], {'dns_options': {side: get(item,side+'.PeeringOptions.AllowDnsResolutionFromRemoteVpc',bool) for side in ('RequesterVpcInfo','AccepterVpcInfo')}}
+    return outcome
 
 
 def efs(item,index):
@@ -164,8 +167,11 @@ def listeners(item,index):
         if protocol not in ('HTTP','HTTPS','TCP','TLS','UDP','TCP_UDP','GENEVE','QUIC','TCP_QUIC'):raise Unavailable('unknown protocol')
         if protocol not in ('HTTPS','TLS'):return result(True,protocol=protocol)
         certs=list_of_objects(get(listener,'Certificates',list))
-        return result(not any(get(c,'CertificateArn',str) for c in certs),protocol=protocol)
-    return all_rows(list_of_objects(envelope.get('items')),check,status in ('collected','empty') and (items_coverage or {}).get('status')!='partial')
+        return result(not (has_cert := any(get(c,'CertificateArn',str) for c in certs)),protocol=protocol,certificate_configured=has_cert)
+    outcome = all_rows(list_of_objects(envelope.get('items')),check,status in ('collected','empty') and (items_coverage or {}).get('status')!='partial')
+    if outcome[0] == 'PASS':
+        return outcome[0], {'listener_protocols': [row['Protocol'] for row in envelope['items']], 'evaluated_listener_count': len(envelope['items'])}
+    return outcome
 
 
 def certificate(item,index):
@@ -181,7 +187,7 @@ def certificate(item,index):
         t=datetime.fromisoformat(v.replace('Z','+00:00'))
         if t.tzinfo is None:raise Unavailable('date timezone missing')
         return t.astimezone(timezone.utc)
-    return result(date(get(detail,'expirationDate',str))<=date(get(index,'context.created_at',str)))
+    return result(date(get(detail,'expirationDate',str))<=date(get(index,'context.created_at',str)), certificate_expires_at=get(detail,'expirationDate',str), evaluation_time=get(index,'context.created_at',str))
 
 
 def monitoring(item,index):
@@ -206,7 +212,7 @@ def shield_response(item,index):
     if get(p,'Id',str)!=get(item,'Id',str):raise Unavailable('foreign protection detail')
     state=get(p,'ApplicationLayerAutomaticResponse.Status',str)
     if state not in ('ENABLED','DISABLED'):raise Unavailable('unknown Shield response state')
-    return result(state!='ENABLED')
+    return result(state!='ENABLED', response_status=state)
 
 
 def shield_health(item,index):
@@ -222,7 +228,8 @@ def shield_health(item,index):
         if row.get('collection_status')!='collected':raise Unavailable('health check read unavailable')
         if get(row,'HealthCheck.Id',str)!=identity:raise Unavailable('foreign health-check identity')
         return result(False)
-    return all_rows(ids,check)
+    outcome = all_rows(ids,check)
+    return (outcome[0], dict(outcome[1], verified_health_check_ids=ids)) if outcome[0]=='PASS' else outcome
 
 
 def retention(item,index):
@@ -256,7 +263,7 @@ def autoscaling(item,index):
         if 'InstanceRequirements' in row or 'InstanceType' not in row:unresolved=True;continue
         types.add(get(row,'InstanceType',str))
     if '' in types:raise Unavailable('empty instance type')
-    if len(types)>=2:return result(False)
+    if len(types)>=2:return result(False, instance_types=sorted(types), availability_zones=zones)
     if unresolved or not overrides:raise Unavailable('effective launch-template type selection unresolved')
     return result(True,reason='one explicit instance type')
 

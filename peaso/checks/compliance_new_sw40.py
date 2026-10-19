@@ -464,7 +464,7 @@ def _policy_attachment(item, index):
                 return result(False, active_attachment=role)
     if users:
         return result(False, active_attachment=users[0])
-    return result(True, policy_arn=arn)
+    return result(True, policy_arn=arn, usable_attachment=False)
 
 
 def _nonconsole_mfa(item, index):
