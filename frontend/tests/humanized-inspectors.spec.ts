@@ -21,7 +21,7 @@ test("completed scan details render bounded labeled facts and paged coverage", a
     await route.fulfill({ json });
   });
   await page.goto("/#Scans");
-  await page.getByRole("button", { name: "scan-humanized", exact: true }).click();
+  await page.locator(".scan-row .scan-id").nth(0).click();
   const inspector = page.locator("dialog.inspector");
   await expect(inspector.getByRole("heading", { name: "Scan details", exact: true })).toBeVisible();
   await expect(inspector.getByText("Connector ID")).toBeVisible();
@@ -43,7 +43,7 @@ test("completed scan details render bounded labeled facts and paged coverage", a
   await page.screenshot({ path: "evidence/scan-details-readable-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: "evidence/scan-details-readable-mobile.png", fullPage: true });
-  await page.getByRole("button", { name: "scan-short", exact: true }).evaluate((button) => (button as HTMLButtonElement).click());
+  await page.locator(".scan-row .scan-id").nth(1).evaluate((button) => (button as HTMLButtonElement).click());
   await expect(inspector.getByText("connector-two")).toBeVisible();
   await expect(inspector.getByText("Record 3")).toBeVisible();
   await expect(inspector.getByText("Records 21–40 of 55")).toHaveCount(0);
@@ -62,7 +62,7 @@ test("deep fields remain readable and a failed scan error never echoes JSON or c
   await page.goto("/#Scans");
   await expect(page.getByRole("alert").getByText("HTTP 422: A <tag> could not be validated")).toBeVisible();
   await expect(page.getByText('"token"')).toHaveCount(0);
-  await page.getByRole("button", { name: "scan-deep", exact: true }).click();
+  await page.locator(".scan-row .scan-id").first().click();
   const inspector = page.locator("dialog.inspector");
   for (let index = 0; index < 6; index++) await inspector.getByRole("button", { name: "Show 1 supplied fields" }).last().click();
   await inspector.getByRole("button", { name: "Show deeper supplied fields" }).click();

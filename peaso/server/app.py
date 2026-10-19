@@ -591,7 +591,26 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def scans(user=Depends(identity)):
         if user.auth_kind != "api_key":
             store.expire()
-        return {"items": store.jobs(user.tenant_id)}
+        # Jobs contain the frozen connector input, including deleted connectors.
+        # Decrypt each distinct identity once; return only the human name.
+        hints = {}
+        return {"items": store.jobs(user.tenant_id, transform=lambda row: public_scan(row, hints))}
+
+    def public_scan(row, hints=None):
+        from .scan_names import display_name, identity_hint
+        from cryptography.fernet import InvalidToken
+        value = store.public_job(row)
+        frozen = json.loads(row["connector"])
+        data = frozen["data"]
+        cache = hints if hints is not None else {}
+        scopes = data.get("scopes") or []
+        key = (data.get("provider"), frozen.get("auth"), tuple(scopes))
+        if key not in cache:
+            try:
+                cache[key] = identity_hint(data.get("provider"), cipher.decrypt(frozen["auth"]), scopes)
+            except (InvalidToken, ValueError, TypeError, KeyError):
+                cache[key] = (None, [], None)
+        return dict(value, display_name=display_name(value, data, cache[key]))
 
     def attack_source(body, user):
         if body.kind == "aws_cloudtrail_s3" and (not body.bucket or not body.prefix or not body.prefix.endswith("/")):
@@ -749,7 +768,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def scan(ident: str, user=Depends(identity)):
         if user.auth_kind != "api_key":
             store.expire()
-        return store.public_job(store.job(user.tenant_id, ident))
+        return public_scan(store.job(user.tenant_id, ident))
 
     @app.post("/api/scans/{ident}/cancel")
     def cancel(ident: str, user=Depends(identity)):

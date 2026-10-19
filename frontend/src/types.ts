@@ -139,6 +139,7 @@ export type Report = {
 };
 export type Scan = {
   id: string;
+  display_name?: string;
   connector_id: string;
   status: string;
   created_at: string;
