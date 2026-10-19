@@ -16,6 +16,10 @@ MANIFEST=json.loads(Path(__file__).with_suffix('.json').read_text())
 def install():
     import peaso.checks as registry
     baseline=tuple(CHECKS);baseline_ids={c.id for c in baseline};aliases=dict(CHECK_ALIASES);register=registry.register
+    # Check equality includes its ID; unrelated IDs cannot compare equal.
+    # Keep all same-ID candidates to preserve equality even with duplicates.
+    baseline_by_id={}
+    for check in baseline:baseline_by_id.setdefault(check.id,[]).append(check)
     expected=set(MANIFEST['checks'])
     if expected & baseline_ids:raise RuntimeError('bulk admission overlaps a published native ID')
     captured={};namespace='peaso.checks._bulk_pending_'
@@ -27,7 +31,8 @@ def install():
             decorate=register(ident,*args,**kwargs)
             def isolated(function):
                 if function.__module__==alias:
-                    CHECKS[:]=[c for c in CHECKS if c.id!=ident or c not in baseline]
+                    if ident in baseline_by_id:
+                        CHECKS[:]=[c for c in CHECKS if c.id!=ident or c not in baseline_by_id[ident]]
                     if ident in aliases:CHECK_ALIASES.pop(ident,None)
                 return decorate(function)
             return isolated

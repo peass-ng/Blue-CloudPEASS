@@ -8,6 +8,10 @@ so an unknown selector key can never silently widen or narrow a target set.
 from __future__ import annotations
 
 import functools
+from collections import OrderedDict
+from copy import deepcopy
+import sys
+from threading import RLock
 import re
 from pathlib import Path
 
@@ -16,6 +20,97 @@ import yaml
 # LibYAML's safe constructor preserves the schema while avoiding the large
 # temporary parser graphs of the Python implementation. Keep a safe fallback.
 SAFE_YAML_LOADER = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
+
+
+# Parsed documents are private; every consumer validates a fresh deep copy.
+# The key includes exact freshly read contents and the selected safe parser.
+# Path/mtime caches cannot safely establish catalog contents or provenance.
+_PARSED_YAML_MAX_DOCUMENTS = 512
+_PARSED_YAML_MAX_SOURCE_BYTES = 4 * 1024 * 1024
+_PARSED_YAML_MAX_GRAPH_BYTES = 16 * 1024 * 1024
+_PARSED_YAML_CACHE = OrderedDict()
+_PARSED_YAML_SOURCE_BYTES = 0
+_PARSED_YAML_GRAPH_BYTES = 0
+_PARSED_YAML_LOCK = RLock()
+
+
+def _graph_bytes(value):
+    """Bound retained object graphs, including aliases/cycles, once per miss."""
+    seen = set()
+    def visit(item):
+        identity = id(item)
+        if identity in seen:
+            return 0
+        seen.add(identity)
+        total = sys.getsizeof(item)
+        if isinstance(item, dict):
+            total += sum(visit(k) + visit(v) for k, v in item.items())
+        elif isinstance(item, (list, tuple, set, frozenset)):
+            total += sum(visit(v) for v in item)
+        return total
+    return visit(value)
+
+
+def _clear_parsed_yaml_cache():
+    global _PARSED_YAML_SOURCE_BYTES, _PARSED_YAML_GRAPH_BYTES
+    with _PARSED_YAML_LOCK:
+        _PARSED_YAML_CACHE.clear()
+        _PARSED_YAML_SOURCE_BYTES = _PARSED_YAML_GRAPH_BYTES = 0
+
+
+def _parsed_yaml_cache_info():
+    with _PARSED_YAML_LOCK:
+        return {"documents": len(_PARSED_YAML_CACHE),
+                "source_bytes": _PARSED_YAML_SOURCE_BYTES,
+                "graph_bytes": _PARSED_YAML_GRAPH_BYTES}
+
+
+def _catalog_document(text):
+    """Return caller-owned data and an optional uncommitted parsed candidate.
+
+    Invalid YAML is never cached. The loader commits a candidate only after
+    its complete per-file schema validation succeeds. Independent strict
+    loading and versioned catalog verification remain unchanged.
+    """
+    key = (SAFE_YAML_LOADER, text)
+    with _PARSED_YAML_LOCK:
+        cached = _PARSED_YAML_CACHE.get(key)
+        if cached is not None:
+            _PARSED_YAML_CACHE.move_to_end(key)
+    if cached is not None:
+        return deepcopy(cached[0]), None
+    parsed = yaml.load(text, Loader=SAFE_YAML_LOADER)
+    return deepcopy(parsed), (key, parsed)
+
+
+def _remember_catalog_document(candidate):
+    global _PARSED_YAML_SOURCE_BYTES, _PARSED_YAML_GRAPH_BYTES
+    if candidate is None:
+        return
+    key, parsed = candidate
+    source_bytes = len(key[1].encode("utf-8"))
+    if source_bytes > _PARSED_YAML_MAX_SOURCE_BYTES:
+        return
+    graph_bytes = _graph_bytes(parsed)
+    if graph_bytes > _PARSED_YAML_MAX_GRAPH_BYTES:
+        return
+    with _PARSED_YAML_LOCK:
+        if key in _PARSED_YAML_CACHE:
+            _PARSED_YAML_CACHE.move_to_end(key)
+            return
+        while _PARSED_YAML_CACHE and (
+                len(_PARSED_YAML_CACHE) >= _PARSED_YAML_MAX_DOCUMENTS or
+                _PARSED_YAML_SOURCE_BYTES + source_bytes > _PARSED_YAML_MAX_SOURCE_BYTES or
+                _PARSED_YAML_GRAPH_BYTES + graph_bytes > _PARSED_YAML_MAX_GRAPH_BYTES):
+            _, (_, old_source, old_graph) = _PARSED_YAML_CACHE.popitem(last=False)
+            _PARSED_YAML_SOURCE_BYTES -= old_source
+            _PARSED_YAML_GRAPH_BYTES -= old_graph
+        if _PARSED_YAML_MAX_DOCUMENTS < 1:
+            return
+        _PARSED_YAML_CACHE[key] = (parsed, source_bytes, graph_bytes)
+        _PARSED_YAML_SOURCE_BYTES += source_bytes
+        _PARSED_YAML_GRAPH_BYTES += graph_bytes
+
 
 PROVIDERS = ("aws", "gcp", "azure", "k8s")
 CATALOG_DIR = Path(__file__).resolve().parent / "catalog"
@@ -1509,13 +1604,18 @@ def load_catalog(catalog_dir=None, *, strict=False, hacktricks_root=None):
         rel = str(path.relative_to(root))
         provider = path.relative_to(root).parts[0] if len(path.relative_to(root).parts) > 1 else None
         try:
-            data = yaml.load(path.read_text(), Loader=SAFE_YAML_LOADER)
+            # Always read the file again; only content-identical construction
+            # is shared. Hash-bound callers still verify actual file bytes.
+            data, candidate = _catalog_document(path.read_text())
         except yaml.YAMLError as exc:
             errors.append(f"{rel}: YAML parse error: {str(exc).splitlines()[0]}")
             files.append({"file": rel, "entries": 0, "valid": 0})
             continue
         if path.name.startswith("_excluded"):
-            errors.extend(validate_excluded(data, rel))
+            excluded_errors = validate_excluded(data, rel)
+            errors.extend(excluded_errors)
+            if not excluded_errors:
+                _remember_catalog_document(candidate)
             excluded += len(data or [])
             files.append({"file": rel, "entries": 0, "excluded": len(data or [])})
             continue
@@ -1525,6 +1625,7 @@ def load_catalog(catalog_dir=None, *, strict=False, hacktricks_root=None):
             errors.append(f"{rel}: catalog file must be a YAML list")
             continue
         valid = 0
+        error_count = len(errors)
         for index, entry in enumerate(data):
             entry_errors, entry_warnings = validate_entry(entry, expected_provider=provider if provider in PROVIDERS else None,
                                                           hacktricks_root=hacktricks_root)
@@ -1540,6 +1641,8 @@ def load_catalog(catalog_dir=None, *, strict=False, hacktricks_root=None):
                 item["_file"] = rel
                 entries.append(item)
                 valid += 1
+        if len(errors) == error_count:
+            _remember_catalog_document(candidate)
         files.append({"file": rel, "entries": len(data), "valid": valid})
     if strict and errors:
         raise CatalogError("; ".join(errors[:20]))
