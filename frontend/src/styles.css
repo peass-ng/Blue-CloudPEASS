@@ -3495,3 +3495,8 @@ textarea:focus-visible,
 .attack-result pre { max-height:220px; overflow:auto; padding:12px; border-radius:8px; background:#0a1723; font-size:.75rem; }
 @media(max-width:760px) { .attack-form-grid { grid-template-columns:1fr; } }
 @media(max-width:760px) { .network-table-main span { display:none; } .network-table-open { font-size:10px; } }
+
+/* Nodes can be repositioned without changing the saved scan. */
+.pe-canvas .react-flow__node.draggable { cursor: grab; }
+.pe-canvas .react-flow__node.draggable:active,
+.pe-canvas .react-flow__node.dragging { cursor: grabbing; }

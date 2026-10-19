@@ -361,3 +361,56 @@ test.describe("mobile", () => {
     });
   });
 });
+
+
+test("hovering a relationship isolates its arrow and endpoints without moving the map", async ({ page }) => {
+  await openDemoMap(page);
+  await fitAll(page);
+  const edge = page.locator('.react-flow__edge[aria-label^="bob-ci to lambda-exec-role"]');
+  const viewport = page.locator(".react-flow__viewport");
+  await expect.poll(() => viewport.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a)).toBeLessThan(0.62);
+  const before = await viewport.getAttribute("style");
+  await edge.locator(".react-flow__edge-textbg").hover();
+  await expect(edge).toHaveClass(/is-hl/);
+  await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(1);
+  await expect(page.locator(".pe-node.is-hl")).toHaveCount(2);
+  await expect(node(page, "arn:aws:iam::111111111111:role/lambda-exec-role").locator(".pe-node")).toHaveClass(/is-hl/);
+  await expect(page.locator(".pe-node.is-dim").first()).toBeAttached();
+  await expect(page.locator(".react-flow__edge.is-dim").first()).toBeAttached();
+  await expect(viewport).toHaveAttribute("style", before!);
+  await page.getByRole("heading", { name: "Privilege Escalation Map" }).hover();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
+
+  await sidebar(page).getByRole("button", { name: "Who can reach admin" }).click();
+  const pinned = await page.locator(".react-flow__edge.is-hl").evaluateAll((items) => items.map((item) => item.getAttribute("data-id")).sort());
+  await fitAll(page);
+  await edge.locator(".react-flow__edge-textbg").hover();
+  await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(1);
+  await page.getByRole("heading", { name: "Privilege Escalation Map" }).hover();
+  await expect.poll(() => page.locator(".react-flow__edge.is-hl").evaluateAll((items) => items.map((item) => item.getAttribute("data-id")).sort())).toEqual(pinned);
+});
+
+test("dragging a node relocates it and its arrows and survives hover and fit", async ({ page }) => {
+  await openDemoMap(page);
+  await fitAll(page);
+  const movable = node(page, "arn:aws:iam::111111111111:role/lambda-exec-role");
+  const edge = page.locator('.react-flow__edge[aria-label^="bob-ci to lambda-exec-role"]');
+  const before = await movable.getAttribute("style");
+  const oldPath = await edge.locator(".react-flow__edge-path").getAttribute("d");
+  const box = await movable.boundingBox();
+  expect(box).toBeTruthy();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + box!.width / 2 + 90, box!.y + box!.height / 2 + 65, { steps: 12 });
+  await page.mouse.up();
+  await expect(movable).not.toHaveAttribute("style", before!);
+  await expect(edge.locator(".react-flow__edge-path")).not.toHaveAttribute("d", oldPath!);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const relocated = await movable.getAttribute("style");
+  await edge.locator(".react-flow__edge-textbg").hover();
+  await page.getByRole("heading", { name: "Privilege Escalation Map" }).hover();
+  await fitAll(page);
+  await expect(movable).toHaveAttribute("style", relocated!);
+  await movable.click();
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Principal" })).toBeVisible();
+});
