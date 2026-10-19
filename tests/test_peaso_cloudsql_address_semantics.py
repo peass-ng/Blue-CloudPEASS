@@ -43,7 +43,12 @@ def test_outgoing_only_has_no_private_inbound_claim():
     assert evidence["private_incoming_present"] is False
     assert evidence["outgoing_source_present"] is True
     assert evidence["public_incoming_types"] == []
-    assert "does not prove a private incoming endpoint" in evidence["semantics"]
+    assert "Incoming public/private and outgoing source address declarations" in evidence["semantics"]
+    from peaso.finding_observation import evidence_summary
+    observation = evidence_summary({"provider": "gcp", "check_id": CID,
+                                    "status": status, "evidence": evidence})
+    assert "OUTGOING is an outbound source" in observation
+    assert "does not establish a private incoming endpoint" in observation
 
 
 def test_native_address_type_governs_result_across_address_strings():

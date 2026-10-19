@@ -422,6 +422,7 @@ def _unknown(finding,kind):
     if reason=='RBAC bindings contain no system:masters subject; certificate and provider group memberships unobserved':
         return 'No system:masters subject was declared; certificate and provider-group memberships were not collected.'
     if reason=='missing or foreign scoped namespace inventory':return 'The namespace inventory is missing or belongs to another scope.'
+    if reason==f'incomplete or foreign-scope {kind} inventory':return f'The {noun} inventory is incomplete or belongs to another scope.'
     if reason=='snapshot cluster identity missing':return 'The snapshot does not identify the Kubernetes cluster needed for this join.'
     messages={
         'malformed resource quantity':'A declared CPU or memory quantity could not be interpreted.',
