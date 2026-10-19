@@ -604,10 +604,15 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         data = frozen["data"]
         cache = hints if hints is not None else {}
         scopes = data.get("scopes") or []
-        key = (data.get("provider"), frozen.get("auth"), tuple(scopes))
+        # Historical/imported jobs may not retain encrypted credentials. Naming
+        # is optional metadata and must not make their list/detail unavailable.
+        encrypted_auth = frozen.get("auth")
+        encrypted_auth = encrypted_auth if isinstance(encrypted_auth, str) else None
+        key = (data.get("provider"), encrypted_auth, tuple(scopes))
         if key not in cache:
             try:
-                cache[key] = identity_hint(data.get("provider"), cipher.decrypt(frozen["auth"]), scopes)
+                private = cipher.decrypt(encrypted_auth) if encrypted_auth else {}
+                cache[key] = identity_hint(data.get("provider"), private, scopes)
             except (InvalidToken, ValueError, TypeError, KeyError):
                 cache[key] = (None, [], None)
         return dict(value, display_name=display_name(value, data, cache[key]))
