@@ -300,15 +300,62 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                                bundle.get("remediation_templates"))
 
     def with_remediation(finding, bundle):
+        from peaso.checks.catalog import description_for
+        from peaso.finding_presentation import refresh_finding_presentation, evaluator_contract_fingerprint
+        from peaso.remediation import bind_command, exposure_details, template as current_template
+        finding = with_meta(finding, check_fields(bundle), bundle)
+        cid = finding.get("check_id")
         templates = bundle.get("remediation_templates") or {}
-        template = templates.get(finding.get("check_id")) if isinstance(templates, dict) else None
-        if not isinstance(template, dict):
+        archived = templates.get(cid) if isinstance(templates, dict) else None
+        if isinstance(archived, dict):
+            details = dict(archived)
+            details["cli"] = [dict(command, code=bind_command(command["code"], finding))
+                              for command in archived.get("cli", [])
+                              if isinstance(command, dict) and isinstance(command.get("code"), str)]
+            finding = dict(finding, remediation_details=details)
+        reviewed = current_template(cid, finding.get("provider")) if isinstance(cid, str) else None
+        if isinstance(cid, str) and cid.startswith("analysis."):
+            # These projections describe explicit stored witness fields, not a
+            # current re-evaluation of archived provider configuration.
+            finding = dict(finding, guidance_refresh={"version": "archived-finding-presentation-v1",
+                "status": "evidence_projection", "allow_summary": True})
+            if isinstance(reviewed, dict):
+                details = dict(finding.get("remediation_details") or {"cli": []})
+                details.update({key: reviewed[key] for key in ("summary", "steps", "caveats") if key in reviewed})
+                if not details.get("references") and reviewed.get("references"):
+                    details["references"] = reviewed["references"]
+                finding = dict(finding, remediation=reviewed["summary"], remediation_details=details)
+            allow_summary = True
+        elif description_for(cid) is None:
+            # Unowned projections (including privilege analysis) retain their
+            # original presentation; native-check proof is not applicable.
+            allow_summary = True
+        else:
+            finding, allow_summary = refresh_finding_presentation(finding, description_for(cid), reviewed,
+                archived_template=archived, current_evaluator_contract=evaluator_contract_fingerprint())
+        if not allow_summary:
             return finding
-        from peaso.remediation import bind_command
-        details = dict(template)
-        details["cli"] = [dict(command, code=bind_command(command["code"], finding))
-                          for command in template.get("cli", []) if isinstance(command, dict) and isinstance(command.get("code"), str)]
-        return dict(finding, remediation_details=details)
+        from peaso.checks.k8s_component_finding_summary import component_evidence_summary
+        from peaso.checks.k8s_workload_finding_summary import workload_evidence_summary
+        from peaso.checks.k8s_gc_threshold_source_correction import evidence_summary as gc_evidence_summary
+        from peaso.checks.gcp_remaining_finding_summary import evidence_summary as gcp_evidence_summary
+        from peaso.checks.aws_database_clarity_reviewed import evidence_summary as database_evidence_summary
+        from peaso.analysis.finding_clarity import evidence_summary as analysis_evidence_summary
+        from peaso.checks.azure_bulk_finding_summary import evidence_summary as azure_bulk_evidence_summary
+        from peaso.checks.aws_remaining_finding_summary import evidence_summary as aws_remaining_evidence_summary
+        from peaso.checks.aws_final_clarity_reviewed import evidence_summary as final_aws_evidence_summary
+        from peaso.checks.aws_bulk_finding_summary import evidence_summary as bulk_aws_evidence_summary
+        from peaso.checks.aws_compute_storage_finding_summary import evidence_summary as compute_aws_evidence_summary
+        observation = (final_aws_evidence_summary(finding) or bulk_aws_evidence_summary(finding)
+                       or compute_aws_evidence_summary(finding) or aws_remaining_evidence_summary(finding)
+                       or azure_bulk_evidence_summary(finding) or analysis_evidence_summary(finding)
+                       or database_evidence_summary(finding) or component_evidence_summary(finding)
+                       or workload_evidence_summary(finding) or gc_evidence_summary(finding)
+                       or gcp_evidence_summary(finding))
+        if observation:
+            finding = dict(finding, evidence_summary=observation)
+        details = finding.get("remediation_details")
+        return dict(finding, remediation_details=exposure_details(finding, details)) if isinstance(details, dict) else finding
 
     @lru_cache(maxsize=4)
     def finding_index(tenant, report_reference, references):
@@ -884,9 +931,13 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                             # The artifact is intentionally served directly for large evidence. Attach only
                             # the reviewed, bounded remediation template from this authorized manifest;
                             # native evidence never crosses into its command placeholders.
-                            detail = with_remediation(value, bundle).get("remediation_details")
-                            if isinstance(detail, dict) and len(json.dumps(detail).encode()) <= 64 * 1024:
-                                envelope["remediation_details"] = detail
+                            presented = with_remediation(value, bundle)
+                            from peaso.finding_presentation import PRESENTATION_FIELDS
+                            presentation = {key: presented[key] for key in PRESENTATION_FIELDS if key in presented}
+                            if len(json.dumps(presentation).encode()) <= 64 * 1024:
+                                envelope["finding_presentation"] = presentation
+                                if isinstance(presentation.get("remediation_details"), dict):
+                                    envelope["remediation_details"] = presentation["remediation_details"]
                             return envelope
                         return with_remediation(artifacts.get(user.tenant_id, value["_detail_reference"]), bundle)
                     if len(json.dumps(value).encode()) > 4 * 1024 * 1024 and hasattr(artifacts, "presign"):

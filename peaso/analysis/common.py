@@ -102,12 +102,21 @@ def source(snapshot, resource, path):
 
 
 def finding(snapshot, resource, category, check, title, severity, evidence, *, status="MANUAL"):
-    return {"id": stable_id(category, check, node_id(resource)),
+    from .finding_clarity import HOW, ACTION, evidence_summary, network_priority
+    if check == "analysis.network_review":
+        severity = network_priority(evidence, severity)
+    result = {"id": stable_id(category, check, node_id(resource)),
             "category": category, "check_id": check, "title": title,
             "provider": resource["provider"], "service": resource.get("service", resource["type"]),
             "resource_id": resource.get("id", native_id(resource)), "scope": resource["scope"], "severity": severity,
             "status": status, "frameworks": list(FRAMEWORKS), "evidence": _share(evidence),
-            "remediation": "Have the resource owner validate business need, conditions, inheritance, and usage coverage; narrow grants or exposure only after review and a tested rollback plan."}
+            "remediation": ACTION.get(check, "Review the recorded access declaration before changing it.")}
+    if check in HOW:
+        result["description"] = HOW[check]
+    summary = evidence_summary(result)
+    if summary:
+        result["evidence_summary"] = summary
+    return result
 
 
 def _share(value):

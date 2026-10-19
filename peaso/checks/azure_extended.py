@@ -51,7 +51,8 @@ def _blob(item):
 def blob_versioning(item, index):
     if not _blob(item):
         return "NOT_APPLICABLE", {"reason": "This is not a blob service"}
-    return result(not get(item, "properties.isVersioningEnabled", bool), semantics="Versioning configuration; retained backup quality is not verified")
+    enabled = get(item, "properties.isVersioningEnabled", bool)
+    return result(not enabled, versioning_enabled=enabled, semantics="Versioning configuration; retained backup quality is not verified")
 CASES["azure.storage.blob_versioning"] = {"pass": {"type": "Microsoft.Storage/storageAccounts/blobServices", "properties": {"isVersioningEnabled": True}}, "fail": {"type": "Microsoft.Storage/storageAccounts/blobServices", "properties": {"isVersioningEnabled": False}}}
 
 
@@ -71,7 +72,8 @@ CASES["azure.storage.blob_soft_delete_retention"] = {"pass": {"type": "Microsoft
 def container_soft_delete(item, index):
     if not _blob(item):
         return "NOT_APPLICABLE", {"reason": "This is not a blob service"}
-    return result(not get(item, "properties.containerDeleteRetentionPolicy.enabled", bool), semantics="Container soft delete configured; retention adequacy is separate")
+    enabled = get(item, "properties.containerDeleteRetentionPolicy.enabled", bool)
+    return result(not enabled, container_soft_delete_enabled=enabled, semantics="Container soft delete configured; retention adequacy is separate")
 CASES["azure.storage.container_soft_delete"] = {"pass": {"type": "Microsoft.Storage/storageAccounts/blobServices", "properties": {"containerDeleteRetentionPolicy": {"enabled": True}}}, "fail": {"type": "Microsoft.Storage/storageAccounts/blobServices", "properties": {"containerDeleteRetentionPolicy": {"enabled": False}}}}
 
 

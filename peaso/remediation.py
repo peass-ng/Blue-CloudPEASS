@@ -168,6 +168,51 @@ def rules() -> dict:
     from .checks.cloudtrail_management_description_overlay import remediation as trail_remediation
     if "aws.cloudtrail.management_events" in value:
         value["aws.cloudtrail.management_events"] = trail_remediation(value["aws.cloudtrail.management_events"])
+    from .checks.finding_clarity_reviewed import ROWS as clarity_rows, remediation as concise_remediation
+    from .checks.gcp_firewall_clarity_reviewed import ROWS as firewall_rows, remediation as firewall_remediation
+    for check_id in clarity_rows:
+        value[check_id] = concise_remediation(check_id, value.get(check_id))
+    for check_id in firewall_rows:
+        value[check_id] = firewall_remediation(check_id, value.get(check_id))
+    from .checks.k8s_finding_clarity_reviewed import ROWS as k8s_rows, remediation as k8s_remediation
+    from .checks.azure_finding_clarity_reviewed import ROWS as azure_rows, remediation as azure_remediation
+    for check_id in k8s_rows:
+        value[check_id] = k8s_remediation(check_id, value.get(check_id))
+    for check_id in azure_rows:
+        value[check_id] = azure_remediation(check_id, value.get(check_id))
+    from .checks.aws_finding_clarity_reviewed import ROWS as aws_rows, remediation as aws_remediation
+    for check_id in aws_rows:
+        value[check_id] = aws_remediation(check_id, value.get(check_id))
+    from .checks.gcp_scalar_clarity_reviewed import ROWS as scalar_rows, remediation as scalar_remediation
+    for check_id in scalar_rows:
+        value[check_id] = scalar_remediation(check_id, value.get(check_id))
+    from .checks.k8s_workload_clarity_reviewed import ROWS as workload_rows, remediation as workload_remediation
+    for check_id in workload_rows:
+        value[check_id] = workload_remediation(check_id, value.get(check_id))
+    from .checks.k8s_gc_threshold_source_correction import ROWS as gc_rows, remediation as gc_remediation
+    for check_id in gc_rows:
+        value[check_id] = gc_remediation(check_id, value.get(check_id))
+    from .checks.gcp_remaining_clarity_reviewed import ROWS as gcp_remaining_rows, remediation as gcp_remaining_remediation
+    for check_id in gcp_remaining_rows:
+        value[check_id] = gcp_remaining_remediation(check_id, value.get(check_id))
+    from .checks.aws_database_clarity_reviewed import ROWS as database_rows, remediation as database_remediation
+    for check_id in database_rows:
+        value[check_id] = database_remediation(check_id, value.get(check_id))
+    from .checks.azure_bulk_clarity_reviewed import ROWS as bulk_rows, remediation as bulk_remediation
+    for check_id in bulk_rows:
+        value[check_id] = bulk_remediation(check_id, value.get(check_id))
+    from .checks.aws_remaining_clarity_reviewed import ROWS as remaining_rows, remediation as remaining_remediation
+    for check_id in remaining_rows:
+        value[check_id] = remaining_remediation(check_id, value.get(check_id))
+    from .checks.aws_final_clarity_reviewed import ROWS as final_rows, remediation as final_remediation
+    for check_id in final_rows:
+        value[check_id] = final_remediation(check_id, value.get(check_id))
+    from .checks.aws_bulk_clarity_reviewed import ROWS as final_rows, remediation as final_remediation
+    for check_id in final_rows:
+        value[check_id] = final_remediation(check_id, value.get(check_id))
+    from .checks.aws_compute_storage_clarity_reviewed import ROWS as final_rows, remediation as final_remediation
+    for check_id in final_rows:
+        value[check_id] = final_remediation(check_id, value.get(check_id))
     return value
 
 
@@ -183,12 +228,13 @@ def template(check_id: str, provider: str | None = None) -> dict | None:
     if check_id == "azure_vm_8_2_1_1_712e1ad" and provider in (None, "azure"):
         from .checks.azure_vm_ssh_source_correction import (REMEDIATION, SOURCE_URL,
                                                               correction_provenance)
-        return {"review_status": "approved", "summary": REMEDIATION,
+        from .checks.azure_bulk_clarity_reviewed import dynamic_remediation
+        return dynamic_remediation(check_id, {"review_status": "approved", "summary": REMEDIATION,
                 "steps": ["Review the complete VM launch SSH public-key array and the applicable source criterion with the asset owner.",
                           "If this criterion is adopted, update the approved VM deployment configuration and verify the recorded array is explicitly empty."],
                 "caveats": ["This criterion does not establish effective guest SSH or password authentication."],
                 "references": [{"title": "Original Azure PCI source at pinned revision", "url": SOURCE_URL}],
-                "source_correction": correction_provenance()}
+                "source_correction": correction_provenance()})
     value = rules().get(f"{check_id}@{provider}") if provider else None
     if value is None:
         value = rules().get(check_id)
@@ -315,6 +361,33 @@ def bind_command(code: str, finding: dict) -> str:
     return _PLACEHOLDER.sub(lambda match: shlex.quote(bound[match.group(1)]) if match.group(1) in bound else match.group(), code)
 
 
+def exposure_action(evidence, status):
+    """One next action from an exposure finding; never interpret an UNKNOWN as open."""
+    evidence = evidence if isinstance(evidence, dict) else {}
+    if status in ("UNKNOWN", "DENIED", "MANUAL", "EMPTY"):
+        return "Collect the missing configuration before deciding whether access needs to change."
+    if status == "PASS":
+        return "Keep the access restrictions in place."
+    if evidence.get("exposure_kind") == "external_share" or evidence.get("external_scope_ids"):
+        return "Restrict snapshot restore access to the accounts that need it."
+    if evidence.get("data_exposure"):
+        source = evidence.get("source") if isinstance(evidence.get("source"), dict) else {}
+        if source.get("resource_type") in ("rds_snapshot", "rds_cluster_snapshot"):
+            return "Remove public snapshot restore access; share only with the accounts that need it."
+        return "If public data access is unnecessary, restrict the granting policy or ACL to the readers that need it."
+    if evidence.get("exposure_kind") == "control_plane":
+        return "Restrict control-plane access to the source networks that need it."
+    return "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
+
+
+def exposure_details(finding, details):
+    """Adapt presentation without changing stored evidence, verdicts or shared templates."""
+    if finding.get("check_id") != "analysis.internet_exposure" or not isinstance(details, dict):
+        return details
+    action = exposure_action(finding.get("evidence"), finding.get("status"))
+    return dict(details, summary=action, steps=[action])
+
+
 def details_for(check_id: str, finding: dict | None = None, provider: str | None = None) -> dict | None:
     value = template(check_id, provider or (finding or {}).get("provider"))
     if value is None:
@@ -322,7 +395,7 @@ def details_for(check_id: str, finding: dict | None = None, provider: str | None
     result = {key: item for key, item in value.items() if key not in {"review_status", "field_binding", "proposed_spec_sha256"}}
     if finding:
         result["cli"] = [dict(command, code=bind_command(command["code"], finding)) for command in value.get("cli", [])]
-    return result
+    return exposure_details(finding, result) if finding else result
 
 
 def report_templates(check_ids, provider: str | None = None) -> dict[str, dict]:

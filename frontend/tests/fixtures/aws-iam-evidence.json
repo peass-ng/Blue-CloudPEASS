@@ -1,0 +1,1051 @@
+[
+  {
+    "id": "aws.a.iam.attached_policy_no_star_star",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "wildcard_statement_count": 0,
+      "semantics": "Declared source literals including conditioned statements; denies, boundaries and effective access are not simulated"
+    }
+  },
+  {
+    "id": "aws.a.iam.attached_policy_no_star_star",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "wildcard_statement_count": 1,
+      "semantics": "Declared source literals including conditioned statements; denies, boundaries and effective access are not simulated"
+    }
+  },
+  {
+    "id": "aws.a.iam.attached_policy_no_star_star",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AttachmentCount"
+    }
+  },
+  {
+    "id": "aws.a.iam.attached_policy_no_star_star",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.console_key_created_at_setup",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "console_enabled": true,
+      "first_key_rotation": "null"
+    }
+  },
+  {
+    "id": "aws.a.iam.console_key_created_at_setup",
+    "case": "fail",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "last rotation cannot establish when the first access key was created"
+    }
+  },
+  {
+    "id": "aws.a.iam.console_key_created_at_setup",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: password_enabled"
+    }
+  },
+  {
+    "id": "aws.a.iam.console_key_created_at_setup",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.group_no_cloudshell_full_access",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_attachment_count": 0,
+      "semantics": "Exact source managed-policy ARN test; no inference about effective CloudShell permissions"
+    }
+  },
+  {
+    "id": "aws.a.iam.group_no_cloudshell_full_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_attachment_count": 1,
+      "semantics": "Exact source managed-policy ARN test; no inference about effective CloudShell permissions"
+    }
+  },
+  {
+    "id": "aws.a.iam.group_no_cloudshell_full_access",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AttachedManagedPolicies"
+    }
+  },
+  {
+    "id": "aws.a.iam.group_no_cloudshell_full_access",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_expiry_at_most_90",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MaxPasswordAge",
+      "configured": 90
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_expiry_at_most_90",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MaxPasswordAge",
+      "configured": 91
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_expiry_at_most_90",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_expiry_at_most_90",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_lowercase",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "RequireLowercaseCharacters",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_lowercase",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "RequireLowercaseCharacters",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_lowercase",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_lowercase",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_minimum_length_14",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MinimumPasswordLength",
+      "configured": 14
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_minimum_length_14",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MinimumPasswordLength",
+      "configured": 13
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_minimum_length_14",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_minimum_length_14",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_numbers",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "RequireNumbers",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_numbers",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "RequireNumbers",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_numbers",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_numbers",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_reuse_at_least_24",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PasswordReusePrevention",
+      "configured": 24
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_reuse_at_least_24",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PasswordReusePrevention",
+      "configured": 23
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_reuse_at_least_24",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_reuse_at_least_24",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_strong_min_length_8",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "minimum_password_length": 8,
+      "composition": {
+        "RequireLowercaseCharacters": true,
+        "RequireUppercaseCharacters": true,
+        "RequireNumbers": true,
+        "RequireSymbols": true
+      },
+      "minimum": 8
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_strong_min_length_8",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "minimum_password_length": 8,
+      "composition": {
+        "RequireLowercaseCharacters": true,
+        "RequireUppercaseCharacters": true,
+        "RequireNumbers": true,
+        "RequireSymbols": false
+      },
+      "minimum": 8
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_strong_min_length_8",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_strong_min_length_8",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_symbols",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "RequireSymbols",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_symbols",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "RequireSymbols",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_symbols",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_symbols",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_uppercase",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "RequireUppercaseCharacters",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_uppercase",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "RequireUppercaseCharacters",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_uppercase",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.iam.password_policy_uppercase",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.report_all_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "mfa_active": true
+    }
+  },
+  {
+    "id": "aws.a.iam.report_all_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "mfa_active": false
+    }
+  },
+  {
+    "id": "aws.a.iam.report_all_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: mfa_active"
+    }
+  },
+  {
+    "id": "aws.a.iam.report_all_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.report_console_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "password_enabled": true,
+      "mfa_active": true
+    }
+  },
+  {
+    "id": "aws.a.iam.report_console_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "password_enabled": true,
+      "mfa_active": false
+    }
+  },
+  {
+    "id": "aws.a.iam.report_console_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: password_enabled"
+    }
+  },
+  {
+    "id": "aws.a.iam.report_console_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.role_no_cloudshell_full_access",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_attachment_count": 0,
+      "semantics": "Exact source managed-policy ARN test; no inference about effective CloudShell permissions"
+    }
+  },
+  {
+    "id": "aws.a.iam.role_no_cloudshell_full_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_attachment_count": 1,
+      "semantics": "Exact source managed-policy ARN test; no inference about effective CloudShell permissions"
+    }
+  },
+  {
+    "id": "aws.a.iam.role_no_cloudshell_full_access",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AttachedManagedPolicies"
+    }
+  },
+  {
+    "id": "aws.a.iam.role_no_cloudshell_full_access",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.root_console_summary_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "root_console_enabled": true,
+      "root_mfa_enabled": true
+    }
+  },
+  {
+    "id": "aws.a.iam.root_console_summary_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "root_console_enabled": true,
+      "root_mfa_enabled": false
+    }
+  },
+  {
+    "id": "aws.a.iam.root_console_summary_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SummaryMap.AccountPasswordPresent"
+    }
+  },
+  {
+    "id": "aws.a.iam.root_console_summary_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "account_mfa_enabled": 1
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "account_mfa_enabled": 0
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SummaryMap.AccountMFAEnabled"
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_no_keys",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "account_access_keys_present": 0
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_no_keys",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "account_access_keys_present": 1
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_no_keys",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SummaryMap.AccountAccessKeysPresent"
+    }
+  },
+  {
+    "id": "aws.a.iam.root_summary_no_keys",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.server_certificate_expiry_date",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "expires_at": "2027-01-01T00:00:00+00:00",
+      "cutoff": "2026-10-09T23:59:59+00:00",
+      "comparison": "<"
+    }
+  },
+  {
+    "id": "aws.a.iam.server_certificate_expiry_date",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "expires_at": "2026-01-01T00:00:00+00:00",
+      "cutoff": "2026-10-09T23:59:59+00:00",
+      "comparison": "<"
+    }
+  },
+  {
+    "id": "aws.a.iam.server_certificate_expiry_date",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Expiration"
+    }
+  },
+  {
+    "id": "aws.a.iam.server_certificate_expiry_date",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_cloudshell_full_access",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_attachment_count": 0,
+      "semantics": "Exact source managed-policy ARN test; no inference about effective CloudShell permissions"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_cloudshell_full_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_attachment_count": 1,
+      "semantics": "Exact source managed-policy ARN test; no inference about effective CloudShell permissions"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_cloudshell_full_access",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AttachedManagedPolicies"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_cloudshell_full_access",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_direct_policies",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "managed_attachment_count": 0,
+      "inline_policy_count": 0,
+      "semantics": "Direct attachments only; group membership and effective permissions are separate"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_direct_policies",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "managed_attachment_count": 1,
+      "inline_policy_count": 0,
+      "semantics": "Direct attachments only; group membership and effective permissions are separate"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_direct_policies",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AttachedManagedPolicies"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_direct_policies",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_managed_policies",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "managed_attachment_count": 0,
+      "inline_policy_count": 0,
+      "semantics": "Direct attachments only; group membership and effective permissions are separate"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_managed_policies",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "managed_attachment_count": 1,
+      "inline_policy_count": 0,
+      "semantics": "Direct attachments only; group membership and effective permissions are separate"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_managed_policies",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AttachedManagedPolicies"
+    }
+  },
+  {
+    "id": "aws.a.iam.user_no_managed_policies",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_blocked_kms_actions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statement_rows": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_blocked_kms_actions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statement_rows": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_blocked_kms_actions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_blocked_kms_actions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_blocked_kms_actions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statement_rows": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_blocked_kms_actions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statement_rows": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_blocked_kms_actions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RoleName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_blocked_kms_actions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_blocked_kms_actions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statement_rows": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_blocked_kms_actions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statement_rows": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_blocked_kms_actions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: UserName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_blocked_kms_actions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.nist.all_iam_policies_no_star_star",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_policy_sources": [],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws.nist.all_iam_policies_no_star_star",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_policy_sources": [
+        "arn:aws:iam::123456789012:policy/Test"
+      ],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws.nist.all_iam_policies_no_star_star",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws.nist.all_iam_policies_no_star_star",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws.nist.all_managed_policies_no_service_wildcard",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_policy_sources": [],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws.nist.all_managed_policies_no_service_wildcard",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_policy_sources": [
+        "arn:aws:iam::123456789012:policy/Test"
+      ],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws.nist.all_managed_policies_no_service_wildcard",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws.nist.all_managed_policies_no_service_wildcard",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_service_wildcard",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_policy_sources": [],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_service_wildcard",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_policy_sources": [
+        "arn:aws:iam::123456789012:policy/Test"
+      ],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_service_wildcard",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_service_wildcard",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_star_star",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_policy_sources": [],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_star_star",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_policy_sources": [
+        "arn:aws:iam::123456789012:policy/Test"
+      ],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_star_star",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_g6_iam_all_policy_star_star",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_nist_iam_all_policy_no_service_wild_card",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_policy_sources": [],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_nist_iam_all_policy_no_service_wild_card",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_policy_sources": [
+        "arn:aws:iam::123456789012:policy/Test"
+      ],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_nist_iam_all_policy_no_service_wild_card",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_nist_iam_all_policy_no_service_wild_card",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_nist_iam_policy_no_star_star",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_policy_sources": [],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_nist_iam_policy_no_star_star",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_policy_sources": [
+        "arn:aws:iam::123456789012:policy/Test"
+      ],
+      "scanned_statements": 1,
+      "semantics": "Customer-managed default policies, attached or unattached; pinned Steampipe literal wildcard SQL"
+    }
+  },
+  {
+    "id": "aws_nist_iam_policy_no_star_star",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  },
+  {
+    "id": "aws_nist_iam_policy_no_star_star",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: context"
+    }
+  }
+]

@@ -39,6 +39,14 @@ REVIEWED_CLOUDTRAIL_EQUIVALENT = {
         ("nist_800_53_revision_5_aws", "au_12_c"),
     }),
 }
+# Evidence-only successor: _trail_scan adds decisive FAIL evidence; all status
+# paths and 138 original/current registered-fixture outcomes remain unchanged.
+# Keep the historical whole-file pin and reject any unlisted successor.
+REVIEWED_CLOUDTRAIL_RUNTIME_SUCCESSORS = {
+    "6830c3b72df05ae820d9bd96b04dc7741708bb2d29aa30a8e1b3816d397a6fda": frozenset({
+        "adc455960545fafeda8f73855c5612e80290541b72e1117f026082deabf246b4",
+    }),
+}
 REVIEWED_RDS_CLUSTER_EQUIVALENT = {
     "id": "aws_fedramp_rds_cluster_members_enhanced_monitoring",
     "survivor": "aws.nist.rds_cluster_member_enhanced_monitoring",
@@ -108,12 +116,13 @@ def _reviewed_rds_registered_declaration(native):
     actual = native.get(survivor, {})
     source = Path(__file__).resolve().parent.parent / "peaso/checks/remaining_aws_gcp_native.py"
     registered = [check for check in CHECKS if check.id == survivor]
+    from peaso.finding_priority import source_priority
     wanted = {"provider": "aws", "type": "rds_cluster", "category": "hardening", "severity": "medium", "target": "resource"}
     if (len(registered) != 1 or actual.get("id") != survivor or actual.get("provider") != "aws" or
             expected["id"] in native or CHECK_ALIASES.get(expected["id"]) != survivor or
             digest(source.read_bytes()) not in ({expected["source_sha256"]} |
                 REVIEWED_RDS_RUNTIME_SUCCESSORS.get(expected["source_sha256"], frozenset())) or
-            any(field in actual and actual[field] != value for field, value in wanted.items())):
+            any(field in actual and (source_priority(actual) if field == "severity" else actual[field]) != value for field, value in wanted.items())):
         raise ValueError("Reviewed RDS duplicate registration or source changed")
     check = registered[0]
     if ((check.provider, check.kind, check.category, check.severity, check.target, tuple(check.declared_dependencies)) !=
@@ -138,6 +147,7 @@ def _reviewed_rds_signed_specs(proposed):
 def reviewed_equivalent_proposal(spec: dict, framework_id: str, requirement_id: str,
                                  native: dict) -> str | None:
     """Return a reviewed existing evaluator for an exact signed duplicate."""
+    from peaso.finding_priority import source_priority
     expected_rds = REVIEWED_RDS_CLUSTER_EQUIVALENT
     if spec["id"] == expected_rds["id"]:
         survivor = expected_rds["survivor"]
@@ -158,9 +168,10 @@ def reviewed_equivalent_proposal(spec: dict, framework_id: str, requirement_id: 
                 (spec["provider"], spec["resource_kind"], spec["category"], spec["severity"]) !=
                 ("aws", "cloudtrail_trail", "logging", "medium") or
                 (actual.get("provider"), actual.get("type"), actual.get("category"),
-                 actual.get("severity"), actual.get("target")) !=
+                 source_priority(actual), actual.get("target")) !=
                 ("aws", "cloudtrail", "hardening", "high", "scope") or
-                digest(source.read_bytes()) != expected["source_sha256"] or spec["id"] in native):
+                digest(source.read_bytes()) not in ({expected["source_sha256"]} |
+                    REVIEWED_CLOUDTRAIL_RUNTIME_SUCCESSORS.get(expected["source_sha256"], frozenset())) or spec["id"] in native):
             raise ValueError("Reviewed CloudTrail duplicate proposal changed")
         return survivor
     expected = REVIEWED_EQUIVALENT_PROPOSAL
@@ -173,7 +184,7 @@ def reviewed_equivalent_proposal(spec: dict, framework_id: str, requirement_id: 
             actual.get("provider") != spec["provider"] or
             actual.get("type") != spec["resource_kind"] or
             actual.get("category") != spec["category"] or
-            actual.get("severity") != spec["severity"] or
+            source_priority(actual) != spec["severity"] or
             actual.get("target") != "resource" or spec["id"] in native):
         raise ValueError("Reviewed Redshift duplicate proposal changed")
     return survivor
@@ -196,6 +207,12 @@ def catalog_with_registered_checks(native_catalog: dict, checks) -> dict:
         raise ValueError("Native catalogue contains an unregistered check")
     if any(row.get("provider") != registered[cid].provider for cid, row in indexed.items()):
         raise ValueError("Native catalogue provider differs from registry")
+    from peaso.finding_priority import source_priority
+    for cid, row in indexed.items():
+        if "severity_review" in row:
+            source_severity = source_priority(row)
+            if source_severity != getattr(registered[cid], "severity", None):
+                raise ValueError("Native catalogue signed source priority differs from registry")
     additions = [{"id": cid, "provider": registered[cid].provider, "title": registered[cid].title}
                  for cid in sorted(set(registered) - set(indexed))]
     return {**native_catalog, "checks": [*stored, *additions]}
@@ -488,6 +505,7 @@ def compile_verified(ledger_root: Path, audit_matrix: dict, native_catalog: dict
     if canonical or REVIEWED_CLOUDTRAIL_EQUIVALENT["id"] in proposed:
         expected_equivalents.update((framework_id, requirement_id, REVIEWED_CLOUDTRAIL_EQUIVALENT["id"])
                                     for framework_id, requirement_id in REVIEWED_CLOUDTRAIL_EQUIVALENT["rows"])
+    from peaso.finding_priority import source_priority
     expected_rds = REVIEWED_RDS_CLUSTER_EQUIVALENT
     if expected_rds["survivor"] in native and (canonical or expected_rds["id"] in proposed):
         _reviewed_rds_signed_specs(proposed)

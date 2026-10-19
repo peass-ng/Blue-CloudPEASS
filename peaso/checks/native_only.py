@@ -67,6 +67,9 @@ def automated_inventory_coverage(coverage, checks):
 
 def external_inventory_types(provider):
     # Host stat data is an operator import; Kubernetes APIs do not return it.
+    if provider == "gcp":
+        # This synthetic projection requires an owner-approved deployment subset.
+        return frozenset({"deployed_image"})
     return frozenset({"file_metadata"}) if provider == "k8s" else frozenset()
 
 

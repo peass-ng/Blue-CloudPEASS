@@ -1,0 +1,960 @@
+[
+  {
+    "id": "aws.cb.shield.classic_load_balancer_protected",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_arn": "arn:aws:elasticloadbalancing:us-east-1:111111111111:loadbalancer/clb",
+      "shield_advanced_protection_found": true
+    }
+  },
+  {
+    "id": "aws.cb.shield.classic_load_balancer_protected",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_arn": "arn:aws:elasticloadbalancing:us-east-1:111111111111:loadbalancer/clb",
+      "shield_advanced_protection_found": false
+    }
+  },
+  {
+    "id": "aws.cb.shield.classic_load_balancer_protected",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: LoadBalancerName"
+    }
+  },
+  {
+    "id": "aws.cb.shield.classic_load_balancer_protected",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.shield.cloudfront_protected",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_arn": "arn:aws:cloudfront::111111111111:distribution/E1",
+      "shield_advanced_protection_found": true
+    }
+  },
+  {
+    "id": "aws.cb.shield.cloudfront_protected",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_arn": "arn:aws:cloudfront::111111111111:distribution/E1",
+      "shield_advanced_protection_found": false
+    }
+  },
+  {
+    "id": "aws.cb.shield.cloudfront_protected",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.shield.cloudfront_protected",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.shield.elastic_ip_protected",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_arn": "arn:aws:ec2:us-east-1:111111111111:eip-allocation/eipalloc-1",
+      "shield_advanced_protection_found": true
+    }
+  },
+  {
+    "id": "aws.cb.shield.elastic_ip_protected",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_arn": "arn:aws:ec2:us-east-1:111111111111:eip-allocation/eipalloc-1",
+      "shield_advanced_protection_found": false
+    }
+  },
+  {
+    "id": "aws.cb.shield.elastic_ip_protected",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AllocationId"
+    }
+  },
+  {
+    "id": "aws.cb.shield.elastic_ip_protected",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.shield.global_accelerator_protected",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_arn": "arn:aws:globalaccelerator::111111111111:accelerator/a",
+      "shield_advanced_protection_found": true
+    }
+  },
+  {
+    "id": "aws.cb.shield.global_accelerator_protected",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_arn": "arn:aws:globalaccelerator::111111111111:accelerator/a",
+      "shield_advanced_protection_found": false
+    }
+  },
+  {
+    "id": "aws.cb.shield.global_accelerator_protected",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AcceleratorArn"
+    }
+  },
+  {
+    "id": "aws.cb.shield.global_accelerator_protected",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.shield.internet_facing_alb_protected",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_arn": "arn:aws:elasticloadbalancing:us-east-1:111111111111:loadbalancer/app/a/1",
+      "shield_advanced_protection_found": true
+    }
+  },
+  {
+    "id": "aws.cb.shield.internet_facing_alb_protected",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_arn": "arn:aws:elasticloadbalancing:us-east-1:111111111111:loadbalancer/app/a/1",
+      "shield_advanced_protection_found": false
+    }
+  },
+  {
+    "id": "aws.cb.shield.internet_facing_alb_protected",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Type"
+    }
+  },
+  {
+    "id": "aws.cb.shield.internet_facing_alb_protected",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.shield.route53_zone_protected",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_arn": "arn:aws:route53:::hostedzone/Z1",
+      "shield_advanced_protection_found": true
+    }
+  },
+  {
+    "id": "aws.cb.shield.route53_zone_protected",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_arn": "arn:aws:route53:::hostedzone/Z1",
+      "shield_advanced_protection_found": false
+    }
+  },
+  {
+    "id": "aws.cb.shield.route53_zone_protected",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Id"
+    }
+  },
+  {
+    "id": "aws.cb.shield.route53_zone_protected",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.automation_logs_to_cloudwatch",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "setting_value": "CloudWatch"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.automation_logs_to_cloudwatch",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "setting_value": "NONE"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.automation_logs_to_cloudwatch",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: ssm_service_settings"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.automation_logs_to_cloudwatch",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.block_public_document_sharing",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "setting_value": "Disable"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.block_public_document_sharing",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "setting_value": "Enable"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.block_public_document_sharing",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: ssm_service_settings"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.block_public_document_sharing",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.document_shared_only_with_trusted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "account_ids": []
+    }
+  },
+  {
+    "id": "aws.cb.ssm.document_shared_only_with_trusted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "account_ids": [
+        "all"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.ssm.document_shared_only_with_trusted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Permissions"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.document_shared_only_with_trusted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_association_compliant",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "items": 1,
+      "non_compliant": 0
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_association_compliant",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "items": 1,
+      "non_compliant": 1
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_association_compliant",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ComplianceItems"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_association_compliant",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_patch_compliant",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "items": 1,
+      "non_compliant": 0
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_patch_compliant",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "items": 1,
+      "non_compliant": 1
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_patch_compliant",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ComplianceItems"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.instance_patch_compliant",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.resource_compliance_summary_compliant",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "compliance_type": "Patch",
+      "status": "COMPLIANT"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.resource_compliance_summary_compliant",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "compliance_type": "Patch",
+      "status": "NON_COMPLIANT"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.resource_compliance_summary_compliant",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Status"
+    }
+  },
+  {
+    "id": "aws.cb.ssm.resource_compliance_summary_compliant",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.ssmincidents.active_with_response_plans",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status": "ACTIVE",
+      "response_plans": 1
+    }
+  },
+  {
+    "id": "aws.cb.ssmincidents.active_with_response_plans",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "status": "ACTIVE",
+      "response_plans": 0
+    }
+  },
+  {
+    "id": "aws.cb.ssmincidents.active_with_response_plans",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ReplicationSets"
+    }
+  },
+  {
+    "id": "aws.cb.ssmincidents.active_with_response_plans",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.check_ok",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status": "ok"
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.check_ok",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "status": "warning"
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.check_ok",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Result.status"
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.check_ok",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_group_not_empty",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "activated_rules": 1
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_group_not_empty",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "activated_rules": 0
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_group_not_empty",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ActivatedRules"
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_group_not_empty",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_has_conditions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "predicates": 1
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_has_conditions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "predicates": 0
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_has_conditions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Rule.Predicates"
+    }
+  },
+  {
+    "id": "aws.cb.waf.rule_has_conditions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_has_rules",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rules": 1
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_has_rules",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rules": 0
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_has_rules",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: WebACL.Rules"
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_has_rules",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "destinations": 1
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "destinations": 0
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: LoggingConfiguration"
+    }
+  },
+  {
+    "id": "aws.cb.waf.web_acl_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_group_not_empty",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "activated_rules": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_group_not_empty",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "activated_rules": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_group_not_empty",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ActivatedRules"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_group_not_empty",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_has_conditions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "predicates": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_has_conditions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "predicates": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_has_conditions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Rule.Predicates"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.rule_has_conditions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_associated",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resources": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_associated",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resources": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_associated",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ResourceArns"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_associated",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_has_rules",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rules": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_has_rules",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rules": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_has_rules",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: WebACL.Rules"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_has_rules",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "destinations": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "destinations": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: LoggingConfiguration"
+    }
+  },
+  {
+    "id": "aws.cb.wafregional.web_acl_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.rule_group_metrics",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "cloudwatch_metrics_enabled": true
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.rule_group_metrics",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "cloudwatch_metrics_enabled": false
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.rule_group_metrics",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.rule_group_metrics",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rules": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rules": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: WebACL"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules_or_fms_groups",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rules": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules_or_fms_groups",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rules": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules_or_fms_groups",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: WebACL"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_has_rules_or_fms_groups",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "destinations": 1
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "destinations": 0
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: LoggingConfiguration"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_rule_metrics",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "metrics_disabled": []
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_rule_metrics",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "metrics_disabled": [
+        "f"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_rule_metrics",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: WebACL"
+    }
+  },
+  {
+    "id": "aws.cb.wafv2.web_acl_rule_metrics",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.wellarchitected.no_high_or_medium_risks",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "risks": {}
+    }
+  },
+  {
+    "id": "aws.cb.wellarchitected.no_high_or_medium_risks",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "risks": {
+        "HIGH": 2
+      }
+    }
+  },
+  {
+    "id": "aws.cb.wellarchitected.no_high_or_medium_risks",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RiskCounts"
+    }
+  },
+  {
+    "id": "aws.cb.wellarchitected.no_high_or_medium_risks",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

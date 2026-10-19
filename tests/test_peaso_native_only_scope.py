@@ -131,3 +131,13 @@ def test_organization_delegate_grant_and_fixed_native_thresholds_remain_admitted
     assert native_ids <= {check.id for check in default}
     for check_id in native_ids:
         assert engine.plan_collection({"connector": {"provider": "aws"}, "checks": [check_id]})
+
+
+def test_owner_scoped_gcp_deployment_projection_is_not_automatic_inventory():
+    from peaso.checks.native_only import automated_inventory_types
+    assert 'deployed_image' not in automated_inventory_types('gcp',['bucket','deployed_image'])
+    plan=engine.plan_collection({'connector':{'provider':'gcp','options':{'collect_all':True}}})
+    assert 'deployed_image' not in plan
+    with pytest.raises(ValueError,match='inventories must be supported'):
+        engine.plan_collection({'connector':{'provider':'gcp','options':{'inventories':['deployed_image']}}})
+    assert 'deployed_image' not in engine.get_catalog()['inventories']['gcp']

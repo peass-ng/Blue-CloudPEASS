@@ -1,5 +1,77 @@
 {
   "checks": {
+    "aws.c2b.directoryservice.shared_accounts_review": {
+      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "source": "peaso/checks/claude2_aws_b_identity.py::ds_shared@441-446",
+      "mandatory_external_fields": [
+        "trusted_directory_share_accounts"
+      ],
+      "native_alternative": null
+    },
+    "aws.cb.ram.shared_with_accounts_review": {
+      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314",
+      "mandatory_external_fields": [
+        "approved_trusted_RAM_accounts"
+      ],
+      "native_alternative": null
+    },
+    "aws.cb.ram.shared_with_organization_units_review": {
+      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314",
+      "mandatory_external_fields": [
+        "approved_trusted_RAM_organization_units"
+      ],
+      "native_alternative": null
+    },
+    "aws.cb.ram.shared_with_organizations_review": {
+      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314",
+      "mandatory_external_fields": [
+        "approved_trusted_RAM_organizations"
+      ],
+      "native_alternative": null
+    },
+    "aws.cb.rds.cluster_snapshot_shared_accounts_review": {
+      "reason": "The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
+      "source": "peaso/checks/claude_aws_b_db.py::_snapshots.shared@883-889",
+      "mandatory_external_fields": [
+        "approved_trusted_snapshot_accounts"
+      ],
+      "native_alternative": null
+    },
+    "aws.cb.rds.instance_snapshot_shared_accounts_review": {
+      "reason": "The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
+      "source": "peaso/checks/claude_aws_b_db.py::_snapshots.shared@883-889",
+      "mandatory_external_fields": [
+        "approved_trusted_snapshot_accounts"
+      ],
+      "native_alternative": null
+    },
+    "aws.claude2_a.cloudwatch.cross_account_sharing_role_absent": {
+      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "source": "peaso/checks/claude2_aws_a_misc.py::cross_account_sharing@24-36",
+      "mandatory_external_fields": [
+        "trusted_cross_account_monitoring_accounts"
+      ],
+      "native_alternative": null
+    },
+    "aws.claude2_a.config.aggregation_authorization_trusted": {
+      "source": "peaso/checks/claude2_aws_a_misc.py::aggregation_authorization@97-101",
+      "reason": "Every external aggregator account requires a MANUAL trust decision; no native approval universe or failing verdict exists.",
+      "mandatory_external_fields": [
+        "customer_approved_scope_or_trust"
+      ],
+      "native_alternative": null
+    },
+    "aws.claude2_a.dlm.snapshot_sharing_trusted_accounts": {
+      "source": "peaso/checks/claude2_aws_a_misc.py::dlm_sharing@158-176",
+      "reason": "External target accounts require MANUAL approval against a customer trusted-account list.",
+      "mandatory_external_fields": [
+        "customer_approved_scope_or_trust"
+      ],
+      "native_alternative": null
+    },
     "aws.claude_a.organizations.no_untrusted_delegated_administrators": {
       "mandatory_external_fields": [
         "organizations_trusted_delegated_administrators"
@@ -67,6 +139,14 @@
           "line": 260
         }
       ]
+    },
+    "aws.pci.client_vpn.no_authorize_all_groups": {
+      "source": "peaso/checks/compliance_new_sw06.py::_vpn_all_groups@412",
+      "reason": "Evaluation requires a customer-approved exception list approved_authorize_all_groups_endpoint_ids, with no native collector producer.",
+      "mandatory_external_fields": [
+        "customer_approved_scope_or_trust"
+      ],
+      "native_alternative": null
     },
     "aws.pci.cloudfront.min_tls_policy": {
       "mandatory_external_fields": [],
@@ -260,6 +340,14 @@
       "native_alternative": null,
       "reason": "approved software package and minimum-version baseline",
       "source": "peaso/checks/compliance_new_sw35.py::_registered@507"
+    },
+    "aws.pci.vpc.antispoofing_ingress": {
+      "source": "peaso/checks/compliance_new_sw44.py::antispoofing@340-341",
+      "reason": "Evaluation requires customer-defined ProtectedInternalCidrs and PCI CdeCidrs; no native collector produces that approved scope.",
+      "mandatory_external_fields": [
+        "customer_approved_scope_or_trust"
+      ],
+      "native_alternative": null
     },
     "aws.pci.vpc.approved_egress": {
       "mandatory_external_fields": [],
@@ -622,6 +710,14 @@
           "line": 372
         }
       ]
+    },
+    "aws_ebs_snapshot_trusted_accounts": {
+      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "source": "peaso/checks/compliance_new_sw06.py::_ebs_trusted@153",
+      "mandatory_external_fields": [
+        "parameters.trusted_account_ids"
+      ],
+      "native_alternative": null
     },
     "aws_ec2_ai_nitro_instance_type": {
       "mandatory_external_fields": [],
@@ -2176,6 +2272,16 @@
       "source": "peaso/checks/compliance_new_sw12.py::_policy",
       "source_gate_evidence": "_detection and _enumeration call _policy before any verdict; check policy supplies reviewed query semantics, required sources and observation windows."
     },
+    "azure.other.audit_storage_access_logging": {
+      "reason": "The native path requires an owner-approved audit-account classification, expiry and exact scope; these are not derived from provider read-only inventory.",
+      "source": "peaso/collectors/azure_audit_storage_native.py::assess@184-190",
+      "mandatory_external_fields": [
+        "operator_classification.audit_account_ids",
+        "operator_classification.observed_at",
+        "operator_classification.expires_at"
+      ],
+      "native_alternative": null
+    },
     "azure.other.azure_activity_anomaly": {
       "mandatory_external_fields": [
         "compliance_policy.sw24.<check_id>"
@@ -3260,6 +3366,14 @@
       "reason": "Selected source branch has no independent read-only-provider PASS path. SW14 DevOps credential branch requires owner variable inventory",
       "source": "peaso/checks/compliance_new_sw14.py::_devops_credentials",
       "source_gate_evidence": "SW14 DevOps credential branch requires owner variable inventory"
+    },
+    "azure_devops_project_6_5_5_2_2908a87": {
+      "reason": "Requires a customer-scoped later_stage_deployment_limit policy before evaluating pipeline stages; the intended limit is not derived from provider APIs.",
+      "source": "peaso/checks/compliance_new_sw32.py::_pipelines@416;_policy@290-296",
+      "mandatory_external_fields": [
+        "compliance_policy.sw32.later_stage_deployment_limit"
+      ],
+      "native_alternative": null
     },
     "azure_diagnostic_setting_11_5_2_3_7959930": {
       "mandatory_external_fields": [
@@ -4625,6 +4739,14 @@
       "reason": "approved SQL restore-test scope; interval is fixed",
       "source": "peaso/checks/compliance_new_sw53.py::_restore_test@488"
     },
+    "gcp_c5_sbom": {
+      "mandatory_external_fields": [
+        "options.sw52.sbomCloudRunServices"
+      ],
+      "native_alternative": null,
+      "reason": "The collector requires an owner-approved subset of Cloud Run services. Read-only provider inventory cannot establish that approved scope or certify whole-environment SBOM coverage.",
+      "source": "peaso/collectors/gcp_sbom_native.py::collect@75-98,154-158"
+    },
     "gcp_c5_secret_access": {
       "mandatory_external_fields": [
         "credential_secrets",
@@ -4950,6 +5072,22 @@
       "reason": "approved public-bucket exception list; semantic family: bucket_public_access@315, _effective_bucket_public@307, _rows@203, _validated_rows@169, _scope@159, _by@228, _policy@210, _acl_public@286",
       "source": "peaso/checks/compliance_new_sw51.py::bucket_public_access@315",
       "source_gate_evidence": "approved public-bucket exception list; semantic family: bucket_public_access@315, _effective_bucket_public@307, _rows@203, _validated_rows@169, _scope@159, _by@228, _policy@210, _acl_public@286"
+    },
+    "gcp_pci_iam_policy_9a8ce875703d": {
+      "mandatory_external_fields": [
+        "owner-approved principal_evidence.{status,scope,service,source_ref,principals}"
+      ],
+      "native_alternative": null,
+      "reason": "The contract requires an owner-approved principal universe and source attestation; native IAM/audit-policy reads cannot determine that approved list.",
+      "source": "peaso/checks/gcp_data_access.py::evaluate@76-91"
+    },
+    "gcp_pci_iam_policy_ca1281da7ab2": {
+      "mandatory_external_fields": [
+        "owner-approved principal_evidence.{status,scope,service,source_ref,principals}"
+      ],
+      "native_alternative": null,
+      "reason": "The contract requires an owner-approved principal universe and source attestation; native IAM/audit-policy reads cannot determine that approved list.",
+      "source": "peaso/checks/gcp_data_access.py::evaluate@76-91"
     },
     "gcp_resource_approved_location": {
       "mandatory_external_fields": [],

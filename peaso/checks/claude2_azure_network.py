@@ -152,7 +152,10 @@ def _analytics_count(index, target_types):
             continue
         analytics = optional(get(flow_log, "properties", dict), "flowAnalyticsConfiguration", {}, dict)
         config = optional(analytics, "networkWatcherFlowAnalyticsConfiguration", {}, dict)
-        if config.get("workspaceId") is not None:
+        workspace = config.get("workspaceId")
+        if workspace is not None:
+            if not isinstance(workspace, str) or not workspace.strip():
+                raise Unavailable("malformed Traffic Analytics workspace identifier")
             hits.append(flow_log.get("name"))
     return hits
 
@@ -401,6 +404,8 @@ CASES[cid("aks_azure_monitor_metrics_enabled")] = {
          remediation="Use a private cluster (private API server FQDN) and disable node public IPs on every node pool.")
 def aks_public_access(item, index):
     fqdn = omitted(item, "properties", "privateFQDN", "provisioningState", None)
+    if fqdn is not None and (not isinstance(fqdn, str) or not fqdn.strip() or fqdn != fqdn.strip()):
+        raise Unavailable("malformed private API server FQDN")
     pools = list_of_objects(get(item, "properties.agentPoolProfiles", list))
     public = [optional(p, "enableNodePublicIP", False, bool) for p in pools]
     ok = bool(fqdn) and any(not value for value in public)

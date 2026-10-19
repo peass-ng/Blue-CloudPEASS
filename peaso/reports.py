@@ -49,13 +49,14 @@ def _json_block(value):
 
 def _remediation_lines(finding, templates, *, shared=True, bound=True, _escape=None):
     """Readable guidance from a reviewed template, with legacy string fallback."""
-    from peaso.remediation import bind_command
+    from peaso.remediation import bind_command, exposure_details
     escape = _remediation_text if _escape is None else _escape
     detail = finding.get("remediation_details")
     if not isinstance(detail, dict):
         detail = templates.get(finding.get("check_id")) if isinstance(templates, dict) else None
     if not isinstance(detail, dict):
         return ["Remediation: " + _text(finding.get("remediation", "")), ""] if shared else []
+    detail = exposure_details(finding, detail)
     lines = ["#### Defensive remediation", "", escape(detail.get("summary") or finding.get("remediation", "")), ""] if shared else []
     steps = detail.get("steps") or []
     if shared:
@@ -90,9 +91,11 @@ def _remediation_lines(finding, templates, *, shared=True, bound=True, _escape=N
 
 
 def _guidance_fields(finding, templates):
+    from peaso.remediation import exposure_details
     detail = finding.get("remediation_details")
     if not isinstance(detail, dict):
         detail = templates.get(finding.get("check_id")) if isinstance(templates, dict) else None
+    detail = exposure_details(finding, detail)
     return {
         "check_id": finding.get("check_id"),
         "description": finding.get("description"),

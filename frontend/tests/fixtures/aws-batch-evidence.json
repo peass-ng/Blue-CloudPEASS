@@ -1,0 +1,1332 @@
+[
+  {
+    "id": "aws_security_group_common_ports_ipv6_all",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "offending_rules": [],
+      "semantics": "declared IPv6 ingress only"
+    }
+  },
+  {
+    "id": "aws_security_group_common_ports_ipv6_all",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "offending_rules": [
+        {
+          "group_id": "sg-1",
+          "protocol": "tcp",
+          "from_port": 22,
+          "to_port": 22
+        }
+      ],
+      "semantics": "declared IPv6 ingress only"
+    }
+  },
+  {
+    "id": "aws_security_group_common_ports_ipv6_all",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "scope target mismatch"
+    }
+  },
+  {
+    "id": "aws_security_group_common_ports_ipv6_all",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_security_group_ssh_ipv6_all",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "offending_rules": [],
+      "semantics": "declared IPv6 ingress only"
+    }
+  },
+  {
+    "id": "aws_security_group_ssh_ipv6_all",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "offending_rules": [
+        {
+          "group_id": "sg-1",
+          "protocol": "tcp",
+          "from_port": 22,
+          "to_port": 22
+        }
+      ],
+      "semantics": "declared IPv6 ingress only"
+    }
+  },
+  {
+    "id": "aws_security_group_ssh_ipv6_all",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "scope target mismatch"
+    }
+  },
+  {
+    "id": "aws_security_group_ssh_ipv6_all",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_security_group_tcp_udp_ipv6_all",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "offending_rules": [],
+      "semantics": "declared IPv6 ingress only"
+    }
+  },
+  {
+    "id": "aws_security_group_tcp_udp_ipv6_all",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "offending_rules": [
+        {
+          "group_id": "sg-1",
+          "protocol": "tcp",
+          "from_port": 22,
+          "to_port": 22
+        }
+      ],
+      "semantics": "declared IPv6 ingress only"
+    }
+  },
+  {
+    "id": "aws_security_group_tcp_udp_ipv6_all",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "scope target mismatch"
+    }
+  },
+  {
+    "id": "aws_security_group_tcp_udp_ipv6_all",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_msk_in_cluster_tls_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "cluster_arn": "arn:aws:kafka:us-east-1:111111111111:cluster/a",
+      "in_cluster_tls": true
+    }
+  },
+  {
+    "id": "aws_msk_in_cluster_tls_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "cluster_arn": "arn:aws:kafka:us-east-1:111111111111:cluster/a",
+      "in_cluster_tls": false
+    }
+  },
+  {
+    "id": "aws_msk_in_cluster_tls_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ClusterArn"
+    }
+  },
+  {
+    "id": "aws_msk_in_cluster_tls_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_client_vpn_authentication_configured",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "endpoint_id": "cvpn-endpoint-1",
+      "server_certificate_present": true,
+      "authentication_types": [
+        "federated-authentication"
+      ]
+    }
+  },
+  {
+    "id": "aws_client_vpn_authentication_configured",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "endpoint_id": "cvpn-endpoint-1",
+      "server_certificate_present": true,
+      "authentication_types": []
+    }
+  },
+  {
+    "id": "aws_client_vpn_authentication_configured",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ClientVpnEndpointId"
+    }
+  },
+  {
+    "id": "aws_client_vpn_authentication_configured",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.nist.codebuild_exact_aws_key_env_names",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "project_name": "example",
+      "matching_variable_names": []
+    }
+  },
+  {
+    "id": "aws.nist.codebuild_exact_aws_key_env_names",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "project_name": "example",
+      "matching_variable_names": [
+        "AWS_ACCESS_KEY_ID"
+      ]
+    }
+  },
+  {
+    "id": "aws.nist.codebuild_exact_aws_key_env_names",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: name"
+    }
+  },
+  {
+    "id": "aws.nist.codebuild_exact_aws_key_env_names",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.pci.codebuild.aws_key_environment_vars",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "project_name": "example",
+      "matching_variable_names": []
+    }
+  },
+  {
+    "id": "aws.pci.codebuild.aws_key_environment_vars",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "project_name": "example",
+      "matching_variable_names": [
+        "AWS_ACCESS_KEY_ID"
+      ]
+    }
+  },
+  {
+    "id": "aws.pci.codebuild.aws_key_environment_vars",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: name"
+    }
+  },
+  {
+    "id": "aws.pci.codebuild.aws_key_environment_vars",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_g6_ecs_all_containers_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "task_definition_arn": "arn:aws:ecs:us-east-1:111111111111:task-definition/t:1",
+      "containers_without_log_driver": []
+    }
+  },
+  {
+    "id": "aws_g6_ecs_all_containers_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "task_definition_arn": "arn:aws:ecs:us-east-1:111111111111:task-definition/t:1",
+      "containers_without_log_driver": [
+        "app"
+      ]
+    }
+  },
+  {
+    "id": "aws_g6_ecs_all_containers_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: taskDefinitionArn"
+    }
+  },
+  {
+    "id": "aws_g6_ecs_all_containers_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_ec2_running_instance_cpu_alarm_present",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_id": "i-1",
+      "matching_alarm_arns": [
+        "arn:aws:cloudwatch:us-east-1:111111111111:alarm/test"
+      ]
+    }
+  },
+  {
+    "id": "aws_ec2_running_instance_cpu_alarm_present",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_id": "i-1",
+      "matching_alarm_arns": []
+    }
+  },
+  {
+    "id": "aws_ec2_running_instance_cpu_alarm_present",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: InstanceId"
+    }
+  },
+  {
+    "id": "aws_ec2_running_instance_cpu_alarm_present",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_sqs_queue_depth_alarm_present",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_id": "https://sqs.us-east-1.amazonaws.com/111111111111/jobs",
+      "matching_alarm_arns": [
+        "arn:aws:cloudwatch:us-east-1:111111111111:alarm/test"
+      ]
+    }
+  },
+  {
+    "id": "aws_sqs_queue_depth_alarm_present",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_id": "https://sqs.us-east-1.amazonaws.com/111111111111/jobs",
+      "matching_alarm_arns": []
+    }
+  },
+  {
+    "id": "aws_sqs_queue_depth_alarm_present",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: QueueUrl"
+    }
+  },
+  {
+    "id": "aws_sqs_queue_depth_alarm_present",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_g6_rds_cluster_members_enhanced_monitoring",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "cluster_id": "db-cluster",
+      "noncompliant_members": []
+    }
+  },
+  {
+    "id": "aws_g6_rds_cluster_members_enhanced_monitoring",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "cluster_id": "db-cluster",
+      "noncompliant_members": [
+        "db-1"
+      ]
+    }
+  },
+  {
+    "id": "aws_g6_rds_cluster_members_enhanced_monitoring",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterIdentifier"
+    }
+  },
+  {
+    "id": "aws_g6_rds_cluster_members_enhanced_monitoring",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_nist_dynamodb_table_encrypted_with_kms",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "table_name": "T",
+      "sse_type": "KMS",
+      "key_arn_present": true,
+      "state": "ENABLED"
+    }
+  },
+  {
+    "id": "aws_nist_dynamodb_table_encrypted_with_kms",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "table_name": "T",
+      "sse_type": "AES256",
+      "key_arn_present": true,
+      "state": "ENABLED"
+    }
+  },
+  {
+    "id": "aws_nist_dynamodb_table_encrypted_with_kms",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TableName"
+    }
+  },
+  {
+    "id": "aws_nist_dynamodb_table_encrypted_with_kms",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_route53_hosted_zone_dnssec_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "zone_id": "Z1",
+      "serve_signature": "SIGNING",
+      "key_statuses": [
+        "ACTIVE"
+      ]
+    }
+  },
+  {
+    "id": "aws_route53_hosted_zone_dnssec_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "zone_id": "Z1",
+      "serve_signature": "NOT_SIGNING",
+      "key_statuses": [
+        "ACTIVE"
+      ]
+    }
+  },
+  {
+    "id": "aws_route53_hosted_zone_dnssec_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Id"
+    }
+  },
+  {
+    "id": "aws_route53_hosted_zone_dnssec_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_lambda_code_signing_configured",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "function_arn": "arn:aws:lambda:us-east-1:111111111111:function:sample",
+      "publisher_count": 1,
+      "policy": "Enforce"
+    }
+  },
+  {
+    "id": "aws_lambda_code_signing_configured",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "function_arn": "arn:aws:lambda:us-east-1:111111111111:function:sample",
+      "reason": "no code-signing config"
+    }
+  },
+  {
+    "id": "aws_lambda_code_signing_configured",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FunctionArn"
+    }
+  },
+  {
+    "id": "aws_lambda_code_signing_configured",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_cis_lightsail_bucket_access_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "bucket_name": "bucket-one",
+      "enabled": true,
+      "destination_present": true
+    }
+  },
+  {
+    "id": "aws_cis_lightsail_bucket_access_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "bucket_name": "bucket-one",
+      "enabled": false,
+      "destination_present": true
+    }
+  },
+  {
+    "id": "aws_cis_lightsail_bucket_access_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: name"
+    }
+  },
+  {
+    "id": "aws_cis_lightsail_bucket_access_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_g6_ecr_public_repositories_absent",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "repository_arn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+      "policy": "documented_absent"
+    }
+  },
+  {
+    "id": "aws_g6_ecr_public_repositories_absent",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "repository_arn": "arn:aws:ecr:us-east-1:111111111111:repository/private-one",
+      "canonical_wildcard_statements": 1
+    }
+  },
+  {
+    "id": "aws_g6_ecr_public_repositories_absent",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: repositoryArn"
+    }
+  },
+  {
+    "id": "aws_g6_ecr_public_repositories_absent",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed private ECR policy JSON"
+    }
+  },
+  {
+    "id": "aws_ec2_status_alarm",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_id": "i-1",
+      "matching_alarm_arns": [
+        "arn:aws:cloudwatch:us-east-1:111111111111:alarm/test"
+      ]
+    }
+  },
+  {
+    "id": "aws_ec2_status_alarm",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_id": "i-1",
+      "matching_alarm_arns": []
+    }
+  },
+  {
+    "id": "aws_ec2_status_alarm",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: State.Name"
+    }
+  },
+  {
+    "id": "aws_ec2_status_alarm",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_cis_lambda_config_recorded",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "function_arn": "arn:aws:lambda:us-east-1:111111111111:function:one",
+      "recorder": "default",
+      "recording_scope": "all_supported"
+    }
+  },
+  {
+    "id": "aws_cis_lambda_config_recorded",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "function_arn": "arn:aws:lambda:us-east-1:111111111111:function:one",
+      "recorder": "default",
+      "recording_scope": "restricted"
+    }
+  },
+  {
+    "id": "aws_cis_lambda_config_recorded",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FunctionArn"
+    }
+  },
+  {
+    "id": "aws_cis_lambda_config_recorded",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "instance_id": "db-1",
+      "monitoring_interval": 60,
+      "monitoring_role_present": true,
+      "monitoring_resource_present": true
+    }
+  },
+  {
+    "id": "aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "instance_id": "db-1",
+      "monitoring_interval": 0,
+      "monitoring_role_present": true,
+      "monitoring_resource_present": true
+    }
+  },
+  {
+    "id": "aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBInstanceIdentifier"
+    }
+  },
+  {
+    "id": "aws_nist_rds_db_instance_and_cluster_enhanced_monitoring_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.nist.all_cloudtrail_destination_bucket_access_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "destination_bucket": "owned-trail-logs",
+      "logging_enabled": true
+    }
+  },
+  {
+    "id": "aws.nist.all_cloudtrail_destination_bucket_access_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "destination_bucket": "owned-trail-logs",
+      "logging_enabled": false
+    }
+  },
+  {
+    "id": "aws.nist.all_cloudtrail_destination_bucket_access_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws.nist.all_cloudtrail_destination_bucket_access_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_g6_all_cloudtrail_destination_bucket_access_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "destination_bucket": "owned-trail-logs",
+      "logging_enabled": true
+    }
+  },
+  {
+    "id": "aws_g6_all_cloudtrail_destination_bucket_access_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "destination_bucket": "owned-trail-logs",
+      "logging_enabled": false
+    }
+  },
+  {
+    "id": "aws_g6_all_cloudtrail_destination_bucket_access_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws_g6_all_cloudtrail_destination_bucket_access_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_s3_logging_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "destination_bucket": "owned-trail-logs",
+      "logging_enabled": true
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_s3_logging_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "destination_bucket": "owned-trail-logs",
+      "logging_enabled": false
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_s3_logging_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_s3_logging_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_kms_imported_key_origin_spec",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "key_arn": "arn:aws:kms:us-east-1:111111111111:key/example",
+      "origin": "EXTERNAL",
+      "key_spec": "RSA_2048",
+      "key_usage": "ENCRYPT_DECRYPT"
+    }
+  },
+  {
+    "id": "aws_kms_imported_key_origin_spec",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "key_arn": "arn:aws:kms:us-east-1:111111111111:key/example",
+      "origin": "EXTERNAL",
+      "key_spec": "SYMMETRIC_DEFAULT",
+      "key_usage": "ENCRYPT_DECRYPT"
+    }
+  },
+  {
+    "id": "aws_kms_imported_key_origin_spec",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: KeyArn"
+    }
+  },
+  {
+    "id": "aws_kms_imported_key_origin_spec",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.pci.iam.wildcard_action_scoped_resource",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::111111111111:policy/narrow",
+      "broad_scoped_statement_count": 0,
+      "semantics": "declared customer-managed default policy; no effective permission inference"
+    }
+  },
+  {
+    "id": "aws.pci.iam.wildcard_action_scoped_resource",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::111111111111:policy/narrow",
+      "broad_scoped_statement_count": 1,
+      "semantics": "declared customer-managed default policy; no effective permission inference"
+    }
+  },
+  {
+    "id": "aws.pci.iam.wildcard_action_scoped_resource",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.pci.iam.wildcard_action_scoped_resource",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_eventbridge_iam_user_change_alert",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "missing_event_names": [],
+      "covered_event_names": [
+        "CreateAccessKey",
+        "CreateUser",
+        "DeleteAccessKey",
+        "DeleteUser",
+        "UpdateAccessKey",
+        "UpdateUser"
+      ],
+      "semantics": "default-bus declared CloudTrail rule and target; notification delivery not observed"
+    }
+  },
+  {
+    "id": "aws_eventbridge_iam_user_change_alert",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "missing_event_names": [
+        "CreateAccessKey",
+        "CreateUser",
+        "DeleteAccessKey",
+        "DeleteUser",
+        "UpdateAccessKey",
+        "UpdateUser"
+      ],
+      "covered_event_names": [],
+      "semantics": "default-bus declared CloudTrail rule and target; notification delivery not observed"
+    }
+  },
+  {
+    "id": "aws_eventbridge_iam_user_change_alert",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "EventBridge scope target mismatch"
+    }
+  },
+  {
+    "id": "aws_eventbridge_iam_user_change_alert",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_eventbridge_snapshot_change_alert",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "missing_event_names": [],
+      "covered_event_names": [
+        "CreateSnapshot",
+        "DeleteSnapshot",
+        "ModifySnapshotAttribute"
+      ],
+      "semantics": "default-bus declared CloudTrail rule and target; notification delivery not observed"
+    }
+  },
+  {
+    "id": "aws_eventbridge_snapshot_change_alert",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "missing_event_names": [
+        "CreateSnapshot",
+        "DeleteSnapshot",
+        "ModifySnapshotAttribute"
+      ],
+      "covered_event_names": [],
+      "semantics": "default-bus declared CloudTrail rule and target; notification delivery not observed"
+    }
+  },
+  {
+    "id": "aws_eventbridge_snapshot_change_alert",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "EventBridge scope target mismatch"
+    }
+  },
+  {
+    "id": "aws_eventbridge_snapshot_change_alert",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.nist.cloudtrail_cloudwatch_integration",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "cloudwatch_log_group_arn": "arn:aws:logs:us-east-1:111111111111:log-group:trail-events",
+      "destination_resolved": true,
+      "delivery_role_present": null,
+      "is_logging": true,
+      "semantics": "configuration join only; delivery freshness not assessed"
+    }
+  },
+  {
+    "id": "aws.nist.cloudtrail_cloudwatch_integration",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "cloudwatch_log_group_arn": "",
+      "destination_resolved": false,
+      "delivery_role_present": null,
+      "is_logging": true,
+      "semantics": "configuration join only; delivery freshness not assessed"
+    }
+  },
+  {
+    "id": "aws.nist.cloudtrail_cloudwatch_integration",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws.nist.cloudtrail_cloudwatch_integration",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_all_trails_cloudwatch_integration",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "cloudwatch_log_group_arn": "arn:aws:logs:us-east-1:111111111111:log-group:trail-events",
+      "destination_resolved": true,
+      "delivery_role_present": true,
+      "is_logging": null,
+      "semantics": "configuration join only; delivery freshness not assessed"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_all_trails_cloudwatch_integration",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "cloudwatch_log_group_arn": "",
+      "destination_resolved": false,
+      "delivery_role_present": true,
+      "is_logging": null,
+      "semantics": "configuration join only; delivery freshness not assessed"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_all_trails_cloudwatch_integration",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_all_trails_cloudwatch_integration",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_backup_failure_notification",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "vault_name": "vault-one",
+      "notification_topic_present": true,
+      "backup_failure_event_present": true
+    }
+  },
+  {
+    "id": "aws_backup_failure_notification",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "vault_name": "vault-one",
+      "notification_topic_present": true,
+      "backup_failure_event_present": false
+    }
+  },
+  {
+    "id": "aws_backup_failure_notification",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: BackupVaultName"
+    }
+  },
+  {
+    "id": "aws_backup_failure_notification",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_cis_batch_job_cloudwatch_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "job_definition_arn": "arn:aws:batch:us-east-1:111111111111:job-definition/job:1",
+      "container_count": 1,
+      "containers_without_awslogs": []
+    }
+  },
+  {
+    "id": "aws_cis_batch_job_cloudwatch_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "job_definition_arn": "arn:aws:batch:us-east-1:111111111111:job-definition/job:1",
+      "container_count": 1,
+      "containers_without_awslogs": [
+        0
+      ]
+    }
+  },
+  {
+    "id": "aws_cis_batch_job_cloudwatch_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: jobDefinitionArn"
+    }
+  },
+  {
+    "id": "aws_cis_batch_job_cloudwatch_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.pci.codepipeline.first_stage_single_deploy",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "pipeline_name": "pipeline-one",
+      "first_deploy_stage_index": 1,
+      "deploy_action_count": 1
+    }
+  },
+  {
+    "id": "aws.pci.codepipeline.first_stage_single_deploy",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "pipeline_name": "pipeline-one",
+      "first_deploy_stage_index": 1,
+      "deploy_action_count": 2
+    }
+  },
+  {
+    "id": "aws.pci.codepipeline.first_stage_single_deploy",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: name"
+    }
+  },
+  {
+    "id": "aws.pci.codepipeline.first_stage_single_deploy",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_fedramp_cloudtrail_destination_kms",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "trail_customer_key_enabled": true,
+      "destination_log_group_present": true,
+      "destination_customer_key_enabled": true,
+      "semantics": "configuration key metadata only; no log delivery or cryptographic use inferred"
+    }
+  },
+  {
+    "id": "aws_fedramp_cloudtrail_destination_kms",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "trail_customer_key_enabled": false,
+      "destination_log_group_present": true,
+      "destination_customer_key_enabled": true,
+      "semantics": "configuration key metadata only; no log delivery or cryptographic use inferred"
+    }
+  },
+  {
+    "id": "aws_fedramp_cloudtrail_destination_kms",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws_fedramp_cloudtrail_destination_kms",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_kms_destination_join",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "trail_customer_key_enabled": true,
+      "destination_log_group_present": true,
+      "destination_customer_key_enabled": true,
+      "semantics": "configuration key metadata only; no log delivery or cryptographic use inferred"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_kms_destination_join",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "trail_customer_key_enabled": false,
+      "destination_log_group_present": true,
+      "destination_customer_key_enabled": true,
+      "semantics": "configuration key metadata only; no log delivery or cryptographic use inferred"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_kms_destination_join",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws_g6_cloudtrail_kms_destination_join",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "trail_customer_key_enabled": true,
+      "destination_log_group_present": true,
+      "destination_customer_key_enabled": true,
+      "semantics": "configuration key metadata only; no log delivery or cryptographic use inferred"
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trail_arn": "arn:aws:cloudtrail:us-east-1:111111111111:trail/a",
+      "trail_customer_key_enabled": false,
+      "destination_log_group_present": true,
+      "destination_customer_key_enabled": true,
+      "semantics": "configuration key metadata only; no log delivery or cryptographic use inferred"
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrailARN"
+    }
+  },
+  {
+    "id": "aws_nist_cloudtrail_trail_logs_encrypted_with_kms_cmk",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws_sns_delivery_failure_alarm_present",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "resource_id": "arn:aws:sns:us-east-1:111111111111:notifications",
+      "matching_alarm_arns": [
+        "arn:aws:cloudwatch:us-east-1:111111111111:alarm/test"
+      ]
+    }
+  },
+  {
+    "id": "aws_sns_delivery_failure_alarm_present",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "resource_id": "arn:aws:sns:us-east-1:111111111111:notifications",
+      "matching_alarm_arns": []
+    }
+  },
+  {
+    "id": "aws_sns_delivery_failure_alarm_present",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TopicArn"
+    }
+  },
+  {
+    "id": "aws_sns_delivery_failure_alarm_present",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

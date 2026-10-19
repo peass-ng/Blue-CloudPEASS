@@ -461,7 +461,7 @@ def vm_nic_nsg_internet_tcp_ingress(item, index):
                     and any(s in INTERNET_SOURCES for s in rule["sources"])):
                 for spec in rule["ports"]:
                     port_range(spec)
-                hits.append({"nsg": nsg["id"], "rule": rule["name"], "ports": rule["ports"]})
+                hits.append({"nsg": nsg["id"], "rule": rule["name"], "protocol": rule["protocol"].lower(), "ports": rule["ports"]})
     return result(bool(hits), internet_allow_rules=hits, nsg_count=len(ids))
 CASES[cid("vm_nic_nsg_internet_tcp_ingress")] = {
     "pass": _VM_NET, "pass_index": scope_index({"nic": [_nic()], "nsg": [_nsg(nsg_rule("ok", "Tcp", "10.0.0.0/8", "22"))]}),
@@ -656,9 +656,10 @@ def container_group_cmk(item, index):
         raise Unavailable("container group encryptionProperties not collected (GET containerGroups)")
     encryption = props["encryptionProperties"]
     if encryption is None:
-        return result(True, encryption_properties=None)
+        return result(True, customer_key_configured=False, encryption_properties=None)
     vault, key = get(encryption, "vaultBaseUrl"), get(encryption, "keyName")
-    return result(not (isinstance(vault, str) and vault and isinstance(key, str) and key), key_name=key)
+    configured = bool(isinstance(vault, str) and vault and isinstance(key, str) and key)
+    return result(not configured, customer_key_configured=configured, key_name=key)
 CASES[cid("container_group_cmk")] = {"pass": {"properties": {"encryptionProperties": {"vaultBaseUrl": "https://kv.vault.azure.net", "keyName": "k", "keyVersion": "1"}}},
                                      "fail": {"properties": {"encryptionProperties": None}}, "missing": {},
                                      "malformed": {"properties": {"encryptionProperties": {"keyName": "k"}}}}
@@ -904,7 +905,7 @@ def databricks_managed_disk_cmk(item, index):
     if disk is None:
         return result(True, managed_disk_encryption=None)
     key = get(disk, "keyVaultProperties", dict)
-    return result(not key, key_vault_uri=key.get("keyVaultUri"))
+    return result(not key, key_properties_present=bool(key), key_vault_uri=key.get("keyVaultUri"))
 _dbx = lambda entities: {"properties": {"managedResourceGroupId": "/rg", "encryption": {"entities": entities}}}
 CASES[cid("databricks_managed_disk_cmk")] = {
     "pass": _dbx({"managedDisk": {"keySource": "Microsoft.Keyvault", "keyVaultProperties": {"keyVaultUri": "https://kv", "keyName": "k", "keyVersion": "1"}}}),
@@ -947,7 +948,9 @@ def databricks_subnet_nsg(item, index):
     if params.get("customVirtualNetworkId") is None:
         return "NOT_APPLICABLE", {"reason": "workspace uses the Databricks-managed virtual network"}
     vnet_id = _lower_id(get(params, "customVirtualNetworkId.value", str))
-    names = [get(params, key + ".value", str) for key in ("customPrivateSubnetName", "customPublicSubnetName") if params.get(key) is not None]
+    names = [get(params, key + ".value", str) for key in ("customPrivateSubnetName", "customPublicSubnetName")]
+    if any(not name.strip() for name in names) or names[0] == names[1]:
+        raise Unavailable("workspace private and public subnet names are missing or ambiguous")
     vnets = [v for v in scoped(index, "vnet") if _lower_id(get(v, "id", str)) == vnet_id]
     if len(vnets) != 1:
         raise Unavailable("workspace virtual network not in the collected VNet inventory")

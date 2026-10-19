@@ -102,6 +102,11 @@ def function_setting(query, field, active_only=False):
             return "NOT_APPLICABLE", {"reason": "Function is not ACTIVE"}
         config = get(item, "serviceConfig", dict)
         value = optional(config, field, "", str)
+        if field == "ingressSettings":
+            if value not in ("INGRESS_SETTINGS_UNSPECIFIED", "ALLOW_ALL", "ALLOW_INTERNAL_ONLY", "ALLOW_INTERNAL_AND_GCLB"):
+                return unknown("unrecognized function ingress setting")
+            if value == "INGRESS_SETTINGS_UNSPECIFIED":
+                value = "ALLOW_ALL"  # Explicit unspecified enum uses the documented API default.
         return result(value == "ALLOW_ALL" if field == "ingressSettings" else not value,
             configured=value, semantics="Ingress/connector configuration, not permission or egress-route proof")
     good = {"serviceConfig": {field: "ALLOW_INTERNAL_ONLY" if field == "ingressSettings" else "projects/p/locations/r/connectors/c"}}

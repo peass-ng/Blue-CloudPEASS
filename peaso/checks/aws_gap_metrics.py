@@ -496,7 +496,11 @@ def coverage(index, probes, global_events, strict):
             unknown.append(str(exc))
     if unknown:
         raise Unavailable("; ".join(sorted(set(unknown))))
-    return result(True, trails_with_log_groups=considered)
+    return result(True, trails_with_log_groups=considered,
+                  filter_probe_events=sorted({probe.get("eventName") for probe in probes if probe.get("eventName")}),
+                  requires_confirmed_sns_notification=strict,
+                  observed="No logging trail has a matching event filter and metric alarm" +
+                           (" with enabled SNS notification to a confirmed subscriber." if strict else "."))
 
 
 # =========================================================================== fixtures

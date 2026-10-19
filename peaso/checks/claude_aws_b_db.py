@@ -217,7 +217,7 @@ def cluster_selected(item, index):
     partition = arn.split(":")[1] if arn.count(":") > 2 else "aws"
     resources = selection_resources(index)
     hit = arn in resources or ("arn:%s:rds:*:*:cluster:*" % partition) in resources or "*" in resources
-    return result(not hit, resource_arn=arn)
+    return result(not hit, resource_arn=arn, backup_selection_match=hit)
 
 
 @install("aws.cb.rds.instance_in_backup_plan_selection", "rds_instance", "Non-Aurora RDS instance is selected by an AWS Backup plan",
@@ -235,7 +235,7 @@ def instance_selected(item, index):
     partition = arn.split(":")[1] if arn.count(":") > 2 else "aws"
     resources = selection_resources(index)
     hit = arn in resources or ("arn:%s:rds:*:*:instance:*" % partition) in resources or "*" in resources
-    return result(not hit, resource_arn=arn)
+    return result(not hit, resource_arn=arn, backup_selection_match=hit)
 
 
 def _protected_index(arn, rtype):
@@ -254,7 +254,7 @@ def aurora_protected(item, index):
         return "NOT_APPLICABLE", {"engine": engine}
     arn = get(item, "DBClusterArn", str)
     hit = any(get(r, "ResourceArn", str) == arn and get(r, "ResourceType", str) == "Aurora" for r in protected_resources(index))
-    return result(not hit, resource_arn=arn)
+    return result(not hit, resource_arn=arn, protected_resource_match=hit)
 
 
 @install("aws.cb.rds.instance_protected_resource", "rds_instance", "RDS instance is an AWS Backup protected resource",
@@ -266,7 +266,7 @@ def aurora_protected(item, index):
 def instance_protected(item, index):
     arn = get(item, "DBInstanceArn", str)
     hit = any(get(r, "ResourceArn", str) == arn and get(r, "ResourceType", str) == "RDS" for r in protected_resources(index))
-    return result(not hit, resource_arn=arn)
+    return result(not hit, resource_arn=arn, protected_resource_match=hit)
 
 
 def _tag_plan_index(resources, tag_keys):
@@ -292,7 +292,7 @@ def instance_in_plan(item, index):
             resources += strings(optional(body, "Resources", [], list))
             keys |= {get(t, "ConditionKey", str) for t in list_of_objects(optional(body, "ListOfTags", [], list))}
     hit = arn in resources or bool(tags & keys)
-    return result(not hit, resource_arn=arn, matched_tag_keys=sorted(tags & keys))
+    return result(not hit, resource_arn=arn, selection_or_tag_key_match=hit, matched_tag_keys=sorted(tags & keys))
 
 
 @install("aws.cb.rds.cluster_cmk_encryption", "rds_cluster", "RDS cluster storage is encrypted with a customer managed KMS key",
@@ -741,7 +741,7 @@ def engine_version(item, index):
         return "NOT_APPLICABLE", skip
     engine, version = get(item, "Engine", str), get(item, "EngineVersion", str)
     offered = {get(r, "EngineVersion", str) for r in complete_items(index, "rds_engine_version") if r.get("Engine") == engine}
-    return result(version not in offered, engine=engine, engine_version=version, offered_versions=len(offered))
+    return result(version not in offered, engine=engine, engine_version=version, offered_versions=len(offered), engine_version_available=version in offered)
 
 
 _NET = indexes(
@@ -785,7 +785,7 @@ def instance_exposed(item, index):
         return result(False, publicly_accessible=True, open_security_groups=[])
     subnets = [get(s, "SubnetIdentifier", str) for s in list_of_objects(absent_or(item, "DBInstanceArn", "DBSubnetGroup.Subnets", [], list)) if s.get("SubnetStatus") == "Active"]
     public = [s for s in subnets if subnet_is_public_prowler(index, s)]
-    return result(bool(public), open_security_groups=open_groups, public_subnets=public)
+    return result(bool(public), open_security_groups=open_groups, public_subnets=public, endpoint_port=port)
 
 
 @install("aws.cb.rds.instance_no_public_subnet", "rds_instance", "RDS instance DB subnet group has no public subnet",
@@ -1011,7 +1011,8 @@ def nep_snap_public(item, index):
     skip = _neptune(item)
     if skip:
         return "NOT_APPLICABLE", skip
-    return result(any("all" in values for _, values in _snap_attrs(item, _CSNAP)))
+    public = any("all" in values for _, values in _snap_attrs(item, _CSNAP))
+    return result(public, public_attribute_value_detected=public)
 
 
 @install("aws.cb.neptune.snapshot_restore_not_all_exact", "rds_cluster_snapshot", "Neptune cluster snapshot restore attribute does not include public access",
@@ -1026,7 +1027,8 @@ def nep_snap_exact(item, index):
     attrs = _snap_attrs(item, _CSNAP)
     if not any(name == "restore" for name, _ in attrs):
         return unknown("snapshot restore attribute missing")
-    return result(any(name == "restore" and "all" in values for name, values in attrs))
+    public = any(name == "restore" and "all" in values for name, values in attrs)
+    return result(public, public_restore_attribute=public)
 
 
 def _subnet_group_index(subnet):
@@ -1165,7 +1167,8 @@ def rs_kms(item, index):
 def rs_cmk(item, index):
     if not get(item, "Encrypted", bool):
         return result(True, encrypted=False)
-    return result(kms_manager(index, get(item, "KmsKeyId", str)) != "CUSTOMER")
+    manager = kms_manager(index, get(item, "KmsKeyId", str))
+    return result(manager != "CUSTOMER", encrypted=True, key_manager=manager)
 
 
 def _rs_net(sg_open, subnet):
@@ -1255,7 +1258,7 @@ for _cid, _path, _value, _row in (("aws.cb.redshiftserverless.non_default_admin_
 def wg_ssl(item, index):
     params = list_of_objects(get(item, "configParameters", list))
     ok = any(p.get("parameterKey") == "require_ssl" and p.get("parameterValue") == "true" for p in params)
-    return result(not ok)
+    return result(not ok, require_ssl_enabled=ok)
 
 
 flag("aws.cb.redshiftserverless.enhanced_vpc_routing", "redshiftserverless_workgroup", "Redshift Serverless workgroup uses enhanced VPC routing", "enhancedVpcRouting",

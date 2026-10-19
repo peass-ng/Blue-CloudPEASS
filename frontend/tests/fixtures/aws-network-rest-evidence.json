@@ -1,0 +1,1253 @@
+[
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_policy_has_rule_groups",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rule_group_reference_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_policy_has_rule_groups",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rule_group_reference_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_policy_has_rule_groups",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FirewallPolicyArn"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_policy_has_rule_groups",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_use_vpc_has_firewall",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "vpc_id": "vpc-1",
+      "firewall_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_use_vpc_has_firewall",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "vpc_id": "vpc-2",
+      "firewall_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_use_vpc_has_firewall",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_use_vpc_has_firewall",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_vpc",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "placement": "classic_vpc",
+      "vpc_id": "vpc-1"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_vpc",
+    "case": "fail",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed Network Firewall VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_vpc",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FirewallArn"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.in_vpc",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_has_rule_groups",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rule_group_reference_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_has_rule_groups",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rule_group_reference_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_has_rule_groups",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FirewallPolicy"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_has_rule_groups",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.block_public_access_igw",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "mode": "block-bidirectional"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.block_public_access_igw",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "mode": "off"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.block_public_access_igw",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcBlockPublicAccessOptions.InternetGatewayBlockMode"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.block_public_access_igw",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_policy_trust_boundary",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "unmatched_principal_accounts": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_policy_trust_boundary",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "principal_accounts": [
+        "210987654321"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_policy_trust_boundary",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcEndpointId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_policy_trust_boundary",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_acceptance_required",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "acceptance_required": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_acceptance_required",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "acceptance_required": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_acceptance_required",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Owner"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_acceptance_required",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_principals_trusted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "untrusted": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_principals_trusted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "untrusted": [
+        "*"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_principals_trusted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Owner"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.endpoint_service_principals_trusted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.flow_logs_active",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statuses": [
+        "ACTIVE"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.flow_logs_active",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statuses": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.flow_logs_active",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.flow_logs_active",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.gateway_endpoint_policy_not_open",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.gateway_endpoint_policy_not_open",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.gateway_endpoint_policy_not_open",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcEndpointType"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.gateway_endpoint_policy_not_open",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.igw_attached",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "attachments": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.igw_attached",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "attachments": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.igw_attached",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Attachments"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.igw_attached",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_ec2_endpoint",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_service_name_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_ec2_endpoint",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_service_name_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_ec2_endpoint",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_ec2_endpoint",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_has_flow_log",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "vpc_id": "vpc-1",
+      "flow_log_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_has_flow_log",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "vpc_id": "vpc-2",
+      "flow_log_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_has_flow_log",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_has_flow_log",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_subnets_multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "availability_zones": [
+        "us-east-1a",
+        "us-east-1b"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_subnets_multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "availability_zones": [
+        "us-east-1a"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_subnets_multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_vpc_subnets_multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.interface_endpoint_multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "subnets": 2
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.interface_endpoint_multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "subnets": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.interface_endpoint_multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcEndpointType"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.interface_endpoint_multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.launch_wizard_sg_not_attached",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "group_name": "launch-wizard-1",
+      "attached_by_group_name": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.launch_wizard_sg_not_attached",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "group_name": "launch-wizard-1",
+      "attached_by_group_name": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.launch_wizard_sg_not_attached",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.launch_wizard_sg_not_attached",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_associated",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "associations": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_associated",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "associations": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_associated",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Associations"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_associated",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "protocol": "-1",
+      "port": 0,
+      "ordered_world_ingress_allowed": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "protocol": "-1",
+      "port": 0,
+      "ordered_world_ingress_allowed": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Entries"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_all_ports",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_remote_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rule_numbers": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_remote_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rule_numbers": [
+        50
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_remote_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Entries"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_remote_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "protocol": "6",
+      "port": 22,
+      "ordered_world_ingress_allowed": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "protocol": "6",
+      "port": 22,
+      "ordered_world_ingress_allowed": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Entries"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_22",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "protocol": "6",
+      "port": 3389,
+      "ordered_world_ingress_allowed": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "protocol": "6",
+      "port": 3389,
+      "ordered_world_ingress_allowed": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Entries"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nacl_no_world_tcp_3389",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_nacl_associated",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "associations": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_nacl_associated",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "associations": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_nacl_associated",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IsDefault"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_nacl_associated",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_vpcs_in_multiple_regions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "regions": [
+        "eu-west-1",
+        "us-east-1"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_vpcs_in_multiple_regions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "regions": [
+        "us-east-1"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_vpcs_in_multiple_regions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "audited account identity unavailable"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.nondefault_vpcs_in_multiple_regions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_routes_least_privilege",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "destinations": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_routes_least_privilege",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "destinations": [
+        "10.1.0.0/16"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_routes_least_privilege",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcPeeringConnectionId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_routes_least_privilege",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_same_account_active",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status": "active",
+      "requester": "123456789012",
+      "accepter": "123456789012"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_same_account_active",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "status": "active",
+      "requester": "123456789012",
+      "accepter": "210987654321"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_same_account_active",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Status.Code"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.peering_same_account_active",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.route_table_no_default_igw_route",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "destinations": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.route_table_no_default_igw_route",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "destinations": [
+        "0.0.0.0/0"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.route_table_no_default_igw_route",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Routes"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.route_table_no_default_igw_route",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "group_id": "sg-1",
+      "eni_attachment_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "group_id": "sg-2",
+      "eni_attachment_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni_or_instance",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "used_by": "network_interface"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni_or_instance",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "group_id": "sg-2",
+      "recognized_reference_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni_or_instance",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_attached_to_eni_or_instance",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_in_use_anywhere",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "used_by": "network_interface"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_in_use_anywhere",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "group_id": "sg-orphan",
+      "recognized_reference_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_in_use_anywhere",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_in_use_anywhere",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_public_ip_any_port",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "specific_public_range_match": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_public_ip_any_port",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "specific_public_range_match": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_public_ip_any_port",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IpPermissions"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_public_ip_any_port",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_wide_public_ipv4",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "wide_public_range_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_wide_public_ipv4",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "cidr": "8.0.0.0/8",
+      "wide_public_range_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_wide_public_ipv4",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IpPermissions"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_wide_public_ipv4",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_all_traffic",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "world_all_traffic_rule_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_all_traffic",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "world_all_traffic_rule_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_all_traffic",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IpPermissions"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_all_traffic",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "world_ingress_rule_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "customer_enis": [
+        "eni-1"
+      ],
+      "world_ingress_rule_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IpPermissions"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_high_risk_tcp_ports",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "open_ports": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_high_risk_tcp_ports",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "open_ports": [
+        445
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_high_risk_tcp_ports",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IpPermissions"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_no_world_high_risk_tcp_ports",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnets_in_multiple_azs",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "availability_zones": [
+        "us-east-1a",
+        "us-east-1b"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnets_in_multiple_azs",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "availability_zones": [
+        "us-east-1a"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnets_in_multiple_azs",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnets_in_multiple_azs",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpc_has_subnets",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "vpc_id": "vpc-1",
+      "subnet_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpc_has_subnets",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "vpc_id": "vpc-2",
+      "subnet_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpc_has_subnets",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpc_has_subnets",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpcs_in_multiple_regions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "regions": [
+        "eu-west-1",
+        "us-east-1"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpcs_in_multiple_regions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "regions": [
+        "us-east-1"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpcs_in_multiple_regions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "audited account identity unavailable"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpcs_in_multiple_regions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

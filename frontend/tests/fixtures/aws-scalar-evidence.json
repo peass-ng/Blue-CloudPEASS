@@ -1,0 +1,3422 @@
+[
+  {
+    "id": "aws.b.classic_elb.access_logs",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Attributes.LoadBalancerAttributes.AccessLog.Enabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.access_logs",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Attributes.LoadBalancerAttributes.AccessLog.Enabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.access_logs",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Attributes.LoadBalancerAttributes.AccessLog.Enabled"
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.access_logs",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.connection_draining",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Attributes.LoadBalancerAttributes.ConnectionDraining.Enabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.connection_draining",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Attributes.LoadBalancerAttributes.ConnectionDraining.Enabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.connection_draining",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Attributes.LoadBalancerAttributes.ConnectionDraining.Enabled"
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.connection_draining",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.cross_zone",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Attributes.LoadBalancerAttributes.CrossZoneLoadBalancing.Enabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.cross_zone",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Attributes.LoadBalancerAttributes.CrossZoneLoadBalancing.Enabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.cross_zone",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Attributes.LoadBalancerAttributes.CrossZoneLoadBalancing.Enabled"
+    }
+  },
+  {
+    "id": "aws.b.classic_elb.cross_zone",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.access_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Config.DistributionConfig.Logging.Enabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.access_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Config.DistributionConfig.Logging.Enabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.access_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Config.DistributionConfig.Logging.Enabled"
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.access_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.sni",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Config.DistributionConfig.ViewerCertificate.SSLSupportMethod",
+      "configured": "sni-only",
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.sni",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Config.DistributionConfig.ViewerCertificate.SSLSupportMethod",
+      "configured": "vip",
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.sni",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Config.DistributionConfig.ViewerCertificate.SSLSupportMethod"
+    }
+  },
+  {
+    "id": "aws.b.cloudfront.sni",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.admin_only_signup",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AdminCreateUserConfig.AllowAdminCreateUserOnly",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.b.cognito.admin_only_signup",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AdminCreateUserConfig.AllowAdminCreateUserOnly",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.b.cognito.admin_only_signup",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.admin_only_signup",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": "ACTIVE"
+    }
+  },
+  {
+    "id": "aws.b.cognito.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": "INACTIVE"
+    }
+  },
+  {
+    "id": "aws.b.cognito.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.enforced_threat_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "UserPoolAddOns.AdvancedSecurityMode",
+      "configured": "ENFORCED"
+    }
+  },
+  {
+    "id": "aws.b.cognito.enforced_threat_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "UserPoolAddOns.AdvancedSecurityMode",
+      "configured": "AUDIT"
+    }
+  },
+  {
+    "id": "aws.b.cognito.enforced_threat_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.enforced_threat_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.no_guest_identities",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Configuration.AllowUnauthenticatedIdentities",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.cognito.no_guest_identities",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Configuration.AllowUnauthenticatedIdentities",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.cognito.no_guest_identities",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.AllowUnauthenticatedIdentities"
+    }
+  },
+  {
+    "id": "aws.b.cognito.no_guest_identities",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_lowercase",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireLowercase",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_lowercase",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireLowercase",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_lowercase",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_lowercase",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_number",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireNumbers",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_number",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireNumbers",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_number",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_number",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_symbol",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireSymbols",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_symbol",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireSymbols",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_symbol",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_symbol",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_uppercase",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireUppercase",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_uppercase",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Policies.PasswordPolicy.RequireUppercase",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_uppercase",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.password_uppercase",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.cognito.required_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MfaConfiguration",
+      "configured": "ON"
+    }
+  },
+  {
+    "id": "aws.b.cognito.required_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MfaConfiguration",
+      "configured": "OFF"
+    }
+  },
+  {
+    "id": "aws.b.cognito.required_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.UserPool"
+    }
+  },
+  {
+    "id": "aws.b.cognito.required_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.dms.automatic_minor_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.dms.automatic_minor_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.dms.automatic_minor_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AutoMinorVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.b.dms.automatic_minor_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.dms.multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.dms.multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.dms.multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MultiAZ"
+    }
+  },
+  {
+    "id": "aws.b.dms.multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.dms.no_public_instance",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PubliclyAccessible",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.dms.no_public_instance",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PubliclyAccessible",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.dms.no_public_instance",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: PubliclyAccessible"
+    }
+  },
+  {
+    "id": "aws.b.dms.no_public_instance",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.docdb.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.docdb.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.docdb.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DeletionProtection"
+    }
+  },
+  {
+    "id": "aws.b.docdb.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.docdb.storage_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "StorageEncrypted",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.docdb.storage_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "StorageEncrypted",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.docdb.storage_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StorageEncrypted"
+    }
+  },
+  {
+    "id": "aws.b.docdb.storage_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Table.Table.DeletionProtectionEnabled",
+      "configured": true,
+      "official_reference": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Table.Table.DeletionProtectionEnabled",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Table.Table.DeletionProtectionEnabled"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.point_in_time_recovery",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "ContinuousBackups.ContinuousBackupsDescription.PointInTimeRecoveryDescription.PointInTimeRecoveryStatus",
+      "configured": "ENABLED",
+      "official_reference": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.point_in_time_recovery",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "ContinuousBackups.ContinuousBackupsDescription.PointInTimeRecoveryDescription.PointInTimeRecoveryStatus",
+      "configured": "DISABLED",
+      "official_reference": "https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeContinuousBackups.html"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.point_in_time_recovery",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ContinuousBackups.ContinuousBackupsDescription.PointInTimeRecoveryDescription.PointInTimeRecoveryStatus"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.point_in_time_recovery",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.efs.at_rest_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Encrypted",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.efs.at_rest_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Encrypted",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.efs.at_rest_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Encrypted"
+    }
+  },
+  {
+    "id": "aws.b.efs.at_rest_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.at_rest",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AtRestEncryptionEnabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.at_rest",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AtRestEncryptionEnabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.at_rest",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AtRestEncryptionEnabled"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.at_rest",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_failover",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutomaticFailover",
+      "configured": "enabled",
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_failover",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutomaticFailover",
+      "configured": "disabled",
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_failover",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AutomaticFailover"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_failover",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_minor_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_minor_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_minor_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AutoMinorVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.automatic_minor_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.in_transit",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "TransitEncryptionEnabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.in_transit",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "TransitEncryptionEnabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.elasticache.in_transit",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TransitEncryptionEnabled"
+    }
+  },
+  {
+    "id": "aws.b.elasticache.in_transit",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.lambda.active_tracing",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Configuration.TracingConfig.Mode",
+      "configured": "Active",
+      "official_reference": "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"
+    }
+  },
+  {
+    "id": "aws.b.lambda.active_tracing",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Configuration.TracingConfig.Mode",
+      "configured": "PassThrough",
+      "official_reference": "https://docs.aws.amazon.com/lambda/latest/api/API_FunctionConfiguration.html"
+    }
+  },
+  {
+    "id": "aws.b.lambda.active_tracing",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.TracingConfig.Mode"
+    }
+  },
+  {
+    "id": "aws.b.lambda.active_tracing",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.mq.automatic_minor_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Configuration.AutoMinorVersionUpgrade",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.mq.automatic_minor_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Configuration.AutoMinorVersionUpgrade",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.mq.automatic_minor_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.AutoMinorVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.b.mq.automatic_minor_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DeletionProtection"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.iam_authentication",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.iam_authentication",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.iam_authentication",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IAMDatabaseAuthenticationEnabled"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.iam_authentication",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.snapshot_tags",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.snapshot_tags",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.snapshot_tags",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: CopyTagsToSnapshot"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.snapshot_tags",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.storage_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "StorageEncrypted",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.storage_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "StorageEncrypted",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.storage_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StorageEncrypted"
+    }
+  },
+  {
+    "id": "aws.b.neptune_cluster.storage_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_minor_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": true,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_minor_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_minor_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AutoMinorVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_minor_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.proxy_tls",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "RequireTLS",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.rds.proxy_tls",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "RequireTLS",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.rds.proxy_tls",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RequireTLS"
+    }
+  },
+  {
+    "id": "aws.b.rds.proxy_tls",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.iam_authentication",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": true,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.iam_authentication",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.iam_authentication",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IAMDatabaseAuthenticationEnabled"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.iam_authentication",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.multiple_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": true,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.multiple_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBCluster.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.multiple_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MultiAZ"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.multiple_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.iam_authentication",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": true,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.iam_authentication",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.iam_authentication",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IAMDatabaseAuthenticationEnabled"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.iam_authentication",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.minor_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": true,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.minor_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.minor_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AutoMinorVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.minor_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.snapshot_tags",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": true,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.snapshot_tags",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.snapshot_tags",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: CopyTagsToSnapshot"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.snapshot_tags",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.redshift.allow_version_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AllowVersionUpgrade",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.allow_version_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AllowVersionUpgrade",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.allow_version_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AllowVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.b.redshift.allow_version_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.redshift.audit_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Logging.LoggingEnabled",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.audit_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Logging.LoggingEnabled",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.audit_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Logging.LoggingEnabled"
+    }
+  },
+  {
+    "id": "aws.b.redshift.audit_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.redshift.enhanced_vpc_routing",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "EnhancedVpcRouting",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.enhanced_vpc_routing",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "EnhancedVpcRouting",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.enhanced_vpc_routing",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: EnhancedVpcRouting"
+    }
+  },
+  {
+    "id": "aws.b.redshift.enhanced_vpc_routing",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.redshift.no_public_endpoint",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PubliclyAccessible",
+      "configured": false,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.no_public_endpoint",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PubliclyAccessible",
+      "configured": true,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.no_public_endpoint",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: PubliclyAccessible"
+    }
+  },
+  {
+    "id": "aws.b.redshift.no_public_endpoint",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.ssm.parameter_secure_type",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Type",
+      "configured": "SecureString",
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.ssm.parameter_secure_type",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Type",
+      "configured": "String",
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.ssm.parameter_secure_type",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Type"
+    }
+  },
+  {
+    "id": "aws.b.ssm.parameter_secure_type",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.appstream.no_default_internet",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "EnableDefaultInternetAccess",
+      "configured": false,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.appstream.no_default_internet",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "EnableDefaultInternetAccess",
+      "configured": true,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.appstream.no_default_internet",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.c2b.appstream.no_default_internet",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterArn"
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterArn"
+    }
+  },
+  {
+    "id": "aws.c2b.documentdb.multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_auto_minor_version_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_auto_minor_version_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_auto_minor_version_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_auto_minor_version_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": "enabled",
+      "expected": [
+        "enabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": "disabled",
+      "expected": [
+        "enabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.rg_multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.database_not_public",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "publiclyAccessible",
+      "configured": false,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.database_not_public",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "publiclyAccessible",
+      "configured": true,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.database_not_public",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: arn"
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.database_not_public",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.static_ip_attached",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "isAttached",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.static_ip_attached",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "isAttached",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.static_ip_attached",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: arn"
+    }
+  },
+  {
+    "id": "aws.cb.lightsail.static_ip_attached",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.auto_minor_version_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.auto_minor_version_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.auto_minor_version_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.auto_minor_version_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.tls_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "TLSEnabled",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.tls_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "TLSEnabled",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.tls_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.memorydb.tls_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.mq.not_publicly_accessible",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Configuration.PubliclyAccessible",
+      "configured": false,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.mq.not_publicly_accessible",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Configuration.PubliclyAccessible",
+      "configured": true,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.mq.not_publicly_accessible",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: BrokerArn"
+    }
+  },
+  {
+    "id": "aws.cb.mq.not_publicly_accessible",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.mskconnect.tls_to_cluster",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "kafkaClusterEncryptionInTransit.encryptionType",
+      "configured": "TLS",
+      "expected": [
+        "TLS"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.mskconnect.tls_to_cluster",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "kafkaClusterEncryptionInTransit.encryptionType",
+      "configured": "PLAINTEXT",
+      "expected": [
+        "TLS"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.mskconnect.tls_to_cluster",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: connectorArn"
+    }
+  },
+  {
+    "id": "aws.cb.mskconnect.tls_to_cluster",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.copy_tags_to_snapshot",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.copy_tags_to_snapshot",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.copy_tags_to_snapshot",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterArn"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.copy_tags_to_snapshot",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterArn"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.iam_authentication",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.iam_authentication",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.iam_authentication",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterArn"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.iam_authentication",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterArn"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.storage_encrypted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "StorageEncrypted",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.storage_encrypted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "StorageEncrypted",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.neptune.storage_encrypted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DBClusterArn"
+    }
+  },
+  {
+    "id": "aws.cb.neptune.storage_encrypted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.allow_version_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AllowVersionUpgrade",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.allow_version_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AllowVersionUpgrade",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.allow_version_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ClusterIdentifier"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.allow_version_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.encrypted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Encrypted",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.encrypted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Encrypted",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.encrypted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ClusterIdentifier"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.encrypted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.enhanced_vpc_routing",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "EnhancedVpcRouting",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.enhanced_vpc_routing",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "EnhancedVpcRouting",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.enhanced_vpc_routing",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ClusterIdentifier"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.enhanced_vpc_routing",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": "Enabled",
+      "expected": [
+        "Enabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": "Disabled",
+      "expected": [
+        "Enabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ClusterIdentifier"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.not_publicly_accessible",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PubliclyAccessible",
+      "configured": false,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.not_publicly_accessible",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PubliclyAccessible",
+      "configured": true,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshift.not_publicly_accessible",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ClusterIdentifier"
+    }
+  },
+  {
+    "id": "aws.cb.redshift.not_publicly_accessible",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.enhanced_vpc_routing",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "enhancedVpcRouting",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.enhanced_vpc_routing",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "enhancedVpcRouting",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.enhanced_vpc_routing",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: workgroupArn"
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.enhanced_vpc_routing",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.not_publicly_accessible",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "publiclyAccessible",
+      "configured": false,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.not_publicly_accessible",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "publiclyAccessible",
+      "configured": true,
+      "expected": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.not_publicly_accessible",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: workgroupArn"
+    }
+  },
+  {
+    "id": "aws.cb.redshiftserverless.not_publicly_accessible",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_auto_renew",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Detail.AutoRenew",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_auto_renew",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Detail.AutoRenew",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_auto_renew",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DomainName"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_auto_renew",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_privacy_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Detail.AdminPrivacy",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_privacy_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Detail.AdminPrivacy",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_privacy_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DomainName"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_privacy_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.model_network_isolation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "EnableNetworkIsolation",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.model_network_isolation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "EnableNetworkIsolation",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.model_network_isolation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ModelArn"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.model_network_isolation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_no_direct_internet",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DirectInternetAccess",
+      "configured": "Disabled",
+      "expected": [
+        "Disabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_no_direct_internet",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DirectInternetAccess",
+      "configured": "Enabled",
+      "expected": [
+        "Disabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_no_direct_internet",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: NotebookInstanceArn"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_no_direct_internet",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_root_access_disabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "RootAccess",
+      "configured": "Disabled",
+      "expected": [
+        "Disabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_root_access_disabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "RootAccess",
+      "configured": "Enabled",
+      "expected": [
+        "Disabled"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_root_access_disabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: NotebookInstanceArn"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.notebook_root_access_disabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_intercontainer_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "EnableInterContainerTrafficEncryption",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_intercontainer_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "EnableInterContainerTrafficEncryption",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_intercontainer_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrainingJobArn"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_intercontainer_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_network_isolation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "EnableNetworkIsolation",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_network_isolation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "EnableNetworkIsolation",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_network_isolation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: TrainingJobArn"
+    }
+  },
+  {
+    "id": "aws.cb.sagemaker.training_network_isolation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.premium_support",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PremiumSupport",
+      "configured": true,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.premium_support",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PremiumSupport",
+      "configured": false,
+      "expected": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.premium_support",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AccountId"
+    }
+  },
+  {
+    "id": "aws.cb.trustedadvisor.premium_support",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cloudtrail.log_validation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "LogFileValidationEnabled",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.cloudtrail.log_validation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "LogFileValidationEnabled",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.cloudtrail.log_validation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: LogFileValidationEnabled"
+    }
+  },
+  {
+    "id": "aws.cloudtrail.log_validation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: LogFileValidationEnabled"
+    }
+  },
+  {
+    "id": "aws.cloudtrail.logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Status.IsLogging",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.cloudtrail.logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Status.IsLogging",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.cloudtrail.logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Status.IsLogging"
+    }
+  },
+  {
+    "id": "aws.cloudtrail.logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: Status.IsLogging"
+    }
+  },
+  {
+    "id": "aws.cloudtrail.multi_region",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "IsMultiRegionTrail",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.cloudtrail.multi_region",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "IsMultiRegionTrail",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.cloudtrail.multi_region",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IsMultiRegionTrail"
+    }
+  },
+  {
+    "id": "aws.cloudtrail.multi_region",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: IsMultiRegionTrail"
+    }
+  },
+  {
+    "id": "aws.ecr.immutable_tags",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "imageTagMutability",
+      "configured": "IMMUTABLE"
+    }
+  },
+  {
+    "id": "aws.ecr.immutable_tags",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "imageTagMutability",
+      "configured": "MUTABLE"
+    }
+  },
+  {
+    "id": "aws.ecr.immutable_tags",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: imageTagMutability"
+    }
+  },
+  {
+    "id": "aws.ecr.immutable_tags",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: imageTagMutability"
+    }
+  },
+  {
+    "id": "aws.ecr.scan_on_push",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "imageScanningConfiguration.scanOnPush",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.ecr.scan_on_push",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "imageScanningConfiguration.scanOnPush",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.ecr.scan_on_push",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: imageScanningConfiguration.scanOnPush"
+    }
+  },
+  {
+    "id": "aws.ecr.scan_on_push",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: imageScanningConfiguration.scanOnPush"
+    }
+  },
+  {
+    "id": "aws.eks.private_endpoint",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Cluster.cluster.resourcesVpcConfig.endpointPrivateAccess",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.eks.private_endpoint",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Cluster.cluster.resourcesVpcConfig.endpointPrivateAccess",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.eks.private_endpoint",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Cluster.cluster.resourcesVpcConfig.endpointPrivateAccess"
+    }
+  },
+  {
+    "id": "aws.eks.private_endpoint",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: Cluster.cluster.resourcesVpcConfig.endpointPrivateAccess"
+    }
+  },
+  {
+    "id": "aws.iam.password_lowercase",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PasswordPolicy.RequireLowercaseCharacters",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.iam.password_lowercase",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PasswordPolicy.RequireLowercaseCharacters",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.iam.password_lowercase",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: PasswordPolicy.RequireLowercaseCharacters"
+    }
+  },
+  {
+    "id": "aws.iam.password_lowercase",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: PasswordPolicy.RequireLowercaseCharacters"
+    }
+  },
+  {
+    "id": "aws.iam.password_numbers",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PasswordPolicy.RequireNumbers",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.iam.password_numbers",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PasswordPolicy.RequireNumbers",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.iam.password_numbers",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: PasswordPolicy.RequireNumbers"
+    }
+  },
+  {
+    "id": "aws.iam.password_numbers",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: PasswordPolicy.RequireNumbers"
+    }
+  },
+  {
+    "id": "aws.iam.password_symbols",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PasswordPolicy.RequireSymbols",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.iam.password_symbols",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PasswordPolicy.RequireSymbols",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.iam.password_symbols",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: PasswordPolicy.RequireSymbols"
+    }
+  },
+  {
+    "id": "aws.iam.password_symbols",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: PasswordPolicy.RequireSymbols"
+    }
+  },
+  {
+    "id": "aws.iam.password_uppercase",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "PasswordPolicy.RequireUppercaseCharacters",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.iam.password_uppercase",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "PasswordPolicy.RequireUppercaseCharacters",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.iam.password_uppercase",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: PasswordPolicy.RequireUppercaseCharacters"
+    }
+  },
+  {
+    "id": "aws.iam.password_uppercase",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: PasswordPolicy.RequireUppercaseCharacters"
+    }
+  },
+  {
+    "id": "aws.rds.auto_minor_upgrade",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.rds.auto_minor_upgrade",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutoMinorVersionUpgrade",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.rds.auto_minor_upgrade",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AutoMinorVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.rds.auto_minor_upgrade",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: AutoMinorVersionUpgrade"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_copy_snapshot_tags",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.rds.cluster_copy_snapshot_tags",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "CopyTagsToSnapshot",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.rds.cluster_copy_snapshot_tags",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: CopyTagsToSnapshot"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_copy_snapshot_tags",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: CopyTagsToSnapshot"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.rds.cluster_deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.rds.cluster_deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DeletionProtection"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: DeletionProtection"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_iam_authentication",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.rds.cluster_iam_authentication",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "IAMDatabaseAuthenticationEnabled",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.rds.cluster_iam_authentication",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IAMDatabaseAuthenticationEnabled"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_iam_authentication",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: IAMDatabaseAuthenticationEnabled"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.rds.cluster_multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "MultiAZ",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.rds.cluster_multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MultiAZ"
+    }
+  },
+  {
+    "id": "aws.rds.cluster_multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: MultiAZ"
+    }
+  },
+  {
+    "id": "aws.rds.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.rds.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "DeletionProtection",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.rds.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DeletionProtection"
+    }
+  },
+  {
+    "id": "aws.rds.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: DeletionProtection"
+    }
+  },
+  {
+    "id": "aws.rds.snapshot_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Encrypted",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.rds.snapshot_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "Encrypted",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.rds.snapshot_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Encrypted"
+    }
+  },
+  {
+    "id": "aws.rds.snapshot_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: Encrypted"
+    }
+  },
+  {
+    "id": "aws.secretsmanager.rotation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "RotationEnabled",
+      "configured": true
+    }
+  },
+  {
+    "id": "aws.secretsmanager.rotation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "RotationEnabled",
+      "configured": false
+    }
+  },
+  {
+    "id": "aws.secretsmanager.rotation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RotationEnabled"
+    }
+  },
+  {
+    "id": "aws.secretsmanager.rotation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "malformed fact: RotationEnabled"
+    }
+  }
+]

@@ -1,0 +1,946 @@
+[
+  {
+    "id": "aws.c2b.acm.in_use_transparency_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "certificate_type": "AMAZON_ISSUED",
+      "transparency_logging": "ENABLED"
+    }
+  },
+  {
+    "id": "aws.c2b.acm.in_use_transparency_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "certificate_type": "AMAZON_ISSUED",
+      "transparency_logging": "DISABLED"
+    }
+  },
+  {
+    "id": "aws.c2b.acm.in_use_transparency_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Certificate"
+    }
+  },
+  {
+    "id": "aws.c2b.acm.in_use_transparency_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.acm.in_use_secure_key_algorithm",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "key_algorithm": "RSA-2048",
+      "insecure": [
+        "P-192",
+        "RSA-1024"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.acm.in_use_secure_key_algorithm",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "key_algorithm": "RSA_1024",
+      "insecure": [
+        "P-192",
+        "RSA-1024"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.acm.in_use_secure_key_algorithm",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Certificate"
+    }
+  },
+  {
+    "id": "aws.c2b.acm.in_use_secure_key_algorithm",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.root_ca_disabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status": "DISABLED"
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.root_ca_disabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "status": "ACTIVE"
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.root_ca_disabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.root_ca_disabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.pqc_key_algorithm",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "key_algorithm": "ML_DSA_65",
+      "allowed": [
+        "ML_DSA_44",
+        "ML_DSA_65",
+        "ML_DSA_87"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.pqc_key_algorithm",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "key_algorithm": "RSA_2048",
+      "allowed": [
+        "ML_DSA_44",
+        "ML_DSA_65",
+        "ML_DSA_87"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.pqc_key_algorithm",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.c2b.acmpca.pqc_key_algorithm",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_prevent_user_existence_errors",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "failing_clients": [],
+      "field": "PreventUserExistenceErrors"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_prevent_user_existence_errors",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "failing_clients": [
+        "c2"
+      ],
+      "field": "PreventUserExistenceErrors"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_prevent_user_existence_errors",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_prevent_user_existence_errors",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_token_revocation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "failing_clients": [],
+      "field": "EnableTokenRevocation"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_token_revocation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "failing_clients": [
+        "c2"
+      ],
+      "field": "EnableTokenRevocation"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_token_revocation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.clients_token_revocation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.waf_web_acl_associated",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "web_acl": "acl"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.waf_web_acl_associated",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "web_acl": null
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.waf_web_acl_associated",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.cognito.waf_web_acl_associated",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.connect.contact_flow_logs",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "contactflow_logs": "true"
+    }
+  },
+  {
+    "id": "aws.c2b.connect.contact_flow_logs",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "contactflow_logs": "false"
+    }
+  },
+  {
+    "id": "aws.c2b.connect.contact_flow_logs",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.c2b.connect.contact_flow_logs",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.sns_notifications",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "event_topics": 1
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.sns_notifications",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "event_topics": 0
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.sns_notifications",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DirectoryId"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.sns_notifications",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.log_forwarding",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "log_subscriptions": 1
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.log_forwarding",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "log_subscriptions": 0
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.log_forwarding",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DirectoryId"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.log_forwarding",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.manual_snapshot_quota",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "limit": 5,
+      "current": 2,
+      "limit_reached": false,
+      "threshold_remaining": 2
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.manual_snapshot_quota",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "limit": 5,
+      "current": 3,
+      "limit_reached": false,
+      "threshold_remaining": 2
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.manual_snapshot_quota",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DirectoryId"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.manual_snapshot_quota",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.ldap_certificate_over_90_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "remaining_days": {
+        "c-1": 91
+      },
+      "threshold_days": 90
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.ldap_certificate_over_90_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "remaining_days": {
+        "c-1": 89
+      },
+      "threshold_days": 90
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.ldap_certificate_over_90_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DirectoryId"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.ldap_certificate_over_90_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.certificate_not_within_90_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "remaining_calendar_days": {
+        "c-1": 90
+      },
+      "threshold_days": 90
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.certificate_not_within_90_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "remaining_calendar_days": {
+        "c-1": 89
+      },
+      "threshold_days": 90
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.certificate_not_within_90_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DirectoryId"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.certificate_not_within_90_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_ms_chapv2",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "authentication_protocol": "MS-CHAPv2"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_ms_chapv2",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "authentication_protocol": "PAP"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_ms_chapv2",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DirectoryId"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_ms_chapv2",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_mfa_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "radius_status": "Completed"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_mfa_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "radius_status": null
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_mfa_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DirectoryId"
+    }
+  },
+  {
+    "id": "aws.c2b.directoryservice.radius_mfa_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.fms.policies_compliant",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "policy_count": 1,
+      "member_account_rows": 2,
+      "compliant_evaluations": 2,
+      "non_compliant": [],
+      "coverage": "returned policy/account evaluations only; organization-wide account completeness is not established"
+    }
+  },
+  {
+    "id": "aws.c2b.fms.policies_compliant",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "policy_count": 1,
+      "member_account_rows": 2,
+      "compliant_evaluations": 1,
+      "non_compliant": [
+        {
+          "policy": "p",
+          "account": "222222222221",
+          "status": "NON_COMPLIANT"
+        }
+      ],
+      "coverage": "returned policy/account evaluations only; organization-wide account completeness is not established",
+      "incomplete_evaluations": []
+    }
+  },
+  {
+    "id": "aws.c2b.fms.policies_compliant",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.c2b.fms.policies_compliant",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_prompt_attack_high",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "prompt_attack_input_strength": "HIGH"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_prompt_attack_high",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "prompt_attack_input_strength": "MEDIUM"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_prompt_attack_high",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Guardrail"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_prompt_attack_high",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_sensitive_information_filter",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "sensitive_information_policy": true
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_sensitive_information_filter",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "sensitive_information_policy": false
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_sensitive_information_filter",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Guardrail"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_sensitive_information_filter",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_contextual_grounding",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "filters": [
+        "GROUNDING",
+        "RELEVANCE"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_contextual_grounding",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "missing_filters": [
+        "RELEVANCE"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_contextual_grounding",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Guardrail"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrail_contextual_grounding",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrails_configured",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "guardrails": 1
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrails_configured",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "guardrails": 0
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrails_configured",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.guardrails_configured",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.agent_guardrail",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "guardrail_identifier": "g1"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.agent_guardrail",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "guardrail_identifier": null
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.agent_guardrail",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: agentId"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.agent_guardrail",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_cmk",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "kms_key_arn": "arn:aws:kms:us-east-1:111111111111:key/k1"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_cmk",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "kms_key_arn": null
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_cmk",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Prompt"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_cmk",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.model_invocation_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "cloudwatch": true,
+      "s3": true
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.model_invocation_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "cloudwatch": false,
+      "s3": false
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.model_invocation_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.model_invocation_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_management_exists",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "prompts": 1
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_management_exists",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "prompts": 0
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_management_exists",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.prompt_management_exists",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.vpc_endpoints",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "missing_endpoint_services": []
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.vpc_endpoints",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "missing_endpoint_services": [
+        "bedrock-mantle"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.vpc_endpoints",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VpcId"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.vpc_endpoints",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.role_no_full_access_policy",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "bedrock_full_access": false
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.role_no_full_access_policy",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "bedrock_full_access": true
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.role_no_full_access_policy",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AssumeRolePolicyDocument"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.role_no_full_access_policy",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.api_key_long_term_expired",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "expired": true
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.api_key_long_term_expired",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "expired": false,
+      "days_remaining": 31,
+      "never_expires": false
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.api_key_long_term_expired",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ServiceName"
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.api_key_long_term_expired",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

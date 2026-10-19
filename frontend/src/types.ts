@@ -61,6 +61,14 @@ export type Finding = {
   status: string;
   frameworks: string[];
   evidence: unknown;
+  evidence_summary?: string;
+  guidance_refresh?: {
+    version: string;
+    status: "current_text" | "historical_definition";
+    basis: "matching_archived_criteria" | "criteria_unavailable" | "criteria_changed" | "corrected_evaluator_unbound";
+    allow_summary: boolean;
+    message?: string;
+  };
   remediation: unknown;
   remediation_details?: RemediationDetails;
   description?: string;

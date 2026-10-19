@@ -65,8 +65,13 @@ def test_reviewed_compiler_outputs_are_identical_across_hash_seeds(tmp_path):
     assert set(current) == set(compiled)
     assert {check_id for check_id in compiled if compiled[check_id] != current[check_id]} == corrected
     native_by_id = {row["id"]: row for row in json.loads((PACK / "native_catalog.json").read_bytes())["checks"]}
+    from peaso.checks import azure_finding_clarity_reviewed, gcp_remaining_clarity_reviewed
+    overlays={"azure.iam.no_full_custom_role":azure_finding_clarity_reviewed,
+              "gcp.compute.restrict_internet_ingress":gcp_remaining_clarity_reviewed}
     for check_id in corrected:
-        assert all(current[check_id][field] == native_by_id[check_id][field]
+        final=overlays[check_id].description(check_id,current[check_id])
+        assert {k:v for k,v in final.items() if k!="description"}=={k:v for k,v in current[check_id].items() if k!="description"}
+        assert all(final[field] == native_by_id[check_id][field]
                    for field in ("description", "pass_when", "fail_when"))
 
     descriptions = compiled

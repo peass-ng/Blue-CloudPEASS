@@ -63,7 +63,7 @@ def sg_all_ports(item, index):
     if na:
         return na
     hit = any(prowler_sg_open(rule, "-1", any_address=True) for rule in rules)
-    return result(hit)
+    return result(hit, world_all_traffic_rule_found=hit)
 
 
 _ALLOWED_ENI_TYPES = ("api_gateway_managed", "vpc_endpoint")
@@ -82,14 +82,14 @@ def sg_any_port(item, index):
     if na:
         return na
     if not any(prowler_sg_open(rule, "-1", any_address=True, all_ports=True) for rule in rules):
-        return result(False)
+        return result(False, world_ingress_rule_found=False)
     bad = []
     for eni in sg_enis(index, item["GroupId"]):
         kind = get(eni, "InterfaceType", str)
         owner = absent_or(eni, "NetworkInterfaceId", "Attachment.InstanceOwnerId", None, str)
         if kind not in _ALLOWED_ENI_TYPES and owner != "amazon-elb":
             bad.append(eni.get("NetworkInterfaceId"))
-    return result(bool(bad), customer_enis=bad)
+    return result(bool(bad), customer_enis=bad, world_ingress_rule_found=True)
 
 
 @install("aws.claude_a.vpc.sg_no_public_ip_any_port", "security_group", "In-use security group does not open ports to specific public IP ranges",
@@ -108,8 +108,8 @@ def sg_any_port_from_ip(item, index):
         specific = any(get(r, "CidrIp", str) not in wild for r in list_of_objects(get(rule, "IpRanges", list))) or \
             any(get(r, "CidrIpv6", str) not in wild for r in list_of_objects(get(rule, "Ipv6Ranges", list)))
         if specific and prowler_sg_open(rule, "-1", any_address=False, all_ports=True):
-            return result(True)
-    return result(False)
+            return result(True, specific_public_range_match=True)
+    return result(False, specific_public_range_match=False)
 
 
 @install("aws.claude_a.vpc.sg_no_world_high_risk_tcp_ports", "security_group", "In-use security group does not expose high-risk TCP ports to 0.0.0.0/0 or ::/0",
@@ -145,7 +145,17 @@ def _sg_port_check(ports):
         na = in_use_or_na(item, index)
         if na:
             return na
-        return result(any(prowler_sg_open(rule, "tcp", ports, any_address=True) for rule in rules), ports=ports)
+        matched = []
+        def matches(rule):
+            opened = prowler_sg_open(rule, "tcp", ports, any_address=True)
+            if opened:
+                actual_ports = [p for p in ports if prowler_sg_open(rule, "tcp", [p], any_address=True)]
+                sources = [row.get("CidrIp") for row in rule.get("IpRanges", [])] + [
+                    row.get("CidrIpv6") for row in rule.get("Ipv6Ranges", [])]
+                matched.append({"protocol": "tcp", "ports": actual_ports,
+                                "source_ranges": [cidr for cidr in sources if cidr in ("0.0.0.0/0", "::/0")]})
+            return opened
+        return result(any(matches(rule) for rule in rules), ports=ports, matching_ingress=matched)
     return evaluate
 
 
@@ -177,8 +187,8 @@ def sg_wide_open(item, index):
             except ValueError as exc:
                 raise Unavailable("malformed CIDR") from exc
             if net.is_global and 0 < net.prefixlen < 24:
-                return result(True, cidr=str(net))
-    return result(False)
+                return result(True, cidr=str(net), wide_public_range_found=True)
+    return result(False, wide_public_range_found=False)
 
 
 DEFAULT_SG = w(SG, GroupName="default", IpPermissions=[], IpPermissionsEgress=[])
@@ -251,7 +261,7 @@ def sg_not_used(item, index):
         for rule in list_of_objects(optional(other, "IpPermissions", [], list)):
             if any(pair.get("GroupId") == gid for pair in list_of_objects(optional(rule, "UserIdGroupPairs", [], list))):
                 return result(False, used_by="security_group_reference")
-    return result(True, group_id=gid)
+    return result(True, group_id=gid, recognized_reference_found=False)
 
 
 @install("aws.claude_a.vpc.sg_rule_count_within_50", "security_group", "Security group has at most 50 ingress and 50 egress rules",
@@ -284,7 +294,9 @@ def _turbot_check(**kw):
     def evaluate(item, index):
         get(item, "GroupId", str)
         hits = _ssh_world_v4_hits(item, index) if kw.get("ssh_v4") else _turbot(item, **kw)
-        return result(bool(hits), matching_rules=len(hits))
+        return result(bool(hits), matching_rules=len(hits), matching_declared_ingress=[
+            {key: row.get(key) for key in ("ip_protocol", "from_port", "to_port", "cidr_ipv4", "cidr_ipv6")}
+            for row in hits])
     return evaluate
 
 
@@ -352,7 +364,8 @@ SG_ENI_INDEX = idx(network_interface=[ENI])
     dependencies=["security_group", "network_interface"])
 def sg_associated_eni(item, index):
     gid = get(item, "GroupId", str)
-    return result(not sg_enis(index, gid), group_id=gid)
+    attached = bool(sg_enis(index, gid))
+    return result(not attached, group_id=gid, eni_attachment_found=attached)
 
 
 INSTANCE_SG = {"InstanceId": "i-1", "SecurityGroups": [{"GroupId": "sg-inst", "GroupName": "app"}]}
@@ -369,7 +382,7 @@ def sg_unused_compliance(item, index):
     for inst in items(index, "instance"):
         if any(g.get("GroupId") == gid for g in list_of_objects(get(inst, "SecurityGroups", list))):
             return result(False, used_by="instance")
-    return result(True, group_id=gid)
+    return result(True, group_id=gid, recognized_reference_found=False)
 
 
 WIZ = w(SG, GroupId="sg-w", GroupName="launch-wizard-1")
@@ -387,7 +400,7 @@ def sg_launch_wizard_attached(item, index):
     if not name.startswith("launch-wizard"):
         return "NOT_APPLICABLE", {"reason": "not a launch-wizard group"}
     used = any(g.get("GroupName") == name for eni in items(index, "network_interface") for g in list_of_objects(get(eni, "Groups", list)))
-    return result(used, group_name=name)
+    return result(used, group_name=name, attached_by_group_name=used)
 
 
 # =========================================================================== Network ACLs
@@ -415,7 +428,8 @@ NACL_NA = (NACL, idx(security_group=[DEFAULT_SG]))
 def _nacl_prowler(protocol, port):
     def evaluate(item, index):
         entries = get(item, "Entries", list)
-        return result(prowler_nacl_open(entries, protocol, port), protocol=protocol, port=port)
+        allowed = prowler_nacl_open(entries, protocol, port)
+        return result(allowed, protocol=protocol, port=port, ordered_world_ingress_allowed=allowed)
     return evaluate
 
 
@@ -499,7 +513,8 @@ def vpc_flow_logs_prowler(item, index):
     vpc_id = get(item, "VpcId", str)
     if not vpc_in_use(index, vpc_id):
         return "NOT_APPLICABLE", {"reason": "VPC not in use"}
-    return result(not any(f.get("ResourceId") == vpc_id for f in items(index, "flow_log")), vpc_id=vpc_id)
+    found = any(f.get("ResourceId") == vpc_id for f in items(index, "flow_log"))
+    return result(not found, vpc_id=vpc_id, flow_log_found=found)
 
 
 @install("aws.claude_a.vpc.vpc_has_subnets", "vpc", "VPC has at least one subnet",
@@ -507,7 +522,8 @@ def vpc_flow_logs_prowler(item, index):
     remediation="Delete VPCs that have no subnets.", docs=[EC2_API + "API_Subnet.html"], dependencies=["vpc", "subnet"])
 def vpc_not_in_use(item, index):
     vpc_id = get(item, "VpcId", str)
-    return result(not any(s.get("VpcId") == vpc_id for s in items(index, "subnet")), vpc_id=vpc_id)
+    found = any(s.get("VpcId") == vpc_id for s in items(index, "subnet"))
+    return result(not found, vpc_id=vpc_id, subnet_found=found)
 
 
 TWO_AZ = [SUBNET, w(SUBNET, SubnetId="subnet-2", AvailabilityZone="us-east-1b")]
@@ -697,7 +713,8 @@ def _endpoint_check(service):
     def evaluate(item, index):
         vpc_id = get(item, "VpcId", str)
         name = "com.amazonaws.%s.%s" % (region(index), service)
-        return result(not any(e.get("VpcId") == vpc_id and e.get("ServiceName") == name for e in items(index, "vpc_endpoint")), service_name=name)
+        present = any(e.get("VpcId") == vpc_id and e.get("ServiceName") == name for e in items(index, "vpc_endpoint"))
+        return result(not present, service_name=name, endpoint_present=present)
     return evaluate
 
 
@@ -720,7 +737,8 @@ def vpc_ec2_endpoint_prowler(item, index):
     vpc_id = get(item, "VpcId", str)
     if not vpc_in_use(index, vpc_id):
         return "NOT_APPLICABLE", {"reason": "VPC not in use"}
-    return result(not any(e.get("VpcId") == vpc_id and "ec2" in str(e.get("ServiceName", "")) for e in items(index, "vpc_endpoint")))
+    found = any(e.get("VpcId") == vpc_id and "ec2" in str(e.get("ServiceName", "")) for e in items(index, "vpc_endpoint"))
+    return result(not found, matching_service_name_found=found)
 
 
 @install("aws.claude_a.vpc.interface_endpoint_multi_az", "vpc_endpoint", "Interface VPC endpoint spans more than one subnet",
@@ -907,7 +925,7 @@ def endpoint_trust(item, index):
         return result(True, principal_accounts=sorted(set(foreign)))
     if uncertain:
         return "UNKNOWN", {"reason": "endpoint policy does not prove an audited-account principal boundary"}
-    return result(False)
+    return result(False, unmatched_principal_accounts=[])
 
 
 SVC = {"ServiceId": "vpce-svc-1", "ServiceName": "com.amazonaws.vpce.us-east-1.vpce-svc-1", "Owner": ACCOUNT, "AcceptanceRequired": True,
@@ -1166,7 +1184,8 @@ def nfw_all_vpc(item, index):
     vpc_id = get(item, "VpcId", str)
     if not vpc_in_use(index, vpc_id):
         return "NOT_APPLICABLE", {"reason": "VPC not in use"}
-    return result(not any(f.get("VpcId") == vpc_id for f in items(index, "network_firewall")), vpc_id=vpc_id)
+    found = any(f.get("VpcId") == vpc_id for f in items(index, "network_firewall"))
+    return result(not found, vpc_id=vpc_id, firewall_found=found)
 
 
 def _actions(policy, key):
@@ -1218,7 +1237,8 @@ def _has_groups(policy):
     rows=[C + "networkfirewall_firewall_policy_rule_group_not_empty", C + "foundational_security_networkfirewall_3"], severity="medium",
     category="network", control="SC-7", remediation="Associate stateful or stateless rule groups with the firewall policy.", docs=[NFW_API + "API_FirewallPolicy.html"])
 def nfw_policy_groups(item, index):
-    return result(not _has_groups(item))
+    found = _has_groups(item)
+    return result(not found, rule_group_reference_found=found)
 
 
 @install("aws.claude_a.networkfirewall.firewall_policy_has_rule_groups", "network_firewall", "Network Firewall's policy references at least one rule group",
@@ -1228,7 +1248,8 @@ def nfw_policy_groups(item, index):
     remediation="Associate stateful or stateless rule groups with the firewall's policy.", docs=[NFW_API + "API_FirewallPolicy.html"],
     dependencies=["network_firewall", "network_firewall_policy"])
 def nfw_firewall_groups(item, index):
-    return result(not _has_groups(_firewall_policy(item, index)))
+    found = _has_groups(_firewall_policy(item, index))
+    return result(not found, rule_group_reference_found=found)
 
 
 @install("aws.claude_a.networkfirewall.stateless_rule_group_not_empty", "network_firewall_rule_group", "Stateless rule group contains rules",

@@ -72,10 +72,13 @@ ANALYSIS_CHECKS = [
     {"id": "analysis.internet_exposure", "category": "exposure", "title": "Asset reachable from the internet", "severity": "high"},
     {"id": "analysis.federated_trust", "category": "exposure", "title": "Federated (OIDC) trust is not pinned to a subject", "severity": "high"},
 ]
+from .finding_clarity import HOW as _CLARITY_HOW, ACTION as _CLARITY_ACTION
 for _check in ANALYSIS_CHECKS:
     _check.update({"provider": "all", "type": "projection", "frameworks": list(FRAMEWORKS),
         "mapping": {"hacktricks": "Defensive identity and network review"},
-        "remediation": "Review missing context with the owner before changing permissions or network policy."})
+        "remediation": _CLARITY_ACTION.get(_check["id"], "Review the recorded access declaration before changing it.")})
+    if _check["id"] in _CLARITY_HOW:
+        _check["description"] = _CLARITY_HOW[_check["id"]]
 
 
 @with_analysis_context

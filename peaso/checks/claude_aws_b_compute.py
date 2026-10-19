@@ -413,16 +413,22 @@ def ls_public(item, index):
 
 
 def _open_ports(item, froms, tos, ipv6=False):
-    hits = []
+    hits = set()
+    targets = set(froms) & set(tos)
     for p in _ports(item):
-        if p.get("protocol") != "tcp" or p.get("fromPort") not in froms or p.get("toPort") not in tos:
+        if p.get("protocol") != "tcp":
+            continue
+        low, high = get(p, "fromPort", int), get(p, "toPort", int)
+        if type(low) is not int or type(high) is not int or not 0 <= low <= high <= 65535:
+            raise Unavailable("malformed Lightsail TCP port range")
+        matching = {port for port in targets if low <= port <= high}
+        if not matching:
             continue
         cidrs = strings(p.get("cidrs") or [])
         v6 = strings(p.get("ipv6Cidrs") or [])
         if "0.0.0.0/0" in cidrs or (ipv6 and "::/0" in v6):
-            hits.append(p.get("fromPort"))
-    return hits
-
+            hits.update(matching)
+    return sorted(hits)
 
 @install("aws.cb.lightsail.ssh_rdp_http_world_closed", "lightsail_instance", "Lightsail instance does not expose SSH, RDP or HTTP ports to the world",
     _ls([_port(22, 22, ["10.0.0.0/8"])]), _ls([_port(80, 80, ipv6=["::/0"])]), rows=[C + "lightsail_instance_ssh_rdp_http_ports_disabled"], severity="high", category="network", control="SC-7",

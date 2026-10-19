@@ -500,9 +500,9 @@ def sec_rules(item, index):
 def sec_lambda(item, index):
     rules = _rotation_rules(item, index)
     if rules is None:
-        return result(True, rotation_lambda=None)
+        return result(True, rotation_lambda=None, rotation_rules_present=False)
     fn = _opt(item, "RotationLambdaARN")
-    return result(not (rules is not None and fn), rotation_lambda=fn)
+    return result(not (rules is not None and fn), rotation_lambda=fn, rotation_rules_present=True)
 
 
 DEFAULT_SECRET_KMS = _secret(AccountId=ACCOUNT, Region="us-east-1", _coverage={"KmsKeyId": {
@@ -544,8 +544,9 @@ def sec_cmk(item, index):
     if not key:
         raise Unavailable("empty KMS key reference is not a documented omission")
     if key == "alias/aws/secretsmanager":
-        return result(True, kms_key_id=key)
-    return result(kms_manager(index, key) != "CUSTOMER", kms_key_id=key)
+        return result(True, kms_key_id=key, key_manager="AWS")
+    manager = kms_manager(index, key)
+    return result(manager != "CUSTOMER", kms_key_id=key, key_manager=manager)
 
 
 def _changed(cid, row, days):
@@ -646,7 +647,8 @@ def sec_public_p(item, index):
     statements = secret_policy(item)
     if statements is None:
         return "NOT_APPLICABLE", {"policy": None}
-    return result(is_policy_public(statements, account(index)), statements=len(statements))
+    public = is_policy_public(statements, account(index))
+    return result(public, statements=len(statements), public_policy=bool(public))
 
 
 CASES["aws.cb.secretsmanager.policy_not_public"]["index"] = {"context": dict(CONTEXT)}
@@ -661,7 +663,7 @@ def sec_public_x(item, index):
     if statements is None:
         return "NOT_APPLICABLE", {"policy": None}
     hits = turbot_public_statements(statements)
-    return result(bool(hits), statements=len(hits))
+    return result(bool(hits), statements=len(hits), public_allow_statements=len(hits))
 
 
 # =========================================================================== Service Catalog
@@ -745,7 +747,8 @@ def _shield_check(cid, kind, row, title, item, arn_of, protected_arn, applies=No
         protected = _protected(index)
         if protected is None:
             return "NOT_APPLICABLE", {"reason": "Shield Advanced not subscribed"}
-        return result(_strip(arn) not in protected, resource_arn=arn)
+        registered = _strip(arn) in protected
+        return result(not registered, resource_arn=arn, shield_advanced_protection_found=registered)
     return evaluate
 
 

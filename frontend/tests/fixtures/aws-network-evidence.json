@@ -1,0 +1,1130 @@
+[
+  {
+    "id": "aws.claude_a.networkfirewall.deletion_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "delete_protection": true
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.deletion_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "delete_protection": false
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.deletion_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: DeleteProtection"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.deletion_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_fragment_default",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "actions": [
+        "aws:drop"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_fragment_default",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "actions": [
+        "aws:pass"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_fragment_default",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FirewallPolicyArn"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_fragment_default",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_full_packets_default",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "actions": [
+        "aws:forward_to_sfe"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_full_packets_default",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "actions": [
+        "aws:pass"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_full_packets_default",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FirewallPolicyArn"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.firewall_full_packets_default",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "destinations": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "destinations": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: LoggingConfiguration.LogDestinationConfigs"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.multi_az",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "subnet_mappings": 2
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.multi_az",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "subnet_mappings": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.multi_az",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SubnetMappings"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.multi_az",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_fragment_default",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "actions": [
+        "aws:drop"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_fragment_default",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "actions": [
+        "aws:pass"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_fragment_default",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FirewallPolicy"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_fragment_default",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_full_packets_default",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "actions": [
+        "aws:forward_to_sfe"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_full_packets_default",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "actions": [
+        "aws:pass"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_full_packets_default",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FirewallPolicy"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.policy_full_packets_default",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.stateless_rule_group_not_empty",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rules": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.stateless_rule_group_not_empty",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rules": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.stateless_rule_group_not_empty",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RuleGroupResponse.Type"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.stateless_rule_group_not_empty",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.subnet_change_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "subnet_change_protection": true
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.subnet_change_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "subnet_change_protection": false
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.subnet_change_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SubnetChangeProtection"
+    }
+  },
+  {
+    "id": "aws.claude_a.networkfirewall.subnet_change_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_in_use_no_rules",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "ingress_rules": 0,
+      "egress_rules": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_in_use_no_rules",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "ingress_rules": 0,
+      "egress_rules": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_in_use_no_rules",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_in_use_no_rules",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_no_rules",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "ingress_rules": 0,
+      "egress_rules": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_no_rules",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "ingress_rules": 1,
+      "egress_rules": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_no_rules",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.default_sg_no_rules",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_subnet_no_auto_public_ip",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "map_public_ip_on_launch": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_subnet_no_auto_public_ip",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "map_public_ip_on_launch": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_subnet_no_auto_public_ip",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MapPublicIpOnLaunch"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.in_use_subnet_no_auto_public_ip",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_name_not_launch_wizard",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "group_name": "web"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_name_not_launch_wizard",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "group_name": "launch-wizard-3"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_name_not_launch_wizard",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_name_not_launch_wizard",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_rule_count_within_50",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "ingress": 1,
+      "egress": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_rule_count_within_50",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "ingress": 51,
+      "egress": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_rule_count_within_50",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: IpPermissions"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_rule_count_within_50",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_cifs",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_cifs",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 445,
+          "to_port": 445,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_cifs",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_cifs",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kafka",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kafka",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 9092,
+          "to_port": 9092,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kafka",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kafka",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kibana",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kibana",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 5601,
+          "to_port": 5601,
+          "cidr_ipv4": null,
+          "cidr_ipv6": "::/0"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kibana",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_kibana",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_redis",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_redis",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 6379,
+          "to_port": 6379,
+          "cidr_ipv4": null,
+          "cidr_ipv6": "::/0"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_redis",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_redis",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_remote_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_remote_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 22,
+          "to_port": 22,
+          "cidr_ipv4": null,
+          "cidr_ipv6": "::/0"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_remote_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_any_remote_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_cassandra",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_cassandra",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 9160,
+          "to_port": 9160,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_cassandra",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_cassandra",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_common6",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_common6",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 3306,
+          "to_port": 3306,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_common6",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_common6",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_memcached",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_memcached",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "udp",
+          "from_port": 11211,
+          "to_port": 11211,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_memcached",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_memcached",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_mongodb",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_mongodb",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 27018,
+          "to_port": 27018,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_mongodb",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_mongodb",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_no_tcp_udp",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_no_tcp_udp",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "udp",
+          "from_port": 53,
+          "to_port": 53,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_no_tcp_udp",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_no_tcp_udp",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_oracle",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_oracle",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 1521,
+          "to_port": 1521,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_oracle",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_oracle",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_rdp",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_rdp",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 3389,
+          "to_port": 3389,
+          "cidr_ipv4": "0.0.0.0/0",
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_rdp",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_rdp",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_ssh",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_ssh",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": null,
+          "from_port": null,
+          "to_port": null,
+          "cidr_ipv4": null,
+          "cidr_ipv6": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_ssh",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v4_ssh",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v6_remote_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_rules": 0,
+      "matching_declared_ingress": []
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v6_remote_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_rules": 1,
+      "matching_declared_ingress": [
+        {
+          "ip_protocol": "tcp",
+          "from_port": 3389,
+          "to_port": 3389,
+          "cidr_ipv4": null,
+          "cidr_ipv6": "::/0"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v6_remote_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupId"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.sg_world_v6_remote_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnet_no_auto_public_ip",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "map_public_ip_on_launch": false
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnet_no_auto_public_ip",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "map_public_ip_on_launch": true
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnet_no_auto_public_ip",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MapPublicIpOnLaunch"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.subnet_no_auto_public_ip",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpn_both_tunnels_up",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statuses": [
+        "UP",
+        "UP"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpn_both_tunnels_up",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statuses": [
+        "UP",
+        "DOWN"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpn_both_tunnels_up",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: VgwTelemetry"
+    }
+  },
+  {
+    "id": "aws.claude_a.vpc.vpn_both_tunnels_up",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

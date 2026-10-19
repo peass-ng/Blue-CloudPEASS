@@ -92,8 +92,10 @@ def _steampipe_feature(cid, title, rows, name, extra_name=None, *, severity="med
              extra={"fail_absent": without_feature(name)},
              note="Native detector gate: Features has %s%s with Status ENABLED and detector Status is ENABLED; pinned Steampipe feature query does not check detector status." % (name, (" / AdditionalConfiguration " + extra_name) if extra_name else ""))
     def evaluate(item, index):
-        hit = ok(item) and detector_enabled(item)
-        return result(not hit, feature=name, configuration=extra_name, enabled=hit)
+        feature_on = ok(item)
+        hit = feature_on and detector_enabled(item)
+        return result(not hit, feature=name, configuration=extra_name, enabled=hit,
+                      feature_enabled=feature_on, detector_enabled=hit if feature_on else None)
     return evaluate
 
 
@@ -454,7 +456,8 @@ def multi_region_trail(context, index):
         raise Unavailable("multi-Region trail logging status unavailable")
     if org_unknown:
         return "NOT_APPLICABLE", {"reason": "organization trail logging status unavailable (source info status)"}
-    return result(True, trails=len(trails))
+    return result(True, trails=len(trails), multi_region_logging_trail_found=False,
+                  observed="No collected multi-Region trail is confirmed to be actively logging.")
 
 
 # =========================================================================== Organizations
@@ -527,8 +530,8 @@ def _opt_out(policies):
         content = get(p, "Content", dict)
         opt = content.get("services", {}).get("default", {}).get("opt_out_policy", {})
         if opt.get("@@assign") == "optOut" and opt.get("@@operators_allowed_for_child_policies") == ["@@none"]:
-            return result(False, policy=p.get("Id"))
-    return result(True, policies=len(policies))
+            return result(False, policy=p.get("Id"), opt_out_content_match=True)
+    return result(True, policies=len(policies), opt_out_content_match=False)
 
 
 # https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_aws_deny-requested-region.html
@@ -579,12 +582,12 @@ def _deny_regions(policies, account_id):
                         indirect = True
                     continue
                 if direct:
-                    return result(False, policy=p.get("Id"), approved_regions=regions)
+                    return result(False, policy=p.get("Id"), approved_regions=regions, direct_region_deny_match=True)
                 if targets:
                     indirect = True
     if indirect or unproven:
         raise Unavailable("effective broad SCP region restriction not proven")
-    return result(True, policies=len(policies))
+    return result(True, policies=len(policies), direct_region_deny_match=False)
 
 
 def _tag_attached(policies):
@@ -635,8 +638,8 @@ def securityhub_enabled(context, index):
         standards = get(collected(hub, "EnabledStandards"), "items", list)
         products = [p for p in strings(get(collected(hub, "ProductSubscriptions"), "items", list)) if "/aws/securityhub" not in p]
         if not standards and not products:
-            return result(True, standards=0, integrations=0)
-    return result(False, hubs=len(hubs))
+            return result(True, standards=0, integrations=0, standard_or_integration_found=False)
+    return result(False, hubs=len(hubs), standard_or_integration_found=True)
 
 
 SH_ADMIN = {"AccountId": "999999999999", "Status": "ENABLED"}

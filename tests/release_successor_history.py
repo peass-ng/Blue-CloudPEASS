@@ -31,6 +31,8 @@ SOURCE414_VERSION = "414e037b411d4e5abd0a214fc67b4b8bd96aede52dc843cf23748054f4d
 SOURCE414_NATIVE_MEMBER = "peaso/rulepacks/native_catalog.json"
 SOURCE414_NATIVE_DELTA = "tests/fixtures/post_dfaf_integration/source414-native-catalog-delta.json.gz"
 SOURCE414_NATIVE_DELTA_SHA256 = "eb8e5f44af26d656cabed2aa8420f45c03fd906189f5b31dfa22f8ca7a33788b"
+SOURCE414_NATIVE_BASELINE = "tests/fixtures/post_dfaf_integration/source414-native-catalog-baseline.json.gz"
+SOURCE414_NATIVE_BASELINE_PACKED_SHA256 = "69eae1edceb1b8a5cf689a88289d0861361a7cb1675d07e8e7926618e83318fd"
 SOURCE414_NATIVE_BASE_SHA256 = "53e49812f0afd4fd9a1d30ca7ceb6c5ea27bf575d269233c691a3a84173a270b"
 SOURCE414_NATIVE_SHA256 = "9007b31199e3cbe2f9866057d6ac46c04c62e7c83a3ee78c61a70ffb30c1fbba"
 
@@ -253,7 +255,7 @@ def historical_bytes(path, member):
 
 
 def _source414_native_catalog(release):
-    """Reassemble the published member from a pinned current-row index delta."""
+    """Reassemble the published member from an immutable baseline and pinned delta."""
     if release["files"].get(SOURCE414_NATIVE_MEMBER) != SOURCE414_NATIVE_SHA256:
         raise ValueError("Historical native catalog release binding differs")
     packed = (ROOT / SOURCE414_NATIVE_DELTA).read_bytes()
@@ -266,7 +268,10 @@ def _source414_native_catalog(release):
             patch.get("base_member_sha256") != SOURCE414_NATIVE_BASE_SHA256 or
             patch.get("release_member_sha256") != SOURCE414_NATIVE_SHA256):
         raise ValueError("Historical native catalog delta binding differs")
-    baseline = (ROOT / SOURCE414_NATIVE_MEMBER).read_bytes()
+    baseline_packed = (ROOT / SOURCE414_NATIVE_BASELINE).read_bytes()
+    if hashlib.sha256(baseline_packed).hexdigest() != SOURCE414_NATIVE_BASELINE_PACKED_SHA256:
+        raise ValueError("Historical native catalog baseline archive digest differs")
+    baseline = gzip.decompress(baseline_packed)
     if hashlib.sha256(baseline).hexdigest() != SOURCE414_NATIVE_BASE_SHA256:
         raise ValueError("Historical native catalog baseline digest differs")
     current = json.loads(baseline)

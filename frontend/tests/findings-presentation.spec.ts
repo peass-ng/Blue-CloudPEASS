@@ -29,7 +29,11 @@ test("Exposure groups findings by expandable service and explains the public pat
       evidence: { exposed_ports: ["tcp/22"], public_addresses: ["54.1.2.3"], path: [
         { layer: "security_group", decision: "allow", reason: "0.0.0.0/0 permits TCP 22" },
         { layer: "route", decision: "allow", reason: "internet gateway route" },
-      ] }, remediation: "Narrow the public path.",
+      ] }, remediation: "Narrow the public path.", remediation_details: {
+        summary: "Old verbose general remediation.",
+        steps: ["Read exposure_kind, exposed_ports and every path layer before finding the owner."],
+        cli: [], references: [{ title: "AWS public access", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html" }],
+      },
     };
     await route.fulfill({ json });
   });
@@ -42,8 +46,11 @@ test("Exposure groups findings by expandable service and explains the public pat
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("DifferentAuths", { exact: true }).first()).toBeVisible();
   await expect(dialog.getByText("Internet access to tcp/22 at 54.1.2.3 is allowed.")).toBeVisible();
-  await expect(dialog.getByText("security_group: 0.0.0.0/0 permits TCP 22")).toBeVisible();
+  await expect(dialog.getByText("security_group: 0.0.0.0/0 permits TCP 22")).toHaveCount(0);
   await expect(dialog.getByText("Generic cross-provider check definition")).toBeHidden();
+  await expect(dialog.locator(".remediation-actions > li")).toHaveText(["Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."]);
+  await expect(dialog.getByText("Old verbose general remediation.")).toHaveCount(0);
+  await expect(dialog.getByRole("link", { name: "AWS public access" })).toBeVisible();
   await expect(page.getByLabel("Exact finding checklist version")).toHaveCount(0);
 });
 
@@ -151,7 +158,7 @@ test("signed large finding shows reviewed remediation without forwarding bearer 
       download_url: "https://artifact.validation.test/large-finding?signature=synthetic", expires_in: 300, format: "json",
       remediation_details: {
         summary: "Narrow the flagged ingress rule to tested client sources.",
-        steps: ["Inspect the matching rule and attached workload.", "Replace the broad source after client tests."],
+        steps: ["Inspect the matching rule and attached workload.", "Replace the broad source after client tests.", "Verify intended clients can still connect."],
         cli: [{ label: "Inspect ingress rule IDs", code: "aws ec2 describe-security-group-rules --filters Name=group-id,Values=sg-12345678" }],
         caveats: ["The approved client CIDR and rule ID are not inferred from evidence."],
         references: [{ title: "AWS security group rules", url: "https://docs.aws.amazon.com/vpc/latest/userguide/working-with-security-group-rules.html" }],
@@ -162,7 +169,7 @@ test("signed large finding shows reviewed remediation without forwarding bearer 
   let artifactHeaders: Record<string, string> = {};
   await page.route("https://artifact.validation.test/**", async (route) => {
     artifactHeaders = await route.request().allHeaders();
-    await route.fulfill({ headers: { "Access-Control-Allow-Origin": "*" }, json: { ...finding, evidence: { native: "Complete large evidence" } } });
+    await route.fulfill({ headers: { "Access-Control-Allow-Origin": "*" }, json: { ...finding, evidence: { native: "Complete large evidence", missing: null, placeholder: "Not supplied", enabled: false, rule_count: 0 } } });
   });
   await page.goto("/#Hardening%20Findings");
   await page.getByRole("button", { name: "Broad ingress aws.gap.vpc.sg_world_any_common_ports" }).click();
@@ -172,13 +179,31 @@ test("signed large finding shows reviewed remediation without forwarding bearer 
   await expect(dialog.locator("pre.evidence")).toHaveCount(0);
   await expect(dialog.getByText("Inspect the matching rule and attached workload.", { exact: true })).toBeVisible();
   await dialog.getByText("How this check works").click();
-  await expect(dialog.getByRole("heading", { name: "What this check evaluates" })).toBeVisible();
+  await expect(dialog.getByText(finding.description, { exact: true })).toBeVisible();
+  await dialog.getByText("Evaluation details").click();
   await expect(dialog.getByText("IpPermissions[].IpRanges[].CidrIp", { exact: true })).toBeVisible();
   await expect(dialog.getByText("Inspect the matching rule and attached workload.", { exact: true })).toBeVisible();
+  await expect(dialog.getByRole("link", { name: "AWS security group rules" })).toBeVisible();
   await dialog.getByText("Commands (1)").click();
   await expect(dialog.getByText("aws ec2 describe-security-group-rules --filters Name=group-id,Values=sg-12345678")).toBeVisible();
-  await dialog.getByText("More guidance & references").click();
-  await expect(dialog.getByText("Narrow the flagged ingress rule to tested client sources.")).toBeVisible();
+  await expect(dialog.getByText("Verify intended clients can still connect.", { exact: true })).toBeVisible();
+  await expect(dialog.locator(".remediation-actions > li")).toHaveCount(3);
+  await expect(dialog.getByText(/Remaining steps|More guidance & references|About this guidance|Before changing this/)).toHaveCount(0);
+  await expect(dialog.getByText("Not supplied", { exact: true })).toHaveCount(0);
+  await expect(dialog.locator(".evidence-fields dt").filter({ hasText: /^Missing$|^Placeholder$/ })).toHaveCount(0);
+  await expect(dialog.locator(".evidence-field").filter({ hasText: /^Enabled/ })).toContainText("No");
+  await expect(dialog.locator(".evidence-field").filter({ hasText: /^Rule count/ })).toContainText("0");
+  const downloadPromise = page.waitForEvent("download");
+  await dialog.getByRole("button", { name: "Download full evidence" }).click();
+  const stream = await (await downloadPromise).createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  expect(JSON.parse(Buffer.concat(chunks).toString())).toMatchObject({ missing: null, placeholder: "Not supplied", enabled: false, rule_count: 0 });
+  await dialog.getByText("Identifiers & frameworks").click();
+  const label = await dialog.locator(".finding-detail-metadata dt").first().boundingBox();
+  const value = await dialog.locator(".finding-detail-metadata dd").first().boundingBox();
+  expect(Math.abs(label!.y - value!.y)).toBeLessThan(5);
+  expect(value!.x).toBeGreaterThan(label!.x + label!.width);
   await expect(dialog.getByRole("link", { name: "AWS security group rules" })).toHaveAttribute("href", /^https:\/\/docs\.aws\.amazon\.com\//);
   expect(artifactHeaders.authorization).toBeUndefined();
   expect(artifactHeaders.cookie).toBeUndefined();

@@ -1,0 +1,979 @@
+[
+  {
+    "id": "aws.a.accessanalyzer.region_active",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "analyzer_statuses": [
+        "ACTIVE"
+      ],
+      "semantics": "Aggregate of source per-analyzer outcomes; complete empty region is source synthetic absence FAIL"
+    }
+  },
+  {
+    "id": "aws.a.accessanalyzer.region_active",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "analyzer_statuses": [],
+      "semantics": "Aggregate of source per-analyzer outcomes; complete empty region is source synthetic absence FAIL"
+    }
+  },
+  {
+    "id": "aws.a.accessanalyzer.region_active",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.accessanalyzer.region_active",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.accessanalyzer.region_present",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "analyzer_count": 1,
+      "semantics": "Exact source declared-inventory presence; active status is a different predicate"
+    }
+  },
+  {
+    "id": "aws.a.accessanalyzer.region_present",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "analyzer_count": 0,
+      "semantics": "Exact source declared-inventory presence; active status is a different predicate"
+    }
+  },
+  {
+    "id": "aws.a.accessanalyzer.region_present",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.accessanalyzer.region_present",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.account.organization_member",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "organization_member": true
+    }
+  },
+  {
+    "id": "aws.a.account.organization_member",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "organization_member": false
+    }
+  },
+  {
+    "id": "aws.a.account.organization_member",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Organization"
+    }
+  },
+  {
+    "id": "aws.a.account.organization_member",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.account.security_contact_present",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "security_contact_present": true
+    }
+  },
+  {
+    "id": "aws.a.account.security_contact_present",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "security_contact_present": false
+    }
+  },
+  {
+    "id": "aws.a.account.security_contact_present",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Partition"
+    }
+  },
+  {
+    "id": "aws.a.account.security_contact_present",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_bucket_access_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "bucket_access_logging": true
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_bucket_access_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "bucket_access_logging": false
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_bucket_access_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Region"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_bucket_access_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_cloudwatch_date",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "delivery_at": "2026-10-09T00:00:01+00:00",
+      "cutoff": "2026-10-09T00:00:00+00:00",
+      "comparison": ">",
+      "integration_declared": true
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_cloudwatch_date",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "delivery_at": "2026-10-09T00:00:00+00:00",
+      "cutoff": "2026-10-09T00:00:00+00:00",
+      "comparison": ">",
+      "integration_declared": true
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_cloudwatch_date",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Region"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_cloudwatch_date",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_kms_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "kms_key_declared": true
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_kms_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "kms_key_declared": false
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_kms_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Region"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_kms_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_logging_with_insights",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "logging": true,
+      "insight_selector_count": 1
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_logging_with_insights",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "logging": false
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_logging_with_insights",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Region"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_logging_with_insights",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_multiregion_cloudwatch_date",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "delivery_at": "2026-10-09T00:00:01+00:00",
+      "cutoff": "2026-10-09T00:00:00+00:00",
+      "comparison": ">",
+      "integration_declared": true
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_multiregion_cloudwatch_date",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "delivery_at": "2026-10-09T00:00:00+00:00",
+      "cutoff": "2026-10-09T00:00:00+00:00",
+      "comparison": ">",
+      "integration_declared": true
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_multiregion_cloudwatch_date",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Region"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.home_multiregion_cloudwatch_date",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.insights_logging_trail",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "insight_selectors": [
+        {
+          "InsightType": "ApiCallRateInsight"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.insights_logging_trail",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "insight_selectors": "absent"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.insights_logging_trail",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Status.IsLogging"
+    }
+  },
+  {
+    "id": "aws.a.cloudtrail.insights_logging_trail",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.agentcore_data_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "data_protection_status": "ACTIVATED"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.agentcore_data_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "data_protection_status": null,
+      "inherited_properties": []
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.agentcore_data_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: logGroupName"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.agentcore_data_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_actions_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "actions_enabled": true
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_actions_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "actions_enabled": false
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_actions_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ActionsEnabled"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_actions_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_state_actions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "alarm_actions": [
+        "arn:aws:sns:us-east-1:123456789012:alerts"
+      ]
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_state_actions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "alarm_actions": []
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_state_actions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AlarmActions"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.alarm_state_actions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.any_state_actions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "state_actions": {
+        "AlarmActions": [],
+        "OKActions": [
+          "arn:aws:sns:us-east-1:123456789012:alerts"
+        ],
+        "InsufficientDataActions": []
+      }
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.any_state_actions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "state_actions": {
+        "AlarmActions": [],
+        "OKActions": [],
+        "InsufficientDataActions": []
+      }
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.any_state_actions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AlarmActions"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.any_state_actions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.cross_account_role_absent",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_roles": [],
+      "semantics": "Exact declared role-name predicate; effective trust/access is separate"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.cross_account_role_absent",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_roles": [
+        "CloudWatch-CrossAccountSharingRole"
+      ],
+      "semantics": "Exact declared role-name predicate; effective trust/access is separate"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.cross_account_role_absent",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.cross_account_role_absent",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_kms_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "kms_key_id": "arn:aws:kms:us-east-1:123456789012:key/inert"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_kms_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "kms_key_id": ""
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_kms_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: logGroupName"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_kms_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_retention_at_least_365",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "retention_days": 365,
+      "minimum_days": 365
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_retention_at_least_365",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "retention_days": 30,
+      "minimum_days": 365
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_retention_at_least_365",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: logGroupName"
+    }
+  },
+  {
+    "id": "aws.a.cloudwatch.log_retention_at_least_365",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.kms.rotation_source_eligibility",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rotation_enabled": true,
+      "key_origin": "AWS_KMS",
+      "key_state": "Enabled",
+      "semantics": "Declared native rotation state under exact source eligibility, no resource change or rotation execution"
+    }
+  },
+  {
+    "id": "aws.a.kms.rotation_source_eligibility",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rotation_enabled": false,
+      "key_origin": "AWS_KMS",
+      "key_state": "Enabled",
+      "semantics": "Declared native rotation state under exact source eligibility, no resource change or rotation execution"
+    }
+  },
+  {
+    "id": "aws.a.kms.rotation_source_eligibility",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata"
+    }
+  },
+  {
+    "id": "aws.a.kms.rotation_source_eligibility",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.ecr.all_tags_immutable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "image_tag_mutability": "IMMUTABLE",
+      "exclusion_filters": [],
+      "semantics": "Exact full-immutability source predicate; exclusion modes are preserved rather than normalized to booleans."
+    }
+  },
+  {
+    "id": "aws.b.ecr.all_tags_immutable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "image_tag_mutability": "IMMUTABLE_WITH_EXCLUSION",
+      "exclusion_filters": [
+        {
+          "filterType": "WILDCARD",
+          "filter": "development-*"
+        }
+      ],
+      "semantics": "Exact full-immutability source predicate; exclusion modes are preserved rather than normalized to booleans."
+    }
+  },
+  {
+    "id": "aws.b.ecr.all_tags_immutable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: imageTagMutability"
+    }
+  },
+  {
+    "id": "aws.b.ecr.all_tags_immutable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.ecr.effective_scan_configuration",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "repository": "production-app",
+      "matching_scanning_rules": [
+        {
+          "filter": "production-*",
+          "scan_frequency": "CONTINUOUS_SCAN"
+        }
+      ],
+      "semantics": "Corrected repository-specific configuration; enhanced filters override legacy scanOnPush, and unmatched repositories are Off. No scan execution was requested."
+    }
+  },
+  {
+    "id": "aws.b.ecr.effective_scan_configuration",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "repository": "development-app",
+      "matching_scanning_rules": [],
+      "semantics": "Corrected repository-specific configuration; enhanced filters override legacy scanOnPush, and unmatched repositories are Off. No scan execution was requested."
+    }
+  },
+  {
+    "id": "aws.b.ecr.effective_scan_configuration",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: imageScanningConfiguration.scanOnPush"
+    }
+  },
+  {
+    "id": "aws.b.ecr.effective_scan_configuration",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.ecr.lifecycle_rules",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "lifecycle_rules": [
+        {
+          "rulePriority": 1
+        }
+      ],
+      "semantics": "Pinned source rule-metadata presence; retention sizing and resulting deletions require separate review."
+    }
+  },
+  {
+    "id": "aws.b.ecr.lifecycle_rules",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "lifecycle_policy": "absent"
+    }
+  },
+  {
+    "id": "aws.b.ecr.lifecycle_rules",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: LifecyclePolicy"
+    }
+  },
+  {
+    "id": "aws.b.ecr.lifecycle_rules",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.ecr.source_some_immutability",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "image_tag_mutability": "IMMUTABLE_WITH_EXCLUSION",
+      "semantics": "Exact weaker source criterion; passing does not mean every tag is immutable, and the full-immutability control remains separate."
+    }
+  },
+  {
+    "id": "aws.b.ecr.source_some_immutability",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "image_tag_mutability": "MUTABLE",
+      "semantics": "Exact weaker source criterion; passing does not mean every tag is immutable, and the full-immutability control remains separate."
+    }
+  },
+  {
+    "id": "aws.b.ecr.source_some_immutability",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: imageTagMutability"
+    }
+  },
+  {
+    "id": "aws.b.ecr.source_some_immutability",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ec2_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "ec2",
+      "auto_enable": true,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ec2_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "ec2",
+      "auto_enable": false,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ec2_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "verified caller account context unavailable"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ec2_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ecr_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "ecr",
+      "auto_enable": true,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ecr_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "ecr",
+      "auto_enable": false,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ecr_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "verified caller account context unavailable"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_ecr_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "lambda",
+      "auto_enable": true,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "lambda",
+      "auto_enable": false,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "verified caller account context unavailable"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_code_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "lambdaCode",
+      "auto_enable": true,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_code_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "caller_account": "111111111111",
+      "delegated_admin_account": "111111111111",
+      "relationship_status": "ENABLED",
+      "auto_enable_service": "lambdaCode",
+      "auto_enable": false,
+      "official_references": [
+        "https://docs.aws.amazon.com/inspector/v2/APIReference/API_GetDelegatedAdminAccount.html",
+        "https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html"
+      ],
+      "semantics": "Admin-only defensive variant; literal upstream regional LEFT JOIN predicates remain separate. Existing resource scanning is not asserted."
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_code_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "verified caller account context unavailable"
+    }
+  },
+  {
+    "id": "aws.b.inspector.admin_lambda_code_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

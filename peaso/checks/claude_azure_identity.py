@@ -5,9 +5,11 @@ needs both stays UNKNOWN until the engine exposes the tenant directory inventory
 """
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
+from ipaddress import ip_network
 import re
 from .claude_azure_common import *  # noqa: F401,F403
 from .facts import unique_join
+from .azure_policy_periods import rotation_interval_supported
 
 _FIRST = len(CHECK_IDS)
 
@@ -152,6 +154,10 @@ def _ca_controls(policy):
     controls = optional(grant, "builtInControls", [], list)
     if any(not isinstance(control, str) for control in controls):
         raise Unavailable("malformed builtInControls")
+    known = {"block", "mfa", "compliantDevice", "domainJoinedDevice", "approvedApplication",
+             "compliantApplication", "passwordChange", "riskRemediation"}
+    if any(control not in known for control in controls):
+        raise Unavailable("unrecognized built-in grant control")
     return controls
 
 
@@ -407,7 +413,7 @@ def _ca_mfa_for(slug, target, title):
         for policy in _ca_policies(index):
             users = optional(get(policy, "conditions.users", dict), "includeUsers", [], list)
             apps = optional(get(policy, "conditions.applications", dict), "includeApplications", [], list)
-            if _ca_state(policy) == "enabled" and "All" in users and target in apps and any("mfa" in c.lower() for c in _ca_controls(policy)):
+            if _ca_state(policy) == "enabled" and "All" in users and target in apps and "mfa" in _ca_controls(policy):
                 matching.append(optional(policy, "id", None))
         return result(not matching, matching_policies=matching, semantics="Declared policy targeting; exclusions and authentication strengths are not evaluated")
     evaluate.__name__ = "claude_" + slug
@@ -469,6 +475,8 @@ def m365_groups(item, index):
     if len(values) != 1:
         return unknown("EnableGroupCreation value missing or ambiguous")
     configured = get(values[0], "value", str)
+    if configured.lower() not in ("true", "false"):
+        raise Unavailable("unrecognized EnableGroupCreation boolean string")
     return result(configured.lower() == "true", enable_group_creation=configured)
 CASES[cid("entra_m365_group_creation_restricted")] = {
     "pass": {"tenantId": "t"}, "pass_index": _tenant_index("directory_setting", [{"displayName": "Group.Unified", "values": [{"name": "EnableGroupCreation", "value": "false"}]}]),
@@ -846,7 +854,8 @@ def _logging(slug, kind, title):
     @claude(slug, kind, title, control="AU-12",
             remediation="Create a diagnostic setting that sends resource logs to Log Analytics, Storage or Event Hubs.")
     def evaluate(item, index):
-        return result(not _any_enabled_log(item), diagnostic_settings=len(diagnostic_settings(item)))
+        enabled = _any_enabled_log(item)
+        return result(not enabled, diagnostic_settings=len(diagnostic_settings(item)), diagnostic_logging_enabled=enabled)
     evaluate.__name__ = "claude_" + slug
     CASES[cid(slug)] = {"pass": diag_case(diag_log(group="allLogs")), "fail": diag_case(diag_log(group="allLogs", enabled=False))}
 
@@ -1056,7 +1065,10 @@ def hsm_logging(item, index):
         for log in diagnostic_logs(setting_item):
             retention = optional(log, "retentionPolicy", None)
             if get(log, "enabled", bool) and optional(log, "category", None) == "AuditEvent" and isinstance(retention, dict) and "days" in retention:
-                return result(False, audit_archive=True)
+                days = retention["days"]
+                if type(days) is not int or days < 0:
+                    raise Unavailable("malformed diagnostic retention days")
+                return result(False, audit_archive=True, retention_days=days)
     return result(True, audit_archive=False)
 CASES[cid("managed_hsm_audit_logging")] = {
     "pass": diag_case(diag_log("AuditEvent", retention={"enabled": True, "days": 365}), storageAccountId="/subscriptions/s/sa"),
@@ -1113,7 +1125,8 @@ def _action_type(action):
         remediation="Configure a key rotation policy with a Rotate lifetime action.")
 def key_rotation(item, index):
     actions = _lifetime_actions(item)
-    return result(not any(_action_type(action) == "rotate" for action in actions), lifetime_actions=len(actions))
+    rotate = any(_action_type(action) == "rotate" for action in actions)
+    return result(not rotate, lifetime_actions=len(actions), rotate_action_present=rotate)
 _ROTATE = {"properties": {"rotationPolicy": {"lifetimeActions": [{"trigger": {"timeAfterCreate": "P90D"}, "action": {"type": "Rotate"}}]}}}
 CASES[cid("keyvault_key_rotation_policy")] = {"pass": _ROTATE, "fail": {"properties": {"rotationPolicy": {"lifetimeActions": [{"trigger": {"timeBeforeExpiry": "P30D"}, "action": {"type": "Notify"}}]}}}}
 
@@ -1121,8 +1134,17 @@ CASES[cid("keyvault_key_rotation_policy")] = {"pass": _ROTATE, "fail": {"propert
 @claude("keyvault_key_automatic_rotation_after_create", "key_vault_key", "Key Vault key rotates automatically on a time-after-create trigger",
         control="SC-12", remediation="Add a Rotate lifetime action with a timeAfterCreate trigger to the key rotation policy.")
 def key_auto_rotation(item, index):
-    hits = [action for action in _lifetime_actions(item)
-            if _action_type(action) == "rotate" and optional(get(action, "trigger", dict), "timeAfterCreate", None) is not None]
+    hits = []
+    for action in _lifetime_actions(item):
+        if _action_type(action) != "rotate":
+            continue
+        trigger = get(action, "trigger", dict)
+        value = optional(trigger, "timeAfterCreate", None)
+        if value is None:
+            continue
+        if not rotation_interval_supported(value):
+            raise Unavailable("rotation interval is below Azure's seven-day minimum")
+        hits.append(action)
     return result(not hits, scheduled_rotation=bool(hits))
 CASES[cid("keyvault_key_automatic_rotation_after_create")] = {
     "pass": _ROTATE, "fail": {"properties": {"rotationPolicy": {"lifetimeActions": [{"trigger": {"timeBeforeExpiry": "P30D"}, "action": {"type": "Rotate"}}]}}}}
@@ -1179,9 +1201,19 @@ CASES[cid("aks_secret_store_rotation")] = {
 def aks_logging(item, index):
     enabled, profile = _addon(item, "omsagent")
     config = optional(profile, "config", None) if profile else None
-    return result(not (enabled and config is not None), omsagent_enabled=enabled, configured=config is not None)
+    configured = False
+    if enabled and config is not None:
+        if not isinstance(config, dict):
+            raise Unavailable("malformed Container Insights config")
+        workspace = config.get("logAnalyticsWorkspaceResourceID")
+        if not isinstance(workspace, str) or not re.fullmatch(
+                r"/subscriptions/[^/\s]+/resourceGroups/[^/\s]+/providers/Microsoft\.OperationalInsights/workspaces/[^/\s]+",
+                workspace, re.IGNORECASE):
+            raise Unavailable("missing or malformed Container Insights workspace resource ID")
+        configured = True
+    return result(not (enabled and configured), omsagent_enabled=enabled, configured=configured)
 CASES[cid("aks_container_insights_logging")] = {
-    "pass": {"properties": {"addonProfiles": {"omsagent": {"enabled": True, "config": {"logAnalyticsWorkspaceResourceID": "/w"}}}}},
+    "pass": {"properties": {"addonProfiles": {"omsagent": {"enabled": True, "config": {"logAnalyticsWorkspaceResourceID": "/subscriptions/s/resourceGroups/r/providers/Microsoft.OperationalInsights/workspaces/w"}}}}},
     "fail": {"properties": {"addonProfiles": {"omsagent": {"enabled": False}}}}}
 
 
@@ -1193,6 +1225,13 @@ def aks_ranges(item, index):
         return "NOT_APPLICABLE", {"reason": "Private cluster API server"}
     ranges = optional(profile, "authorizedIPRanges", [], list)
     if any(not isinstance(value, str) for value in ranges):
+        return unknown("malformed authorized IP ranges")
+    try:
+        for value in ranges:
+            if not value or value != value.strip():
+                raise ValueError("empty or padded address")
+            ip_network(value, strict=False)
+    except ValueError:
         return unknown("malformed authorized IP ranges")
     return result(not ranges, authorized_ip_ranges=ranges)
 CASES[cid("aks_authorized_ip_ranges")] = {"pass": {"properties": {"apiServerAccessProfile": {"authorizedIPRanges": ["203.0.113.0/24"]}}},

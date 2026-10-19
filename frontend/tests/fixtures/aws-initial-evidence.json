@@ -1,0 +1,281 @@
+[
+  {
+    "id": "aws.c2b.acm.in_use_not_expiring_7_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "expiration_days": 4,
+      "threshold_days": 7
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.custom_model_cmk",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "kms_key_arn": null
+    }
+  },
+  {
+    "id": "aws.c2b.bedrock.invocation_logs_encrypted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "unencrypted": [
+        "logs:/bedrock/inv"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.cloudfront.s3_origin_bucket_exists",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "missing_buckets": [
+        "gone"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.latest_image_no_medium_plus_findings",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "image_digest": "sha256:2025-12-01",
+      "scan_status": "COMPLETE",
+      "severity_counts": {
+        "CRITICAL": 1
+      },
+      "scan_completed_at": null,
+      "source_api": "ecr:DescribeImages (historical snapshot)"
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.cluster_public_subnet",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "subnet_group": "g1",
+      "public_subnets": [
+        "subnet-1"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.cluster_public_subnet_prowler",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "subnet_group": "g1",
+      "public_subnets": [
+        "subnet-1"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.cmk_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "kms_key_id": "arn:aws:kms:us-east-1:111111111111:key/k1",
+      "key_enabled": false
+    }
+  },
+  {
+    "id": "aws.c2b.elasticache.redis_auth_pre6",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "engine_versions": [
+        "5.0.6"
+      ],
+      "auth_token_enabled": false
+    }
+  },
+  {
+    "id": "aws.c2b.elbv2.listeners_secure_protocol",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "insecure_listeners": [
+        "HTTP:80"
+      ],
+      "required_protocol": "HTTPS"
+    }
+  },
+  {
+    "id": "aws.c2b.emr.cluster_not_publicly_accessible",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "public_master_groups": [
+        "sg-m"
+      ],
+      "public_slave_groups": []
+    }
+  },
+  {
+    "id": "aws.c2b.es.internal_user_database_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "internal_user_database": false
+    }
+  },
+  {
+    "id": "aws.cb.kafka.latest_version",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "kafka_version": "2.8.1",
+      "version_status": "ACTIVE",
+      "broker_type": "STANDARD",
+      "instance_type": "kafka.m5.large",
+      "compatible_active_targets": [
+        "3.7.x"
+      ],
+      "assessment": "cluster-specific offered update targets; client compatibility and upgrade readiness not evaluated"
+    }
+  },
+  {
+    "id": "aws.cb.rds.instance_iam_auth_all_engines",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "iam_database_authentication": false,
+      "supports_iam_database_authentication": true,
+      "configuration_scope": "instance"
+    }
+  },
+  {
+    "id": "aws.gap.cloudwatch.cis_alarm.iam_policy_changes",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trails_with_log_groups": 1,
+      "filter_probe_events": [
+        "AttachGroupPolicy",
+        "AttachRolePolicy",
+        "AttachUserPolicy",
+        "CreatePolicy",
+        "CreatePolicyVersion",
+        "DeleteGroupPolicy",
+        "DeletePolicy",
+        "DeletePolicyVersion",
+        "DeleteRolePolicy",
+        "DeleteUserPolicy",
+        "DetachGroupPolicy",
+        "DetachRolePolicy",
+        "DetachUserPolicy",
+        "PutGroupPolicy",
+        "PutRolePolicy",
+        "PutUserPolicy"
+      ],
+      "requires_confirmed_sns_notification": true,
+      "observed": "No logging trail has a matching event filter and metric alarm with enabled SNS notification to a confirmed subscriber."
+    }
+  },
+  {
+    "id": "aws.gap.cloudwatch.cis_alarm.organizations_changes",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trails_with_log_groups": 1,
+      "filter_probe_events": [
+        "AcceptHandshake",
+        "AttachPolicy",
+        "CreateAccount",
+        "CreateOrganizationalUnit",
+        "CreatePolicy",
+        "DeclineHandshake",
+        "DeleteOrganization",
+        "DeleteOrganizationalUnit",
+        "DeletePolicy",
+        "DetachPolicy",
+        "DisablePolicyType",
+        "EnablePolicyType",
+        "InviteAccountToOrganization",
+        "LeaveOrganization",
+        "MoveAccount",
+        "RemoveAccountFromOrganization",
+        "UpdateOrganizationalUnit",
+        "UpdatePolicy"
+      ],
+      "requires_confirmed_sns_notification": true,
+      "observed": "No logging trail has a matching event filter and metric alarm with enabled SNS notification to a confirmed subscriber."
+    }
+  },
+  {
+    "id": "aws.gap.cloudwatch.metric_alarm.organizations_changes",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "trails_with_log_groups": 1,
+      "filter_probe_events": [
+        "AcceptHandshake",
+        "AttachPolicy",
+        "CancelHandshake",
+        "CreateAccount",
+        "CreateOrganization",
+        "CreateOrganizationalUnit",
+        "CreatePolicy",
+        "DeclineHandshake",
+        "DeleteOrganization",
+        "DeleteOrganizationalUnit",
+        "DeletePolicy",
+        "DetachPolicy",
+        "DisablePolicyType",
+        "EnableAllFeatures",
+        "EnablePolicyType",
+        "InviteAccountToOrganization",
+        "LeaveOrganization",
+        "MoveAccount",
+        "RemoveAccountFromOrganization",
+        "UpdateOrganizationalUnit",
+        "UpdatePolicy"
+      ],
+      "requires_confirmed_sns_notification": false,
+      "observed": "No logging trail has a matching event filter and metric alarm."
+    }
+  },
+  {
+    "id": "aws.gap.ec2.instance_no_iam_role_attached_with_credentials_exposure_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "roles": {
+        "app": [
+          "chime:createapikey"
+        ]
+      },
+      "all_of": false
+    }
+  },
+  {
+    "id": "aws.gap.ec2.instance_no_iam_role_with_org_write_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "roles": {
+        "app": [
+          "organizations:accepthandshake"
+        ]
+      },
+      "all_of": false
+    }
+  },
+  {
+    "id": "aws.gap.ec2.instance_no_iam_with_write_level_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "roles": {
+        "app": [
+          "iam:addclientidtoopenidconnectprovider"
+        ]
+      },
+      "all_of": false
+    }
+  }
+]

@@ -67,7 +67,7 @@ def test_review_requires_complete_runtime_and_frozen_image():
         release.review_plan(candidate, {"source_version": VERSION})
 
 
-@pytest.mark.parametrize("member_count,accepted", [(2504, True), (2601, True), (2602, False)])
+@pytest.mark.parametrize("member_count,accepted", [(2504, True), (release.deploy.CURRENT_SOURCE_MEMBER_LIMIT, True), (release.deploy.CURRENT_SOURCE_MEMBER_LIMIT + 1, False)])
 def test_current_source_member_growth_keeps_an_explicit_upper_bound(tmp_path, monkeypatch, member_count, accepted):
     import json
     import zipfile

@@ -64,11 +64,14 @@ for suffix, minimum, reuse, age in [("strong_min_length_8", 8, False, False), ("
             length = get(policy, "MinimumPasswordLength", int)
             requirements = {key: get(policy, key, bool) for key in STRONG_FIELDS}
             valid = length >= minimum and all(requirements.values())
-            if reuse:
-                valid = valid and get(policy, "PasswordReusePrevention", int) >= 24
-            if age:
-                valid = valid and get(policy, "MaxPasswordAge", int) <= 90
-            return result(not valid, minimum_password_length=length, composition=requirements, minimum=minimum)
+            inspected = {}
+            if reuse and valid:
+                inspected["password_reuse_prevention"] = get(policy, "PasswordReusePrevention", int)
+                valid = inspected["password_reuse_prevention"] >= 24
+            if age and valid:
+                inspected["maximum_password_age"] = get(policy, "MaxPasswordAge", int)
+                valid = inspected["maximum_password_age"] <= 90
+            return result(not valid, minimum_password_length=length, composition=requirements, minimum=minimum, **inspected)
         good = {"MinimumPasswordLength": minimum, **{key: True for key in STRONG_FIELDS}, "PasswordReusePrevention": 24, "MaxPasswordAge": 90}
         bad = {**good, "RequireSymbols": False}
         CASES[cid] = {"pass": {"scope": "123456789012/us-east-1"}, "missing": {}, "malformed": None,

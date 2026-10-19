@@ -115,7 +115,10 @@ def _backup_status(item):
     container = detail(item, "BackupPolicy")
     if container is None:
         return None
-    return get(container, "BackupPolicy.Status", str)
+    status = get(container, "BackupPolicy.Status", str)
+    if status not in ("ENABLED", "ENABLING", "DISABLED", "DISABLING"):
+        raise Unavailable("unrecognized EFS automatic-backup status")
+    return status
 
 
 def efs_policy(item):

@@ -89,6 +89,9 @@ def rotate(item, index):
             if 'timeAfterCreate' in trigger and (not isinstance(value, str) or not re.fullmatch(r'P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?', value) or value in ('P', 'PT')):
                 raise Unavailable('Malformed rotation interval')
             if value is not None:
+                from .azure_policy_periods import rotation_interval_supported
+                if not rotation_interval_supported(value):
+                    raise Unavailable('Rotation interval is below the supported seven-day minimum')
                 matches.append(value)
     return result(not matches, rotate_after_create=matches, semantics='Pinned Rotate/timeAfterCreate declaration; timeBeforeExpiry-only schedules differ')
 _key = VAULT_ID + '/keys/object'

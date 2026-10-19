@@ -85,6 +85,8 @@ def batch_shared_key(item, index):
     modes = get(item, "properties.allowedAuthenticationModes", list)
     if any(not isinstance(mode, str) for mode in modes):
         raise Unavailable("malformed allowedAuthenticationModes")
+    if any(mode not in ("SharedKey", "AAD", "TaskAuthenticationToken") for mode in modes):
+        raise Unavailable("unrecognized allowedAuthenticationModes")
     return result("SharedKey" in modes, allowed_authentication_modes=modes)
 
 
@@ -315,6 +317,8 @@ def tap_policy(item, index):
         raise Unavailable("unrecognized TAP state")
     once = get(config, "isUsableOnce", bool)
     lifetime = get(config, "maximumLifetimeInMinutes", int)
+    if lifetime <= 0:
+        raise Unavailable("nonpositive TAP lifetime")
     return result(not once or lifetime > 480, is_usable_once=once, maximum_lifetime_minutes=lifetime)
 
 
@@ -601,6 +605,8 @@ def synapse_allow_all(item, index):
             end = ipaddress.IPv4Address(get(rule, "properties.endIpAddress", str))
         except ValueError:
             raise Unavailable("malformed firewall rule address")
+        if int(start) > int(end):
+            raise Unavailable("reversed firewall address range")
         # 0.0.0.0-0.0.0.0 is the "Allow Azure services" rule; anything spanning
         # at least half of the IPv4 space is treated as Internet-wide.
         if int(end) - int(start) + 1 >= 2 ** 31:

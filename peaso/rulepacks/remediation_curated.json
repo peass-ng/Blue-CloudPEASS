@@ -13,11 +13,9 @@
     ],
     "review_status": "provider_reference_pending",
     "steps": [
-      "Inspect the coverage reason and restore authorized read access or correct the collection scope, then rerun analysis.",
-      "Change the owning policy or network declaration through its reviewed configuration route; test legitimate use.",
-      "Rerun the analysis and verify effective access or reachability separately from this projection."
+      "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
     ],
-    "summary": "Collect the named missing or denied inventory before deciding whether any grant or exposure needs remediation."
+    "summary": "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
   },
   "analysis.coverage@aws": {
     "caveats": [
@@ -43,11 +41,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Read evidence.gaps and evidence.reason for the exact account, Region, resource kind and collection status; distinguish denied access, collection failure and malformed native facts.",
-      "For a denied API, have the scan owner grant only the named read action at the required scope after checking boundaries, SCPs and explicit denies; for malformed facts, correct the collector input or mapping.",
-      "Rerun only the authorized inventory and confirm that its collection status is complete before interpreting dependent findings."
+      "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
     ],
-    "summary": "Restore the specific missing or denied AWS inventory before judging the affected grant or exposure."
+    "summary": "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
   },
   "analysis.coverage@azure": {
     "caveats": [
@@ -73,11 +69,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect evidence.gaps, evidence.reason and any roleDefinitionId source for the exact subscription, resource type and failed collection status.",
-      "Have the tenant or subscription owner diagnose the denied read at its actual scope, or repair malformed assignment/definition facts; retain the least privilege needed by the collector.",
-      "Recollect the missing assignment and matching definition, then rerun the analysis and confirm the UNKNOWN reason has cleared."
+      "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
     ],
-    "summary": "Resolve the named Azure inventory or role-definition gap before changing an assignment."
+    "summary": "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
   },
   "analysis.coverage@gcp": {
     "caveats": [
@@ -103,11 +97,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Read evidence.gaps or evidence.reason for the project, collection kind and status; separate permission denial from unavailable or malformed data.",
-      "For a denied read, have the project owner diagnose the principal, resource and required permission, then approve the narrowest collector access; correct malformed source facts at their collector.",
-      "Repeat the authorized collection and verify a complete or explicitly empty status before drawing access or exposure conclusions."
+      "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
     ],
-    "summary": "Repair the exact Google Cloud inventory gap, then reevaluate the related risk finding."
+    "summary": "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
   },
   "analysis.coverage@k8s": {
     "caveats": [
@@ -137,11 +129,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Read evidence.gaps or evidence.reason for the namespace, resource kind and collection status; separate forbidden list/watch from an empty complete result or malformed object.",
-      "Check the scanner ServiceAccount's authorization for that exact resource and namespace; have the RBAC owner add only the approved list/get/watch verbs if collection was denied.",
-      "Recollect that resource kind, verify completion and rerun analysis before treating missing relationships as safe."
+      "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
     ],
-    "summary": "Complete the named Kubernetes resource inventory before evaluating its RBAC or network declaration."
+    "summary": "Collect the named missing inventory or resolve its read-permission error before drawing a conclusion."
   },
   "analysis.federated_trust": {
     "caveats": [
@@ -157,11 +147,9 @@
     ],
     "review_status": "provider_reference_pending",
     "steps": [
-      "Inspect the trust document and actual workload identity claims; approve exact issuer, audience and subject restrictions.",
-      "Change the owning policy or network declaration through its reviewed configuration route; test legitimate use.",
-      "Rerun the analysis and verify effective access or reachability separately from this projection."
+      "Restrict the trust policy to the intended issuer, audience and subjects."
     ],
-    "summary": "Pin the federated trust to approved issuer, audience and workload subject conditions."
+    "summary": "Restrict the trust policy to the intended issuer, audience and subjects."
   },
   "analysis.federated_trust@aws": {
     "caveats": [
@@ -196,11 +184,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect each flagged AssumeRolePolicyDocument.Statement and identify its Federated principal, Action, Condition and attached role permissions.",
-      "For a failing OIDC statement, approve positive issuer-qualified sub conditions that identify the intended workload; add the required aud condition for a multi-tenant issuer or Cognito identity pool.",
-      "Update the owning role trust document with those reviewed values, test intended token exchange and confirm other identities cannot assume the role."
+      "Restrict the trust policy to the intended issuer, audience and subjects."
     ],
-    "summary": "Pin the flagged IAM role's web-identity trust to approved issuer claims and workload subjects."
+    "summary": "Restrict the trust policy to the intended issuer, audience and subjects."
   },
   "analysis.federated_trust@azure": {
     "caveats": [
@@ -244,11 +230,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Identify whether the source is a managed identity or application credential; inspect properties.issuer, subject, audiences and any claimsMatchingExpression.",
-      "For a failing wildcard expression, replace the broad match with the approved exact subject or a narrowly scoped supported expression.",
-      "Update the credential through its actual owner, test intended workload sign-in and confirm unrelated subjects are rejected."
+      "Restrict the trust policy to the intended issuer, audience and subjects."
     ],
-    "summary": "Restrict the flagged federated identity credential to its intended issuer, audience and exact workload subject."
+    "summary": "Restrict the trust policy to the intended issuer, audience and subjects."
   },
   "analysis.federated_trust@gcp": {
     "caveats": [
@@ -283,11 +267,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect the provider's oidc.issuerUri, attributeMapping and attributeCondition and identify every service-account binding that accepts this pool.",
-      "For a failing or review finding with no condition, define a tested attributeCondition that restricts trusted tenant or organization claims and map a stable workload subject.",
-      "Update the owning provider declaration, test intended token exchange and service-account impersonation, and reject a token from an unrelated tenant."
+      "Restrict the trust policy to the intended issuer, audience and subjects."
     ],
-    "summary": "Constrain the flagged Workload Identity Federation provider to an approved external tenant and subject mapping."
+    "summary": "Restrict the trust policy to the intended issuer, audience and subjects."
   },
   "analysis.grant_review": {
     "caveats": [
@@ -303,11 +285,9 @@
     ],
     "review_status": "provider_reference_pending",
     "steps": [
-      "Inspect the referenced grant, principal, scope, condition and use before approving a narrower replacement.",
-      "Change the owning policy or network declaration through its reviewed configuration route; test legitimate use.",
-      "Rerun the analysis and verify effective access or reachability separately from this projection."
+      "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
     ],
-    "summary": "Narrow the declared high-impact grant to tested workload actions and resources at its actual policy owner."
+    "summary": "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
   },
   "analysis.grant_review@aws": {
     "caveats": [
@@ -327,11 +307,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Use evidence.grants[].path and native_grant to locate the exact Allow statement and attached principals; inspect conditions, permission boundaries and usage for that principal.",
-      "Remove an unused action or replace a wildcard with the tested minimum actions and resource ARNs; add a supported condition only where it still allows required workload calls.",
-      "Publish the reviewed policy through its owner, test affected principals and compare the flagged statement after re-collection."
+      "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
     ],
-    "summary": "Narrow the flagged high-impact AWS Allow action at the policy document that actually grants it."
+    "summary": "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
   },
   "analysis.grant_review@azure": {
     "caveats": [
@@ -351,11 +329,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Use evidence.assignment.roleDefinitionId and scope to resolve the role definition and flagged evidence.grants[].path; inspect assignment condition, deny assignments and PIM state.",
-      "If the workload does not need the grant, replace that assignment with a tested narrower role or scope; for a custom role, edit only the reviewed actions and dataActions.",
-      "Validate intended operations and re-collect the assignment and matching definition before closing the finding."
+      "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
     ],
-    "summary": "Reduce the specific Azure role assignment's high-impact actions at its actual scope."
+    "summary": "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
   },
   "analysis.grant_review@gcp": {
     "caveats": [
@@ -375,11 +351,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Locate each evidence.grants[].path in the actual IAM policy or role definition; inspect the member, role, condition and inherited parent scope.",
-      "Replace an unnecessary basic or broad role with a reviewed smaller role at the narrowest appropriate resource, preserving a required IAM condition.",
-      "Test the workload with the replacement binding and verify the source policy and inherited grants after re-collection."
+      "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
     ],
-    "summary": "Reduce the flagged Google Cloud role binding or permission to its approved principal, scope and workload need."
+    "summary": "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
   },
   "analysis.grant_review@k8s": {
     "caveats": [
@@ -399,11 +373,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Trace evidence.grants[].path to rules[].verbs/resources/apiGroups and inspect each RoleBinding or ClusterRoleBinding subject that receives the rule.",
-      "Remove unneeded wildcard verbs or resources, or create a tested narrower Role and binding for the workload's namespace; retain only approved resourceNames restrictions where supported.",
-      "Test intended API requests for each bound ServiceAccount and rerun the RBAC projection after the owner applies the manifest."
+      "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
     ],
-    "summary": "Limit the flagged Kubernetes Role or ClusterRole rule to approved verbs and resources."
+    "summary": "Remove unnecessary broad permissions; retain only the actions and resources the workload needs."
   },
   "analysis.inactive_identity": {
     "caveats": [
@@ -419,11 +391,9 @@
     ],
     "review_status": "provider_reference_pending",
     "steps": [
-      "Check the observation window and independent sign-in or workload use; document any dependency before changing credentials.",
-      "Change the owning policy or network declaration through its reviewed configuration route; test legitimate use.",
-      "Rerun the analysis and verify effective access or reachability separately from this projection."
+      "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
     ],
-    "summary": "Review the identity's observed activity window and disable unused credentials through its owner after confirming dependencies."
+    "summary": "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
   },
   "analysis.inactive_identity@aws": {
     "caveats": [
@@ -443,11 +413,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Read evidence.usage.window, completeness and observations; compare the named IAM identity with last-accessed reports, role sessions and application ownership.",
-      "If the owner confirms no dependency, stage a reversible credential deactivation or narrower policy for the exact user or role; retain an approved recovery route.",
-      "Observe the agreed business cycle for failures, then remove only confirmed unused access through the identity owner."
+      "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
     ],
-    "summary": "Validate the AWS identity's apparent inactivity before reducing its credentials or grants."
+    "summary": "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
   },
   "analysis.inactive_identity@azure": {
     "caveats": [
@@ -471,11 +439,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Review evidence.usage.window, completeness and observations against Entra sign-in activity, service-principal use, PIM and the identity's assigned roles.",
-      "After the owner confirms a specific unused user or service principal, stage a reversible account or credential disable; narrow a role assignment only at its verified scope.",
-      "Watch intended sign-ins and workloads through the agreed window, then finalize removal if no dependency remains."
+      "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
     ],
-    "summary": "Verify the Azure or Entra identity's activity coverage before disabling any account or assignment."
+    "summary": "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
   },
   "analysis.inactive_identity@gcp": {
     "caveats": [
@@ -499,11 +465,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect evidence.usage.window, completeness and observations for the named service account or IAM principal; trace workload bindings, key use and impersonation separately.",
-      "For an owner-confirmed unused service-account key, disable that exact key with a rollback window; for an unused binding, narrow or remove only the verified member-role pair at its actual policy scope.",
-      "Monitor dependent workloads and re-collect activity over the approved window before permanently removing access."
+      "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
     ],
-    "summary": "Confirm the Google Cloud identity's use and then retire only its verified unused access path."
+    "summary": "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
   },
   "analysis.inactive_identity@k8s": {
     "caveats": [
@@ -527,16 +491,13 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Read evidence.usage.window and completeness, then inspect namespace workloads, Pod serviceAccountName declarations and RoleBinding subjects for the named identity.",
-      "If the owner confirms no API use, remove an unused binding or disable token automount in its actual workload template; preserve a tested controller rollout and rollback.",
-      "Verify workloads and API authorization after the change and repeat the observed window before any permanent identity removal."
+      "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
     ],
-    "summary": "Confirm the Kubernetes ServiceAccount or RBAC subject has no workload use before reducing its access."
+    "summary": "Confirm whether the identity is still needed before disabling its credentials or removing its permissions."
   },
   "analysis.internet_exposure": {
     "caveats": [
-      "Analysis evidence is a projection and may be MANUAL or incomplete; it does not prove effective access or reachability.",
-      "The source provider and exact configuration owner must be confirmed before choosing a mutation command."
+      "Uses collected configuration; no connection was attempted. Unresolved layers may change the result."
     ],
     "cli": [],
     "references": [
@@ -547,15 +508,13 @@
     ],
     "review_status": "provider_reference_pending",
     "steps": [
-      "Inspect the referenced route, listener, ingress rule and target together; confirm the path with independent network evidence.",
-      "Change the owning policy or network declaration through its reviewed configuration route; test legitimate use.",
-      "Rerun the analysis and verify effective access or reachability separately from this projection."
+      "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
     ],
-    "summary": "Remove the unnecessary public path or constrain its source and target after validating the application need."
+    "summary": "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
   },
   "analysis.internet_exposure@aws": {
     "caveats": [
-      "This is a declared-configuration path model from public origins; no packets were sent and unresolved layers may change the verdict. A bucket external share and a VPC listener need different owners, so no universal mutation command or deletion is supplied."
+      "Uses collected configuration; no connection was attempted. Unresolved layers may change the result."
     ],
     "cli": [],
     "field_binding": {
@@ -583,15 +542,13 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Read evidence.exposure_kind, exposed_ports, path[].layer and unresolved for the named asset; identify the network listener/rule owner, bucket policy owner or RDS snapshot restore-attribute owner.",
-      "For a failing network path, narrow only the unnecessary listener or ingress source/port; for an external snapshot share, restrict restore attributes to approved accounts; for a public bucket, narrow its policy or ACL after migrating intended readers.",
-      "Re-collect each changed layer and independently verify intended access; resolve collector_facts_needed before acting on an UNKNOWN path."
+      "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
     ],
-    "summary": "Constrain the modeled AWS public network path or external share at its actual granting declaration."
+    "summary": "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
   },
   "analysis.internet_exposure@azure": {
     "caveats": [
-      "The projection models declared layers and sends no traffic. Azure default NSG rules cannot be edited directly, and a public IP or listener may serve multiple clients; no blanket removal is safe."
+      "Uses collected configuration; no connection was attempted. Unresolved layers may change the result."
     ],
     "cli": [],
     "field_binding": {
@@ -615,15 +572,13 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Trace evidence.exposure_kind, public_addresses, exposed_ports, path[].layer and unresolved to the public IP/listener, subnet and NIC NSGs, storage networkAcls, SQL firewall rule or App Service access restriction.",
-      "For a failing path, migrate unnecessary public access to a tested private route or narrow the verified custom Allow rule, service allow-list or listener to approved clients.",
-      "Test legitimate access, inspect effective policy intersection and recollect the path; resolve missing layer facts for UNKNOWN findings."
+      "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
     ],
-    "summary": "Reduce the Azure asset's modeled public path at its actual listener, network rule or service access setting."
+    "summary": "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
   },
   "analysis.internet_exposure@gcp": {
     "caveats": [
-      "The model does not send traffic and cannot prove that DNS, application auth or higher-priority policy permits a connection. Disabling a forwarding rule or external IP without client migration can interrupt service; no automatic deletion is proposed."
+      "Uses collected configuration; no connection was attempted. Unresolved layers may change the result."
     ],
     "cli": [],
     "field_binding": {
@@ -647,15 +602,13 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Trace evidence.exposure_kind, public_addresses, exposed_ports and path[].layer to the forwarding rule/firewall target, serverless invoker setting, SQL authorized network or bucket IAM policy.",
-      "For a failing path, move the service to an approved private access design or restrict the exact ingress selector, invoker member, authorized network or bucket public member after testing intended clients.",
-      "Validate required traffic and hierarchy precedence, then rerun collection; complete missing collector_facts_needed for UNKNOWN findings."
+      "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
     ],
-    "summary": "Narrow the flagged Google Cloud public endpoint or storage share at its granting control."
+    "summary": "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
   },
   "analysis.internet_exposure@k8s": {
     "caveats": [
-      "NetworkPolicies are additive and require CNI enforcement; an Ingress annotation alone may not constrain the external load balancer. The model sends no traffic and does not prove reachable application content."
+      "Uses collected configuration; no connection was attempted. Unresolved layers may change the result."
     ],
     "cli": [],
     "field_binding": {
@@ -675,11 +628,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Read evidence.exposure_kind, public_addresses, exposed_ports and path[].layer; identify the exact Service, Ingress, controller, NetworkPolicy and external load-balancer owner.",
-      "For a failing path, change an unneeded public Service to a reviewed internal access design or narrow the controller's source policy and Pod ingress peers after testing required clients.",
-      "Verify CNI enforcement and cloud load-balancer settings, then rerun the projection; resolve unresolved layers before acting on UNKNOWN findings."
+      "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
     ],
-    "summary": "Restrict the flagged Kubernetes Service or Ingress public entry point to intended clients and backend ports."
+    "summary": "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
   },
   "analysis.network_review": {
     "caveats": [
@@ -695,11 +646,9 @@
     ],
     "review_status": "provider_reference_pending",
     "steps": [
-      "Identify the native rule, attachments, traffic need and effective network path before selecting a narrower source.",
-      "Change the owning policy or network declaration through its reviewed configuration route; test legitimate use.",
-      "Rerun the analysis and verify effective access or reachability separately from this projection."
+      "Consider whether public access is needed; restrict unnecessary source networks or ports."
     ],
-    "summary": "Restrict the candidate broad network rule to the tested client sources and required ports."
+    "summary": "Consider whether public access is needed; restrict unnecessary source networks or ports."
   },
   "analysis.network_review@aws": {
     "caveats": [
@@ -740,11 +689,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect evidence.rules[].source.path and native_rule; identify the actual security group rule ID, attachments and traffic need.",
-      "Authorize the reviewed narrower source for the required port, test clients, and remove the identified broad rule through its owner.",
-      "Rerun network analysis and assess effective reachability separately; this candidate alone does not prove exposure."
+      "Consider whether public access is needed; restrict unnecessary source networks or ports."
     ],
-    "summary": "Narrow the candidate public security group ingress rule to its tested client sources and required port."
+    "summary": "Consider whether public access is needed; restrict unnecessary source networks or ports."
   },
   "analysis.network_review@azure": {
     "caveats": [
@@ -780,11 +727,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect evidence.rules[].source.path and the NSG securityRules/defaultSecurityRules; verify the exact rule name, priority, source and attached subnet or NIC.",
-      "Replace a verified custom Allow rule's public source prefix with approved clients; handle built-in default rules through an owner-reviewed higher-priority policy.",
-      "Test intended clients and effective NSG rules, then rerun the analysis; routes and public addressing require separate assessment."
+      "Consider whether public access is needed; restrict unnecessary source networks or ports."
     ],
-    "summary": "Narrow the candidate Azure NSG inbound Allow rule's public source prefix."
+    "summary": "Consider whether public access is needed; restrict unnecessary source networks or ports."
   },
   "analysis.network_review@gcp": {
     "caveats": [
@@ -820,11 +765,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect direction, allowed entries, sourceRanges, source tags/service accounts and target selectors on the named firewall rule.",
-      "Set sourceRanges to a tested approved CIDR in the owning rule after confirming the target and required clients.",
-      "Verify intended traffic and higher-priority firewall policies; rerun the analysis without treating the declaration as proven reachability."
+      "Consider whether public access is needed; restrict unnecessary source networks or ports."
     ],
-    "summary": "Narrow this candidate Google Cloud firewall rule's ingress source ranges to approved clients."
+    "summary": "Consider whether public access is needed; restrict unnecessary source networks or ports."
   },
   "analysis.network_review@k8s": {
     "caveats": [
@@ -855,11 +798,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect spec.ingress and evidence.rules[].source.path for an empty from selector, empty peer or world ipBlock; identify selected Pods and intended clients.",
-      "Replace the candidate with tested namespace/pod selectors or a bounded ipBlock and necessary ports in the owning NetworkPolicy.",
-      "Roll out through the policy owner, verify CNI enforcement and the additive policy union, then rerun the analysis."
+      "Consider whether public access is needed; restrict unnecessary source networks or ports."
     ],
-    "summary": "Restrict this NetworkPolicy's candidate ingress peer or port allowance to required traffic."
+    "summary": "Consider whether public access is needed; restrict unnecessary source networks or ports."
   },
   "analysis.principal_exposure": {
     "caveats": [
@@ -875,11 +816,9 @@
     ],
     "review_status": "provider_reference_pending",
     "steps": [
-      "Identify the declared principal, policy owner, inheritance and legitimate external access before changing the grant.",
-      "Change the owning policy or network declaration through its reviewed configuration route; test legitimate use.",
-      "Rerun the analysis and verify effective access or reachability separately from this projection."
+      "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
     ],
-    "summary": "Remove or constrain the flagged public or external principal declaration at the owning policy."
+    "summary": "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
   },
   "analysis.principal_exposure@aws": {
     "caveats": [
@@ -899,11 +838,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Locate evidence.principals[].source.path in its actual Allow statement; inspect Principal, Action, Resource, Condition and any known external account or service principal.",
-      "If public or unwanted, narrow Principal to approved account, role or service identities and add a supported source or organization condition where applicable; remove an unnecessary external grant.",
-      "Test intended callers and independently assess SCPs, explicit denies and Block Public Access before rerunning the projection."
+      "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
     ],
-    "summary": "Replace the flagged public or external AWS Principal declaration with approved principals and source conditions."
+    "summary": "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
   },
   "analysis.principal_exposure@azure": {
     "caveats": [
@@ -923,11 +860,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Trace evidence.principals[].source.path to properties.principalId or the collected policy member and resolve its tenant and role assignment scope.",
-      "If the principal is not approved, replace the assignment with the intended principal or a narrower scope; review assignment conditions and cross-tenant access before removing any existing access.",
-      "Confirm affected users and workloads can still operate, then recollect assignment and tenant context."
+      "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
     ],
-    "summary": "Review and narrow the flagged Azure external principal assignment at its actual scope."
+    "summary": "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
   },
   "analysis.principal_exposure@gcp": {
     "caveats": [
@@ -951,11 +886,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Find evidence.principals[].source.path in bindings[].members and inspect the binding role, condition, parent scope and any public allUsers/allAuthenticatedUsers member.",
-      "Replace an unwanted public member with approved identities, or move an external principal to a narrower conditional binding where its business need is established.",
-      "Validate intended access and inherited policy behavior, then rerun the declaration review."
+      "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
     ],
-    "summary": "Limit the flagged Google Cloud IAM binding member to approved identities at the right scope."
+    "summary": "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
   },
   "analysis.principal_exposure@k8s": {
     "caveats": [
@@ -975,11 +908,9 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Locate evidence.principals[].source.path in subjects[] and inspect the referenced Role or ClusterRole, namespace and any system:unauthenticated or external subject.",
-      "Replace an unintended broad Group or cross-namespace ServiceAccount subject with the approved workload ServiceAccount; use a namespaced RoleBinding where cluster scope is unnecessary.",
-      "Test intended API access for bound subjects and rerun the RBAC projection after the owner updates the manifest."
+      "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
     ],
-    "summary": "Restrict the flagged Kubernetes RoleBinding subject to approved namespace identities."
+    "summary": "Keep public or external principals only where access is intended; restrict the granting policy or binding otherwise."
   },
   "aws.claude_a.iam.prowler_customer_policy_no_privilege_escalation": {
     "caveats": [
@@ -1165,7 +1096,7 @@
   },
   "azure.port.storage_account_blob_and_container_soft_delete_enabled": {
     "caveats": [
-      "The evaluator requires both policies enabled with 7\u2013365 days, using an authoritative blobServices/default join. Retention can increase cost; declaration is not recovery proof."
+      "The evaluator requires both policies enabled with 7–365 days, using an authoritative blobServices/default join. Retention can increase cost; declaration is not recovery proof."
     ],
     "cli": [
       {
@@ -1186,7 +1117,7 @@
       "target": "resource"
     },
     "iac": {
-      "code": "Set properties.deleteRetentionPolicy and properties.containerDeleteRetentionPolicy enabled=true with separately approved 7\u2013365 day retention on the owning Blob service resource.",
+      "code": "Set properties.deleteRetentionPolicy and properties.containerDeleteRetentionPolicy enabled=true with separately approved 7–365 day retention on the owning Blob service resource.",
       "label": "Change the existing managed declaration",
       "language": "text"
     },
@@ -1206,7 +1137,7 @@
       "Select approved retention for both policies and update the owning Blob service configuration while preserving existing lifecycle rules.",
       "Read both policies again, test authorized Blob and container recovery paths and rerun the check."
     ],
-    "summary": "Enable both Blob and container soft delete with reviewed 7\u2013365 day retention on the flagged account."
+    "summary": "Enable both Blob and container soft delete with reviewed 7–365 day retention on the flagged account."
   },
   "azure.port.storage_account_blob_soft_delete_enabled": {
     "caveats": [
@@ -1243,7 +1174,7 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect blobServices/default properties.deleteRetentionPolicy.enabled and days (the source accepts 7\u2013365 days); identify the storage account owner and current retention or lifecycle rules.",
+      "Inspect blobServices/default properties.deleteRetentionPolicy.enabled and days (the source accepts 7–365 days); identify the storage account owner and current retention or lifecycle rules.",
       "Choose an approved retention period of at least 7 and at most 365 days and enable deleteRetentionPolicy in the owning blob service configuration.",
       "Read properties.deleteRetentionPolicy again, test an authorized recovery path and rerun the native check."
     ],
@@ -1325,7 +1256,7 @@
     ],
     "review_status": "approved",
     "steps": [
-      "Inspect blobServices/default properties.containerDeleteRetentionPolicy.enabled and days (the source accepts 7\u2013365 days); identify the storage account owner and current retention or lifecycle rules.",
+      "Inspect blobServices/default properties.containerDeleteRetentionPolicy.enabled and days (the source accepts 7–365 days); identify the storage account owner and current retention or lifecycle rules.",
       "Choose an approved retention period of at least 7 and at most 365 days and enable containerDeleteRetentionPolicy in the owning blob service configuration.",
       "Read properties.containerDeleteRetentionPolicy again, test an authorized recovery path and rerun the native check."
     ],

@@ -1,4 +1,4 @@
-"""Audit materialized native coverage without importing or executing any scanner.
+"""Audit materialized native coverage without executing collectors or evaluators.
 
 This establishes catalog consistency, not predicate correctness or certification.
 Source identifiers and compliance control mappings remain distinct from native
@@ -56,6 +56,13 @@ def audit_documents(documents):
     reviewed_framework_ids = {version["id"] for version in reviewed.get("frameworks", [])} if reviewed else set()
     runtime = documents["runtime_metadata.json"]
     native = {c["id"]: c for c in checks}
+    from peaso.finding_priority import source_priority
+    for cid, row in native.items():
+        if "severity_review" in row:
+            try:
+                source_priority(row)
+            except ValueError:
+                issue("invalid_reviewed_priority_provenance", native_id=cid)
     source = {r["check_id"]: r for r in rows}
     for name, identifiers in (("native", [c["id"] for c in checks]),
                               ("source", [r["check_id"] for r in rows])):
@@ -247,8 +254,14 @@ def audit_documents(documents):
                 issue("missing_signed_proposal_provenance", native_id=cid)
             if native[cid].get("provider") != spec["provider"]:
                 issue("signed_proposal_provider_mismatch", native_id=cid)
-            if native[cid].get("severity") != spec["severity"]:
-                issue("signed_proposal_severity_mismatch", native_id=cid)
+            from peaso.finding_priority import source_priority
+            try:
+                source_severity = source_priority(native[cid])
+            except ValueError:
+                issue("invalid_reviewed_priority_provenance", native_id=cid)
+            else:
+                if source_severity != spec["severity"]:
+                    issue("signed_proposal_severity_mismatch", native_id=cid)
         if not isinstance(reverse, dict) or not isinstance(versions, dict):
             issue("malformed_reviewed_requirement_index")
         else:

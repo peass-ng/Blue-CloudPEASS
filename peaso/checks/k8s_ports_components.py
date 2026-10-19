@@ -77,7 +77,7 @@ SPECS = {
     "container_argument_etcd_certfile_and_keyfile_configured": ("etcd", ["cert-file", "key-file"], "present", None, ""),
     "container_argument_etcd_peer_certfile_and_peer_keyfile_configured": ("etcd", ["peer-cert-file", "peer-key-file"], "present", None, ""),
     "container_argument_service_account_enabled": ("kube-apiserver", ["enable-admission-plugins"], "contains", "ServiceAccount", "NamespaceLifecycle"),
-    "container_argument_kubelet_terminated_pod_gc_threshold_configured": ("kubelet", ["terminated-pod-gc-threshold"], "gt", 0, "0"),
+    "container_argument_kubelet_terminated_pod_gc_threshold_configured": ("kube-controller-manager", ["terminated-pod-gc-threshold"], "gt", 0, "0"),
     "container_argument_kubelet_client_ca_file_configured": ("kubelet", ["client-ca-file"], "present", None, ""),
     "container_arg_peer_client_cert_auth_enabled": ("etcd", ["peer-client-cert-auth"], "equal", "true", "false"),
     "container_streaming_connection_idle_timeout_not_zero": ("kubelet", ["streaming-connection-idle-timeout"], "nonzero_duration", None, "0"),
@@ -87,6 +87,7 @@ SPECS = {
 LEGACY_MAX = {"insecure-port": (1, 19), "insecure-bind-address": (1, 19), "basic-auth-file": (1, 18)}
 KNOWN_COMPONENTS = frozenset(("kube-apiserver", "kubelet", "kube-controller-manager", "kube-scheduler", "etcd"))
 _TITLE_SCOPE = {
+    "container_argument_kubelet_terminated_pod_gc_threshold_configured": "declares kube-controller-manager terminated-pod-gc-threshold greater than zero",
     "container_argument_audit_log_maxage_greater_than_30": "declares kube-apiserver audit-log-maxage at least 30 days",
     "container_argument_audit_log_maxbackup_greater_than_10": "declares kube-apiserver audit-log-maxbackup at least 10 files",
     "container_argument_audit_log_maxsize_greater_than_100": "declares kube-apiserver audit-log-maxsize at least 100 MB",

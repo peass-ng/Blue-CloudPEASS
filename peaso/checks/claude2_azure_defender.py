@@ -173,7 +173,7 @@ def batch_logging(item, index):
             if isinstance(retention, dict) and retention.get("enabled") is True and "days" not in retention:
                 continue
             hits.append(setting.get("name"))
-    return result(not hits, settings=sorted({h for h in hits if h}))
+    return result(not hits, settings=sorted({h for h in hits if h}), matching_enabled_logs=bool(hits))
 CASES[cid("batch_account_resource_logs")] = {"pass": diag_case(diag_log("ServiceLog")), "fail": {"diagnosticSettings": []}}
 
 

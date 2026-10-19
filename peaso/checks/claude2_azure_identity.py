@@ -5,6 +5,7 @@ Tenant predicates anchor on the ARM ``tenant`` item and evaluate only the direct
 subscription; the custom-owner-role predicate is a single subscription aggregate over the custom roles visible there.
 """
 from __future__ import annotations
+import re
 from .claude2_azure_common import *  # noqa: F401,F403
 from .claude2_azure_common import CHECK_IDS
 from .claude_azure_identity import (_tenant_matches, _foreign_tenant, _tenant_index, _ca_policies, _ca_state, _ca_controls,
@@ -42,8 +43,8 @@ def _setting_values(index, name):
 
 def _int_value(value):
     text = value.strip()
-    if not text.lstrip("-").isdigit():
-        raise Unavailable("directory setting value is not an integer")
+    if not re.fullmatch(r"[0-9]+", text) or int(text) <= 0:
+        raise Unavailable("directory setting value is not a positive integer")
     return int(text)
 
 

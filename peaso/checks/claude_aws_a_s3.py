@@ -384,7 +384,8 @@ def prowler_replication(item, index):
         raise Unavailable("replication rule or destination region unavailable")
     if unresolvable:
         return "MANUAL", {"reason": "replication destination bucket is outside the collected inventory"}
-    return result(True, versioned=True, rules=len(rules))
+    return result(True, versioned=True, rules=len(rules), cross_region_destination_found=False,
+                  observed="No enabled replication rule resolves to an observed destination in another Region.")
 
 
 def _enabled_lifecycle_rules(item):

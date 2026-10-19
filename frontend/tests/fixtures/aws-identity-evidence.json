@@ -1,0 +1,1218 @@
+[
+  {
+    "id": "aws.claude_a.accessanalyzer.active_without_findings",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "findings": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.accessanalyzer.active_without_findings",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "findings": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.accessanalyzer.active_without_findings",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: access_analyzer"
+    }
+  },
+  {
+    "id": "aws.claude_a.accessanalyzer.active_without_findings",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.access_keys_rotated_90",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "stale_keys": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.access_keys_rotated_90",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "stale_keys": [
+        1
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.access_keys_rotated_90",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: access_key_1_last_rotated"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.access_keys_rotated_90",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.admin_user_has_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "mfa_devices": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.admin_user_has_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "mfa_devices": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.admin_user_has_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: UserName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.admin_user_has_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.aws_managed_policy_attached_to_role",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::aws:policy/PowerUserAccess",
+      "role_attachment_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.aws_managed_policy_attached_to_role",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::aws:policy/PowerUserAccessOther",
+      "role_attachment_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.aws_managed_policy_attached_to_role",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.aws_managed_policy_attached_to_role",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.cloudshell_full_access_not_attached",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "entities": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.cloudshell_full_access_not_attached",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "entities": [
+        "devs"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.cloudshell_full_access_not_attached",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "audited region scope unavailable"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.cloudshell_full_access_not_attached",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.custom_policy_in_use",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::123456789012:policy/app",
+      "attached_to_active_identity": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.custom_policy_in_use",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::123456789012:policy/app2",
+      "attached_to_active_identity": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.custom_policy_in_use",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.custom_policy_in_use",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_kms_decrypt_restricted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statements": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_kms_decrypt_restricted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statements": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_kms_decrypt_restricted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_kms_decrypt_restricted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statement_rows": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statement_rows": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_inline_no_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_cloudshell_full_access",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "attached": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_cloudshell_full_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "attached": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_cloudshell_full_access",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_cloudshell_full_access",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_inline_policies",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "inline_policy_count": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_inline_policies",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "inline_policy_count": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_inline_policies",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_no_inline_policies",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_not_empty",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "members": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_not_empty",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "members": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_not_empty",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.group_not_empty",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.no_unused_initial_access_key",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "never_used_keys": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.no_unused_initial_access_key",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "never_used_keys": [
+        1
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.no_unused_initial_access_key",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: password_enabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.no_unused_initial_access_key",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.not_two_active_keys",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "both_active": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.not_two_active_keys",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "both_active": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.not_two_active_keys",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: access_key_1_active"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.not_two_active_keys",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.policy_in_use",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::123456789012:policy/app",
+      "attached_to_active_identity": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.policy_in_use",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "policy_arn": "arn:aws:iam::123456789012:policy/app2",
+      "attached_to_active_identity": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.policy_in_use",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.policy_in_use",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_admin_group_members_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "members_without_mfa": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_admin_group_members_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "members_without_mfa": [
+        "alice"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_admin_group_members_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_admin_group_members_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_no_administratoraccess",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "administrator_access": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_no_administratoraccess",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "administrator_access": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_no_administratoraccess",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_no_administratoraccess",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_readonly_not_cross_account",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "readonly": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_readonly_not_cross_account",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "principal": "arn:aws:iam::999999999999:root"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_readonly_not_cross_account",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RoleName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_readonly_not_cross_account",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_hardware_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "device_types": [
+        "hardware"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_hardware_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "device_types": [
+        "mfa"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_hardware_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MFADevices"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_hardware_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_no_administratoraccess",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "administrator_access": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_no_administratoraccess",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "administrator_access": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_no_administratoraccess",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: UserName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_no_administratoraccess",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_kms_decrypt_restricted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statements": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_kms_decrypt_restricted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statements": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_kms_decrypt_restricted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_kms_decrypt_restricted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statement_rows": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statement_rows": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RoleName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_inline_no_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_administrator_access",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "administrator_access": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_administrator_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "administrator_access": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_administrator_access",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RoleName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_administrator_access",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_cloudshell_full_access",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "attached": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_cloudshell_full_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "attached": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_cloudshell_full_access",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RoleName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_cloudshell_full_access",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_inline_policies",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "inline_policy_count": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_inline_policies",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "inline_policy_count": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_inline_policies",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_no_inline_policies",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_readonly_not_cross_account",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "cross_account_principals": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_readonly_not_cross_account",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "cross_account_principals": [
+        "arn:aws:iam::999999999999:root"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_readonly_not_cross_account",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RoleName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_readonly_not_cross_account",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_trust_not_public",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "public_statements": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_trust_not_public",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "public_statements": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_trust_not_public",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AssumeRolePolicyDocument"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.role_trust_not_public",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_console_has_mfa",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "password_present": 1,
+      "mfa_enabled": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_console_has_mfa",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "password_present": 1,
+      "mfa_enabled": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_console_has_mfa",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SummaryMap.AccountPasswordPresent"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_console_has_mfa",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_credentials_management",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled_features": [
+        "RootCredentialsManagement"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_credentials_management",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled_features": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_credentials_management",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: aws_account_configuration"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.root_credentials_management",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.saml_provider_present",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "providers": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.saml_provider_present",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "providers": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.saml_provider_present",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: iam_saml_provider"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.saml_provider_present",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.server_certificate_not_expired_now",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "expires": "2026-06-01T00:00:00+00:00"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.server_certificate_not_expired_now",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "expires": "2025-12-31T23:00:00+00:00"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.server_certificate_not_expired_now",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Expiration"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.server_certificate_not_expired_now",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_in_group",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "group_count": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_in_group",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "group_count": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_in_group",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupList"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_in_group",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_kms_decrypt_restricted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statements": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_kms_decrypt_restricted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statements": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_kms_decrypt_restricted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_kms_decrypt_restricted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_statement_rows": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_statement_rows": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: UserName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_inline_no_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_long_lived_keys_only_iam_sts",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "access_keys": 0,
+      "other_services": 1,
+      "non_iam_sts_services": [
+        "s3"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_long_lived_keys_only_iam_sts",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "access_keys": 1,
+      "other_services": 1,
+      "non_iam_sts_services": [
+        "s3"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_long_lived_keys_only_iam_sts",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AccessKeys"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_long_lived_keys_only_iam_sts",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_cloudshell_full_access",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "attached": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_cloudshell_full_access",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "attached": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_cloudshell_full_access",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: UserName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_cloudshell_full_access",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_inline_policies",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "inline_policy_count": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_inline_policies",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "inline_policy_count": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_inline_policies",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: UserName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_no_inline_policies",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_one_active_key",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "active_keys": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_one_active_key",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "active_keys": 2
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_one_active_key",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AccessKeys"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.user_one_active_key",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]
