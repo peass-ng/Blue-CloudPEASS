@@ -39,7 +39,11 @@ def test_exact_three_reviewed_bindings_follow_registered_native_checks():
         assert binding["path"] == proof["evaluated_field"]
         assert binding["evaluator_family"] == checks[cid].evaluate.__module__
         assert cid in source[int(proof["evaluator"].rsplit(":", 1)[-1]) - 1]
-        assert template(cid) == row
+        from tests.reviewed_guidance_presentation import assert_approved_presentation
+        current=assert_approved_presentation(cid,row)
+        if cid==IDS[0]:
+            assert "NAT egress" in current["summary"]
+            assert "NAT-only" in " ".join(current["caveats"]) or "NAT" in current["summary"]
 
 
 def test_subnet_guidance_distinguishes_nat_from_direct_internet_gateway():

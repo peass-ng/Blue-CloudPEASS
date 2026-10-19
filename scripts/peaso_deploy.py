@@ -75,6 +75,7 @@ REPRODUCTION_INPUT_PATTERNS = (
     "tests/fixtures/privesc/synthetic_aws.py", "tests/fixtures/privesc/catalog/*/fixture.yaml",
     "tests/release_successor_history.py", "tests/aws_tag_policy_fixture.py",
     "tests/archived_check_contract.py", "tests/backup_c5_fixture_data.py",
+    "tests/gcp_archived_native_contract.py", "tests/reviewed_guidance_presentation.py",
     "tests/elb_native_policy_fixture.py", "tests/nsg_service_observation_fixture.py",
     "tests/release_test_inputs.py", "tests/fixtures/release-test-inputs.json.xz",
     "tests/fixtures/hacktricks-source-revisions.json",

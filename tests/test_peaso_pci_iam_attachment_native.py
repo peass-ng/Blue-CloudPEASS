@@ -197,7 +197,9 @@ def test_public_description_hashguard():
     from peaso.checks.aws_pci_iam_attachment_description_overlay import description, CHECK_ID, SIGNED_SPEC_SHA256
     row = description_for(CHECK_ID)
     assert row["description_correction"]["signed_spec_sha256"] == SIGNED_SPEC_SHA256
-    assert "policy use" in row["description"].lower()
+    from tests.reviewed_guidance_presentation import assert_description_preserves_contract
+    assert_description_preserves_contract(CHECK_ID)
+    assert "attachments" in row["description"] and "declared usable trust" in row["description"]
     original = _compliance()[1]["checks"][CHECK_ID]
     with pytest.raises(ValueError):
         description({**original, "description": "drift"}, SIGNED_SPEC_SHA256)

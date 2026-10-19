@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import gzip
 import json
 import os
 import subprocess
@@ -251,7 +252,11 @@ def test_signed_manifest_digests_and_rows():
     by_id = {row["id"]: row for row in rows}
     assert NEW_CFG not in by_id
     assert (by_id[SSH]["source"], by_id[SSH]["line"]) == ("peaso/checks/claude_aws_a_network.py", 283)
-    assert (ROOT / "peaso/checks/claude_aws_a_network.py").read_text().splitlines()[282].startswith("def _turbot_check(")
+    # The signed ledger records the original source location. Evidence-only
+    # enrichment shifted current lines; verify the actual hash-bound baseline.
+    source = gzip.decompress((ROOT / "tests/fixtures/post_dfaf_integration/network-pre-clarity.py.gz").read_bytes())
+    assert hashlib.sha256(source).hexdigest() == SOURCES[by_id[SSH]["source"]]
+    assert source.decode().splitlines()[by_id[SSH]["line"] - 1].startswith("def _turbot_check(")
     supplement = ancestor_json(LEDGER / "descriptions/implemented-new-checks.json")
     assert len(supplement) == 329 and supplement[NEW_CFG]["proposed_spec_sha256"] == aws_config_recording.PROPOSED_SPEC_SHA256
     assert supplement[BACKUP]["proposed_spec_sha256"] == aws_backup_plan_frequency.PROPOSED_SPEC_SHA256

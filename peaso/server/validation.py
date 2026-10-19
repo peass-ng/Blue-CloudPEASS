@@ -537,10 +537,10 @@ def _selector_index(provider):
     """Valid selector values per provider, without building the full public catalog."""
     from peaso.analysis import ANALYSIS_CHECKS
     from peaso.checks import CHECKS
-    from peaso.checks.catalog import _framework_rows, framework_selector_index, manual_requirement_ids
+    from peaso.checks.catalog import _framework_rows, framework_selector_index
     from peaso.engine import CATEGORIES, FRAMEWORK_ALIASES
-    checks = {c.id for c in CHECKS if c.provider in {provider, "all"}} | {c["id"] for c in ANALYSIS_CHECKS if c.get("provider") in {provider, "all"}}
-    checks |= manual_requirement_ids(provider)
+    from peaso.checks.native_only import automated_checks
+    checks = {c.id for c in automated_checks(CHECKS) if c.provider in {provider, "all"}} | {c["id"] for c in ANALYSIS_CHECKS if c.get("provider") in {provider, "all"}}
     from peaso.checks import CHECK_ALIASES
     checks |= {retired for retired, survivor in CHECK_ALIASES.items() if survivor in checks}  # retired duplicate ids
     provider_ids = frozenset(row["id"] for row in _framework_rows() if row["provider"] in {provider, "all"})

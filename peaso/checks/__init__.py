@@ -82,6 +82,10 @@ class Check:
             result.update(reviewed)
             result["rationale"] = reviewed["description"]
             result["requirement_controls"] = requirement_tags_for(self.id)
+        if detail:
+            # Signed source hints remain in their source contract; the public
+            # hint must agree with its separately reviewed presentation.
+            result["remediation"] = detail["summary"]
         result["clarity_evaluation_contract"] = evaluator_contract_fingerprint()
         proposal = proposal_provenance_for(self.id)
         priority_review = review_metadata(self.id, self.severity)

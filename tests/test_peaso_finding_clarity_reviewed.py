@@ -50,7 +50,19 @@ def test_remediation_preserves_references_commands_and_bindings(check_id, source
     actual = remediation(check_id, original)
     assert original == before
     assert 1 <= len(actual["steps"]) <= 2
-    assert len(actual["caveats"]) == 1
+    expected_caveats = {"aws.cb.kafka.latest_version": 2,
+                        "aws.cb.rds.instance_iam_auth_all_engines": 3}
+    assert len(actual["caveats"]) == expected_caveats.get(check_id, 1)
+    cautions = " ".join(actual["caveats"])
+    if check_id == "aws.cb.kafka.latest_version":
+        assert all(clause in cautions for clause in (
+            "fresh DescribeClusterV2 Version concurrency token", "client compatibility",
+            "broker availability", "maintenance timing", "rollback"))
+    if check_id == "aws.cb.rds.instance_iam_auth_all_engines":
+        assert all(clause in cautions for clause in (
+            "capability evidence is UNKNOWN", "do not change clustered instances",
+            "RDS on Outposts", "database users, TLS, token refresh and connection pooling",
+            "maintenance window", "immediate application is separately reviewed"))
     assert len(actual["summary"].split()) <= 40
     changed = {"summary", "steps", "caveats"}
     assert {k: v for k, v in actual.items() if k not in changed} == {

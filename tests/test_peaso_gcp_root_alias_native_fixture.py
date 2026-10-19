@@ -1,3 +1,4 @@
+# Historical archived-check predicate/collector contract; product selection rejects these IDs.
 """An inert root pair without a transport ledger stays conservatively UNKNOWN.
 
 The real transport and verified alias path are covered by the separate project
@@ -10,7 +11,7 @@ import pytest
 
 from peaso.checks.gcp_data_access import CHECK_SERVICES
 from peaso.collectors import gcp
-from peaso.engine import evaluate_snapshot
+from tests.gcp_archived_native_contract import evaluate_historical_snapshot
 from peaso.gcp_data_access_policy import OPTION, normalize_owner_policy
 from peaso.snapshot import make_snapshot
 from test_peaso_gcp_data_access import config, owner
@@ -77,6 +78,6 @@ def test_native_project_id_and_number_policy_views_are_currently_ambiguous(check
 
     snapshot = make_snapshot("gcp", [SCOPE], [project, policies],
         metadata={OPTION: normalize_owner_policy([owner(service, SCOPE)], [SCOPE])})
-    findings = [row for row in evaluate_snapshot(snapshot, checks=[check_id])["findings"]
+    findings = [row for row in evaluate_historical_snapshot(snapshot, checks=[check_id])["findings"]
                 if row["check_id"] == check_id and not row["resource_id"].startswith("inventory:")]
     assert {row["status"] for row in findings} == {"UNKNOWN"}, findings

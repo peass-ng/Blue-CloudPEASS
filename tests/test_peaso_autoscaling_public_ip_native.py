@@ -76,6 +76,10 @@ def test_public_metadata_preserves_frozen_rows_and_rejects_drift(cid):
     current=description_for(cid)
     assert current['description_correction']['version']==VERSION
     assert 'false or omitted' not in current['pass_when']
-    assert 'UNKNOWN' in current['description']
+    from tests.reviewed_guidance_presentation import assert_description_preserves_contract
+    assert_description_preserves_contract(cid)
+    assert 'omission' in current['description_correction']['source_relationship']
+    assert 'unresolved' in current['description_correction']['source_relationship']
+    assert 'public' in current['description'] and 'launch configuration' in current['description']
     drift=deepcopy(original);drift['pass_when']='unreviewed source alteration'
     with pytest.raises(ValueError):description(cid,drift)

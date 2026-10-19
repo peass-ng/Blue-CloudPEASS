@@ -76,7 +76,15 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
     iam_path = "peaso/checks/claude_aws_a_iam.py"
     # The accepted helper is pinned independently; the unpublished local
     # 706b archive is not a portable historical-release fixture.
-    assert hashlib.sha256((ROOT / iam_path).read_bytes()).hexdigest() == "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
+    iam_current=(ROOT / iam_path).read_text()
+    assert hashlib.sha256(iam_current.encode()).hexdigest()=="d94768357e6b0681e0b438490bfdec1383f0228636d32c0d79ca54504631ccf4"
+    # Reverse only the four reviewed evidence enrichments. This reconstructs
+    # the exact historical source bytes; no source criteria/hash is repinned.
+    iam_frozen=iam_current
+    for enriched,original in IAM_EVIDENCE_ONLY_SUCCESSOR:
+        assert iam_frozen.count(enriched)==1
+        iam_frozen=iam_frozen.replace(enriched,original)
+    assert hashlib.sha256(iam_frozen.encode()).hexdigest()=="2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
     assert len(assigned) == 593
     assert central[PREAPPROVED]["review_status"] == "approved"
     assert entries and set(entries) <= assigned - {PREAPPROVED}
@@ -89,7 +97,7 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
         assert row["source_proof"]["source_kind"] == checks[cid].kind
         source_path, line = row["source_proof"]["evaluator"].rsplit(":", 1)
         assert (ROOT / (source_path)).is_file() and int(line) > 0
-        source_lines = (ROOT / source_path).read_text().splitlines()
+        source_lines = (iam_frozen if source_path == iam_path else (ROOT / source_path).read_text()).splitlines()
         source_line = source_lines[int(line) - 1]
         if source_path == "peaso/checks/claude_aws_b_db.py":
             # The accepted RDS native corrections inserted lines in this file
@@ -290,7 +298,7 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
         else:
             # Saved line numbers describe the reviewed source snapshot. Later
             # native fixes can shift a direct registration without changing it.
-            source_lines = (ROOT / source_path).read_text().splitlines()
+            source_lines = (iam_frozen if source_path == iam_path else (ROOT / source_path).read_text()).splitlines()
             if cid not in source_line and sum(f'"{cid}"' in candidate for candidate in source_lines) != 1:
                 # A fixture assignment may also mention this ID. Prove the
                 # unique decorated registration and its live callable instead.
@@ -302,7 +310,8 @@ def test_ids_are_assigned_and_no_approved_template_is_overridden():
                                          and decorator.args[0].value == cid for decorator in node.decorator_list)]
                 assert len(registrations) == 1, (cid, source_path, len(registrations))
                 assert inspect.unwrap(checks[cid].evaluate).__name__ == registrations[0].name
-        assert template(cid) == row
+        from tests.reviewed_guidance_presentation import assert_approved_presentation
+        assert_approved_presentation(cid,row)
 
 
 def test_each_approval_has_specific_action_and_primary_reference():
@@ -998,3 +1007,27 @@ def test_lightsail_snapshot_database_and_static_ip_require_owner_review():
     assert "<REVIEWED_FULL_LIGHTSAIL_PORTS_JSON>" in combined["cli"][-1]["code"]
     assert "no DisableInstanceIpv6 operation" in ipv6["caveats"][0]
     assert len(ipv6["cli"]) == 1
+
+
+IAM_EVIDENCE_ONLY_SUCCESSOR = [('        matched = set()\n'
+  '        def count_and_describe(rows):\n'
+  '            hits = count_rows(rows, matcher, resource_ok)\n'
+  '            if hits:\n'
+  '                for statement in rows:\n'
+  '                    if statement["Effect"] == "Allow" and any(resource_ok(r) for r in '
+  'statement.get("Resource", [])):\n'
+  '                        matched.update(a for a in statement.get("Action", []) if matcher(a))\n'
+  '            return hits\n'
+  '        return result_rows(_identity_policy_hits(item, count_and_describe), '
+  'matching_actions=sorted(matched))\n',
+  '        return result_rows(_identity_policy_hits(item, lambda rows: count_rows(rows, matcher, '
+  'resource_ok)))\n'),
+ ('        attached = arn in role_attached_arns(index)\n'
+  '        return result(not attached, policy_arn=arn, role_attachment_found=attached)\n',
+  '        return result(arn not in role_attached_arns(index), policy_arn=arn)\n'),
+ ('        attached = arn in in_use_arns(index)\n'
+  '        return result(not attached, policy_arn=arn, attached_to_active_identity=attached)\n',
+  '        return result(arn not in in_use_arns(index), policy_arn=arn)\n'),
+ ('    return result(bool(other) and bool(keys), access_keys=len(keys), other_services=len(other), '
+  'non_iam_sts_services=other)\n',
+  '    return result(bool(other) and bool(keys), access_keys=len(keys), other_services=len(other))\n')]

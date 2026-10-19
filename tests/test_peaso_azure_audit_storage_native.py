@@ -6,7 +6,7 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from fastapi import HTTPException
 from peaso.collectors import azure, collect_live, azure_audit_storage_native as native
-from peaso.engine import evaluate_snapshot, plan_collection
+from tests.test_peaso_azure_audit_storage_history import requirements as historical_requirements, evaluate as historical_evaluate
 
 SCOPE = '/subscriptions/11111111-1111-1111-1111-111111111111'
 ACCOUNT = SCOPE + '/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/account'
@@ -92,10 +92,10 @@ def test_normal_hosted_config_absence_only(monkeypatch,mode,expected):
     configured=options(mode); auth={'method':'token','arm_token':'inert','storage_token':'inert'}
     validate_connector('azure',auth,configured,SimpleNamespace(auth_mode='cognito'))
     connector={'provider':'azure','scopes':[SCOPE],'auth':auth,'options':configured}
-    required=plan_collection({'connector':connector,'checks':[native.CID]})
+    required=historical_requirements()
     assert set(required)=={'storage_account',native.KIND}
     snapshot=collect_live(connector,required)
-    findings=evaluate_snapshot(snapshot,checks=[native.CID],include_not_applicable=True)['findings']
+    findings=historical_evaluate(snapshot)
     assert findings and {f['status'] for f in findings}=={expected},findings
     assert api.closed
     evidence = next(c for c in snapshot['collections'] if c['type']==native.KIND)

@@ -112,6 +112,43 @@ def test_other_user_access_key_excludes_self_failed_and_non_iam_actor() -> None:
     assert detect_aws_events(negatives, [synthetic_rule({"request.other_user": True, "event.outcome": "success"})]) == []
 
 
+def test_other_user_access_key_active_status_requires_success_and_target() -> None:
+    rule = synthetic_rule({"event.name": "UpdateAccessKey", "event.outcome": "success",
+                           "actor.kind": "IAMUser", "request.other_user": True,
+                           "request.status": "Active"})
+    good = event("UpdateAccessKey", {"userName": "bob", "status": "Active", "accessKeyId": "AKIAEXAMPLE"})
+    assert len(detect_aws_events([good], [rule])) == 1
+    negatives = [
+        event("UpdateAccessKey", {"userName": "bob", "status": "Inactive"}),
+        event("UpdateAccessKey", {"userName": "alice", "status": "Active"}),
+        event("UpdateAccessKey", {"userName": "bob", "status": "Active"}, error="AccessDenied"),
+        event("UpdateAccessKey", {"status": "Active"}),
+    ]
+    assert detect_aws_events(negatives, [rule]) == []
+
+
+def test_other_user_ssh_key_upload_excludes_self_and_failed_calls() -> None:
+    rule = synthetic_rule({"event.name": "UploadSSHPublicKey", "event.outcome": "success",
+                           "actor.kind": "IAMUser", "request.other_user": True})
+    assert len(detect_aws_events([event("UploadSSHPublicKey", {"userName": "bob"})], [rule])) == 1
+    assert detect_aws_events([
+        event("UploadSSHPublicKey", {"userName": "alice"}),
+        event("UploadSSHPublicKey", {"userName": "bob"}, error="AccessDenied"),
+        event("UploadSSHPublicKey", {}),
+    ], [rule]) == []
+
+
+def test_other_user_signing_certificate_upload_excludes_self_and_failed_calls() -> None:
+    rule = synthetic_rule({"event.name": "UploadSigningCertificate", "event.outcome": "success",
+                           "actor.kind": "IAMUser", "request.other_user": True})
+    assert len(detect_aws_events([event("UploadSigningCertificate", {"userName": "bob"})], [rule])) == 1
+    assert detect_aws_events([
+        event("UploadSigningCertificate", {"userName": "alice"}),
+        event("UploadSigningCertificate", {"userName": "bob"}, error="AccessDenied"),
+        event("UploadSigningCertificate", {}),
+    ], [rule]) == []
+
+
 def test_non_iam_source_and_unsupported_sigma_grammar_fail_closed(tmp_path) -> None:
     record = event("CreateAccessKey", {"userName": "bob"})
     record["eventSource"] = "ec2.amazonaws.com"

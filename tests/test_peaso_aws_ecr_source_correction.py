@@ -54,7 +54,10 @@ def test_corrected_source_metadata_keeps_frozen_history():
         correction.validate_prior_spec(changed)
     public = check.public()
     assert public["title"] == correction.TITLE
-    assert public["description"] == correction.DESCRIPTION_TEXT
+    from tests.reviewed_guidance_presentation import assert_description_preserves_contract
+    assert_description_preserves_contract(CID)
+    assert "private ECR" in public["description"] and "ignoring conditions" in public["description"]
+    assert "not inventory public ECR" in public["description"] and "prove effective public access" in public["description"]
     assert public["source_correction"] == public["proposal_provenance"]["source_correction"]
     assert public["proposal_provenance"]["signed_resource_kind"] == "ecr_public_repository"
     assert public["proposal_provenance"]["signed_spec_status"] == "historical_superseded_for_this_check"

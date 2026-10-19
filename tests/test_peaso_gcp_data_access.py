@@ -1,4 +1,5 @@
-"""Offline snapshot-to-engine proof of the private GCP Data Access native proposal."""
+# Historical archived-check predicate/collector contract; product selection rejects these IDs.
+"""Offline historical evaluator proof of the owner-scoped GCP Data Access proposal."""
 
 import copy
 import json
@@ -9,7 +10,7 @@ from peaso.checks import gcp_data_access as native
 from peaso.gcp_data_access_policy import OPTION, malformed_direct_principal, normalize_owner_policy
 from peaso.checks import CHECKS
 from peaso.collectors import gcp
-from peaso.engine import evaluate_snapshot
+from tests.gcp_archived_native_contract import evaluate_historical_snapshot
 from peaso.snapshot import make_snapshot
 
 
@@ -53,7 +54,7 @@ def report(check_id, *, project=(), organization=(), ancestry=True, owner_rows=.
                 if rows is not None else {})
     snapshot = make_snapshot("gcp", [PROJECT], [{"type": "iam_policy", "scope": PROJECT,
         "status": project_status, "items": [item]}], metadata=metadata)
-    result = evaluate_snapshot(snapshot, checks=[check_id], categories=["hardening"])
+    result = evaluate_historical_snapshot(snapshot, checks=[check_id], categories=["hardening"])
     matches = [finding for finding in result["findings"] if finding["check_id"] == check_id
                and not finding["resource_id"].startswith("inventory:")]
     assert len(matches) == 1

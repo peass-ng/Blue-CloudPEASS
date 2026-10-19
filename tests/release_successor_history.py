@@ -213,6 +213,51 @@ def historical_release(path):
     return result
 
 
+# Exact evidence-only IAM successor: four literal reversals recover the original
+# frozen baseline byte-for-byte. This is not a current-source repin.
+_IAM_HISTORICAL_BASELINE_SHA256 = "2002c02d63715d2b878d6405ca2bd7df87d02d7832e424b5bd1964c113a96423"
+_IAM_EVIDENCE_SUCCESSOR_SHA256 = "d94768357e6b0681e0b438490bfdec1383f0228636d32c0d79ca54504631ccf4"
+_IAM_EVIDENCE_ONLY_REVERSE_HUNKS = (('        matched = set()\n'
+  '        def count_and_describe(rows):\n'
+  '            hits = count_rows(rows, matcher, resource_ok)\n'
+  '            if hits:\n'
+  '                for statement in rows:\n'
+  '                    if statement["Effect"] == "Allow" and any(resource_ok(r) for r in '
+  'statement.get("Resource", [])):\n'
+  '                        matched.update(a for a in statement.get("Action", []) if matcher(a))\n'
+  '            return hits\n'
+  '        return result_rows(_identity_policy_hits(item, count_and_describe), '
+  'matching_actions=sorted(matched))\n',
+  '        return result_rows(_identity_policy_hits(item, lambda rows: count_rows(rows, matcher, '
+  'resource_ok)))\n'),
+ ('        attached = arn in role_attached_arns(index)\n'
+  '        return result(not attached, policy_arn=arn, role_attachment_found=attached)\n',
+  '        return result(arn not in role_attached_arns(index), policy_arn=arn)\n'),
+ ('        attached = arn in in_use_arns(index)\n'
+  '        return result(not attached, policy_arn=arn, attached_to_active_identity=attached)\n',
+  '        return result(arn not in in_use_arns(index), policy_arn=arn)\n'),
+ ('    return result(bool(other) and bool(keys), access_keys=len(keys), other_services=len(other), '
+  'non_iam_sts_services=other)\n',
+  '    return result(bool(other) and bool(keys), access_keys=len(keys), '
+  'other_services=len(other))\n'))
+
+
+def _source414_reviewed_baseline(member, baseline, expected_sha256):
+    if (member != "peaso/checks/claude_aws_a_iam.py" or
+            expected_sha256 != _IAM_HISTORICAL_BASELINE_SHA256 or
+            hashlib.sha256(baseline).hexdigest() != _IAM_EVIDENCE_SUCCESSOR_SHA256):
+        raise ValueError("Historical source baseline digest differs")
+    source = baseline.decode()
+    for enriched, original in _IAM_EVIDENCE_ONLY_REVERSE_HUNKS:
+        if source.count(enriched) != 1:
+            raise ValueError("Historical IAM evidence successor hunk differs")
+        source = source.replace(enriched, original)
+    restored = source.encode()
+    if hashlib.sha256(restored).hexdigest() != expected_sha256:
+        raise ValueError("Historical IAM baseline reconstruction digest differs")
+    return restored
+
+
 def historical_bytes(path, member):
     """Return retained historical bytes bound to the original release roster."""
     import zipfile
@@ -231,7 +276,9 @@ def historical_bytes(path, member):
         patch = payload["member_patches"][release["source_version"]][member]
         baseline = (ROOT / member).read_bytes()
         if hashlib.sha256(baseline).hexdigest() != patch["baseline_sha256"]:
-            raise ValueError("Historical source baseline digest differs")
+            if release["source_version"] != SOURCE414_VERSION:
+                raise ValueError("Historical source baseline digest differs")
+            baseline = _source414_reviewed_baseline(member, baseline, patch["baseline_sha256"])
         if "select_keys" in patch:
             value = json.loads(baseline)
             raw = (json.dumps({key: value[key] for key in patch["select_keys"]}, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode()
