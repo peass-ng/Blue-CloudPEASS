@@ -227,4 +227,3 @@ def test_reference_variable_malformed_value_is_not_silently_accepted():
     projected_response = project_batch_get_projects(response)
     assert projected_response['projects'][0]['AdditionalSecretIndicators']['NativeResponseComplete'] is False
     assert SECRET not in json.dumps(projected_response)
-

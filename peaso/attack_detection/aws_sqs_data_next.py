@@ -115,4 +115,3 @@ def correlate_aws_sqs_fifo_dedup_collision(records: Iterable[Mapping[str, Any]])
                 break
         prior.setdefault(key, []).append(current)
     return results
-
