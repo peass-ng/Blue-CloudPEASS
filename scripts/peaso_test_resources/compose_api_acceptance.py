@@ -6,6 +6,7 @@ it does not change quota records, paid entitlements, or production resources.
 """
 from __future__ import annotations
 
+from peaso import deployment
 import argparse
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -336,7 +337,7 @@ class Acceptance:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence-dir", type=Path, required=True)
-    parser.add_argument("--profile", default="naxusai-admin")
+    parser.add_argument("--profile", default=deployment.value("test_aws_profile"))
     parser.add_argument("--region", default="eu-west-1")
     args = parser.parse_args()
     run = Acceptance(args.evidence_dir, args.profile, args.region)

@@ -1,7 +1,7 @@
-"""Read-only AWS configuration inventory; all clients remain inside collection.
+"""AWS configuration inventory with scoped temporary Access Analyzer lifecycle.
 
-There is deliberately no legacy scanner import: importing it installs process
-signal handlers, and its normal execution may create Access Analyzers.
+General requests remain read-only; scan-owned analyzers are created and cleaned
+up by a dedicated handler. The legacy scanner is never imported.
 """
 from __future__ import annotations
 
@@ -216,13 +216,18 @@ def _project_activity_response(response):
     return projected
 
 
-def _project_user_data_indicators(response, instance_id):
+def _project_user_data_indicators(response, instance_id, *, dual_scanner=False):
     """Ephemeral source-pattern review, never retain script/value bytes."""
+    from .aws_user_data_secret_indicators import project as project_secret_indicators, scan_selected_content
+    def indicators(text):
+        projected = project_secret_indicators(text, instance_id)
+        return scan_selected_content(projected, text) if dual_scanner else projected
     if not isinstance(response, dict) or response.get("InstanceId") != instance_id:
         raise ReadFailure("malformed", "malformed_user_data_response")
     block = response.get("UserData")
     if block is None or (isinstance(block, dict) and block.get("Value") is None):
-        return {"InstanceId": instance_id, "UserDataIndicators": {"KeywordMatch": False, "PasswordShapeMatch": False, "Present": False}}
+        return {"InstanceId": instance_id, "UserDataIndicators": {"KeywordMatch": False, "PasswordShapeMatch": False, "Present": False},
+                "UserDataSecretIndicators": indicators("")}
     if not isinstance(block, dict) or not isinstance(block.get("Value"), str):
         raise ReadFailure("malformed", "malformed_user_data_encoding")
     try:
@@ -241,7 +246,8 @@ def _project_user_data_indicators(response, instance_id):
     # choose the earliest such character as the matching start. This linear
     # test avoids quadratic lookahead retries over a 16KiB configuration.
     shape = bool(re.search("[a-z]", value) and re.search("[A-Z]", value) and re.search(r"\d", value) and re.search(r"[@$!%*?&]", value))
-    return {"InstanceId": instance_id, "UserDataIndicators": {"KeywordMatch": keyword, "PasswordShapeMatch": shape, "Present": bool(value)}}
+    return {"InstanceId": instance_id, "UserDataIndicators": {"KeywordMatch": keyword, "PasswordShapeMatch": shape, "Present": bool(value)},
+            "UserDataSecretIndicators": indicators(value)}
 
 
 _CONTINUATION_KEYS = ("NextToken", "nextToken", "NextPageToken", "nextPageToken", "NextMarker", "nextMarker", "Marker", "PaginationToken")
@@ -258,6 +264,23 @@ class Requests:
     """Scan-local, single-flight request cache with one global attempt budget."""
     def __init__(self, options, *, sleep=time.sleep):
         self.collect_all = options.get('collect_all') is True
+        # AWS classifies these two report APIs as Read. Only selected checks
+        # enable them; direct Requests callers remain generation-free by default.
+        self.iam_report_generation_requested = options.get('_iam_report_generation_requested', False)
+        self.iam_service_access_reports_requested = options.get(
+            '_iam_service_access_reports_requested', self.iam_report_generation_requested)
+        self.iam_credential_report_generation_requested = options.get(
+            '_iam_credential_report_generation_requested', self.iam_report_generation_requested)
+        for value in (self.iam_report_generation_requested, self.iam_service_access_reports_requested,
+                      self.iam_credential_report_generation_requested):
+            if type(value) is not bool:
+                raise ValueError('internal IAM report selection must be boolean')
+        if not self.iam_report_generation_requested and (
+                self.iam_service_access_reports_requested or self.iam_credential_report_generation_requested):
+            raise ValueError('IAM report selection requires its master selection')
+        self.content_secret_scans = options.get('content_secret_scans', False)
+        if type(self.content_secret_scans) is not bool:
+            raise ValueError('content_secret_scans must be a boolean')
         self.max_calls = _optional_limit(options, "max_calls")
         self.max_pages = _optional_limit(options, "max_pages")
         self.max_items = _optional_limit(options, "max_resources")
@@ -312,7 +335,7 @@ class Requests:
                     max_pool_connections=self.workers))
             return self._clients[key]
 
-    def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, **arguments):
+    def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, _projection_context=None, **arguments):
         credential_exchange = service == "sts" and operation == "assume_role"
         if _uncached_credential_exchange and not credential_exchange:
             raise ReadFailure("not_collected", "uncached_exchange_requires_assume_role")
@@ -320,9 +343,23 @@ class Requests:
         metadata_simulation = (service, operation) == ("iam", "simulate_principal_policy")
         # Report-job generation only: it creates an IAM access-report job and
         # changes no IAM configuration, principal, credential or policy.
+        metadata_report = (service == 'iam' and self.iam_report_generation_requested and (
+            operation == 'generate_credential_report' and self.iam_credential_report_generation_requested or
+            operation == 'generate_service_last_accessed_details' and self.iam_service_access_reports_requested))
         readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) or (service, operation) == ("ec2", "search_transit_gateway_routes")
-        if operation in _PROHIBITED_VALUE_OPERATIONS or (service, operation) not in READ_ACTIONS or not (readonly_name or credential_exchange or metadata_lookup or metadata_simulation):
+        content_profiles = {'aws-code-log-content-indicators-v1', 'aws-package-content-indicators-v1'}
+        content_profile = isinstance(_metadata_profile, str) and _metadata_profile in content_profiles
+        content_log = (service, operation) == ('logs', 'filter_log_events') and _metadata_profile == 'aws-code-log-content-indicators-v1'
+        if content_profile and self.content_secret_scans is not True:
+            raise ReadFailure('not_collected', 'content_secret_scans_disabled')
+        if (service, operation) in {('lambda', 'get_function'), ('lambda', 'get_layer_version')} and _metadata_profile != 'aws-package-content-indicators-v1':
+            raise ReadFailure('not_collected', 'package_content_requires_safe_projection')
+        if (service, operation) == ('codecommit', 'get_file') and _metadata_profile != 'aws-code-log-content-indicators-v1':
+            raise ReadFailure('not_collected', 'repository_content_requires_safe_projection')
+        if (operation in _PROHIBITED_VALUE_OPERATIONS and not content_log) or (service, operation) not in READ_ACTIONS or not (readonly_name or credential_exchange or metadata_lookup or metadata_simulation or content_log or metadata_report):
             raise ReadFailure("not_collected", "non_read_operation")
+        if _projection_context is not None and _metadata_profile != 'aws-code-log-content-indicators-v1':
+            raise ReadFailure('not_collected', 'undeclared_projection_context')
         if (service, operation) == ('securityhub', 'get_finding_history') and _metadata_profile != 'securityhub-workflow-history-metadata-v1':
             raise ReadFailure('not_collected', 'securityhub_history_requires_safe_projection')
         profile_projector = None
@@ -335,11 +372,24 @@ class Requests:
                 from . import aws_wave_semantics_native as projection_contract
             elif _metadata_profile == 'securityhub-findings-metadata-v1':
                 from . import aws_securityhub_finding_metadata_native as projection_contract
+            elif _metadata_profile == 'bedrock-security-role-metadata-v1':
+                from . import aws_bedrock_security_metadata as projection_contract
+            elif _metadata_profile == 'aws-cloudtrail-s3-delivery-metadata-v1':
+                from . import aws_cloudtrail_s3_delivery_metadata as projection_contract
+            elif _metadata_profile == 'aws-code-log-content-indicators-v1':
+                from . import aws_code_log_content_indicators as projection_contract
+            elif _metadata_profile == 'aws-package-content-indicators-v1':
+                from . import aws_package_content_indicators as projection_contract
             else:
                 raise ReadFailure('not_collected', 'undeclared_metadata_profile')
             if (service, operation) not in projection_contract.PROJECTION_OPERATIONS:
                 raise ReadFailure('not_collected', 'metadata_profile_operation_not_allowed')
             profile_projector = projection_contract.project_response
+            if content_profile:
+                projection_context = (self, session) if _metadata_profile == 'aws-package-content-indicators-v1' else _projection_context
+                validator = getattr(projection_contract, 'validate_request', None)
+                if validator is not None:
+                    validator(service, operation, dict(arguments), request_context=projection_context, region=region)
         if metadata_simulation:
             from .aws_cloudtrail_delivery_native import validate_simulation_query
             if not validate_simulation_query(arguments):
@@ -363,6 +413,8 @@ class Requests:
             # Keep the existing cache schema for legacy callers. Profiles share
             # Futures only with callers using the same reviewed projection.
             key += (_metadata_profile,)
+            if _projection_context is not None:
+                key += (json.dumps(_projection_context, sort_keys=True, allow_nan=False),)
         if _uncached_credential_exchange:
             # Trust probes must neither retain a successful STS response in a
             # Future nor consume a cached response from another call.
@@ -417,8 +469,29 @@ class Requests:
                         self.activity_lookup_calls += 1
                 try:
                     response = getattr(client, operation)(**arguments)
+                    if metadata_report:
+                        with self._lock:
+                            if operation == 'generate_credential_report':
+                                self.evidence_generations += 1
+                            else:
+                                self.service_last_accessed_generations += 1
                     if profile_projector is not None:
-                        response = profile_projector(response, service, operation, dict(arguments))
+                        if content_profile:
+                            response = profile_projector(response, service, operation, dict(arguments), request_context=projection_context, region=region)
+                        else:
+                            response = profile_projector(response, service, operation, dict(arguments))
+                    from . import aws_additional_secret_indicators
+                    if (service, operation) in aws_additional_secret_indicators.OPERATIONS:
+                        response = aws_additional_secret_indicators.project_response(
+                            response, service=service, operation=operation, arguments=arguments, region=region)
+                    from . import aws_configuration_payload_secret_indicators
+                    if (service, operation) in aws_configuration_payload_secret_indicators.OPERATIONS:
+                        response = aws_configuration_payload_secret_indicators.project_response(
+                            response, service=service, operation=operation, arguments=arguments, region=region)
+                    from . import aws_launch_template_instance_metadata
+                    if (service, operation) in aws_launch_template_instance_metadata.OPERATIONS:
+                        response = aws_launch_template_instance_metadata.project_response(
+                            response, service=service, operation=operation, arguments=arguments, region=region)
                     if (service, operation) in {("ec2", "describe_tags"), ("lambda", "list_tags")}:
                         from .aws_priority_tags_native import project_tag_response
                         response = project_tag_response(response, service=service)
@@ -439,7 +512,7 @@ class Requests:
                             and getattr(self, 'controltower_policy', None) is not None):
                         from .aws_controltower_native import project_response
                         response = project_response(response, operation)
-                    if service == "codecommit":
+                    if service == "codecommit" and _metadata_profile != 'aws-code-log-content-indicators-v1':
                         from .aws_codecommit_review_native import project_response
                         response = project_response(response, operation)
                     if service == "codepipeline" and operation == "get_pipeline":
@@ -454,6 +527,9 @@ class Requests:
                     if service == 'lambda' and operation in {'list_functions', 'get_function_configuration'}:
                         from .aws_lambda_environment_metadata import project_response
                         response = project_response(response, operation)
+                    if service == 'cloudformation' and operation == 'describe_stacks':
+                        from .aws_configuration_secret_indicators import project_cloudformation_response
+                        response = project_cloudformation_response(response, region=region)
                     if (service == 'organizations' and operation == 'describe_policy'
                             and isinstance(response, dict)
                             and isinstance(response.get('Policy'), dict)
@@ -471,7 +547,9 @@ class Requests:
                         response = project_response(response, exclude_compliant_resources=arguments.get('ExcludeCompliantResources', False))
                     if service == "ec2" and operation == "describe_instance_attribute":
                         if arguments["Attribute"] == "userData":
-                            response = _project_user_data_indicators(response, arguments["InstanceId"])
+                            response = _project_user_data_indicators(response, arguments["InstanceId"],
+                                dual_scanner=(self.content_secret_scans is True and
+                                              "instance" in getattr(self, "content_secret_scan_kinds", ())))
                         else:
                             flag = response.get("DisableApiTermination") if isinstance(response, dict) else None
                             if not isinstance(flag, dict) or not isinstance(flag.get("Value"), bool):
@@ -637,6 +715,10 @@ def _session(auth, region):
     key_fields = ("aws_access_key_id", "aws_secret_access_key", "aws_session_token")
     selected_keys = any(auth.get(k) for k in key_fields)
     method = auth.get("method", "default")
+    if method == "assume_role":
+        if not any(auth.get(key) for key in ("role_arn", "assume_roles", "role_chain")):
+            raise ValueError("assume_role requires a target role")
+        method = "profile" if auth.get("profile") else "access_keys" if selected_keys else "default"
     if method not in {"default", "auto", "sdk", "profile", "sso", "access_keys", "web_identity", "container", "instance", "task_role"}:
         raise ValueError("unsupported AWS authentication method")
     if method in {"profile", "sso"} and not auth.get("profile"):
@@ -702,21 +784,25 @@ def _assume(requests, session, region, target, defaults):
 
 
 def _reject_unprotected_hosted_role(requests, session, region, target, defaults):
-    """Require the target trust to deny this collector without ExternalID."""
+    """Require denial with absent and unrelated workspace External IDs."""
     arn = target if isinstance(target, str) else target["role_arn"]
     name = (target.get("role_session_name") if isinstance(target, dict) else None) or defaults.get("role_session_name", "peaso-read-only")
     if not isinstance(name, str) or not re.fullmatch(r"[\w+=,.@-]{2,64}", name):
         raise ValueError("invalid role_session_name")
-    try:
+    from peaso.auth.aws_trust import require_external_id_boundary, UnsafeRoleTrust
+    def probe(external_id):
         # A successful response contains disposable STS credentials. Never
         # construct a session or perform a read with them.
-        requests.call(session, "sts", region, "assume_role", _uncached_credential_exchange=True,
-            RoleArn=arn, RoleSessionName=name, DurationSeconds=900)
-    except ReadFailure as failure:
-        if failure.code in {"AccessDenied", "AccessDeniedException"}:
-            return
-        raise
-    raise ReadFailure("denied", "external_id_not_required_by_trust")
+        params = {"RoleArn": arn, "RoleSessionName": name}
+        if external_id is not None:
+            params["ExternalId"] = external_id
+        return requests.call(session, "sts", region, "assume_role",
+            _uncached_credential_exchange=True, **params)
+    try:
+        external = target.get("external_id", defaults.get("external_id")) if isinstance(target, dict) else defaults.get("external_id")
+        require_external_id_boundary(probe, external)
+    except UnsafeRoleTrust as exc:
+        raise ReadFailure("denied", str(exc)) from None
 
 
 # type -> (service, list operation, native result path). No resource contents,
@@ -801,14 +887,14 @@ ENRICHERS = {}
 # secret/content reads and Access Analyzer creation are absent.
 _DETAIL_ACTIONS = {
     "sts": "get_caller_identity assume_role",
-    "iam": "list_policies get_policy_version get_account_authorization_details get_account_summary get_account_password_policy get_credential_report get_service_last_accessed_details list_users list_access_keys get_access_key_last_used get_login_profile list_mfa_devices",
+    "iam": "list_policies get_policy_version get_account_authorization_details get_account_summary get_account_password_policy get_credential_report get_service_last_accessed_details generate_credential_report generate_service_last_accessed_details list_users list_access_keys get_access_key_last_used get_login_profile list_mfa_devices",
     "sso-admin": "list_instances list_permission_sets describe_permission_set get_inline_policy_for_permission_set list_managed_policies_in_permission_set get_permissions_boundary_for_permission_set",
     "identitystore": "list_users",
     "ec2": "describe_regions get_snapshot_block_public_access_state get_image_block_public_access_state get_instance_metadata_defaults describe_snapshot_attribute describe_instance_attribute search_transit_gateway_routes get_transit_gateway_route_table_associations",
     "s3": "list_buckets get_bucket_location get_public_access_block get_bucket_policy_status get_bucket_policy get_bucket_encryption get_bucket_versioning get_bucket_acl get_bucket_ownership_controls get_bucket_logging get_bucket_lifecycle_configuration get_bucket_notification_configuration get_bucket_replication get_object_lock_configuration get_bucket_tagging",
     "s3control": "get_public_access_block",
     "organizations": "list_accounts list_policies_for_target describe_policy list_parents describe_organization describe_organizational_unit",
-    "kms": "describe_key get_key_rotation_status get_key_policy",
+    "kms": "describe_key get_key_rotation_status get_key_policy list_aliases",
     "cloudtrail": "get_trail_status get_event_selectors get_insight_selectors lookup_events",
     "config": "describe_configuration_recorder_status",
     "dlm": "get_lifecycle_policy",
@@ -906,6 +992,10 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
                 item["UserDataIndicators"] = {**projected["UserDataIndicators"], "collection_status": "collected"}
             else:
                 item["UserDataIndicators"] = projected
+            if projected.get("collection_status") == "collected" and isinstance(projected.get("UserDataSecretIndicators"), dict):
+                item["UserDataSecretIndicators"] = projected["UserDataSecretIndicators"]
+            else:
+                item["UserDataSecretIndicators"] = {"collection_status": projected.get("collection_status", "not_collected")}
             protection = detail("ec2", "describe_instance_attribute", InstanceId=item["InstanceId"], Attribute="disableApiTermination")
             item.setdefault("Attributes", {})["DisableApiTermination"] = (
                 protection["DisableApiTermination"]["Value"] if protection.get("collection_status") == "collected" else protection)
@@ -930,16 +1020,35 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
         elif kind == "kms_key":
             key = item["KeyId"]
             item["Metadata"] = detail("kms", "describe_key", KeyId=key)
+            metadata = item["Metadata"]
+            if metadata.get("collection_status") == "collected":
+                native = metadata.get("KeyMetadata")
+                if (not isinstance(native, dict) or native.get("KeyId") != key or
+                        (isinstance(item.get("KeyArn"), str) and native.get("Arn") != item["KeyArn"])):
+                    item["Metadata"] = {"collection_status": "malformed",
+                                        "error": {"code": "kms_key_identity_mismatch"}}
             item["Rotation"] = detail("kms", "get_key_rotation_status", KeyId=key)
+            rotation = item["Rotation"]
+            if (rotation.get("collection_status") == "collected" and "KeyId" in rotation
+                    and rotation["KeyId"] not in {key, item.get("KeyArn")}):
+                item["Rotation"] = {"collection_status": "malformed",
+                                    "error": {"code": "kms_rotation_identity_mismatch"}}
             item["Policy"] = detail("kms", "get_key_policy", KeyId=key, PolicyName="default")
             if "Policy" in item["Policy"]:
                 item["Policy"]["Policy"] = _policy(item["Policy"]["Policy"])
+            from .aws_kms_enclave_inventory import enrich_key_inventory
+            enrich_key_inventory(requests, session, region, item)
         elif kind == "cloudtrail":
             _documented_omission(item, "KmsKeyId", "", "cloudtrail:DescribeTrails")
             arn = item.get("TrailARN") or item["Name"]
             home = item.get("HomeRegion", region)
             item["Status"] = requests.detail(session, "cloudtrail", home, "get_trail_status", Name=arn)
             item["EventSelectors"] = requests.detail(session, "cloudtrail", home, "get_event_selectors", TrailName=arn)
+            selectors = item["EventSelectors"]
+            if (selectors.get("collection_status") == "collected"
+                    and selectors.get("TrailARN") != item.get("TrailARN")):
+                item["EventSelectors"] = {"collection_status": "malformed",
+                                          "error": {"code": "cloudtrail_selector_identity_mismatch"}}
             item["InsightSelectors"] = requests.detail(session, "cloudtrail", home, "get_insight_selectors", TrailName=arn, absent=("InsightNotEnabledException",))
         elif kind == "config_recorder":
             item["Status"] = detail("config", "describe_configuration_recorder_status", ConfigurationRecorderNames=[item["name"]])
@@ -1043,8 +1152,12 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
                 for field in ("RotationEnabled", "RotationRules", "RotationLambdaARN", "OwningService", "KmsKeyId"):
                     item["_coverage"][field] = {"status": status, "reason": code, "source_operation": "secretsmanager:DescribeSecret"}
             item["Policy"] = detail("secretsmanager", "get_resource_policy", SecretId=arn) if valid_arn else {"collection_status": "malformed"}
-            if "ResourcePolicy" in item["Policy"]:
-                item["Policy"]["ResourcePolicy"] = _policy(item["Policy"]["ResourcePolicy"])
+            policy = item["Policy"]
+            if (policy.get("collection_status") == "collected" and "ResourcePolicy" in policy and
+                    (policy.get("ARN") != arn or ("Name" in policy and policy["Name"] != item.get("Name")))):
+                item["Policy"] = {"collection_status": "malformed", "error": {"code": "secret_policy_identity_mismatch"}}
+            elif "ResourcePolicy" in policy:
+                policy["ResourcePolicy"] = _policy(policy["ResourcePolicy"])
         elif kind == "sns_topic":
             item["Attributes"] = detail("sns", "get_topic_attributes", TopicArn=item["TopicArn"])
             attrs = item["Attributes"].get("Attributes", {})
@@ -1063,6 +1176,8 @@ def _enrich(requests, session, region, kind, items, *, account=None, partition=N
             arn = item["LoadBalancerArn"]
             item["Attributes"] = detail("elbv2", "describe_load_balancer_attributes", LoadBalancerArn=arn)
             listeners = requests.pages(session, "elbv2", region, "describe_listeners", "Listeners", LoadBalancerArn=arn)
+            if any(isinstance(listener, dict) and "LoadBalancerArn" in listener and listener["LoadBalancerArn"] != arn for listener in listeners.items):
+                listeners = ReadResult([], "malformed", {"code": "listener_load_balancer_identity_mismatch"})
             item["Listeners"] = {"collection_status": listeners.status, "items": listeners.items}
             if listeners.error:
                 item["Listeners"]["error"] = listeners.error
@@ -1244,12 +1359,8 @@ def _role_report_scope(requests, session, region, roles):
 
 
 def _sla_reports(requests, session, region, arns):
-    # IAM has no list API for existing service-access report job identifiers.
-    # Never generate a provider-side job just to obtain read evidence.
-    return {arn: (None, {"collection_status": "not_collected",
-        "operation": "iam:GetServiceLastAccessedDetails", "granularity": "SERVICE_LEVEL",
-        "error": {"code": "service_last_accessed_generation_disabled"}})
-        for arn in sorted(arns)}
+    from .aws_iam_report_native import service_reports
+    return service_reports(requests, session, region, arns)
 
 
 def _buckets(requests, session, region):
@@ -1325,30 +1436,8 @@ def _single(requests, session, region, service, operation, *, absent=(), **argum
 
 
 def _credentials_report(requests, session, region):
-    unavailable_report_codes = {"ReportNotPresent", "ReportExpired", "ReportInProgress", "CredentialReportNotPresent", "CredentialReportExpired", "CredentialReportNotReady"}
-    read = _single(requests, session, region, "iam", "get_credential_report",
-        absent=unavailable_report_codes)
-    if read.status == "empty" and read.error and read.error.get("code") in unavailable_report_codes:
-        return ReadResult([], "not_collected", {"code": "credential_report_generation_disabled",
-            "source_code": read.error["code"]})
-    if read.items:
-        response = read.items[0]
-        content = response.get("Content")
-        if not isinstance(content, bytes) or response.get("ReportFormat") != "text/csv":
-            return ReadResult([], "malformed", {"code": "malformed_credential_report"})
-        try:
-            read.items = list(csv.DictReader(io.StringIO(content.decode("utf-8"))))
-            if any(not row.get("user") or None in row for row in read.items):
-                raise ValueError("malformed CSV")
-            for row in read.items:
-                row["ReportGeneratedTime"] = _safe(response.get("GeneratedTime"))
-            read.status = "collected" if read.items else "empty"
-        except (ValueError, UnicodeError):
-            return ReadResult([], "malformed", {"code": "malformed_credential_report"})
-    # Missing/expired report is unavailable evidence, rather than no credentials.
-    if read.status == "empty" and read.error:
-        read.status = "not_collected"
-    return read
+    from .aws_iam_report_native import credential_report
+    return credential_report(requests, session, region)
 
 
 def _scp_policies(requests, session, region, account):
@@ -1696,6 +1785,15 @@ def collect(connector, requirements=None):
         return discovered_regions.get(account, regions)
 
     requests = Requests(options)
+    content_kinds = options.get('_content_secret_scan_kinds', [])
+    if not isinstance(content_kinds, list) or any(kind not in {
+            'codecommit_repository', 'log_group', 'lambda_function', 'lambda_layer_version', 'ecr_repository', 'instance'
+    } for kind in content_kinds):
+        raise ValueError('invalid internal content check selection')
+    requests.content_secret_scan_kinds = frozenset(content_kinds)
+    requests.ec2_clock_metric_requested = options.get('_ec2_clock_metric_requested', requirements is None)
+    if type(requests.ec2_clock_metric_requested) is not bool:
+        raise ValueError('invalid internal EC2 clock metric selection')
     requests.lightsail_iam_policy = lightsail_metadata(lightsail_owner, requests.observed_at)
     requests.environment_boundaries_policy = environment_boundaries_owner
     requests.eks_admission_policy = eks_admission_owner
@@ -1758,6 +1856,27 @@ def collect(connector, requirements=None):
             if not isinstance(original, dict):
                 status, error = ("partial" if unique else "malformed"), {"code": "malformed_resource"}
                 break
+            if account and kind in {"iam_user", "iam_group", "iam_role", "iam_policy", "iam_credential_report", "access_analyzer"}:
+                caller = next((value for value in identities if value.get("Account") == account), {})
+                caller_arn = caller.get("Arn", "")
+                expected_partition = caller_arn.split(":")[1] if isinstance(caller_arn, str) and caller_arn.startswith("arn:") else None
+                field = "arn" if kind in {"iam_credential_report", "access_analyzer"} else "Arn"
+                native_arn = original.get(field)
+                parts = native_arn.split(":", 5) if isinstance(native_arn, str) else []
+                valid = len(parts) == 6 and parts[0] == "arn" and parts[1] == expected_partition
+                if kind == "access_analyzer":
+                    valid = valid and parts[2] == "access-analyzer" and parts[3] == region and parts[4] == account and parts[5].startswith("analyzer/") and len(parts[5]) > len("analyzer/")
+                else:
+                    label = kind.removeprefix("iam_")
+                    allowed_accounts = {account, "aws"} if kind == "iam_policy" else {account}
+                    valid = valid and parts[2] == "iam" and parts[3] == "" and parts[4] in allowed_accounts
+                    if kind == "iam_credential_report":
+                        valid = valid and (parts[5] == "root" if original.get("user") == "<root_account>" else parts[5].startswith("user/"))
+                    else:
+                        valid = valid and parts[5].startswith(label + "/") and len(parts[5]) > len(label) + 1
+                if not valid:
+                    status, error = ("partial" if unique else "malformed"), {"code": "native_identity_scope_mismatch"}
+                    break
             item = _safe(original)
             # This reviewed classification is an enum, not an environment
             # variable payload. Keep generic credential redaction unchanged.
@@ -1983,6 +2102,8 @@ def collect(connector, requirements=None):
         if discovered_regions:
             regions[:] = sorted({region for values in discovered_regions.values() for region in values})
         metadata["regions"] = list(regions)
+    from peaso.ai.access import aws as capture_ai_access
+    capture_ai_access(contexts)
     requests.audited_regions_by_account = {identity["Account"]: list(regions_for(identity["Account"])) for _, identity in contexts}
     progress_total = len(collections) + sum(len(GLOBAL_TYPES) + len(regions_for(identity["Account"])) * (len(set(SPECS) - GLOBAL_TYPES) + len(unsupported)) for context, identity in contexts)
     emit_progress(progress_callback, phase="collecting", provider="aws", scope="", completed=len(collections),
@@ -2155,6 +2276,8 @@ def collect(connector, requirements=None):
         return ReadResult([], "not_collected", {"code": "unsupported_inventory"})
 
     def regional_job(session, identity, region, kind):
+        if kind == "access_analyzer":
+            return analyzer_lifecycle.collect(session, identity, region, ENRICHERS[kind])
         if kind == 'lightsail_bucket' and lightsail_iam_only:
             from .aws_lightsail_iam_native import bucket_metadata
             return bucket_metadata(requests, session, region, identity['Account'])
@@ -2241,6 +2364,13 @@ def collect(connector, requirements=None):
                     read.error = {**(read.error or {}),
                                   "code": (read.error or {}).get("code", "incomplete_parent_inventory"),
                                   "cause_status": cause}
+            from .aws_workload_detail_identity import bind_workload_details
+            read.items = bind_workload_details(kind, read.items, identity["Account"], region, identity["Arn"].split(":")[1])
+            if kind == "cloudfront_distribution":
+                prefix = "arn:" + identity["Arn"].split(":")[1] + ":cloudfront::" + identity["Account"] + ":distribution/"
+                if any(not isinstance(item.get("Id"), str) or not item["Id"]
+                        or item.get("ARN") != prefix + item["Id"] for item in read.items):
+                    return ReadResult([], "malformed", {"code": "cloudfront_distribution_identity_mismatch"})
             if kind == "lambda_function":
                 for item in read.items:
                     configuration = item.get("Configuration", {})
@@ -2270,12 +2400,19 @@ def collect(connector, requirements=None):
     # own thread instead of occupying a shared service worker for minutes.
     activity_workers = _bound(options, "activity_concurrency", min(32, max(1, len(regions) * min(scope_workers, max(1, len(contexts))))), maximum=32)
     metadata["activity_concurrency"] = activity_workers
-    with ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
+    from .aws_access_analyzer_lifecycle import AnalyzerLifecycle
+    metadata["access_analyzer_lifecycle"] = []
+    if "access_analyzer" in wanted:
+        metadata["collection"] = "read-only-with-temporary-access-analyzers"
+    analyzer_lifecycle = AnalyzerLifecycle(requests, metadata["access_analyzer_lifecycle"], progress_callback)
+    with analyzer_lifecycle, ThreadPoolExecutor(max_workers=requests.workers, thread_name_prefix="aws-read") as pool, \
             ThreadPoolExecutor(max_workers=activity_workers, thread_name_prefix="aws-activity") as activity_pool:
         for offset in range(0, len(contexts), scope_workers):
             scope_batch = contexts[offset:offset + scope_workers]
             jobs, activity_jobs = [], {}
             for session, identity in scope_batch:
+                if "access_analyzer" in wanted and identity["Account"] not in region_discovery_errors:
+                    analyzer_lifecycle.prepare(session, identity, regions_for(identity["Account"]))
                 # Activity reads start first: they are the longest rate-limited chains.
                 if "aws_cloudtrail_activity" in wanted and identity["Account"] not in region_discovery_errors:
                     for region in regions_for(identity["Account"]):
@@ -2365,8 +2502,8 @@ def collect(connector, requirements=None):
         "max_resources": requests.max_items, "resource_count": total_items,
         "credential_resolution_calls": "sdk_managed_not_counted",
         "intentional_limits": {key: options[key] for key in ("max_calls", "max_pages", "max_resources", "deadline_seconds") if options.get(key) is not None},
-        "authorized_evidence_generation": {"iam_credential_report": False, "generation_requests": requests.evidence_generations,
-            "iam_service_last_accessed_report": False, "service_last_accessed_generation_requests": requests.service_last_accessed_generations},
+        "authorized_evidence_generation": {"iam_credential_report": requests.iam_credential_report_generation_requested, "generation_requests": requests.evidence_generations,
+            "iam_service_last_accessed_report": requests.iam_service_access_reports_requested, "service_last_accessed_generation_requests": requests.service_last_accessed_generations},
         "activity_collection": {"projection": "actor_arn_type_event_name_time_id_only", "minutes": requests.activity_minutes,
             "window_end": requests.observed_at.isoformat(), "declared_event_names": sorted({name for values in ACTIVITY_ACTIONS.values() for name in values}),
             "global_service_event_names": {"names": sorted(IAM_ONLY_ACTIVITY_NAMES), "queried_only_in": IAM_EVENT_REGION,
@@ -2419,6 +2556,15 @@ def _chain(first, second):
     return enrich
 
 
+def _explicit_content_enricher(kind, function):
+    def enrich(requests, session, region, items):
+        selected = getattr(requests, 'content_secret_scan_kinds', None)
+        if selected is not None and kind not in selected:
+            return items
+        return function(requests, session, region, items)
+    return enrich
+
+
 def _load_metadata_extension(name="peaso.collectors.aws_b_services"):
     """Trusted in-repository read-only specs, sharing the scan request context."""
     from importlib import import_module
@@ -2436,7 +2582,8 @@ def _load_metadata_extension(name="peaso.collectors.aws_b_services"):
             raise ValueError("AWS extension cannot replace existing service specification: " + kind)
     actions = set(getattr(extension, "READ_ACTIONS", set()))
     for service, operation in actions | {(s, o) for s, o, expression in specs.values()}:
-        if operation in _PROHIBITED_VALUE_OPERATIONS or (not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) and (service, operation) not in {("cloudtrail", "lookup_events"), ("iam", "simulate_principal_policy")}):
+        content_log = name == 'peaso.collectors.aws_code_log_content_indicators' and (service, operation) == ('logs', 'filter_log_events')
+        if (operation in _PROHIBITED_VALUE_OPERATIONS and not content_log) or (not operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) and (service, operation) not in {("cloudtrail", "lookup_events"), ("iam", "simulate_principal_policy")} and not content_log):
             raise ValueError("AWS extension includes a prohibited operation")
     fetchers = getattr(extension, "FETCHERS", {})
     for kind in fetchers:
@@ -2449,9 +2596,22 @@ def _load_metadata_extension(name="peaso.collectors.aws_b_services"):
     GLOBAL_TYPES.update(getattr(extension, "GLOBAL_TYPES", set()))
     FETCHERS.update(fetchers)
     for kind, enricher in getattr(extension, "ENRICHERS", {}).items():
+        if name in {'peaso.collectors.aws_code_log_content_indicators', 'peaso.collectors.aws_package_content_indicators'}:
+            enricher = _explicit_content_enricher(kind, enricher)
         ENRICHERS[kind] = _chain(ENRICHERS[kind], enricher) if kind in ENRICHERS else enricher
     AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
 
+
+EXTENSION_MODULES += ("peaso.collectors.aws_bedrock_security_metadata",
+                      "peaso.collectors.aws_s3_object_acl_review_20261019",
+                      "peaso.collectors.aws_configuration_payload_secret_indicators",
+                      "peaso.collectors.aws_code_log_content_indicators",
+                      "peaso.collectors.aws_package_content_indicators",
+                      "peaso.collectors.aws_launch_template_instance_metadata",
+                      "peaso.collectors.aws_ec2_clock_metadata",
+                      "peaso.collectors.aws_cloudtrail_s3_delivery_metadata",
+                      "peaso.collectors.aws_alb_waf_association_metadata",
+                      "peaso.collectors.aws_beanstalk_runtime_metadata")
 
 for _extension in EXTENSION_MODULES:
     _load_metadata_extension(_extension)

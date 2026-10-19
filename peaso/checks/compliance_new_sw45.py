@@ -792,4 +792,24 @@ def userdata_embedded_secrets(item, index):
         raise Unavailable("unrecognized secret category")
     if (not present and secret) or (secret != bool(categories)):
         raise Unavailable("contradictory user-data secret projection")
-    return result(secret, instance_id=instance_id, matched_categories=sorted(categories))
+    evidence = {'instance_id': instance_id, 'matched_categories': sorted(categories)}
+    if 'ContentScan' in indicators:
+        from peaso.secret_scanning import merge_leaks
+        scanned = get(indicators, 'ContentScan', dict)
+        complete = get(scanned, 'complete', bool)
+        engines = get(scanned, 'engines', list)
+        if (len(engines) != 2 or any(not isinstance(row, dict) for row in engines)
+                or {row.get('engine') for row in engines} != {'kingfisher', 'trufflehog'}
+                or any(row.get('status') not in {'complete', 'unavailable'} for row in engines)
+                or complete != all(row['status'] == 'complete' for row in engines)):
+            raise Unavailable('malformed user-data detector coverage')
+        try:
+            leaks = merge_leaks(get(scanned, 'leaks', list))
+        except (TypeError, ValueError, KeyError):
+            raise Unavailable('malformed user-data detector evidence')
+        evidence.update(secret_leaks=leaks, scanner_complete=complete)
+        if leaks:
+            return result(True, **evidence)
+        if not secret and not complete:
+            return unknown('user-data content detectors unavailable; no absence verdict', **evidence)
+    return result(secret, **evidence)

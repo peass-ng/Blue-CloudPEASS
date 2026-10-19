@@ -14,7 +14,7 @@ from peaso.attack_detection.gcp_secret_versions_next import (
 from peaso.attack_detection.rules import Rule, detect_gcp_events
 
 
-PROJECT = "gcp-labs-ly3gvnn7"
+PROJECT = "example-audit-project"
 METHOD = "google.cloud.secretmanager.v1.SecretManagerService."
 TYPE = "type.googleapis.com/google.cloud.secretmanager.v1."
 SECRET = "synthetic-secret"

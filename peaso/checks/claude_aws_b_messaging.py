@@ -343,8 +343,8 @@ def _attrs(item):
 
 def _topic_policy(item):
     attrs = _attrs(item)
-    if "Policy" not in attrs and "Policy" not in attrs.get("_coverage", {}):
-        return None
+    # GetTopicAttributes properties depend on caller authorization. TopicArn
+    # authenticates identity, but cannot prove an omitted policy is absent.
     return policy_document(get(attrs, "Policy"))
 
 

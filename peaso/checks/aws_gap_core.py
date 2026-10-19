@@ -18,7 +18,7 @@ import re
 from datetime import timedelta
 
 from . import register, result, CHECKS
-from .facts import Unavailable, get, list_of_objects
+from .facts import Unavailable, get, list_of_objects, optional
 from .fixtures import CASES
 from .claude_aws_a_common import idx, items, strings, as_list, _denied_index, ACCOUNT, SCOPE
 from .claude_aws_a_ec2 import w, partition
@@ -48,10 +48,22 @@ def install(cid, kind, title, severity, control, remediation, *, category="harde
 # =========================================================================== CloudTrail selector semantics
 def selector_body(trail):
     body = get(trail, "EventSelectors", dict)
-    if body.get("collection_status") not in (None, "collected"):
+    status = optional(body, "collection_status", None, str)
+    if status not in (None, "collected"):
         raise Unavailable("trail event selectors not collected")
-    basic = list_of_objects(body.get("EventSelectors") or [])
-    advanced = list_of_objects(body.get("AdvancedEventSelectors") or [])
+    if status == "collected":
+        # GetEventSelectors returns the ARN of the trail whose selectors were
+        # read. A successful read for another trail cannot prove this trail's
+        # management or data-event coverage. Unmarked legacy fixture bodies
+        # retain their historical input contract; native receipts stay strict.
+        expected_arn = get(trail, "TrailARN", str)
+        if (re.fullmatch(r"arn:[a-z0-9-]+:cloudtrail:[a-z0-9-]+:[0-9]{12}:trail/[A-Za-z0-9_.-]+", expected_arn) is None
+                or get(body, "TrailARN", str) != expected_arn):
+            raise Unavailable("trail event selector identity mismatch")
+    basic = list_of_objects(optional(body, "EventSelectors", [], list))
+    advanced = list_of_objects(optional(body, "AdvancedEventSelectors", [], list))
+    if basic and advanced:
+        raise Unavailable("basic and advanced trail selectors cannot coexist")
     return basic, advanced
 
 
@@ -220,14 +232,15 @@ def _logging_and(trail, predicate):
     return True if logging else None
 
 
+TRAIL_ARN = "arn:aws:cloudtrail:us-east-1:%s:trail/audit" % ACCOUNT
 TRAIL = {"Name": "audit", "TrailARN": "arn:aws:cloudtrail:us-east-1:%s:trail/audit" % ACCOUNT, "HomeRegion": "us-east-1",
          "IsMultiRegionTrail": True, "IsOrganizationTrail": False, "IncludeGlobalServiceEvents": True, "LogFileValidationEnabled": True,
          "KmsKeyId": "arn:aws:kms:us-east-1:%s:key/k1" % ACCOUNT, "Status": {"IsLogging": True},
-         "EventSelectors": {"collection_status": "collected", "EventSelectors": [{"ReadWriteType": "All", "IncludeManagementEvents": True,
+         "EventSelectors": {"collection_status": "collected", "TrailARN": TRAIL_ARN, "EventSelectors": [{"ReadWriteType": "All", "IncludeManagementEvents": True,
                                                                                   "DataResources": [], "ExcludeManagementEventSources": []}]}}
-ADV_MGMT = {"collection_status": "collected", "AdvancedEventSelectors": [
+ADV_MGMT = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "AdvancedEventSelectors": [
     {"Name": "Management events selector", "FieldSelectors": [{"Field": "eventCategory", "Equals": ["Management"]}]}]}
-ADV_DATA_NAMED = {"collection_status": "collected", "AdvancedEventSelectors": [
+ADV_DATA_NAMED = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "AdvancedEventSelectors": [
     {"Name": "Management events selector", "FieldSelectors": [{"Field": "eventCategory", "Equals": ["Data"]},
                                                                {"Field": "resources.type", "Equals": ["AWS::S3::Object"]}]}]}
 
@@ -299,13 +312,13 @@ def security_trail(item, index):
     return result(bool(failed), failures=failed, excluded_sources=excluded)
 
 
-S3_ALL = {"collection_status": "collected", "EventSelectors": [{"ReadWriteType": "All", "IncludeManagementEvents": True,
+S3_ALL = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "EventSelectors": [{"ReadWriteType": "All", "IncludeManagementEvents": True,
           "DataResources": [{"Type": "AWS::S3::Object", "Values": ["arn:aws:s3"]}]}]}
-S3_ADV_WRITE = {"collection_status": "collected", "AdvancedEventSelectors": [{"FieldSelectors": [
+S3_ADV_WRITE = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "AdvancedEventSelectors": [{"FieldSelectors": [
     {"Field": "eventCategory", "Equals": ["Data"]}, {"Field": "resources.type", "Equals": ["AWS::S3::Object"]}, {"Field": "readOnly", "Equals": ["false"]}]}]}
-S3_ADV_ALL = {"collection_status": "collected", "AdvancedEventSelectors": [{"FieldSelectors": [
+S3_ADV_ALL = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "AdvancedEventSelectors": [{"FieldSelectors": [
     {"Field": "eventCategory", "Equals": ["Data"]}, {"Field": "resources.type", "Equals": ["AWS::S3::Object"]}]}]}
-S3_ADV_ONE_EVENT = {"collection_status": "collected", "AdvancedEventSelectors": [{"FieldSelectors": [
+S3_ADV_ONE_EVENT = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "AdvancedEventSelectors": [{"FieldSelectors": [
     {"Field": "eventCategory", "Equals": ["Data"]}, {"Field": "resources.type", "Equals": ["AWS::S3::Object"]}, {"Field": "eventName", "Equals": ["PutObject"]}]}]}
 
 
@@ -352,11 +365,11 @@ BUCKET = {"Name": "b1", "Location": {"collection_status": "collected", "Location
 for _mode, _need in (("read", ("read",)), ("write", ("write",)), ("read_write", ("read", "write"))):
     def _install_bucket(mode=_mode, need=_need):
         cid = "aws.gap.s3.object_%s_events_logged" % mode
-        bucket_only = {"collection_status": "collected", "EventSelectors": [{"ReadWriteType": "All",
+        bucket_only = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "EventSelectors": [{"ReadWriteType": "All",
                        "DataResources": [{"Type": "AWS::S3::Object", "Values": ["arn:aws:s3:::b1/"]}]}]}
-        wrong = {"collection_status": "collected", "EventSelectors": [{"ReadWriteType": "WriteOnly" if "read" in need else "ReadOnly",
+        wrong = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "EventSelectors": [{"ReadWriteType": "WriteOnly" if "read" in need else "ReadOnly",
                  "DataResources": [{"Type": "AWS::S3::Object", "Values": ["arn:aws:s3"]}]}]}
-        sibling = {"collection_status": "collected", "EventSelectors": [{"ReadWriteType": "All",
+        sibling = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "EventSelectors": [{"ReadWriteType": "All",
                    "DataResources": [{"Type": "AWS::S3::Object", "Values": ["arn:aws:s3:::b1-other/"]}]}]}
 
         @install(cid, "bucket", "S3 bucket object-level %s events are recorded by a logging multi-Region trail" % mode.replace("_", " and "),
@@ -381,9 +394,9 @@ for _mode, _need in (("read", ("read",)), ("write", ("write",)), ("read_write", 
     _install_bucket()
 
 
-BEDROCK_DATA = {"collection_status": "collected", "AdvancedEventSelectors": [{"FieldSelectors": [
+BEDROCK_DATA = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "AdvancedEventSelectors": [{"FieldSelectors": [
     {"Field": "eventCategory", "Equals": ["Data"]}, {"Field": "resources.type", "Equals": ["AWS::Bedrock::Model"]}]}]}
-BEDROCK_WRONG = {"collection_status": "collected", "AdvancedEventSelectors": [{"FieldSelectors": [
+BEDROCK_WRONG = {"collection_status": "collected", "TrailARN": TRAIL_ARN, "AdvancedEventSelectors": [{"FieldSelectors": [
     {"Field": "eventCategory", "Equals": ["Data"]}, {"Field": "resources.type", "Equals": ["AWS::Bedrock::Model"]}, {"Field": "eventName", "Equals": ["PutObject"]}]}]}
 
 

@@ -59,6 +59,7 @@ class Check:
         return [self.kind]
 
     def public(self):
+        from peaso.finding_types import type_for
         from .catalog import description_for, provenance_for, proposal_provenance_for, requirement_tags_for
         from .facts import FIELD_SPECS
         from .batch import scalar_sql
@@ -67,6 +68,7 @@ class Check:
         from peaso.finding_presentation import evaluator_contract_fingerprint
         detail = details_for(self.id, provider=self.provider)
         result = {"id": self.id, "provider": self.provider, "category": self.category, "type": self.kind,
+                "finding_type": type_for(self.id),
                 "title": self.title, "severity": effective_priority(self.id, self.severity), "frameworks": self.frameworks,
                 "framework_ids": self.framework_ids,
                 "mapping": self.mapping, "remediation": detail["summary"] if detail else self.remediation,
@@ -1427,3 +1429,62 @@ from . import native_storage_compute  # Complete native EFS/EMR/SQL joins.
 # One signed bulk admission; prior callbacks and aliases remain immutable.
 from . import bulk_pending  # noqa: E402,F401
 bulk_pending.install()
+
+from . import aws_review_20261019  # Reviewed read-only AWS security extensions.
+aws_review_20261019.install()
+from . import aws_resource_policy_scope  # Complete native resource-policy declaration review.
+aws_resource_policy_scope.install()
+from . import gcp_workbench_review_20261019  # Native, policy-independent Workbench settings.
+gcp_workbench_review_20261019.install()
+from . import gcp_function_secret_review_20261019
+gcp_function_secret_review_20261019.install()
+
+from . import gcp_configuration_secret_review_20261019
+gcp_configuration_secret_review_20261019.install()
+
+from . import gcp_log_secret_review_20261019
+gcp_log_secret_review_20261019.install()
+
+from . import gcp_selected_object_secret_review_20261019
+gcp_selected_object_secret_review_20261019.install()
+
+from . import gcp_image_secret_review_20261019
+gcp_image_secret_review_20261019.install()
+
+from . import gcp_selected_archive_secret_review_20261019
+gcp_selected_archive_secret_review_20261019.install()
+from . import gcp_additional_literal_secret_review_20261019
+gcp_additional_literal_secret_review_20261019.install()
+
+from . import gcp_dataform_secret_review_20261019
+gcp_dataform_secret_review_20261019.install()
+from . import gcp_job_literal_secret_review_20261019
+gcp_job_literal_secret_review_20261019.install()
+from . import gcp_gke_literal_secret_review_20261019
+gcp_gke_literal_secret_review_20261019.install()
+from . import gcp_notebook_airflow_secret_review_20261019
+gcp_notebook_airflow_secret_review_20261019.install()
+from . import gcp_function_source_secret_review_20261019
+gcp_function_source_secret_review_20261019.install()
+from . import gcp_artifact_file_secret_review_20261019
+gcp_artifact_file_secret_review_20261019.install()
+from . import gcp_composer_source_secret_review_20261019
+gcp_composer_source_secret_review_20261019.install()
+from . import gcp_os_security_update_review_20261019
+gcp_os_security_update_review_20261019.install()
+from . import gcp_cloudsql_backup_alert_native
+gcp_cloudsql_backup_alert_native.install_fixtures()
+from . import gcp_cloudbuild_log_secret_review_20261019
+gcp_cloudbuild_log_secret_review_20261019.install()
+
+from . import gcp_appengine_source_secret_review_20261019
+gcp_appengine_source_secret_review_20261019.install()
+
+from . import gcp_cloudbuild_artifact_secret_review_20261019
+gcp_cloudbuild_artifact_secret_review_20261019.install()
+
+from . import gcp_clouddeploy_source_secret_review_20261019
+gcp_clouddeploy_source_secret_review_20261019.install()
+
+from . import gcp_sourcerepo_secret_review_20261019
+gcp_sourcerepo_secret_review_20261019.install()

@@ -1,0 +1,111 @@
+[
+  {
+    "eventID": "bed4446b-a84d-44c2-8eec-4f32564219ef",
+    "eventTime": "2026-10-19T18:42:08Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "PutRolePolicy",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "roleName": "example-sqs-next-50f7be90-reader",
+      "policyName": "reader",
+      "policyDocument": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Action\": \"sqs:ReceiveMessage\", \"Resource\": \"arn:aws:sqs:us-east-1:222233334444:example-sqs-next-50f7be90-standard\", \"Condition\": {\"StringEquals\": {\"aws:ResourceTag/example-trust\": \"true\"}}}]}"
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "bdacd89f-0aae-4700-93c2-82148de22afb",
+    "eventTime": "2026-10-19T18:42:17Z",
+    "eventSource": "sqs.amazonaws.com",
+    "eventName": "TagQueue",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/222233334444/example-sqs-next-50f7be90-standard",
+      "tags": {
+        "example-trust": "true"
+      }
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "5e0774b7-1932-4062-98b4-fb200e74e14d",
+    "eventTime": "2026-10-19T18:42:18Z",
+    "eventSource": "sqs.amazonaws.com",
+    "eventName": "UntagQueue",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/222233334444/example-sqs-next-50f7be90-standard",
+      "tagKeys": [
+        "example-trust"
+      ]
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "5926489b-00a1-4147-8923-50cc790e3c77",
+    "eventTime": "2026-10-19T18:42:34Z",
+    "eventSource": "sqs.amazonaws.com",
+    "eventName": "SetQueueAttributes",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/222233334444/example-sqs-next-50f7be90-standard",
+      "attributes": {
+        "SqsManagedSseEnabled": "false"
+      }
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "f69cc459-b358-4d4b-b976-ed57a6d7e522",
+    "eventTime": "2026-10-19T18:42:34Z",
+    "eventSource": "sqs.amazonaws.com",
+    "eventName": "SetQueueAttributes",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "queueUrl": "https://sqs.us-east-1.amazonaws.com/222233334444/example-sqs-next-50f7be90-standard",
+      "attributes": {
+        "VisibilityTimeout": "43200"
+      }
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

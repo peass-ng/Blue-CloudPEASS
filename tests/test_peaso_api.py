@@ -32,7 +32,11 @@ def settings(tmp_path):
 
 
 @pytest.fixture
-def client(settings):
+def client(settings, monkeypatch):
+    # Model a configured AI deployment for API quota/ownership tests. Agent
+    # execution and missing-token/isolation rejection have dedicated tests.
+    monkeypatch.setattr('peaso.ai.auth.codex_available', lambda *args: True)
+    monkeypatch.setattr('peaso.ai.isolation.available', lambda: True)
     app = create_app(settings, authenticator=TestIdentities())
     with TestClient(app, base_url="http://127.0.0.1:8000") as value:
         value.headers["Authorization"] = "Bearer alice"

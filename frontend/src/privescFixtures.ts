@@ -641,6 +641,9 @@ const edges: PrivescEdge[] = edgeSpecs.map(([source, target, techs, confidence, 
         target_count:
           tgt.kind === "aggregate" ? Number(tgt.underlying_count || 0) : 1,
         granting_statements: refs,
+        ...(t === "aws-iam-attach-role-policy" ? {
+          granting_permissions: [{ permission: "iam:AttachRolePolicy", grant: refs[0] }],
+        } : {}),
         conditions:
           confidence === "conditional"
             ? [src.provider === "aws" ? "scp_not_evaluated" : "condition_present"]

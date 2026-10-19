@@ -14,6 +14,10 @@ def archive_checkout(tmp_path):
     target = tmp_path / "tests/fixtures/release-test-inputs.json.xz"
     target.parent.mkdir(parents=True)
     shutil.copyfile(Path(__file__).parent / "fixtures/release-test-inputs.json.xz", target)
+    source = Path(__file__).parent / "fixtures/post_dfaf_integration/pre_review_ledger_inputs.json.gz"
+    retained = tmp_path / "tests/fixtures/post_dfaf_integration/pre_review_ledger_inputs.json.gz"
+    retained.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, retained)
     return target
 
 
@@ -96,6 +100,18 @@ def test_historical_release_rosters_and_member_tampering(tmp_path, monkeypatch):
         history.historical_bytes(archive, "../escape.json")
 
 
+def test_retained_pre_review_ledger_inputs_reject_bundle_tampering(tmp_path, monkeypatch):
+    from tests import release_successor_history as history
+    archive_checkout(tmp_path)
+    monkeypatch.setattr(history, "ROOT", tmp_path)
+    retained = history.retained_ledger_inputs()
+    assert hashlib.sha256(retained["manifest.json"]).hexdigest() == history.PRE_REVIEW_MANIFEST_SHA256
+    bundle = tmp_path / history.PRE_REVIEW_LEDGER_BUNDLE
+    bundle.write_bytes(bundle.read_bytes() + b"tampered")
+    with pytest.raises(ValueError, match="bundle digest"):
+        history.retained_ledger_inputs()
+
+
 def test_historical_catalog_projection_rejects_tampering(tmp_path, monkeypatch):
     from tests import release_successor_history as history
     archive_checkout(tmp_path)
@@ -174,3 +190,25 @@ def test_batch_owns_restored_inputs_until_every_worker_finishes(tmp_path, monkey
     assert len(seen) == 4
     assert not fixture.exists()
     assert all(path.is_file() for path in paths)
+
+
+def test_parallel_restoration_publishes_complete_files_without_overwriting(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    archive_checkout(tmp_path)
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = list(pool.map(lambda _: inputs.restore_missing_inputs(tmp_path), range(4)))
+    assert sum(len(paths) for paths in results) == 74
+    assert len(json.loads((tmp_path / 'tests/fixtures/bulk_pending_behavior.json').read_text())) == 552
+    assert not list(tmp_path.rglob('.release-input-*'))
+
+
+def test_historical_cohort_is_bound_to_its_release_not_later_native_admissions():
+    from types import SimpleNamespace
+    from peaso.checks import CHECKS
+    from tests.release_successor_history import registered_before_bulk
+    baseline = registered_before_bulk(CHECKS)
+    later = SimpleNamespace(id='synthetic.later.native.admission')
+    assert registered_before_bulk([*CHECKS, later]) == baseline
+    missing = [check for check in CHECKS if check.id != baseline[0].id]
+    with pytest.raises(AssertionError):
+        registered_before_bulk(missing)

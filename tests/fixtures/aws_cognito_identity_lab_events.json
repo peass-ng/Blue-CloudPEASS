@@ -1,0 +1,117 @@
+[
+  {
+    "eventSource": "cognito-identity.amazonaws.com",
+    "eventName": "SetIdentityPoolRoles",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "9e6b1883-89aa-4e4d-9ab4-612298db8a07",
+    "eventTime": "2026-10-19T15:39:26Z",
+    "requestParameters": {
+      "identityPoolId": "us-east-1:7095efce-b854-465f-9564-9dbe17b21897",
+      "roles": {
+        "authenticated": "arn:aws:iam::222233334444:role/example-cognito-id-e0f484babc-authen",
+        "unauthenticated": "arn:aws:iam::222233334444:role/example-cognito-id-e0f484babc-unauth"
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "awsRegion": "us-east-1"
+  },
+  {
+    "eventSource": "cognito-identity.amazonaws.com",
+    "eventName": "UpdateIdentityPool",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "4c87bf94-a849-4554-9fc2-d4262889453a",
+    "eventTime": "2026-10-19T15:39:44Z",
+    "requestParameters": {
+      "developerProviderName": "login.example-cognito-id-e0f484babc.example",
+      "identityPoolName": "example-cognito-id-e0f484babc",
+      "identityPoolId": "us-east-1:7095efce-b854-465f-9564-9dbe17b21897",
+      "cognitoIdentityProviders": [
+        {
+          "providerName": "cognito-idp.us-east-1.amazonaws.com/us-east-1_NmYUEbSR1",
+          "serverSideTokenCheck": false,
+          "clientId": "ae57vqa6qpeocgkqog08tfoq9"
+        }
+      ],
+      "allowUnauthenticatedIdentities": true,
+      "allowClassicFlow": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "awsRegion": "us-east-1"
+  },
+  {
+    "eventSource": "cognito-identity.amazonaws.com",
+    "eventName": "UpdateIdentityPool",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "43938ae2-bfcc-494b-a4f8-55259707dc96",
+    "eventTime": "2026-10-19T15:39:26Z",
+    "requestParameters": {
+      "developerProviderName": "login.example-cognito-id-e0f484babc.example",
+      "identityPoolName": "example-cognito-id-e0f484babc",
+      "identityPoolId": "us-east-1:7095efce-b854-465f-9564-9dbe17b21897",
+      "allowUnauthenticatedIdentities": true,
+      "allowClassicFlow": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "awsRegion": "us-east-1"
+  },
+  {
+    "eventSource": "cognito-identity.amazonaws.com",
+    "eventName": "SetPrincipalTagAttributeMap",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "950e707d-8dde-439c-921d-3b80e9d64671",
+    "eventTime": "2026-10-19T15:39:44Z",
+    "requestParameters": {
+      "principalTags": {
+        "dept": "nickname"
+      },
+      "useDefaults": false,
+      "identityProviderName": "cognito-idp.us-east-1.amazonaws.com/us-east-1_NmYUEbSR1",
+      "identityPoolId": "us-east-1:7095efce-b854-465f-9564-9dbe17b21897"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "awsRegion": "us-east-1"
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AddUserPoolClientSecret",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "8206e12b-d135-4288-8387-a2c43f579bc9",
+    "eventTime": "2026-10-19T15:39:44Z",
+    "requestParameters": {
+      "userPoolId": "us-east-1_NmYUEbSR1",
+      "clientId": "ae57vqa6qpeocgkqog08tfoq9"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "awsRegion": "us-east-1"
+  }
+]

@@ -21,7 +21,7 @@ import functools
 import hashlib
 import re
 
-from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, as_list, best, combine, downgrade, glob_match
+from .effective_permissions import ANY, CONF_RANK, AllTargets, Grant, as_list, best, combine, downgrade, glob_match, permission_match as _tag_permission
 from .schema import (BLOCKER_ALIASES, CHAIN_SOURCE_SELECTORS, EVALUATED_BLOCKERS, FACTS_NEEDED, GENERIC_SELECTORS,
                      GENERIC_SOURCE_SELECTORS, MODEL_BLOCKERS, PRECONDITIONS, expand_requires)
 
@@ -67,6 +67,20 @@ COVERED_BY = {
 }
 LOCALIZING_SELECTORS = {"gcp_sa_in_scope_of_permission", "azure_identity_assignable_in_scope"}
 LOCALIZING_SCOPES = {"same_namespace", "same_project"}
+
+
+def _tag_result(result, raw):
+    if isinstance(result, AllTargets):
+        return AllTargets(_tag_permission(result.grant, raw))
+    if isinstance(result, dict):
+        seen = {}
+        for target, grant in result.items():
+            key = id(grant)
+            if key not in seen:
+                seen[key] = _tag_permission(grant, raw)
+            result[target] = seen[key]
+        return result
+    return _tag_permission(result, raw)
 
 
 class CReq:
@@ -837,6 +851,8 @@ class Evaluator:
             got = model.check_bound(source, [r.raw for r in group], [r.template for r in group])
             if got is None:
                 return None
+            for requirement in group:
+                got = _tag_permission(got, requirement.raw)
             grants.append(got)
         for req in static:
             if req.raw.get("bind") and len(bound.get(req.raw["bind"], ())) >= 2:
@@ -847,7 +863,8 @@ class Evaluator:
                 got = best(got, model.cached_check(source, req.raw, ref))
             if got is None:
                 return None
-            grants.append(downgrade(got, floor[0], floor[1]) if floor else got)
+            got = downgrade(got, floor[0], floor[1]) if floor else got
+            grants.append(_tag_permission(got, req.raw))
         pivot_values = None
         if pivot:
             got, pivot_values = self._pivot(source, pivot)
@@ -913,6 +930,8 @@ class Evaluator:
                 if not candidates:
                     return placeholders or None
                 got = model.check_targets(source, req.raw, req.template, candidates, localized=req.localized)
+            if not isinstance(req, tuple):
+                got = _tag_result(got, req.raw)
             if isinstance(got, AllTargets):
                 if isinstance(current, AllTargets):
                     current = AllTargets(combine(current.grant, got.grant))
@@ -1029,7 +1048,7 @@ class Evaluator:
                 got = model.cached_check(source, req.raw, ANY)
                 if got is None:
                     return None, None
-                grants.append(got)
+                grants.append(_tag_permission(got, req.raw))
             return downgrade(combine(*grants), "conditional", "pivot_resource_not_verified"), None
         winner, values = None, []
         for pivot in candidates:
@@ -1041,7 +1060,8 @@ class Evaluator:
                     got = best(got, model.cached_check(source, req.raw, ref))
                 if got is None:
                     break
-                grants.append(downgrade(got, floor[0], floor[1]) if floor else got)
+                got = downgrade(got, floor[0], floor[1]) if floor else got
+                grants.append(_tag_permission(got, req.raw))
             else:
                 values.append(pivot)
                 winner = best(winner, combine(*grants))

@@ -1,0 +1,54 @@
+{
+  "$defs": {
+    "Review": {
+      "additionalProperties": false,
+      "properties": {
+        "finding_id": {
+          "title": "Finding Id",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNKNOWN",
+            "DENIED",
+            "MANUAL",
+            "NOT_APPLICABLE",
+            "EMPTY"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        },
+        "reason": {
+          "description": "Must be empty for FAIL; otherwise explain the verdict and any likely check error in at most 500 characters.",
+          "maxLength": 500,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "finding_id",
+        "verdict",
+        "reason"
+      ],
+      "title": "Review",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/Review"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "required": [
+    "items"
+  ],
+  "title": "Reviews",
+  "type": "object"
+}

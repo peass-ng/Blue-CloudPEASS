@@ -10,12 +10,18 @@ from peaso.storage.reports import publish_report
 from tests.test_peaso_findings_sorting import api
 
 
-@pytest.mark.parametrize("cid", [next(iter(ROWS)), "aws.kms.rotation", "gcp.ports.compute_instance_ip_forwarding_disabled"])
+@pytest.mark.parametrize("cid", [next(iter(ROWS)), "aws.kms.rotation", "gcp.ports.compute_instance_ip_forwarding_disabled",
+                               "aws.claude_a.iam.root_console_has_mfa", "aws.a.iam.root_summary_no_keys"])
 def test_archived_component_detail_preserves_raw_evidence(api, cid):
     client, store, artifacts = api
     check = next(c for c in CHECKS if c.id == cid)
-    fixture = CASES[cid]
-    status, evidence = check.evaluate(fixture["fail"], fixture.get("fail_index", {}))
+    if cid == "aws.claude_a.iam.root_console_has_mfa":
+        status, evidence = "PASS", {"password_present": 0, "mfa_enabled": 0}
+    elif cid == "aws.a.iam.root_summary_no_keys":
+        status, evidence = "PASS", {"account_access_keys_present": 0}
+    else:
+        fixture = CASES[cid]
+        status, evidence = check.evaluate(fixture["fail"], fixture.get("fail_index", {}))
     finding = {"id": "f1", "check_id": cid, "provider": check.provider, "scope": "cluster/test",
                "category": "hardening", "service": check.kind, "resource_id": "pod/test",
                "title": check.title, "severity": check.severity, "frameworks": [],
@@ -39,6 +45,7 @@ def test_archived_component_detail_preserves_raw_evidence(api, cid):
     assert response.status_code == 200, response.text
     detail = response.json()
     assert detail["evidence_summary"] == expected
+    assert detail["evidence_summary_format"] == "natural-language-v2"
     assert detail["evidence"] == original["evidence"]
     assert detail["status"] == status
     assert finding == original

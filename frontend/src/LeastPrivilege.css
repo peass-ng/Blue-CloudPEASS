@@ -29,3 +29,10 @@
 .least-suggestions dd { margin: 0; overflow-wrap: anywhere; }
 .least-detail .least-caution { margin-top: 1.4rem; font-size: .9rem; }
 @media (max-width: 600px) { .least-row-count { white-space: normal; text-align: right; } }
+
+.least-row { flex-wrap: wrap; }
+.least-row .least-identity { min-width: min(20rem, 65%); }
+[aria-label="Principal exposure"] { overflow-wrap: anywhere; }
+[aria-label="Principal exposure"] pre { white-space: pre-wrap; max-height: 20rem; overflow: auto; }
+
+.least-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }

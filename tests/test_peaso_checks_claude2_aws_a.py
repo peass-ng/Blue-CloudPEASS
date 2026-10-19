@@ -1,4 +1,5 @@
 """Behaviour tests for the claude2_aws_a native ports and partition dispositions."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -41,7 +42,7 @@ def test_pass_fail_unknown(cid):
     assert check.evaluate({"collection_status": "denied"}, cases.get("index", {}))[0] == "UNKNOWN"
     if "not_applicable" in cases:
         assert _evaluate(cid, "not_applicable") == "NOT_APPLICABLE"
-    assert HACKTRICKS in check.frameworks
+    assert (HACKTRICKS in check.frameworks) == includes(check.id)
     assert ROWS[cid]
 
 

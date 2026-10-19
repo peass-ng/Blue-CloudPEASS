@@ -74,7 +74,14 @@ def test_large_downloads_pages_details_facets_and_graph_envelopes(tmp_path):
         client.headers["Authorization"] = "Bearer bob"
         for path in ("report", "summary", "findings", "findings/finding-00000", "graphs/iam", "coverage"):
             assert client.get(f"/api/scans/{ident}/{path}").status_code == 404
-    assert len(original_get("alice", bundle["report_json"])["findings"]) == 620
+    downloaded = original_get("alice", bundle["report_json"])
+    assert downloaded["finding_grouping"] == "check-v1"
+    assert len(downloaded["findings"]) == 1
+    observations = downloaded["findings"][0]["observations"]
+    assert len(observations) == 620
+    assert {row["id"] for row in observations} == {row["id"] for row in findings}
+    assert all(row["evidence"] == findings[0]["evidence"] for row in observations)
+    assert downloaded["stats"]["observation_count"] == 620
 
 
 def test_signed_large_finding_envelope_carries_only_bounded_defensive_template(tmp_path):

@@ -17,8 +17,11 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 TABLE = "aws_dynamodb_table.metadata.arn"
 OBJECTS = "${aws_s3_bucket.artifacts.arn}/*"
+BUCKET = "aws_s3_bucket.artifacts.arn"
 CREDENTIALS = "aws_secretsmanager_secret.credentials.arn"
 KEY = "aws_kms_key.connectors.arn"
+AI_KEY = "aws_kms_key.ai.arn"
+AI_SECRET = "aws_secretsmanager_secret.ai.arn"
 MODULES = (
     "peaso/storage/dynamodb.py", "peaso/storage/artifacts.py",
     "peaso/storage/runtime.py", "peaso/storage/reports.py", "peaso/worker.py",
@@ -51,7 +54,7 @@ def dotted(node):
 def operation(name):
     # SDK spelling differs from IAM for batch operations and S3 HEAD.
     return {"batch_get_item": "BatchGetItem", "batch_write_item": "BatchWriteItem",
-            "head_object": "GetObject"}.get(name, "".join(part.title() for part in name.split("_")))
+            "head_object": "GetObject", "delete_objects": "DeleteObject"}.get(name, "".join(part.title() for part in name.split("_")))
 
 
 @dataclass(frozen=True)
@@ -197,6 +200,17 @@ class Graph:
                     if method == "generate_presigned_url":
                         assert isinstance(node.args[0], ast.Constant)
                         method = node.args[0].value
+                    elif method == "get_paginator":
+                        assert len(node.args) == 1 and isinstance(node.args[0], ast.Constant)
+                        assert node.args[0].value == "list_objects_v2"
+                        assert any(
+                            isinstance(call, ast.Call) and dotted(call.func) == "paginator.paginate"
+                            and dotted(next((kw.value for kw in call.keywords if kw.arg == "Bucket"), None)) == "self.bucket"
+                            and dotted(next((kw.value for kw in call.keywords if kw.arg == "Prefix"), None)) == "target"
+                            for call in nodes
+                        )
+                        require("s3:ListBucket", BUCKET, node.lineno)
+                        continue
                     else:
                         bucket = next(kw.value for kw in node.keywords if kw.arg == "Bucket")
                         assert dotted(bucket) == "self.bucket"
@@ -312,6 +326,21 @@ class Statement:
     resources: tuple[str, ...]
     conditional: bool = False
     not_actions: bool = False
+    artifact_prefix: bool = False
+    not_resources: bool = False
+
+
+def alternative_values(stream, positive, negative):
+    """IAM permits exactly one of each positive/complement field pair."""
+    present = []
+    for name in (positive, negative):
+        try:
+            field(stream, name)
+        except AssertionError:
+            continue
+        present.append(name)
+    assert len(present) == 1, f"Expected exactly one of {positive}/{negative}"
+    return values(stream, present[0]), present[0] == negative
 
 
 def policies(text):
@@ -335,14 +364,11 @@ def policies(text):
                 conditional = True
             except AssertionError:
                 conditional = False
-            if effect in {"Allow", "Deny"}:
-                try:
-                    actions = values(obj, "Action")
-                    not_actions = False
-                except AssertionError:
-                    actions = values(obj, "NotAction")
-                    not_actions = True
-                statements.append(Statement(effect, actions, values(obj, "Resource"), conditional, not_actions))
+            assert values(obj, "Effect") in {("Allow",), ("Deny",)}, f"Unsupported IAM Effect {effect}"
+            actions, not_actions = alternative_values(obj, "Action", "NotAction")
+            resources, not_resources = alternative_values(obj, "Resource", "NotResource")
+            artifact_prefix = any(obj[i:i + 3] == ['"s3:prefix"', "=", '"artifacts/*"'] for i in range(len(obj) - 2))
+            statements.append(Statement(effect, actions, resources, conditional, not_actions, artifact_prefix, not_resources))
         assert statements, f"No IAM statements parsed for {name}"
         result.setdefault(role, []).extend(statements)
     return result
@@ -351,11 +377,21 @@ def policies(text):
 def grants(statements, action, resource):
     def matches(statement):
         # Exact symbolic resource on allow; broad/inexact grants cannot satisfy the contract.
-        resources = any(fnmatchcase(resource, value) for value in statement.resources) if statement.effect == "Deny" else resource in statement.resources
+        if statement.effect == "Allow":
+            # A complement allow does not prove the required exact resource grant.
+            resources = not statement.not_resources and resource in statement.resources
+        else:
+            resources = any(fnmatchcase(resource, value) for value in statement.resources)
+            if statement.not_resources:
+                resources = not resources
         action_matches = any(fnmatchcase(action.lower(), value.lower()) for value in statement.actions)
         return resources and (not action_matches if statement.not_actions else action_matches)
     # This contract has no condition context; any matching deny fails closed.
-    return any(s.effect == "Allow" and not s.conditional and matches(s) for s in statements) and not any(s.effect == "Deny" and matches(s) for s in statements)
+    def valid_condition(statement):
+        return not statement.conditional or (
+            action == "s3:ListBucket" and resource == BUCKET and statement.artifact_prefix
+        )
+    return any(s.effect == "Allow" and valid_condition(s) and matches(s) for s in statements) and not any(s.effect == "Deny" and matches(s) for s in statements)
 
 
 def missing(requirements, text):
@@ -450,8 +486,9 @@ def test_roles_do_not_inherit_every_store_method(requirements):
 def test_analyzer_explicit_deny_beats_future_shared_allow(iam):
     statements = policies(iam)["analyzer"]
     for action, resource in (("secretsmanager:GetSecretValue", CREDENTIALS), ("kms:Decrypt", KEY), ("sts:AssumeRole", "customer-role")):
-        assert any(s.effect == "Deny" and action in s.actions and "*" in s.resources for s in statements)
         assert not grants(statements + [Statement("Allow", (action,), (resource,))], action, resource)
+    for action, resource in (("secretsmanager:GetSecretValue", AI_SECRET), ("kms:Decrypt", AI_KEY)):
+        assert grants(statements, action, resource)
 
 
 def assert_analyzer_kms_isolation(text):
@@ -467,16 +504,24 @@ def assert_analyzer_kms_isolation(text):
             continue
         if "kms:Decrypt" in actions:
             decrypt.append(obj)
-    assert len(decrypt) == 1
-    obj = decrypt[0]
-    assert values(obj, "Effect") == ("Deny",)
+    assert len(decrypt) == 2
+    allows = [obj for obj in decrypt if values(obj, "Effect") == ("Allow",)]
+    denies = [obj for obj in decrypt if values(obj, "Effect") == ("Deny",)]
+    assert len(allows) == len(denies) == 1
+    assert values(allows[0], "Action") == ("kms:Decrypt",)
+    assert alternative_values(allows[0], "Resource", "NotResource") == ((AI_KEY,), False)
+    assert "Condition" not in allows[0]
+    obj = denies[0]
     assert values(obj, "Action") == ("kms:Decrypt",)
-    assert values(obj, "Resource") == ("*",)
+    assert alternative_values(obj, "Resource", "NotResource") == ((AI_KEY,), True)
     condition, _ = balanced(obj, field(obj, "Condition"))
     assert condition == tokens('{ StringNotEquals = { "kms:ViaService" = "dynamodb.${var.region}.amazonaws.com" } }')[1:-1]
     statements = policies(text)["analyzer"]
-    for action in ("sts:AssumeRole", "secretsmanager:GetSecretValue"):
-        assert any(s.effect == "Deny" and not s.conditional and action in s.actions and s.resources == ("*",) for s in statements)
+    assert any(s.effect == "Deny" and not s.conditional and not s.not_actions and not s.not_resources
+               and s.actions == ("sts:AssumeRole",) and s.resources == ("*",) for s in statements)
+    assert any(s.effect == "Deny" and not s.conditional and not s.not_actions and s.not_resources
+               and s.actions == ("secretsmanager:GetSecretValue",) and s.resources == (AI_SECRET,) for s in statements)
+    assert grants(statements, "secretsmanager:GetSecretValue", AI_SECRET)
 
 
 def test_analyzer_decrypt_exception_is_only_regional_dynamodb(iam):
@@ -495,6 +540,69 @@ def test_analyzer_decrypt_exception_mutations_fail_closed(iam, before, after):
     assert changed != iam
     with pytest.raises(AssertionError):
         assert_analyzer_kms_isolation(changed)
+
+
+@pytest.mark.parametrize("before,after", [
+    ("NotResource = " + AI_KEY, "Resource = " + AI_KEY),
+    ("NotResource = " + AI_KEY, "NotResource = " + KEY),
+    ("NotResource = " + AI_SECRET, "Resource = " + AI_SECRET),
+    ("NotResource = " + AI_SECRET, "NotResource = " + CREDENTIALS),
+    ('Effect = "Allow", Action = ["kms:Decrypt"], Resource = ' + AI_KEY,
+     'Effect = "Deny", Action = ["kms:Decrypt"], Resource = ' + AI_KEY),
+    ('Effect = "Allow", Action = ["kms:Decrypt"], Resource = ' + AI_KEY,
+     'Effect = "Allow", Action = ["kms:Decrypt"], Resource = "*"'),
+])
+def test_analyzer_ai_exceptions_reject_resource_and_effect_mutations(iam, before, after):
+    changed = iam.replace(before, after)
+    assert changed != iam
+    with pytest.raises(AssertionError):
+        assert_analyzer_kms_isolation(changed)
+
+
+def fixture_policy(statement):
+    return 'resource "aws_iam_role_policy" "fixture" { role = aws_iam_role.fixture.id policy = jsonencode({ Statement = [' + statement + '] }) }'
+
+
+@pytest.mark.parametrize("selector", ['Resource = "allowed"', 'Resource = ["allowed"]',
+                                     'NotResource = "excluded"', 'NotResource = ["excluded"]'])
+def test_resource_complements_and_deny_precedence(selector):
+    text = fixture_policy('{ Effect = "Deny", Action = ["s3:Get*"], ' + selector + ' }')
+    deny = policies(text)["fixture"]
+    assert len(deny) == 1 and deny[0].effect == "Deny"
+    for resource, denied in (("allowed", True), ("excluded", False), ("other", selector.startswith("NotResource"))):
+        statements = deny + [Statement("Allow", ("s3:GetObject",), (resource,))]
+        assert grants(statements, "s3:GetObject", resource) is not denied
+        assert grants(deny + [Statement("Allow", ("s3:PutObject",), (resource,))], "s3:PutObject", resource)
+
+
+@pytest.mark.parametrize("effect", ["Allow", "Deny"])
+def test_not_action_and_not_resource_are_independent_complements(effect):
+    statements = policies(fixture_policy('{ Effect = "' + effect + '", NotAction = "s3:Get*", NotResource = "excluded*" }'))["fixture"]
+    assert statements[0].not_actions and statements[0].not_resources
+    for action in ("s3:GetObject", "s3:PutObject"):
+        for resource in ("excluded-one", "other"):
+            if effect == "Deny":
+                allowed = grants(statements + [Statement("Allow", (action,), (resource,))], action, resource)
+                assert allowed == (action == "s3:GetObject" or resource == "excluded-one")
+            else:
+                # Complement allows never substitute for an exact source-bound grant.
+                assert not grants(statements, action, resource)
+
+
+@pytest.mark.parametrize("fields", [
+    'Action = "s3:GetObject"',
+    'Action = "s3:GetObject", Resource = "*", NotResource = "excluded"',
+    'Action = "s3:GetObject", NotAction = "s3:PutObject", Resource = "*"',
+    'Resource = "*"',
+])
+def test_missing_or_conflicting_iam_selectors_fail_closed(fields):
+    with pytest.raises(AssertionError, match="Expected exactly one"):
+        policies(fixture_policy('{ Effect = "Deny", ' + fields + ' }'))
+
+
+def test_unknown_iam_effect_fails_closed():
+    with pytest.raises(AssertionError, match="Unsupported IAM Effect"):
+        policies(fixture_policy('{ Effect = "Audit", Action = "s3:GetObject", Resource = "*" }'))
 
 
 @pytest.mark.parametrize("kind,action", list(TRANSACTION_ACTIONS.items())[:4])

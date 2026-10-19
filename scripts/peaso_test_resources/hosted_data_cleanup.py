@@ -7,15 +7,16 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+from peaso import deployment
 import os
 from pathlib import Path
 import re
 
 import boto3
 
-ACCOUNT = "202533532952"
+ACCOUNT = deployment.value("account_id")
 TABLE = "hacktricks-cspm"
-BUCKET = "hacktricks-cspm-artifacts-202533532952"
+BUCKET = (("hacktricks-cspm-artifacts-DEPLOYMENT_ACCOUNT_ID").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id")))
 TERMINAL = {"completed", "failed", "cancelled", "timed_out"}
 
 
@@ -30,7 +31,7 @@ def main():
         return
     data = json.loads(ledger.read_text())
     users = json.loads((root / "cognito-ledger.json").read_text())
-    owned = {r["sub"] for r in users["resources"] if r["account"] == ACCOUNT and r.get("sub") and r["name"].startswith("peaso-test-") and r["pool_id"] == "us-east-1_7rbhezdKX"}
+    owned = {r["sub"] for r in users["resources"] if r["account"] == ACCOUNT and r.get("sub") and r["name"].startswith("peaso-test-") and r["pool_id"] == deployment.value("cognito_pool_id")}
     if data["task_id"] != "task_02a312b5ac1f" or not {r["tenant"] for r in data["resources"]}.issubset(owned):
         raise RuntimeError("Tenant data is outside exact fixture user ledger")
     sts = boto3.client("sts", region_name="us-east-1")

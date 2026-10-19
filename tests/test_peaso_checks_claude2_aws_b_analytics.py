@@ -1,4 +1,5 @@
 """Behaviour tests for the claude2_aws_b analytics group (EFS, EMR, Elasticsearch, Firehose, RDS snapshots), runnable on its own."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 
 import pytest
@@ -37,7 +38,7 @@ def test_pass_fail_unknown(cid):
         assert _evaluate(cid, "not_applicable") == "NOT_APPLICABLE"
     if "pass_index" in cases:
         assert check.evaluate(copy.deepcopy(cases["pass"]), {"context": dict(CONTEXT)})[0] in ("UNKNOWN", "NOT_APPLICABLE")
-    assert HACKTRICKS in check.frameworks and ROWS[cid]
+    assert (HACKTRICKS in check.frameworks) == includes(check.id) and ROWS[cid]
 
 
 @pytest.mark.parametrize("cid,key", [(c, k) for c in MINE for k in CASES[c] if k not in STANDARD and not k.endswith(("_index", "_expect"))])

@@ -1,4 +1,5 @@
 """Database/FSx pinned policies: native settings, applicability and purity."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -27,7 +28,7 @@ def test_native_pass_fail_unknown_denied_malformed_and_input_purity(cid):
         assert data == before
     for data in ({}, None, {"collection_status": "denied"}, {"_coverage": []}):
         assert c.evaluate(data, {})[0] == "UNKNOWN"
-    assert HACKTRICKS in c.frameworks
+    assert (HACKTRICKS in c.frameworks) == includes(c.id)
 
 
 def test_rds_aurora_eligibility_precedes_instance_multiaz_setting():

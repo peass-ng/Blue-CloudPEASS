@@ -32,7 +32,7 @@ def test_conditioned_and_both_source_fullaction_spellings_alarm(action):
 
 def test_only_default_version_and_exact_declared_allow_literal_count():
     item = copy.deepcopy(rules.POLICY)
-    item["PolicyVersionList"].append({"IsDefaultVersion": False, "Document": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}})
+    item["PolicyVersionList"].append({"VersionId": "v2", "IsDefaultVersion": False, "Document": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}})
     assert REGISTRY["aws.a.iam.attached_policy_no_star_star"].evaluate(item, {})[0] == "PASS"
     item["PolicyVersionList"][0]["Document"]["Statement"][0] = {"Effect": "Deny", "Action": "*", "Resource": "*"}
     assert REGISTRY["aws.a.iam.attached_policy_no_star_star"].evaluate(item, {})[0] == "PASS"

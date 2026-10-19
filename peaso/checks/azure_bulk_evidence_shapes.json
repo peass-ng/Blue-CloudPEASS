@@ -1,0 +1,1390 @@
+{
+  "azure.cis.agentless_discovery_kubernetes_component_status": [
+    {
+      "object": {
+        "cluster_count": {
+          "integer": "positive"
+        },
+        "clusters_without_enabled_extension": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "semantics": {
+          "literal": "Complete effective Defender pricing configuration; discovery activity unverified"
+        }
+      }
+    }
+  ],
+  "azure.cis.auto_provision_vulnerability_assessment_machines": [
+    {
+      "object": {
+        "gaps": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.cis.guest_users_reviewed_monthly_basis": [
+    {
+      "object": {
+        "applicable_subject_count": {
+          "integer": "positive"
+        },
+        "uncertain_count": {
+          "integer": "zero"
+        },
+        "violation_count": {
+          "integer": "positive"
+        },
+        "violations": {
+          "list": [
+            {
+              "object": {
+                "reason": {
+                  "literal": "No timely recurring completed principal/assignment review"
+                },
+                "subjectId": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    },
+    {
+      "object": {
+        "uncertain_guest_count": {
+          "integer": "zero"
+        },
+        "unreviewed_guest_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.cis.guest_users_reviewed_regular_basis": [
+    {
+      "object": {
+        "applicable_subject_count": {
+          "integer": "positive"
+        },
+        "uncertain_count": {
+          "integer": "zero"
+        },
+        "violation_count": {
+          "integer": "positive"
+        },
+        "violations": {
+          "list": [
+            {
+              "object": {
+                "reason": {
+                  "literal": "No timely recurring completed principal/assignment review"
+                },
+                "subjectId": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    },
+    {
+      "object": {
+        "uncertain_guest_count": {
+          "integer": "zero"
+        },
+        "unreviewed_guest_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.cis.latest_os_patches_vms_applied": [
+    {
+      "object": {
+        "available_critical_security_patches": {
+          "integer": "positive"
+        },
+        "vm_id": {
+          "string": true
+        }
+      }
+    }
+  ],
+  "azure.cis.multifactor_auth_status_non_privileged_users": [
+    {
+      "object": {
+        "per_user_mfa_state": {
+          "literal": "disabled"
+        },
+        "unprotected_paths": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    },
+    {
+      "object": {
+        "per_user_mfa_state": {
+          "literal": "enabled"
+        },
+        "usable_mfa_registered": {
+          "boolean": false
+        }
+      }
+    }
+  ],
+  "azure.cis.multifactor_auth_status_privileged_users": [
+    {
+      "object": {
+        "broad_mfa_status": {
+          "string": true
+        },
+        "cis_1_1_2_legacy_status": {
+          "string": true
+        },
+        "legacy_per_user_mfa_state": {
+          "string": true
+        },
+        "semantics": {
+          "literal": "Resolved policy-required contexts; registration alone is not enforcement"
+        },
+        "uncovered_contexts": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.cis.multifactor_authentication_policy_exists_administrative_groups": [
+    {
+      "object": {
+        "evaluated_principals": {
+          "integer": "positive"
+        },
+        "uncovered_contexts": {
+          "list": [
+            {
+              "object": {
+                "context": {
+                  "object": {
+                    "application": {
+                      "string": true
+                    },
+                    "authenticationFlow": {
+                      "string": true
+                    },
+                    "clientAppType": {
+                      "string": true
+                    },
+                    "device": {
+                      "string": true
+                    },
+                    "location": {
+                      "string": true
+                    },
+                    "platform": {
+                      "string": true
+                    },
+                    "signInRisk": {
+                      "string": true
+                    },
+                    "userRisk": {
+                      "string": true
+                    }
+                  }
+                },
+                "userId": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.cis.multifactor_authentication_policy_exists_users": [
+    {
+      "object": {
+        "enabled_user_count": {
+          "integer": "positive"
+        },
+        "reason": {
+          "literal": "Complete native CA inventory has no enabled policy and Security Defaults is disabled"
+        }
+      }
+    },
+    {
+      "object": {
+        "evaluated_principals": {
+          "integer": "positive"
+        },
+        "uncovered_contexts": {
+          "list": [
+            {
+              "object": {
+                "context": {
+                  "object": {
+                    "application": {
+                      "string": true
+                    },
+                    "authenticationFlow": {
+                      "string": true
+                    },
+                    "clientAppType": {
+                      "string": true
+                    },
+                    "device": {
+                      "string": true
+                    },
+                    "location": {
+                      "string": true
+                    },
+                    "platform": {
+                      "string": true
+                    },
+                    "signInRisk": {
+                      "string": true
+                    },
+                    "userRisk": {
+                      "string": true
+                    }
+                  }
+                },
+                "userId": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.cis.multifactor_authentication_risky_sign_ins": [
+    {
+      "object": {
+        "evaluated_principals": {
+          "integer": "positive"
+        },
+        "uncovered_contexts": {
+          "list": [
+            {
+              "object": {
+                "context": {
+                  "object": {
+                    "application": {
+                      "string": true
+                    },
+                    "authenticationFlow": {
+                      "string": true
+                    },
+                    "clientAppType": {
+                      "string": true
+                    },
+                    "device": {
+                      "string": true
+                    },
+                    "location": {
+                      "string": true
+                    },
+                    "platform": {
+                      "string": true
+                    },
+                    "signInRisk": {
+                      "string": true
+                    },
+                    "userRisk": {
+                      "string": true
+                    }
+                  }
+                },
+                "userId": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.cis.private_endpoint_should_mariadb_servers": [
+    {
+      "object": {
+        "failed_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "unresolved_ids": {
+          "list": [],
+          "empty": true
+        }
+      }
+    }
+  ],
+  "azure.gap.arc_kubernetes_cluster_azure_defender_extension_installed": [
+    {
+      "object": {
+        "cluster_count": {
+          "integer": "positive"
+        },
+        "no_successful_defender_extension": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.gap.automation_account_encrypted_with_cmk": [
+    {
+      "object": {
+        "reason": {
+          "literal": "platform-managed encryption key configured"
+        }
+      }
+    }
+  ],
+  "azure.gap.machine_learning_workspace_private_link_used": [
+    {
+      "object": {
+        "semantics": {
+          "literal": "Approved Private Link presence only; exclusive private ingress unverified"
+        },
+        "uncertain_resources": {
+          "list": [],
+          "empty": true
+        },
+        "workspaces": {
+          "integer": "positive"
+        }
+      }
+    }
+  ],
+  "azure.gap.monitor_log_cluster_encrypted_with_cmk": [
+    {
+      "object": {
+        "cluster_id": {
+          "string": true
+        },
+        "reason": {
+          "literal": "CMK explicitly absent"
+        }
+      }
+    },
+    {
+      "object": {
+        "cluster_id": {
+          "string": true
+        },
+        "key_access": {
+          "string": true
+        }
+      }
+    }
+  ],
+  "azure.gap.monitor_log_profile_enabled_for_all_categories": [
+    {
+      "object": {
+        "exported_categories": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.gap.postgresql_server_infrastructure_encryption_enabled": [
+    {
+      "object": {
+        "legacy_server_count": {
+          "integer": "positive"
+        },
+        "states": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure.gap.sql_database_long_term_geo_redundant_backup_enabled": [
+    {
+      "object": {
+        "evaluated": {
+          "integer": "positive"
+        }
+      }
+    }
+  ],
+  "azure.gap.stream_analytics_job_encrypted_with_cmk": [
+    {
+      "object": {
+        "reason": {
+          "literal": "platform-managed key configured"
+        },
+        "storage_account_id": {
+          "string": true
+        }
+      }
+    },
+    {
+      "object": {
+        "reason": {
+          "literal": "required job storage account absent"
+        }
+      }
+    }
+  ],
+  "azure.other.access_analysis_coverage": [
+    {
+      "object": {
+        "disabled_capability": {
+          "boolean": true
+        },
+        "pricing_id": {
+          "string": true
+        }
+      }
+    },
+    {
+      "object": {
+        "resource_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "results": {
+          "list": [
+            {
+              "object": {
+                "pricing_id": {
+                  "string": true
+                },
+                "reason": {
+                  "literal": "CloudPosture disabled"
+                }
+              }
+            }
+          ],
+          "empty": false
+        },
+        "source_kind": {
+          "literal": "security_pricing"
+        }
+      }
+    }
+  ],
+  "azure.other.audit_storage_access_logging": [
+    {
+      "object": {
+        "absent_or_same_account_access_logs": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    },
+    {
+      "object": {
+        "audit_account_id": {
+          "string": true
+        },
+        "missing_blob_access_log_operations": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "semantics": {
+          "literal": "Available native Blob diagnostics and legacy Analytics prove no configured logging for the listed operations; actual event delivery and sink security unassessed"
+        },
+        "unresolved_legacy_operations": {
+          "list": [],
+          "empty": true
+        }
+      }
+    }
+  ],
+  "azure.other.backup_immutability_30": [
+    {
+      "object": {
+        "immutability_state": {
+          "string": true
+        }
+      }
+    },
+    {
+      "object": {
+        "immutability_state": {
+          "string": true
+        },
+        "short_retention_policy_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_aks_cluster_10_2_1_1_17_885658f": [
+    {
+      "object": {
+        "missing_categories": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_aks_cluster_1_4_5_2_3ac7b3c": [
+    {
+      "object": {
+        "affected": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "checked_aci": {
+          "integer": "zero"
+        },
+        "checked_pods": {
+          "integer": "positive"
+        }
+      }
+    }
+  ],
+  "azure_aks_cluster_7_2_1_6_93c4fab": [
+    {
+      "object": {
+        "assessed_containers": {
+          "integer": "positive"
+        },
+        "limitation": {
+          "string": true
+        },
+        "privileged_containers": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_aks_cluster_aks_cluster_rbac_enabled_c41a0cb": [
+    {
+      "object": {
+        "writable_root_containers": {
+          "list": [
+            {
+              "list": [
+                {
+                  "string": true
+                }
+              ],
+              "empty": false
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_aks_cluster_aks_cluster_rbac_enabled_db12524": [
+    {
+      "object": {
+        "containers": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_api_management_10_3_1_3_8a50dc0": [
+    {
+      "object": {
+        "rest_apis_with_no_diagnostic_or_only_missing_logger_refs": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "semantics": {
+          "literal": "Native configuration absence only; logger credential usability unassessed"
+        }
+      }
+    },
+    {
+      "object": {
+        "rest_apis_without_usable_tracing_diagnostic": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_application_gateway_11_5_1_1_1_f56bdc2": [
+    {
+      "object": {
+        "missing_protections": {
+          "list": [
+            {
+              "list": [
+                {
+                  "string": true
+                }
+              ],
+              "empty": false
+            }
+          ],
+          "empty": false
+        },
+        "public_resource_count": {
+          "integer": "positive"
+        },
+        "semantics": {
+          "literal": "Exact configured IP/VNet/plan and complete effective WAF bindings; traffic and mitigation efficacy untested"
+        }
+      }
+    }
+  ],
+  "azure_application_gateway_app_http_logs_enabled_2de0361": [
+    {
+      "object": {
+        "resources_without_export": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_cdn_profile_10_3_4_1_4e40487": [
+    {
+      "object": {
+        "affected_origins": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "checked_origins": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_cdn_profile_1_2_8_5_ed953a0": [
+    {
+      "object": {
+        "affected_domains": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "checked_domains": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_cosmos_account_10_2_1_1_13_5c115b0": [
+    {
+      "object": {
+        "failed_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "unresolved_ids": {
+          "list": [],
+          "empty": true
+        }
+      }
+    }
+  ],
+  "azure_devops_project_1_2_8_6_fb0e5a8": [
+    {
+      "object": {
+        "failed_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "unresolved_ids": {
+          "list": [],
+          "empty": true
+        }
+      }
+    }
+  ],
+  "azure_devops_project_6_5_5_2_2908a87": [
+    {
+      "object": {
+        "failed_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "unresolved_ids": {
+          "list": [],
+          "empty": true
+        }
+      }
+    }
+  ],
+  "azure_directory_user_10_6_3_21_d013932": [
+    {
+      "object": {
+        "users_without_groups": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_directory_user_7_2_1_19_28e2aa7": [
+    {
+      "object": {
+        "direct_assignment_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "semantics": {
+          "literal": "Direct grants only; group grants excluded"
+        }
+      }
+    }
+  ],
+  "azure_directory_user_entra_non_privileged_user_has_mfa_b242ca9": [
+    {
+      "object": {
+        "broad_mfa_status": {
+          "string": true
+        },
+        "cis_1_1_2_legacy_status": {
+          "string": true
+        },
+        "legacy_per_user_mfa_state": {
+          "null": true
+        },
+        "semantics": {
+          "literal": "Resolved policy-required contexts; registration alone is not enforcement"
+        },
+        "uncovered_contexts": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_directory_user_entra_privileged_user_has_mfa_6f6d584": [
+    {
+      "object": {
+        "broad_mfa_status": {
+          "string": true
+        },
+        "cis_1_1_2_legacy_status": {
+          "string": true
+        },
+        "legacy_per_user_mfa_state": {
+          "null": true
+        },
+        "semantics": {
+          "literal": "Resolved policy-required contexts; registration alone is not enforcement"
+        },
+        "uncovered_contexts": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_directory_user_sqlserver_azuread_administrator_enabled_1a9c5cf": [
+    {
+      "object": {
+        "reason": {
+          "literal": "Entra authentication disabled"
+        },
+        "server_id": {
+          "string": true
+        }
+      }
+    },
+    {
+      "object": {
+        "resource_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "results": {
+          "list": [
+            {
+              "object": {
+                "reason": {
+                  "literal": "complete administrator list empty"
+                },
+                "server_id": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        },
+        "source_kind": {
+          "literal": "mysql_flexible_server"
+        }
+      }
+    }
+  ],
+  "azure_disk_10_3_3_12_174f526": [
+    {
+      "object": {
+        "disk_count": {
+          "integer": "positive"
+        },
+        "unprotected_disk_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_firewall_policy_sqlserver_unrestricted_inbound_access_c12f86d": [
+    {
+      "object": {
+        "unresolved_count": {
+          "integer": "zero"
+        },
+        "violations": {
+          "list": [
+            {
+              "object": {
+                "server_id": {
+                  "string": true
+                },
+                "unrestricted_rules": {
+                  "list": [
+                    {
+                      "string": true
+                    }
+                  ],
+                  "empty": false
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_frontdoor_1_2_5_4_ccc7b8f": [
+    {
+      "object": {
+        "assessed_domains": {
+          "integer": "positive"
+        },
+        "violating_domain_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_frontdoor_1_2_8_4_90159db": [
+    {
+      "object": {
+        "routed_domain_path_count": {
+          "integer": "positive"
+        },
+        "uncovered_or_disabled_routes": {
+          "list": [
+            {
+              "object": {
+                "domainId": {
+                  "string": true
+                },
+                "pattern": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_frontdoor_app_ensure_http_is_redirected_to_https_517a3c9": [
+    {
+      "object": {
+        "assessed_routes": {
+          "integer": "positive"
+        },
+        "semantics": {
+          "literal": "Complete effective path declarations; unresolved rules never infer origin protocol"
+        },
+        "violating_route_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_frontdoor_app_minimum_tls_version_12_0512053": [
+    {
+      "object": {
+        "assessed_domains": {
+          "integer": "positive"
+        },
+        "violating_domain_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_frontdoor_monitor_storage_account_with_activity_logs_is_private_d42518a": [
+    {
+      "object": {
+        "qualifying_setting_ids": {
+          "list": [],
+          "empty": true
+        },
+        "semantics": {
+          "literal": "Declared export; delivery and destination privacy unassessed"
+        }
+      }
+    }
+  ],
+  "azure_frontdoor_network_http_internet_access_restricted_7004685": [
+    {
+      "object": {
+        "assessed_routes": {
+          "integer": "positive"
+        },
+        "semantics": {
+          "literal": "Complete effective path declarations; unresolved rules never infer origin protocol"
+        },
+        "violating_route_ids": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_log_analytics_workspace_monitor_diagnostic_setting_with_appropriate_categories_48f6b2b": [
+    {
+      "object": {
+        "resources_without_workspace_log_export": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_pci_10_2_1_1_16": [
+    {
+      "object": {
+        "reason": {
+          "literal": "all container logging explicitly disabled"
+        }
+      }
+    }
+  ],
+  "azure_pci_10_2_1_1_8": [
+    {
+      "object": {
+        "alert_count": {
+          "integer": "positive"
+        },
+        "semantics": {
+          "literal": "Configured routing only; receiver availability and delivery untested"
+        },
+        "violations": {
+          "list": [
+            {
+              "object": {
+                "alertId": {
+                  "string": true
+                },
+                "reason": {
+                  "literal": "Applicable action state has no required action group"
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_pci_1_3_1_33": [
+    {
+      "object": {
+        "approved_sql_private_endpoint": {
+          "boolean": false
+        }
+      }
+    }
+  ],
+  "azure_recovery_vault_10_3_3_1_1f42f66": [
+    {
+      "object": {
+        "evaluated": {
+          "integer": "positive"
+        }
+      }
+    }
+  ],
+  "azure_sql_database_sqlserver_azuread_administrator_enabled_4a039a9": [
+    {
+      "object": {
+        "missing_entra_administrator": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_sql_server_sqlserver_unrestricted_inbound_access_9b32c6a": [
+    {
+      "object": {
+        "servers_admitting_public_clients": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_storage_account_10_3_3_24_61d5e36": [
+    {
+      "object": {
+        "container_count": {
+          "integer": "positive"
+        },
+        "uncovered_containers": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_storage_account_10_3_4_7_02943e9": [
+    {
+      "object": {
+        "containers_without_effective_default_retention": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_storage_account_defender_ensure_defender_for_keyvault_is_on_2cabbc3": [
+    {
+      "object": {
+        "containers_with_measured_platform_managed_encryption": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    },
+    {
+      "object": {
+        "containers_with_measured_platform_managed_encryption": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        },
+        "semantics": {
+          "literal": "Native complete Blob metadata and current ARM key bindings; no content or key material read"
+        }
+      }
+    }
+  ],
+  "azure_storage_file_share_10_3_3_15_f2d7075": [
+    {
+      "object": {
+        "unprotected_file_shares": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_storage_file_share_10_3_3_18_d67ab34": [
+    {
+      "object": {
+        "unprotected_resources": {
+          "list": [
+            {
+              "string": true
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_synapse_workspace_1_2_8_29_fcdc827": [
+    {
+      "object": {
+        "publicNetworkAccess": {
+          "string": true
+        }
+      }
+    }
+  ],
+  "azure_vault_3_7_1_2_532ecd2": [
+    {
+      "object": {
+        "evaluated_count": {
+          "integer": "positive"
+        },
+        "outcomes": {
+          "list": [
+            {
+              "object": {
+                "certificate_id": {
+                  "string": true
+                },
+                "measured_rsa_modulus_bits": {
+                  "integer": "positive"
+                },
+                "status": {
+                  "literal": "FAIL"
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_vm_1_4_5_1_d40be43": [
+    {
+      "object": {
+        "unresolved_count": {
+          "integer": "zero"
+        },
+        "violations": {
+          "list": [
+            {
+              "object": {
+                "public_ip_ids": {
+                  "list": [
+                    {
+                      "string": true
+                    }
+                  ],
+                  "empty": false
+                },
+                "vm_id": {
+                  "string": true
+                }
+              }
+            }
+          ],
+          "empty": false
+        }
+      }
+    }
+  ],
+  "azure_vm_8_2_1_1_712e1ad": [
+    {
+      "object": {
+        "configured_bootstrap_ssh_public_key_count": {
+          "integer": "positive"
+        },
+        "interpretation": {
+          "string": true
+        },
+        "observation": {
+          "string": true
+        }
+      }
+    }
+  ]
+}

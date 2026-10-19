@@ -46,6 +46,7 @@ from . import azure_key_rotation_evidence_native
 from . import azure_sql_ltr_native
 from . import azure_alert_routing_native
 from peaso.snapshot import make_snapshot
+from peaso.check_services import service_for
 
 ARM = "https://management.azure.com"
 GRAPH = "https://graph.microsoft.com"
@@ -649,6 +650,8 @@ class AzureTransport:
     """Audience-separated refreshed tokens and origin-checked HTTPS requests."""
     def __init__(self, auth, credential=None):
         self.auth = auth
+        import uuid
+        self.ai_context_id = uuid.uuid4().hex
         self.credential = credential
         self.owned = credential is None
         self.direct = auth.get("method", "auto") in ("auto", "token", "arm-token") and bool(auth.get("arm_token") or auth.get("token") or auth.get("graph_token") or auth.get("vault_token") or auth.get("storage_token") or auth.get("logs_token"))
@@ -741,6 +744,11 @@ class AzureTransport:
                        VAULT: {VAULT, VAULT + "/", "cfa8b339-82a2-471a-a3c9-0fc0be7a4093"}}
             if actual and actual not in aliases.get(expected, {expected, expected + "/"}):
                 raise AzureReadError("token_audience_mismatch", 401)
+            from peaso.ai.access import bearer
+            endpoints = (["https://" + host for host in self.vault_hosts] if audience == VAULT else
+                         ["https://" + host for host in self.storage_hosts] if audience == STORAGE else [audience])
+            bearer("azure", audience, token, context_id=self.ai_context_id, tenant_id=self.tenant,
+                   expires_at=None if direct else cached.expires_on, endpoints=endpoints)
             return token
 
     def request(self, url, *, body=None, audience=ARM, capture_subject=False, max_response_bytes=None):
@@ -2045,9 +2053,9 @@ def collect(connector, requirements=None, *, transport=None):
                     if parent_kind == 'sql_database':
                         servers = [row for row in reader.collections if row['type'] == 'sql_server' and row['scope'].casefold() == scope.casefold()]
                         if servers and all(row['status'] == 'empty' and not row['items'] for row in servers):
-                            reader.collections.append({'type': output, 'scope': scope, 'service': 'azure', 'status': 'empty', 'items': [], 'parent_inventory': 'sql_server'})
+                            reader.collections.append({'type': output, 'scope': scope, 'service': service_for('azure', output, service_for('azure', parent_kind)), 'status': 'empty', 'items': [], 'parent_inventory': 'sql_server'})
                             continue
-                    reader.collections.append({"type": output, "scope": scope, "service": "azure", "status": "not_collected", "items": []})
+                    reader.collections.append({"type": output, "scope": scope, "service": service_for('azure', output, service_for('azure', parent_kind)), "status": "not_collected", "items": []})
                     continue
                 states, items = [], []
                 for source in sources:
@@ -2066,7 +2074,7 @@ def collect(connector, requirements=None, *, transport=None):
                             items.append(item)
                 bad = next((state for state in states if state not in ("collected", "empty")), None)
                 status = "partial" if bad and items else bad if bad else "collected" if items else "empty"
-                reader.collections.append({"type": output, "scope": scope, "service": "azure", "status": status, "items": items,
+                reader.collections.append({"type": output, "scope": scope, "service": service_for('azure', output, service_for('azure', parent_kind)), "status": status, "items": items,
                                            **({"error": {"code": "parent_inventory_incomplete"}} if bad else {})})
         azure_swc.collect_managed_instance_tde(reader, request, scopes, wanted)
         storage_jobs = []
@@ -2418,10 +2426,10 @@ def collect(connector, requirements=None, *, transport=None):
             if any(collection["type"] == child and (collection["scope"].lower() == scope.lower() or collection["scope"].lower().startswith(scope.lower() + "/")) for collection in reader.collections): continue
             sources = [collection for collection in reader.collections if collection["type"] == parent and (collection["scope"].lower() == scope.lower() or collection["scope"].lower().startswith(scope.lower() + "/"))]
             if sources and all(collection["status"] in ("collected", "empty") and not collection["items"] for collection in sources):
-                reader.collections.append({"type": child, "scope": scope, "service": "azure", "status": "empty", "items": [], "parent_inventory": parent})
+                reader.collections.append({"type": child, "scope": scope, "service": service_for('azure', child, service_for('azure', parent)), "status": "empty", "items": [], "parent_inventory": parent})
             elif sources and any(collection["status"] not in ("collected", "empty") for collection in sources):
                 state = next(collection["status"] for collection in sources if collection["status"] not in ("collected", "empty"))
-                reader.collections.append({"type": child, "scope": scope, "service": "azure", "status": state, "items": [], "error": {"code": "parent_inventory_unavailable"}})
+                reader.collections.append({"type": child, "scope": scope, "service": service_for('azure', child, service_for('azure', parent)), "status": state, "items": [], "error": {"code": "parent_inventory_unavailable"}})
     if "diagnostic_setting" in wanted:
         _complete_diagnostic_inventory(reader, scopes)
     from .azure_sql_inventory import project as project_sql_inventory

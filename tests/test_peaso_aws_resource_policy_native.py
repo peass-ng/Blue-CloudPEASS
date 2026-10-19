@@ -6,6 +6,12 @@ from peaso.collectors import aws,collect_live
 from peaso.collectors import aws_resource_policy_native as native
 from peaso.snapshot import make_snapshot
 from peaso.engine import evaluate_snapshot,plan_collection
+
+@pytest.fixture(autouse=True)
+def isolate_original_four_families(monkeypatch):
+ # This suite exercises the original SDK contracts. Extended discovery and
+ # default combined dispatch are tested separately with every recipe.
+ monkeypatch.setattr(native, 'extended_policies', lambda *args: aws.ReadResult([], 'empty'))
 KIND='aws_resource_policy';CHECK='aws_cis_aws_resource_policy_unrestricted_principal';SCOPE=ACCOUNT+'/'+REGION
 ARNS={s:f'arn:aws:{s}:{REGION}:{ACCOUNT}:'+tail for s,tail in [('sns','fixture'),('sqs','fixture'),('lambda','function:fixture'),('ecr','repository/fixture')]}
 URL=f'https://sqs.{REGION}.amazonaws.com/{ACCOUNT}/fixture'
@@ -59,10 +65,13 @@ def verdict(read):
  return evaluate_snapshot(snapshot,checks=[CHECK])['findings'],snapshot
 
 @pytest.mark.parametrize('service',['sns','sqs','lambda','ecr'])
-@pytest.mark.parametrize('mode,status',[('public','FAIL'),('private','PASS'),('condition','PASS'),('deny','UNKNOWN'),('malformed','UNKNOWN'),('detail_denied','DENIED'),('list_denied','DENIED'),('foreign','UNKNOWN'),('duplicate','UNKNOWN'),('truncated','UNKNOWN')])
+@pytest.mark.parametrize('mode,status',[('public','FAIL'),('private','PASS'),('condition','PASS'),('deny','PASS'),('malformed','UNKNOWN'),('detail_denied','DENIED'),('list_denied','DENIED'),('foreign','UNKNOWN'),('duplicate','UNKNOWN'),('truncated','UNKNOWN')])
 def test_sdk_shapes_are_scoped_and_fail_closed(sdk,service,mode,status):
  session,stubs=setup(sdk,service,mode);read=native.policies(aws.Requests({'max_pages':1,'retry_attempts':1}),session,REGION,ACCOUNT);findings,snapshot=verdict(read)
- assert findings and all(f['status']==status for f in findings),findings
+ if mode in ('duplicate','truncated'):
+  assert {f['status'] for f in findings} == {'FAIL','UNKNOWN'},findings
+ else:
+  assert findings and all(f['status']==status for f in findings),findings
  assert 'DO_NOT_RETAIN'not in json.dumps(snapshot)
  for stub in stubs.values():stub.assert_no_pending_responses()
 

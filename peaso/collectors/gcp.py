@@ -1,4 +1,4 @@
-"""Native, bounded GCP metadata collection. No cloud mutation or secret access.
+"""Native, bounded GCP collection. No mutation or managed-secret payload access.
 
 The injectable transport is intentionally below the collector so fixtures exercise
 the same pagination, provenance, scope filtering and hydration as real API reads.
@@ -29,7 +29,7 @@ HOSTS = frozenset(f"{s}.googleapis.com" for s in (
     "networkmanagement", "networkconnectivity", "networksecurity", "certificatemanager", "orgpolicy", "pubsub", "policyanalyzer", "accesscontextmanager",
     "cloudbuild", "composer", "notebooks", "cloudscheduler", "domains", "sourcerepo", "osconfig", "integrations", "policytroubleshooter", "containeranalysis",
     # Groups Settings API (www.googleapis.com/groups/v1), read only with group_settings=true.
-    "www"))
+    "www", "workflows"))
 SAFE_REASONS = frozenset(("SERVICE_DISABLED", "ACCESS_TOKEN_SCOPE_INSUFFICIENT", "IAM_PERMISSION_DENIED",
     "PERMISSION_DENIED", "UNAUTHENTICATED", "NOT_FOUND", "RESOURCE_EXHAUSTED", "INVALID_ARGUMENT",
     "BILLING_DISABLED", "USER_PROJECT_DENIED", "QUOTA_EXCEEDED", "RATE_LIMIT_EXCEEDED", "UNAVAILABLE",
@@ -237,8 +237,9 @@ def selected_auth_method(auth):
 
 
 class Credentials:
-    def __init__(self, auth, *, timeout=20):
+    def __init__(self, auth, *, timeout=20, gke_content=False):
         self.lock = threading.Lock()
+        self.oauth_scopes = list(OAUTH_SCOPES) + (["https://www.googleapis.com/auth/userinfo.email"] if gke_content is True else [])
         self.failure = None
         self.timeout = timeout
         self.method = selected_auth_method(auth)
@@ -260,16 +261,16 @@ class Credentials:
             self.session = requests.Session()
             self.request = Request(session=self.session)
             if self.method == "adc":
-                self.credential, _ = google.auth.default(scopes=OAUTH_SCOPES, quota_project_id=auth.get("quota_project"))
+                self.credential, _ = google.auth.default(scopes=self.oauth_scopes, quota_project_id=auth.get("quota_project"))
             elif self.method == "service-account":
                 from google.oauth2.service_account import Credentials as SACredentials
                 if isinstance(auth.get("sa_json"), dict):
-                    self.credential = SACredentials.from_service_account_info(auth["sa_json"], scopes=OAUTH_SCOPES)
+                    self.credential = SACredentials.from_service_account_info(auth["sa_json"], scopes=self.oauth_scopes)
                 elif auth.get("sa_json", "").lstrip().startswith("{"):
-                    self.credential = SACredentials.from_service_account_info(json.loads(auth["sa_json"]), scopes=OAUTH_SCOPES)
+                    self.credential = SACredentials.from_service_account_info(json.loads(auth["sa_json"]), scopes=self.oauth_scopes)
                 else:
                     self.credential = SACredentials.from_service_account_file(auth.get("service_account_file")
-                        or auth.get("sa_json"), scopes=OAUTH_SCOPES)
+                        or auth.get("sa_json"), scopes=self.oauth_scopes)
             elif self.method == "external-account":
                 inline = auth.get("external_account_json")
                 if inline is not None:
@@ -290,7 +291,7 @@ class Credentials:
                     # Older external_account.from_info also forwards quota from
                     # info explicitly, so a duplicate kwarg raises TypeError.
                     info["quota_project_id"] = auth.get("quota_project", info.get("quota_project_id"))
-                    self.credential = identity_pool.Credentials.from_info(info, scopes=OAUTH_SCOPES)
+                    self.credential = identity_pool.Credentials.from_info(info, scopes=self.oauth_scopes)
                 else:
                     path = auth.get("external_account_file") or auth.get("credential_file")
                     with open(path, encoding="utf-8") as stream:
@@ -298,11 +299,11 @@ class Credentials:
                     validate_external_config(info)
                     # Load the already-validated document to avoid a file-change
                     # race replacing safe config with an executable/url source.
-                    self.credential, _ = google.auth.load_credentials_from_dict(info, scopes=OAUTH_SCOPES,
+                    self.credential, _ = google.auth.load_credentials_from_dict(info, scopes=self.oauth_scopes,
                         quota_project_id=auth.get("quota_project"))
             elif self.method == "metadata":
                 from google.auth.compute_engine import Credentials as MetadataCredentials
-                self.credential = MetadataCredentials(scopes=OAUTH_SCOPES,
+                self.credential = MetadataCredentials(scopes=self.oauth_scopes,
                     service_account_email=auth.get("service_account_email", "default"))
             elif self.method == "impersonation":
                 from google.auth import impersonated_credentials
@@ -316,7 +317,7 @@ class Credentials:
                         headers = source_credentials.headers()
                         return headers["Authorization"].removeprefix("Bearer "), (
                             datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=240))
-                    source_credentials.credential = UserCredentials(token=None, scopes=OAUTH_SCOPES,
+                    source_credentials.credential = UserCredentials(token=None, scopes=self.oauth_scopes,
                         refresh_handler=refresh_handler)
                 if source_credentials.credential is None:
                     source_credentials.close()
@@ -326,7 +327,7 @@ class Credentials:
                 if not target:
                     raise ReadError("denied", "impersonation_target_required")
                 self.credential = impersonated_credentials.Credentials(source_credentials=source_credentials.credential,
-                    target_principal=target, target_scopes=OAUTH_SCOPES, delegates=auth.get("delegates", []),
+                    target_principal=target, target_scopes=self.oauth_scopes, delegates=auth.get("delegates", []),
                     lifetime=bound(auth, "lifetime", 900, 300, 3600), quota_project_id=auth.get("quota_project"))
             else:
                 raise ReadError("unsupported", "unsupported_auth_method")
@@ -366,9 +367,22 @@ class Credentials:
             self.source.close()
 
 
+def _preserve_native_headers(request):
+    """Requests must not replace the chosen bearer identity with ambient netrc."""
+    return request
+
+
+def native_header_session(transport):
+    session = transport._session()
+    session.auth = _preserve_native_headers
+    return session
+
+
 class Transport:
     def __init__(self, credentials, options, *, sleep=time.sleep):
         self.credentials, self.options, self.sleep = credentials, options, sleep
+        import uuid
+        self.ai_context_id = uuid.uuid4().hex
         self.max_calls = optional_bound(options, "max_calls", 1, 100000)
         self.retries = bound(options, "retries", 4, 0, 8)
         self.timeout = bound(options, "timeout", 20, 1, 120)
@@ -379,6 +393,7 @@ class Transport:
         self.evidence = []
         self.cache = {}
         self.run_sbom_metadata_reads = {}
+        self.notebook_airflow_secret_budget = None
         self.started = time.monotonic()
         self.deadline_seconds = optional_bound(options, "deadline_seconds", 1, 86400)
         if self.deadline_seconds is None:
@@ -403,11 +418,20 @@ class Transport:
         if not getattr(self.local, "session", None):
             import requests
             self.local.session = requests.Session()
+            self.local.session.auth = _preserve_native_headers
             with self.lock:
                 self.sessions.append(self.local.session)
         return self.local.session
 
     def request(self, method, url, *, params=None, body=None, scope=None, operation=None):
+        from . import gcp_additional_literal_secret_indicators as extra
+        if operation and operation.startswith(extra.OPERATION):
+            return extra.read_projected(self, method, url, params=params, body=body, scope=scope, kind=operation[len(extra.OPERATION):])
+        if extra.should_intercept(self, method, url, scope):
+            return extra.read_projected(self, method, url, params=params, body=body, scope=scope, kind=extra.SCHEDULER)
+        if operation == 'application-log-secret-sample':
+            from .gcp_log_secret_indicators import read_page
+            return read_page(self, method, url, params=params, body=body, scope=scope)
         self.check_cancelled()
         parsed = urlsplit(url)
         # Exact metadata endpoints registered after native service/traffic joins.
@@ -483,6 +507,12 @@ class Transport:
                     self.calls += 1
                 evidence["attempts"] += 1
                 headers = self.credentials.headers()
+                from peaso.ai.access import bearer as capture_ai_bearer
+                expiry = getattr(getattr(self.credentials, "credential", None), "expiry", None)
+                capture_ai_bearer("gcp", "https://www.googleapis.com/",
+                    (headers.get("Authorization") or headers.get("authorization") or "").removeprefix("Bearer "),
+                    expires_at=expiry.timestamp() if expiry else None, context_id=self.ai_context_id,
+                    target_scopes=[scope] if scope else [], quota_project=self.options.get("quota_project"))
                 if self.options.get("quota_project"):
                     headers["X-Goog-User-Project"] = self.options["quota_project"]
                 try:
@@ -498,6 +528,8 @@ class Transport:
                 evidence["http_status"] = response.status_code
                 try:
                     data = response.json()
+                    if extra.scheduler_endpoint(url):
+                        data = extra.scheduler_metadata_response(data)
                 except Exception:
                     data = None
                 if response.status_code >= 400 or 300 <= response.status_code < 400:
@@ -533,18 +565,58 @@ class Transport:
                         raise ReadError("malformed", "malformed_response")
                 if not isinstance(data, dict):
                     raise ReadError("malformed", "malformed_response")
+                # Projection strips token-like fields from resource evidence.
+                # Preserve only the original top-level pagination protocol,
+                # including malformed values so pages() can reject them.
+                has_native_cursor = 'nextPageToken' in data
+                native_cursor = copy.deepcopy(data.get('nextPageToken'))
                 if parsed.hostname in {"appengine.googleapis.com", "artifactregistry.googleapis.com",
                                        "integrations.googleapis.com", "www.googleapis.com"}:
                     from .gcp_facts_v4_holds import project_transport_response
                     data = project_transport_response(method, url, params, data)
                 evidence["status"] = "collected"
+                if parsed.hostname == "cloudfunctions.googleapis.com" and (
+                        parsed.path.endswith('/functions') or re.fullmatch(r'/v2/projects/[^/]+/locations/[^/]+/functions/[A-Za-z0-9_-]+', parsed.path)):
+                    from .gcp_function_source_secret_indicators import capture_response
+                    data = capture_response(self, data, method=method, url=url, params=params, body=body, scope=scope)
+                    from peaso.collectors.gcp_function_secret_indicators import project_response
+                    data = project_response(data, method=method, url=url, params=params, body=body,
+                        scope=scope, enabled=(self.options.get('content_secret_scans') is True
+                            and 'function' in self.options.get('_content_secret_scan_kinds', [])),
+                        check_cancelled=self.check_cancelled)
+                if parsed.hostname in ('compute.googleapis.com', 'run.googleapis.com', 'cloudbuild.googleapis.com'):
+                    from peaso.collectors.gcp_configuration_secret_indicators import project_response
+                    data = project_response(data, method=method, url=url, params=params, body=body,
+                        scope=scope, enabled=self.options.get('content_secret_scans') is True,
+                        selected_kinds=self.options.get('_content_secret_scan_kinds', []),
+                        check_cancelled=self.check_cancelled)
+                if method == 'GET' and parsed.hostname == 'dataproc.googleapis.com' and re.fullmatch(
+                        r'/v1/projects/[^/%:]+/regions/[a-z0-9-]+/clusters', parsed.path):
+                    from .gcp_job_literal_secret_indicators import cluster_metadata_response
+                    data = cluster_metadata_response(data)
+                notebook_airflow_endpoint = method == 'GET' and body is None and (
+                    parsed.hostname == 'composer.googleapis.com' and re.fullmatch(
+                        r'/v1/projects/[^/%:]+/locations/[a-z0-9-]+/environments(?:/[A-Za-z0-9_-]+)?', parsed.path)
+                    or parsed.hostname == 'notebooks.googleapis.com' and re.fullmatch(
+                        r'/v2/projects/[^/%:]+/locations/[a-z0-9-]+/instances(?:/[A-Za-z0-9_-]+)?', parsed.path))
+                if notebook_airflow_endpoint:
+                    from .gcp_notebook_airflow_secret_indicators import project_response, new_budget
+                    kind = 'composer_environment' if parsed.hostname == 'composer.googleapis.com' else 'workbench_instance'
+                    active = self.options.get('content_secret_scans') is True and kind in self.options.get('_content_secret_scan_kinds', [])
+                    if active:
+                        with self.lock:
+                            if self.notebook_airflow_secret_budget is None:
+                                self.notebook_airflow_secret_budget = new_budget()
+                    data = project_response(data, method=method, url=url, params=params, body=body,
+                        scope=scope, enabled=active, selected_kinds=self.options.get('_content_secret_scan_kinds', []),
+                        check_cancelled=self.check_cancelled, budget=self.notebook_airflow_secret_budget)
                 cached["data"] = sanitize(data)
                 # A top-level pagination cursor is protocol state, not an OAuth
                 # credential. Keep it inside the transport cache so real REST
                 # scans consume every page. pages() never emits it as an item,
                 # and request evidence excludes continuation tokens.
-                if 'nextPageToken' in data:
-                    cached['data']['nextPageToken'] = copy.deepcopy(data['nextPageToken'])
+                if has_native_cursor:
+                    cached['data']['nextPageToken'] = native_cursor
                 break
         except ReadError as exc:
             evidence["status"], evidence["error"] = exc.status, exc.error
@@ -595,6 +667,8 @@ class Transport:
         return jittered
 
     def close(self):
+        from .gcp_function_source_secret_indicators import clear_pending
+        clear_pending(self)
         for session in self.sessions:
             session.close()
         self.credentials.close()
@@ -651,9 +725,24 @@ SUPPORTED_TYPES = frozenset({x[0] for x in COMPUTE} | {
     "worker_pool", "sql_backup_run", "source_repository", "alert_policy",
     "access_transparency_entry", "audit_log", "os_inventory", "security_policy", "gcp_v4_workload_facts",
     "dns_record", "cloudbuild_build", "sql_operation"})
-SUPPORTED_TYPES = SUPPORTED_TYPES | {'artifact_image', 'sbom_occurrence', 'deployed_image'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'artifact_image', 'sbom_occurrence', 'deployed_image', 'log_secret_sample', 'gcs_selected_object'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'app_engine_version_secret', 'workflow_source'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'clouddeploy_release_source', 'cloudbuild_artifact_source', 'gcs_selected_archive', 'composer_dag_source', 'cloudbuild_log_source', 'appengine_deployment_source'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'artifact_selected_file', 'function_source_archive', 'gke_workload_literal', 'dataform_selected_file', 'dataflow_job', 'batch_job', 'dataproc_job'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'bucket_acl', 'object_acl', 'bucket_effective_iam', 'os_patch_deployment', 'os_vulnerability_report', 'kms_effective_use'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'log_entry', 'scc_finding', 'scc_notification_config', 'backup_target', 'asset_service_inventory', 'access_approval_request', 'provider_access_event', 'asset_previous', 'asset_audit_log'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'source_repository_file'}
+# These inventories represent optional application content, not metadata.
+# An unselected read cannot establish that no resources/content exist.
+CONTENT_ONLY_TYPES = frozenset({
+    'source_repository_file',
+    'clouddeploy_release_source',
+    'cloudbuild_artifact_source',
+    'log_secret_sample', 'gcs_selected_object', 'gcs_selected_archive',
+    'dataform_selected_file', 'app_engine_version_secret', 'workflow_source',
+    'dataflow_job', 'batch_job', 'dataproc_job', 'gke_workload_literal',
+    'function_source_archive', 'composer_dag_source', 'artifact_selected_file', 'cloudbuild_log_source', 'appengine_deployment_source',
+})
 # Compute kinds whose resource IAM policy is read with the per-kind GET
 # {resource}/getIamPolicy method (collection path segment, location kind).
 COMPUTE_IAM = {"subnetwork": ("subnetworks", "region"), "image": ("images", None), "node_group": ("nodeGroups", "zone"),
@@ -676,11 +765,26 @@ DEPENDENCIES = {"service_account_key": {"service_account"}, "workload_identity_p
                 "workforce_provider": {"workforce_pool"}, "kms_key": {"kms_key_ring"},
                 "group": {"iam_policy", "organization"}, "group_membership": {"group", "iam_policy", "organization"}}
 DEPENDENCIES["bigquery_table"] = {"bigquery_dataset"}
+DEPENDENCIES['composer_dag_source'] = {'project', 'bucket', 'composer_environment'}
+DEPENDENCIES['cloudbuild_log_source'] = {'project', 'bucket'}
+DEPENDENCIES['source_repository_file'] = {'project'}
+DEPENDENCIES['clouddeploy_release_source'] = {'project', 'bucket'}
+DEPENDENCIES['cloudbuild_artifact_source'] = {'project', 'bucket'}
+DEPENDENCIES['appengine_deployment_source'] = {'project', 'bucket'}
+DEPENDENCIES['gcs_selected_object'] = {'project', 'bucket'}
+DEPENDENCIES['gcs_selected_archive'] = {'project', 'bucket'}
+DEPENDENCIES['dataform_selected_file'] = {'project'}
+DEPENDENCIES['gke_workload_literal'] = {'gke_cluster'}
+DEPENDENCIES['function_source_archive'] = {'function', 'project', 'bucket'}
+DEPENDENCIES['artifact_selected_file'] = {'project', 'artifact_repository'}
+for _literal_job_kind in ('dataflow_job', 'batch_job', 'dataproc_job'):
+    DEPENDENCIES[_literal_job_kind] = {'project'}
 DEPENDENCIES["effective_firewall"] = {"network", "subnetwork"}
 DEPENDENCIES["alloydb_instance"] = {"alloydb_cluster"}
 DEPENDENCIES["bucket_notification"] = {"bucket"}
 DEPENDENCIES["iam_role"] = {"iam_policy", "project"}
 DEPENDENCIES["app_engine_version"] = {"app_engine_service"}
+DEPENDENCIES["app_engine_version_secret"] = {"app_engine_version", "app_engine_service"}
 DEPENDENCIES["kms_key_version"] = {"kms_key", "kms_key_ring"}
 DEPENDENCIES["sql_user"] = {"sql_instance"}
 DEPENDENCIES["target_https_proxy"] = {"target_proxy"}
@@ -833,6 +937,8 @@ def relationships(item):
 class GCPCollector:
     def __init__(self, connector, requirements=None, *, transport=None):
         self.options = dict(connector.get("options") or {})
+        if 'content_secret_scans' in self.options and type(self.options['content_secret_scans']) is not bool:
+            raise ValueError('content_secret_scans must be a boolean')
         from .gcp_appengine_versions import approved_version_maxima
         approved_version_maxima(self.options)
         self.progress_callback = self.options.pop("_progress_callback", None)
@@ -851,7 +957,7 @@ class GCPCollector:
         if requirements is not None and (not isinstance(requirements, (list, tuple, set)) or
                                         any(x not in SUPPORTED_TYPES for x in requirements)):
             raise ValueError("requirements must contain supported GCP resource types")
-        default_requested = sorted(SUPPORTED_TYPES - {"audit_log", "log_entry", "provider_access_event", "asset_previous", "asset_audit_log"}) if requirements is None else list(requirements)
+        default_requested = sorted(SUPPORTED_TYPES - CONTENT_ONLY_TYPES - {"composer_dag_source", "audit_log", "log_entry", "log_secret_sample", "gcs_selected_object", "gcs_selected_archive", "dataform_selected_file", "provider_access_event", "asset_previous", "asset_audit_log", "app_engine_version_secret", "workflow_source", "dataflow_job", "batch_job", "dataproc_job", "gke_workload_literal", "function_source_archive", "artifact_selected_file"}) if requirements is None else list(requirements)
         requested = self.options.get("inventories", default_requested)
         if not isinstance(requested, list) or any(x not in SUPPORTED_TYPES for x in requested):
             raise ValueError("inventories must contain supported GCP resource types")
@@ -859,6 +965,9 @@ class GCPCollector:
         if 'log_entry' in self.wanted:
             bound(self.options, 'log_entry_minutes', 60, 1, 1440)
         self.needed = set(self.wanted)
+        from .gcp_job_literal_secret_indicators import enabled as job_secrets_enabled
+        if 'dataproc_cluster' in self.wanted and job_secrets_enabled(self.options, 'dataproc_cluster'):
+            self.needed.add('project')
         for kind in self.wanted:
             self.needed.update(DEPENDENCIES.get(kind, set()))
         # The signed active-service restriction predicate joins these two
@@ -881,6 +990,44 @@ class GCPCollector:
                 for location in locations)):
             raise ValueError("integration_locations must contain at most 100 explicit locations")
         self.scopes = list(dict.fromkeys(normalize_scope(s) for s in connector.get("scopes", [])))
+        if 'selected_cloudrun_services' in self.options:
+            from .gcp_cloudrun_image_inspection import validate_selection
+            validate_selection(self.options['selected_cloudrun_services'], self.scopes)
+        if 'selected_cloudbuild_builds' in self.options:
+            from .gcp_cloudbuild_log_secret_indicators import selected_builds, KIND, Incomplete
+            try:
+                selected_builds({**self.options, 'content_secret_scans': True,
+                    '_content_secret_scan_kinds': [KIND]}, self.scopes)
+            except Incomplete:
+                raise ValueError('Cloud Build log inspection requires bounded exact same-project Build names') from None
+        if 'selected_source_repository_files' in self.options:
+            from .gcp_sourcerepo_secret_indicators import selected_targets, KIND, Incomplete
+            try:
+                selected_targets({**self.options, 'content_secret_scans': True,
+                    '_content_secret_scan_kinds': [KIND]}, self.scopes)
+            except Incomplete:
+                raise ValueError('Source Repository inspection requires one exact project, repository, commit and bounded file selection') from None
+        if 'selected_clouddeploy_releases' in self.options:
+            from .gcp_clouddeploy_source_secret_indicators import selected_releases, KIND, Incomplete
+            try:
+                selected_releases({**self.options, 'content_secret_scans': True,
+                    '_content_secret_scan_kinds': [KIND]}, self.scopes)
+            except Incomplete:
+                raise ValueError('Cloud Deploy source inspection requires bounded exact same-project Release names') from None
+        if 'selected_cloudbuild_artifact_builds' in self.options:
+            from .gcp_cloudbuild_artifact_secret_indicators import selected_builds, KIND, Incomplete
+            try:
+                selected_builds({**self.options, 'content_secret_scans': True,
+                    '_content_secret_scan_kinds': [KIND]}, self.scopes)
+            except Incomplete:
+                raise ValueError('Cloud Build artifact inspection requires bounded exact same-project Build names') from None
+        if 'selected_appengine_versions' in self.options:
+            from .gcp_appengine_source_secret_indicators import selected_versions, KIND, Incomplete
+            try:
+                selected_versions({**self.options, 'content_secret_scans': True,
+                    '_content_secret_scan_kinds': [KIND]}, self.scopes)
+            except Incomplete:
+                raise ValueError('App Engine source inspection requires bounded exact same-project Version names') from None
         self.requested_scopes = self.scopes[:]
         self.platform_proof_label = None
         if self.auth.get("method") == "platform-service-account":
@@ -1035,6 +1182,11 @@ class GCPCollector:
         iam_by_native_id = {}
         state, error, service_state = "collected", None, None
         try:
+            if kind in CONTENT_ONLY_TYPES and not (
+                    self.options.get('content_secret_scans') is True
+                    and isinstance(self.options.get('_content_secret_scan_kinds'), list)
+                    and kind in self.options['_content_secret_scan_kinds']):
+                raise ReadError('unavailable', 'content_secret_inspection_not_enabled')
             for page, request_id in fetch():
                 source_requests.append(request_id)
                 for raw in page:
@@ -1333,6 +1485,11 @@ class GCPCollector:
 
     def scope_jobs(self, scope):
         jobs = []
+        from .gcp_additional_literal_secret_indicators import prepare_scope, workflow_jobs, finish_scheduler_scrub
+        prepare_scope(self, scope)
+        jobs.extend(workflow_jobs(self, scope))
+        from .gcp_log_secret_indicators import scope_jobs as log_secret_jobs
+        jobs.extend(log_secret_jobs(self, scope))
         from .gcp_native_evidence import scope_jobs as native_evidence_jobs
         jobs.extend(native_evidence_jobs(self, scope))
         from .gcp_os_patch_native import scope_jobs as os_patch_jobs
@@ -1512,10 +1669,10 @@ class GCPCollector:
                 raise failures[0]
         add("alloydb_cluster", "alloydb", alloydb_clusters)
         add("logging_metric", "logging", lambda: self.pages(f"https://logging.googleapis.com/v2/{scope}/metrics",
-            scope, key="metrics", params={"fields": "metrics(name,filter,disabled,bucketName,labelExtractors,metricDescriptor(type)),nextPageToken"},
+            scope, key="metrics", params={"fields": "metrics(name,filter,disabled,bucketName,labelExtractors,metricDescriptor(type,metricKind,valueType)),nextPageToken"},
             transform=lambda item: {**item, "metricId": item.get("name"), "name": f"{scope}/metrics/{item['name']}"}))
         add("monitoring_alert_policy", "monitoring", lambda: self.pages(f"https://monitoring.googleapis.com/v3/{scope}/alertPolicies",
-            scope, key="alertPolicies", params={"fields": "alertPolicies(name,enabled,conditions,notificationChannels,combiner),nextPageToken"}))
+            scope, key="alertPolicies", params={"fields": "alertPolicies(name,enabled,validity,conditions,notificationChannels,combiner),nextPageToken"}))
         if scope_type == "project":
             add("monitoring_notification_channel", "monitoring", lambda: self.pages(
                 f"https://monitoring.googleapis.com/v3/{scope}/notificationChannels", scope, key="notificationChannels",
@@ -1673,8 +1830,12 @@ class GCPCollector:
         add("bucket", "storage", buckets)
         from .gcp_compliance_wave import sql_instances
         add("sql_instance", "sqladmin", lambda: sql_instances(self, scope, project))
+        from .gcp_gke_literal_secret_indicators import validate_cluster_source
         add("gke_cluster", "container", lambda: self.pages(f"https://container.googleapis.com/v1/{scope}/locations/-/clusters",
-            scope, key="clusters", page_size_key=None))
+            scope, key="clusters", page_size_key=None,
+            response_validator=(lambda data: validate_cluster_source(data, scope))
+                if "gke_workload_literal" in self.needed and self.options.get('content_secret_scans') is True
+                    and 'gke_workload_literal' in self.options.get('_content_secret_scan_kinds', []) else None))
         def app_engine_application():
             # apps.get answers 404 NOT_FOUND naming this project's application in
             # ResourceInfo when no App Engine app was ever created: an empty set.
@@ -1741,7 +1902,9 @@ class GCPCollector:
                     failures.append(exc)
             if failures:
                 raise failures[0]
-        add("dataproc_cluster", "dataproc", dataproc_clusters)
+        from .gcp_job_literal_secret_indicators import enabled as job_secrets_enabled
+        if not job_secrets_enabled(self.options, 'dataproc_cluster'):
+            add("dataproc_cluster", "dataproc", dataproc_clusters)
         def account_activity():
             """Policy Analyzer serviceAccountLastAuthentication, keyed by account resource name.
 
@@ -1897,7 +2060,9 @@ class GCPCollector:
             def env_names(function):
                 # functions.list returns the full Function: an absent inline
                 # environment map is none; sanitize keeps the names only.
-                if isinstance(function.get("serviceConfig"), dict) and "environmentVariables" not in function["serviceConfig"]:
+                if (isinstance(function.get("serviceConfig"), dict)
+                        and "environmentVariables" not in function["serviceConfig"]
+                        and "environmentVariableNames" not in function["serviceConfig"]):
                     function = {**function, "serviceConfig": {**function["serviceConfig"], "environmentVariables": {}}}
                 return function
             for items, request_id in self.pages(f"https://cloudfunctions.googleapis.com/v2/{scope}/locations/-/functions",
@@ -2069,7 +2234,12 @@ class GCPCollector:
             output = copy.deepcopy(instance)
             setup = output.get("gceSetup")
             if isinstance(setup, dict) and isinstance(setup.get("metadata"), dict):
-                setup["metadata"] = {k: (v if k in WORKBENCH_METADATA else None) for k, v in setup["metadata"].items()}
+                setup["metadata"] = {k: (copy.deepcopy(v) if k == '_coverage' and isinstance(v, dict)
+                    else v if k in WORKBENCH_METADATA else None) for k, v in setup["metadata"].items()}
+            # This list request has no fields mask. The retained security keys
+            # can use documented omitted-field defaults; redacted values stay
+            # present as None and cannot be treated as missing/default values.
+            output['_representation'] = 'full'
             return output
         # Workbench Instances are zonal; notebooks v2 instances.list documents
         # parent projects/{p}/locations/- "to list instances in all locations"; an
@@ -2095,7 +2265,8 @@ class GCPCollector:
             return output
         add("scheduler_job", "cloudscheduler", lambda: located("cloudscheduler_locations",
             service_locations("cloudscheduler", "v1"),
-            lambda location: f"https://cloudscheduler.googleapis.com/v1/{scope}/locations/{location}/jobs", "jobs", scheduler_scrub))
+            lambda location: f"https://cloudscheduler.googleapis.com/v1/{scope}/locations/{location}/jobs", "jobs",
+            lambda row: finish_scheduler_scrub(scheduler_scrub(row), row)))
         def shared_vpc():
             # projects.get distinguishes HOST from the only other documented
             # status. Do not infer host applicability from a getXpnResources 400.
@@ -2274,6 +2445,13 @@ class GCPCollector:
                        for scope in self.scopes if scope.startswith("projects/")])
 
     def dependent_jobs(self):
+        from .gcp_composer_source_secret_indicators import collection_pages as composer_source_pages, enabled as composer_source_enabled
+        if 'composer_dag_source' in self.needed and composer_source_enabled(self.options):
+            self.run_jobs([('composer_dag_source', scope, 'storage',
+                lambda scope=scope: composer_source_pages(self, scope))
+                for scope in self.scopes if scope.startswith('projects/')])
+        from .gcp_gke_literal_secret_indicators import dependent_jobs as gke_literal_jobs
+        self.run_jobs(gke_literal_jobs(self))
         if "app_engine_version" in self.needed:
             from .gcp_appengine_versions import list_versions
             version_jobs = []
@@ -2287,6 +2465,8 @@ class GCPCollector:
                     yield from list_versions(self, scope, services["items"])
                 version_jobs.append(("app_engine_version", scope, "appengine", versions))
             self.run_jobs(version_jobs)
+        from .gcp_additional_literal_secret_indicators import appengine_jobs
+        self.run_jobs(appengine_jobs(self))
         if "gcp_v4_workload_facts" in self.needed:
             from .gcp_facts_v4_holds import collect_supplemental, normalize_facts
             fact_jobs = []
@@ -2320,6 +2500,70 @@ class GCPCollector:
         jobs = []
         def add(kind, scope, service, fetch):
             jobs.append((kind, scope, service, fetch))
+        from .gcp_job_literal_secret_indicators import collection_pages as job_literal_pages, enabled as job_secrets_enabled
+        for kind in ('dataflow_job', 'batch_job', 'dataproc_job', 'dataproc_cluster'):
+            if kind in self.needed and job_secrets_enabled(self.options, kind):
+                for scope in self.scopes:
+                    if scope.startswith('projects/'):
+                        service = {'dataflow_job': 'dataflow', 'batch_job': 'batch',
+                                   'dataproc_job': 'dataproc', 'dataproc_cluster': 'dataproc'}[kind]
+                        add(kind, scope, service,
+                            lambda kind=kind, scope=scope: job_literal_pages(self, scope, kind))
+        if 'artifact_selected_file' in self.needed:
+            from .gcp_artifact_file_secret_indicators import collection_pages as artifact_file_pages
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    add('artifact_selected_file', scope, 'artifactregistry',
+                        lambda scope=scope: artifact_file_pages(self, scope))
+        if 'dataform_selected_file' in self.needed:
+            from .gcp_dataform_secret_indicators import collection_pages as dataform_file_pages
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    add('dataform_selected_file', scope, 'dataform',
+                        lambda scope=scope: dataform_file_pages(self, scope))
+        if 'gcs_selected_object' in self.needed:
+            from .gcp_selected_object_secret_indicators import collection_pages
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    add('gcs_selected_object', scope, 'storage',
+                        lambda scope=scope: collection_pages(self, scope))
+        if 'gcs_selected_archive' in self.needed:
+            from .gcp_selected_archive_secret_indicators import collection_pages as archive_pages
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    add('gcs_selected_archive', scope, 'storage',
+                        lambda scope=scope: archive_pages(self, scope))
+        if 'function_source_archive' in self.needed:
+            from .gcp_function_source_secret_indicators import collection_pages as function_source_pages
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    add('function_source_archive', scope, 'cloudfunctions',
+                        lambda scope=scope: function_source_pages(self, scope))
+        if 'cloudbuild_log_source' in self.needed:
+            from .gcp_cloudbuild_log_secret_indicators import jobs as cloudbuild_log_jobs
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    jobs.extend(cloudbuild_log_jobs(self, scope))
+        if 'source_repository_file' in self.needed:
+            from .gcp_sourcerepo_secret_indicators import jobs as sourcerepo_jobs
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    jobs.extend(sourcerepo_jobs(self, scope))
+        if 'clouddeploy_release_source' in self.needed:
+            from .gcp_clouddeploy_source_secret_indicators import jobs as clouddeploy_release_source_jobs
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    jobs.extend(clouddeploy_release_source_jobs(self, scope))
+        if 'cloudbuild_artifact_source' in self.needed:
+            from .gcp_cloudbuild_artifact_secret_indicators import jobs as cloudbuild_artifact_source_jobs
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    jobs.extend(cloudbuild_artifact_source_jobs(self, scope))
+        if 'appengine_deployment_source' in self.needed:
+            from .gcp_appengine_source_secret_indicators import jobs as appengine_source_jobs
+            for scope in self.scopes:
+                if scope.startswith('projects/'):
+                    jobs.extend(appengine_source_jobs(self, scope))
         if "effective_firewall" in self.needed:
             for scope in [s for s in self.scopes if s.startswith("projects/")]:
                 def regional_effective_firewalls(scope=scope):
@@ -2826,6 +3070,10 @@ class GCPCollector:
             for binding in policy.get("bindings", []) for member in binding.get("members", [])
             if isinstance(member, str) and member.startswith("group:")})
         customers = set(self.options.get("cloud_identity_customers", []))
+        if "workspace_user" in self.needed:
+            binding = self.workspace_project_binding()
+            if binding["status"] == "collected":
+                customers.add(binding["customer"])
         if self.sw52_only_mode:
             customers = {entry["directory_customer"] for entry in getattr(self, "sw52_native", {}).values()
                 if entry.get("status") == "collected"}
@@ -2931,12 +3179,58 @@ class GCPCollector:
                 coverage["groupSettings"] = {"status": exc.status, "collection_status": wire_status(exc.status), "error": exc.error,
                                              "source_requests": [exc.request_id] if getattr(exc, "request_id", None) else []}
 
+    def workspace_project_binding(self):
+        """Independent CRM parent reads bind one selected project to its Directory customer."""
+        if hasattr(self, "_workspace_binding"):
+            return self._workspace_binding
+        record = {"status": "unknown", "scope": self.scopes[0] if len(self.scopes) == 1 else "",
+                  "chain": [], "reason": "single_project_directory_binding_required"}
+        self._workspace_binding = record
+        if len(self.scopes) != 1 or not self.scopes[0].startswith("projects/"):
+            return record
+        scope = self.scopes[0]
+        current, seen = scope, set()
+        try:
+            for _ in range(32):
+                if current in seen:
+                    raise ReadError("malformed", "directory_hierarchy_cycle")
+                seen.add(current)
+                row, request_id = self.read("https://cloudresourcemanager.googleapis.com/v3/" + current, scope)
+                if not isinstance(row, dict):
+                    raise ReadError("malformed", "directory_hierarchy_response")
+                if current == scope:
+                    if (not isinstance(row.get("name"), str) or not re.fullmatch(r"projects/[1-9][0-9]*", row["name"])
+                            or current not in (row["name"], "projects/" + str(row.get("projectId", "")))):
+                        raise ReadError("malformed", "directory_project_identity_mismatch")
+                elif row.get("name") != current:
+                    raise ReadError("malformed", "directory_hierarchy_identity_mismatch")
+                record["chain"].append({"requested": current, "name": row["name"],
+                    "projectId": row.get("projectId"), "parent": row.get("parent"),
+                    "directoryCustomerId": row.get("directoryCustomerId"), "source_request": request_id})
+                if current.startswith("organizations/"):
+                    customer = row.get("directoryCustomerId")
+                    if not isinstance(customer, str) or not re.fullmatch(r"C[A-Za-z0-9_-]+", customer):
+                        raise ReadError("malformed", "directory_customer_unavailable")
+                    record.update(status="collected", reason="", organization=current, customer=customer)
+                    return record
+                parent = row.get("parent")
+                if not isinstance(parent, str) or not re.fullmatch(r"(?:folders|organizations)/[1-9][0-9]*", parent):
+                    raise ReadError("unavailable", "directory_project_parent_unavailable")
+                current = parent
+            raise ReadError("unavailable", "directory_hierarchy_depth_limit")
+        except ReadError as exc:
+            record.update(status=exc.status, reason=exc.error.get("code", "directory_binding_unavailable"))
+        return record
+
     def workspace_directory(self):
         scope = self.scopes[0] if self.scopes else "directory"
         customers = self.options.get("workspace_customers", self.options.get("cloud_identity_customers", []))
         if not isinstance(customers, list) or any(not isinstance(customer, str) or not re.fullmatch(r"C[A-Za-z0-9_-]+|my_customer", customer) for customer in customers):
             raise ValueError("workspace_customers must contain directory customer IDs")
         customers = set(customers)
+        binding = self.workspace_project_binding() if "workspace_user" in self.needed else None
+        if binding and binding["status"] == "collected" and not customers:
+            customers = {binding["customer"]}
         if self.sw52_only_mode:
             customers = {entry["directory_customer"] for entry in getattr(self, "sw52_native", {}).values()
                 if entry.get("status") == "collected"}
@@ -2951,11 +3245,12 @@ class GCPCollector:
             if not customers:
                 raise ReadError("unavailable", "organization_directory_customer_unavailable")
             failures = []
+            seen = set()
             for customer in sorted(customers):
                 if kind == "workspace_user":
                     url = "https://admin.googleapis.com/admin/directory/v1/users"
-                    params = {"customer": customer, "projection": "basic", "viewType": "admin_view",
-                        "fields": "users(id,customerId,primaryEmail,isAdmin,isDelegatedAdmin,suspended,archived),nextPageToken"}
+                    params = {"customer": customer, "projection": "full", "viewType": "admin_view",
+                        "fields": "users(id,customerId,primaryEmail,isAdmin,isDelegatedAdmin,suspended,archived,isEnrolledIn2Sv,isEnforcedIn2Sv,recoveryEmail),nextPageToken"}
                     key, size_key = "users", "maxResults"
                 elif kind == "workspace_role":
                     url = f"https://admin.googleapis.com/admin/directory/v1/customer/{customer}/roles"
@@ -2970,8 +3265,18 @@ class GCPCollector:
                         transformed = []
                         for item in items:
                             identifier = item.get("id") or (item.get("roleId") if kind == "workspace_role" else item.get("roleAssignmentId"))
-                            transformed.append({**item, "name": f"customers/{item.get('customerId', customer)}/{kind}/{identifier}",
-                                "directoryCustomer": item.get("customerId", customer), "scopeSelection": "existing selected identity; read-only Directory API"})
+                            if not isinstance(identifier, str) or not identifier or (customer, identifier) in seen:
+                                raise ReadError("malformed", "directory_identity_missing_or_duplicate")
+                            seen.add((customer, identifier))
+                            output = {**item, "name": f"customers/{item.get('customerId', customer)}/{kind}/{identifier}",
+                                "directoryCustomer": item.get("customerId", customer), "scopeSelection": "existing selected identity; read-only Directory API"}
+                            if kind == "workspace_user":
+                                output["_directoryBinding"] = copy.deepcopy(binding)
+                                output["_coverage"] = {"directoryProjection": {"status": "collected",
+                                    "fields": ["id", "customerId", "primaryEmail", "isAdmin", "isDelegatedAdmin", "suspended", "archived",
+                                               "isEnrolledIn2Sv", "isEnforcedIn2Sv", "recoveryEmail"],
+                                    "source_requests": [request_id], "projection": "full", "viewType": "admin_view"}}
+                            transformed.append(output)
                         yield transformed, request_id
                 except ReadError as exc:
                     failures.append(exc)
@@ -2991,7 +3296,7 @@ class GCPCollector:
                     "coverage_status": collection.get("coverage_status"), "resource_count": len(collection["items"]),
                     "error": collection.get("error"), "source_requests": collection.get("source_requests", [])})
                 continue
-            if (key[0] in self.wanted or key[0] == "project" and
+            if (key[0] in self.wanted or key[0] == "gke_cluster" and "gke_workload_literal" in self.wanted or key[0] == "project" and
                     (self.options.get("all_projects") or key[1] in getattr(self, "proven_project_alias_scopes", set())
                      or key[1] in getattr(self, "proven_api_key_alias_scopes", set()))):
                 collection["items"].sort(key=lambda item: item["_resource_id"])
@@ -3093,6 +3398,27 @@ class GCPCollector:
         # Preserve exactly the user's selection; resolved scopes and ancestry are
         # separately explicit and every collection is individually scoped.
         snapshot_scopes = (self.scopes or ["*"]) if self.auto_scopes else self.requested_scopes
+        from .gcp_gke_literal_secret_indicators import selection_metadata
+        if "gke_workload_literal" in self.needed:
+            metadata.update(selection_metadata(self))
+        from .gcp_function_source_secret_indicators import selection_metadata as function_source_selection
+        if 'function_source_archive' in self.needed:
+            metadata.update(function_source_selection(self))
+        if 'cloudbuild_log_source' in self.needed:
+            from .gcp_cloudbuild_log_secret_indicators import selection_metadata as cloudbuild_log_selection
+            metadata.update(cloudbuild_log_selection(self))
+        if 'source_repository_file' in self.needed:
+            from .gcp_sourcerepo_secret_indicators import selection_metadata as sourcerepo_selection
+            metadata.update(sourcerepo_selection(self))
+        if 'clouddeploy_release_source' in self.needed:
+            from .gcp_clouddeploy_source_secret_indicators import selection_metadata as clouddeploy_release_source_selection
+            metadata.update(clouddeploy_release_source_selection(self))
+        if 'cloudbuild_artifact_source' in self.needed:
+            from .gcp_cloudbuild_artifact_secret_indicators import selection_metadata as cloudbuild_artifact_source_selection
+            metadata.update(cloudbuild_artifact_source_selection(self))
+        if 'appengine_deployment_source' in self.needed:
+            from .gcp_appengine_source_secret_indicators import selection_metadata as appengine_source_selection
+            metadata.update(appengine_source_selection(self))
         snapshot = make_snapshot("gcp", snapshot_scopes, envelopes, metadata=sanitize(metadata))
         self.progress("error" if self.auth_error else "completed", complete=True)
         return snapshot
@@ -3104,7 +3430,9 @@ class GCPCollector:
             if not self.needed:
                 return self.finish()
             if self.transport is None:
-                credentials = Credentials(self.auth, timeout=bound(self.options, "timeout", 20, 1, 120))
+                from .gcp_gke_literal_secret_indicators import auth_requested
+                credentials = Credentials(self.auth, timeout=bound(self.options, "timeout", 20, 1, 120),
+                    gke_content=auth_requested(self))
                 self.transport = Transport(credentials, self.options)
             self.discover()
             self.progress("collecting")
@@ -3147,6 +3475,8 @@ class GCPCollector:
             collect_kms_effective(self)
             from .gcp_sbom_native import collect as collect_sbom_native
             collect_sbom_native(self)
+            from .gcp_image_secret_indicators import enrich as enrich_image_secrets
+            enrich_image_secrets(self)
             # Types lacking a service-level API at this scope are explicitly
             # unsupported, instead of silently looking like an empty collection.
             # A kind collected at its native scope type (for example buckets at

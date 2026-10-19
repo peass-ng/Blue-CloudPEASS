@@ -32,6 +32,7 @@ const NetworkMap = lazy(() =>
 const PrivescMap = lazy(() =>
   import("./PrivescMap").then((m) => ({ default: m.PrivescMap })),
 );
+import { AiReview, NetworkAiReview } from "./AiReview";
 import { Scans } from "./Scans";
 import { Settings } from "./Settings";
 import type { Connector, Me, Report, Scan, Workspace } from "./types";
@@ -65,6 +66,7 @@ const pages = [
     icon: Target,
     description: "Understand your observed external exposure.",
   },
+  { label: "Top 15 Recommended Actions", icon: ShieldCheck, ai: true, description: "Review the security changes to prioritize." },
   {
     label: "Least Privilege",
     icon: Shield,
@@ -80,6 +82,12 @@ const pages = [
     label: "Network Map",
     icon: Network,
     description: "See the connections behind your infrastructure.",
+  },
+  {
+    label: "Network Findings",
+    icon: ShieldCheck,
+    ai: true,
+    description: "Review AI network findings and recommended connectivity changes.",
   },
   {
     label: "Attack Analysis",
@@ -102,7 +110,7 @@ const pages = [
 export function App() {
   const [page, setPage] = useState(() => {
     const raw = decodeURIComponent(location.hash.slice(1));
-    const p = raw;
+    const p = raw === "AI Review" ? "Top 15 Recommended Actions" : raw;
     return pages.some((x) => x.label === p) ? p : "Dashboard";
   });
   const [demoRequested, setDemoRequested] = useState(true);
@@ -112,6 +120,8 @@ export function App() {
   const client = useQueryClient();
   const identity = useApi<Me>("/me", false);
   const signedIn = identity.isSuccess;
+  const codex = useApi<{ available: boolean; platform_configured: boolean }>("/ai/codex", false, signedIn);
+  const aiAvailable = signedIn && (codex.data?.available === true || codex.data?.platform_configured === true);
   const workspaces = useApi<{ items: Workspace[] }>("/workspaces", false, signedIn);
   const workspaceList = items(workspaces.data);
   const activeWorkspace = workspaceList.find((item) => item.id === workspaceId);
@@ -129,7 +139,7 @@ export function App() {
     (available.some((scan) => scan.id === selected) ? selected : "") || available.find((s) => s.status === "completed")?.id || "";
   const current = available.find((s) => s.id === scanId);
   const report = useApi<Report>(
-    `/scans/${encodeURIComponent(scanId)}/summary`,
+    `/scans/${encodeURIComponent(scanId)}/summary?aggregation=check`,
     demo,
     !!scanId && current?.status === "completed",
   );
@@ -138,6 +148,10 @@ export function App() {
     setPage(p);
     location.hash = encodeURIComponent(p);
   }
+  useEffect(() => {
+    if (pages.some(item => item.label === page && item.ai) &&
+        (identity.isError || codex.isError || codex.isSuccess && !aiAvailable)) navigate("Dashboard");
+  }, [page, identity.isError, codex.isError, codex.isSuccess, aiAvailable]);
   function selectWorkspace(id: string) {
     sessionStorage.setItem(workspaceKey, id);
     setWorkspaceId(id);
@@ -151,7 +165,7 @@ export function App() {
   useEffect(() => {
     const change = () => {
       const raw = decodeURIComponent(location.hash.slice(1));
-      const p = raw;
+      const p = raw === "AI Review" ? "Top 15 Recommended Actions" : raw;
       setPage(pages.some((x) => x.label === p) ? p : "Dashboard");
     };
     window.addEventListener("hashchange", change);
@@ -179,6 +193,8 @@ export function App() {
   const insight = [
     "Hardening Findings",
     "Exposure",
+    "Top 15 Recommended Actions",
+    "Network Findings",
     "Least Privilege",
     "Privilege Escalation Map",
     "Network Map",
@@ -222,7 +238,7 @@ export function App() {
           <span className="training-ad-cta">Explore courses <ArrowUpRight size={14} aria-hidden="true" /></span>
         </a>
         <nav aria-label="Primary navigation">
-          {pages.filter((p) => p.label !== "Help").map((p) => (
+          {pages.filter((p) => p.label !== "Help" && (!p.ai || aiAvailable)).map((p) => (
             <div key={p.label}>
               {p.group && <div className="nav-group">{p.group}</div>}
               <button
@@ -233,6 +249,7 @@ export function App() {
               >
                 <p.icon size={18} />
                 <span>{p.label}</span>
+                {p.label === "Attack Analysis" && <span className="feature-beta nav-beta">Beta</span>}
                 {p.label === "Hardening Findings" && report.data && (
                   <span className="nav-count">
                     {Number(
@@ -289,7 +306,7 @@ export function App() {
           <div className="page-heading">
             <div>
               <div className="eyebrow page-kicker"><span>//</span> PEASS'o INTELLIGENCE</div>
-              <h1>{page}</h1>
+              <h1>{page}{page === "Attack Analysis" && <span className="feature-beta">Beta</span>}</h1>
               {pageInfo.description && <p>{pageInfo.description}</p>}
             </div>
             {(insight || page === "Dashboard") && (
@@ -396,6 +413,7 @@ export function App() {
                 onRetry={() => void scans.refetch()}
               >
                 <Findings
+                  key={page}
                   scanId={scanId}
                   category={page === "Hardening Findings" ? "hardening" : "exposure"}
                   demo={demo}
@@ -403,6 +421,9 @@ export function App() {
               </State>
             </>
           )}
+          {pageInfo.ai && codex.isPending && signedIn && <State loading />}
+          {aiAvailable && page === "Top 15 Recommended Actions" && <AiReview key={scanId} scanId={scanId} demo={demo} />}
+          {aiAvailable && page === "Network Findings" && <NetworkAiReview key={scanId} scanId={scanId} demo={demo} />}
           {page === "Least Privilege" && <LeastPrivilege scanId={scanId} demo={demo} />}
           {page === "Privilege Escalation Map" && (
             scans.error instanceof ApiError && scans.error.status === 401 && !demo

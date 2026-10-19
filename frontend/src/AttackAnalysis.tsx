@@ -3,6 +3,7 @@ import { ShieldAlert, CheckCircle2 } from "lucide-react";
 import { items, json, request, useApi } from "./api";
 import type { Connector } from "./types";
 import { Panel, State } from "./ui";
+import { AttackLogAccessGuide } from "./AttackLogAccessGuide";
 
 type SourceKind = "aws_event_history" | "aws_cloudtrail_s3" | "gcp_audit" | "gke_audit" | "azure_activity_log" | "entra_directory_audit";
 type Access = { status: "pass" | "warning" | "blocked"; source_status?: string; reason?: string; note?: string; account_id?: string; project_id?: string; subscription_id?: string; coverage?: string | Record<string, unknown>; check_token?: string };
@@ -32,21 +33,36 @@ export function AttackAnalysis({ demo, canWrite, onNavigate }: { demo: boolean; 
   const roles = selected?.onboarding?.target_role_arns || [];
   const roleName = /^arn:aws:iam::\d{12}:role\/[A-Za-z0-9+=,.@_/-]{1,512}$/.test(roleArn) ? roleArn.split("/").pop() || "" : "";
   const usesAccessKeys = Array.isArray(selected?.auth?.fields) && selected.auth.fields.includes("aws_access_key_id") && !selected.auth.fields.includes("role_arn");
+  const usesSessionToken = Array.isArray(selected?.auth?.fields) && selected.auth.fields.includes("aws_session_token");
   const validKmsKeyArn = /^arn:aws:kms:[a-z0-9-]+:\d{12}:key\/[A-Za-z0-9-]+$/.test(kmsKeyArn);
   const s3Policy = bucket && prefix && (!kmsKeyArn || validKmsKeyArn) ? JSON.stringify({ Version: "2012-10-17", Statement: [
     { Sid: "ListSelectedCloudTrailPrefix", Effect: "Allow", Action: "s3:ListBucket", Resource: `arn:aws:s3:::${bucket}`, Condition: { StringLike: { "s3:prefix": `${prefix}*` } } },
     { Sid: "ReadSelectedCloudTrailObjects", Effect: "Allow", Action: "s3:GetObject", Resource: `arn:aws:s3:::${bucket}/${prefix}*` },
     ...(validKmsKeyArn ? [{ Sid: "DecryptSelectedCloudTrailKey", Effect: "Allow", Action: "kms:Decrypt", Resource: kmsKeyArn }] : []),
   ] }, null, 2) : "";
-  const awsIdentityCommand = roleName ? `--role-name '${roleName}'` : usesAccessKeys ? "--user-name 'REPLACE_WITH_IAM_USER_NAME'" : "";
+  const awsIdentityCommand = roleName ? `--role-name '${roleName}'` : usesAccessKeys && !usesSessionToken ? "--user-name 'REPLACE_WITH_IAM_USER_NAME'" : "";
   const awsPermissionCommand = awsIdentityCommand && (kind === "aws_event_history"
     ? `aws iam attach-${roleName ? "role" : "user"}-policy ${awsIdentityCommand} --policy-arn arn:aws:iam::aws:policy/AWSCloudTrail_ReadOnlyAccess`
     : s3Policy ? `cat > hacktricks-cspm-cloudtrail-logs.json <<'JSON'\n${s3Policy}\nJSON\naws iam put-${roleName ? "role" : "user"}-policy ${awsIdentityCommand} --policy-name HackTricksCspmCloudTrailLogs --policy-document file://hacktricks-cspm-cloudtrail-logs.json` : "") || "";
-  const gcpPrincipal = selected?.gcp_onboarding?.service_account_email || "REPLACE_WITH_CONNECTOR_SERVICE_ACCOUNT_EMAIL";
-  const gcpPermissionCommand = /^[a-z][a-z0-9-]{4,79}$/.test(projectId) ? `gcloud projects add-iam-policy-binding '${projectId}' --member='serviceAccount:${gcpPrincipal}' --role='roles/logging.viewer'\ngcloud projects add-iam-policy-binding '${projectId}' --member='serviceAccount:${gcpPrincipal}' --role='roles/logging.privateLogViewer'` : "";
+  const gcpMember = selected?.gcp_onboarding?.service_account_email ? `serviceAccount:${selected.gcp_onboarding.service_account_email}` : "REPLACE_WITH_CONNECTOR_MEMBER";
+  const gcpPermissionCommand = /^[a-z][a-z0-9-]{4,79}$/.test(projectId) ? `gcloud projects add-iam-policy-binding '${projectId}' --member='${gcpMember}' --role='roles/logging.privateLogViewer'` : "";
   const azurePermissionCommand = kind === "azure_activity_log" && /^[0-9a-fA-F-]{36}$/.test(subscriptionId) ? `az role assignment create --assignee 'REPLACE_WITH_CONNECTOR_PRINCIPAL_OBJECT_ID' --role 'Monitoring Reader' --scope '/subscriptions/${subscriptionId}'` : "";
   const permissionCommand = provider === "aws" ? awsPermissionCommand : provider === "gcp" ? gcpPermissionCommand : azurePermissionCommand;
-  useEffect(() => { if (!connectorId && liveConnectors[0]) setConnectorId(liveConnectors[0].id); }, [connectorId, liveConnectors]);
+  const missingPermissionDetails = provider === "aws"
+    ? !awsIdentityCommand ? "Choose the account role above, or enter the IAM role ARN used by the connector, to generate a command for that role. For temporary keys, use the role that issued the session."
+      : kind === "aws_cloudtrail_s3" ? "Enter the S3 bucket name and the base folder path ending in CloudTrail/ above to generate the policy and command. If you enter a KMS key, use its complete ARN."
+      : "Choose the account role above to generate its access command."
+    : provider === "gcp" ? "Enter the project ID above to generate the gcloud command for that project."
+    : "Enter the full subscription ID above to generate the Azure CLI command.";
+  useEffect(() => {
+    if (!connectorId && liveConnectors[0]) {
+      const next = liveConnectors[0];
+      setConnectorId(next.id);
+      setKind(next.provider === "gcp" ? "gcp_audit" : next.provider === "azure" ? "azure_activity_log" : "aws_event_history");
+      setProjectId(next.provider === "gcp" ? (next.scopes[0] || "").replace(/^projects\//, "") : "");
+      setSubscriptionId(next.provider === "azure" ? (next.scopes[0] || "").replace(/^\/subscriptions\//, "") : "");
+    }
+  }, [connectorId, liveConnectors]);
   useEffect(() => { setAccess(null); setAnalysis(null); setError(""); }, [connectorId, kind, region, roleArn, bucket, prefix, day, projectId, clusterId, subscriptionId]);
   const source = { connector_id: connectorId, kind, region: region.trim(), role_arn: roleArn || null,
     ...(kind === "aws_cloudtrail_s3" ? { bucket: bucket.trim(), prefix: prefix.trim(), day } : {}),
@@ -95,7 +111,7 @@ export function AttackAnalysis({ demo, canWrite, onNavigate }: { demo: boolean; 
         {provider === "gcp" && <p className="muted small">The project must be accessible to this GCP connector. GKE audit logs are read from Cloud Logging; a Kubernetes API connector alone does not expose audit logs. This preview reads a bounded recent window.</p>}
         {kind === "azure_activity_log" && <p className="muted small">Azure Activity Log records subscription control-plane activity. This preview reviews confirmed Owner or User Access Administrator self-assignments and successful deletions of subscription Activity Log export settings.</p>}
         {kind === "entra_directory_audit" && <p className="muted small">This reads Microsoft Graph directory audits for the connector tenant. The current rule reviews successful direct Global Administrator grants to the acting user. Other Entra activities are outside this analysis.</p>}
-        <details className="attack-permissions"><summary>How to grant log access</summary><p>{provider === "aws" ? kind === "aws_event_history" ? "The hosted customer-role template already includes cloudtrail:LookupEvents. For a manually managed role or IAM user missing it, attach the AWS managed CloudTrail read-only policy in the target account. If the connector uses temporary credentials, grant the permission to their source role." : "Add this narrow S3 read policy to the account role or IAM user. A central bucket policy must also permit that identity. SSE-KMS objects additionally require kms:Decrypt in IAM and the KMS key policy. For temporary credentials, grant the permission to their source role." : provider === "gcp" ? "Grant the connector service account Logging Viewer on the selected project. Private Log Viewer is also needed for Data Access records. Replace the placeholder email if this is a manually configured identity." : kind === "entra_directory_audit" ? "Grant the connector application Microsoft Graph AuditLog.Read.All application permission and tenant admin consent. Azure subscription roles do not grant access to Entra directory audits." : "Grant Monitoring Reader at the selected subscription to the connector principal. Replace the object ID placeholder with the identity used by this connector."}</p>{permissionCommand ? <><pre>{permissionCommand}</pre><button className="button" type="button" onClick={() => void navigator.clipboard.writeText(permissionCommand)}>Copy CLI</button></> : kind !== "entra_directory_audit" && <p>Choose the required source details to show a command.</p>}</details>
+        <AttackLogAccessGuide provider={provider} kind={kind} authMode={selected?.auth_mode} command={permissionCommand} missingDetails={missingPermissionDetails} s3Policy={s3Policy} roleArn={roleArn} />
         <div className="button-row"><button className="button" type="button" onClick={() => onNavigate("Connectors")}>Create or edit connector</button><button className="button" type="button" disabled={!canWrite || !connectorId || busy !== null} onClick={() => void checkAccess()}>{busy === "check" ? "Checking…" : "Check log access"}</button><button className="button primary" type="button" disabled={!canWrite || access?.status !== "pass" || busy !== null} onClick={() => void analyze()}>{busy === "run" ? "Analyzing…" : "Start analysis"}</button></div>
         {!liveConnectors.length && <p className="form-error">Create a live AWS, GCP or Azure connector to begin.</p>}
         {error && <p className="form-error" role="alert">{error}</p>}

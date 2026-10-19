@@ -29,6 +29,10 @@ def sql(query, engine, flag, default, allowed, bad):
         values = {}
         for row in rows:
             name, value = get(row, "name", str), get(row, "value", str)
+            if flag == "3625" and name == "3625 (trace flag)":
+                name = flag
+            if flag == "3625" and name == flag and value not in ("on", "off"):
+                return unknown("unrecognized trace flag value", flag=flag)
             if name in values:
                 return unknown("duplicate database flags")
             values[name] = value

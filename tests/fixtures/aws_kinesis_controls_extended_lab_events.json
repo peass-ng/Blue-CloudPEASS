@@ -1,0 +1,93 @@
+[
+  {
+    "eventID": "3e1bb909-2e7f-4881-b234-12130ab8ddd4",
+    "eventTime": "2026-10-19T17:57:07Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "StartStreamEncryption",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamName": "example-kctl-31b7148a",
+      "encryptionType": "KMS",
+      "keyId": "alias/aws/kinesis"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "80aa60df-ce14-4dd9-ba9a-0aac84e1cd14",
+    "eventTime": "2026-10-19T17:57:13Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "StopStreamEncryption",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamName": "example-kctl-31b7148a",
+      "encryptionType": "KMS",
+      "keyId": "alias/aws/kinesis"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "ca66edd0-e18f-419b-91d5-d991c503bbb0",
+    "eventTime": "2026-10-19T17:57:18Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "SplitShard",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamName": "example-kctl-31b7148a",
+      "shardToSplit": "shardId-000000000000",
+      "newStartingHashKey": "170141183460469231731687303715884105728"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "24fa147f-4ae7-4468-b505-1314c45c52bc",
+    "eventTime": "2026-10-19T17:57:24Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "MergeShards",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamName": "example-kctl-31b7148a",
+      "shardToMerge": "shardId-000000000001",
+      "adjacentShardToMerge": "shardId-000000000002"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "61d58730-5b0f-4137-81a4-baf672cb4657",
+    "eventTime": "2026-10-19T17:57:30Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "UpdateStreamMode",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kctl-31b7148a",
+      "streamModeDetails": {
+        "streamMode": "ON_DEMAND"
+      }
+    },
+    "responseElements": null
+  }
+]

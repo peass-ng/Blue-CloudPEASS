@@ -5,6 +5,7 @@ issue/revoke must each have a separate exact coordinator cloud-write grant.
 """
 from __future__ import annotations
 
+from peaso import deployment
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -23,7 +24,7 @@ sys.path.insert(0, str(ROOT))
 from peaso.auth.admin_qa import AUTHORITY, MAX_LIFETIME_SECONDS, valid_issue
 from peaso.storage.dynamodb import DynamoStore
 
-ACCOUNT = "202533532952"
+ACCOUNT = deployment.value("account_id")
 REGION = "us-east-1"
 TABLE = "hacktricks-cspm"
 
@@ -56,7 +57,7 @@ def load_manifest(path, expected_sha):
         raise RuntimeError("Private manifest fields are incomplete or excessive")
     if (value["account"], value["region"], value["table"]) != (ACCOUNT, REGION, TABLE):
         raise RuntimeError("Wrong deployment account, region or table")
-    if not re.fullmatch(r"arn:aws:sts::202533532952:assumed-role/[A-Za-z0-9+=,.@_-]+/",
+    if not re.fullmatch(((r"arn:aws:sts::DEPLOYMENT_ACCOUNT_ID:assumed-role/[A-Za-z0-9+=,.@_-]+/").replace("DEPLOYMENT_ACCOUNT_ID", deployment.value("account_id"))),
                         value["operator_role_prefix"]):
         raise RuntimeError("Reviewed operator role prefix is invalid")
     return value

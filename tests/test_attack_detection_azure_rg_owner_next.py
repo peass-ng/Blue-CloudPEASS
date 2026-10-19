@@ -9,7 +9,7 @@ from peaso.attack_detection.azure_rg_owner_next import correlate_azure_rg_owner_
 from peaso.attack_detection.rules import Rule, detect_azure_events
 from peaso.server.azure_attack_logs import analyze_azure_source
 
-SUB = "cfbcdcf4-cb4f-4e4e-9f3e-a6b3b3abadfc"
+SUB = "66666666-7777-4888-8999-000000000000"
 ACTOR = "86b10631-ff01-4e73-a031-29e505565caa"
 ASSIGNMENT = "dc4de024-bbd3-469c-806c-1a8f619b8788"
 OWNER = "8e3af657-a8ff-443c-a75c-2fe8c4bcb635"

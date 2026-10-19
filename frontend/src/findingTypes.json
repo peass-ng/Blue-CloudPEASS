@@ -1,0 +1,97 @@
+[
+  {
+    "id": "authentication",
+    "label": "Authentication",
+    "description": "MFA, passwords, login methods, client authentication and session controls."
+  },
+  {
+    "id": "permissions",
+    "label": "Permissions & IAM",
+    "description": "Identity/resource policies, trust boundaries, authorization and least privilege."
+  },
+  {
+    "id": "encryption",
+    "label": "Encryption",
+    "description": "Encryption at rest, encrypted transport and cryptographic protocols."
+  },
+  {
+    "id": "keys_certificates",
+    "label": "Keys & certificates",
+    "description": "Cryptographic key and certificate lifetimes, rotation, trust and algorithms."
+  },
+  {
+    "id": "secrets",
+    "label": "Secrets & credentials",
+    "description": "Exposed secrets, persistent credentials, credential storage and rotation."
+  },
+  {
+    "id": "network",
+    "label": "Network & exposure",
+    "description": "Public endpoints, firewall rules, private networking and network segmentation."
+  },
+  {
+    "id": "backups",
+    "label": "Backups & recovery",
+    "description": "Backup coverage, retention, restore verification, versioning and deletion protection."
+  },
+  {
+    "id": "logging",
+    "label": "Logging",
+    "description": "Audit collection, delivery, retention and log integrity."
+  },
+  {
+    "id": "monitoring",
+    "label": "Monitoring & alerts",
+    "description": "Metrics, tracing, event detection, alert routes and notifications."
+  },
+  {
+    "id": "threat_detection",
+    "label": "Threat detection",
+    "description": "Threat protection services, endpoint/malware protection, detection configuration and incident containment."
+  },
+  {
+    "id": "vulnerabilities",
+    "label": "Vulnerabilities",
+    "description": "Vulnerability scanning, assessment findings, remediation status and scoring."
+  },
+  {
+    "id": "patching",
+    "label": "Patching & versions",
+    "description": "Security patches, supported runtimes and automatic upgrades."
+  },
+  {
+    "id": "workload_hardening",
+    "label": "Service & workload hardening",
+    "description": "Service baselines, container isolation, host security, admission and resource limits."
+  },
+  {
+    "id": "supply_chain",
+    "label": "Software supply chain",
+    "description": "Trusted images/packages, signed code, build controls and source integrity."
+  },
+  {
+    "id": "data_privacy",
+    "label": "Data protection & privacy",
+    "description": "Sensitive-data discovery, location, disclosure prevention, retention and provider access consent."
+  },
+  {
+    "id": "asset_lifecycle",
+    "label": "Unused assets & lifecycle",
+    "description": "Unused/stale assets and credentials, dangling references and cleanup rules."
+  },
+  {
+    "id": "availability",
+    "label": "Availability & resilience",
+    "description": "Redundancy, scaling, health checks, operational capacity and resource requests."
+  },
+  {
+    "id": "governance",
+    "label": "Governance & inventory",
+    "description": "Inventories, labels, organization structure, contacts and administrative processes."
+  },
+  {
+    "id": "inventory_coverage",
+    "label": "Collection coverage",
+    "description": "Missing or incomplete evidence required to assess configuration."
+  }
+]

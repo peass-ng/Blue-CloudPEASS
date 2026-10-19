@@ -17,6 +17,13 @@ def evidence_summary(finding):
                 transport='tcp' if protocol in {'tcp','6',6} else 'udp'
                 return f'The configuration permits Internet {transport}/{port} ingress to {public}; a listening service is unverified.'
     def strings(value):return isinstance(value,list) and all(isinstance(v,str) and v for v in value)
+    if cid=='aws_cis_aws_resource_policy_unrestricted_principal':
+        statements=evidence.get('unrestricted_statements')
+        if (isinstance(evidence.get('resource_arn'),str) and evidence['resource_arn'].startswith('arn:')
+                and isinstance(statements,list) and statements
+                and all(isinstance(v,dict) and type(v.get('statement_index')) is int
+                        and v['statement_index']>=0 and isinstance(v.get('sid'),str) for v in statements)):
+            return f'{len(statements)} resource-policy statements grant wildcard principals access without a recognized caller or network boundary.'
     if cid=='aws_kms_key_expiry':
         if evidence.get('imported_material_expired') is True:return 'The imported KMS key material has expired.'
         if evidence.get('retired') is True and evidence.get('key_state') in {'Enabled','PendingImport','Unavailable','Creating','Updating'}:return 'The KMS key is marked retired and is not disabled.'

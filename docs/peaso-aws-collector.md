@@ -2,10 +2,20 @@
 
 `peaso.collectors.aws.collect(connector, requirements=None)` returns a sealed schema
 1.0 snapshot. It collects AWS configuration and declared permissions for offline
-defensive review. The operation allowlist contains 87 read/configuration APIs,
-including STS authentication; it contains no resource mutations, secret-value
-reads, object downloads, log-event reads, Access Analyzer creation, network probes,
-or exploit/path validation. No Steampipe, Powerpipe or Prowler runtime is used.
+defensive review. The finite operation allowlist contains configuration and metadata reads,
+including STS authentication; general reads exclude resource mutations, secret-value
+reads, object downloads, log-event reads, network probes, and exploit/path validation.
+A dedicated Access Analyzer lifecycle creates missing external analyzers per scanned
+Region and one unused analyzer per account/partition when authorized. It waits at
+least 180 seconds, collects available findings and their details, then deletes only
+scan-created analyzers, including after errors or cancellation. Existing analyzers
+in scanned Regions are reused and retained. Temporary unused analyzers use a 90-day
+inactivity window and incur AWS charges. Initial findings may still be incomplete;
+temporary evidence remains partial. Snapshot metadata records creation and cleanup
+outcomes and ARNs under `access_analyzer_lifecycle`. This lifecycle requires
+`IAMAccessAnalyzerFullAccess` or equivalent permissions; the hosted metadata-only
+role template does not itself grant creation or deletion. No Steampipe, Powerpipe
+or Prowler runtime is used.
 
 ## Selection, credentials and account identity
 
@@ -28,7 +38,7 @@ snapshot = collect({
 }, ["bucket", "iam_user", "iam_role", "iam_policy", "security_group"])
 ```
 
-`requirements` contains resource types; `None` requests all 52 supported types.
+`requirements` contains resource types; `None` requests all supported types.
 `options.inventories` can further restrict selection. The intersection is read;
 every omitted supported inventory has a `not_collected` envelope. Unsupported
 requirements receive `not_collected` with `unsupported_inventory`. Caller identity
@@ -165,7 +175,7 @@ serialization boundaries.
 | --- | --- | --- |
 | STS | `aws_account` | Mandatory verified account, caller ARN and user ID; chosen/assumed context fails closed |
 | IAM | `iam_user`, `iam_group`, `iam_role`, `iam_policy` | Shared paginated account authorization details; inline policies, managed policy versions, attachments, group membership, trust documents, permissions boundaries, native role last-used metadata; `PolicySources` records declarations/attribution |
-| IAM account/usage | `iam_account_summary`, `iam_password_policy`, `iam_credential_report` | Existing summary/password policy and existing credential report only; user access-key last use, login profile and MFA devices; never generates a report or creates an analyzer |
+| IAM account/usage | `iam_account_summary`, `iam_password_policy`, `iam_credential_report` | Summary/password policy, user access-key last use, login profile and MFA devices; selected credential-report checks may refresh a missing or expired credential report using the AWS Read-classified report API |
 | S3 | `bucket`, `s3_account_public_access_block` | Region/location, bucket and account Public Access Block, policy/status, default encryption, versioning, ACL, ownership controls, logging; no objects, object ACLs, access points, replication or lifecycle inventory |
 | EC2/network | `vpc`, `subnet`, `route_table`, `security_group`, `network_acl`, `network_interface`, `instance`, `ebs_volume` | Native configuration, associations, routes, SG rules, NACL order/direction, addresses, instance metadata options, EBS encryption and attachments; no user data |
 | EC2 connectivity | `internet_gateway`, `nat_gateway`, `vpc_endpoint`, `vpc_peering`, `transit_gateway`, `transit_gateway_attachment`, `transit_gateway_route_table`, `vpn_connection`, `vpn_gateway` | Native connectivity declarations and endpoint policies; no transit route searches/propagation tables, firewall appliance semantics or active reachability validation |
@@ -211,6 +221,9 @@ and [GetCredentialReport](https://docs.aws.amazon.com/boto3/latest/reference/ser
 
 ## Verification and exact live evidence
 
+Account IDs, profiles and resource identifiers in historical QA examples are anonymized. They are illustrative targets, not deployment defaults; original measurement counts are retained.
+
+
 Unit verification: `.venv/bin/python -m pytest -q tests/test_peaso_collectors_aws.py`.
 The suite currently has 47 passing tests and uses validating botocore Stubber
 responses and checks pagination,
@@ -220,14 +233,14 @@ credential-context pinning, assume-role chains/external IDs/session names,
 redaction, existing-only credential reports and blocked sensitive/write APIs.
 
 Minimal authorized live smoke performed **2026-10-10 at
-17:10:03.459485+00:00**, using exact profile `naxusai-admin`, selected region
+17:10:03.459485+00:00**, using exact profile `example-audit-profile`, selected region
 `us-east-1`, requirements `vpc` and `iam_account_summary`, and bounds
 `max_calls=4`, `max_pages=1`, `max_resources=50`, `service_concurrency=1`.
 
 | Evidence | Observed value |
 | --- | --- |
-| Verified account/scope | `947247140022/us-east-1` |
-| Caller ARN | `arn:aws:iam::947247140022:user/testenv` |
+| Verified account/scope | `222233334444/us-east-1` |
+| Caller ARN | `arn:aws:iam::222233334444:user/testenv` |
 | Native calls | `sts:GetCallerIdentity`, `iam:GetAccountSummary`, `ec2:DescribeVpcs` |
 | Actual request count | 3 |
 | `aws_account` | `collected`, 1 resource |
@@ -871,3 +884,131 @@ https://docs.aws.amazon.com/organizations/latest/APIReference/API_DescribeOrgani
 https://docs.aws.amazon.com/service-authorization/latest/reference/list_controltower.html
 https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetAutomatedReasoningPolicy.html
 https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetGuardrail.html
+
+### Bounded configuration and optional content indicators
+
+Configuration-secret checks inspect selected returned configuration values in memory
+and retain only indicator categories, completeness and native resource identity.
+They do not verify credentials or test whether a detected credential works. Raw
+values, snippets and value hashes are not written to the snapshot or request cache.
+Owned SSM documents use an exact numeric version; notebook lifecycle scripts and
+Data Pipeline literal definitions are inspected within explicit size limits.
+Denied, malformed, truncated or unsupported coverage remains `UNKNOWN`.
+
+Package, repository and log-message scans require the JSON option
+`"content_secret_scans": true`; the default is `false`. Select the relevant checks
+explicitly for these content scans. Lambda archives/layers, the uniquely latest
+ECR image, the CodeCommit default-branch commit and at most 24 hours of bounded
+CloudWatch messages are separate coverage surfaces. These scans are read-only,
+use strict limits and retain categories rather than content. Their read permissions
+are separate from the default configuration role. An empty bounded sample is not
+proof that all versions, files, images or historical messages contain no secrets.
+
+For example, to inspect only a selected repository check, set the option in a
+private options file and name the check:
+
+```sh
+hacktricks-cspm scan --provider aws --profile YOUR_PROFILE \
+  --scopes 123456789012 --options-file content-options.json \
+  --checks aws.review.codecommit.default_commit_secret_indicators \
+  --output content-report.json
+```
+
+`content-options.json` can contain
+`{"regions":["us-east-1"],"content_secret_scans":true}`. Selecting all checks,
+a category or a framework does not authorize these content reads, even when
+that option is true. Select individual IDs instead:
+
+| Content surface | Explicit check ID | Additional read actions |
+|---|---|---|
+| EC2 instance user data (dual scanners) | `aws_cis_ec2_userdata_embedded_secrets` | `ec2:DescribeInstanceAttribute` (already in configuration role) |
+| CodeCommit default commit | `aws.review.codecommit.default_commit_secret_indicators` | `codecommit:GetRepository`, `GetBranch`, `GetFolder`, `GetFile` |
+| CloudWatch sample | `aws.review.cloudwatch.sampled_log_secret_indicators` | `logs:FilterLogEvents` |
+| Lambda deployment ZIP | `aws.review.lambda_function.package_content_secret_indicators` | `lambda:GetFunction` |
+| Lambda layer ZIP | `aws.review.lambda_layer_version.package_content_secret_indicators` | `lambda:GetLayerVersion` |
+| Latest ECR image | `aws.review.ecr_repository.package_content_secret_indicators` | `ecr:BatchGetImage`, `GetDownloadUrlForLayer` |
+
+Inventory reads still apply. Grant these extra reads separately on the intended
+own-account resources; the generated default customer role omits them. No
+`secretsmanager:GetSecretValue`, SSM parameter-value, S3 object-content or ECR
+login-token permission is needed. CodeCommit `GetFile` cannot cap network bytes:
+AWS may return a file of up to 6 MiB, although this scanner inspects at most
+1 MiB across the selected files. An oversized file yields incomplete coverage.
+
+The EC2 clock check now reads the exact `CWAgent/time_offset` CloudWatch stream
+with the single `InstanceId` dimension and `Milliseconds` unit. It retains the
+latest five-minute minimum/maximum extreme from the previous day. It does not
+install/configure an agent, run a host command or infer clock drift from instance
+metadata. Missing, denied or differently dimensioned/unit telemetry remains
+`UNKNOWN`; missing this exact stream does not prove every monitoring system is
+absent. Only the selected clock check triggers this additional read.
+
+
+### Dual-engine optional secret scanning
+
+The five explicitly selected content checks above use **Kingfisher SDK 1.4.0**
+and **TruffleHog 3.92.5**. Kingfisher scans memory buffers with embedded rules;
+TruffleHog receives the same bounded content through stdin. Neither engine
+validates, revokes or uses discovered credentials. Update checks and automatic
+archive extraction are disabled. The existing bounded ZIP/tar readers supply
+individual files, including image build configuration and deleted-file layers.
+
+Install the Python extra with `pip install '.[cloud,secrets]'` and install
+TruffleHog **3.92.5** on PATH using its official release. The hosted worker image
+installs both, with the TruffleHog image pinned by digest. Merely installing them
+does not enable content collection: `content_secret_scans=true` and the exact
+content check selections are both required.
+
+A secret's exact value receives a random-key HMAC fingerprint inside the
+collector. Only fingerprints, detector names/rules and source locations survive
+projection. Equal values detected by either engine in multiple files, images or
+checks produce **one finding per collection**, listing every collected location.
+Different values stay separate; similar tokens are never merged heuristically.
+The random key is not persisted, so separate scans are not correlated by value.
+Repeated input uses a small bounded metadata-only cache; no files are staged on
+disk, and no archive content is executed.
+
+Both engines must finish successfully for a complete negative result. An absent
+binary, mismatched version, timeout or malformed tool response leaves a negative
+scan incomplete/UNKNOWN; a proven positive from the other engine is retained.
+The result is not proof that unseen branches, older images, truncated logs or
+uninspected content contain no secrets. Supplemental configuration patterns are
+retained and do not establish detector parity with every Prowler scan mode.
+
+References: [Kingfisher SDK](https://github.com/mongodb/kingfisher/blob/main/docs/PYPI.md),
+[TruffleHog](https://github.com/trufflesecurity/trufflehog/tree/v3.92.5).
+
+### EC2 user-data secret detection
+
+The existing `aws_cis_ec2_userdata_embedded_secrets` configuration check inspects
+user data for bounded private-key, AWS-credential and literal-password indicators.
+For the broader offline **Kingfisher + TruffleHog** scan, explicitly select that
+check and set `content_secret_scans` to `true`. The scanner decodes the native
+base64 response in memory within EC2's 16 KiB raw limit. It does not run the script,
+validate credentials, or store raw scripts or matched values. Repeated secrets
+across engines, instances and other selected content surfaces become one redacted
+finding with all observed locations. Both engines must complete for a negative
+content result; a missing engine cannot produce a clean PASS. Denied, malformed,
+unsupported or oversized data stays UNKNOWN. Compressed/binary user data is not
+expanded by this path. The baseline configuration indicators still run without
+invoking external scanners when content selection is absent.
+
+```sh
+hacktricks-cspm scan --provider aws --profile YOUR_PROFILE \
+  --options-file content-options.json \
+  --checks aws_cis_ec2_userdata_embedded_secrets --output ec2-secrets.json
+```
+
+References: [DescribeInstanceAttribute](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstanceAttribute.html)
+and [EC2 user-data encoding and size](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html).
+
+
+### Resource-policy wildcard grants
+
+The shared `aws_resource_policy` collector supplements service-specific inventories with explicit policy discovery across 145 reviewed resource families and 86 SDK services. It includes qualified/nested resources and typed sharing APIs. Policies granting wildcard principals without recognized required caller or network conditions feed `aws_cis_aws_resource_policy_unrestricted_principal`. Existing collectors' narrower resource shapes do not bound this shared review. See [the coverage and predicate review](aws-resource-policy-review.md) for the generated inventory, exclusions, evidence limits and offline verification commands. The customer-role generator includes the exact additional read permissions; existing deployed roles need their template updated to collect newly covered families.
+
+## Selected IAM metadata reports
+
+The scan engine enables `GenerateCredentialReport` only when the selected checks need the credential report, and `GenerateServiceLastAccessedDetails` only for the four IAM usage-history checks. AWS classifies both APIs as **Read** ([IAM service authorization](https://docs.aws.amazon.com/service-authorization/latest/reference/list_iam.html)); they create report results without modifying identities, credentials or permissions. Direct collector requests leave report generation disabled unless the internal selection gates are set.
+
+Existing credential reports are read first; only missing, expired or still-preparing reports trigger the selected refresh. AccessDenied never triggers a retry through generation. Service-access jobs are tied to the verified account, principal, session and generated job identifier, use bounded concurrency and a shared batch deadline, and require complete consistent pagination. Denied, malformed, late or incomplete reports remain unavailable evidence. These reports describe recorded access attempts, not current effective permissions or successful access.

@@ -731,7 +731,7 @@ def _https_listener(item, index):
         plain_without_redirect = False
         for listener in listeners:
             protocol = get(listener, "Protocol", str)
-            if protocol in {"HTTPS", "TLS"}:
+            if protocol in {"HTTPS", "TLS"} or (kind == "classic" and protocol == "SSL"):
                 if kind == "classic":
                     tls |= bool(get(listener, "SSLCertificateId", str))
                 else:

@@ -1,0 +1,209 @@
+[
+  {
+    "eventID": "087dc749-2bf6-4f66-8253-13998325c02e",
+    "eventTime": "2026-10-19T19:20:08Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "CreateFunction20150331",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-lambda-esc-35554ad0-actor/example-lambda-lab"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0",
+      "role": "arn:aws:iam::222233334444:role/example-lambda-esc-35554ad0-base"
+    },
+    "responseElements": {
+      "state": "Pending",
+      "functionArn": "arn:aws:lambda:us-east-1:222233334444:function:example-lambda-esc-35554ad0",
+      "role": "arn:aws:iam::222233334444:role/example-lambda-esc-35554ad0-base"
+    }
+  },
+  {
+    "eventID": "5bae0421-bae4-4da8-b7e3-c267ed337fe0",
+    "eventTime": "2026-10-19T19:20:17Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "UpdateFunctionConfiguration20150331v2",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-lambda-esc-35554ad0-actor/example-lambda-lab"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0",
+      "role": "arn:aws:iam::222233334444:role/example-lambda-esc-35554ad0-high"
+    },
+    "responseElements": {
+      "state": "Active",
+      "functionArn": "arn:aws:lambda:us-east-1:222233334444:function:example-lambda-esc-35554ad0",
+      "role": "arn:aws:iam::222233334444:role/example-lambda-esc-35554ad0-high"
+    }
+  },
+  {
+    "eventID": "c3cd2097-7c36-422e-83a7-c0119fd7a66a",
+    "eventTime": "2026-10-19T19:20:24Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "UpdateFunctionCode20150331v2",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-lambda-esc-35554ad0-actor/example-lambda-lab"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0"
+    },
+    "responseElements": {
+      "state": "Active",
+      "functionArn": "arn:aws:lambda:us-east-1:222233334444:function:example-lambda-esc-35554ad0",
+      "role": "arn:aws:iam::222233334444:role/example-lambda-esc-35554ad0-high"
+    }
+  },
+  {
+    "eventID": "cc072699-d51c-49dd-934b-8524950e8b38",
+    "eventTime": "2026-10-19T19:20:30Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "AddPermission20150331v2",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-lambda-esc-35554ad0-actor/example-lambda-lab"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0",
+      "principal": "arn:aws:iam::222233334444:role/example-lambda-esc-35554ad0-invoker",
+      "action": "lambda:InvokeFunction",
+      "statementId": "example-invoker"
+    },
+    "responseElements": {
+      "statement": "{\"Sid\": \"example-invoker\", \"Effect\": \"Allow\", \"Principal\": {\"AWS\": \"arn:aws:iam::222233334444:role/example-lambda-esc-35554ad0-invoker\"}, \"Action\": \"lambda:InvokeFunction\", \"Resource\": \"arn:aws:lambda:us-east-1:222233334444:function:example-lambda-esc-35554ad0\"}"
+    }
+  },
+  {
+    "eventID": "51309c77-45de-4b1a-b2a8-38097f78966c",
+    "eventTime": "2026-10-19T19:20:33Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "CreateFunctionUrlConfig",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-lambda-esc-35554ad0-actor/example-lambda-lab"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0",
+      "authType": "AWS_IAM"
+    },
+    "responseElements": {
+      "functionArn": "arn:aws:lambda:us-east-1:222233334444:function:example-lambda-esc-35554ad0",
+      "authType": "AWS_IAM"
+    }
+  },
+  {
+    "eventID": "ef6bd114-9c4f-425b-a31f-9ef5215752ab",
+    "eventTime": "2026-10-19T19:20:33Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "UpdateFunctionUrlConfig",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-lambda-esc-35554ad0-actor/example-lambda-lab"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0",
+      "authType": "NONE"
+    },
+    "responseElements": {
+      "functionArn": "arn:aws:lambda:us-east-1:222233334444:function:example-lambda-esc-35554ad0",
+      "authType": "NONE"
+    }
+  },
+  {
+    "eventID": "f1dde099-938f-4174-9442-959e15fe7a59",
+    "eventTime": "2026-10-19T19:20:34Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "CreateEventSourceMapping20150331",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-lambda-esc-35554ad0-actor/example-lambda-lab"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0",
+      "batchSize": 1,
+      "eventSourceArn": "arn:aws:sqs:us-east-1:222233334444:example-lambda-esc-35554ad0-queue",
+      "enabled": true
+    },
+    "responseElements": {
+      "state": "Creating",
+      "uUID": "9a40efba-fed7-49f2-9384-ca42cf5a1c9b",
+      "functionArn": "arn:aws:lambda:us-east-1:222233334444:function:example-lambda-esc-35554ad0",
+      "eventSourceArn": "arn:aws:sqs:us-east-1:222233334444:example-lambda-esc-35554ad0-queue"
+    }
+  },
+  {
+    "eventID": "d7cda512-6420-48fd-99f9-710d60aa5b61",
+    "eventTime": "2026-10-19T19:20:45Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "RemovePermission20150331v2",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0",
+      "statementId": "example-invoker"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "f8f54f6a-c80c-4082-9ae8-537aa5ffc98f",
+    "eventTime": "2026-10-19T19:20:45Z",
+    "eventSource": "lambda.amazonaws.com",
+    "eventName": "DeleteFunction20150331",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "requestParameters": {
+      "functionName": "example-lambda-esc-35554ad0"
+    },
+    "responseElements": null
+  }
+]

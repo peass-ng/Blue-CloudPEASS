@@ -10,6 +10,7 @@ import logging
 import os
 from pathlib import Path
 import re
+from urllib.parse import quote
 import time
 from threading import Lock
 import unicodedata
@@ -118,7 +119,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def connector_digest(value):
         return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()).hexdigest()
 
-    def verify_check_token(user, token, payload):
+    def verify_check_token(user, token, payload, acknowledge_warnings=False):
         if not token:
             raise HTTPException(422, "Run Check access before saving this connector")
         try:
@@ -131,9 +132,13 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             raise HTTPException(422, "Access check expired or connector settings changed; check access again")
         if record.get("credential_expires_at") and record["credential_expires_at"] <= time.time():
             raise HTTPException(422, "Temporary credential has expired; check access again")
+        if record["status"] == "warning" and acknowledge_warnings is not True:
+            raise HTTPException(422, "Confirm that you understand some checks might fail with the missing or unverified recommended access")
     app.state.legacy_coverage_count_index = coverage_counts
     app.state.legacy_coverage_count_inflight = coverage_inflight
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.origins), allow_methods=["GET", "POST", "PATCH", "DELETE"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key"], allow_credentials=settings.auth_mode == "cognito")
+    from .body_limit import RequestBodyLimit
+    app.add_middleware(RequestBodyLimit)
 
     @app.middleware("http")
     async def protect(request: Request, call_next):
@@ -144,12 +149,6 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             host = request.url.hostname
             if host not in {"localhost", "127.0.0.1", "::1"}:
                 return JSONResponse({"detail": "Host not allowed"}, status_code=403)
-        try:
-            content_length = int(request.headers.get("content-length", "0"))
-        except ValueError:
-            return JSONResponse({"detail": "Invalid request length"}, status_code=400)
-        if content_length > 16 * 1024 * 1024:
-            return JSONResponse({"detail": "Request too large"}, status_code=413)
         try:
             response = await call_next(request)
         except Exception as exc:
@@ -232,7 +231,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         from peaso.server.validation import COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL
         public_template_url = os.getenv("PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL", "")
         if not re.fullmatch(
-            r"https://hacktricks-cspm-templates-202533532952\.s3\.us-east-1\.amazonaws\.com/customer-role-[a-f0-9]{64}\.json",
+            r"https://[a-z0-9][a-z0-9.-]+\.s3\.[a-z0-9-]+\.amazonaws\.com/customer-role-[a-f0-9]{64}\.json",
             public_template_url,
         ):
             public_template_url = None
@@ -299,13 +298,19 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         return value if isinstance(value, dict) else {}
 
     def with_meta(finding, meta, bundle=None):
+        from peaso.finding_types import annotate
+        from peaso.check_services import finding_service
         # Per-check fields are hydrated before any filter, facet or summary so every consumer sees full rows.
         if not meta or finding.get("check_id") not in meta:
-            return finding
+            result = annotate(finding)
+            service = finding_service(result)
+            return dict(result, service=service) if service else result
         from peaso.engine import hydrate_finding
         bundle = bundle or {}
-        return hydrate_finding(finding, None, meta, bundle.get("check_meta_encoding"),
-                               bundle.get("remediation_templates"))
+        result = annotate(hydrate_finding(finding, None, meta, bundle.get("check_meta_encoding"),
+                               bundle.get("remediation_templates")))
+        service = finding_service(result)
+        return dict(result, service=service) if service else result
 
     def with_remediation(finding, bundle):
         from peaso.checks.catalog import description_for
@@ -346,7 +351,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         from peaso.finding_observation import evidence_summary
         observation = evidence_summary(finding)
         if observation:
-            finding = dict(finding, evidence_summary=observation)
+            finding = dict(finding, evidence_summary=observation, evidence_summary_format="natural-language-v2")
         details = finding.get("remediation_details")
         return dict(finding, remediation_details=exposure_details(finding, details)) if isinstance(details, dict) else finding
 
@@ -449,19 +454,19 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     @app.delete("/api/workspaces/{workspace_id}/invitations/{member_id}", status_code=204)
     def revoke_workspace_invitation(workspace_id: str, member_id: str, user=Depends(account_identity)):
         workspace_admin(workspace_id, user)
-        store.revoke_workspace_invitation(workspace_id, member_id)
+        store.revoke_workspace_invitation(workspace_id, member_id, actor=user.tenant_id)
         return Response(status_code=204)
 
     @app.patch("/api/workspaces/{workspace_id}/members/{member_id}")
     def change_workspace_role(workspace_id: str, member_id: str, body: WorkspaceRole, user=Depends(account_identity)):
         workspace_admin(workspace_id, user)
-        store.set_workspace_role(workspace_id, member_id, body.role)
+        store.set_workspace_role(workspace_id, member_id, body.role, actor=user.tenant_id)
         return {"user_id": member_id, "role": body.role}
 
     @app.delete("/api/workspaces/{workspace_id}/members/{member_id}", status_code=204)
     def remove_workspace_person(workspace_id: str, member_id: str, user=Depends(account_identity)):
         workspace_admin(workspace_id, user)
-        store.remove_workspace_member(workspace_id, member_id)
+        store.remove_workspace_member(workspace_id, member_id, actor=user.tenant_id)
         return Response(status_code=204)
 
     @app.get("/api/api-keys")
@@ -508,6 +513,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             generated = {"project_proof_label": new_proof_label()}
             public = {"service_account_email": PLATFORM_EMAIL, "project_label_key": generated["project_proof_label"], "project_label_value": PROOF_VALUE}
         else:
+            if not COLLECTOR_ROLE_ARN:
+                raise HTTPException(503, "Hosted AWS collector identity is not configured")
             import secrets
             generated = {"external_id": store.workspace_external_id(user.tenant_id)}
             public = {"external_id": generated["external_id"], "collector_role_arn": COLLECTOR_ROLE_ARN, "template_url": CUSTOMER_ROLE_TEMPLATE_URL}
@@ -516,7 +523,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     @app.post("/api/connectors/check-access")
     def connector_check_access(body: ConnectorCheck, user=Depends(identity)):
-        submitted = body.model_dump(exclude={"credential_expires_at", "connector_id", "check_token"})
+        submitted = body.model_dump(exclude={"credential_expires_at", "connector_id", "check_token", "acknowledge_access_warnings"})
         auth = dict(body.auth)
         using_saved_auth = bool(body.connector_id and not auth)
         if body.connector_id:
@@ -546,8 +553,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         data = body.model_dump()
         auth = data.pop("auth")
         check_token = data.pop("check_token", None)
-        if settings.require_connector_access_check and "snapshot" not in data["options"] and not data["options"].get("demo"):
-            verify_check_token(user, check_token, {**data, "auth": auth})
+        acknowledge_warnings = data.pop("acknowledge_access_warnings", False)
+        if (settings.require_connector_access_check or check_token) and "snapshot" not in data["options"] and not data["options"].get("demo"):
+            verify_check_token(user, check_token, {**data, "auth": auth}, acknowledge_warnings)
         prepared_id = data.pop("prepared_id", None)
         if prepared_id:
             auth.update(prepared_auth(user, prepared_id, body.provider))
@@ -648,6 +656,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         return {
             "role_not_in_connector": "The selected role is not configured in this connector.",
             "platform_account_forbidden": "The HackTricks platform account cannot be a log target.",
+            "external_id_trust_unverified": "Log access stopped because the AWS role trust could not be verified. Require an exact sts:ExternalId condition for this workspace, then check access again.",
             "select_connector_role": "Select a target account role from this connector.",
             "role_account_mismatch": "The assumed role returned a different account than its ARN.",
             "account_outside_connector_scope": "Add this AWS account to the connector scopes before reading its logs.",
@@ -766,12 +775,15 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             raise HTTPException(502, "Log source could not be read. Check connector and log access again.") from None
 
     @app.post("/api/scans", status_code=201)
-    def add_scan(body: ScanCreate, user=Depends(identity), idempotency_key: str | None = Header(default=None)):
+    def add_scan(body: ScanCreate, user=Depends(identity), account=Depends(account_identity), idempotency_key: str | None = Header(default=None)):
         if idempotency_key is not None and (not idempotency_key or len(idempotency_key) > 200):
             raise HTTPException(422, "Invalid idempotency key")
         owned = store.connector(user.tenant_id, body.connector_id)
         validate_selectors(body.model_dump(), json.loads(owned["data"])["provider"])
-        value = store.enqueue(user.tenant_id, body.model_dump(), user.weekly_limit, settings.scan_timeout, idempotency_key)
+        if body.ai_enabled:
+            from peaso.ai.auth import require_local_codex
+            require_local_codex(settings, store, account.tenant_id)
+        value = store.enqueue(user.tenant_id, dict(body.model_dump(), ai_user_id=account.tenant_id), user.weekly_limit, settings.scan_timeout, idempotency_key)
         if value["status"] == "queued":
             dispatcher.dispatch(user.tenant_id, value)
         return value
@@ -827,11 +839,29 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def cancel(ident: str, user=Depends(identity)):
         return store.cancel(user.tenant_id, ident)
 
+    @lru_cache(maxsize=8)
+    def grouped_download_reference(tenant, scan_id, original_reference, report_format):
+        from peaso.finding_groups import group_report
+        original = artifacts.get(tenant, original_reference)
+        source = artifacts.get(tenant, original["report_json"]) if original.get("bundle_version") == 1 else original
+        presented = group_report(source)
+        if report_format == "markdown":
+            from peaso.reports import render_markdown
+            return artifacts.put_text(tenant, scan_id, "markdown", render_markdown(presented))
+        return artifacts.put(tenant, scan_id, "report", presented)
+
     @app.get("/api/scans/{ident}/report")
-    def report(ident: str, format: Literal["json", "markdown"] = "json", user=Depends(identity)):
+    def report(ident: str, format: Literal["json", "markdown"] = "json", aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         ext = "md" if format == "markdown" else "json"
         filename = f"hacktricks-cspm-{row['id']}.{ext}"
+        if aggregation == "check" and bundle.get("report_grouping") != "check-v1":
+            reference = grouped_download_reference(user.tenant_id, row["id"], row["report"], format)
+            if hasattr(artifacts, "presign"):
+                return signed_download(user.tenant_id, reference, format, filename)
+            content = artifacts.get_text(user.tenant_id, reference) if format == "markdown" else json.dumps(artifacts.get(user.tenant_id, reference))
+            return Response(content, media_type="text/markdown" if format == "markdown" else "application/json",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'})
         if bundle.get("bundle_version") == 1:
             reference = bundle["report_markdown" if format == "markdown" else "report_json"]
             if hasattr(artifacts, "presign"):
@@ -846,9 +876,10 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             content, media, ext = json.dumps(value, indent=2), "application/json", "json"
         return Response(content, media_type=media, headers={"Content-Disposition": f'attachment; filename="hacktricks-cspm-{store.job(user.tenant_id, ident)["id"]}.{ext}"'})
 
-    @app.get("/api/scans/{ident}/findings")
-    def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, group_by: Literal["service", "check_id", "resource_id"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):
-        row, bundle = owned_bundle(user.tenant_id, ident)
+    def finding_selection(tenant, ident, categories=None, framework=None, severity=None,
+                          service=None, status=None, search=None, group_by="service", sort_by=None,
+                          status_count_aggregation=None, finding_type=None):
+        row, bundle = owned_bundle(tenant, ident)
         summary = bundle.get("summary", bundle)
         metadata = summary.get("snapshot_metadata", {}) if isinstance(summary, dict) else {}
         cluster_id = metadata.get("cluster_id", "") if isinstance(metadata, dict) else ""
@@ -891,14 +922,26 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         missing = object()
 
         def field(value, name):
+            if name == "service":
+                from peaso.check_services import finding_service
+                corrected = finding_service(value)
+                if corrected:
+                    return corrected
+            if name == "finding_type":
+                from peaso.finding_types import annotate
+                defaults = meta.get(value.get("check_id")) or {}
+                return annotate({"check_id": value.get("check_id"), "category": value.get("category", defaults.get("category")),
+                                 "finding_type": value.get("finding_type", defaults.get("finding_type"))})["finding_type"]
             if name in value:
                 return value[name]
             defaults = meta.get(value.get("check_id"))
             return defaults.get(name, missing) if isinstance(defaults, dict) else missing
 
-        def selected(finding):
+        def selected(finding, ignore_status=False):
+            if finding_type and field(finding, "finding_type") != finding_type:
+                return False
             for name, choices in filters.items():
-                if choices is not None:
+                if choices is not None and not (ignore_status and name == "status"):
                     item = field(finding, name)
                     if str(item if item is not missing else "").lower() not in choices:
                         return False
@@ -931,9 +974,11 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return card
 
         selected_rows = []
+        status_group_keys = {} if status_count_aggregation is not None else None
+        all_status_keys = set() if status_group_keys is not None else None
         facets = {"services": set(), "statuses": set(), "frameworks": set()}
         facet_checks = set()
-        groups = [finding_index(user.tenant_id, row["report"], tuple(chunk["index_reference"] for chunk in bundle["finding_chunks"]))] if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
+        groups = [finding_index(tenant, row["report"], tuple(chunk["index_reference"] for chunk in bundle["finding_chunks"]))] if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
         for group in groups:
             for value in group:
                 category = field(value, "category")
@@ -945,11 +990,73 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                         facets["frameworks"].update(value.get("frameworks", []))
                     else:
                         facet_checks.add(value["check_id"])
-                if not selected(value):
+                if status_group_keys is not None:
+                    if not selected(value, ignore_status=True):
+                        continue
+                    status_value = field(value, "status")
+                    status_name = str(status_value if status_value is not missing else "UNKNOWN").upper()
+                    if status_count_aggregation == "check" and value.get("check_id") != "analysis.internet_exposure":
+                        key = (value.get("provider") or summary.get("provider", ""), value.get("check_id", ""), value.get("secret_fingerprint", ""))
+                    else:
+                        key = value.get("id")
+                    status_group_keys.setdefault(status_name, set()).add(key)
+                    all_status_keys.add(key)
+                    if filters["status"] is not None and status_name.lower() not in filters["status"]:
+                        continue
+                elif not selected(value):
                     continue
                 selected_rows.append((value, sort_card(value)))
         for check in facet_checks:
             facets["frameworks"].update(labels.get(check, []))
+        status_filter_counts = None
+        if status_group_keys is not None:
+            status_filter_counts = {selection: len(set().union(*(status_group_keys.get(name, set()) for name in selection.split(","))))
+                                    for selection in ("FAIL", "PASS", "UNKNOWN,MANUAL", "DENIED", "NOT_APPLICABLE,EMPTY")}
+        return row, bundle, selected_rows, facets, account_label, labels, meta, field, status_filter_counts, len(all_status_keys) if all_status_keys is not None else None
+
+    @app.get("/api/scans/{ident}/findings")
+    def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, finding_type: str | None = None, group_by: Literal["service", "check_id", "resource_id", "finding_type"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
+        row, bundle, selected_rows, facets, account_label, labels, meta, field, status_filter_counts, status_filter_total = finding_selection(
+            user.tenant_id, ident, categories, framework, severity, service, status, search, group_by, sort_by,
+            status_count_aggregation=aggregation, finding_type=finding_type)
+        service_groups = None
+        type_groups = None
+        if aggregation == "check":
+            from peaso.finding_groups import group_findings
+            provider = bundle.get("summary", bundle).get("provider", "")
+            def indexed_observations():
+                for value, _ in selected_rows:
+                    yield dict(value, provider=value.get("provider") or provider,
+                        severity=field(value, "severity") if isinstance(field(value, "severity"), str) else "info")
+            grouped = group_findings(indexed_observations())
+            member_filters = {key: value for key, value in {
+                "categories": categories, "framework": framework, "severity": severity,
+                "service": service, "status": status, "search": search, "finding_type": finding_type}.items() if value}
+            selected_rows = []
+            for item in grouped:
+                item = with_labels(with_meta(item, meta, bundle), labels)
+                item["member_filters"] = member_filters
+                item["account"] = ", ".join(item["affected_accounts"]) if item.get("grouped") else account_label(item)
+                selected_rows.append((item, item))
+            if group_by == "service":
+                by_service = {}
+                for item, _ in selected_rows:
+                    name = str(item.get("service") or "")
+                    entry = by_service.setdefault(name, {"service": name, "count": 0, "status_counts": {}})
+                    entry["count"] += 1
+                    status_name = str(item.get("status") or "UNKNOWN")
+                    entry["status_counts"][status_name] = entry["status_counts"].get(status_name, 0) + 1
+                service_groups = [by_service[name] for name in sorted(by_service, key=str.casefold)]
+            if group_by == "finding_type":
+                from peaso.finding_types import label_for
+                by_type = {}
+                for item, _ in selected_rows:
+                    name = item["finding_type"]
+                    entry = by_type.setdefault(name, {"finding_type": name, "label": label_for(name), "count": 0, "status_counts": {}})
+                    entry["count"] += 1
+                    status_name = str(item.get("status") or "UNKNOWN")
+                    entry["status_counts"][status_name] = entry["status_counts"].get(status_name, 0) + 1
+                type_groups = sorted(by_type.values(), key=lambda entry: entry["label"].casefold())
         if sort_by is None:
             selected_rows.sort(key=lambda pair: (str(pair[1].get(group_by, "")), pair[1]["id"]))
         else:
@@ -970,9 +1077,84 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         for value, _ in selected_rows[offset:offset + limit]:
             # Preserve the legacy list shape, including archived metadata added
             # after the bounded summary, while hydrating only the selected page.
-            item = with_labels(with_meta(finding_summary(with_meta(value, meta, bundle)), meta, bundle), labels)
-            output.append(dict(item, account=account_label(item)))
-        return {"items": output, "offset": offset, "limit": limit, "total": count, "has_more": offset + len(output) < count, "next_offset": offset + len(output) if offset + len(output) < count else None, "facets": {key: sorted(value) for key, value in facets.items()}}
+            if value.get("grouped"):
+                output.append(value)
+            else:
+                item = with_labels(with_meta(finding_summary(with_meta(value, meta, bundle)), meta, bundle), labels)
+                output.append(dict(item, account=account_label(item)))
+        response = {"items": output, "offset": offset, "limit": limit, "total": count, "has_more": offset + len(output) < count, "next_offset": offset + len(output) if offset + len(output) < count else None, "facets": {key: sorted(value) for key, value in facets.items()}, "status_filter_counts": status_filter_counts, "status_filter_total": status_filter_total}
+        if service_groups is not None:
+            response["service_groups"] = service_groups
+        if type_groups is not None:
+            response["type_groups"] = type_groups
+        return response
+
+    @app.get("/api/scans/{ident}/finding-groups/{group_ident}")
+    def finding_group(ident: str, group_ident: str, categories: str | None = None,
+                      framework: str | None = None, severity: str | None = None,
+                      service: str | None = None, status: str | None = None, search: str | None = None,
+                      finding_type: str | None = None,
+                      members_offset: int = Query(default=0, ge=0), members_limit: int = Query(default=50, ge=1, le=100),
+                      user=Depends(identity)):
+        from peaso.finding_groups import group_id, group_findings, placement, member_scopes, STATUS_ORDER
+        row, bundle, selected, _, _, labels, meta, field, _, _ = finding_selection(
+            user.tenant_id, ident, categories, framework, severity, service, status, search, finding_type=finding_type)
+        provider = bundle.get("summary", bundle).get("provider", "")
+        members = [dict(value, provider=value.get("provider") or provider,
+                   severity=field(value, "severity") if isinstance(field(value, "severity"), str) else "info")
+                   for value, _ in selected if value.get("check_id") != "analysis.internet_exposure"
+                   and group_id(value.get("provider") or provider, value.get("check_id", "")) == group_ident]
+        if not members:
+            raise HTTPException(404, "Finding group not found")
+        grouped = with_labels(with_meta(group_findings(members)[0], meta, bundle), labels)
+        members.sort(key=lambda value: (STATUS_ORDER.get(value.get("status"), 1), value.get("scope", ""), value.get("native_resource_id") or value.get("resource_id", ""), value["id"]))
+        wanted = {value["id"] for value in members[members_offset:members_offset + members_limit]}
+        raw = {}
+        if bundle.get("bundle_version") == 1:
+            for chunk in bundle["finding_chunks"]:
+                if not any(chunk["first_id"] <= key <= chunk["last_id"] for key in wanted):
+                    continue
+                for value in artifacts.get(user.tenant_id, chunk["reference"])["items"]:
+                    if value["id"] in wanted:
+                        raw[value["id"]] = artifacts.get(user.tenant_id, value["_detail_reference"]) if value.get("_detail_reference") else value
+        else:
+            raw = {value["id"]: value for value in bundle.get("findings", []) if value["id"] in wanted}
+        output = []
+        primary = None
+        for value in members[members_offset:members_offset + members_limit]:
+            observed = with_remediation(with_labels(with_meta(raw.get(value["id"], value), meta, bundle), labels), bundle)
+            if primary is None:
+                primary = observed
+            account, region = placement(observed)
+            locations = member_scopes(observed)
+            output.append({"id": observed["id"], "scope": locations[0] if len(locations) == 1 else observed.get("scope"), "observed_scopes": locations, "account": account, "region": region,
+                "asset": observed.get("resource_name") or observed.get("native_resource_id") or observed.get("resource_id"),
+                "native_resource_id": observed.get("native_resource_id"), "resource_id": observed.get("resource_id"),
+                "status": observed.get("status"), "severity": observed.get("severity"),
+                "evidence_summary": observed.get("evidence_summary") or f"Recorded result: {observed.get('status', 'UNKNOWN')}.",
+                "detail_path": f"/scans/{ident}/findings/{quote(observed['id'], safe='')}"})
+        if primary:
+            # Shared guidance can be refreshed without treating grouped evidence as native facts.
+            for key in ("title", "description", "rationale", "remediation", "remediation_details", "evaluated", "pass_when", "fail_when", "not_applicable_when", "guidance_refresh"):
+                if key in primary:
+                    grouped[key] = primary[key]
+            if isinstance(grouped.get("remediation_details"), dict):
+                grouped["remediation_details"] = {key: value for key, value in dict(grouped["remediation_details"], cli=[], console=[]).items() if key != "iac"}
+        if primary and len(members) == 1:
+            grouped["evidence"] = primary.get("evidence", {})
+            grouped["evidence_summary"] = output[0]["evidence_summary"]
+        elif members_offset == 0 and len(output) == len(members):
+            sentences = {item["evidence_summary"] for item in output}
+            if len(sentences) == 1 and len(grouped["status_counts"]) == 1:
+                grouped["evidence_summary"] = next(iter(sentences))
+                if grouped["affected_regions"]:
+                    grouped["evidence_summary"] += " Regions: " + ", ".join(grouped["affected_regions"]) + "."
+        grouped["member_filters"] = {key: value for key, value in {
+            "categories": categories, "framework": framework, "severity": severity,
+            "service": service, "status": status, "search": search, "finding_type": finding_type}.items() if value}
+        grouped.update(members=output, members_total=len(members), members_offset=members_offset,
+            next_offset=members_offset + len(output) if members_offset + len(output) < len(members) else None)
+        return grouped
 
     # :path because finding ids embed ARNs/resource paths with "/" (raw or %2F-encoded both arrive decoded).
     @app.get("/api/scans/{ident}/findings/{finding_id:path}")
@@ -1002,15 +1184,42 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                     return with_remediation(with_labels(with_meta(value, check_fields(bundle), bundle), check_labels(bundle)), bundle)
         raise HTTPException(404, "Finding not found")
 
+    @app.get("/api/scans/{ident}/ai")
+    def scan_ai(ident: str, offset: int = Query(default=0, ge=0), limit: int = Query(default=50, ge=1, le=100), user=Depends(identity)):
+        _, bundle = owned_bundle(user.tenant_id, ident)
+        value = artifacts.get(user.tenant_id, bundle["ai_review"]) if bundle.get("ai_review") else bundle.get("summary", bundle).get("ai", {"status": "not_requested", "actions": [], "reviews": {}})
+        reviews = value.get("reviews", {})
+        network = value.get("network")
+        if isinstance(network, dict):
+            rows = network.get("findings", [])
+            network = dict(network, findings=rows[offset:offset + limit], total=len(rows))
+        return dict(value, **({"network": network} if network is not None else {}), reviews={kind: rows[offset:offset + limit] for kind, rows in reviews.items()},
+                    review_totals={kind: len(rows) for kind, rows in reviews.items()}, offset=offset, limit=limit)
+
     @app.get("/api/scans/{ident}/summary")
-    def summary(ident: str, user=Depends(identity)):
+    def summary(ident: str, aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         value = dict(bundle["summary"]) if bundle.get("bundle_version") == 1 else {key: value for key, value in bundle.items() if key not in {"findings", "resources", "coverage", "graphs", "snapshot", "check_frameworks", "check_meta"}}
         value.update(runtime=store.public_job(row)["runtime"], finding_count=bundle.get("finding_count", len(bundle.get("findings", []))), coverage_count=bundle.get("coverage_count", len(bundle.get("coverage", []))) + len(_credential_target_coverage(bundle)))
+        if aggregation == "check":
+            from peaso.finding_groups import group_findings
+            from collections import Counter
+            _, _, selected, _, _, _, _, field, _, _ = finding_selection(user.tenant_id, ident)
+            provider = value.get("provider", "")
+            groups = group_findings(dict(item, provider=item.get("provider") or provider,
+                severity=field(item, "severity") if isinstance(field(item, "severity"), str) else "info",
+                category=field(item, "category") if isinstance(field(item, "category"), str) else "hardening") for item, _ in selected)
+            stats = value.get("stats", {})
+            value["stats"] = dict(stats, observation_count=len(selected), observation_by_status=stats.get("by_status", {}),
+                finding_count=len(groups), by_status=dict(Counter(item["status"] for item in groups)),
+                observation_by_severity=stats.get("by_severity", {}),
+                by_severity=dict(Counter(item["severity"] for item in groups if item["status"] == "FAIL")),
+                by_category=dict(Counter(item["category"] for item in groups)))
+            value.update(finding_count=len(groups), finding_grouping="check-v1")
         return value
 
     @app.get("/api/scans/{ident}/least-privilege")
-    def least_privilege(ident: str, search: str = "", offset: int = Query(default=0, ge=0),
+    def least_privilege(ident: str, search: str = "", exposure: Literal["external", "federated", "internet", "unresolved"] | None = None, offset: int = Query(default=0, ge=0),
                         limit: int = Query(default=100, ge=1, le=500), user=Depends(identity)):
         """One row per principal, backed by the immutable scan's native evidence."""
         row, bundle = owned_bundle(user.tenant_id, ident)
@@ -1030,6 +1239,12 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 projection = project(provider, bundle.get("resources", []))
         needle = search.strip().casefold()[:200]
         candidates = projection["items"]
+        if exposure:
+            kinds = {"external": {"external_assumption", "external_impersonation", "external_identity"},
+                     "federated": {"federated_trust"}, "internet": {"internet_workload"}}
+            candidates = [card for card in candidates if any(
+                entry.get("state") == "unknown" if exposure == "unresolved" else entry.get("kind") in kinds[exposure]
+                for entry in card.get("exposures", []))]
         if needle:
             candidates = [card for card in candidates if needle in card["principal"].casefold()
                 or needle in card.get("label", "").casefold()
@@ -1326,10 +1541,19 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 target = edge.get("target")
                 belongs = (edge.get("source") == principal_id if key == "outgoing" else
                            target == principal_id or (target in aggregates and edge.get("via_aggregate") == target))
-                techniques = [dict((catalog_details.get(t) if belongs else None) or
-                                   {"id": t, "unknown": True, "catalog_lookup_status": "edge_target_mismatch"},
-                                   edge_confidence=edge.get("confidence"), evidence=edge.get("evidence_refs", []))
-                              for t in edge.get("techniques", [])]
+                runtime = {detail["id"]: detail for detail in edge.get("technique_details", []) if isinstance(detail, dict) and detail.get("id")} if belongs else {}
+                techniques = []
+                for technique in edge.get("techniques", []):
+                    recorded = runtime.get(technique, {})
+                    detail = dict((catalog_details.get(technique) if belongs else None) or
+                                  {"id": technique, "unknown": True, "catalog_lookup_status": "edge_target_mismatch"})
+                    # Recorded authorization belongs to this edge, not the current catalog definition.
+                    for field in ("granting_permissions", "evidence_refs", "confidence", "finding", "severity", "base_severity"):
+                        if field in recorded:
+                            detail[field] = recorded[field]
+                    detail["evaluated_conditions"] = recorded.get("conditions", [])
+                    detail.update(edge_confidence=edge.get("confidence"), evidence=recorded.get("evidence_refs", edge.get("evidence_refs", [])))
+                    techniques.append(detail)
                 decorated.append(dict(edge, technique_details=techniques))
             card[key] = decorated
         card["technique_details"] = catalog_details
@@ -1590,21 +1814,40 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         return {"items": store.schedules(user.tenant_id)}
 
     @app.post("/api/schedules", status_code=201)
-    def add_schedule(body: ScheduleCreate, user=Depends(identity)):
+    def add_schedule(body: ScheduleCreate, user=Depends(identity), account=Depends(account_identity)):
         owned = store.connector(user.tenant_id, body.connector_id)
         validate_selectors(body.model_dump(), json.loads(owned["data"])["provider"])
-        data = body.model_dump(exclude={"enabled", "next_run_at"})
-        next_run = body.next_run_at.timestamp() if body.next_run_at else time.time() + body.interval_hours * 3600
+        if body.ai_enabled:
+            from peaso.ai.auth import require_local_codex
+            require_local_codex(settings, store, account.tenant_id)
+        from peaso.scheduling import next_run as following_run
+        data = body.model_dump(exclude_none=True, exclude={"enabled", "next_run_at"})
+        data["ai_user_id"] = account.tenant_id
+        next_run = body.next_run_at.timestamp() if body.next_run_at else following_run(data, time.time())
         return store.add_schedule(user.tenant_id, data, next_run, body.enabled)
 
     @app.patch("/api/schedules/{ident}")
-    def update_schedule(ident: str, body: SchedulePatch, user=Depends(identity)):
-        return store.update_schedule(user.tenant_id, ident, body.model_dump(exclude_none=True, exclude={"enabled", "next_run_at"}), body.next_run_at.timestamp() if body.next_run_at else None, body.enabled)
+    def update_schedule(ident: str, body: SchedulePatch, user=Depends(identity), account=Depends(account_identity)):
+        current = next((row for row in store.schedules(user.tenant_id) if row['id'] == ident), None)
+        if current is None:
+            raise HTTPException(404, 'Schedule not found')
+        patch = body.model_dump(exclude_none=True, exclude={"enabled", "next_run_at"})
+        effective_ai = body.ai_enabled if body.ai_enabled is not None else current.get('ai_enabled', True)
+        if effective_ai and (body.ai_enabled is True or body.enabled is not False):
+            from peaso.ai.auth import require_local_codex
+            owner = account.tenant_id if body.ai_enabled is True else current.get('ai_user_id', account.tenant_id)
+            require_local_codex(settings, store, owner)
+            if body.ai_enabled is True:
+                patch['ai_user_id'] = account.tenant_id
+        return store.update_schedule(user.tenant_id, ident, patch, body.next_run_at.timestamp() if body.next_run_at else None, body.enabled)
 
     @app.delete("/api/schedules/{ident}", status_code=204)
     def delete_schedule(ident: str, user=Depends(identity)):
         store.delete_schedule(user.tenant_id, ident)
         return Response(status_code=204)
+
+    from peaso.ai.auth import mount_auth_routes
+    mount_auth_routes(app, store, settings.identity_dir, account_identity, auth_mode=settings.auth_mode)
 
     catalog_bodies = {}
 

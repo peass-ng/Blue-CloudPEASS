@@ -40,11 +40,22 @@ def index():
                                                     "effective_live_delivery_verified": False, "SCP_RCP_verified": False,
                                                     "operations": ["DescribeTrails", "GetTrailStatus", "GetEventSelectors", "GetRole", "GetContextKeysForPrincipalPolicy", "SimulatePrincipalPolicy"]}},
              "IsOrganizationTrail": False, "IsMultiRegionTrail": False,
-             "Status": {"IsLogging": True, "LatestDeliveryError": "", "LatestDeliveryTime": "2026-10-11T23:00:00Z"}}
+             "Status": {"IsLogging": True, "LatestDeliveryError": "", "LatestDeliveryTime": "2026-10-11T23:00:00Z"},
+             "CloudTrailS3DeliveryObjects": {"collection_status": "collected", "listing_complete": True,
+                 "TrailARN": TRAIL, "AccountId": "123456789012", "HomeRegion": "us-east-1",
+                 "Bucket": "trail-bucket", "BucketRegion": "us-east-1", "ExpectedBucketOwner": "123456789012",
+                 "S3KeyPrefix": "", "OrganizationId": "o-1234567890",
+                 "Prefix": "AWSLogs/o-1234567890/123456789012/CloudTrail/us-east-1/",
+                 "source_operation": "s3:ListObjectsV2", "Contents": [{
+                     "Key": "AWSLogs/o-1234567890/123456789012/CloudTrail/us-east-1/2026/10/11/123456789012_CloudTrail_us-east-1_20261011T2300Z_0123456789abcdef.json.gz",
+                     "LastModified": "2026-10-11T23:00:00Z"}],
+                 "_provenance": {"profile": "aws-cloudtrail-s3-delivery-metadata-v1", "read_only": True,
+                     "identity_operation": "sts:GetCallerIdentity", "organization_operation": "organizations:DescribeOrganization",
+                     "describe_operation": "cloudtrail:DescribeTrails", "native_destination_unique": True,
+                     "scope": "unique_destination_account_region_object_metadata_correlation", "siem_receipt_verified": False}}}
     bucket = {"Name": "trail-bucket", "Logging": {"collection_status": "collected", "LoggingEnabled": {"TargetBucket": "access-bucket", "TargetPrefix": "logs/"}},
               "Lifecycle": {"collection_status": "collected", "Rules": []},
-              "ObjectLock": {"collection_status": "collected", "ObjectLockEnabled": "Enabled", "Rule": {"DefaultRetention": {"Mode": "COMPLIANCE", "Days": 365}}},
-              "CloudTrailObjectsByPrefix": {"AWSLogs/": {"collection_status": "collected", "source_operation": "s3:ListObjectsV2", "prefix": "AWSLogs/", "Contents": [{"Key": "AWSLogs/123456789012/x", "LastModified": "2026-10-11T23:00:00Z"}]}}}
+              "ObjectLock": {"collection_status": "collected", "ObjectLockConfiguration": {"ObjectLockEnabled": "Enabled", "Rule": {"DefaultRetention": {"Mode": "COMPLIANCE", "Days": 365}}}}}
     ssm = {"InstanceId": "i-123", "ApplicationInventory": {"collection_status": "collected", "source_operation": "ssm:ListInventoryEntries", "InstanceId": "i-123", "TypeName": "AWS:Application",
              "Entries": [{"Name": "agent", "Version": "2.0"}]},
            "TimeSyncCompliance": {"collection_status": "collected", "source_operation": "ssm:ListComplianceItems", "ComplianceType": "Custom:TimeSync",
@@ -163,7 +174,7 @@ def test_complete_missing_log_group_fails_integration_but_unresolved_key_join_is
 
 def test_retention_unproven_object_lock_and_ambiguous_lifecycle_unknown():
     facts = index()
-    facts["bucket"][0]["data"]["ObjectLock"] = {"collection_status": "collected", "ObjectLockEnabled": "Disabled"}
+    facts["bucket"][0]["data"]["ObjectLock"] = {"collection_status": "collected", "ObjectLockConfiguration": {"ObjectLockEnabled": "Disabled"}}
     assert evaluate("aws_cloudtrail_bucket_lifecycle_retention_365", facts) == "UNKNOWN"
     facts = index()
     facts["bucket"][0]["data"]["Lifecycle"]["Rules"] = [{"Status": "Enabled", "Filter": {"Tag": {"Key": "env", "Value": "prod"}}, "Expiration": {"Days": 30}}]
@@ -190,6 +201,7 @@ def foreign_organization_index():
     facts = index()
     trail = facts["cloudtrail_account_inventory"][0]["data"]
     trail["TrailARN"] = "arn:aws:cloudtrail:us-east-1:999999999999:trail/org"
+    trail["CloudTrailS3DeliveryObjects"]["TrailARN"] = trail["TrailARN"]
     trail["IsOrganizationTrail"] = True
     trail["IsMultiRegionTrail"] = True
     trail["AccountId"] = SCOPE.split("/")[0]

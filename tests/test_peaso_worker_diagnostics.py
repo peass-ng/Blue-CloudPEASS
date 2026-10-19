@@ -190,7 +190,9 @@ def test_all_targets_refused_surfaces_only_curated_reason(crash_store, tmp_path,
 
     with TestClient(create_app(settings, store=crash_store, artifacts=artifacts, authenticator=Identities()),
                     base_url="http://127.0.0.1:8000") as client:
-        assert client.get(f"/api/scans/{job['id']}", headers={"Authorization": "Bearer alice"}).json() == public
+        detail = client.get(f"/api/scans/{job['id']}", headers={"Authorization": "Bearer alice"}).json()
+        assert {key: value for key, value in detail.items() if key not in {"connector_name", "display_name"}} == public
+        assert isinstance(detail["display_name"], str) and detail["display_name"]
         assert client.get(f"/api/scans/{job['id']}", headers={"Authorization": "Bearer bob"}).status_code == 404
 
 

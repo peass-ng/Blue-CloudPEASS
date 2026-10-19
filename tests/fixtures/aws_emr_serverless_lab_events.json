@@ -1,0 +1,63 @@
+[
+  {
+    "eventID": "3085c742-267c-4a10-825e-43119adfb226",
+    "eventTime": "2026-10-19T17:32:30Z",
+    "eventSource": "emr-serverless.amazonaws.com",
+    "eventName": "UpdateApplication",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "awsRegion": "us-east-1",
+    "recipientAccountId": "222233334444",
+    "requestParameters": {
+      "applicationId": "00g9la3d7ndhmg09",
+      "runtimeConfiguration": [
+        {
+          "classification": "spark-defaults",
+          "properties": "***"
+        }
+      ]
+    },
+    "responseElements": {
+      "application": {
+        "applicationId": "00g9la3d7ndhmg09",
+        "arn": "arn:aws:emr-serverless:us-east-1:222233334444:/applications/00g9la3d7ndhmg09",
+        "type": "Spark",
+        "runtimeConfiguration": [
+          {
+            "classification": "spark-defaults",
+            "properties": "***"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "eventID": "977b4c4e-da50-4ddb-bf96-d6759d05b407",
+    "eventTime": "2026-10-19T17:32:31Z",
+    "eventSource": "emr-serverless.amazonaws.com",
+    "eventName": "StartJobRun",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "awsRegion": "us-east-1",
+    "recipientAccountId": "222233334444",
+    "requestParameters": {
+      "applicationId": "00g9la3d7ndhmg09",
+      "jobDriver": {
+        "sparkSubmit": {
+          "entryPoint": "***",
+          "sparkSubmitParameters": "***"
+        }
+      },
+      "executionRoleArn": "arn:aws:iam::222233334444:role/example-emr-66695850"
+    },
+    "responseElements": {
+      "applicationId": "00g9la3d7ndhmg09",
+      "arn": "arn:aws:emr-serverless:us-east-1:222233334444:/applications/00g9la3d7ndhmg09/jobruns/00g9la3gu48rkg0b",
+      "jobRunId": "00g9la3gu48rkg0b"
+    }
+  }
+]

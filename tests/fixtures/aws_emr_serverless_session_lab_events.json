@@ -1,0 +1,56 @@
+[
+  {
+    "eventID": "a83d60fa-db63-4b0a-8ef7-dcef7fbf195e",
+    "eventTime": "2026-10-19T17:48:48Z",
+    "eventSource": "emr-serverless.amazonaws.com",
+    "eventName": "StartSession",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "awsRegion": "us-east-1",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "applicationId": "00g9lacil6fs1a09",
+      "executionRoleArn": "arn:aws:iam::222233334444:role/example-emr-sess-e19e8f4f-exec"
+    },
+    "responseElements": {
+      "applicationId": "00g9lacil6fs1a09",
+      "sessionId": "00g9lacqrj65sa0a",
+      "arn": "arn:aws:emr-serverless:us-east-1:222233334444:/applications/00g9lacil6fs1a09/sessions/00g9lacqrj65sa0a"
+    }
+  },
+  {
+    "eventID": "102e5cc7-3b82-4580-8186-592b50f6d887",
+    "eventTime": "2026-10-19T17:50:27Z",
+    "eventSource": "emr-serverless.amazonaws.com",
+    "eventName": "GetSessionEndpoint",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "222233334444",
+    "awsRegion": "us-east-1",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-emr-sess-e19e8f4f-reader/example-emr-endpoint",
+      "accountId": "222233334444",
+      "sessionContext": {
+        "sessionIssuer": {
+          "arn": "arn:aws:iam::222233334444:role/example-emr-sess-e19e8f4f-reader",
+          "accountId": "222233334444"
+        }
+      }
+    },
+    "requestParameters": {
+      "applicationId": "00g9lacil6fs1a09",
+      "sessionId": "00g9lacqrj65sa0a"
+    },
+    "responseElements": null
+  }
+]

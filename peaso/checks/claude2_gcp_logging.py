@@ -356,6 +356,16 @@ def sink_all_log_entries(project, index):
     inactive = active_project(project)
     if inactive:
         return inactive
+    if "_provenance" in project or "_coverage" in project:
+        # Native projects must bind ancestor sinks to the complete ancestry
+        # and source requests before either local or aggregated routes count.
+        # The shared proof also respects higher intercepting ancestors.
+        from .claude_gcp_k8s_iam import sink_all_entries
+        status, evidence = sink_all_entries(project, index)
+        if status != "FAIL":
+            return status, evidence
+        # Preserve this predicate's MANUAL result for active exclusions after
+        # the shared proof establishes that no all-entries route exists.
     ids = project_ids(project)
     local = [s for s in complete_items(index, "log_sink") if in_project(get(s, "name", str), ids)]
     matches = [s["name"] for s in local if all_entries(s)]

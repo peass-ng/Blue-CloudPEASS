@@ -8,7 +8,7 @@ async function emptyApi(page: Page) {
       json: path.endsWith("/connectors/check-access")
         ? { status: "pass", issues: [], principals: [{ scope: "fixture", principal: "fixture identity" }] }
         : path.endsWith("/connectors/prepare")
-          ? { prepared_id: "fixture-prepared", external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/HackTricks-CSPM", template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json" }
+          ? { prepared_id: "fixture-prepared", external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::111122223333:role/HackTricks-CSPM", template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json" }
         : path.endsWith("/health")
         ? { status: "ok" }
         : path.endsWith("/me")
@@ -87,9 +87,9 @@ test("every authentication option explains access and permission setup", async (
   await awsGuide.locator("summary").first().click();
   for (const arn of awsPolicyArns) await expect(awsGuide).toContainText(arn);
   await expect(awsGuide.locator(".auth-guide-step").nth(1).locator("pre").first()).toContainText("aws iam attach-role-policy");
-  await awsGuide.getByText("Optional: set up Access Analyzer findings").click();
+  await expect(awsGuide.getByText("Optional: set up Access Analyzer findings")).toHaveCount(0);
   await expect(awsGuide).toContainText("arn:aws:iam::aws:policy/IAMAccessAnalyzerFullAccess");
-  await expect(awsGuide.locator("pre").last()).toContainText("aws accessanalyzer create-analyzer");
+  await expect(awsGuide).not.toContainText("arn:aws:iam::aws:policy/IAMAccessAnalyzerReadOnlyAccess");
 });
 test("connector methods start with common choices and explain environment credentials", async ({ page }) => {
   await emptyApi(page);
@@ -235,7 +235,7 @@ test("account initial and Help route show actionable documentation", async ({ pa
   await page.getByRole("button", { name: "Help & documentation" }).click();
   await expect(page).toHaveURL(/#Help$/);
   await expect(page.getByRole("heading", { name: "Get started" })).toBeVisible();
-  await expect(page.getByText("arn:aws:iam::202533532952:role/HackTricks-CSPM")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open AWS setup guide" })).toBeVisible();
   await expect(page.getByRole("link", { name: /AWS cross-account roles/ })).toHaveAttribute("href", /docs\.aws\.amazon\.com/);
 });
 test("failed scan shows its curated role refusal in history and details", async ({ page }) => {
@@ -251,7 +251,7 @@ test("failed scan shows its curated role refusal in history and details", async 
   await page.goto("/");
   await nav(page, "Scans");
   await expect(page.getByRole("alert").filter({ hasText: reason })).toBeVisible();
-  await page.getByRole("button", { name: "refused-scan" }).click();
+  await page.getByRole("article").filter({ hasText: reason }).locator("button.scan-id").click();
   await expect(page.getByRole("dialog").getByRole("alert").filter({ hasText: reason })).toBeVisible();
   await expect(page.getByRole("dialog")).toContainText("credential_access_denied");
   await page.getByRole("dialog").getByRole("button", { name: "Show 3 supplied fields" }).click();
@@ -262,6 +262,7 @@ test("filter and inspect escaped evidence with compliance", async ({
 }) => {
   await demo(page);
   await nav(page, "Hardening Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await expect(
     page.getByRole("button", { name: "Storage encryption requires review" }),
   ).toBeVisible();
@@ -411,6 +412,7 @@ test("mobile layout and dialog keyboard accessibility", async ({ page }) => {
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);
   await nav(page, "Hardening Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await page
     .getByRole("button", { name: "Storage encryption requires review" })
     .click();
@@ -580,7 +582,7 @@ test("hosted role form and onboarding show trust, copy, and CloudFormation", asy
       payload = route.request().postDataJSON();
       created = true;
       await route.fulfill({ status: 201, json: { id: "c1" } });
-    } else await route.fulfill({ json: { items: created ? [{ id: "c1", name: "Hosted role", provider: "aws", scopes: [], auth_mode: "assume_role", onboarding: { external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::202533532952:role/HackTricks-CSPM", target_role_arns: [role], template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json", quick_create_template_url: publicReady ? "https://hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com/customer-role.json" : null } }] : [] } });
+    } else await route.fulfill({ json: { items: created ? [{ id: "c1", name: "Hosted role", provider: "aws", scopes: [], auth_mode: "assume_role", onboarding: { external_id: "peaso-fixture-external-id", collector_role_arn: "arn:aws:iam::111122223333:role/HackTricks-CSPM", target_role_arns: [role], template_url: "https://cspm.hacktricks.wiki/aws/customer-role.json", quick_create_template_url: publicReady ? "https://hacktricks-cspm-templates-111122223333.s3.us-east-1.amazonaws.com/customer-role.json" : null } }] : [] } });
   });
   await page.goto("/#Connectors");
   await page.getByRole("button", { name: "Add connector", exact: true }).click();
@@ -607,11 +609,11 @@ test("hosted role form and onboarding show trust, copy, and CloudFormation", asy
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('"sts:ExternalId"');
   const trust = JSON.parse(await page.evaluate(() => navigator.clipboard.readText()));
   expect(trust.Statement).toEqual([{
-    Effect: "Allow", Principal: { AWS: "arn:aws:iam::202533532952:role/HackTricks-CSPM" },
+    Effect: "Allow", Principal: { AWS: "arn:aws:iam::111122223333:role/HackTricks-CSPM" },
     Action: "sts:AssumeRole",
     Condition: { StringEquals: { "sts:ExternalId": "peaso-fixture-external-id" } },
   }]);
-  await expect(page.getByRole("link", { name: "Create role with CloudFormation" })).toHaveAttribute("href", /#\/stacks\/create\/review\?templateURL=https%3A%2F%2Fhacktricks-cspm-templates-202533532952\.s3\.us-east-1\.amazonaws\.com%2Fcustomer-role\.json.*param_ExternalId=peaso-fixture-external-id/);
+  await expect(page.getByRole("link", { name: "Create role with CloudFormation" })).toHaveAttribute("href", /#\/stacks\/create\/review\?templateURL=https%3A%2F%2Fhacktricks-cspm-templates-111122223333\.s3\.us-east-1\.amazonaws\.com%2Fcustomer-role\.json.*param_ExternalId=peaso-fixture-external-id/);
   await expect(page.getByRole("link", { name: "Download CloudFormation template" })).toHaveAttribute("href", "https://cspm.hacktricks.wiki/aws/customer-role.json");
   await expect(page.getByRole("button", { name: "Copy AWS CLI fallback" })).toBeVisible();
   publicReady = false;
@@ -651,6 +653,8 @@ test("access check blocks critical gaps, permits advisories, and rechecks after 
   await page.clock.fastForward(10_000);
   await page.getByRole("button", { name: "Check access", exact: true }).click();
   await expect(page.getByRole("status").filter({ hasText: "Access works with recommendations" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save connector" })).toBeDisabled();
+  await page.getByRole("checkbox", { name: /I understand that some checks might fail/ }).check();
   await page.getByRole("button", { name: "Save connector" }).click();
   expect(saved).toBe(true);
 });
@@ -805,6 +809,7 @@ test("pagination filters complete dataset and loads evidence lazily", async ({
     });
   });
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await expect(
     page.getByText("200 loaded of 1201 matching findings", { exact: false }),
   ).toBeVisible();
@@ -1064,7 +1069,7 @@ test("human asset labels preserve routing IDs and exact checklist filtering", as
       },
     }),
   );
-  await page.route("**/api/scans/labels/summary", (r) =>
+  await page.route("**/api/scans/labels/summary**", (r) =>
     r.fulfill({
       json: { provider: "aws", stats: { resource_count: 1, finding_count: 1 } },
     }),
@@ -1124,6 +1129,7 @@ test("human asset labels preserve routing IDs and exact checklist filtering", as
     }),
   );
   await page.goto("/#Hardening%20Findings");
+  await page.getByLabel("Group findings").selectOption("check_id");
   await expect(page.locator(".asset-cell")).toContainText("Production <web>");
   await page
     .getByLabel("Compliance framework")

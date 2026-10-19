@@ -73,7 +73,7 @@ def test_no_condition_is_not_claimed_as_a_validated_cel_restriction():
     collection['items'][0]['attributeCondition']="assertion.repository_owner == 'acme'"
     found=next(f for f in analyze_findings(snap) if f['check_id']=='analysis.federated_trust')
     assert found['status']=='PASS'
-    assert evidence_summary(found)=='The workload identity provider declares an attribute condition; its CEL logic still requires review.'
+    assert evidence_summary(found)=='The workload identity provider declares an attribute condition to limit token exchange; its CEL logic and effective IAM access still need review.'
 
 
 def test_public_gcp_binding_requires_matching_native_member_not_only_classification():
@@ -88,3 +88,113 @@ def test_external_azure_principal_requires_actual_matching_tenant():
     f=deepcopy(next(f for f in analyze_findings(provider_snapshot('azure')) if f['check_id']=='analysis.principal_exposure'))
     f['evidence']['principals'][0]['native_grant'].pop('tenantId')
     assert provider_summary(f) is None
+
+
+@pytest.mark.parametrize('identity,expected_status,phrase',[
+    ('arn:aws:iam::444455556666:root','FAIL','outside the trusted account scope'),
+    ('AROAEXAMPLEUNATTRIBUTED','UNKNOWN','ownership could not be resolved'),
+])
+def test_aws_native_role_external_and_unattributed_principals_have_concrete_explanations(identity,expected_status,phrase):
+    snapshot=provider_snapshot('aws')
+    role=next(c for c in snapshot['collections'] if c['type']=='iam_role')['items'][0]
+    role['AssumeRolePolicyDocument']['Statement']=[{'Effect':'Allow','Principal':{'AWS':identity},'Action':'sts:AssumeRole'}]
+    finding=next(f for f in analyze_findings(snapshot) if f['check_id']=='analysis.principal_exposure')
+    assert finding['status']==expected_status
+    explanation=evidence_summary(finding)
+    assert identity in explanation and 'sts:AssumeRole' in explanation and phrase in explanation
+    finding=deepcopy(finding)
+    finding['evidence']['principals'][0]['native_grant']['Effect']='Deny'
+    assert evidence_summary(finding) is None
+
+
+@pytest.mark.parametrize('provider',['aws','gcp','azure','k8s'])
+def test_high_impact_summary_names_actual_permissions_and_rejects_malformed_grant(provider):
+    from peaso.analysis.finding_clarity import evidence_summary as explain
+    finding=next(f for f in analyze_findings(provider_snapshot(provider)) if f['check_id']=='analysis.grant_review')
+    text=explain(finding)
+    assert {'aws':'all actions','gcp':'the Editor role','azure':'all management actions','k8s':'every action'}[provider] in text
+    assert 'policies' in text and 'usable access' in text
+    finding['evidence']['grants'][0]['native_grant']={'Effect':'Deny','Action':'*','Resource':'*'}
+    assert explain(finding) is None
+
+
+def test_conditional_grant_explains_restrictions_without_claiming_effective_access():
+    snapshot=provider_snapshot('aws')
+    policy=next(c for c in snapshot['collections'] if c['type']=='iam_policy')['items'][0]
+    policy['PolicyDocument']['Statement'][0]['Condition']={'StringEquals':{'aws:RequestedRegion':'us-east-1'}}
+    finding=next(f for f in analyze_findings(snapshot) if f['check_id']=='analysis.grant_review')
+    assert 'recorded restrictions' in evidence_summary(finding)
+
+
+def test_aws_federation_does_not_repeat_a_problem_contradicted_by_native_conditions():
+    from peaso.analysis.finding_clarity import evidence_summary as explain
+    finding=next(f for f in analyze_findings(provider_snapshot('aws')) if f['check_id']=='analysis.federated_trust')
+    trust=finding['evidence']['federated_trusts'][0]
+    trust['conditions']['StringEquals'][trust['issuer']+':sub']='repo:approved/app:ref:refs/heads/main'
+    assert explain(finding) is None
+
+
+def test_raw_observed_code_cannot_create_an_internet_path_claim():
+    from peaso.finding_observation import evidence_summary as dispatch
+    assert dispatch({'check_id':'analysis.internet_exposure','provider':'aws','status':'FAIL','evidence':{'observed':'000000'}}) is None
+    from peaso.analysis.finding_clarity import evidence_summary as explain
+    assert explain({'check_id':'analysis.internet_exposure','provider':'aws','status':'FAIL','evidence':{'observed':'000000'}}) is None
+    finding=next(f for f in analyze_findings(provider_snapshot('aws')) if f['check_id']=='analysis.internet_exposure')
+    finding['evidence']['path']=[{'layer':'authorization','decision':'block'}]
+    assert explain(finding) is None
+
+
+def test_gcp_aws_federation_names_the_native_account_and_keeps_exchange_limits():
+    snapshot=provider_snapshot('gcp')
+    row=next(c for c in snapshot['collections'] if c['type']=='workload_identity_provider')['items'][0]
+    row.pop('oidc');row['aws']={'accountId':'444455556666'}
+    finding=next(f for f in analyze_findings(snapshot) if f['check_id']=='analysis.federated_trust')
+    text=evidence_summary(finding)
+    assert 'AWS account 444455556666' in text
+    assert 'no attribute condition' in text and 'IAM bindings still govern access' in text
+
+
+@pytest.mark.parametrize('provider,expected',[
+    ('gcp','the Editor role to anyone, including anonymous users'),
+    ('azure','all management actions'),
+    ('k8s','every action on every Kubernetes resource'),
+])
+def test_wildcard_and_public_grants_are_explained_in_words(provider,expected):
+    finding=next(f for f in analyze_findings(provider_snapshot(provider)) if f['check_id']=='analysis.grant_review')
+    text=evidence_summary(finding)
+    assert expected in text
+    assert 'permits *' not in text and '* on *' not in text
+    assert 'policies' in text
+
+
+def test_inventory_gaps_explain_missing_and_denied_reads_as_sentences():
+    from peaso.analysis.finding_clarity import evidence_summary as explain
+    finding={'check_id':'analysis.coverage','status':'UNKNOWN','provider':'aws','evidence':{'gaps':[{'type':'iam_user','status':'not_collected'},{'type':'iam_role','status':'denied'}]}}
+    text=explain(finding)
+    assert 'lacks complete inventory for IAM users' in text
+    assert 'reads were denied for IAM roles' in text
+    assert '(not collected)' not in text and '(read denied)' not in text
+
+
+@pytest.mark.parametrize('provider',['aws','gcp','azure','k8s'])
+def test_review_ledger_examples_match_the_current_native_analysis_callback(provider):
+    import json
+    from pathlib import Path
+    ledger=json.loads((Path(__file__).resolve().parents[1]/'docs/evidence-reviews/analysis.json').read_text())
+    findings=analyze_findings(provider_snapshot(provider))
+    for row in ledger['checks'].values():
+        if row['provider']!=provider:continue
+        actual=[{'status':f['status'],'example':evidence_summary(f)} for f in findings if f['check_id']==row['check_id']]
+        expected=[{'status':x['status'],'example':x['example']} for x in row['examples']]
+        assert actual==expected
+
+
+def test_azure_action_exclusions_are_explained_without_claiming_unrestricted_access():
+    snapshot=provider_snapshot('azure')
+    definition=next(c for c in snapshot['collections'] if c['type']=='role_definition')['items'][0]
+    definition['properties']['permissions'][0]['notActions']=['Microsoft.Authorization/*']
+    finding=next(f for f in analyze_findings(snapshot) if f['check_id']=='analysis.grant_review')
+    text=evidence_summary(finding)
+    assert 'all management actions, subject to the recorded exclusions' in text
+    assert 'recorded restrictions' in text
+    assert 'and subject' not in text

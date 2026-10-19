@@ -87,14 +87,25 @@ def instance_template_no_public_ip(item, index):
     interfaces = list_of_objects(get(item, "properties.networkInterfaces", list))
     if not interfaces:
         return unknown("instance template has no network interface evidence")
-    exposed = []
+    exposed, unresolved = [], False
     for offset, interface in enumerate(interfaces):
-        # The Compute API omits accessConfigs when no external IPv4 config exists.
-        configs = _optional_api_field(interface, "accessConfigs", complete=complete) or []
-        if not isinstance(configs, list) or any(not isinstance(value, dict) for value in configs):
-            return unknown("malformed instance template accessConfigs", interface=offset)
-        if configs:
+        # Compute omits each access-config array when that IP family has no
+        # external access. IPv6 DIRECT_IPV6 is independent of IPv4 NAT.
+        has_external_config = False
+        for field in ("accessConfigs", "ipv6AccessConfigs"):
+            if not complete and field not in interface and field not in interface.get("_coverage", {}):
+                unresolved = True
+                continue
+            configs = _optional_api_field(interface, field, complete=complete)
+            if configs is None and field not in interface:
+                configs = []
+            if not isinstance(configs, list) or any(not isinstance(value, dict) for value in configs):
+                return unknown("malformed instance template " + field, interface=offset)
+            has_external_config |= bool(configs)
+        if has_external_config:
             exposed.append(offset)
+    if unresolved and not exposed:
+        return unknown("access configuration absence lacks full projection proof")
     return result(bool(exposed), external_interfaces=exposed, interface_count=len(interfaces),
                   semantics="Declared template configuration; running VM exposure is separate")
 

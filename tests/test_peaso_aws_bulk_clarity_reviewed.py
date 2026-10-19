@@ -69,7 +69,7 @@ def test_real_default_callbacks_dispatch_closures_constants_and_severities_are_p
         values=list(inspect.getclosurevars(fn).nonlocals.values())+list(fn.__defaults__ or ())
         values.extend(fn.__globals__.get(k) for k in fn.__code__.co_names)
         for value in values:
-            if inspect.isfunction(value) and '_bulk_pending_' in value.__module__:pending.append(value)
+            if inspect.isfunction(value) and ('_bulk_pending_' in value.__module__ or (cid=='aws_cis_aws_resource_policy_unrestricted_principal' and value.__module__==f.__module__)):pending.append(value)
     assert binding['predicate_sources']=={k:hashlib.sha256(inspect.getsource(v).encode()).hexdigest() for k,v in sorted(funcs.items())}
     constants={}
     for key,fn in funcs.items():
@@ -146,3 +146,19 @@ def test_missing_and_wrong_shape_witnesses_do_not_get_static_observations(cid,ev
 def test_native_positive_evidence_relabelled_fail_does_not_invent_weakness(cid):
     evidence=CASES[cid]['PASS']['evidence']
     assert evidence_summary({'provider':'aws','status':'FAIL','check_id':cid,'evidence':evidence}) is None
+
+
+def test_resource_policy_scope_successor_preserves_historical_review_and_structured_witness():
+    cid='aws_cis_aws_resource_policy_unrestricted_principal'
+    archived=json.loads((ROOT/'tests/fixtures/aws_resource_policy_pre_scope_review.json').read_text())
+    assert archived['check_id']==cid and len(archived['source_sha256'])==64
+    assert archived['cases']['FAIL']['evidence']['unrestricted_statements']==['one']
+    case=CASES[cid]['FAIL'];status,evidence=CHECK_BY_ID[cid].evaluate(deepcopy(case['item']),deepcopy(case['index']))
+    assert status=='FAIL'
+    assert evidence['unrestricted_statements']==[{'statement_index':0,'sid':'one'}]
+    assert 'declaration review' in evidence['semantics']
+    summary=evidence_summary({'provider':'aws','status':status,'check_id':cid,'evidence':evidence})
+    assert summary=='1 resource-policy statements grant wildcard principals access without a recognized caller or network boundary.'
+    for index in [-1, True, '0', None]:
+        invalid=deepcopy(evidence);invalid['unrestricted_statements'][0]['statement_index']=index
+        assert evidence_summary({'provider':'aws','status':status,'check_id':cid,'evidence':invalid}) is None

@@ -282,7 +282,9 @@ def _turbot(item, v4=True, v6=False, protocols=None, ports=(), ranges=(), any_po
         if not cidr_ok:
             continue
         if protocols is not None:
-            if row["ip_protocol"] in protocols or (row["ip_protocol"] == "-1" and row["from_port"] is None):
+            from .claude_aws_a_common import _sg_protocol
+            protocol = _sg_protocol(row["ip_protocol"])
+            if protocol in {_sg_protocol(value) for value in protocols} or (protocol == "-1" and row["from_port"] is None):
                 hits.append(row)
             continue
         if any_port or turbot_port_hit(row, ports, ranges):
@@ -468,13 +470,15 @@ def nacl_unused(item, index):
     docs=[EC2_API + "API_NetworkAclEntry.html"], extra={"fail_all": nacl_with(nacl_entry("-1"))},
     note="Steampipe evaluates each allow entry independently (rule order and preceding denies are ignored).")
 def nacl_remote_admin(item, index):
+    from .claude_aws_a_common import _validate_nacl_rule
     bad = []
     for entry in list_of_objects(get(item, "Entries", list)):
+        proto = _validate_nacl_rule(entry)
         if get(entry, "Egress", bool) or get(entry, "RuleAction", str) != "allow":
             continue
         if entry.get("CidrBlock") != "0.0.0.0/0" and entry.get("Ipv6CidrBlock") != "::/0":
             continue
-        proto, ports = get(entry, "Protocol", str), entry.get("PortRange")
+        ports = entry.get("PortRange")
         if proto == "-1" and ports is None:
             bad.append(entry["RuleNumber"])
         elif isinstance(ports, dict) and proto in ("6", "17"):
@@ -680,8 +684,19 @@ def igw_attached(item, index):
     remediation="Route internet-bound traffic only from approved public route tables; remove default IGW routes from private tables.",
     docs=[EC2_API + "API_Route.html"], note="Steampipe compares DestinationCidrBlock to 0.0.0.0/0 or ::/0 with GatewayId like igw%.")
 def rtb_igw(item, index):
-    bad = [r.get("DestinationCidrBlock") for r in list_of_objects(get(item, "Routes", list))
-           if r.get("DestinationCidrBlock") in ("0.0.0.0/0", "::/0") and str(r.get("GatewayId") or "").startswith("igw")]
+    get(item, "RouteTableId", str)
+    bad, unresolved = [], False
+    for route in list_of_objects(get(item, "Routes", list)):
+        try:
+            destination = optional(route, "DestinationCidrBlock", None, str)
+            gateway = optional(route, "GatewayId", None, str)
+        except Unavailable:
+            unresolved = True
+            continue
+        if destination in ("0.0.0.0/0", "::/0") and gateway is not None and gateway.startswith("igw"):
+            bad.append(destination)
+    if unresolved and not bad:
+        raise Unavailable("route destination or gateway unavailable")
     return result(bool(bad), destinations=bad)
 
 

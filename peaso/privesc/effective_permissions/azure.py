@@ -1658,7 +1658,8 @@ class AzureModel(ExactEvidenceMixin, Model):
                     continue
                 grant = self._rbac(principal, "microsoft.authorization/roleassignments/write", False, a["scope"])
                 if grant is not None:
-                    found[a["scope"]] = grant
+                    found[a["scope"]] = Grant(grant.confidence, grant.refs, grant.conditions,
+                        [{"permission": "microsoft.authorization/roleassignments/write", "grant": ref} for ref in grant.refs if "assignment" in ref])
         for scope, grant in sorted(found.items()):
             if any(other != scope and self.covers(other, scope)[0] for other in found):
                 continue
@@ -1668,8 +1669,9 @@ class AzureModel(ExactEvidenceMixin, Model):
                 info = self.dir_roles.get(role)
                 template = info["id"] if info else role
                 if (template == GLOBAL_ADMIN or (info and info["name"] == "Global Administrator")) and (scope or "/") == "/":
-                    grant = Grant("derived", [{"directory_role_assignment": aid, "role": "Global Administrator"}],
-                                  ["via_role_assignable_group"] if pid != principal.id else [])
+                    ref = {"directory_role_assignment": aid, "role": "Global Administrator", "directory_scope": scope or "/", "via": pid, "role_template_id": template}
+                    grant = Grant("derived", [ref], ["via_role_assignable_group"] if pid != principal.id else [],
+                                  [{"permission": "Entra directory role: Global Administrator", "grant": ref}])
                     out.append((self.entity("entra_role", GLOBAL_ADMIN if not info else info["id"], {"name": "Global Administrator"}), grant))
         return out
 

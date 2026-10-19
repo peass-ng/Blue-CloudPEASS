@@ -1,0 +1,348 @@
+[
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:40Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "CreateStateMachine",
+    "awsRegion": "us-east-1",
+    "eventID": "6f6ebe11-151a-4f32-bf8d-ad3eb8d1b039",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "name": "example-sfn-aa-382dce2d-approval",
+      "roleArn": "arn:aws:iam::222233334444:role/example-sfn-aa-382dce2d-role",
+      "publish": false
+    },
+    "responseElements": {
+      "stateMachineArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-approval"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:40Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "CreateActivity",
+    "awsRegion": "us-east-1",
+    "eventID": "97e6573d-8cad-4298-a331-8ae05f47e028",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "name": "example-sfn-aa-382dce2d-activity"
+    },
+    "responseElements": {
+      "activityArn": "arn:aws:states:us-east-1:222233334444:activity:example-sfn-aa-382dce2d-activity"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:41Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "StartExecution",
+    "awsRegion": "us-east-1",
+    "eventID": "93b242fd-1081-42b3-94fa-03c93644895c",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-approval"
+    },
+    "responseElements": {
+      "executionArn": "arn:aws:states:us-east-1:222233334444:execution:example-sfn-aa-382dce2d-approval:7d32acc4-e04f-403d-ad4c-5c10928ddb9a"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:51Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "CreateStateMachine",
+    "awsRegion": "us-east-1",
+    "eventID": "654472a0-67dc-4c9f-b6b5-a5ad1669dd8d",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "name": "example-sfn-aa-382dce2d-version",
+      "roleArn": "arn:aws:iam::222233334444:role/example-sfn-aa-382dce2d-role",
+      "publish": true
+    },
+    "responseElements": {
+      "stateMachineArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version",
+      "stateMachineVersionArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:1"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:51Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "SendTaskSuccess",
+    "awsRegion": "us-east-1",
+    "eventID": "9e7cf89f-dc9a-4780-a466-54550a25e10a",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-sfn-aa-382dce2d-worker/example-worker",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "taskToken": "HIDDEN_DUE_TO_SECURITY_REASONS",
+      "output": "HIDDEN_DUE_TO_SECURITY_REASONS"
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:52Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "UpdateStateMachine",
+    "awsRegion": "us-east-1",
+    "eventID": "0a2b0013-b9dc-4a3c-b48c-60975e287cbd",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version",
+      "publish": true
+    },
+    "responseElements": {
+      "stateMachineVersionArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:2",
+      "revisionId": "07185802-0a7c-4414-92c0-5abce99e065b"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:52Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "CreateStateMachineAlias",
+    "awsRegion": "us-east-1",
+    "eventID": "54dc3c70-80e0-4ee7-a5e2-b7b0b9e542d2",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "name": "PROD",
+      "routingConfiguration": [
+        {
+          "stateMachineVersionArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:1",
+          "weight": 100
+        }
+      ]
+    },
+    "responseElements": {
+      "stateMachineAliasArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:PROD"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:52Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "UpdateStateMachineAlias",
+    "awsRegion": "us-east-1",
+    "eventID": "a1d8c351-b0ef-44f0-8404-fc5c549a6fad",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineAliasArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:PROD",
+      "routingConfiguration": [
+        {
+          "stateMachineVersionArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:2",
+          "weight": 100
+        }
+      ]
+    },
+    "responseElements": {
+      "updateDate": "2026-10-19T19:53:52Z"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:52Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "StartExecution",
+    "awsRegion": "us-east-1",
+    "eventID": "ce6a18f6-9c9e-4c0b-a3ff-6e80f2436075",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:PROD"
+    },
+    "responseElements": {
+      "executionArn": "arn:aws:states:us-east-1:222233334444:execution:example-sfn-aa-382dce2d-version:7b8969bf-6694-423c-ae53-38a0af5cd220"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:55Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "DeleteStateMachineAlias",
+    "awsRegion": "us-east-1",
+    "eventID": "1541c451-5dcc-4d38-902b-0ddcbee3f7b7",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineAliasArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:PROD"
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:55Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "StartExecution",
+    "awsRegion": "us-east-1",
+    "eventID": "2524152b-9514-481f-98e6-69f69ee22f03",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:PROD"
+    },
+    "responseElements": {
+      "executionArn": "arn:aws:states:us-east-1:222233334444:execution:example-sfn-aa-382dce2d-version:fd65ea2e-d681-4d59-90d9-e8ecb46c3275"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:55Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "DeleteStateMachineVersion",
+    "awsRegion": "us-east-1",
+    "eventID": "41adbd9f-0f4b-40ea-b7cd-8b2621330353",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineVersionArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:2"
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:56Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "DeleteActivity",
+    "awsRegion": "us-east-1",
+    "eventID": "ba105e1f-fa36-498d-a14d-d7e53b7e51b1",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "activityArn": "arn:aws:states:us-east-1:222233334444:activity:example-sfn-aa-382dce2d-activity"
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T19:53:56Z",
+    "eventSource": "states.amazonaws.com",
+    "eventName": "DeleteStateMachineVersion",
+    "awsRegion": "us-east-1",
+    "eventID": "ff88e132-b821-4ad8-8118-e19bf5479a5f",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "stateMachineVersionArn": "arn:aws:states:us-east-1:222233334444:stateMachine:example-sfn-aa-382dce2d-version:1"
+    },
+    "responseElements": {}
+  }
+]

@@ -45,6 +45,10 @@ export type Connector = {
   created_at?: string;
 };
 export type Finding = {
+  finding_type?: string;
+  secret_fingerprint?: string;
+  linked_check_ids?: string[];
+  evidence_summary_format?: "natural-language-v2";
   id: string;
   category: string;
   check_id: string;
@@ -77,6 +81,33 @@ export type Finding = {
   fail_when?: string;
   not_applicable_when?: string;
   rationale?: string;
+  grouped?: boolean;
+  member_count?: number;
+  status_counts?: Record<string, number>;
+  affected_asset_count?: number;
+  affected_regions?: string[];
+  affected_scopes?: string[];
+  affected_accounts?: string[];
+  member_filters?: Record<string, string | string[]>;
+};
+export type FindingGroupMember = {
+  id: string;
+  scope: string;
+  account?: string;
+  region?: string;
+  asset: string;
+  resource_id?: string;
+  resource_name?: string;
+  native_resource_id?: string;
+  status: string;
+  severity: string;
+  evidence_summary?: string;
+};
+export type FindingGroupDetail = Finding & {
+  members: FindingGroupMember[];
+  members_total: number;
+  members_next_offset?: number | null;
+  next_offset?: number | null;
 };
 export type RemediationDetails = {
   summary: string;
@@ -152,13 +183,23 @@ export type Scan = {
   progress?: number;
   input_mode?: string;
 };
+export type ScheduleRule = {
+  frequency: "daily" | "weekly" | "monthly";
+  time: string;
+  weekdays?: number[];
+  day_of_month?: number;
+};
 export type Schedule = {
+  ai_enabled?: boolean;
   id: string;
   name?: string;
   connector_id: string;
   categories: string[];
   frameworks?: string[];
   interval_hours?: number;
+  rules?: ScheduleRule[];
+  timezone?: string;
+  checks?: string[];
   enabled: boolean;
   next_run_at?: string;
 };
@@ -218,6 +259,8 @@ export const providers: { id: Provider; name: string; detail: string }[] = [
 export type PrivescConfidence = "derived" | "conditional" | "unknown";
 export type PrivescNodeKind = "principal" | "entity" | "aggregate";
 export type PrivescNode = {
+  exposures?: import("./PrincipalExposure").PrincipalExposure[];
+  exposed_member_count?: number;
   id: string;
   label?: string;
   type?: string;
@@ -245,6 +288,7 @@ export type PrivescEdge = {
   confidence: PrivescConfidence;
   evidence_refs?: PrivescEvidenceRef[];
   findings?: string[];
+  technique_details?: { id: string; evidence_refs?: PrivescEvidenceRef[]; conditions?: string[]; finding?: string; severity?: string; base_severity?: string; granting_permissions?: { permission: string; grant: PrivescEvidenceRef; evaluated_resource?: string; requirement?: Record<string, unknown> }[] }[];
   via_aggregate?: string;
 };
 export type PrivescGraph = {
@@ -301,6 +345,7 @@ export type PrivescFindingEvidence = {
   targets?: PrivescNode[];
   target_count?: number;
   granting_statements?: PrivescEvidenceRef[];
+  granting_permissions?: { permission: string; grant: PrivescEvidenceRef; evaluated_resource?: string; requirement?: Record<string, unknown> }[];
   conditions?: string[];
   confidence?: PrivescConfidence;
   technique_conditions?: { id: string; description?: string }[];
@@ -320,6 +365,11 @@ export type PrivescPrincipalCard = {
   may_act_as: string[];
   is_admin: boolean;
   findings?: Finding[];
+  technique_details?: Record<string, { required_permissions?: {
+    all_of?: string[];
+    any_of?: string[][];
+    leaves?: string[];
+  } }>;
   outgoing_total?: number;
   incoming_total?: number;
 };

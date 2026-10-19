@@ -5,6 +5,7 @@ the exact saved plan hash supplied after reviewing its private JSON.
 """
 from __future__ import annotations
 
+from peaso import deployment
 import argparse
 import hashlib
 import json
@@ -17,11 +18,11 @@ from urllib.request import urlopen
 from scripts import peaso_deploy as deploy
 
 
-ACCOUNT = "202533532952"
+ACCOUNT = deployment.value("account_id")
 REGION = "us-east-1"
 WORKER_REPOSITORY = f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/hacktricks-cspm-worker"
 ADDRESS = re.compile(r'^([a-z][a-z0-9_]*\.[a-z][a-z0-9_]*)(?:\[(?:[0-9]+|"[^"\\]*(?:\\.[^"\\]*)*")\])?$')
-REPLACEABLE = {'aws_ecs_task_definition.tasks'}
+REPLACEABLE = {'aws_ecs_task_definition.tasks', 'aws_ecs_task_definition.ai'}
 REQUIRED_RUNTIME = {'aws_lambda_function.api', 'aws_lambda_function.scheduler',
                     'aws_ecs_task_definition.tasks'}
 
@@ -77,10 +78,8 @@ def review_plan(data: dict, release: dict) -> dict:
     if value('enable_public_customer_role_template') is not True:
         raise ValueError('Plan would remove the existing public customer role template')
     gcp_secret = value('gcp_platform_sa_secret_arn')
-    if not isinstance(gcp_secret, str) or not re.fullmatch(
-            r'arn:aws:secretsmanager:us-east-1:202533532952:secret:hacktricks-cspm-gcp-platform-sa-[A-Za-z0-9]{6}',
-            gcp_secret):
-        raise ValueError('Plan omits the dedicated GCP platform service account secret')
+    if not isinstance(gcp_secret, str) or gcp_secret != deployment.value('gcp_platform_sa_secret_arn'):
+        raise ValueError('Plan service-account integration differs from private configuration')
     image = value('worker_image')
     if not isinstance(image, str) or not re.fullmatch(re.escape(WORKER_REPOSITORY) + r'@sha256:[0-9a-f]{64}', image):
         raise ValueError('Worker image is not an immutable dedicated ECR digest')

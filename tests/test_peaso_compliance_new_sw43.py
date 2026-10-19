@@ -89,13 +89,12 @@ def test_cluster_member_monitoring(check_id, kind, resource_arn):
 
 def test_aurora_backtracking():
     check_id = "aws_nist_rds_db_cluster_aurora_backtracking_enabled"
-    row = {"DBClusterIdentifier": "cluster-1", "Engine": "aurora-mysql", "BacktrackingSupported": True, "BacktrackWindow": 3600}
+    row = {"DBClusterIdentifier": "cluster-1", "Engine": "aurora-mysql", "BacktrackWindow": 3600}
     assert evaluate(check_id, row, index({"rds_cluster": [row]})) == "PASS"
     row["BacktrackWindow"] = 0
     assert evaluate(check_id, row, index({"rds_cluster": [row]})) == "FAIL"
-    row["BacktrackingSupported"] = False
-    assert evaluate(check_id, row, index({"rds_cluster": [row]})) == "NOT_APPLICABLE"
-    row["BacktrackingSupported"] = True
+    row.pop("BacktrackWindow")
+    assert evaluate(check_id, row, index({"rds_cluster": [row]})) == "UNKNOWN"
     row["Engine"] = "aurora-postgresql"
     assert evaluate(check_id, row, index({"rds_cluster": [row]})) == "NOT_APPLICABLE"
     row.pop("Engine")

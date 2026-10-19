@@ -1,0 +1,70 @@
+[
+  {
+    "eventTime": "2026-10-19T16:18:06Z",
+    "eventSource": "sts.amazonaws.com",
+    "eventName": "AssumeRole",
+    "awsRegion": "us-east-1",
+    "eventID": "a52efdd8-e5f6-41d6-88b4-09aa32ccd6f0",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": true,
+    "requestParameters": {
+      "roleArn": "arn:aws:iam::222233334444:role/example-sts-e1e65d58c3-a",
+      "roleSessionName": "example-a2",
+      "durationSeconds": 900
+    },
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-sts-e1e65d58c3-b/example-b",
+      "accountId": "222233334444",
+      "sessionContext": {
+        "sessionIssuer": {
+          "type": "Role",
+          "arn": "arn:aws:iam::222233334444:role/example-sts-e1e65d58c3-b",
+          "accountId": "222233334444"
+        }
+      }
+    },
+    "responseElements": {
+      "assumedRoleUser": {
+        "arn": "arn:aws:sts::222233334444:assumed-role/example-sts-e1e65d58c3-a/example-a2"
+      }
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:18:06Z",
+    "eventSource": "sts.amazonaws.com",
+    "eventName": "AssumeRole",
+    "awsRegion": "us-east-1",
+    "eventID": "0323b415-f293-42ed-b0f5-51cb38fb69f8",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": true,
+    "requestParameters": {
+      "roleArn": "arn:aws:iam::222233334444:role/example-sts-e1e65d58c3-b",
+      "roleSessionName": "example-b",
+      "durationSeconds": 900
+    },
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-sts-e1e65d58c3-a/example-a",
+      "accountId": "222233334444",
+      "sessionContext": {
+        "sessionIssuer": {
+          "type": "Role",
+          "arn": "arn:aws:iam::222233334444:role/example-sts-e1e65d58c3-a",
+          "accountId": "222233334444"
+        }
+      }
+    },
+    "responseElements": {
+      "assumedRoleUser": {
+        "arn": "arn:aws:sts::222233334444:assumed-role/example-sts-e1e65d58c3-b/example-b"
+      }
+    }
+  }
+]

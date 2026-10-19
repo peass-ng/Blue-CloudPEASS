@@ -156,6 +156,8 @@ def project_batch_get_projects(response):
         raise ReadFailure("malformed", "malformed_codebuild_projects")
     output = []
     for project in rows:
+        from .aws_additional_secret_indicators import codebuild_indicator
+        indicator = codebuild_indicator(project)
         row = _pick(project, ("name", "arn", "serviceRole", "projectVisibility", "encryptionKey",
                               "created", "lastModified", "concurrentBuildLimit"))
         for field in ("source",):
@@ -195,5 +197,6 @@ def project_batch_get_projects(response):
                 if not isinstance(project[field], dict):
                     raise ReadFailure("malformed", "malformed_codebuild_" + field)
                 row[field] = _pick(project[field], names)
+        row["AdditionalSecretIndicators"] = indicator
         output.append(row)
     return {"projects": output, "projectsNotFound": response.get("projectsNotFound", [])}

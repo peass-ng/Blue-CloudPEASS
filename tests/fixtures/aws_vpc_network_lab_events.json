@@ -1,0 +1,357 @@
+[
+  {
+    "eventID": "79d459f3-58a5-4a88-8ba5-9ce1cb1afd89",
+    "eventTime": "2026-10-19T18:34:05Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "CreateRoute",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "routeTableId": "rtb-0961b00c52469f2e1",
+      "destinationCidrBlock": "0.0.0.0/0",
+      "gatewayId": "igw-002a02faa1213bd1d"
+    },
+    "responseElements": {
+      "requestId": "b73eb3e2-859d-4ec7-8133-5697b3b300fb",
+      "_return": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "d4e2f7f5-045d-44c7-9545-133e156d80bb",
+    "eventTime": "2026-10-19T18:34:06Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "ReplaceNetworkAclEntry",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "networkAclId": "acl-0e46f1bfc325c104b",
+      "ruleNumber": 100,
+      "egress": false,
+      "ruleAction": "allow",
+      "icmpTypeCode": {},
+      "portRange": {
+        "from": 22,
+        "to": 22
+      },
+      "aclProtocol": "6",
+      "cidrBlock": "0.0.0.0/0"
+    },
+    "responseElements": {
+      "requestId": "ea0ce99c-90f8-4d5b-9355-574125fcefa9",
+      "_return": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "07b85a71-90fe-4d7f-8caf-44d9e0303bf2",
+    "eventTime": "2026-10-19T18:34:07Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "AssociateDhcpOptions",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "dhcpOptionsId": "dopt-0899d502db0340fde",
+      "vpcId": "vpc-00e82ec0a131ce166"
+    },
+    "responseElements": {
+      "requestId": "aad86632-004e-467a-b827-2a3c5c493002",
+      "_return": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "381ce59d-b42e-411e-8e68-c57d02da3d33",
+    "eventTime": "2026-10-19T18:34:07Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "CreateDhcpOptions",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "dhcpConfigurationSet": {
+        "items": [
+          {
+            "key": "domain-name-servers",
+            "valueSet": {
+              "items": [
+                {
+                  "value": "203.0.113.53"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "responseElements": {
+      "requestId": "8b1f6a3c-f075-445f-85e1-8d36e6464c0a",
+      "dhcpOptions": {
+        "dhcpOptionsId": "dopt-0899d502db0340fde",
+        "ownerId": "222233334444",
+        "dhcpConfigurationSet": {
+          "items": [
+            {
+              "key": "domain-name-servers",
+              "valueSet": {
+                "items": [
+                  {
+                    "value": "203.0.113.53"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "tagSet": {}
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "d415b308-b62e-4d8a-8768-37fe34ec2383",
+    "eventTime": "2026-10-19T18:34:08Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "CreateVpcEndpoint",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "CreateVpcEndpointRequest": {
+        "RouteTableId": {
+          "tag": 1,
+          "content": "rtb-0961b00c52469f2e1"
+        },
+        "VpcId": "vpc-00e82ec0a131ce166",
+        "ServiceName": "com.amazonaws.us-east-1.s3",
+        "PolicyDocument": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": \"*\", \"Action\": \"s3:GetObject\", \"Resource\": \"arn:aws:s3:::example-vpc-3d5bb04e-222233334444/*\"}]}",
+        "VpcEndpointType": "Gateway"
+      }
+    },
+    "responseElements": {
+      "CreateVpcEndpointResponse": {
+        "xmlns": "http://ec2.amazonaws.com/doc/2016-11-15/",
+        "requestId": "b56e28dc-4ee0-4e63-8f07-c34e421a7bcf",
+        "vpcEndpoint": {
+          "policyDocument": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::example-vpc-3d5bb04e-222233334444/*\"}]}",
+          "routeTableIdSet": {
+            "item": "rtb-0961b00c52469f2e1"
+          },
+          "dnsEntrySet": "",
+          "dnsOptions": {
+            "dnsRecordIpType": "service-defined"
+          },
+          "ownerId": "222233334444",
+          "privateDnsEnabled": false,
+          "serviceName": "com.amazonaws.us-east-1.s3",
+          "groupSet": "",
+          "requesterManaged": false,
+          "ipAddressType": "ipv4",
+          "vpcEndpointId": "vpce-0b78a90f0115aa3aa",
+          "subnetIdSet": "",
+          "networkInterfaceIdSet": "",
+          "vpcEndpointType": "Gateway",
+          "vpcId": "vpc-00e82ec0a131ce166",
+          "creationTimestamp": "2026-10-19T18:34:08.000Z",
+          "state": "available"
+        }
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "bc646bea-1353-47c1-a60c-937565c1a743",
+    "eventTime": "2026-10-19T18:34:09Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "ModifyVpcEndpoint",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "ModifyVpcEndpointRequest": {
+        "PolicyDocument": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Principal\": \"*\", \"Action\": \"s3:*\", \"Resource\": \"*\"}]}",
+        "VpcEndpointId": "vpce-0b78a90f0115aa3aa"
+      }
+    },
+    "responseElements": {
+      "ModifyVpcEndpointResponse": {
+        "xmlns": "http://ec2.amazonaws.com/doc/2016-11-15/",
+        "requestId": "8d4b85e3-6bc1-4ebc-9773-9fd698ac59f2",
+        "return": true
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "7004ce96-6641-4bc7-933e-cc3b7024d967",
+    "eventTime": "2026-10-19T18:34:10Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "CreateFlowLogs",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "CreateFlowLogsRequest": {
+        "ResourceId": {
+          "tag": 1,
+          "content": "vpc-00e82ec0a131ce166"
+        },
+        "ResourceType": "VPC",
+        "LogDestination": "arn:aws:s3:::example-vpc-3d5bb04e-222233334444/flowlogs/",
+        "LogDestinationType": "s3",
+        "TrafficType": "ALL"
+      }
+    },
+    "responseElements": {
+      "CreateFlowLogsResponse": {
+        "xmlns": "http://ec2.amazonaws.com/doc/2016-11-15/",
+        "requestId": "7e424615-6fee-4647-812e-208874b1cba1",
+        "clientToken": "o8ELrFgrBOHPHNzXjg7D1LzJoeYnGf+WATIGhvBWuAM=",
+        "unsuccessful": "",
+        "flowLogIdSet": {
+          "item": "fl-05fe6823b9d8e8c81"
+        }
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "8906cc48-4f99-42ff-b341-57da2c56ea4f",
+    "eventTime": "2026-10-19T18:34:11Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "DeleteFlowLogs",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "DeleteFlowLogsRequest": {
+        "FlowLogId": {
+          "tag": 1,
+          "content": "fl-05fe6823b9d8e8c81"
+        }
+      }
+    },
+    "responseElements": {
+      "DeleteFlowLogsResponse": {
+        "xmlns": "http://ec2.amazonaws.com/doc/2016-11-15/",
+        "requestId": "886849a1-9a8a-4015-b0f6-2525b27352f3",
+        "unsuccessful": ""
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "0c8e8312-bd36-4c95-97e0-b7c3223304c0",
+    "eventTime": "2026-10-19T18:34:12Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "AssociateDhcpOptions",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "dhcpOptionsId": "default",
+      "vpcId": "vpc-00e82ec0a131ce166"
+    },
+    "responseElements": {
+      "requestId": "8ac37b9f-1f86-4c21-a90f-32de5fb12d7b",
+      "_return": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "62351640-0a30-45e8-9f08-811bb3b48fa7",
+    "eventTime": "2026-10-19T18:35:14Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "CreateRoute",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "routeTableId": "rtb-0174b7dfb526e3830",
+      "destinationCidrBlock": "198.51.100.42/32",
+      "networkInterfaceId": "eni-028be41a1fc5bcc45"
+    },
+    "responseElements": {
+      "requestId": "e1862238-c3ee-4a68-a3c9-11436435cff3",
+      "_return": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventID": "85b4d65b-2b3f-448d-926e-6bb96cbb6932",
+    "eventTime": "2026-10-19T18:35:15Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "ReplaceRoute",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "routeTableId": "rtb-0174b7dfb526e3830",
+      "destinationCidrBlock": "198.51.100.42/32",
+      "networkInterfaceId": "eni-09600c91f13db376a"
+    },
+    "responseElements": {
+      "requestId": "df971cf3-69fb-4aad-bbdd-88e089b1476e",
+      "_return": true
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

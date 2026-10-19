@@ -5,14 +5,36 @@ def evidence_summary(finding):
     if not isinstance(finding, dict):
         return None
     provider = finding.get('provider')
+    from peaso.checks.aws_evidence_explanations import evidence_summary as aws
+    from peaso.checks.gcp_evidence_explanations import evidence_summary as gcp
+    from peaso.checks.azure_evidence_explanations import evidence_summary as azure
+    from peaso.checks.k8s_evidence_explanations import evidence_summary as k8s
+    reviewed = {'aws': aws, 'gcp': gcp, 'azure': azure, 'k8s': k8s}.get(provider)
+    observation = reviewed(finding) if reviewed else None
+    if observation:
+        return observation
+    if provider == 'azure':
+        from peaso.checks.azure_evidence_explanations import ROWS, reviewed_explanation
+        cid, status = finding.get('check_id'), finding.get('status')
+        row = ROWS.get(cid) if isinstance(cid, str) else None
+        if row is not None:
+            if status not in ('PASS', 'FAIL', 'UNKNOWN', 'DENIED', 'MANUAL', 'NOT_APPLICABLE', 'EMPTY'):
+                return None
+            key = {'MANUAL': 'manual_observation', 'NOT_APPLICABLE': 'not_applicable_observation'}.get(status, 'missing_observation')
+            missing = row.get(key) or row.get('missing_observation') or 'No usable deciding evidence was recorded.'
+            return reviewed_explanation(cid, missing, status)
+    if finding.get('category') == 'privesc' or finding.get('check_id') == 'admin-equivalent':
+        from peaso.privesc.finding_explanation import evidence_summary as privilege_path
+        return privilege_path(finding)
+    return _legacy_observation(finding)
+
+
+def _legacy_observation(finding):
+    if not isinstance(finding, dict):
+        return None
+    provider = finding.get('provider')
     cid = finding.get('check_id')
     if isinstance(cid, str) and cid.startswith('analysis.'):
-        if cid == 'analysis.internet_exposure':
-            evidence = finding.get('evidence')
-            observed = evidence.get('observed') if isinstance(evidence, dict) else None
-            if isinstance(observed, str) and observed.strip() and len(observed) <= 500:
-                return observed.strip()
-            return None
         from peaso.analysis.finding_clarity import evidence_summary as analysis
         return analysis(finding)
     if provider in ('azure', 'gcp'):
@@ -45,11 +67,10 @@ def evidence_summary(finding):
     from peaso.checks.gcp_remaining_finding_summary import evidence_summary as gcp_remaining
     from peaso.checks.aws_database_clarity_reviewed import evidence_summary as database
     from peaso.analysis.finding_clarity import evidence_summary as analysis
-    from peaso.checks.azure_bulk_finding_summary import evidence_summary as azure_bulk
     from peaso.checks.aws_remaining_finding_summary import evidence_summary as aws_remaining
     from peaso.checks.aws_final_clarity_reviewed import evidence_summary as aws_final
     from peaso.checks.aws_bulk_finding_summary import evidence_summary as aws_bulk
     from peaso.checks.aws_compute_storage_finding_summary import evidence_summary as aws_compute
     return (aws_final(finding) or aws_bulk(finding) or aws_compute(finding)
-            or aws_remaining(finding) or azure_bulk(finding) or analysis(finding)
+            or aws_remaining(finding) or analysis(finding)
             or database(finding) or gcp_remaining(finding))

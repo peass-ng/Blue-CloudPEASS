@@ -91,6 +91,14 @@ privesc.queries.reach_admin(result["graph"])
    - **Group identity and labels**: candidate sets are shared by techniques with the same target kind and static selectors, but a group node's id carries a hash of the technique's `aggregate_as` template (and of the source when the template names it), and its label is rendered from that template with `{target.namespace}`, `{target.account}`, `{target.scope}`, … replaced by the group's scope. A full-scope group lists every candidate of the scope (the source itself is never its own target).
    - **Shared placeholders**: `unresolved:` and `unknown:` placeholders carry no members, so every source holding the technique's permissions reaches them the same way. Each placeholder is reached once per technique by the group of its holders (`agg:sources:…`, one UNKNOWN finding per group); a holder drops placeholders in scopes it administers and, for scope-entity targets, scopes below another scope it reaches. A reach to several placeholders is one node `unresolved:<cset>:scopes:<hash>` with `scopes: [...]`. On the real 78-project GCP scan this took the graph from 421,119 edges (415,683 unknown) to 5,807 (371 unknown) with the 5,436 derived/conditional edges unchanged.
 
+### Exact granting permissions in the inspector
+
+Each technique records the permissions its source satisfied alongside their granting policies or roles. AWS matches include the policy ARN and name, statement index/Sid, Allow actions, resources, and native conditions. Azure matches include assignment and definition IDs, scope, inherited principal/group, actions/dataActions and exclusions. GCP matches include the binding scope, role and matching permission patterns. Kubernetes matches include the binding, namespace and exact RBAC rule. Native field names and conditions retain their original syntax in the inspector.
+
+`admin-equivalent` uses the same evidence: an AWS `Action: *` / `Resource: *` grant names the policy and statement; GCP and Azure identify the specific IAM/role-assignment permission establishing administrative authority, or the assigned Entra Global Administrator role; Kubernetes names its wildcard rule and binding. The administrative description is generated from that match. Conditions and guardrails retain their original confidence.
+
+Bound/shared requirements preserve their individual permission matches before combining grants. Permission matches remain complete even when the separate native-reference sample is capped. Finding and principal APIs preserve recorded matches when adding catalog metadata. The inspector fetches admin findings too and uses each technique's recorded finding ID. Older stored assessments that lack exact matches show the recorded source and identify the missing match; a new assessment is needed for the additional evidence.
+
 ### Missing data is never a silent absence
 
 | Situation | Effect |

@@ -23,8 +23,16 @@ def no_anonymous_reader(item, index):
     matches = []
     for row in list_of_objects(access):
         principal = row.get("specialGroup")
+        member = row.get("iamMember")
         if principal is not None and not isinstance(principal, str):
             raise Unavailable("malformed dataset specialGroup")
+        if member is not None and not isinstance(member, str):
+            raise Unavailable("malformed dataset iamMember")
+        if principal is not None and member is not None:
+            raise Unavailable("conflicting dataset ACL principal selectors")
+        # Native allUsers is a generic IAM member, not one of the documented
+        # special groups. Retain specialGroup compatibility for old snapshots.
+        principal = member if member is not None else principal
         if "role" not in row:
             # Authorized views, datasets, and routines have no ACL role.
             if principal is not None:

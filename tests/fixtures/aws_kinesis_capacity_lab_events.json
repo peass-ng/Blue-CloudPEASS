@@ -1,0 +1,70 @@
+[
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:16:51Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "UpdateShardCount",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "targetShardCount": 2,
+      "scalingType": "UNIFORM_SCALING",
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-capacity-7caa7d2a"
+    },
+    "responseElements": {
+      "streamName": "example-kds-capacity-7caa7d2a",
+      "currentShardCount": 1,
+      "targetShardCount": 2,
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-capacity-7caa7d2a"
+    },
+    "requestID": "f5824743-a844-dda7-96d2-1581c65a16eb",
+    "eventID": "c42d074e-c042-4117-81c6-182abcc690d5",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-capacity-7caa7d2a"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:17:04Z",
+    "eventSource": "kinesis.amazonaws.com",
+    "eventName": "UpdateMaxRecordSize",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-capacity-7caa7d2a",
+      "maxRecordSizeInKiB": 2048
+    },
+    "responseElements": null,
+    "requestID": "e378c081-8185-9e7b-8028-924eef9b5537",
+    "eventID": "9671ae4e-615b-44bb-afa1-15e1b9fb4b2c",
+    "readOnly": false,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::Kinesis::Stream",
+        "ARN": "arn:aws:kinesis:us-east-1:222233334444:stream/example-kds-capacity-7caa7d2a"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  }
+]

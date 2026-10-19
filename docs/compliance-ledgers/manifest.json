@@ -1,5 +1,10 @@
 {
   "check_index_sha256": "b79f5bc4c243e40e462bcd63f1eb0b1e2c8dd5cd12410182a57bccbcb6e71c32",
+  "description_errata": {
+    "path": "descriptions/accepted-base-corrections-20261019.json",
+    "sha256": "b12f49f508b529e79e213fcc4dac94e74acfa619037f244d0089105809b1ae78",
+    "verified": true
+  },
   "descriptions": {
     "desc-all-1": {
       "checks": 7,
@@ -93,10 +98,22 @@
       "reason": "Both IDs share one evaluator path in peaso/checks/k8s_ports_workloads.py (digest-pinned images with IfNotPresent or omitted policy pass in both); identical prose is accurate. Native follow-up: always_pull title claims literal Always."
     }
   },
+  "native_extensions": [
+    {
+      "path": "native-extensions/aws-20261019.json",
+      "sha256": "bce8e15d9572e27046542bf9e3e589137be660865198018806e96a3a1a71333e",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/gcp-20261019.json",
+      "sha256": "04e57a0543a1b225dbcf03661bdf02b909605088f2539d6cb7ddd1c4eb3cca6f",
+      "verified": true
+    }
+  ],
   "new_descriptions": {
-    "checks": 881,
+    "checks": 950,
     "path": "descriptions/implemented-new-checks.json",
-    "sha256": "c59811a355a58e6106875ab6987be8c4ba5bbcefa1b0c67eec3b8e3ee0a94b65",
+    "sha256": "d036904ddc3434b8d7ab4a197d5ffc95e1af78de7706416eeceec87b13790d52",
     "verified": true
   },
   "slices": {
@@ -111,42 +128,42 @@
       "input_sha256": "265a8dd29d32bcbc87d9e712a0a7d9b64fc8e356a66d6dafee3b30b3b9ddb9d2",
       "path": "aws-cis.json",
       "requirements_total": 1326,
-      "sha256": "dcfb2746517adc245b551ea4d932b37255b034be7ecd56a3b797e4f5eea01e27",
+      "sha256": "096391e3d73dcafbc2f0caa6385a6e83d58e4e700fcdb704898ffdcf75326a84",
       "verified": true
     },
     "aws-fsbp-wellarch-ftr": {
       "input_sha256": "8a97370d139d8fb4f953fcbbb1f05975332383855c81a5366ce067ab3549dc50",
       "path": "aws-fsbp-wellarch-ftr.json",
       "requirements_total": 903,
-      "sha256": "66ac508e2eb43b947447c425b19a9803ce9406b90abf7462ac671946d47a6419",
+      "sha256": "d07beca2418ca658c3e5d5845528f8c0de720025e131ed862b7e3da40167f133",
       "verified": true
     },
     "aws-kisa-ens-secnum-nis2": {
       "input_sha256": "6272478f5ba0bf796f596903d399936697fda3d00375b01f609594baf221c763",
       "path": "aws-kisa-ens-secnum-nis2.json",
       "requirements_total": 603,
-      "sha256": "6f40d527e4172ec0b7c88130087a15718f8907db699ee40bb5a6c08b71937289",
+      "sha256": "2759c4a9070d9ad7c1f5d56a6cc5cd51367d5f72ecc1b9c5fdf336009d6051e2",
       "verified": true
     },
     "aws-nist-ffiec-nydfs": {
       "input_sha256": "61a7d95cd89f16913822928e4cbb5d209e0c96576639e5787599bd393d4ea75a",
       "path": "aws-nist-ffiec-nydfs.json",
       "requirements_total": 2041,
-      "sha256": "23b8fe8537843f2ee492217efb600e9d76ac60c9a6ae58329d5162546ef2ea80",
+      "sha256": "aad0fc9c9d8b25eab80432ad313b48f00e79e3d04d64d78bd982092c552f26b3",
       "verified": true
     },
     "aws-other": {
       "input_sha256": "abc1b80d1c1383a3c2c303069532699cdedb01e24d3ae9e09d6bb4f32d1480b4",
       "path": "aws-other.json",
       "requirements_total": 1744,
-      "sha256": "f9fd0e455fe5dcb22851c004ea5dc1c79a8677ae869d243ee25423f413b7419a",
+      "sha256": "3e88745d7902c6de278cc0a23f3e904da41e193bd6700b1845448381410d7d53",
       "verified": true
     },
     "aws-pci": {
       "input_sha256": "a0c0f29935f966d0c93ebab1e6784fa2fd8146b4176016e0e22987aa92ec6331",
       "path": "aws-pci.json",
       "requirements_total": 2228,
-      "sha256": "ac205ea3d3a638545d07be5c0a6184855812c3511d0e5afdf38002a15e1e8d20",
+      "sha256": "d03437916e8442d878ce2a51115643ee32c1c82390636c68e0622fea27d62559",
       "verified": true
     },
     "azure-c5": {

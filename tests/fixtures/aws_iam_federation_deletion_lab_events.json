@@ -1,0 +1,60 @@
+[
+  {
+    "eventTime": "2026-10-19T16:55:02Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "DeleteOpenIDConnectProvider",
+    "awsRegion": "us-east-1",
+    "eventID": "03f69586-3432-41b8-9304-da0393dcc661",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "openIDConnectProviderArn": "arn:aws:iam::222233334444:oidc-provider/cognito-idp.us-east-1.amazonaws.com/us-east-1_LFBAiL2oJ"
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:45:49Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "DeleteSAMLProvider",
+    "awsRegion": "us-east-1",
+    "eventID": "37f120da-df22-4ec4-8d67-b53cbe85ec6c",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "sAMLProviderArn": "arn:aws:iam::222233334444:saml-provider/example-saml-68506f7eb9"
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:54:28Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "RemoveClientIDFromOpenIDConnectProvider",
+    "awsRegion": "us-east-1",
+    "eventID": "f5c3b7b7-d97c-456a-99f1-7ffcce69c557",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "openIDConnectProviderArn": "arn:aws:iam::222233334444:oidc-provider/cognito-idp.us-east-1.amazonaws.com/us-east-1_LFBAiL2oJ",
+      "clientID": "2l5sj5tehi0kr7mkkb2ea0hvhq"
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

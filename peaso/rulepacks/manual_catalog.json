@@ -2139,18 +2139,20 @@
       "automated": false
     },
     {
-      "id": "aws-compliance.control.ec2_instance_no_high_level_finding_in_inspector_scan",
+      "id": "aws-compliance.control.cloudwatch_cross_account_sharing",
       "provider": "aws",
-      "title": "EC2 instances high level findings should not be there in inspector scans",
-      "question": "Do EC2 instances have no High severity findings in Amazon Inspector scans?",
-      "guidance": "The pinned query reads aws_inspector_finding (Amazon Inspector Classic, ListFindings v1). The Inspector Classic API reference is no longer published and current Inspector (inspector2) findings use a different model, so review Inspector findings for each instance manually.",
-      "scope_kinds": [],
+      "title": "CloudWatch should not allow cross-account sharing",
+      "question": "CloudWatch should not allow cross-account sharing",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "scope_kinds": [
+        "account"
+      ],
       "source_dependencies": [
-        "aws_ec2_instance",
-        "aws_inspector_finding"
+        "aws_account",
+        "aws_iam_role"
       ],
       "status": "MANUAL",
-      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ec2.pp#L140",
+      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/cloudwatch.pp#L52",
       "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
       "license": "Apache-2.0",
       "frameworks": [
@@ -2158,16 +2160,15 @@
           "framework": "AWS NIST Cybersecurity Framework (CSF) v2.0",
           "framework_family": "NIST CSF",
           "framework_id": "aws-compliance.benchmark.nist_csf_v2",
-          "control_id": "aws-compliance.control.ec2_instance_no_high_level_finding_in_inspector_scan",
+          "control_id": "aws-compliance.control.cloudwatch_cross_account_sharing",
           "benchmark_ids": [
             "aws-compliance.benchmark.nist_csf_v2",
-            "aws-compliance.benchmark.nist_csf_v2_id",
-            "aws-compliance.benchmark.nist_csf_v2_id_im",
-            "aws-compliance.benchmark.nist_csf_v2_id_im_01",
-            "aws-compliance.benchmark.nist_csf_v2_id_im_02",
-            "aws-compliance.benchmark.nist_csf_v2_id_ra",
-            "aws-compliance.benchmark.nist_csf_v2_id_ra_01",
-            "aws-compliance.benchmark.nist_csf_v2_id_ra_09"
+            "aws-compliance.benchmark.nist_csf_v2_de",
+            "aws-compliance.benchmark.nist_csf_v2_de_cm",
+            "aws-compliance.benchmark.nist_csf_v2_de_cm_06",
+            "aws-compliance.benchmark.nist_csf_v2_gv",
+            "aws-compliance.benchmark.nist_csf_v2_gv_sc",
+            "aws-compliance.benchmark.nist_csf_v2_gv_sc_02"
           ],
           "version": "2.0",
           "declared_version": "2.0",
@@ -2175,25 +2176,106 @@
           "source": "nist_csf_v2/nist_csf_v2.pp"
         }
       ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
       "automated": false
     },
     {
-      "id": "aws-compliance.control.ec2_instance_user_data_no_secrets",
+      "id": "aws-perimeter.control.config_aggregator_shared_with_trusted_accounts",
       "provider": "aws",
-      "title": "EC2 instances user data should not have secrets",
-      "question": "Is EC2 instance user data free of secrets (passwords, tokens, keys)?",
-      "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
+      "title": "Config service aggregator should only collect data from trusted accounts",
+      "question": "Config service aggregator should only collect data from trusted accounts",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. Every external aggregator account requires a MANUAL trust decision; no native approval universe or failing verdict exists.",
       "scope_kinds": [],
       "source_dependencies": [
-        "aws_ec2_instance"
+        "aws_config_aggregate_authorization"
       ],
       "status": "MANUAL",
-      "source": "https://github.com/turbot/steampipe-mod-aws-compliance/blob/803dda1f7555ed5cea959aef30cfa0719b030d8c/conformance_pack/ec2.pp#L269",
-      "revision": "803dda1f7555ed5cea959aef30cfa0719b030d8c",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L272",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
       "license": "Apache-2.0",
-      "frameworks": [],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.config_aggregator_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. Every external aggregator account requires a MANUAL trust decision; no native approval universe or failing verdict exists.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.directory_service_directory_shared_with_trusted_accounts",
+      "provider": "aws",
+      "title": "Directory Service directories should only be shared with trusted accounts",
+      "question": "Directory Service directories should only be shared with trusted accounts",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_directory_service_directory"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L303",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.directory_service_directory_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.dlm_ebs_snapshot_policy_shared_with_trusted_accounts",
+      "provider": "aws",
+      "title": "DLM policies should only share EBS snapshot copies with trusted accounts",
+      "question": "DLM policies should only share EBS snapshot copies with trusted accounts",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. External target accounts require MANUAL approval against a customer trusted-account list.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_dlm_lifecycle_policy"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L392",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.dlm_ebs_snapshot_policy_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. External target accounts require MANUAL approval against a customer trusted-account list.",
       "automated": false
     },
     {
@@ -2359,6 +2441,142 @@
         }
       ],
       "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.ram_resource_shared_with_trusted_accounts",
+      "provider": "aws",
+      "title": "Resources shared through RAM should only be shared with trusted accounts",
+      "question": "Resources shared through RAM should only be shared with trusted accounts",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ram_principal_association",
+        "aws_ram_resource_association"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L48",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.ram_resource_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.ram_shared_access",
+            "aws-perimeter.benchmark.shared_access"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.ram_resource_shared_with_trusted_organization_units",
+      "provider": "aws",
+      "title": "Resources shared through RAM should only be shared with trusted OUs",
+      "question": "Resources shared through RAM should only be shared with trusted OUs",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ram_principal_association",
+        "aws_ram_resource_association"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L183",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.ram_resource_shared_with_trusted_organization_units",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.ram_shared_access",
+            "aws-perimeter.benchmark.shared_access"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.ram_resource_shared_with_trusted_organizations",
+      "provider": "aws",
+      "title": "Resources shared through RAM should only be shared with trusted organizations",
+      "question": "Resources shared through RAM should only be shared with trusted organizations",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_ram_principal_association",
+        "aws_ram_resource_association"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L115",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.ram_resource_shared_with_trusted_organizations",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.ram_shared_access",
+            "aws-perimeter.benchmark.shared_access"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "automated": false
+    },
+    {
+      "id": "aws-perimeter.control.rds_db_snapshot_shared_with_trusted_accounts",
+      "provider": "aws",
+      "title": "RDS DB snapshots should only be shared with trusted accounts",
+      "question": "RDS DB snapshots should only be shared with trusted accounts",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.; The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
+      "scope_kinds": [],
+      "source_dependencies": [
+        "aws_rds_db_cluster_snapshot",
+        "aws_rds_db_snapshot"
+      ],
+      "status": "MANUAL",
+      "source": "https://github.com/turbot/steampipe-mod-aws-perimeter/blob/2fe878449fb0d83b23333e373ee73849b0049364/perimeter/shared_access.pp#L838",
+      "revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+      "license": "Apache-2.0",
+      "frameworks": [
+        {
+          "framework": "Shared Access",
+          "framework_family": "Shared Access",
+          "framework_id": "aws-perimeter.benchmark.shared_access",
+          "control_id": "aws-perimeter.control.rds_db_snapshot_shared_with_trusted_accounts",
+          "benchmark_ids": [
+            "aws-perimeter.benchmark.shared_access",
+            "aws-perimeter.benchmark.shared_access_settings"
+          ],
+          "version": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "declared_version": null,
+          "source_revision": "2fe878449fb0d83b23333e373ee73849b0049364",
+          "source": "perimeter/shared_access.pp"
+        }
+      ],
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.; The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
       "automated": false
     },
     {
@@ -5049,8 +5267,8 @@
     {
       "id": "azure-compliance.control.cis_v150_1_11",
       "provider": "azure",
-      "title": "1.11 Ensure That \u2018Users Can Consent to Apps Accessing Company Data on Their Behalf\u2019 Is Set To \u2018Allow for Verified Publishers\u2019",
-      "question": "1.11 Ensure That \u2018Users Can Consent to Apps Accessing Company Data on Their Behalf\u2019 Is Set To \u2018Allow for Verified Publishers\u2019",
+      "title": "1.11 Ensure That ‘Users Can Consent to Apps Accessing Company Data on Their Behalf’ Is Set To ‘Allow for Verified Publishers’",
+      "question": "1.11 Ensure That ‘Users Can Consent to Apps Accessing Company Data on Their Behalf’ Is Set To ‘Allow for Verified Publishers’",
       "guidance": "Allow users to provide consent for selected permissions when a request is coming from a verified publisher.",
       "scope_kinds": [],
       "source_dependencies": [],
@@ -5518,8 +5736,8 @@
     {
       "id": "azure-compliance.control.cis_v150_1_25",
       "provider": "azure",
-      "title": "1.25 Ensure That \u2018Subscription Entering AAD Directory\u2019 and \u2018Subscription Leaving AAD Directory\u2019 Is Set To \u2018Permit No One\u2019",
-      "question": "1.25 Ensure That \u2018Subscription Entering AAD Directory\u2019 and \u2018Subscription Leaving AAD Directory\u2019 Is Set To \u2018Permit No One\u2019",
+      "title": "1.25 Ensure That ‘Subscription Entering AAD Directory’ and ‘Subscription Leaving AAD Directory’ Is Set To ‘Permit No One’",
+      "question": "1.25 Ensure That ‘Subscription Entering AAD Directory’ and ‘Subscription Leaving AAD Directory’ Is Set To ‘Permit No One’",
       "guidance": "Users who are set as subscription owners are able to make administrative changes to the subscriptions and move them into and out of Azure Active Directories.",
       "scope_kinds": [],
       "source_dependencies": [],
@@ -18705,8 +18923,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/account/account_maintain_current_contact_details/account_maintain_current_contact_details.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/account/account_maintain_current_contact_details/account_maintain_current_contact_details.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -18863,7 +19081,7 @@
           "source": "prowler/compliance/aws/cis_7.0_aws.json"
         },
         {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework": "ENS RD 311/2022 - Categoría Alta",
           "framework_id": "ens_rd2022_aws",
           "framework_family": "ENS",
           "version": "RD2022",
@@ -18938,8 +19156,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/account/account_security_contact_information_is_registered/account_security_contact_information_is_registered.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/account/account_security_contact_information_is_registered/account_security_contact_information_is_registered.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -19087,7 +19305,7 @@
           "source": "prowler/compliance/aws/cis_7.0_aws.json"
         },
         {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework": "ENS RD 311/2022 - Categoría Alta",
           "framework_id": "ens_rd2022_aws",
           "framework_family": "ENS",
           "version": "RD2022",
@@ -19198,8 +19416,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/account/account_security_questions_are_registered_in_the_aws_account/account_security_questions_are_registered_in_the_aws_account.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/account/account_security_questions_are_registered_in_the_aws_account/account_security_questions_are_registered_in_the_aws_account.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -19266,7 +19484,7 @@
           "source": "prowler/compliance/aws/cis_4.0_aws.json"
         },
         {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework": "ENS RD 311/2022 - Categoría Alta",
           "framework_id": "ens_rd2022_aws",
           "framework_family": "ENS",
           "version": "RD2022",
@@ -19333,137 +19551,6 @@
       "automated": false
     },
     {
-      "id": "prowler.aws.bedrock_agent_role_least_privilege",
-      "provider": "aws",
-      "title": "Amazon Bedrock agent execution role follows least privilege",
-      "question": "Does every Amazon Bedrock agent execution role avoid AWS-managed *FullAccess policies, administrative or privilege-escalation permissions, and have a permissions boundary?",
-      "guidance": "Prowler joins GetAgent agentResourceRoleArn with the IAM role inventory and applies its own administrative-access and privilege-escalation combination catalogue to every attached and inline policy. That catalogue is Prowler-specific and not a documented AWS rule; review each agent role's policies and permissions boundary against your least-privilege baseline.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_agent_role_least_privilege/bedrock_agent_role_least_privilege.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.bedrock_agent_role_not_shared_across_agents",
-      "provider": "aws",
-      "title": "Amazon Bedrock agent has a dedicated execution role",
-      "question": "Does every Amazon Bedrock agent (draft and every version routed by an active alias) use an execution role that no other agent in the account uses?",
-      "guidance": "The source builds an account-wide role index across all regions, agent drafts and alias-routed versions (ListAgentAliases, GetAgentVersion). The per-region snapshot cannot prove dedication account-wide; list agentResourceRoleArn for every agent and deployed version and confirm no role repeats.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_agent_role_not_shared_across_agents/bedrock_agent_role_not_shared_across_agents.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS AI Security Framework",
-          "framework_id": "aws_ai_security_framework_aws",
-          "framework_family": "AWS-AI-Security-Framework",
-          "version": "1.0",
-          "declared_version": "1.0",
-          "control_id": "AISF-AGENT-01",
-          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.bedrock_api_key_no_administrative_privileges",
-      "provider": "aws",
-      "title": "Amazon Bedrock API key owner has no administrative or privilege-escalation permissions",
-      "question": "Do the IAM users that own Amazon Bedrock API keys lack administrative privileges, privilege-escalation paths and full Bedrock service access?",
-      "guidance": "Prowler evaluates each Bedrock service-specific credential's user policies with its own admin/privilege-escalation/full-service catalogue. Review the attached and inline policies of every user holding a Bedrock API key.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/bedrock/bedrock_api_key_no_administrative_privileges/bedrock_api_key_no_administrative_privileges.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS AI Security Framework",
-          "framework_id": "aws_ai_security_framework_aws",
-          "framework_family": "AWS-AI-Security-Framework",
-          "version": "1.0",
-          "declared_version": "1.0",
-          "control_id": "AISF-IAM-02",
-          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "OIS-04.01AC",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "SP-01.04B",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "HR-01.01B",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "IAM-01.01B",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "IAM-01.04B",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "CRY-03.01B",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "Common Cloud Controls Catalog (CCC)",
-          "framework_id": "ccc_aws",
-          "framework_family": "CCC",
-          "version": "v2025.10",
-          "declared_version": "v2025.10",
-          "control_id": "CCC.GenAI.CN06.AR01",
-          "source": "prowler/compliance/aws/ccc_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
       "id": "prowler.aws.codebuild_project_uses_allowed_github_organizations",
       "provider": "aws",
       "title": "CodeBuild GitHub sources use approved GitHub organizations",
@@ -19472,8 +19559,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/codebuild/codebuild_project_uses_allowed_github_organizations/codebuild_project_uses_allowed_github_organizations.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/codebuild/codebuild_project_uses_allowed_github_organizations/codebuild_project_uses_allowed_github_organizations.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -19552,8 +19639,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/codepipeline/codepipeline_project_repo_private/codepipeline_project_repo_private.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/codepipeline/codepipeline_project_repo_private/codepipeline_project_repo_private.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -19578,8 +19665,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_elastic_ip_shodan/ec2_elastic_ip_shodan.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/ec2/ec2_elastic_ip_shodan/ec2_elastic_ip_shodan.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -19644,658 +19731,6 @@
           "declared_version": "2023-korean",
           "control_id": "2.10.2",
           "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.ec2_instance_secrets_user_data",
-      "provider": "aws",
-      "title": "EC2 instance user data contains no secrets",
-      "question": "Does EC2 instance user data contain no secrets?",
-      "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_instance_secrets_user_data/ec2_instance_secrets_user_data.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS AI Security Framework",
-          "framework_id": "aws_ai_security_framework_aws",
-          "framework_family": "AWS-AI-Security-Framework",
-          "version": "1.0",
-          "declared_version": "1.0",
-          "control_id": "AISF-DATA-05",
-          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
-        },
-        {
-          "framework": "AWS Well-Architected Framework Security Pillar",
-          "framework_id": "aws_well_architected_framework_security_pillar_aws",
-          "framework_family": "AWS-Well-Architected-Framework-Security-Pillar",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "SEC02-BP03",
-          "source": "prowler/compliance/aws/aws_well_architected_framework_security_pillar_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.20",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.21",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.22",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023",
-          "framework_id": "kisa_isms_p_2023_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023",
-          "declared_version": "2023",
-          "control_id": "2.7.1",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023",
-          "framework_id": "kisa_isms_p_2023_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023",
-          "declared_version": "2023",
-          "control_id": "2.10.2",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023 (Korean)",
-          "framework_id": "kisa_isms_p_2023_korean_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023-korean",
-          "declared_version": "2023-korean",
-          "control_id": "2.7.1",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023 (Korean)",
-          "framework_id": "kisa_isms_p_2023_korean_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023-korean",
-          "declared_version": "2023-korean",
-          "control_id": "2.10.2",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
-        },
-        {
-          "framework": "MITRE ATT&CK compliance framework",
-          "framework_id": "mitre_attack_aws",
-          "framework_family": "MITRE-ATTACK",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "T1552",
-          "source": "prowler/compliance/aws/mitre_attack_aws.json"
-        },
-        {
-          "framework": "NIS2 - Network and Information Security Directive (Directive (EU) 2022/2555)",
-          "framework_id": "nis2_aws",
-          "framework_family": "NIS2",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "3.5.3.a",
-          "source": "prowler/compliance/aws/nis2_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
-          "framework_id": "nist_csf_2.0_aws",
-          "framework_family": "NIST-CSF",
-          "version": "2.0",
-          "declared_version": "2.0",
-          "control_id": "ds_5",
-          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
-        },
-        {
-          "framework": "SecNumCloud Referentiel d'Exigences v3.2",
-          "framework_id": "secnumcloud_3.2_aws",
-          "framework_family": "SecNumCloud",
-          "version": "3.2",
-          "declared_version": "3.2",
-          "control_id": "10.5",
-          "source": "prowler/compliance/aws/secnumcloud_3.2_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.ec2_launch_template_no_secrets",
-      "provider": "aws",
-      "title": "EC2 launch template user data contains no secrets in any version",
-      "question": "Does every version of every EC2 launch template contain no secrets in user data?",
-      "guidance": "Upstream runs a secret-content scanner (detect-secrets) over decoded user data. PEASO is a read-only configuration CSPM that does not collect or scan secret material, so the question is kept for operator review.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/ec2/ec2_launch_template_no_secrets/ec2_launch_template_no_secrets.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS Well-Architected Framework Security Pillar",
-          "framework_id": "aws_well_architected_framework_security_pillar_aws",
-          "framework_family": "AWS-Well-Architected-Framework-Security-Pillar",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "SEC02-BP03",
-          "source": "prowler/compliance/aws/aws_well_architected_framework_security_pillar_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.20",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.21",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.22",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023",
-          "framework_id": "kisa_isms_p_2023_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023",
-          "declared_version": "2023",
-          "control_id": "2.7.1",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023",
-          "framework_id": "kisa_isms_p_2023_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023",
-          "declared_version": "2023",
-          "control_id": "2.10.2",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023 (Korean)",
-          "framework_id": "kisa_isms_p_2023_korean_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023-korean",
-          "declared_version": "2023-korean",
-          "control_id": "2.7.1",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023 (Korean)",
-          "framework_id": "kisa_isms_p_2023_korean_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023-korean",
-          "declared_version": "2023-korean",
-          "control_id": "2.10.2",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
-        },
-        {
-          "framework": "MITRE ATT&CK compliance framework",
-          "framework_id": "mitre_attack_aws",
-          "framework_family": "MITRE-ATTACK",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "T1552",
-          "source": "prowler/compliance/aws/mitre_attack_aws.json"
-        },
-        {
-          "framework": "SecNumCloud Referentiel d'Exigences v3.2",
-          "framework_id": "secnumcloud_3.2_aws",
-          "framework_family": "SecNumCloud",
-          "version": "3.2",
-          "declared_version": "3.2",
-          "control_id": "10.5",
-          "source": "prowler/compliance/aws/secnumcloud_3.2_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.kms_key_enclave_attestation_bypassable_path",
-      "provider": "aws",
-      "title": "kms_key_enclave_attestation_bypassable_path",
-      "question": "Does no authorization path in the KMS enclave key policy let principals use the key without kms:RecipientAttestation?",
-      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_bypassable_path/kms_key_enclave_attestation_bypassable_path.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS AI Security Framework",
-          "framework_id": "aws_ai_security_framework_aws",
-          "framework_family": "AWS-AI-Security-Framework",
-          "version": "1.0",
-          "declared_version": "1.0",
-          "control_id": "AISF-INFRA-09",
-          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
-        },
-        {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
-          "framework_id": "ens_rd2022_aws",
-          "framework_family": "ENS",
-          "version": "RD2022",
-          "declared_version": "RD2022",
-          "control_id": "op.exp.10.aws.cmk.7",
-          "source": "prowler/compliance/aws/ens_rd2022_aws.json"
-        },
-        {
-          "framework": "FedRAMP Moderate Revision 4",
-          "framework_id": "fedramp_moderate_revision_4_aws",
-          "framework_family": "FedRamp-Moderate-Revision-4",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "ac-6",
-          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
-        },
-        {
-          "framework": "FedRAMP Moderate Revision 4",
-          "framework_id": "fedramp_moderate_revision_4_aws",
-          "framework_family": "FedRamp-Moderate-Revision-4",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc-12",
-          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
-        },
-        {
-          "framework": "HIPAA compliance framework",
-          "framework_id": "hipaa_aws",
-          "framework_family": "HIPAA",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "164_312_a_1",
-          "source": "prowler/compliance/aws/hipaa_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.24",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "MITRE ATT&CK compliance framework",
-          "framework_id": "mitre_attack_aws",
-          "framework_family": "MITRE-ATTACK",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "T1078",
-          "source": "prowler/compliance/aws/mitre_attack_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "ac_6",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc_12",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc_28_1",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
-          "framework_id": "pci_3.2.1_aws",
-          "framework_family": "PCI",
-          "version": "3.2.1",
-          "declared_version": "3.2.1",
-          "control_id": "3.5",
-          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
-        },
-        {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
-          "framework_id": "pci_3.2.1_aws",
-          "framework_family": "PCI",
-          "version": "3.2.1",
-          "declared_version": "3.2.1",
-          "control_id": "7.2",
-          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
-        },
-        {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
-          "framework_id": "pci_4.0_aws",
-          "framework_family": "PCI",
-          "version": "4.0",
-          "declared_version": "4.0",
-          "control_id": "7.2.1.30",
-          "source": "prowler/compliance/aws/pci_4.0_aws.json"
-        },
-        {
-          "framework": "System and Organization Controls 2 (SOC2)",
-          "framework_id": "soc2_aws",
-          "framework_family": "SOC2",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "cc_6_3",
-          "source": "prowler/compliance/aws/soc2_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.kms_key_enclave_attestation_no_deployment_binding",
-      "provider": "aws",
-      "title": "kms_key_enclave_attestation_no_deployment_binding",
-      "question": "Does the KMS enclave key attestation bind a specific deployment context (instance/account/role), not only image PCRs?",
-      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_no_deployment_binding/kms_key_enclave_attestation_no_deployment_binding.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS AI Security Framework",
-          "framework_id": "aws_ai_security_framework_aws",
-          "framework_family": "AWS-AI-Security-Framework",
-          "version": "1.0",
-          "declared_version": "1.0",
-          "control_id": "AISF-INFRA-09",
-          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.24",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc_12",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "System and Organization Controls 2 (SOC2)",
-          "framework_id": "soc2_aws",
-          "framework_family": "SOC2",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "cc_6_3",
-          "source": "prowler/compliance/aws/soc2_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.kms_key_enclave_attestation_not_enforced",
-      "provider": "aws",
-      "title": "kms_key_enclave_attestation_not_enforced",
-      "question": "Do sensitive actions on the KMS enclave key require kms:RecipientAttestation conditions?",
-      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_not_enforced/kms_key_enclave_attestation_not_enforced.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS AI Security Framework",
-          "framework_id": "aws_ai_security_framework_aws",
-          "framework_family": "AWS-AI-Security-Framework",
-          "version": "1.0",
-          "declared_version": "1.0",
-          "control_id": "AISF-INFRA-09",
-          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "CRY-03.01B",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
-          "framework_id": "c5_aws",
-          "framework_family": "C5",
-          "version": "2025",
-          "declared_version": "2025",
-          "control_id": "CRY-05.02B",
-          "source": "prowler/compliance/aws/c5_aws.json"
-        },
-        {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
-          "framework_id": "ens_rd2022_aws",
-          "framework_family": "ENS",
-          "version": "RD2022",
-          "declared_version": "RD2022",
-          "control_id": "op.exp.10.aws.cmk.6",
-          "source": "prowler/compliance/aws/ens_rd2022_aws.json"
-        },
-        {
-          "framework": "FedRAMP Moderate Revision 4",
-          "framework_id": "fedramp_moderate_revision_4_aws",
-          "framework_family": "FedRamp-Moderate-Revision-4",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "ac-3",
-          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
-        },
-        {
-          "framework": "FedRAMP Moderate Revision 4",
-          "framework_id": "fedramp_moderate_revision_4_aws",
-          "framework_family": "FedRamp-Moderate-Revision-4",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc-12",
-          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
-        },
-        {
-          "framework": "GDPR compliance framework",
-          "framework_id": "gdpr_aws",
-          "framework_family": "GDPR",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "article_25",
-          "source": "prowler/compliance/aws/gdpr_aws.json"
-        },
-        {
-          "framework": "GDPR compliance framework",
-          "framework_id": "gdpr_aws",
-          "framework_family": "GDPR",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "article_32",
-          "source": "prowler/compliance/aws/gdpr_aws.json"
-        },
-        {
-          "framework": "HIPAA compliance framework",
-          "framework_id": "hipaa_aws",
-          "framework_family": "HIPAA",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "164_312_a_2_iv",
-          "source": "prowler/compliance/aws/hipaa_aws.json"
-        },
-        {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.24",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023",
-          "framework_id": "kisa_isms_p_2023_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023",
-          "declared_version": "2023",
-          "control_id": "2.7.2",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
-        },
-        {
-          "framework": "KISA ISMS compliance framework 2023 (Korean)",
-          "framework_id": "kisa_isms_p_2023_korean_aws",
-          "framework_family": "KISA-ISMS-P",
-          "version": "2023-korean",
-          "declared_version": "2023-korean",
-          "control_id": "2.7.2",
-          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
-        },
-        {
-          "framework": "MITRE ATT&CK compliance framework",
-          "framework_id": "mitre_attack_aws",
-          "framework_family": "MITRE-ATTACK",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "T1552",
-          "source": "prowler/compliance/aws/mitre_attack_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-171 Revision 2",
-          "framework_id": "nist_800_171_revision_2_aws",
-          "framework_family": "NIST-800-171-Revision-2",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "3_13_11",
-          "source": "prowler/compliance/aws/nist_800_171_revision_2_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "ac_3",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc_12",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc_28_1",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
-          "framework_id": "pci_3.2.1_aws",
-          "framework_family": "PCI",
-          "version": "3.2.1",
-          "declared_version": "3.2.1",
-          "control_id": "3.5",
-          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
-        },
-        {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
-          "framework_id": "pci_3.2.1_aws",
-          "framework_family": "PCI",
-          "version": "3.2.1",
-          "declared_version": "3.2.1",
-          "control_id": "3.6",
-          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
-        },
-        {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
-          "framework_id": "pci_4.0_aws",
-          "framework_family": "PCI",
-          "version": "4.0",
-          "declared_version": "4.0",
-          "control_id": "3.6.1.10",
-          "source": "prowler/compliance/aws/pci_4.0_aws.json"
-        },
-        {
-          "framework": "SecNumCloud Referentiel d'Exigences v3.2",
-          "framework_id": "secnumcloud_3.2_aws",
-          "framework_family": "SecNumCloud",
-          "version": "3.2",
-          "declared_version": "3.2",
-          "control_id": "10.5",
-          "source": "prowler/compliance/aws/secnumcloud_3.2_aws.json"
-        },
-        {
-          "framework": "System and Organization Controls 2 (SOC2)",
-          "framework_id": "soc2_aws",
-          "framework_family": "SOC2",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "cc_6_1",
-          "source": "prowler/compliance/aws/soc2_aws.json"
         }
       ],
       "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
@@ -20310,8 +19745,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_pcr_mismatch/kms_key_enclave_attestation_pcr_mismatch.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/kms/kms_key_enclave_attestation_pcr_mismatch/kms_key_enclave_attestation_pcr_mismatch.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -20324,7 +19759,7 @@
           "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
         },
         {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework": "ENS RD 311/2022 - Categoría Alta",
           "framework_id": "ens_rd2022_aws",
           "framework_family": "ENS",
           "version": "RD2022",
@@ -20408,8 +19843,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_attestation_unknown_image/kms_key_enclave_attestation_unknown_image.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/kms/kms_key_enclave_attestation_unknown_image/kms_key_enclave_attestation_unknown_image.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -20489,16 +19924,16 @@
       "automated": false
     },
     {
-      "id": "prowler.aws.kms_key_enclave_debug_attestation_detected",
+      "id": "prowler.aws.organizations_delegated_administrators",
       "provider": "aws",
-      "title": "kms_key_enclave_debug_attestation_detected",
-      "question": "Has no Nitro Enclave debug-mode attestation been observed against this KMS key?",
-      "guidance": "The Prowler check needs operator-supplied golden PCR values / deployment context and CloudTrail attestation events, which the configuration snapshot does not hold.",
+      "title": "AWS Organization has only trusted delegated administrators",
+      "question": "AWS Organization has only trusted delegated administrators",
+      "guidance": "Provider inventory cannot determine the customer approved trust set. The no-untrusted-delegates contract compares administrators with the customer trusted account list; the evaluator silently substitutes an empty default, which cannot decide whether a registered delegate is trusted.",
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/kms/kms_key_enclave_debug_attestation_detected/kms_key_enclave_debug_attestation_detected.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/organizations/organizations_delegated_administrators/organizations_delegated_administrators.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -20507,53 +19942,107 @@
           "framework_family": "AWS-AI-Security-Framework",
           "version": "1.0",
           "declared_version": "1.0",
-          "control_id": "AISF-DETECT-03",
+          "control_id": "AISF-GOV-02",
           "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
         },
         {
-          "framework": "FedRAMP Moderate Revision 4",
-          "framework_id": "fedramp_moderate_revision_4_aws",
-          "framework_family": "FedRamp-Moderate-Revision-4",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc-28",
-          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "OIS-04.03B",
+          "source": "prowler/compliance/aws/c5_aws.json"
         },
         {
-          "framework": "FedRAMP Moderate Revision 4",
-          "framework_id": "fedramp_moderate_revision_4_aws",
-          "framework_family": "FedRamp-Moderate-Revision-4",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "si-4-2",
-          "source": "prowler/compliance/aws/fedramp_moderate_revision_4_aws.json"
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "SP-01.04B",
+          "source": "prowler/compliance/aws/c5_aws.json"
         },
         {
-          "framework": "HIPAA compliance framework",
-          "framework_id": "hipaa_aws",
-          "framework_family": "HIPAA",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "164_308_a_1_ii_d",
-          "source": "prowler/compliance/aws/hipaa_aws.json"
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "HR-01.01B",
+          "source": "prowler/compliance/aws/c5_aws.json"
         },
         {
-          "framework": "HIPAA compliance framework",
-          "framework_id": "hipaa_aws",
-          "framework_family": "HIPAA",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "164_312_b",
-          "source": "prowler/compliance/aws/hipaa_aws.json"
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "IAM-01.01B",
+          "source": "prowler/compliance/aws/c5_aws.json"
         },
         {
-          "framework": "ISO/IEC 27001 Information Security Management Standard 2022",
-          "framework_id": "iso27001_2022_aws",
-          "framework_family": "ISO27001",
-          "version": "2022",
-          "declared_version": "2022",
-          "control_id": "A.8.16",
-          "source": "prowler/compliance/aws/iso27001_2022_aws.json"
+          "framework": "Cloud Computing Compliance Criteria Catalogue C5",
+          "framework_id": "c5_aws",
+          "framework_family": "C5",
+          "version": "2025",
+          "declared_version": "2025",
+          "control_id": "IAM-01.04B",
+          "source": "prowler/compliance/aws/c5_aws.json"
+        },
+        {
+          "framework": "CIS Amazon Web Services Foundations Benchmark v7.0.0",
+          "framework_id": "cis_7.0_aws",
+          "framework_family": "CIS",
+          "version": "7.0",
+          "declared_version": "7.0",
+          "control_id": "2.1.5",
+          "source": "prowler/compliance/aws/cis_7.0_aws.json"
+        },
+        {
+          "framework": "CIS Amazon Web Services Foundations Benchmark v7.0.0",
+          "framework_id": "cis_7.0_aws",
+          "framework_family": "CIS",
+          "version": "7.0",
+          "declared_version": "7.0",
+          "control_id": "2.1.6",
+          "source": "prowler/compliance/aws/cis_7.0_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.5.5",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023",
+          "framework_id": "kisa_isms_p_2023_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023",
+          "declared_version": "2023",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.5.5",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
+        },
+        {
+          "framework": "KISA ISMS compliance framework 2023 (Korean)",
+          "framework_id": "kisa_isms_p_2023_korean_aws",
+          "framework_family": "KISA-ISMS-P",
+          "version": "2023-korean",
+          "declared_version": "2023-korean",
+          "control_id": "2.10.2",
+          "source": "prowler/compliance/aws/kisa_isms_p_2023_korean_aws.json"
         },
         {
           "framework": "MITRE ATT&CK compliance framework",
@@ -20561,26 +20050,8 @@
           "framework_family": "MITRE-ATTACK",
           "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
           "declared_version": "",
-          "control_id": "T1562",
+          "control_id": "T1078",
           "source": "prowler/compliance/aws/mitre_attack_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "sc_28_1",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
-        },
-        {
-          "framework": "National Institute of Standards and Technology (NIST) 800-53 Revision 5",
-          "framework_id": "nist_800_53_revision_5_aws",
-          "framework_family": "NIST-800-53-Revision-5",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "si_4_2",
-          "source": "prowler/compliance/aws/nist_800_53_revision_5_aws.json"
         },
         {
           "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
@@ -20588,54 +20059,56 @@
           "framework_family": "NIST-CSF",
           "version": "2.0",
           "declared_version": "2.0",
-          "control_id": "cm_1",
+          "control_id": "rm_1",
           "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
         },
         {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v3.2.1",
-          "framework_id": "pci_3.2.1_aws",
-          "framework_family": "PCI",
-          "version": "3.2.1",
-          "declared_version": "3.2.1",
-          "control_id": "10.2",
-          "source": "prowler/compliance/aws/pci_3.2.1_aws.json"
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "rr_1",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
         },
         {
-          "framework": "Payment Card Industry Data Security Standard (PCI DSS) v4.0",
-          "framework_id": "pci_4.0_aws",
-          "framework_family": "PCI",
-          "version": "4.0",
-          "declared_version": "4.0",
-          "control_id": "3.5.1.36",
-          "source": "prowler/compliance/aws/pci_4.0_aws.json"
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "rr_2",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
         },
         {
-          "framework": "System and Organization Controls 2 (SOC2)",
-          "framework_id": "soc2_aws",
-          "framework_family": "SOC2",
-          "version": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-          "declared_version": "",
-          "control_id": "cc_7_2",
-          "source": "prowler/compliance/aws/soc2_aws.json"
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "po_3",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "ov_3",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
+        },
+        {
+          "framework": "National Institute of Standards and Technology (NIST) Cybersecurity Framework (CSF) v2.0",
+          "framework_id": "nist_csf_2.0_aws",
+          "framework_family": "NIST-CSF",
+          "version": "2.0",
+          "declared_version": "2.0",
+          "control_id": "am_6",
+          "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
         }
       ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.rolesanywhere_profile_restricts_session_permissions",
-      "provider": "aws",
-      "title": "IAM Roles Anywhere profile restricts session permissions",
-      "question": "Does every IAM Roles Anywhere profile restrict session permissions (session policy or managed policy ARNs) to the minimum required?",
-      "guidance": "Whether a profile's session policy is sufficiently restrictive depends on the roles and workloads it serves; review ManagedPolicyArns and SessionPolicy of each profile.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/rolesanywhere/rolesanywhere_profile_restricts_session_permissions/rolesanywhere_profile_restricts_session_permissions.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "reason": "The previous native predicates require customer-specific trust/approval evidence and are archived from read-only scans. This source is not advertised as automatic coverage; source lineage is retained in historical_native_checks. Provider inventory cannot determine the customer approved trust set. The no-untrusted-delegates contract compares administrators with the customer trusted account list; the evaluator silently substitutes an empty default, which cannot decide whether a registered delegate is trusted.",
       "automated": false
     },
     {
@@ -20647,8 +20120,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/route53/route53_dangling_ip_subdomain_takeover/route53_dangling_ip_subdomain_takeover.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/route53/route53_dangling_ip_subdomain_takeover/route53_dangling_ip_subdomain_takeover.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -20724,23 +20197,7 @@
           "source": "prowler/compliance/aws/nist_csf_2.0_aws.json"
         }
       ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.s3_bucket_object_public",
-      "provider": "aws",
-      "title": "Spot-check S3 bucket objects for public ACLs",
-      "question": "Do spot-checked objects in each S3 bucket carry no public object ACL grants (AllUsers/AuthenticatedUsers)?",
-      "guidance": "Prowler samples objects and reads each object's ACL. Per-object reads are outside the bucket-level snapshot; sample objects with GetObjectAcl or rely on BucketOwnerEnforced/IgnorePublicAcls.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/s3/s3_bucket_object_public/s3_bucket_object_public.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
+      "reason": "The pinned evaluator infers takeover from AWS-range A targets missing from account EIP/ENI inventory or S3 website CNAME targets missing from owned_bucket_names. Legitimate cross-account DNS targets satisfy both tests. Account nonownership does not establish released addresses, missing buckets or claimability; reject these unsafe FAIL predicates rather than advertise takeover detection.",
       "automated": false
     },
     {
@@ -20752,8 +20209,8 @@
       "scope_kinds": [],
       "source_dependencies": [],
       "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/s3/s3_bucket_shadow_resource_vulnerability/s3_bucket_shadow_resource_vulnerability.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
+      "source": "https://github.com/prowler-cloud/prowler/blob/7f9eb2cb11ea931f54acccb6e49152358ccf949d/prowler/providers/aws/services/s3/s3_bucket_shadow_resource_vulnerability/s3_bucket_shadow_resource_vulnerability.metadata.json",
+      "revision": "7f9eb2cb11ea931f54acccb6e49152358ccf949d",
       "license": "Apache-2.0",
       "frameworks": [
         {
@@ -20776,32 +20233,6 @@
         }
       ],
       "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or data outside the read-only per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
-      "automated": false
-    },
-    {
-      "id": "prowler.aws.secretsmanager_has_restrictive_resource_policy",
-      "provider": "aws",
-      "title": "Secrets Manager secret resource policy is restrictive (explicit deny for non-approved principals)",
-      "question": "Does each Secrets Manager secret have a resource policy that explicitly denies access to every principal except the intended roles and services?",
-      "guidance": "Prowler evaluates a deep, organisation-specific policy shape (explicit Deny with aws:PrincipalArn/aws:PrincipalServiceName exceptions and condition operators). Review each secret policy against your approved principal list.",
-      "scope_kinds": [],
-      "source_dependencies": [],
-      "status": "MANUAL",
-      "source": "https://github.com/prowler-cloud/prowler/blob/61d2cc55c4539a6b48a3cf9f3729d8f2af300882/prowler/providers/aws/services/secretsmanager/secretsmanager_has_restrictive_resource_policy/secretsmanager_has_restrictive_resource_policy.metadata.json",
-      "revision": "61d2cc55c4539a6b48a3cf9f3729d8f2af300882",
-      "license": "Apache-2.0",
-      "frameworks": [
-        {
-          "framework": "AWS AI Security Framework",
-          "framework_id": "aws_ai_security_framework_aws",
-          "framework_family": "AWS-AI-Security-Framework",
-          "version": "1.0",
-          "declared_version": "1.0",
-          "control_id": "AISF-DATA-03",
-          "source": "prowler/compliance/aws/aws_ai_security_framework_aws.json"
-        }
-      ],
-      "reason": "Rejected as an automatic predicate only: the exact question needs operator judgement or account-wide data outside the per-scope snapshot. Preserved as a manual attestation with source and framework mappings.",
       "automated": false
     },
     {
@@ -21443,7 +20874,7 @@
       "license": "Apache-2.0",
       "frameworks": [
         {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework": "ENS RD 311/2022 - Categoría Alta",
           "framework_id": "ens_rd2022_azure",
           "framework_family": "ENS",
           "version": "RD2022",
@@ -21657,7 +21088,7 @@
           "source": "prowler/compliance/azure/cis_6.0_azure.json"
         },
         {
-          "framework": "ENS RD 311/2022 - Categor\u00eda Alta",
+          "framework": "ENS RD 311/2022 - Categoría Alta",
           "framework_id": "ens_rd2022_azure",
           "framework_family": "ENS",
           "version": "RD2022",

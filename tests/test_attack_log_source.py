@@ -188,7 +188,7 @@ def test_hosted_source_never_uses_platform_account(monkeypatch):
         def assume_role(self, **kwargs):
             calls.append(kwargs["RoleArn"])
             return {"Credentials": {"AccessKeyId": "key", "SecretAccessKey": "secret", "SessionToken": "token"}}
-        def get_caller_identity(self): return {"Account": "202533532952"}
+        def get_caller_identity(self): return {"Account": "111122223333"}
     class Session:
         def client(self, service, **kwargs): return Client()
     monkeypatch.setattr("peaso.server.attack_logs._session", lambda *args: (Session(), "default"))

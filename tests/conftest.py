@@ -3,9 +3,23 @@
 from __future__ import annotations
 
 import os
+import json
 from pathlib import Path
 
 import pytest
+
+# Synthetic deployment identities for isolated tests; production has no defaults.
+for _name, _value in {
+    "PEASO_AWS_COLLECTOR_ROLE_ARN": "arn:aws:iam::111122223333:role/HackTricks-CSPM",
+    "PEASO_PLATFORM_ACCOUNT_IDS": "111122223333,444455556666",
+    "PEASO_GCP_PLATFORM_PROJECT": "example-platform-project",
+    "PEASO_GCP_PLATFORM_EMAIL": "cspm@example-platform-project.iam.gserviceaccount.com",
+    "PEASO_DEPLOY_ACCOUNT_ID": "111122223333",
+    "PEASO_DEPLOY_COGNITO_POOL_ID": "us-east-1_example",
+    "PEASO_DEPLOY_COGNITO_CLIENT_ID": "example-client",
+    "PEASO_DEPLOY_BACKEND": json.dumps({"bucket": "example-deployment-state", "key": "cspm/terraform.tfstate", "region": "us-east-1", "encrypt": True, "use_lockfile": True}),
+}.items():
+    os.environ.setdefault(_name, _value)
 
 from tests.compliance_draft_isolation import (CHILD_FILE_ENV, DRAFT_TEST_MODULES,
     STAGED_UNSELECTED_TEST_MODULES, staged_modules_unregistered, staged_registry, unpublished_check_imports)
@@ -92,9 +106,9 @@ def pytest_ignore_collect(collection_path: Path, config):
 def pytest_sessionstart(session):
     from tests.release_test_inputs import restore_missing_inputs
 
-    restored = restore_missing_inputs(TESTS_DIR.parent)
-    if restored:
-        session.config.add_cleanup(lambda: [path.unlink(missing_ok=True) for path in restored])
+    # These are ignored, immutable synthetic fixtures. Keep the cache so one
+    # pytest/xdist session cannot delete inputs another session still needs.
+    restore_missing_inputs(TESTS_DIR.parent)
     selected = _requested_staged_files(session.config)
     drafts = _requested_draft_files(session.config)
     modules = STAGED_UNSELECTED_TEST_MODULES[selected[0]] if selected else [DRAFT_TEST_MODULES[drafts[0]]] if drafts else []

@@ -146,12 +146,22 @@ def test_lambda_trusted_accounts_pass_fail_unknown():
 
 def test_lambda_role_admin_pass_fail_unknown():
     cid='aws_cis_lambda_execution_role_no_admin'; row=lam()
-    base={'collection_status':'collected','complete':True,'role_arn':row['Role'],'unconditional_action_resource_star':False}
-    safe=role(EffectiveAdminAccess=base)
-    assert run(cid,row,index('lambda_function',row,{'iam_role':[safe]}))=='PASS'
-    bad=role(EffectiveAdminAccess={**base,'unconditional_action_resource_star':True})
-    assert run(cid,row,index('lambda_function',row,{'iam_role':[bad]}))=='FAIL'
-    assert run(cid,row,index('lambda_function',row,{'iam_role':[role()]}))=='UNKNOWN'
+    provenance={'operation':'iam:GetAccountAuthorizationDetails','native_response_complete':True}
+    def facts(principal):
+        value=index('lambda_function',row,{'iam_role':[principal]})
+        value['collections']['iam_policy']=[{'type':'iam_policy','scope':GLOBAL,'status':'empty','items':[]}]
+        value['iam_policy']=[]
+        return value
+    safe=role(RoleName='r',RolePolicyList=[{'PolicyName':'narrow','PolicyDocument':{'Statement':[
+        {'Effect':'Allow','Action':'logs:CreateLogStream','Resource':'*'}]}}],AttachedManagedPolicies=[],_provenance=provenance)
+    assert run(cid,row,facts(safe))=='PASS'
+    bad=role(RoleName='r',RolePolicyList=[],AttachedManagedPolicies=[{'PolicyArn':
+        'arn:aws:iam::aws:policy/AdministratorAccess','PolicyName':'AdministratorAccess'}],_provenance=provenance)
+    assert run(cid,row,facts(bad))=='FAIL'
+    custom=deepcopy(safe)
+    custom['RolePolicyList'][0]['PolicyDocument']['Statement'][0]['Action']='*'
+    assert run(cid,row,facts(custom))=='UNKNOWN'
+    assert run(cid,row,facts(role()))=='UNKNOWN'
     assert run(cid,row,index('lambda_function',row))=='UNKNOWN'
 
 

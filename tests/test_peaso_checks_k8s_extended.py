@@ -1,4 +1,5 @@
 """Semantic regressions for native workload templates and namespace quota evidence."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -27,7 +28,7 @@ def test_extended_semantic_matrix(cid):
     assert check.evaluate({}, index)[0] == "UNKNOWN"
     assert check.evaluate(None, index)[0] == "UNKNOWN"
     assert check.evaluate({"collection_status": "denied"}, index)[0] == "UNKNOWN"
-    assert HACKTRICKS in check.frameworks
+    assert (HACKTRICKS in check.frameworks) == includes(check.id)
 
 
 @pytest.mark.parametrize("kind", CONTROLLERS)

@@ -1,0 +1,73 @@
+[
+  {
+    "eventTime": "2026-10-19T16:30:13Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "EnableOutboundWebIdentityFederation",
+    "awsRegion": "us-east-1",
+    "eventID": "9f4bac1e-dcaa-42e6-ad15-12075a8d5444",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": null,
+    "responseElements": {
+      "issuerIdentifier": "https://a150f92d-e0b9-48e6-9541-37cacecf58d9.tokens.sts.global.api.aws"
+    },
+    "errorCode": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:30:24Z",
+    "eventSource": "sts.amazonaws.com",
+    "eventName": "GetWebIdentityToken",
+    "awsRegion": "us-east-1",
+    "eventID": "d00a2d2f-8145-4958-8f43-bbc6977d54ab",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "audience": [
+        "https://peasso.invalid/lab"
+      ],
+      "durationSeconds": 60,
+      "signingAlgorithm": "RS256"
+    },
+    "responseElements": {
+      "webIdentityTokenId": "6369cee7-b7de-489e-8294-dc4288ad7db2",
+      "expiration": "2026-10-19T16:31:24Z"
+    },
+    "errorCode": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:30:19Z",
+    "eventSource": "sts.amazonaws.com",
+    "eventName": "GetWebIdentityToken",
+    "awsRegion": "us-east-1",
+    "eventID": "e20230d2-37aa-46a9-9652-1c911feead61",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "audience": [
+        "https://peasso.invalid/lab"
+      ],
+      "durationSeconds": 60,
+      "signingAlgorithm": "RS256"
+    },
+    "responseElements": null,
+    "errorCode": "OutboundWebIdentityFederationDisabledException",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

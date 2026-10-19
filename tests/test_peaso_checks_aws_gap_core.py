@@ -53,7 +53,7 @@ def test_gap_missing_or_denied_facts_never_pass(cid):
 
 def test_management_coverage_rejects_event_source_filters():
     trail = copy.deepcopy(gap.TRAIL)
-    trail["EventSelectors"] = {"collection_status": "collected", "AdvancedEventSelectors": [{"FieldSelectors": [
+    trail["EventSelectors"] = {"collection_status": "collected", "TrailARN": trail["TrailARN"], "AdvancedEventSelectors": [{"FieldSelectors": [
         {"Field": "eventCategory", "Equals": ["Management"]},
         {"Field": "eventSource", "Equals": ["s3.amazonaws.com"]},
     ]}]}
@@ -63,7 +63,7 @@ def test_management_coverage_rejects_event_source_filters():
 
 def test_s3_all_bucket_coverage_rejects_arn_filters():
     trail = copy.deepcopy(gap.TRAIL)
-    trail["EventSelectors"] = {"collection_status": "collected", "AdvancedEventSelectors": [{"FieldSelectors": [
+    trail["EventSelectors"] = {"collection_status": "collected", "TrailARN": trail["TrailARN"], "AdvancedEventSelectors": [{"FieldSelectors": [
         {"Field": "eventCategory", "Equals": ["Data"]},
         {"Field": "resources.type", "Equals": ["AWS::S3::Object"]},
         {"Field": "resources.ARN", "StartsWith": ["arn:aws:s3:::only-this/"]},

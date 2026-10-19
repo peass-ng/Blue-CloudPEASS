@@ -1165,6 +1165,31 @@ const finite = (value: unknown): value is number => typeof value === "number" &&
 const toggle = (name: string, value: unknown): string | undefined => typeof value === "boolean" ? `${name} is ${value ? "enabled" : "disabled"}.` : undefined;
 
 export function explainAzureFindingEvidence(checkId: string, evidence: unknown, status: string): string | undefined {
+  const observation = nativeAzureFindingEvidence(checkId, evidence, status);
+  if (observation === undefined) return undefined;
+  const meanings: Record<string, string> = {
+    "Scale-set upgrade mode is Automatic.": "Scale-set instances are configured to upgrade automatically.",
+    "Scale-set upgrade mode is Manual.": "Scale-set instance upgrades must be applied manually.",
+    "Scale-set upgrade mode is Rolling.": "Scale-set upgrades are configured to run in batches.",
+    "The container public-access ACL is None.": "The container ACL grants no anonymous access.",
+    "The container public-access ACL is Container.": "The container ACL permits anonymous listing and blob reads.",
+    "The container public-access ACL is Blob.": "The container ACL permits anonymous blob reads but not anonymous listing.",
+    "The log container public-access ACL is None.": "The log container ACL grants no anonymous access.",
+    "The log container public-access ACL is Container.": "The log container ACL permits anonymous listing and blob reads.",
+    "The log container public-access ACL is Blob.": "The log container ACL permits anonymous blob reads but not anonymous listing.",
+    "Backup private-endpoint state is None.": "Backup traffic is not configured to use a private endpoint.",
+    "Site Recovery private-endpoint state is None.": "Site Recovery traffic is not configured to use a private endpoint.",
+    "Disk export authentication mode is None.": "Disk exports do not require Microsoft Entra authentication.",
+    "API Management virtual-network mode is None.": "API Management is not configured in a virtual network.",
+    "Search identity type is SystemAssigned.": "Search has a system-assigned managed identity.",
+    "Search identity type is UserAssigned.": "Search uses user-assigned managed identities.",
+    "Search identity type is SystemAssigned, UserAssigned.": "Search has both system-assigned and user-assigned managed identities.",
+    "Enabled vault log groups: allLogs.": "Vault diagnostics are configured to export all supported log categories.",
+  };
+  return meanings[observation] ?? observation;
+}
+
+function nativeAzureFindingEvidence(checkId: string, evidence: unknown, status: string): string | undefined {
   if (!reviewedChecks.has(checkId)) return undefined;
   if (!["PASS", "FAIL"].includes(status) || !evidence || typeof evidence !== "object" || Array.isArray(evidence)) return undefined;
   const e = evidence as Record<string, unknown>;
@@ -1700,14 +1725,14 @@ function identityAzureEvidence(checkId: string, e: Record<string, unknown>): str
     const roles: Record<string,string> = {"2af84b1e-32c8-42b7-82bc-daa82404023b":"Guests have restricted directory visibility.","10dae51f-b6af-4016-8d66-8c2a99b929b3":"Guests have the standard guest directory visibility.","a0b1b346-4d3e-4e8b-98f8-753987be4970":"Guests have member-equivalent directory visibility."};
     if (typeof e.guest_user_role_id === "string") return roles[e.guest_user_role_id];
   }
-  if (slug === "entra_user_consent_disabled" && Array.isArray(e.assigned_self_consent_policies)) return `${e.assigned_self_consent_policies.length} user self-consent policies are assigned.`;
+  if (slug === "entra_user_consent_disabled" && Array.isArray(e.assigned_self_consent_policies)) return `${e.assigned_self_consent_policies.length} user self-consent ${e.assigned_self_consent_policies.length === 1 ? "policy is" : "policies are"} assigned.`;
   if (slug === "entra_user_consent_not_legacy" && typeof e.legacy_policy_assigned === "boolean") return `The legacy user self-consent policy is ${e.legacy_policy_assigned ? "assigned" : "not assigned"}.`;
   if (slug === "entra_auth_methods_strong_registration" && typeof e.registration_campaign === "string" && Array.isArray(e.enabled_strong_methods) && e.enabled_strong_methods.every(v=>typeof v === "string")) return `The registration campaign is ${e.registration_campaign}; enabled strong methods: ${e.enabled_strong_methods.join(", ") || "none"}.`;
   if (slug === "entra_ca_mfa_admin_portals" || slug === "entra_ca_mfa_management_api") {
     if (Array.isArray(e.matching_policies)) return `${e.matching_policies.length} enabled policies declare All users, ${slug.endsWith("admin_portals") ? "admin portals" : "the Azure management API"} and MFA.`;
   }
-  if (slug === "entra_global_admin_fewer_than_five" && finite(e.global_administrators)) return `${e.global_administrators} distinct principals have active tenant-wide Global Administrator assignments.`;
-  if (slug === "entra_trusted_named_location_exists" && Array.isArray(e.trusted_locations)) return `${e.trusted_locations.length} trusted IP named locations with declared ranges are listed.`;
+  if (slug === "entra_global_admin_fewer_than_five" && finite(e.global_administrators)) return `${e.global_administrators} distinct ${e.global_administrators === 1 ? "principal has" : "principals have"} active tenant-wide Global Administrator assignments.`;
+  if (slug === "entra_trusted_named_location_exists" && Array.isArray(e.trusted_locations)) return `${e.trusted_locations.length} trusted IP named ${e.trusted_locations.length === 1 ? "location with declared ranges is" : "locations with declared ranges are"} listed.`;
   if (slug === "entra_m365_group_creation_restricted") {
     if (e.group_unified_setting === false) return "No Group.Unified restriction is set; users may create Microsoft 365 groups.";
     if (typeof e.enable_group_creation === "string" && ["true","false"].includes(e.enable_group_creation.toLowerCase())) return `Microsoft 365 group creation is ${e.enable_group_creation.toLowerCase() === "true" ? "allowed" : "restricted"} for default users.`;
@@ -1718,7 +1743,7 @@ function identityAzureEvidence(checkId: string, e: Record<string, unknown>): str
     return `The enabled policy combines ${controls.join(", ") || "no built-in controls"} with ${e.grant_operator}.`;
   }
   if (slug === "entra_named_location_trusted" && typeof e.is_trusted === "boolean") return `The IP named location is ${e.is_trusted ? "marked" : "not marked"} trusted.`;
-  if (slug === "entra_app_credential_not_expiring" && finite(e.credentials) && Array.isArray(e.credential_issues)) return `${e.credential_issues.length} of ${e.credentials} credentials have no end date or expire within 30 days of the snapshot.`;
+  if (slug === "entra_app_credential_not_expiring" && finite(e.credentials) && Array.isArray(e.credential_issues)) return e.credentials === 1 ? (e.credential_issues.length ? "The credential has no end date or expires within 30 days of the snapshot." : "The credential expires more than 30 days after the snapshot.") : `${e.credential_issues.length} of ${e.credentials} credentials have no end date or expire within 30 days of the snapshot.`;
   if (slug === "entra_user_recent_sign_in" && finite(e.days_since_successful_sign_in)) return `The last recorded successful sign-in was ${e.days_since_successful_sign_in} days before the snapshot.`;
   if (["entra_privileged_user_mfa","entra_non_privileged_user_mfa","entra_vm_access_user_mfa"].includes(slug) && typeof e.is_mfa_capable === "boolean") return `The user is ${e.is_mfa_capable ? "reported" : "not reported"} as MFA capable; sign-in enforcement is assessed separately.`;
   if (["iam_no_user_access_administrator_assignment","iam_user_no_contributor_assignment"].includes(slug) && typeof e.role === "string") {
@@ -1726,12 +1751,12 @@ function identityAzureEvidence(checkId: string, e: Record<string, unknown>): str
     return `The assignment grants ${names[e.role] || `role ${e.role}`}.`;
   }
   if (slug === "iam_custom_role_no_wildcard_actions" && Array.isArray(e.wildcard) && e.wildcard.every(v=>v === "*" || v === "*:*") ) return e.wildcard.length ? `The custom role declares global wildcard actions: ${e.wildcard.join(", ")}.` : "No literal global wildcard action is declared in the custom role.";
-  if (slug === "iam_no_custom_role" && finite(e.custom_roles)) return `${e.custom_roles} custom role definitions are listed.`;
+  if (slug === "iam_no_custom_role" && finite(e.custom_roles)) return `${e.custom_roles} custom role ${e.custom_roles === 1 ? "definition is" : "definitions are"} listed.`;
   if (slug === "iam_custom_role_administers_locks" && Array.isArray(e.lock_administrator_roles)) return `${e.lock_administrator_roles.length} custom roles declare a resource-lock action.`;
-  if (slug.startsWith("iam_subscription_owner_") && finite(e.subscription_owners)) return `${e.subscription_owners} distinct Owner principals are visible at or above the subscription.`;
+  if (slug.startsWith("iam_subscription_owner_") && finite(e.subscription_owners)) return `${e.subscription_owners} distinct Owner ${e.subscription_owners === 1 ? "principal is" : "principals are"} visible at or above the subscription.`;
   if (["iam_external_user_no_owner","iam_external_user_no_reader","iam_external_user_no_write","iam_disabled_user_no_role_assignment","iam_disabled_user_no_owner"].includes(slug) && Array.isArray(e.principals)) {
     const target: Record<string,string> = {iam_external_user_no_owner:"guest users have direct Owner assignments",iam_external_user_no_reader:"guest users have direct Reader assignments",iam_external_user_no_write:"guest users have direct Owner or Contributor assignments",iam_disabled_user_no_role_assignment:"disabled users retain direct role assignments",iam_disabled_user_no_owner:"disabled users retain direct Owner assignments"};
-    return `${e.principals.length} ${target[slug]}.`;
+    return `${e.principals.length} ${e.principals.length === 1 ? target[slug].replace("users have", "user has").replace("users retain", "user retains") : target[slug]}.`;
   }
   if (slug === "iam_subscription_tenant_transfer_restricted" && typeof e.block_into_tenant === "boolean" && typeof e.block_leaving_tenant === "boolean") return `Tenant transfer: incoming subscriptions ${e.block_into_tenant ? "blocked" : "not blocked"}; outgoing subscriptions ${e.block_leaving_tenant ? "blocked" : "not blocked"}.`;
   return undefined;
@@ -1749,14 +1774,14 @@ function identityAdjacentAzureEvidence(checkId: string, e: Record<string, unknow
   }
   if (["eventhub_namespace_logging","iot_hub_logging"].includes(slug)) return toggle("Resource-log diagnostics", e.diagnostic_logging_enabled);
   if (["eventhub_namespace_private_link","iot_hub_private_link","fhir_private_link","keyvault_private_endpoint_exists"].includes(slug) && Array.isArray(e.private_link_states) && e.private_link_states.every(v=>typeof v === "string")) return e.private_link_states.length ? `Private endpoint states: ${e.private_link_states.join(", ")}.` : "No private endpoint connections are listed.";
-  if (slug === "eventhub_namespace_vnet_rule" && finite(e.virtual_network_rules)) return `${e.virtual_network_rules} virtual-network rules are declared.`;
-  if (slug === "frontdoor_waf_policy_linked" && finite(e.frontend_endpoints) && finite(e.waf_linked)) return `${e.waf_linked} of ${e.frontend_endpoints} frontend endpoints have a WAF policy reference.`;
+  if (slug === "eventhub_namespace_vnet_rule" && finite(e.virtual_network_rules)) return `${e.virtual_network_rules} virtual-network ${e.virtual_network_rules === 1 ? "rule is" : "rules are"} declared.`;
+  if (slug === "frontdoor_waf_policy_linked" && finite(e.frontend_endpoints) && finite(e.waf_linked)) return e.frontend_endpoints === 1 ? `The frontend endpoint ${e.waf_linked === 1 ? "has a" : "has no"} WAF policy reference.` : `${e.waf_linked} of ${e.frontend_endpoints} frontend endpoints have a WAF policy reference.`;
   if (slug === "hdinsight_cmk" && (e.key_name === null || typeof e.key_name === "string")) return e.key_name ? "A customer-managed disk key name is declared." : "No customer-managed disk key name is declared.";
   if (slug === "hdinsight_encryption_at_host") return toggle("Encryption at host", e.encryption_at_host);
   if (slug === "hdinsight_encryption_in_transit") return toggle("Cluster encryption in transit", e.encryption_in_transit);
   if (slug === "fhir_cmk" && typeof e.key_vault_key_uri_configured === "boolean") return `A customer-key URI is ${e.key_vault_key_uri_configured ? "declared" : "not declared"}.`;
   if (slug === "hpc_cache_cmk" && typeof e.customer_managed_key === "boolean") return `Customer-managed key and vault references are ${e.customer_managed_key ? "declared" : "not fully declared"}.`;
-  if (slug === "keyvault_firewall_ip_rules" && finite(e.ip_rules)) return `${e.ip_rules} firewall IP-rule objects are declared.`;
+  if (slug === "keyvault_firewall_ip_rules" && finite(e.ip_rules)) return `${e.ip_rules} firewall IP ${e.ip_rules === 1 ? "rule is" : "rules are"} declared.`;
   if (slug === "keyvault_vnet_service_endpoint" && typeof e.default_action === "string" && finite(e.virtual_network_rules)) return `The vault firewall defaults to ${e.default_action.toLowerCase()} with ${e.virtual_network_rules} virtual-network rules.`;
   if (slug === "keyvault_audit_logging") return toggle("Matching vault audit logging", e.audit_logging);
   if (slug === "keyvault_audit_and_alllogs_groups" && typeof e.audit_group === "boolean" && typeof e.all_logs_group === "boolean") return `Enabled log groups: audit ${e.audit_group ? "present" : "absent"}; allLogs ${e.all_logs_group ? "present" : "absent"}.`;
@@ -1805,17 +1830,17 @@ function hacktricksAzureEvidence(checkId: string, e: Record<string, unknown>): s
     if (Array.isArray(e.allowed_caller_ip_ranges)) return `The HTTP Request workflow declares ${e.allowed_caller_ip_ranges.length} caller-IP entries and ${e.oauth_policies.length} OAuth policies.`;
     return `The HTTP Request workflow declares ${e.oauth_policies.length} OAuth policies.`;
   }
-  if (slug === "entra.app_no_tier0_graph_application_permissions" && Array.isArray(e.tier0_application_permissions)) return `${e.tier0_application_permissions.length} listed high-impact Graph application permissions are requested in the manifest.`;
+  if (slug === "entra.app_no_tier0_graph_application_permissions" && Array.isArray(e.tier0_application_permissions)) return `${e.tier0_application_permissions.length} high-impact Graph application ${e.tier0_application_permissions.length === 1 ? "permission is" : "permissions are"} requested in the manifest.`;
   if (slug === "entra.temporary_access_pass_one_time" && typeof e.is_usable_once === "boolean" && finite(e.maximum_lifetime_minutes)) return `Temporary Access Pass is ${e.is_usable_once ? "one-time" : "reusable"} with a ${e.maximum_lifetime_minutes}-minute maximum lifetime.`;
   if (slug === "appservice.scm_basic_auth_disabled" && typeof e.scm_basic_auth_allowed === "boolean") return `SCM basic publishing authentication is ${e.scm_basic_auth_allowed ? "allowed" : "disabled"}.`;
   if (slug === "appservice.ftp_basic_auth_disabled" && typeof e.ftp_basic_auth_allowed === "boolean") return `FTP basic publishing authentication is ${e.ftp_basic_auth_allowed ? "allowed" : "disabled"}.`;
   if (slug === "appservice.scm_site_restricted_like_main" && typeof e.main_restricted === "boolean" && typeof e.scm_restricted === "boolean") return `The main site is ${e.main_restricted ? "restricted" : "unrestricted"}; SCM is ${e.scm_restricted ? "restricted" : "unrestricted"} by its declared access rules.`;
   if (slug === "entra.service_principal_no_password_credentials") {
     if (finite(e.password_credentials)) return `${e.password_credentials} password credentials are present on the service principal.`;
-    if (Array.isArray(e.active_password_credentials)) return `${e.active_password_credentials.length} password credentials have no end date or expire after the snapshot.`;
+    if (Array.isArray(e.active_password_credentials)) return `${e.active_password_credentials.length} password ${e.active_password_credentials.length === 1 ? "credential has" : "credentials have"} no end date or expire${e.active_password_credentials.length === 1 ? "s" : ""} after the snapshot.`;
   }
   if (["entra.app_fic_github_not_pull_request","managed_identity.fic_github_not_pull_request"].includes(slug) && typeof e.issuer === "string" && typeof e.subject === "string") return `The GitHub Actions federation subject is ${e.subject}.`;
-  if (slug === "automation.webhook_expiry_bounded" && Array.isArray(e.long_lived_webhooks) && finite(e.webhooks)) return `${e.long_lived_webhooks.length} of ${e.webhooks} webhooks are enabled with no expiry or an expiry over one year after the snapshot.`;
+  if (slug === "automation.webhook_expiry_bounded" && Array.isArray(e.long_lived_webhooks) && finite(e.webhooks)) return e.webhooks === 1 ? (e.long_lived_webhooks.length ? "The enabled webhook has no expiry or expires more than one year after the snapshot." : "The webhook is disabled or expires within one year of the snapshot.") : `${e.long_lived_webhooks.length} of ${e.webhooks} webhooks are enabled with no expiry or an expiry over one year after the snapshot.`;
   if (slug === "synapse.firewall_no_allow_all_internet" && Array.isArray(e.internet_wide_rules)) return `${e.internet_wide_rules.length} firewall rules span at least half the IPv4 address space.`;
   return undefined;
 }
@@ -1833,12 +1858,12 @@ function standardAzureEvidence(checkId: string, e: Record<string, unknown>): str
     if (!e.broad_ingress_rules.length) return "No global-source custom inbound Allow rules are declared.";
     const rules = e.broad_ingress_rules as Record<string,unknown>[];
     const ports = [...new Set(rules.flatMap(r=>Array.isArray(r.destination_ports) ? r.destination_ports : []).filter(v=>typeof v === "string"))];
-    return `${rules.length} global-source custom inbound Allow rules are declared${ports.length ? ` for ports ${ports.join(", ")}` : ""}.`;
+    return `${rules.length} custom inbound ${rules.length === 1 ? "rule allows" : "rules allow"} internet sources${ports.length ? ` on ports ${ports.join(", ")}` : ""}.`;
   }
   if (checkId === "azure.sql.restrict_firewall" && typeof e.start_ip === "string" && typeof e.end_ip === "string") return `The SQL firewall allows source addresses ${e.start_ip}–${e.end_ip}.`;
   if (checkId === "azure.aks.network_policy") {
     if (e.network_dataplane === "cilium") return "The cluster declares the Cilium network dataplane.";
-    if (typeof e.network_policy === "string") return `The declared network-policy engine is ${e.network_policy || "none"}.`;
+    if (typeof e.network_policy === "string") return e.network_policy && e.network_policy !== "none" ? `The cluster uses the ${e.network_policy} network-policy engine.` : "No network-policy engine is configured.";
   }
   if (checkId === "azure.storage.blob_soft_delete_retention" && typeof e.enabled === "boolean") return !e.enabled ? "Blob soft delete is disabled." : finite(e.retention_days) ? `Blob soft delete is enabled for ${e.retention_days} days.` : undefined;
   if (checkId === "azure.vm.linux_ssh_keys" && typeof e.password_authentication_disabled === "boolean") return `SSH password authentication is ${e.password_authentication_disabled ? "disabled" : "enabled"} in the VM declaration.`;
@@ -1848,7 +1873,7 @@ function standardAzureEvidence(checkId: string, e: Record<string, unknown>): str
     if (finite(e.disk_count)) return `${e.disk_count} OS and data disks declare managed storage.`;
   }
   if (checkId === "azure.app.client_certificates" && typeof e.client_certificates_enabled === "boolean") return !e.client_certificates_enabled ? "Client certificates are disabled." : typeof e.client_certificate_mode === "string" ? `Client certificates are enabled in ${e.client_certificate_mode} mode.` : undefined;
-  if (checkId === "azure.aks.auto_upgrade" && typeof e.upgrade_channel === "string") return `The cluster upgrade channel is ${e.upgrade_channel || "none"}.`;
+  if (checkId === "azure.aks.auto_upgrade" && typeof e.upgrade_channel === "string") return e.upgrade_channel && e.upgrade_channel !== "none" ? `The cluster uses the ${e.upgrade_channel} upgrade channel.` : "Automatic cluster upgrades are not configured.";
   if (checkId === "azure.sql.audit_retention" && finite(e.retention_days)) return e.retention_days === 0 ? "SQL auditing retention is declared indefinite." : `SQL auditing retention is ${e.retention_days} days.`;
   if (checkId === "azure.sql.threat_alerts_all" && Array.isArray(e.disabled_alerts) && e.disabled_alerts.every(v=>typeof v === "string")) return `Disabled threat-alert categories: ${e.disabled_alerts.filter(Boolean).join(", ") || "none"}.`;
   if (checkId === "azure.sql.tde_enabled" && typeof e.state === "string") return `Transparent data encryption is ${e.state.toLowerCase()}.`;
@@ -1872,14 +1897,14 @@ function successorAzureEvidence(checkId: string,e: Record<string,unknown>): stri
   if (!successorAzureIds.has(checkId)) return undefined;
   const slug = checkId.replace("azure.claude2.", "");
   if (slug === "nsg_flow_log_configured") {
-    if (Array.isArray(e.nsg_flow_logs)) return `${e.nsg_flow_logs.length} NSG flow-log references or matching log records are declared.`;
+    if (Array.isArray(e.nsg_flow_logs)) return `${e.nsg_flow_logs.length} NSG flow-log ${e.nsg_flow_logs.length === 1 ? "reference or matching log record is" : "references or matching log records are"} declared.`;
     if (Array.isArray(e.vnet_flow_logs)) return `${e.vnet_flow_logs.length} enabled successor flow logs cover an attached network target.`;
   }
   if (slug === "nsg_flow_log_retention_90") {
     const rows = e.flow_logs ?? e.vnet_flow_logs;
     if (Array.isArray(rows)) {
       if (rows.every(v=>typeof v === "string" || v === null)) return `${rows.length} matching flow logs meet the enabled-retention criterion.`;
-      if (rows.every(v=>!!v && typeof v === "object")) return `${rows.length} matching flow logs are disabled or below the required retention.`;
+      if (rows.every(v=>!!v && typeof v === "object")) return `${rows.length} matching flow ${rows.length === 1 ? "log is" : "logs are"} disabled or below the required retention.`;
     }
   }
   if (slug === "vnet_flow_log_retention_90" && typeof e.enabled === "boolean" && finite(e.retention_days)) return `Flow logging is ${e.enabled ? "enabled" : "disabled"}; retention is ${e.retention_days === 0 ? "indefinite" : `${e.retention_days} days`}.`;
@@ -1906,7 +1931,7 @@ function successorAzureEvidence(checkId: string,e: Record<string,unknown>): stri
   if (["vm_encryption_at_host","vmss_encryption_at_host"].includes(slug)) return toggle("Encryption at host",e.encryption_at_host);
   if (slug === "vm_linux_ssh_key_only_guest_config" && Array.isArray(e.statuses) && e.statuses.every(v=>typeof v === "string")) return `LinuxNoPasswordForSSH compliance reports: ${e.statuses.join(", ") || "none"}.`;
   if (slug === "vm_trusted_launch_secure_boot_vtpm" && typeof e.secure_boot_enabled === "boolean" && typeof e.vtpm_enabled === "boolean") return `Trusted Launch: Secure Boot ${e.secure_boot_enabled ? "enabled" : "disabled"}; vTPM ${e.vtpm_enabled ? "enabled" : "disabled"}.`;
-  if (slug === "sql_server_threat_detection_all_alerts" && Array.isArray(e.policies)) return `${e.policies.length} SQL alert policies are disabled or exclude alert categories.`;
+  if (slug === "sql_server_threat_detection_all_alerts" && Array.isArray(e.policies)) return `${e.policies.length} SQL alert ${e.policies.length === 1 ? "policy is disabled or excludes" : "policies are disabled or exclude"} alert categories.`;
   if (slug === "batch_account_customer_managed_key" && ["Microsoft.KeyVault","Microsoft.Batch"].includes(String(e.key_source))) return `Batch encryption uses ${e.key_source === "Microsoft.KeyVault" ? "a customer-managed Key Vault key" : "a platform-managed key"}.`;
   if (slug === "batch_account_managed_identity" && typeof e.identity_type === "string") return `Batch managed identity type is ${e.identity_type}.`;
   if (slug === "batch_account_resource_logs" && typeof e.matching_enabled_logs === "boolean") return `${e.matching_enabled_logs ? "At least one" : "No"} enabled Batch diagnostic-log entry meets the declaration criterion.`;
@@ -1961,9 +1986,9 @@ function legacyAzureEvidence(checkId: string,e: Record<string,unknown>): string 
     if (e.missing_required_configuration === true) return "A required MySQL audit configuration is absent.";
     if (typeof e.audit_enabled === "string" && typeof e.connection_token_present === "boolean") return `MySQL audit logging is ${e.audit_enabled.toLowerCase()}; CONNECTION events are ${e.connection_token_present ? "included" : "not included"}.`;
   }
-  if (checkId === "azure.cis.postgresql_single_no_azure_services_rule" && Array.isArray(e.azure_services_rule_ids)) return `${e.azure_services_rule_ids.length} Azure-services firewall sentinel rules are declared.`;
+  if (checkId === "azure.cis.postgresql_single_no_azure_services_rule" && Array.isArray(e.azure_services_rule_ids)) return `${e.azure_services_rule_ids.length} firewall ${e.azure_services_rule_ids.length === 1 ? "rule allows" : "rules allow"} Azure services to connect.`;
   if (checkId === "azure.gap.monitor_log_cluster_infrastructure_encryption_enabled") return toggle("Log Analytics cluster infrastructure encryption",e.is_double_encryption_enabled);
-  if (checkId === "azure_firewall_policy_1_2_8_42_cacbd9e" && finite(e.custom_rule_count) && finite(e.managed_rule_set_count)) return `The WAF policy declares ${e.custom_rule_count} custom rules and ${e.managed_rule_set_count} managed rule sets.`;
+  if (checkId === "azure_firewall_policy_1_2_8_42_cacbd9e" && finite(e.custom_rule_count) && finite(e.managed_rule_set_count)) return `The WAF policy declares ${e.custom_rule_count} custom ${e.custom_rule_count === 1 ? "rule" : "rules"} and ${e.managed_rule_set_count} managed rule ${e.managed_rule_set_count === 1 ? "set" : "sets"}.`;
   if (checkId === "azure_firewall_policy_1_2_8_24_cc7cb8a" && Array.isArray(e.empty_group_ids)) return `${e.empty_group_ids.length} Firewall Policy rule-collection groups contain no rules.`;
   return undefined;
 }
@@ -1972,7 +1997,7 @@ const dataIdentityAzureIds = new Set(["azure.claude.defender_default_initiative_
 
 function dataIdentityAzureEvidence(checkId: string,e: Record<string,unknown>): string | undefined {
   if (!dataIdentityAzureIds.has(checkId)) return undefined;
-  if (checkId === "azure.claude.defender_default_initiative_no_disabled_effects" && Array.isArray(e.disabled_parameters)) return `${e.disabled_parameters.length} applicable Defender initiative parameters are set to Disabled.`;
+  if (checkId === "azure.claude.defender_default_initiative_no_disabled_effects" && Array.isArray(e.disabled_parameters)) return `${e.disabled_parameters.length} applicable Defender initiative ${e.disabled_parameters.length === 1 ? "parameter is" : "parameters are"} disabled.`;
   if (checkId === "azure.claude.defender_iot_security_solution_enabled" && Array.isArray(e.statuses) && e.statuses.every(v=>typeof v === "string")) return `IoT security solution statuses: ${e.statuses.join(", ")}.`;
   if (checkId === "azure.claude.servicebus_namespace_network_restricted") {
     if (e.public_network_access === "Disabled") return "Service Bus public network access is disabled.";
@@ -1997,7 +2022,7 @@ function dataIdentityAzureEvidence(checkId: string,e: Record<string,unknown>): s
   if (checkId === "azure.claude2.entra_ca_mfa_all_users_or_roles" && Array.isArray(e.matching_policies)) return `${e.matching_policies.length} enabled MFA-policy declarations match All users or an activated role without individual user exclusions.`;
   if (checkId === "azure.claude2.entra_device_join_requires_mfa" && ["required","notRequired"].includes(String(e.multi_factor_auth_configuration))) return `The device-registration MFA setting is ${e.multi_factor_auth_configuration === "required" ? "required" : "not required"}.`;
   if (checkId === "azure.claude2.entra_user_mfa_registered" && typeof e.is_mfa_registered === "boolean") return `The user is ${e.is_mfa_registered ? "registered" : "not registered"} for MFA; enforcement is assessed separately.`;
-  if (checkId === "azure.claude2.entra_global_admin_between_2_and_4" && finite(e.global_administrators)) return `${e.global_administrators} distinct principals have active tenant-wide Global Administrator assignments.`;
+  if (checkId === "azure.claude2.entra_global_admin_between_2_and_4" && finite(e.global_administrators)) return `${e.global_administrators} distinct ${e.global_administrators === 1 ? "principal has" : "principals have"} active tenant-wide Global Administrator assignments.`;
   return undefined;
 }
 
@@ -2034,25 +2059,25 @@ function strictAzureEvidence(checkId: string,e: Record<string,unknown>,status:st
     if (e.metric_category === "AllMetrics") return "An enabled AllMetrics export with a supported destination is declared.";
     if (status === "FAIL") return `No enabled AllMetrics export with a supported destination was found in ${e.setting_count} VM diagnostic settings.`;
   }
-  if (checkId === "azure.cis.resource_manager_delete_locks_applied_storage_accounts" && finite(e.accounts)) return status === "PASS" ? `All ${e.accounts} assessed storage accounts have a declared applicable deletion lock.` : `At least one of ${e.accounts} assessed storage accounts has no applicable deletion lock.`;
+  if (checkId === "azure.cis.resource_manager_delete_locks_applied_storage_accounts" && finite(e.accounts)) return status === "PASS" ? (e.accounts === 1 ? "The assessed storage account has an applicable deletion lock." : `All ${e.accounts} assessed storage accounts have an applicable deletion lock.`) : `At least one of ${e.accounts} assessed storage accounts has no applicable deletion lock.`;
   if (checkId === "azure.cis.legacy_vhds_encrypted" && finite(e.unmanaged_vhd_count) && Array.isArray(e.unencrypted_backing_account_ids)) return `${e.unencrypted_backing_account_ids.length} backing storage accounts declare Blob encryption disabled across ${e.unmanaged_vhd_count} unmanaged VHDs.`;
   if (checkId === "azure.gap.compute_vm_remote_access_restricted_all_ports") {
     if (Array.isArray(e.permissive_associated_nsgs)) return `${e.permissive_associated_nsgs.length} associated NSG paths retain a modeled Internet-source Allow rule after priority evaluation.`;
     if (finite(e.evaluated_ip_configurations)) return `No modeled Internet-source Allow remains across ${e.evaluated_ip_configurations} assessed IP configurations.`;
   }
   if (checkId === "azure.gap.compute_vm_tcp_udp_access_restricted_internet" && Array.isArray(e.internet_facing_ip_configurations) && Array.isArray(e.unprotected_ip_configurations)) return `${e.unprotected_ip_configurations.length} of ${e.internet_facing_ip_configurations.length} modeled Internet-facing IP configurations lack a NIC or subnet NSG.`;
-  if (checkId === "azure.gap.web_pub_sub_private_link_used" && Array.isArray(e.approved_connection_ids)) return `${e.approved_connection_ids.length} approved private endpoint connections with valid references are declared.`;
+  if (checkId === "azure.gap.web_pub_sub_private_link_used" && Array.isArray(e.approved_connection_ids)) return `${e.approved_connection_ids.length} approved private endpoint ${e.approved_connection_ids.length === 1 ? "connection with a valid reference is" : "connections with valid references are"} declared.`;
   if (checkId === "azure_firewall_policy_1_2_8_23_59ad733" && Array.isArray(e.qualifying_group_ids)) return `${e.qualifying_group_ids.length} direct or inherited Firewall Policy groups contain recognized rules.`;
   if (checkId === "azure_api_management_appinsights_ensure_is_configured_42aac6a" && Array.isArray(e.missing_tracing_api_ids)) return `${e.missing_tracing_api_ids.length} online APIs lack the required declared Application Insights tracing path.`;
   if (checkId === "azure.cis.app_service_entra_registration_enabled" && typeof e.observed_identity_type === "string") return `The authoritative App Service GET declares managed-identity type ${e.observed_identity_type}.`;
   if (checkId === "azure.cis.defender_external_attack_surface_monitoring_easm" && finite(e.workspace_count) && finite(e.succeeded_count)) return `${e.succeeded_count} of ${e.workspace_count} EASM workspaces report successful provisioning.`;
   if (checkId === "azure.other.entra_app_secret_age_90") {
-    if (Array.isArray(e.aged_active_credentials)) return `${e.aged_active_credentials.length} active application credentials are at least 90 days old.`;
-    if (finite(e.active_credential_count)) return `${e.active_credential_count} active application credentials are younger than 90 days.`;
+    if (Array.isArray(e.aged_active_credentials)) return `${e.aged_active_credentials.length} active application ${e.aged_active_credentials.length === 1 ? "credential is" : "credentials are"} at least 90 days old.`;
+    if (finite(e.active_credential_count)) return `${e.active_credential_count} active application ${e.active_credential_count === 1 ? "credential is" : "credentials are"} younger than 90 days.`;
   }
   if (checkId === "azure_directory_user_keyvault_rbac_secret_expiration_set_e2e0e28" && finite(e.maxCredentialAgeDays)) {
-    if (Array.isArray(e.old_active_credentials)) return `${e.old_active_credentials.length} active service-principal credentials are older than ${e.maxCredentialAgeDays} days.`;
-    if (finite(e.active_credential_count)) return `${e.active_credential_count} active service-principal credentials are within ${e.maxCredentialAgeDays} days of creation.`;
+    if (Array.isArray(e.old_active_credentials)) return `${e.old_active_credentials.length} active service-principal ${e.old_active_credentials.length === 1 ? "credential is" : "credentials are"} older than ${e.maxCredentialAgeDays} days.`;
+    if (finite(e.active_credential_count)) return `${e.active_credential_count} active service-principal ${e.active_credential_count === 1 ? "credential is" : "credentials are"} within ${e.maxCredentialAgeDays} days of creation.`;
   }
   if (checkId === "azure.gap.monitor_log_profile_retention_365_days") {
     if (Array.isArray(e.short_retention_profile_ids)) return `${e.short_retention_profile_ids.length} legacy log profiles declare enabled retention below 365 days.`;

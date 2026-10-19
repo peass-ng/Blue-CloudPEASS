@@ -9,7 +9,7 @@ import { providers } from "./types";
 import type { Catalog, Connector, Me, Provider } from "./types";
 import { Badge, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
 import { LaunchForm } from "./Scans";
-const COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/HackTricks-CSPM";
+const COLLECTOR_ROLE_ARN = "REPLACE_WITH_COLLECTOR_ROLE_FROM_PREPARATION";
 const ROLE_ARN = /^arn:aws:iam::[0-9]{12}:role\/[A-Za-z0-9+=,.@_/-]{1,512}$/;
 const TEMPLATE_URL = "https://cspm.hacktricks.wiki/aws/customer-role.json";
 const BACKUP_POLICY_SCOPE = /^[0-9]{12}\/[a-z]{2}(?:-[a-z]+)+-[0-9]$/;
@@ -572,9 +572,9 @@ function AuthSetupGuide({ provider, method, label, hosted, prepared }: { provide
   const collectorArn = prepared?.collector_role_arn || COLLECTOR_ROLE_ARN;
   const hostedAwsAccess = { label: "AWS CLI: create role and grant access", value: [
     `curl -fsSL '${prepared?.template_url || TEMPLATE_URL}' -o hacktricks-cspm-customer-role.json`,
-    `aws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${externalId}`,
+    `aws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${externalId} ParameterKey=CollectorRoleArn,ParameterValue=${collectorArn}`,
   ].join("\n") };
-  const gcpEmail = prepared?.service_account_email || "hacktricks-cspm-sa-acc-third-p@billing-static-info-no-delete.iam.gserviceaccount.com";
+  const gcpEmail = prepared?.service_account_email || "REPLACE_WITH_SERVICE_ACCOUNT_FROM_PREPARATION";
   const gcpKey = prepared?.project_label_key || "REPLACE_WITH_CONNECTOR_APPROVAL_LABEL";
   const gcpAccess = { label: "gcloud CLI: approve customer project for this connector", value: [
     `gcloud alpha projects update REPLACE_WITH_CUSTOMER_PROJECT_ID --update-labels='${gcpKey}=approved'`,
@@ -623,9 +623,9 @@ function HostedOnboarding({ details }: { details: NonNullable<Connector["onboard
   }] }, null, 2);
   const template = details.template_url || TEMPLATE_URL;
   const quickCreate = details.quick_create_template_url
-    ? `https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=${encodeURIComponent(details.quick_create_template_url)}&stackName=HackTricksCspmReadOnly&param_ExternalId=${encodeURIComponent(details.external_id)}`
+    ? `https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=${encodeURIComponent(details.quick_create_template_url)}&stackName=HackTricksCspmReadOnly&param_ExternalId=${encodeURIComponent(details.external_id)}&param_CollectorRoleArn=${encodeURIComponent(details.collector_role_arn || COLLECTOR_ROLE_ARN)}`
     : null;
-  const cli = `curl -fsSL '${template}' -o hacktricks-cspm-customer-role.json\naws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${details.external_id}`;
+  const cli = `curl -fsSL '${template}' -o hacktricks-cspm-customer-role.json\naws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${details.external_id} ParameterKey=CollectorRoleArn,ParameterValue=${details.collector_role_arn || COLLECTOR_ROLE_ARN}`;
   return <div className="form">
     <p>In each AWS account you want to scan, create a role that trusts the PEASS'o CSPM role below. Use this workspace's External ID.</p>
     <CopyValue label="Collector role ARN" value={details.collector_role_arn || COLLECTOR_ROLE_ARN} />
@@ -709,6 +709,7 @@ function ConnectorForm({
   const [prepared, setPrepared] = useState<PreparedSetup | null>(null);
   const [prepareError, setPrepareError] = useState("");
   const [accessResult, setAccessResult] = useState<AccessCheck | null>(null);
+  const [accessWarningsAcknowledged, setAccessWarningsAcknowledged] = useState(false);
   const [checkedPayload, setCheckedPayload] = useState("");
   const [checkPending, setCheckPending] = useState(false);
   const [nextCheckAt, setNextCheckAt] = useState(0);
@@ -1107,7 +1108,10 @@ function ConnectorForm({
       };
     const fingerprint = JSON.stringify(body);
     if (checkedPayload === fingerprint && accessResult?.status !== "blocked") {
+      if (accessResult?.status === "warning" && !accessWarningsAcknowledged)
+        return setError("Confirm that you understand some checks might fail before saving this connector.");
       if (accessResult?.check_token) body.check_token = accessResult.check_token;
+      if (!connector && accessResult?.status === "warning") body.acknowledge_access_warnings = true;
       setAuth({});
       setAdvancedAuth("");
       setAdvancedOptions("");
@@ -1120,6 +1124,7 @@ function ConnectorForm({
       return setError(prepareError || "Preparing this connector's trust details. Try again shortly.");
     setCheckPending(true);
     setAccessResult(null);
+    setAccessWarningsAcknowledged(false);
     setCheckedPayload("");
     try {
       const result = await request<AccessCheck>("/connectors/check-access", json({
@@ -1167,7 +1172,7 @@ function ConnectorForm({
       className="connector-inspector"
       onClose={onClose}
     >
-      <form onSubmit={(event) => { void submit(event); }} onChange={() => setCheckedPayload("")} className="form">
+      <form onSubmit={(event) => { void submit(event); }} onChange={() => { setCheckedPayload(""); setAccessWarningsAcknowledged(false); setAccessResult(null); }} className="form">
         <label>
           Connector name
           <input
@@ -1525,13 +1530,20 @@ function ConnectorForm({
             <li key={`${item.scope}-${item.principal}`}>{item.scope}: {item.principal}</li>)}</ul>}
           {accessResult.issues.length > 0 && <ul>{accessResult.issues.filter((issue) => !accessResult.scope_results?.some((row) => row.issues.some((item) => item.scope === issue.scope && item.message === issue.message))).map((item, index) =>
             <li key={`${item.scope}-${index}`}><b>{item.severity === "critical" ? "Required" : "Recommended"}</b> · {item.scope}: {item.message}</li>)}</ul>}
-          {accessResult.status === "warning" && <p>Recommended access can be added now. You may save this connector and recheck access after the grants propagate.</p>}
+          {accessResult.status === "warning" && <>
+            <p>The access check found limitations or recommendations. Some checks might fail or return incomplete evidence. Resolve the items above and check again, or acknowledge the limitation to continue.</p>
+            <label className="checkbox"><input type="checkbox" checked={accessWarningsAcknowledged}
+              onChange={event => { event.stopPropagation(); setAccessWarningsAcknowledged(event.target.checked); }} />
+              I understand that some checks might fail or return incomplete evidence with this access.
+            </label>
+          </>}
           {accessResult.status === "blocked" && <p>Resolve the required access or credential expiration, then run the check again.</p>}
         </div>}
         <button
           className="button primary"
           type="submit"
-          disabled={mutation.isPending || checkPending || (checkedPayload === "" && clockNow < nextCheckAt)}
+          disabled={mutation.isPending || checkPending || (checkedPayload === "" && clockNow < nextCheckAt)
+            || (!!checkedPayload && accessResult?.status === "warning" && !accessWarningsAcknowledged)}
         >
           {mutation.isPending ? (
             "Saving…"

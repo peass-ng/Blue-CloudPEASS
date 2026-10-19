@@ -55,44 +55,28 @@ def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     from urllib.parse import urlparse
     root = Path(__file__).parents[1]
     template_sha256 = hashlib.sha256((root / "infra/aws/customer-role.json").read_bytes()).hexdigest()
-    url = urlparse(f"https://hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com/customer-role-{template_sha256}.json")
+    url = urlparse(f"https://hacktricks-cspm-templates-111122223333.s3.us-east-1.amazonaws.com/customer-role-{template_sha256}.json")
     assert url.scheme == "https"
-    assert url.netloc == "hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com"
+    assert url.netloc == "hacktricks-cspm-templates-111122223333.s3.us-east-1.amazonaws.com"
     assert url.path == f"/customer-role-{template_sha256}.json"
     assert CUSTOMER_ROLE_TEMPLATE_URL == "https://cspm.hacktricks.wiki/aws/customer-role.json"
     template = json.loads((root / "infra/aws/customer-role.json").read_text())
     trust = template["Resources"]["AuditRole"]["Properties"]["AssumeRolePolicyDocument"]["Statement"][0]
-    assert trust["Principal"]["AWS"] == COLLECTOR_ROLE_ARN
+    assert trust["Principal"]["AWS"] == {"Ref": "CollectorRoleArn"}
+    assert "Default" not in template["Parameters"]["CollectorRoleArn"]
     assert trust["Condition"]["StringEquals"]["sts:ExternalId"] == {"Ref": "ExternalId"}
     storage = (root / "infra/aws/storage.tf").read_text()
     assert deploy.RUNTIME_CONFIG_SHA256["storage.tf"] == hashlib.sha256(storage.encode()).hexdigest()
     assert 'resource "aws_s3_bucket" "templates"' in storage
     assert 'count  = var.enable_public_customer_role_template ? 1 : 0' in storage
     assert 'bucket = "${local.name}-templates-${local.account_id}"' in storage
-    old_sha256 = "d7f7b815628bb270f4bd40f985d70de7ba1bbd50cefa4f429031ea0a74e08bcd"
-    archive = root / f"infra/aws/customer-role-{old_sha256}.json"
-    assert hashlib.sha256(archive.read_bytes()).hexdigest() == old_sha256
-    prior_sha256 = "7e6fc610eee9021025ffd498c8dc924d740975a34c56f291bc7317a7db182dbe"
-    prior = root / f"infra/aws/customer-role-{prior_sha256}.json"
-    assert hashlib.sha256(prior.read_bytes()).hexdigest() == prior_sha256
-    previous_sha256 = "04fbe795580c205cb86e6ad71a73c52935628bd43c5d5ee398b4333b2155748a"
-    previous = root / f"infra/aws/customer-role-{previous_sha256}.json"
-    assert hashlib.sha256(previous.read_bytes()).hexdigest() == previous_sha256
-    signed_a_sha256 = "25b895c00a3fad47f390e4946c83f6e47487c8e52e8342cf136d1a1eb1c1ea17"
-    signed_a = root / f"infra/aws/customer-role-{signed_a_sha256}.json"
-    assert hashlib.sha256(signed_a.read_bytes()).hexdigest() == signed_a_sha256
     current_archive = root / f"infra/aws/customer-role-{template_sha256}.json"
-    assert hashlib.sha256(current_archive.read_bytes()).hexdigest() == template_sha256
     assert current_archive.read_bytes() == (root / "infra/aws/customer-role.json").read_bytes()
-    assert template_sha256 not in {old_sha256, prior_sha256, previous_sha256, signed_a_sha256}
     assert 'customer_role_template_sources = merge(' in storage
-    for retained_sha256 in (old_sha256, prior_sha256, previous_sha256, signed_a_sha256, template_sha256):
-        assert (f'{{ "{retained_sha256}" = "${{path.module}}/customer-role-'
-                f'{retained_sha256}.json" }}') in storage
+    assert 'var.archived_customer_role_templates' in storage
     assert 'for_each            = var.enable_public_customer_role_template ? local.customer_role_template_sources : {}' in storage
     assert 'key                 = "customer-role-${each.key}.json"' in storage
     assert 'customer_role_template_sha256 = filesha256("${path.module}/customer-role.json")' in storage
-    assert f'to   = aws_s3_object.customer_role_template["{old_sha256}"]' in storage
     assert 'ignore_changes = [source]' in storage
     assert 'condition     = filesha256(each.value) == each.key' in storage
     assert 'versioning_configuration { status = "Enabled" }' in storage
@@ -104,18 +88,13 @@ def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     assert 'bucket              = aws_s3_bucket.frontend.id' in storage.split('resource "aws_s3_object" "customer_role_download"', 1)[1].split('resource ', 1)[0]
     assert 'bucket              = aws_s3_bucket.templates[0].id' in storage.split('resource "aws_s3_object" "customer_role_template"', 1)[1].split('resource ', 1)[0]
     assert {"aws_s3_bucket.templates", "aws_s3_bucket_policy.templates", "aws_s3_object.customer_role_template", "aws_s3_object.customer_role_download", "aws_s3_bucket_versioning.templates"} <= deploy.ALLOWED_RESOURCES
-    command = deploy.frontend_sync_command(Path("/frozen/frontend"), "hacktricks-cspm-frontend-202533532952")
+    command = deploy.frontend_sync_command(Path("/frozen/frontend"), "hacktricks-cspm-frontend-111122223333")
     excludes = [command[index + 1] for index, token in enumerate(command[:-1]) if token == "--exclude"]
     assert "--delete" in command and excludes == ["source/*", "aws/customer-role.json"]
     assert "cloudformation:ListStacks" in [action for resource in template["Resources"].values()
         if resource["Type"] == "AWS::IAM::ManagedPolicy"
         for statement in resource["Properties"]["PolicyDocument"]["Statement"]
         for action in (statement["Action"] if isinstance(statement["Action"], list) else [statement["Action"]])]
-    assert (root / "scripts/peaso_deploy.py").read_text().count(f'"infra/aws/customer-role-{old_sha256}.json"') == 2
-    assert (root / "scripts/peaso_deploy.py").read_text().count(f'"infra/aws/customer-role-{prior_sha256}.json"') == 2
-    assert (root / "scripts/peaso_deploy.py").read_text().count(f'"infra/aws/customer-role-{previous_sha256}.json"') == 2
-    assert (root / "scripts/peaso_deploy.py").read_text().count(f'"infra/aws/customer-role-{signed_a_sha256}.json"') == 2
-    assert (root / "scripts/peaso_deploy.py").read_text().count(f'"infra/aws/customer-role-{template_sha256}.json"') == 2
 
 
 def test_customer_trust_role_cannot_read_platform_or_assume_platform_roles():
@@ -126,7 +105,7 @@ def test_customer_trust_role_cannot_read_platform_or_assume_platform_roles():
     assert 'Resource = "arn:aws:iam::*:role/*"' not in collector
     assert 'name        = "HackTricks-CSPM"' in iam
     assert 'Sid = "AssumeCustomerRoles", Effect = "Allow", Action = "sts:AssumeRole", Resource = "*"' in broker
-    assert '"arn:aws:iam::202533532952:role/*", "arn:aws:iam::418720621023:role/*"' in broker
+    assert 'var.account_id' in broker and 'var.platform_account_ids' in broker
     assert 'Sid = "BlockLocalAndOtherActions", Effect = "Deny", NotAction = "sts:AssumeRole", Resource = "*"' in broker
     assert 'secretsmanager:' not in broker and 'dynamodb:' not in broker and 's3:' not in broker
     assert '{ Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn }' in collector
@@ -631,7 +610,7 @@ class DeploymentGuards(unittest.TestCase):
             self.summary(["create"], name="tools")
 
     def test_backend_guard(self):
-        expected = {"bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate",
+        expected = {"bucket": "example-deployment-state", "key": "cspm/terraform.tfstate",
                     "region": "us-east-1", "encrypt": True, "use_lockfile": True}
         with tempfile.TemporaryDirectory() as folder, patch.object(deploy, "INFRA", Path(folder)):
             metadata = Path(folder) / ".terraform/terraform.tfstate"
@@ -664,12 +643,6 @@ class DeploymentGuards(unittest.TestCase):
             "frontend/e2e/fixture.ts", "frontend/package.json", "frontend/package-lock.json",
             "frontend/vite.config.ts", "frontend/index.html", "infra/aws/main.tf",
             "infra/aws/Dockerfile.worker", "infra/aws/sdk-constraints.txt", "infra/aws/customer-role.json",
-            "infra/aws/customer-role-d7f7b815628bb270f4bd40f985d70de7ba1bbd50cefa4f429031ea0a74e08bcd.json",
-            "infra/aws/customer-role-7e6fc610eee9021025ffd498c8dc924d740975a34c56f291bc7317a7db182dbe.json",
-            "infra/aws/customer-role-04fbe795580c205cb86e6ad71a73c52935628bd43c5d5ee398b4333b2155748a.json",
-            "infra/aws/customer-role-25b895c00a3fad47f390e4946c83f6e47487c8e52e8342cf136d1a1eb1c1ea17.json",
-            "infra/aws/customer-role-9254e0c0c0a7519c7a0a0c128e9d147d799dba3ca9cf9ff76902fcb4cd5ab08f.json",
-            "infra/aws/customer-role-ccd97a3b24443ee6556e59f23ab0d3bf42b7b2013481047b5c586932d0570c14.json",
             "infra/aws/.terraform.lock.hcl",
             "scripts/peaso_deploy.py", "scripts/peaso_test_resources/fixture.py", "docs/peaso-aws.md",
             "tests/test_peaso_privesc.py", "bluepeass/__init__.py", "bluepeass/k8s.py",
@@ -942,11 +915,14 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
         cls.variables = {"worker_image": cls.image, "source_version": cls.release["source_version"],
                          "api_zip": str((cls.build / "api.zip").resolve()), "region": "us-east-1",
                          "worker_resources": {"collector": {"cpu": 1024, "memory": 6144}, "analyzer": {"cpu": 512, "memory": 4096}},
-                         "scan_runtime_limits": {"workflow_seconds": 3600, "stage_seconds": 1800, "lease_seconds": 3900}}
+                         "scan_runtime_limits": {"workflow_seconds": 3600, "stage_seconds": 1800, "lease_seconds": 3900},
+                         "account_id": deploy.ACCOUNT,
+                         "cognito_pool_id": "us-east-1_example", "cognito_client_id": "example-client",
+                         "stripe_secret_arn": "", "stripe_price_id": "", "codex_token_secret_arn": ""}
         cls.backend = cls.infra / ".terraform/terraform.tfstate"
         cls.backend.parent.mkdir()
         cls.backend.write_text(json.dumps({"backend": {"type": "s3", "config": {
-            "bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate", "region": "us-east-1",
+            "bucket": "example-deployment-state", "key": "cspm/terraform.tfstate", "region": "us-east-1",
             "encrypt": True, "use_lockfile": True}}}))
 
     @classmethod
@@ -1020,6 +996,7 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "PEASO_SOURCE_VERSION"):
             self.review()
         lambda_change["after"]["environment"] = [{"variables": dict(contract["api_environment"])}]
+        lambda_change["after"]["environment"][0]["variables"]["PEASO_AI_CREDENTIAL_SECRET_ARN"] = f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-ai-key-Ab1234"
         # A per-key marker may defer just the credential ARN; every known key is checked.
         del lambda_change["after"]["environment"][0]["variables"]["PEASO_CREDENTIAL_SECRET_ARN"]
         lambda_change["after_unknown"] = {"environment": [{"variables": {"PEASO_CREDENTIAL_SECRET_ARN": True}}]}
@@ -1032,6 +1009,7 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
         contract = self.review()["resolved_contract"]
         change = self.data["resource_changes"][1]["change"]
         environment = dict(contract["worker_environments"]["analyzer"])
+        environment["PEASO_AI_CREDENTIAL_SECRET_ARN"] = f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-ai-key-Ab1234"
         container = {"image": self.image, "environment": [{"name": k, "value": v} for k, v in environment.items()]}
         change["after"]["container_definitions"] = json.dumps([container])
         self.review()
@@ -1081,6 +1059,7 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
         for stage, state in (("collector", "Collect"), ("analyzer", "Analyze")):
             arn = f"arn:aws:ecs:us-east-1:{deploy.ACCOUNT}:task-definition/hacktricks-cspm-{stage}:1"
             env = dict(contract["worker_environments"][stage], PEASO_ARTIFACT_BUCKET=bucket)
+            env["PEASO_AI_CREDENTIAL_SECRET_ARN"] = f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-ai-key-Ab1234"
             if stage == "collector":
                 env["PEASO_CREDENTIAL_SECRET_ARN"] = secret
             self.tasks[arn] = dict(contract["worker_resources"][stage], family="hacktricks-cspm-" + stage,
@@ -1093,7 +1072,8 @@ class ApplyTimeRuntimeGuards(unittest.TestCase):
                 "FunctionName": config["function_name"], "CodeSha256": config["source_code_hash"], "MemorySize": config["memory_size"],
                 "Timeout": config["timeout"], "Runtime": config["runtime"], "Handler": config["handler"], "Architectures": config["architectures"],
                 "State": "Active", "LastUpdateStatus": "Successful", "Environment": {"Variables": dict(contract["api_environment"],
-                    PEASO_ARTIFACT_BUCKET=bucket, PEASO_CREDENTIAL_SECRET_ARN=secret, PEASO_WORKFLOW_ARN=workflow)}}
+                    PEASO_ARTIFACT_BUCKET=bucket, PEASO_CREDENTIAL_SECRET_ARN=secret, PEASO_WORKFLOW_ARN=workflow,
+                    PEASO_AI_CREDENTIAL_SECRET_ARN=f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-ai-key-Ab1234")}}
         session = Mock()
         clients = {name: Mock() for name in ("sts", "stepfunctions", "ecs", "lambda")}
         session.client.side_effect = clients.__getitem__
@@ -1207,6 +1187,7 @@ class CloudFrontRecoveryGuards(unittest.TestCase):
             after = r["change"]["after"]
             if r["type"] == "aws_ecs_task_definition":
                 env = dict(contract["worker_environments"][r["index"]])
+                env["PEASO_AI_CREDENTIAL_SECRET_ARN"] = f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-ai-key-Ab1234"
                 if r["index"] == "collector":
                     env["PEASO_CREDENTIAL_SECRET_ARN"] = f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-credential-key-Ab1234"
                 after["container_definitions"] = json.dumps([{"name": r["index"], "image": self.image,
@@ -1214,6 +1195,7 @@ class CloudFrontRecoveryGuards(unittest.TestCase):
                 r["change"]["actions"] = ["delete", "create"]
             else:
                 env = dict(contract["api_environment"])
+                env["PEASO_AI_CREDENTIAL_SECRET_ARN"] = f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-ai-key-Ab1234"
                 env["PEASO_CREDENTIAL_SECRET_ARN"] = f"arn:aws:secretsmanager:us-east-1:{deploy.ACCOUNT}:secret:hacktricks-cspm-credential-key-Ab1234"
                 after["environment"] = [{"variables": env}]
                 r["change"]["actions"] = ["update"]

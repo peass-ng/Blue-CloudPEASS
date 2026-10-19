@@ -1,4 +1,5 @@
 """Inspector admin applicability requires native proof, never an error heuristic."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import pytest
 from peaso.checks import CHECKS, HACKTRICKS
@@ -23,7 +24,7 @@ def test_admin_only_pass_fail_and_explicit_dependency_truth(cid):
         assert c.evaluate(fixture[label], index)[0] == expected
         assert index == before
     assert c.evaluate({}, {})[0] == "UNKNOWN"
-    assert HACKTRICKS in c.frameworks
+    assert (HACKTRICKS in c.frameworks) == includes(c.id)
     assert c.dependencies == [module.KIND]
 
 

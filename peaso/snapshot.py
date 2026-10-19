@@ -174,6 +174,7 @@ def resource_id(provider, kind, scope, item):
 
 
 def resources(snapshot):
+    from .check_services import service_for
     output = {}
     for collection in snapshot["collections"]:
         for item in collection["items"]:
@@ -181,7 +182,7 @@ def resources(snapshot):
                 continue
             rid = resource_id(snapshot["provider"], collection["type"], collection["scope"], item)
             key = (collection["scope"], collection["type"], rid)
-            output[key] = {"id": digest([snapshot["provider"], collection["scope"], collection["type"], rid]), "native_id": rid, "type": collection["type"], "service": collection.get("service", collection["type"].split('_')[0]),
+            output[key] = {"id": digest([snapshot["provider"], collection["scope"], collection["type"], rid]), "native_id": rid, "type": collection["type"], "service": service_for(snapshot["provider"], collection["type"], collection.get("service")),
                 "scope": collection["scope"], "provider": snapshot["provider"], "data": freeze(item)}
     return [output[key] for key in sorted(output)]
 

@@ -300,40 +300,14 @@ def lightsail_bucket_private(item, index):
     overrides = get(access, "allowPublicOverrides", bool)
     if get_object not in ("public", "private"):
         raise Unavailable("unrecognized Lightsail bucket access rule")
-    block = get(item, "AccountPublicAccessBlock", dict)
-    if get(block, "collection_status", str) != "collected":
-        raise Unavailable("account public-access controls incomplete")
-    config = get(block, "PublicAccessBlockConfiguration", dict)
-    block_policy = get(config, "BlockPublicPolicy", bool)
-    restrict = get(config, "RestrictPublicBuckets", bool)
+    # Lightsail GetBuckets.AccessRules defines public as anonymous access to
+    # every object, regardless of allowPublicOverrides. S3 account BPA is not
+    # a native Lightsail bucket fact and cannot authenticate this decision.
     if get_object == "public":
-        if not block_policy and not restrict:
-            return result(True, bucket_arn=arn, public_get_object=True)
-        return unknown("effective Lightsail public rule cannot be proven blocked by account S3 controls", bucket_arn=arn)
+        return result(True, bucket_arn=arn, public_get_object=True)
     if not overrides:
         return result(False, bucket_arn=arn, public_get_object=False, public_overrides=False)
-    if block_policy or restrict:
-        return unknown("public override effect under account block controls is unresolved", bucket_arn=arn)
-    objects = _child(item, "Objects")
-    public = []
-    for obj in objects:
-        key = get(obj, "Key", str)
-        grants = list_of_objects(get(obj, "Grants", list))
-        for grant in grants:
-            grantee = get(grant, "Grantee", dict)
-            grantee_type = get(grantee, "Type", str)
-            if grantee_type == "CanonicalUser":
-                get(grantee, "ID", str)
-                continue
-            if grantee_type != "Group":
-                raise Unavailable("unrecognized object ACL grantee type")
-            uri = get(grantee, "URI", str)
-            permission = get(grant, "Permission", str)
-            if permission not in ("READ", "READ_ACP", "WRITE", "WRITE_ACP", "FULL_CONTROL"):
-                raise Unavailable("unrecognized object ACL permission")
-            if uri in ("http://acs.amazonaws.com/groups/global/AllUsers", "http://acs.amazonaws.com/groups/global/AuthenticatedUsers") and permission in ("READ", "FULL_CONTROL"):
-                public.append(key)
-    return result(bool(public), bucket_arn=arn, public_object_keys=sorted(set(public)))
+    return unknown("private defaults allow public object ACL overrides; complete native object exposure is unproven", bucket_arn=arn)
 
 
 def _required_frequency(index, scope):

@@ -15,6 +15,7 @@ async function mock(page:Page,finding:Record<string,unknown>,envelope?:Record<st
   await route.fulfill({json});
  });
  await page.goto('/#Hardening%20Findings');
+ await page.getByLabel('Group findings').selectOption('check_id');
  await page.getByRole('button',{name:`Archived check ${finding.check_id}`}).click();
 }
 for(const sample of [
@@ -59,7 +60,7 @@ test('presigned finding merges presentation whitelist while protecting archived 
  const dialog=page.getByRole('dialog');
  await expect(dialog.getByText('Approved stored observation.',{exact:true})).toBeVisible();
  await expect(dialog.locator('.remediation-actions')).toHaveText('Refreshed reviewed action.');
- await expect(dialog.locator('.inspector-badges')).toContainText('fail');
+ await expect(dialog.locator('.inspector-badges')).toContainText('Failed');
  await expect(dialog.locator('.inspector-badges')).toContainText('high');
  await expect(dialog.locator('.inspector-badges')).not.toContainText('critical');
  await dialog.getByText('How this check works',{exact:true}).click();

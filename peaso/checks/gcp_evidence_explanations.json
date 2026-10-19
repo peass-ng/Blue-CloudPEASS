@@ -1,0 +1,3354 @@
+{
+  "gcp.iam.restrict_public_members": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.iam.avoid_basic_roles": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.storage.uniform_access": {
+    "purpose": "Uniform access centralizes bucket permissions in IAM; object ACL behavior depends on this setting.",
+    "missing_observation": "The evidence needed to evaluate “Bucket uses uniform bucket-level access” was not recorded reliably."
+  },
+  "gcp.storage.public_access_prevention": {
+    "purpose": "Public access prevention can block public grants; inherited policy and object access still need consideration.",
+    "missing_observation": "The evidence needed to evaluate “Bucket public access prevention is enforced” was not recorded reliably."
+  },
+  "gcp.compute.restrict_internet_ingress": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.compute.no_external_ip": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.compute.shielded_vtpm": {
+    "purpose": "Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload.",
+    "missing_observation": "The recorded evidence does not establish the VM virtual TPM."
+  },
+  "gcp.compute.integrity_monitoring": {
+    "purpose": "Integrity monitoring reports unexpected boot changes; this setting does not prove alerts are delivered.",
+    "missing_observation": "The recorded evidence does not establish shielded VM integrity monitoring."
+  },
+  "gcp.compute.secure_boot": {
+    "purpose": "Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload.",
+    "missing_observation": "The recorded evidence does not establish secure Boot."
+  },
+  "gcp.sql.backups": {
+    "purpose": "Scheduled backups and binary logs support recovery; successful backups and restores need separate evidence.",
+    "missing_observation": "The recorded evidence does not establish automatic Cloud SQL backup scheduling."
+  },
+  "gcp.sql.no_public_ip": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.gke.secrets_encryption": {
+    "purpose": "Application-layer encryption protects stored Kubernetes Secrets with a managed key; runtime access remains separate.",
+    "missing_observation": "Application-layer GKE Secrets encryption could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "configured",
+      "label": "Application-layer GKE Secrets encryption",
+      "values": {
+        "ENCRYPTED": "Application-layer encryption is enabled for Kubernetes Secrets.",
+        "DECRYPTED": "Application-layer encryption is disabled for Kubernetes Secrets."
+      },
+      "expected_field": "databaseEncryption.state"
+    }
+  },
+  "gcp.network.custom_subnets": {
+    "purpose": "Explicit subnet design helps control network layout; the subnet mode alone does not establish isolation.",
+    "missing_observation": "The recorded evidence does not establish automatic VPC subnet creation."
+  },
+  "gcp.storage.no_public_iam": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.iam.no_user_managed_sa_keys": {
+    "purpose": "Long-lived identity keys can be reused if stolen; key metadata does not establish actual use.",
+    "missing_observation": "Service-account key management could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "key_type",
+      "label": "Service-account key management",
+      "values": {
+        "SYSTEM_MANAGED": "Google manages this service-account key.",
+        "USER_MANAGED": "The service-account key is user-managed."
+      }
+    }
+  },
+  "gcp.sql.restrict_authorized_networks": {
+    "purpose": "Broad authorized networks permit more client sources; actual database access still requires a reachable path and authentication.",
+    "missing_observation": "The recorded evidence does not establish internet-wide SQL authorized networks."
+  },
+  "gcp.subnetwork.private_google_access": {
+    "purpose": "Private Google Access lets private VMs reach Google APIs; actual routing and API access were not tested.",
+    "missing_observation": "The recorded evidence does not establish private Google Access."
+  },
+  "gcp.iam.data_access_audit": {
+    "purpose": "Audit policy controls which data access events are recorded; log delivery and method coverage were not verified.",
+    "missing_observation": "The evidence needed to evaluate “Project IAM configures all-service data access audit logs” was not recorded reliably."
+  },
+  "gcp.gke.no_legacy_abac": {
+    "purpose": "Legacy ABAC grants access through broad static rules; effective Kubernetes authorization requires separate review.",
+    "missing_observation": "The recorded evidence does not establish legacy ABAC."
+  },
+  "gcp.gke.private_endpoint": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.gke.shielded_nodes": {
+    "purpose": "Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload.",
+    "missing_observation": "The recorded evidence does not establish shielded Nodes."
+  },
+  "gcp.gke.private_nodes": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.gke.authorized_networks": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.gke.network_policy": {
+    "purpose": "NetworkPolicy enforcement supports pod traffic restrictions; deployed policies and actual traffic remain separate.",
+    "missing_observation": "The recorded evidence does not establish gKE network policy."
+  },
+  "gcp.gke.workload_identity": {
+    "purpose": "The GKE metadata identity path limits pod access to node credentials; workload permissions need separate review.",
+    "missing_observation": "The recorded evidence does not establish the GKE Workload Identity pool."
+  },
+  "gcp.gke.node_pools_gke_metadata": {
+    "purpose": "The GKE metadata identity path limits pod access to node credentials; workload permissions need separate review.",
+    "missing_observation": "The GKE node-pool metadata server modes could not be read reliably."
+  },
+  "gcp.reviewed.compute.deletion_protection": {
+    "purpose": "Deletion protection reduces accidental removal; recovery after other data loss still depends on backups.",
+    "missing_observation": "The recorded evidence does not establish vM deletion protection."
+  },
+  "gcp.reviewed.compute.automatic_restart": {
+    "purpose": "The host failure and maintenance settings affect VM continuity; application availability was not tested.",
+    "missing_observation": "The recorded evidence does not establish automatic restart after a host failure."
+  },
+  "gcp.reviewed.compute.maintenance_migrate": {
+    "purpose": "The host failure and maintenance settings affect VM continuity; application availability was not tested.",
+    "missing_observation": "VM host-maintenance behavior could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "configured",
+      "label": "VM host-maintenance behavior",
+      "values": {
+        "MIGRATE": "The VM is configured to migrate during host maintenance.",
+        "TERMINATE": "The VM is configured to stop during host maintenance."
+      },
+      "expected_field": "scheduling.onHostMaintenance"
+    }
+  },
+  "gcp.reviewed.compute.confidential_computing": {
+    "purpose": "Confidential Computing protects VM memory during processing; this declaration does not attest the running VM.",
+    "missing_observation": "The recorded evidence does not establish confidential Computing."
+  },
+  "gcp.reviewed.loadbalancer.backend_logging": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The recorded evidence does not establish backend request logging."
+  },
+  "gcp.reviewed.network.flow_logs": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The recorded evidence does not establish vPC flow logging."
+  },
+  "gcp.reviewed.compute.ip_forwarding": {
+    "purpose": "IP forwarding lets a VM relay packets for other addresses; actual forwarding also depends on routes and firewall rules.",
+    "missing_observation": "The recorded evidence does not establish iP forwarding."
+  },
+  "gcp.reviewed.compute.single_interface": {
+    "purpose": "Multiple interfaces can connect separate network paths; this count does not establish traffic isolation.",
+    "missing_observation": "The evidence needed to evaluate “Compute VM has one network interface” was not recorded reliably."
+  },
+  "gcp.reviewed.compute.no_default_service_account": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.reviewed.compute.no_default_full_api": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.reviewed.compute.disk_auto_delete": {
+    "purpose": "Disk auto-deletion can remove persistent data with the VM; recovery depends on separate retained copies.",
+    "missing_observation": "The recorded evidence does not establish disks configured for automatic deletion."
+  },
+  "gcp.reviewed.compute.block_project_ssh_keys": {
+    "purpose": "Project SSH keys can extend login access across VMs; OS Login and other SSH controls affect actual access.",
+    "missing_observation": "The recorded evidence does not establish project-wide SSH keys."
+  },
+  "gcp.reviewed.compute.no_serial_console": {
+    "purpose": "Serial-console access creates another VM administration path; IAM and guest login still govern access.",
+    "missing_observation": "The recorded evidence does not establish serial-console access."
+  },
+  "gcp.reviewed.project.os_login_2fa": {
+    "purpose": "OS Login supports centrally managed SSH access; the resolved setting does not prove an actual login is allowed.",
+    "missing_observation": "The recorded evidence does not establish project OS Login two-factor authentication."
+  },
+  "gcp.reviewed.network.no_default_vpc": {
+    "purpose": "Explicit subnet design helps control network layout; the subnet mode alone does not establish isolation.",
+    "missing_observation": "The recorded evidence does not establish the VPC network name."
+  },
+  "gcp.reviewed.storage.soft_delete": {
+    "purpose": "Soft deletion creates a recovery window for deleted objects; a successful restore was not tested.",
+    "missing_observation": "The evidence needed to evaluate “Bucket configures a positive soft-delete retention period” was not recorded reliably."
+  },
+  "gcp.reviewed.storage.versioning": {
+    "purpose": "Object versioning retains older versions; retention and successful recovery need separate evidence.",
+    "missing_observation": "The recorded evidence does not establish bucket versioning."
+  },
+  "gcp.reviewed.storage.access_logging": {
+    "purpose": "Log retention preserves records for investigations; the configured duration does not prove complete log delivery.",
+    "missing_observation": "The recorded evidence does not establish the declared access-log destination."
+  },
+  "gcp.reviewed.storage.lifecycle": {
+    "purpose": "Lifecycle rules control retained object or artifact versions; deletion behavior and recovery need separate review.",
+    "missing_observation": "The evidence needed to evaluate “Bucket declares a supported lifecycle rule and condition” was not recorded reliably."
+  },
+  "gcp.reviewed.sql.high_availability": {
+    "purpose": "Multiple zones reduce reliance on one failure domain; application failover was not tested.",
+    "missing_observation": "Cloud SQL availability could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "availability_type",
+      "label": "Cloud SQL availability",
+      "values": {
+        "REGIONAL": "Cloud SQL is configured for regional high availability.",
+        "ZONAL": "Cloud SQL is configured in a single zone."
+      }
+    }
+  },
+  "gcp.reviewed.sql.cmek": {
+    "purpose": "A customer-controlled key adds control over stored-data encryption; key permissions and actual key use need separate review.",
+    "missing_observation": "The recorded evidence does not establish the declared customer-managed key."
+  },
+  "gcp.reviewed.sql.mysql_local_infile": {
+    "purpose": "Local file loading can let a database client read local files; database privileges and actual exploitation remain separate.",
+    "missing_observation": "Loading local client files into MySQL could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "local_infile",
+      "field": "configured",
+      "label": "Loading local client files into MySQL"
+    }
+  },
+  "gcp.reviewed.sql.mysql_skip_show_database": {
+    "purpose": "Restricting database listing limits metadata disclosure; user privileges still determine visible databases.",
+    "missing_observation": "Hiding database names from users without matching privileges could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "skip_show_database",
+      "field": "configured",
+      "label": "Hiding database names from users without matching privileges"
+    }
+  },
+  "gcp.reviewed.sql.postgres_pgaudit": {
+    "purpose": "pgAudit records detailed database activity; delivery and the selected audit categories need separate review.",
+    "missing_observation": "Detailed PostgreSQL audit logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "cloudsql.enable_pgaudit",
+      "field": "configured",
+      "label": "Detailed PostgreSQL audit logging"
+    }
+  },
+  "gcp.reviewed.sql.postgres_log_connections": {
+    "purpose": "Connection logging supports tracing database sign-ins; the flag alone does not prove records are retained.",
+    "missing_observation": "Database connection logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_connections",
+      "field": "configured",
+      "label": "Database connection logging"
+    }
+  },
+  "gcp.reviewed.sql.postgres_log_disconnections": {
+    "purpose": "Disconnection logging helps reconstruct session lifetimes; the flag alone does not prove records are retained.",
+    "missing_observation": "Database disconnection logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_disconnections",
+      "field": "configured",
+      "label": "Database disconnection logging"
+    }
+  },
+  "gcp.reviewed.sql.postgres_log_statement": {
+    "purpose": "DDL logging records schema changes; other SQL activity depends on additional logging settings.",
+    "missing_observation": "SQL statement logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_statement",
+      "field": "configured",
+      "label": "SQL statement logging"
+    }
+  },
+  "gcp.reviewed.sql.postgres_log_error_verbosity": {
+    "purpose": "Error verbosity controls diagnostic detail and possible data disclosure; emitted errors were not inspected.",
+    "missing_observation": "Database error-message detail could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_error_verbosity",
+      "field": "configured",
+      "label": "Database error-message detail"
+    }
+  },
+  "gcp.reviewed.kms.rotation_enabled": {
+    "purpose": "Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version.",
+    "missing_observation": "The evidence needed to evaluate “Symmetric KMS key enables automatic rotation” was not recorded reliably."
+  },
+  "gcp.reviewed.kms.rotation_90_days": {
+    "purpose": "Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version.",
+    "missing_observation": "The evidence needed to evaluate “Symmetric KMS key schedules rotation within ninety days” was not recorded reliably."
+  },
+  "gcp.reviewed.kms.no_public_iam": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.reviewed.bigquery.cmek": {
+    "purpose": "A customer-controlled key adds control over stored-data encryption; key permissions and actual key use need separate review.",
+    "missing_observation": "The recorded evidence does not establish the declared customer-managed key."
+  },
+  "gcp.reviewed.bigquery.no_public_acl": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp.ports.app_engine_application_iap_enabled": {
+    "purpose": "IAP adds an identity check before application access; routing and effective caller access were not tested.",
+    "missing_observation": "The recorded evidence does not establish app Engine Identity-Aware Proxy."
+  },
+  "gcp.ports.sql_instance_mysql_binary_log_enabled": {
+    "purpose": "Scheduled backups and binary logs support recovery; successful backups and restores need separate evidence.",
+    "missing_observation": "The recorded evidence does not establish cloud SQL binary-log backup configuration."
+  },
+  "gcp.ports.kubernetes_cluster_legacy_endpoints_disabled": {
+    "purpose": "Legacy metadata endpoints can expose VM metadata to pods; actual network reachability was not tested.",
+    "missing_observation": "The recorded evidence does not establish node pools with legacy metadata endpoints enabled."
+  },
+  "gcp.ports.kubernetes_cluster_node_config_image_cos_containerd": {
+    "purpose": "The node image selects the operating system and container runtime; patch state needs separate evidence.",
+    "missing_observation": "The node-pool operating systems and container runtimes could not be read reliably."
+  },
+  "gcp.ports.kubernetes_cluster_shielded_instance_integrity_monitoring_enabled": {
+    "purpose": "Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload.",
+    "missing_observation": "The recorded evidence does not establish node pools without integrity monitoring enabled."
+  },
+  "gcp.ports.kubernetes_cluster_shielded_node_secure_boot_enabled": {
+    "purpose": "Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload.",
+    "missing_observation": "The recorded evidence does not establish node pools without Secure Boot enabled."
+  },
+  "gcp.ports.kubernetes_cluster_use_ip_aliases": {
+    "purpose": "VPC-native networking assigns pod IP ranges within the VPC; actual network segmentation remains separate.",
+    "missing_observation": "The recorded evidence does not establish gKE alias-IP allocation."
+  },
+  "gcp.ports.kubernetes_cluster_intra_node_visibility_enabled": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The recorded evidence does not establish gKE intra-node visibility."
+  },
+  "gcp.ports.sql_instance_postgresql_log_checkpoints_database_flag_on": {
+    "purpose": "Checkpoint logging supports diagnosing database recovery and write activity; log delivery was not verified.",
+    "missing_observation": "Database checkpoint logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_checkpoints",
+      "field": "configured",
+      "label": "Database checkpoint logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_duration_database_flag_on": {
+    "purpose": "Duration logging supports reviewing statement execution times; it can also increase log volume.",
+    "missing_observation": "Database statement-duration logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_duration",
+      "field": "configured",
+      "label": "Database statement-duration logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_hostname_database_flag_configured": {
+    "purpose": "Hostname logging adds client attribution; DNS resolution and log delivery were not verified.",
+    "missing_observation": "Client-hostname logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_hostname",
+      "field": "configured",
+      "label": "Client-hostname logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_lock_waits_database_flag_on": {
+    "purpose": "Lock-wait logging helps investigate blocking queries; emitted records were not inspected.",
+    "missing_observation": "Database lock-wait logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_lock_waits",
+      "field": "configured",
+      "label": "Database lock-wait logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_executor_stats_database_flag_off": {
+    "purpose": "Detailed execution statistics can add overhead and disclose query details; actual logging behavior was not measured.",
+    "missing_observation": "Detailed query-executor statistics logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_executor_stats",
+      "field": "configured",
+      "label": "Detailed query-executor statistics logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_parser_stats_database_flag_off": {
+    "purpose": "Detailed execution statistics can add overhead and disclose query details; actual logging behavior was not measured.",
+    "missing_observation": "Detailed query-parser statistics logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_parser_stats",
+      "field": "configured",
+      "label": "Detailed query-parser statistics logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_planner_stats_database_flag_off": {
+    "purpose": "Detailed execution statistics can add overhead and disclose query details; actual logging behavior was not measured.",
+    "missing_observation": "Detailed query-planner statistics logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_planner_stats",
+      "field": "configured",
+      "label": "Detailed query-planner statistics logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_statement_stats_database_flag_off": {
+    "purpose": "Detailed execution statistics can add overhead and disclose query details; actual logging behavior was not measured.",
+    "missing_observation": "Detailed statement statistics logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_statement_stats",
+      "field": "configured",
+      "label": "Detailed statement statistics logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter": {
+    "purpose": "Error verbosity controls diagnostic detail and possible data disclosure; emitted errors were not inspected.",
+    "missing_observation": "Database error-message detail could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_error_verbosity",
+      "field": "configured",
+      "label": "Database error-message detail"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled": {
+    "purpose": "The duration threshold controls which slow statements are logged; runtime query coverage was not measured.",
+    "missing_observation": "Duration-based statement logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_duration_statement",
+      "field": "configured",
+      "label": "Duration-based statement logging"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured": {
+    "purpose": "The error-statement threshold controls which failed SQL statements are logged; emitted records were not inspected.",
+    "missing_observation": "Error-statement logging severity could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_error_statement",
+      "field": "configured",
+      "label": "Error-statement logging severity"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_min_messages_database_flag_error": {
+    "purpose": "The message threshold controls log detail and volume; emitted records were not inspected.",
+    "missing_observation": "Database message logging severity could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_messages",
+      "field": "configured",
+      "label": "Database message logging severity"
+    }
+  },
+  "gcp.ports.sql_instance_postgresql_log_temp_files_database_flag_0": {
+    "purpose": "Temporary-file logging can reveal expensive queries; actual log output and retention were not inspected.",
+    "missing_observation": "Temporary-file logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_temp_files",
+      "field": "configured",
+      "label": "Temporary-file logging"
+    }
+  },
+  "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off": {
+    "purpose": "Contained authentication can bypass server-level account management; actual database users require separate review.",
+    "missing_observation": "Contained database authentication could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "contained database authentication",
+      "field": "configured",
+      "label": "Contained database authentication"
+    }
+  },
+  "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off": {
+    "purpose": "Cross-database ownership chaining can extend access across databases; actual ownership and grants need review.",
+    "missing_observation": "Cross-database ownership chaining could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "cross db ownership chaining",
+      "field": "configured",
+      "label": "Cross-database ownership chaining"
+    }
+  },
+  "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off": {
+    "purpose": "External scripts allow code execution from SQL; database permissions still determine who can use them.",
+    "missing_observation": "Executing external scripts from SQL could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "external scripts enabled",
+      "field": "configured",
+      "label": "Executing external scripts from SQL"
+    }
+  },
+  "gcp.ports.sql_instance_sql_remote_access_database_flag_off": {
+    "purpose": "Remote procedure access creates an additional database interaction path; actual permissions and reachability were not tested.",
+    "missing_observation": "Remote SQL procedure access could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "remote access",
+      "field": "configured",
+      "label": "Remote SQL procedure access"
+    }
+  },
+  "gcp.ports.sql_instance_sql_3625_trace_database_flag_on": {
+    "purpose": "Trace flag 3625 changes error-message detail; this check follows its stated profile, which differs between benchmarks.",
+    "missing_observation": "Reduced error-message detail through SQL trace flag 3625 could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "3625",
+      "field": "configured",
+      "label": "Reduced error-message detail through SQL trace flag 3625"
+    }
+  },
+  "gcp.ports.sql_instance_sql_user_connections_database_flag_configured": {
+    "purpose": "The connection limit affects resource exhaustion and service capacity; live load handling was not tested.",
+    "missing_observation": "The database connection limit could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "user connections",
+      "field": "configured",
+      "label": "The database connection limit"
+    }
+  },
+  "gcp.ports.sql_instance_sql_user_options_database_flag_not_configured": {
+    "purpose": "Default user options change session behavior; individual connection settings can override them.",
+    "missing_observation": "Default database session options could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "user options",
+      "field": "configured",
+      "label": "Default database session options"
+    }
+  },
+  "gcp.ports.kubernetes_cluster_auto_repair_enabled": {
+    "purpose": "Automatic node repair supports recovery from node failure; application recovery was not tested.",
+    "missing_observation": "The recorded evidence does not establish node pools without automatic repair enabled."
+  },
+  "gcp.ports.kubernetes_cluster_auto_upgrade_enabled": {
+    "purpose": "Automatic node upgrades help keep nodes current; installed versions and workload disruption need separate review.",
+    "missing_observation": "The recorded evidence does not establish node pools without automatic upgrade enabled."
+  },
+  "gcp.ports.compute_instance_with_no_default_service_account": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.compute_instance_with_no_default_service_account_with_full_access": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.compute_instance_ip_forwarding_disabled": {
+    "purpose": "IP forwarding lets a VM relay packets for other addresses; actual forwarding also depends on routes and firewall rules.",
+    "missing_observation": "The VM IP-forwarding setting could not be read reliably."
+  },
+  "gcp.ports.compute_instance_block_project_wide_ssh_enabled": {
+    "purpose": "Project SSH keys can extend login access across VMs; OS Login and other SSH controls affect actual access.",
+    "missing_observation": "The evidence needed to evaluate “VM explicitly blocks project SSH keys outside GKE source scope” was not recorded reliably."
+  },
+  "gcp.ports.compute_instance_shielded_vm_enabled": {
+    "purpose": "Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload.",
+    "missing_observation": "The evidence needed to evaluate “VM explicitly enables both vTPM and integrity monitoring” was not recorded reliably."
+  },
+  "gcp.ports.compute_network_contains_no_legacy_network": {
+    "purpose": "Explicit subnet design helps control network layout; the subnet mode alone does not establish isolation.",
+    "missing_observation": "The evidence needed to evaluate “Network avoids the legacy IPv4Range model” was not recorded reliably."
+  },
+  "gcp.ports.compute_instance_with_no_public_ip_addresses": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.compute_firewall_rule_ssh_access_restricted": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.compute_firewall_rule_rdp_access_restricted": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.sql_instance_require_ssl_enabled": {
+    "purpose": "Requiring encrypted SQL connections protects data in transit; client authentication and negotiated TLS were not tested.",
+    "missing_observation": "SQL connection encryption could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "sslMode",
+      "label": "SQL connection encryption",
+      "values": {
+        "TRUSTED_CLIENT_CERTIFICATE_REQUIRED": "SQL connections require encryption and a trusted client certificate.",
+        "ENCRYPTED_ONLY": "SQL connections require encryption.",
+        "ALLOW_UNENCRYPTED_AND_ENCRYPTED": "SQL permits both encrypted and unencrypted connections.",
+        "SSL_MODE_UNSPECIFIED": "No explicit SQL connection-encryption mode is declared."
+      }
+    }
+  },
+  "gcp.ports.audit_logging_configured_for_all_service": {
+    "purpose": "Audit policy controls which data access events are recorded; log delivery and method coverage were not verified.",
+    "missing_observation": "The project audit-log categories and exemptions could not be read reliably."
+  },
+  "gcp.ports.iam_api_key_age_90": {
+    "purpose": "An old API key has a longer exposure window if leaked; metadata does not establish misuse or current key rotation.",
+    "missing_observation": "The recorded evidence does not establish aPI key."
+  },
+  "gcp.ports.iam_service_account_key_age_90": {
+    "purpose": "Long-lived identity keys can be reused if stolen; key metadata does not establish actual use.",
+    "missing_observation": "The recorded evidence does not establish service-account key."
+  },
+  "gcp.ports.kms_key_rotated_within_90_day": {
+    "purpose": "Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version.",
+    "missing_observation": "The evidence needed to evaluate “kms key rotated within 90 day” was not recorded reliably."
+  },
+  "gcp.ports.iam_api_key_restricts_apis": {
+    "purpose": "API and caller restrictions limit where a stolen key can be used; successful requests were not tested.",
+    "missing_observation": "The recorded evidence does not establish the API key declares these API targets."
+  },
+  "gcp.ports.iam_api_key_restricts_websites_hosts_apps": {
+    "purpose": "API and caller restrictions limit where a stolen key can be used; successful requests were not tested.",
+    "missing_observation": "The evidence needed to evaluate “iam api key restricts websites hosts apps” was not recorded reliably."
+  },
+  "gcp.ports.bigquery_table_encrypted_with_cmk": {
+    "purpose": "Customer keys give encryption control; key usability and permissions remain unverified.",
+    "missing_observation": "The recorded evidence does not establish the declared customer-managed key reference."
+  },
+  "gcp.ports.dataproc_cluster_encryption_with_cmek": {
+    "purpose": "Customer keys give encryption control; key usability and permissions remain unverified.",
+    "missing_observation": "The recorded evidence does not establish the declared customer-managed key reference."
+  },
+  "gcp.ports.iam_service_account_gcp_managed_key": {
+    "purpose": "Long-lived identity keys can be reused if stolen; key metadata does not establish actual use.",
+    "missing_observation": "The recorded evidence does not establish the configured service account."
+  },
+  "gcp.ports.reference_sql_pg_min_duration": {
+    "purpose": "The duration threshold controls which slow statements are logged; runtime query coverage was not measured.",
+    "missing_observation": "Duration-based statement logging could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_duration_statement",
+      "field": "declared",
+      "label": "Duration-based statement logging"
+    }
+  },
+  "gcp.ports.reference_sql_pg_min_error": {
+    "purpose": "The error-statement threshold controls which failed SQL statements are logged; emitted records were not inspected.",
+    "missing_observation": "Error-statement logging severity could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_error_statement",
+      "field": "declared",
+      "label": "Error-statement logging severity"
+    }
+  },
+  "gcp.ports.reference_sql_pg_min_messages": {
+    "purpose": "The message threshold controls log detail and volume; emitted records were not inspected.",
+    "missing_observation": "Database message logging severity could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_messages",
+      "field": "declared",
+      "label": "Database message logging severity"
+    }
+  },
+  "gcp.ports.reference_sqlserver_contained_database_authentication": {
+    "purpose": "Contained authentication can bypass server-level account management; actual database users require separate review.",
+    "missing_observation": "Contained database authentication could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "contained database authentication",
+      "field": "declared",
+      "label": "Contained database authentication"
+    }
+  },
+  "gcp.ports.reference_sqlserver_cross_db_ownership_chaining": {
+    "purpose": "Cross-database ownership chaining can extend access across databases; actual ownership and grants need review.",
+    "missing_observation": "Cross-database ownership chaining could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "cross db ownership chaining",
+      "field": "declared",
+      "label": "Cross-database ownership chaining"
+    }
+  },
+  "gcp.ports.reference_sqlserver_external_scripts_enabled": {
+    "purpose": "External scripts allow code execution from SQL; database permissions still determine who can use them.",
+    "missing_observation": "Executing external scripts from SQL could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "external scripts enabled",
+      "field": "declared",
+      "label": "Executing external scripts from SQL"
+    }
+  },
+  "gcp.ports.reference_sqlserver_remote_access": {
+    "purpose": "Remote procedure access creates an additional database interaction path; actual permissions and reachability were not tested.",
+    "missing_observation": "Remote SQL procedure access could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "remote access",
+      "field": "declared",
+      "label": "Remote SQL procedure access"
+    }
+  },
+  "gcp.ports.reference_sqlserver_user_connections": {
+    "purpose": "The connection limit affects resource exhaustion and service capacity; live load handling was not tested.",
+    "missing_observation": "The database connection limit could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "user connections",
+      "field": "declared",
+      "label": "The database connection limit"
+    }
+  },
+  "gcp.ports.reference_sqlserver_user_options": {
+    "purpose": "Default user options change session behavior; individual connection settings can override them.",
+    "missing_observation": "Default database session options could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "user options",
+      "field": "declared",
+      "label": "Default database session options"
+    }
+  },
+  "gcp.ports.reference_sqlserver_trace3625": {
+    "purpose": "Trace flag 3625 changes error-message detail; this check follows its stated profile, which differs between benchmarks.",
+    "missing_observation": "Reduced error-message detail through SQL trace flag 3625 could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "3625",
+      "field": "declared",
+      "label": "Reduced error-message detail through SQL trace flag 3625"
+    }
+  },
+  "gcp.ports.alloydb_instance_log_error_verbosity_database_flag_default_or_stricter": {
+    "purpose": "Error verbosity controls diagnostic detail and possible data disclosure; emitted errors were not inspected.",
+    "missing_observation": "Database error-message detail could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_error_verbosity",
+      "field": "declared",
+      "label": "Database error-message detail"
+    }
+  },
+  "gcp.ports.alloydb_instance_log_min_messages_database_flag_error": {
+    "purpose": "The message threshold controls log detail and volume; emitted records were not inspected.",
+    "missing_observation": "Database message logging severity could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_messages",
+      "field": "declared",
+      "label": "Database message logging severity"
+    }
+  },
+  "gcp.ports.alloydb_instance_log_min_error_statement_database_flag_configured": {
+    "purpose": "The error-statement threshold controls which failed SQL statements are logged; emitted records were not inspected.",
+    "missing_observation": "Error-statement logging severity could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "log_min_error_statement",
+      "field": "declared",
+      "label": "Error-statement logging severity"
+    }
+  },
+  "gcp.ports.alloydb_cluster_encrypted_with_cmk": {
+    "purpose": "A customer-controlled key adds control over stored-data encryption; key permissions and actual key use need separate review.",
+    "missing_observation": "AlloyDB storage encryption could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "encryption_type",
+      "label": "AlloyDB storage encryption",
+      "values": {
+        "CUSTOMER_MANAGED_ENCRYPTION": "AlloyDB storage uses a customer-managed encryption key.",
+        "GOOGLE_DEFAULT_ENCRYPTION": "AlloyDB storage uses Google-managed encryption instead of a customer-managed key."
+      }
+    }
+  },
+  "gcp.ports.project_service_cloudasset_api_enabled": {
+    "purpose": "The Cloud Asset API supports inventory collection; enabling it does not establish inventory completeness.",
+    "missing_observation": "The evidence needed to evaluate “project service cloudasset api enabled” was not recorded reliably."
+  },
+  "gcp.ports.artifacts_container_analysis_enabled": {
+    "purpose": "The analysis API supports vulnerability scanning; enabled service metadata does not prove artifacts were scanned.",
+    "missing_observation": "The evidence needed to evaluate “artifacts container analysis enabled” was not recorded reliably."
+  },
+  "gcp.ports.apikeys_api_restricted_with_gemini_api": {
+    "purpose": "API and caller restrictions limit where a stolen key can be used; successful requests were not tested.",
+    "missing_observation": "The recorded evidence does not establish the API key declares these API targets."
+  },
+  "gcp.ports.kms_key_separation_of_duties_enforced": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.iam_user_separation_of_duty_scoped": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.iam_user_not_assigned_service_account_user_role_project_level": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.iam_corporate_domain_declaration": {
+    "purpose": "The declared domain policy limits identity sharing; domain membership does not prove a principal is trustworthy.",
+    "observation": [
+      "list",
+      "principals_outside_declared_domains",
+      "Principals outside approved domains"
+    ],
+    "missing_observation": "The recorded evidence does not establish principals outside approved domains.",
+    "prose": {
+      "kind": "list",
+      "present": "The policy names principals outside the approved domains: {values}.",
+      "empty": "No policy principals fall outside the approved domains."
+    }
+  },
+  "gcp.ports.service_account_mutating_role_declarations": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.function_basic_role_declarations": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.function_logging_mutation_declarations": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.function_legacy_deployment_role_declarations": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.ports.compute_oslogin_metadata_precedence": {
+    "purpose": "OS Login supports centrally managed SSH access; the resolved setting does not prove an actual login is allowed.",
+    "missing_observation": "The recorded evidence does not establish instance OS Login."
+  },
+  "gcp.ports.compute_disk_encrypted_with_csk": {
+    "purpose": "A customer-controlled key adds control over stored-data encryption; key permissions and actual key use need separate review.",
+    "missing_observation": "The recorded evidence does not establish a customer-supplied disk-encryption key digest."
+  },
+  "gcp.ports.compute_ssl_policy_strict_declaration": {
+    "purpose": "The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested.",
+    "missing_observation": "The evidence needed to evaluate “compute ssl policy strict declaration” was not recorded reliably."
+  },
+  "gcp.ports.compute_url_map_backend_logging": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The recorded evidence does not establish routed backend services missing logging."
+  },
+  "gcp.ports.organization_essential_contacts_complete": {
+    "purpose": "Essential Contacts route security and operational notices; successful delivery and owner response were not verified.",
+    "missing_observation": "The recorded evidence does not establish essential Contact subscriptions declare these categories."
+  },
+  "gcp.ports.access_approval_explicit_enrollment": {
+    "purpose": "Access Approval supports explicit consent before provider access; actual provider access events need separate review.",
+    "missing_observation": "The recorded evidence does not establish access Approval declares these product enrollments."
+  },
+  "gcp.ports.bigtable_instance_policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_nonproject_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.ports.billing_account_policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_nonproject_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.ports.cloud_function_policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_nonproject_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.ports.cloud_run_job_policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_nonproject_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.ports.cloud_run_service_policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_nonproject_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.ports.cloud_run_service_policy_prohibit_public_access": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.ports.cloud_run_not_publicly_accessible": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "Serverless ingress could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "ingress",
+      "label": "Serverless ingress",
+      "values": {
+        "INGRESS_TRAFFIC_INTERNAL_ONLY": "The service accepts only internal ingress.",
+        "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER": "The service accepts internal and Cloud Load Balancing ingress.",
+        "INGRESS_TRAFFIC_ALL": "The service accepts ingress from any network.",
+        "ALLOW_INTERNAL_ONLY": "The function accepts only internal ingress.",
+        "ALLOW_INTERNAL_AND_GCLB": "The function accepts internal and Google Cloud Load Balancing ingress.",
+        "ALLOW_ALL": "The function accepts ingress from any network.",
+        "INGRESS_SETTINGS_UNSPECIFIED": "The function has no explicit ingress restriction."
+      }
+    }
+  },
+  "gcp.ports.sql_instance_not_open_to_internet": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.reference_sql_ssl_connections": {
+    "purpose": "Requiring encrypted SQL connections protects data in transit; client authentication and negotiated TLS were not tested.",
+    "missing_observation": "SQL connection encryption could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "ssl_mode",
+      "label": "SQL connection encryption",
+      "values": {
+        "TRUSTED_CLIENT_CERTIFICATE_REQUIRED": "SQL connections require encryption and a trusted client certificate.",
+        "ENCRYPTED_ONLY": "SQL connections require encryption.",
+        "ALLOW_UNENCRYPTED_AND_ENCRYPTED": "SQL permits both encrypted and unencrypted connections.",
+        "SSL_MODE_UNSPECIFIED": "No explicit SQL connection-encryption mode is declared."
+      }
+    }
+  },
+  "gcp.ports.api_key_meaningful_restrictions": {
+    "purpose": "API and caller restrictions limit where a stolen key can be used; successful requests were not tested.",
+    "missing_observation": "The evidence needed to evaluate “api key meaningful restrictions” was not recorded reliably."
+  },
+  "gcp.ports.function_internal_ingress_declaration": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "Serverless ingress could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "ingress",
+      "label": "Serverless ingress",
+      "values": {
+        "INGRESS_TRAFFIC_INTERNAL_ONLY": "The service accepts only internal ingress.",
+        "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER": "The service accepts internal and Cloud Load Balancing ingress.",
+        "INGRESS_TRAFFIC_ALL": "The service accepts ingress from any network.",
+        "ALLOW_INTERNAL_ONLY": "The function accepts only internal ingress.",
+        "ALLOW_INTERNAL_AND_GCLB": "The function accepts internal and Google Cloud Load Balancing ingress.",
+        "ALLOW_ALL": "The function accepts ingress from any network.",
+        "INGRESS_SETTINGS_UNSPECIFIED": "The function has no explicit ingress restriction."
+      }
+    }
+  },
+  "gcp.ports.firewall_iap_tcp_proxy_source_restriction": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.firewall_http_lb_proxy_source_restriction": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.gke.control_plane_restricted": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.firewall.public_ingress_dns_port_53": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_ftp_port_21": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_http_port_80": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_smtp_port_25": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_microsoft_ds_port_445": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_mongo_db_port_27017": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_mysql_db_port_3306": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_netbios_snn_port_139": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_oracle_db_port_1521": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_pop3_port_110": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_postgresql_port_5432": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_telnet_port_23": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_postgresql_port_10250": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_postgresql_port_10255": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_9090": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_9200_9300": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_7000_7001": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_7199": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_8888": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_9042": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_9160": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_61620_61621": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_6379": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_137_to_139": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_27017_to_27019": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_port_636": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_udp_port_389": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_udp_port_11211": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_udp_port_11214_to_11215": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_udp_port_2483_to_2484": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_all_protocols": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.firewall.public_ingress_without_target": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.firewall.logging_enabled": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The recorded evidence does not establish firewall logging."
+  },
+  "gcp.claude.firewall.default_rules_not_open": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.firewall.public_ingress_common_ports": {
+    "purpose": "An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate.",
+    "missing_observation": "The recorded evidence does not establish the checked service port and its ingress source ranges."
+  },
+  "gcp.claude.firewall.public_ingress_tcp_udp": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.instance.sa_no_data_destruction_permission": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.instance.sa_no_database_write_permission": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.instance.sa_no_deployments_manager_permission": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.instance.sa_no_disrupt_logging_permission": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.instance.sa_no_iam_write_permission": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.instance.sa_no_service_account_impersonate_permission": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.instance.sa_no_deny_policy_write_permission": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.instance.sa_no_basic_role": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.project.oslogin_enabled": {
+    "purpose": "OS Login supports centrally managed SSH access; the resolved setting does not prove an actual login is allowed.",
+    "missing_observation": "The recorded evidence does not establish oS Login."
+  },
+  "gcp.claude.instance.not_preemptible": {
+    "purpose": "The host failure and maintenance settings affect VM continuity; application availability was not tested.",
+    "missing_observation": "The recorded evidence does not establish preemptible VM scheduling."
+  },
+  "gcp.claude.instance.not_preemptible_or_spot": {
+    "purpose": "The host failure and maintenance settings affect VM continuity; application availability was not tested.",
+    "missing_observation": "The recorded evidence does not establish preemptible VM scheduling."
+  },
+  "gcp.claude.instance.disks_csek": {
+    "purpose": "A customer-controlled key adds control over stored-data encryption; key permissions and actual key use need separate review.",
+    "missing_observation": "The recorded evidence does not establish disks without a declared customer-supplied key digest."
+  },
+  "gcp.claude.instance.suspended_without_disks": {
+    "purpose": "Disks attached to a suspended VM can retain data and cost; deletion and recovery requirements need owner review.",
+    "missing_observation": "The recorded evidence does not establish the resource state."
+  },
+  "gcp.claude.instance_template.no_ip_forwarding": {
+    "purpose": "IP forwarding lets a VM relay packets for other addresses; actual forwarding also depends on routes and firewall rules.",
+    "missing_observation": "The recorded evidence does not establish iP forwarding."
+  },
+  "gcp.claude.project.no_api_keys": {
+    "purpose": "API keys add credentials that need ownership and restrictions; their presence does not establish actual use.",
+    "missing_observation": "The recorded evidence does not establish aPI-key metadata entries."
+  },
+  "gcp.claude.image.not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude.snapshot.not_outdated": {
+    "purpose": "Older snapshots may not meet recovery freshness requirements; recoverability and restore success were not tested.",
+    "missing_observation": "The evidence needed to evaluate “Disk snapshot is not older than 90 days” was not recorded reliably."
+  },
+  "gcp.claude.instance_group_manager.autohealing": {
+    "purpose": "Autohealing can replace unhealthy instances; health checks and application recovery were not exercised.",
+    "missing_observation": "The recorded evidence does not establish the instance group declares these autohealing health checks."
+  },
+  "gcp.claude.instance_group_manager.multiple_zones": {
+    "purpose": "Multiple zones reduce reliance on one failure domain; application failover was not tested.",
+    "missing_observation": "The recorded evidence does not establish the instance group declares these zones."
+  },
+  "gcp.claude.instance_group_manager.load_balancer_attached": {
+    "purpose": "A backend link can support balanced traffic and health checks; actual request routing was not tested.",
+    "missing_observation": "The recorded evidence does not establish the instance group is referenced by these backend services."
+  },
+  "gcp.claude.backend_service.external_iap": {
+    "purpose": "IAP adds an identity check before application access; routing and effective caller access were not tested.",
+    "missing_observation": "The recorded evidence does not establish backend Identity-Aware Proxy."
+  },
+  "gcp.claude.backend_bucket.bucket_exists": {
+    "purpose": "A missing backing bucket can break content delivery; object availability and authorization were not tested.",
+    "missing_observation": "The recorded evidence does not establish the resolved backend bucket."
+  },
+  "gcp.claude.target_proxy.https_custom_ssl_policy": {
+    "purpose": "TLS policy limits obsolete ciphers; negotiated connections were not tested.",
+    "missing_observation": "The recorded evidence does not establish the declared SSL policy."
+  },
+  "gcp.claude.target_proxy.https_min_tls_1_2": {
+    "purpose": "The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested.",
+    "missing_observation": "The recorded evidence does not establish the minimum TLS version."
+  },
+  "gcp.claude.network.dns_logging": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The recorded evidence does not establish dNS policy logging."
+  },
+  "gcp.claude.dns_zone.dnssec_enabled": {
+    "purpose": "DNSSEC protects DNS responses from tampering; validation by resolvers was not tested.",
+    "missing_observation": "The recorded evidence does not establish dNSSEC state."
+  },
+  "gcp.claude.dns_zone.ksk_not_rsasha1": {
+    "purpose": "Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified.",
+    "missing_observation": "The DNSSEC key-signing algorithm could not be read reliably."
+  },
+  "gcp.claude.dns_zone.zsk_not_rsasha1": {
+    "purpose": "Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified.",
+    "missing_observation": "The DNSSEC zone-signing algorithm could not be read reliably."
+  },
+  "gcp.claude.bucket.log_sink_retention_locked": {
+    "purpose": "Log retention preserves records for investigations; the configured duration does not prove complete log delivery.",
+    "missing_observation": "The recorded evidence does not establish log retention locking."
+  },
+  "gcp.claude.bucket.log_sink_retention_policy": {
+    "purpose": "Log retention preserves records for investigations; the configured duration does not prove complete log delivery.",
+    "missing_observation": "The evidence needed to evaluate “Log sink destination bucket has a retention policy” was not recorded reliably."
+  },
+  "gcp.claude.bucket.log_sink_not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude.bucket.log_sink_versioning": {
+    "purpose": "Object versioning retains older versions; retention and successful recovery need separate evidence.",
+    "missing_observation": "The recorded evidence does not establish object versioning."
+  },
+  "gcp.claude.bucket.retention_90_days": {
+    "purpose": "Log retention preserves records for investigations; the configured duration does not prove complete log delivery.",
+    "missing_observation": "The evidence needed to evaluate “Bucket retention policy is at least 90 days” was not recorded reliably."
+  },
+  "gcp.claude.project.storage_vpc_service_controls": {
+    "purpose": "Service perimeters limit covered Google API access; actual requests and all access exceptions need separate review.",
+    "missing_observation": "The recorded evidence does not establish the project is included in these enforced service perimeters."
+  },
+  "gcp.claude.project.storage_data_access_audit_logs": {
+    "purpose": "Audit policy controls which data access events are recorded; log delivery and method coverage were not verified.",
+    "missing_observation": "The recorded evidence does not establish the Cloud Storage audit policy declares these log categories."
+  },
+  "gcp.claude.project.audit_logs_configured": {
+    "purpose": "Audit policy controls which data access events are recorded; log delivery and method coverage were not verified.",
+    "missing_observation": "The recorded evidence does not establish the project audit policy names these services."
+  },
+  "gcp.claude.iam_policy.no_all_users": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude.iam_policy.no_project_sa_user_or_token_creator": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.service_account_key.age_100_days": {
+    "purpose": "Long-lived identity keys can be reused if stolen; key metadata does not establish actual use.",
+    "missing_observation": "The recorded evidence does not establish service-account key."
+  },
+  "gcp.claude.service_account.recently_used": {
+    "purpose": "Unused identities or keys can create avoidable credential exposure; observed usage history may not cover all activity.",
+    "missing_observation": "The recorded evidence does not establish service-account authentication history."
+  },
+  "gcp.claude.service_account_key.recently_used": {
+    "purpose": "Unused identities or keys can create avoidable credential exposure; observed usage history may not cover all activity.",
+    "missing_observation": "The recorded evidence does not establish service-account key authentication history."
+  },
+  "gcp.claude.workload_identity_provider.multi_tenant_condition": {
+    "purpose": "An issuer-wide trust without an attribute condition can admit unintended workloads; effective token exchange was not tested.",
+    "missing_observation": "The recorded evidence does not establish a Workload Identity attribute condition."
+  },
+  "gcp.claude.organization.essential_contacts_any": {
+    "purpose": "Essential Contacts route security and operational notices; successful delivery and owner response were not verified.",
+    "missing_observation": "The evidence needed to evaluate “Organization has at least one Essential Contact” was not recorded reliably."
+  },
+  "gcp.claude.project.container_scanning_api_enabled": {
+    "purpose": "The analysis API supports vulnerability scanning; enabled service metadata does not prove artifacts were scanned.",
+    "missing_observation": "The evidence needed to evaluate “Container Scanning API is enabled” was not recorded reliably."
+  },
+  "gcp.claude.project.gemini_api_disabled": {
+    "purpose": "The Gemini API enables generative AI workloads; service enablement does not prove data was sent to it.",
+    "missing_observation": "The evidence needed to evaluate “Generative Language (Gemini) API is disabled where not required” was not recorded reliably."
+  },
+  "gcp.claude.logging.metric_alert_audit_configuration_changes": {
+    "purpose": "Alerts help detect audit policy changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_custom_role_changes": {
+    "purpose": "Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_custom_role_changes_with_undelete": {
+    "purpose": "Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_firewall_rule_changes": {
+    "purpose": "Alerts help detect firewall rule changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_network_changes_beta_methods": {
+    "purpose": "Alerts help detect VPC network changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_network_changes": {
+    "purpose": "Alerts help detect VPC network changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_route_changes": {
+    "purpose": "Alerts help detect route changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_project_ownership_changes": {
+    "purpose": "Alerts help detect project ownership changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_sql_instance_configuration_changes": {
+    "purpose": "Alerts help detect Cloud SQL configuration changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_bucket_iam_changes": {
+    "purpose": "Alerts help detect bucket IAM changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.metric_alert_compute_configuration_changes": {
+    "purpose": "Alerts help detect Compute Engine configuration changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude.logging.project_sink_all_entries": {
+    "purpose": "A broad log sink supports central audit collection; destination access, delivery and retained records remain separate.",
+    "missing_observation": "The recorded evidence does not establish all-entry log sink coverage."
+  },
+  "gcp.claude.kms_key.users_limited_to_3": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.kms_key.rotation_100_days": {
+    "purpose": "Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version.",
+    "missing_observation": "The evidence needed to evaluate “KMS key automatic rotation period is at most 100 days” was not recorded reliably."
+  },
+  "gcp.claude.disk.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.image.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.instance.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.node_group.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.node_template.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.resource_policy.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.subnetwork.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.service_account.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.kms_key.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.kms_key_ring.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.pubsub_subscription.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.pubsub_topic.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.bucket.policy_shared_access": {
+    "purpose": "Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review.",
+    "observation": [
+      "binding",
+      "untrusted_declarations",
+      ""
+    ],
+    "missing_observation": "The recorded evidence does not establish policy principals and approved trust lists."
+  },
+  "gcp.claude.pubsub_topic.not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude.pubsub_subscription.not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude.pubsub_snapshot.not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude.secret.not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude.secret.rotation_90_days": {
+    "purpose": "Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version.",
+    "missing_observation": "The recorded evidence does not establish secret rotation period and next rotation date."
+  },
+  "gcp.claude.sql_instance.second_gen_no_public_ip": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.sql_instance.private_ip_only": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.bigquery_dataset.no_gmail_access": {
+    "purpose": "Personal email or group ACLs may extend dataset sharing beyond approved owners; effective data access remains separate.",
+    "missing_observation": "The recorded evidence does not establish dataset ACL entries naming gmail.com accounts."
+  },
+  "gcp.claude.bigquery_dataset.no_googlegroups_access": {
+    "purpose": "Personal email or group ACLs may extend dataset sharing beyond approved owners; effective data access remains separate.",
+    "missing_observation": "The recorded evidence does not establish dataset ACL entries naming googlegroups.com groups."
+  },
+  "gcp.claude.gke.binary_authorization": {
+    "purpose": "Binary Authorization can restrict deployed images to approved attestations; actual image admission was not tested.",
+    "missing_observation": "Binary Authorization could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "evaluation_mode",
+      "label": "Binary Authorization",
+      "values": {
+        "PROJECT_SINGLETON_POLICY_ENFORCE": "Binary Authorization enforces the project policy for image admission.",
+        "DISABLED": "Binary Authorization is disabled.",
+        "EVALUATION_MODE_UNSPECIFIED": "No Binary Authorization enforcement mode is declared."
+      }
+    }
+  },
+  "gcp.claude.gke.no_client_certificate": {
+    "purpose": "Legacy client certificates create an additional cluster credential; actual certificate use and authorization remain separate.",
+    "missing_observation": "The recorded evidence does not establish legacy GKE client-certificate issuance."
+  },
+  "gcp.claude.gke.no_kubernetes_alpha": {
+    "purpose": "Alpha Kubernetes features can reduce support and stability guarantees; actual workload impact was not tested.",
+    "missing_observation": "The recorded evidence does not establish kubernetes alpha features."
+  },
+  "gcp.claude.gke.http_load_balancing": {
+    "purpose": "The HTTP load-balancing add-on manages application ingress; this setting does not prove a working frontend.",
+    "missing_observation": "The recorded evidence does not establish gKE HTTP load balancing."
+  },
+  "gcp.claude.gke.dashboard_disabled": {
+    "purpose": "The legacy Dashboard adds an administrative surface; authentication and actual reachability remain separate.",
+    "missing_observation": "The recorded evidence does not establish kubernetes Dashboard."
+  },
+  "gcp.claude.gke.logging_enabled": {
+    "purpose": "Cluster logging supports investigating control-plane and workload activity; delivery and retention were not verified.",
+    "missing_observation": "The recorded evidence does not establish the GKE logging service."
+  },
+  "gcp.claude.gke.monitoring_enabled": {
+    "purpose": "Cluster monitoring supports detecting service problems; metric collection and alert response were not verified.",
+    "missing_observation": "The recorded evidence does not establish the GKE monitoring service."
+  },
+  "gcp.claude.gke.no_default_network": {
+    "purpose": "Explicit subnet design helps control network layout; the subnet mode alone does not establish isolation.",
+    "missing_observation": "The recorded evidence does not establish the declared network."
+  },
+  "gcp.claude.gke.nodes_no_default_service_account": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.claude.gke.release_channel": {
+    "purpose": "A release channel controls cluster update cadence; actual patch freshness needs separate evidence.",
+    "missing_observation": "The recorded evidence does not establish the GKE release channel."
+  },
+  "gcp.claude.gke.zone_redundant": {
+    "purpose": "Multiple zones reduce reliance on one failure domain; application failover was not tested.",
+    "missing_observation": "The evidence needed to evaluate “Zonal GKE cluster declares node locations in at least three distinct zones” was not recorded reliably."
+  },
+  "gcp.claude.gke.subnetwork_private_google_access": {
+    "purpose": "Private Google Access lets private VMs reach Google APIs; actual routing and API access were not tested.",
+    "missing_observation": "The recorded evidence does not establish private Google Access."
+  },
+  "gcp.claude.gke.network_no_untargeted_public_ingress": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.gke.master_authorized_networks_restricted": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude.gke.private_nodes": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.claude2.logging.metric_alert_project_ownership_changes": {
+    "purpose": "Alerts help detect project ownership changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_audit_configuration_changes": {
+    "purpose": "Alerts help detect audit policy changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_custom_role_changes": {
+    "purpose": "Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_custom_role_changes_with_undelete": {
+    "purpose": "Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_firewall_rule_changes": {
+    "purpose": "Alerts help detect firewall rule changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_route_changes": {
+    "purpose": "Alerts help detect route changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_network_changes": {
+    "purpose": "Alerts help detect VPC network changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_bucket_iam_changes": {
+    "purpose": "Alerts help detect bucket IAM changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.metric_alert_sql_instance_configuration_changes": {
+    "purpose": "Alerts help detect Cloud SQL configuration changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.claude2.logging.sink_all_log_entries": {
+    "purpose": "A broad log sink supports central audit collection; destination access, delivery and retained records remain separate.",
+    "missing_observation": "The recorded evidence does not establish all-entry log sink coverage."
+  },
+  "gcp.claude2.function.ingress_not_allow_all": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "Serverless ingress could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "ingress_settings",
+      "label": "Serverless ingress",
+      "values": {
+        "INGRESS_TRAFFIC_INTERNAL_ONLY": "The service accepts only internal ingress.",
+        "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER": "The service accepts internal and Cloud Load Balancing ingress.",
+        "INGRESS_TRAFFIC_ALL": "The service accepts ingress from any network.",
+        "ALLOW_INTERNAL_ONLY": "The function accepts only internal ingress.",
+        "ALLOW_INTERNAL_AND_GCLB": "The function accepts internal and Google Cloud Load Balancing ingress.",
+        "ALLOW_ALL": "The function accepts ingress from any network.",
+        "INGRESS_SETTINGS_UNSPECIFIED": "The function has no explicit ingress restriction."
+      }
+    }
+  },
+  "gcp.claude2.function.not_publicly_accessible": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude2.function.vpc_connector_configured": {
+    "purpose": "VPC connectivity can route function traffic through private network controls; actual egress and routes were not tested.",
+    "missing_observation": "The recorded evidence does not establish the declared VPC connector."
+  },
+  "gcp.claude2.cloudrun_service.invoker_not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.claude2.api_key.created_within_90_days": {
+    "purpose": "An old API key has a longer exposure window if leaked; metadata does not establish misuse or current key rotation.",
+    "missing_observation": "The evidence needed to evaluate “API key was created within the last 90 days” was not recorded reliably."
+  },
+  "gcp.claude2.bigquery_dataset.default_cmek": {
+    "purpose": "A customer-controlled key adds control over stored-data encryption; key permissions and actual key use need separate review.",
+    "missing_observation": "The recorded evidence does not establish the declared customer-managed key."
+  },
+  "gcp.claude2.sql_instance.only_private_ip_addresses": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.logging_metric_alert_audit_configuration_changes_scoped": {
+    "purpose": "Alerts help detect audit policy changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_custom_role_changes_with_iam_admin_undelete_role_scoped": {
+    "purpose": "Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_custom_role_changes_scoped": {
+    "purpose": "Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_firewall_rule_changes_scoped": {
+    "purpose": "Alerts help detect firewall rule changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_network_changes_scoped": {
+    "purpose": "Alerts help detect VPC network changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_network_route_changes_scoped": {
+    "purpose": "Alerts help detect route changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_project_ownership_assignment_scoped": {
+    "purpose": "Alerts help detect project ownership changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_sql_instance_configuration_changes_scoped": {
+    "purpose": "Alerts help detect Cloud SQL configuration changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_metric_alert_storage_iam_permission_changes_scoped": {
+    "purpose": "Alerts help detect bucket IAM changes; configured metrics and notifications do not prove delivery or response.",
+    "missing_observation": "The recorded evidence does not establish the required security-event metric and alert route."
+  },
+  "gcp.ports.logging_sink_all_entries_enabled": {
+    "purpose": "A broad log sink supports central audit collection; destination access, delivery and retained records remain separate.",
+    "missing_observation": "The recorded evidence does not establish all-entry log sink coverage."
+  },
+  "gcp.ports.logging_bucket_retention_policy_enabled": {
+    "purpose": "Log retention preserves records for investigations; the configured duration does not prove complete log delivery.",
+    "missing_observation": "The recorded evidence does not establish log retention locking."
+  },
+  "gcp.ports.compute_network_dns_logging_scoped": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The evidence needed to evaluate “compute network dns logging scoped” was not recorded reliably."
+  },
+  "gcp.ports.dns_managed_zone_dnssec_enabled": {
+    "purpose": "DNSSEC protects DNS responses from tampering; validation by resolvers was not tested.",
+    "missing_observation": "The recorded evidence does not establish dNSSEC state."
+  },
+  "gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1": {
+    "purpose": "Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified.",
+    "missing_observation": "The DNSSEC key-signing algorithm could not be read reliably."
+  },
+  "gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1": {
+    "purpose": "Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified.",
+    "missing_observation": "The DNSSEC zone-signing algorithm could not be read reliably."
+  },
+  "gcp.ports.storage_bucket_not_publicly_accessible": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.ports.cloudfunction_function_restrict_public_access": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.ports.function_active_public_binding": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.ports.cloudrun_service_restrict_public_access": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "public_fields": [
+      "public_bindings",
+      "public_principal_declarations",
+      "public_invoker_bindings"
+    ]
+  },
+  "gcp.ports.bigquery_dataset_not_publicly_accessible": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp.ports.cloudfunction_function_no_ingress_settings_allow_all": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "Serverless ingress could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "configured",
+      "label": "Serverless ingress",
+      "values": {
+        "INGRESS_TRAFFIC_INTERNAL_ONLY": "The service accepts only internal ingress.",
+        "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER": "The service accepts internal and Cloud Load Balancing ingress.",
+        "INGRESS_TRAFFIC_ALL": "The service accepts ingress from any network.",
+        "ALLOW_INTERNAL_ONLY": "The function accepts only internal ingress.",
+        "ALLOW_INTERNAL_AND_GCLB": "The function accepts internal and Google Cloud Load Balancing ingress.",
+        "ALLOW_ALL": "The function accepts ingress from any network.",
+        "INGRESS_SETTINGS_UNSPECIFIED": "The function has no explicit ingress restriction."
+      }
+    }
+  },
+  "gcp.ports.cloudfunction_function_vpc_connector_enabled": {
+    "purpose": "VPC connectivity can route function traffic through private network controls; actual egress and routes were not tested.",
+    "missing_observation": "The recorded evidence does not establish the declared VPC connector."
+  },
+  "gcp.ports.function_active_vpc_connector": {
+    "purpose": "VPC connectivity can route function traffic through private network controls; actual egress and routes were not tested.",
+    "missing_observation": "The recorded evidence does not establish the declared VPC connector."
+  },
+  "gcp.ports.sql_instance_with_no_public_ips": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.sql_instance_not_publicly_accessible": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.sql_private_ip_assignments": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.sql_no_primary_address": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp.ports.project_no_api_key": {
+    "purpose": "API keys add credentials that need ownership and restrictions; their presence does not establish actual use.",
+    "missing_observation": "The recorded evidence does not establish aPI-key metadata entries."
+  },
+  "gcp.ports.api_key_elapsed_age_gt90": {
+    "purpose": "An old API key has a longer exposure window if leaked; metadata does not establish misuse or current key rotation.",
+    "missing_observation": "The recorded evidence does not establish aPI key."
+  },
+  "gcp.htbp.cloudrun.service_no_default_compute_sa": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.cloudrun.job_no_default_compute_sa": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.cloudrun.service_secret_env_from_secret_manager": {
+    "purpose": "Inline credential-like variables can expose secrets to configuration readers; names alone do not prove a value is a secret.",
+    "missing_observation": "The recorded evidence does not establish environment-variable names matching the credential heuristic."
+  },
+  "gcp.htbp.cloudrun.job_secret_env_from_secret_manager": {
+    "purpose": "Inline credential-like variables can expose secrets to configuration readers; names alone do not prove a value is a secret.",
+    "missing_observation": "The recorded evidence does not establish environment-variable names matching the credential heuristic."
+  },
+  "gcp.htbp.function.runtime_no_default_sa": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.appengine.no_default_service_account": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.instance_template.no_default_sa_full_scope": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.gke.kubelet_readonly_port_disabled": {
+    "purpose": "The kubelet read-only port can expose node and pod information without authentication; actual reachability was not tested.",
+    "missing_observation": "The node-pool read-only kubelet port settings could not be read reliably."
+  },
+  "gcp.htbp.logging.default_sink_not_disabled": {
+    "purpose": "The default sink supports routine log retention; enabling it does not prove all required logs are collected.",
+    "missing_observation": "The recorded evidence does not establish the default log sink."
+  },
+  "gcp.htbp.kms.destroy_window_not_shortened": {
+    "purpose": "A destruction delay provides time to cancel accidental key deletion; recovery after destruction is not established.",
+    "missing_observation": "The key-destruction grace period could not be read reliably."
+  },
+  "gcp.htbp.storage.default_object_acl_not_public": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp.htbp.pubsub.push_endpoint_not_tunnel": {
+    "purpose": "An external push endpoint can receive subscription data; ownership and actual deliveries were not verified.",
+    "missing_observation": "The recorded evidence does not establish the configured Pub/Sub push host."
+  },
+  "gcp.htbp.artifactregistry.virtual_repo_private_precedence": {
+    "purpose": "Private upstream precedence reduces dependency confusion exposure; actual package resolution was not tested.",
+    "missing_observation": "The recorded evidence does not establish private and remote repository priorities."
+  },
+  "gcp.htbp.function.secret_env_from_secret_manager": {
+    "purpose": "Inline credential-like variables can expose secrets to configuration readers; names alone do not prove a value is a secret.",
+    "missing_observation": "The recorded evidence does not establish environment-variable names matching the credential heuristic."
+  },
+  "gcp.htbp.cloudbuild.pr_trigger_gated": {
+    "purpose": "A pull-request gate can prevent unreviewed build execution; approval enforcement was not exercised.",
+    "missing_observation": "The recorded evidence does not establish build approval."
+  },
+  "gcp.htbp.cloudbuild.trigger_no_default_sa": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.storage.hmac_key_not_stale_or_default_sa": {
+    "purpose": "Long-lived identity keys can be reused if stolen; key metadata does not establish actual use.",
+    "missing_observation": "The evidence needed to evaluate “Active Cloud Storage HMAC key is recent and not bound to a default service account” was not recorded reliably."
+  },
+  "gcp.htbp.composer.no_default_compute_sa": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.workbench.no_default_compute_sa": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.htbp.scheduler.no_recurring_access_regrant": {
+    "purpose": "A recurring access-changing job could restore unwanted grants; successful execution and effective access were not established.",
+    "missing_observation": "The recorded evidence does not establish the configured service account."
+  },
+  "gcp.htbp.orgpolicy.sa_key_creation_and_upload_blocked": {
+    "purpose": "Blocking key creation and upload reduces persistent credential paths; existing keys still need separate review.",
+    "missing_observation": "The effective service-account key-creation and key-upload restrictions could not be read reliably."
+  },
+  "gcp.htbp.orgpolicy.cross_project_sa_usage_not_disabled": {
+    "purpose": "Restricting cross-project account attachment limits identity reuse; effective attachment permissions remain separate.",
+    "missing_observation": "The recorded evidence does not establish the cross-project service-account usage restriction."
+  },
+  "gcp.htbp.orgpolicy.default_sa_automatic_grants_disabled": {
+    "purpose": "Blocking automatic Editor grants limits default identity privileges; existing role assignments remain separate.",
+    "missing_observation": "The recorded evidence does not establish the default-service-account automatic-grant restriction."
+  },
+  "gcp.htbp.orgpolicy.domain_restricted_sharing": {
+    "purpose": "Domain-restricted sharing limits new IAM grants; existing bindings and permitted domains need separate review.",
+    "missing_observation": "The recorded evidence does not establish the permitted IAM-member domain constraint."
+  },
+  "gcp.htbp.orgpolicy.essential_contacts_domain_restricted": {
+    "purpose": "Restricting contact domains helps keep notices with approved recipients; delivery and account ownership remain separate.",
+    "missing_observation": "The recorded evidence does not establish the Essential Contacts domain restriction."
+  },
+  "gcp.htbp.iam.sa_no_pool_wide_workload_principal_set": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp.htbp.iam.policy_no_pool_wide_workload_principal_set": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp.htbp.storage.notification_topic_in_bucket_project": {
+    "purpose": "Cross-project notification topics can route storage events elsewhere; actual subscribers and deliveries need review.",
+    "missing_observation": "The recorded evidence does not establish bucket and notification topic project IDs."
+  },
+  "gcp.gap.iam_user_managed_sa_no_admin_roles": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only": {
+    "purpose": "Restricting sources to proxy and health-check ranges narrows ingress; actual backend reachability was not tested.",
+    "missing_observation": "The recorded evidence does not establish source ranges outside the IAP and health-check list."
+  },
+  "gcp.gap.sql_3625_trace_flag_off_cis_v1": {
+    "purpose": "Trace flag 3625 changes error-message detail; this check follows its stated profile, which differs between benchmarks.",
+    "missing_observation": "Reduced error-message detail through SQL trace flag 3625 could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "3625",
+      "field": "configured",
+      "label": "Reduced error-message detail through SQL trace flag 3625"
+    }
+  },
+  "gcp_pci_bucket_0742bd5dc32c": {
+    "purpose": "Lifecycle rules control retained object or artifact versions; deletion behavior and recovery need separate review.",
+    "missing_observation": "The recorded evidence does not establish object versioning."
+  },
+  "gcp_pci_bucket_3d76b0b0701e": {
+    "purpose": "Lifecycle rules control retained object or artifact versions; deletion behavior and recovery need separate review.",
+    "missing_observation": "The recorded evidence does not establish object versioning."
+  },
+  "gcp_pci_instance_template_2e26bed500fc": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp_pubsub_topic_cmek": {
+    "purpose": "Customer keys give encryption control; key usability and permissions remain unverified.",
+    "missing_observation": "The recorded evidence does not establish the declared customer-managed key."
+  },
+  "gcp_pci_bigquery_dataset_6017267cdf32": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp_pci_bigquery_dataset_fb9fcc01d5b7": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp_cloudcdn_cookie_ttl": {
+    "purpose": "Long affinity cookies extend client-to-backend association; the declared TTL does not prove session-token behavior.",
+    "missing_observation": "The evidence needed to evaluate “Backend cookie affinity TTL is at most 30 minutes” was not recorded reliably."
+  },
+  "gcp_pci_bigquery_dataset_a4e25dbf9640": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp.sql.deletion_protection": {
+    "purpose": "Deletion protection reduces accidental removal; recovery after other data loss still depends on backups.",
+    "missing_observation": "The recorded evidence does not establish cloud SQL deletion protection."
+  },
+  "gcp_bucket_logging_enabled_fb7cc594582a": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "missing_observation": "The recorded evidence does not establish the declared access-log destination."
+  },
+  "gcp_pci_cloudbuild_trigger_3302edf7cb18": {
+    "purpose": "Stored build logs support investigation and accountability; declared log mode does not prove delivery or retention.",
+    "missing_observation": "Build log storage could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "logging",
+      "label": "Build log storage",
+      "values": {
+        "GCS_ONLY": "Build logs are stored in Cloud Storage.",
+        "CLOUD_LOGGING_ONLY": "Build logs are sent to Cloud Logging.",
+        "LEGACY": "Build logs use the legacy logging mode.",
+        "NONE": "Build logs are not stored.",
+        "LOGGING_UNSPECIFIED": "No explicit build log-storage mode is declared."
+      }
+    }
+  },
+  "gcp.appengine.service_version_count": {
+    "purpose": "Version limits reduce unused deployments and cost; version counts do not establish which endpoints are reachable.",
+    "missing_observation": "The recorded evidence does not establish installed and serving version counts or approved maxima."
+  },
+  "gcp_api_keys_active_services_only": {
+    "purpose": "API and caller restrictions limit where a stolen key can be used; successful requests were not tested.",
+    "missing_observation": "The recorded evidence does not establish the API key declares these API targets."
+  },
+  "gcp_pci_iam_policy_ca1281da7ab2": {
+    "purpose": "Audit policy controls which data access events are recorded; log delivery and method coverage were not verified.",
+    "missing_observation": "The evidence needed to evaluate “Spanner Data Access audit logging” was not recorded reliably."
+  },
+  "gcp_pci_iam_policy_9a8ce875703d": {
+    "purpose": "Audit policy controls which data access events are recorded; log delivery and method coverage were not verified.",
+    "missing_observation": "The evidence needed to evaluate “Pub/Sub Data Access audit logging” was not recorded reliably."
+  },
+  "gcp_workbench_approved_image": {
+    "purpose": "An approved image helps control the starting software baseline; installed software and runtime integrity remain separate.",
+    "observation": [
+      "list",
+      "images",
+      "Declared notebook images"
+    ],
+    "missing_observation": "The recorded evidence does not establish declared notebook images.",
+    "prose": {
+      "kind": "list",
+      "present": "The notebook uses image {values}.",
+      "empty": "No notebook image was recorded."
+    }
+  },
+  "gcp_workbench_approved_vpc": {
+    "purpose": "The selected VPC constrains the workload network path; firewall policy and actual reachability were not tested.",
+    "observation": [
+      "list",
+      "networks",
+      "Declared notebook VPC networks"
+    ],
+    "missing_observation": "The recorded evidence does not establish declared notebook VPC networks.",
+    "prose": {
+      "kind": "list",
+      "present": "The notebook connects to VPC {values}.",
+      "empty": "No notebook VPC was recorded."
+    }
+  },
+  "gcp_workbench_download_disabled": {
+    "purpose": "Disabling notebook downloads reduces one data export path; other ways to read or transmit data remain separate.",
+    "observation": [
+      "value",
+      "configured",
+      "Notebook download blocking"
+    ],
+    "missing_observation": "The recorded evidence does not establish notebook download blocking.",
+    "prose": {
+      "kind": "bool",
+      "true": "Notebook file downloads are blocked.",
+      "false": "Notebook file downloads are allowed."
+    }
+  },
+  "gcp_workbench_no_public_ip": {
+    "purpose": "Disabling a notebook public IP reduces direct exposure; proxy access and firewall rules still need review.",
+    "observation": [
+      "value",
+      "configured",
+      "Notebook public-IP blocking"
+    ],
+    "missing_observation": "The recorded evidence does not establish notebook public-IP blocking.",
+    "prose": {
+      "kind": "bool",
+      "true": "The notebook is configured to have no public IP.",
+      "false": "The notebook configuration permits a public IP."
+    }
+  },
+  "gcp_workbench_root_disabled": {
+    "purpose": "Root access permits broad changes inside the notebook VM; approval and actual use need separate review.",
+    "observation": [
+      "value",
+      "disabled",
+      "Notebook root-access blocking"
+    ],
+    "missing_observation": "The recorded evidence does not establish notebook root-access blocking.",
+    "prose": {
+      "kind": "bool",
+      "true": "Notebook root access is disabled.",
+      "false": "Notebook root access is enabled."
+    }
+  },
+  "gcp_workbench_terminal_disabled": {
+    "purpose": "Terminal access permits commands inside the notebook VM; approval and actual use need separate review.",
+    "observation": [
+      "value",
+      "disabled",
+      "Notebook terminal blocking"
+    ],
+    "missing_observation": "The recorded evidence does not establish notebook terminal blocking.",
+    "prose": {
+      "kind": "bool",
+      "true": "Notebook terminal access is disabled.",
+      "false": "Notebook terminal access is enabled."
+    }
+  },
+  "gcp_c5_classification_label": {
+    "purpose": "Classification and inventory labels identify required handling rules; correct labels do not prove those rules are enforced.",
+    "observation": [
+      "value",
+      "classification",
+      "Bucket classification"
+    ],
+    "missing_observation": "The recorded evidence does not establish bucket classification.",
+    "prose": {
+      "kind": "text",
+      "present": "The bucket is classified as {value}.",
+      "missing": "The bucket has no recorded classification label."
+    }
+  },
+  "gcp_c5_kms_hsm": {
+    "purpose": "The protection level determines how key material is secured; this check also depends on the approved key policy.",
+    "observation": [
+      "value",
+      "protection_level",
+      "Declared key protection level"
+    ],
+    "missing_observation": "KMS key protection could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "protection_level",
+      "label": "KMS key protection",
+      "values": {
+        "HSM": "Key operations use a hardware security module.",
+        "SOFTWARE": "Key operations use software protection.",
+        "EXTERNAL": "Key operations use an external key manager.",
+        "EXTERNAL_VPC": "Key operations use an external key manager connected through a VPC."
+      }
+    }
+  },
+  "gcp_kms_key_kms_keys_scheduled_deletion_56316ac06650": {
+    "purpose": "Scheduled or early key destruction can make encrypted data unrecoverable; actual affected data was not enumerated.",
+    "missing_observation": "The recorded evidence does not establish key versions scheduled for destruction."
+  },
+  "gcp_pci_asset_6ee2fef37d98": {
+    "purpose": "Log retention preserves records for investigations; the configured duration does not prove complete log delivery.",
+    "missing_observation": "The evidence needed to evaluate “Cloud Logging bucket retention meets minimum” was not recorded reliably."
+  },
+  "gcp_kms_approved_algorithm": {
+    "purpose": "The key algorithm must match approved cryptography; algorithm metadata does not establish correct application use.",
+    "observation": [
+      "value",
+      "algorithm",
+      "Declared key algorithm"
+    ],
+    "missing_observation": "KMS key algorithm could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "algorithm",
+      "label": "KMS key algorithm",
+      "values": {
+        "GOOGLE_SYMMETRIC_ENCRYPTION": "The key uses Google symmetric encryption.",
+        "RSA_SIGN_PSS_2048_SHA256": "The key uses 2048-bit RSA-PSS signatures with SHA-256.",
+        "RSA_SIGN_PKCS1_2048_SHA256": "The key uses 2048-bit RSA PKCS#1 signatures with SHA-256.",
+        "EC_SIGN_P256_SHA256": "The key uses P-256 elliptic-curve signatures with SHA-256."
+      }
+    }
+  },
+  "gcp_artifact_registry_cleanup_policy": {
+    "purpose": "Lifecycle rules control retained object or artifact versions; deletion behavior and recovery need separate review.",
+    "observation": [
+      "count",
+      "qualifying_delete_policies",
+      "qualifying age-based artifact deletion policies"
+    ],
+    "missing_observation": "The recorded evidence does not establish qualifying age-based artifact deletion policies."
+  },
+  "gcp.apikeys.active_service_restrictions": {
+    "purpose": "Disabled API targets can leave stale key restrictions; an enabled API alone does not prove the key is in use.",
+    "missing_observation": "The evidence needed to evaluate “API keys target only active enabled services” was not recorded reliably."
+  },
+  "gcp.sql.mysql_admin_account_posture": {
+    "purpose": "Broad administrative host patterns admit more connection sources; network reachability and authentication still apply.",
+    "missing_observation": "The recorded evidence does not establish the SQL user name."
+  },
+  "gcp.sql.iam_database_authentication": {
+    "purpose": "IAM database authentication supports centrally managed identities; actual database privileges and sign-ins remain separate.",
+    "missing_observation": "The recorded evidence does not establish an IAM database-authentication user."
+  },
+  "gcp_sql_instance_sql_instance_does_have_iam_4b5fe00566e6": {
+    "purpose": "IAM database authentication supports centrally managed identities; actual database privileges and sign-ins remain separate.",
+    "missing_observation": "IAM database authentication could not be read reliably.",
+    "prose": {
+      "kind": "sql",
+      "flag": "cloudsql.iam_authentication",
+      "field": "value",
+      "label": "IAM database authentication"
+    }
+  },
+  "gcp_sql_trace3625_off": {
+    "purpose": "Trace flag 3625 changes error-message detail; this check follows its stated profile, which differs between benchmarks.",
+    "missing_observation": "The recorded evidence does not establish sQL trace flag 3625."
+  },
+  "gcp_compute_approved_image": {
+    "purpose": "An approved image helps control the starting software baseline; installed software and runtime integrity remain separate.",
+    "observation": [
+      "value",
+      "image_project",
+      "VM source image project"
+    ],
+    "missing_observation": "The recorded evidence does not establish vM source image project.",
+    "prose": {
+      "kind": "text",
+      "present": "The VM image comes from project {value}.",
+      "missing": "The VM image project was not recorded."
+    }
+  },
+  "gcp_network_auto_subnets_enabled": {
+    "purpose": "Explicit subnet design helps control network layout; the subnet mode alone does not establish isolation.",
+    "observation": [
+      "value",
+      "auto_create_subnetworks",
+      "Automatic regional subnet creation"
+    ],
+    "missing_observation": "The recorded evidence does not establish automatic regional subnet creation.",
+    "prose": {
+      "kind": "bool",
+      "true": "The VPC automatically creates regional subnets.",
+      "false": "The VPC does not automatically create regional subnets."
+    }
+  },
+  "gcp_vpc_peering_allowlist": {
+    "purpose": "An unapproved active peer can add a network path; routes and firewall rules determine usable connectivity.",
+    "observation": [
+      "list",
+      "unapproved_active_peers",
+      "Unapproved active network peers"
+    ],
+    "missing_observation": "The recorded evidence does not establish unapproved active network peers.",
+    "prose": {
+      "kind": "list",
+      "present": "The network has unapproved active peers: {values}.",
+      "empty": "No active peer falls outside the approved list."
+    }
+  },
+  "gcp_certificate_validity": {
+    "purpose": "Expired or old certificates can disrupt or weaken trusted connections; served certificates and replacement coverage need separate review.",
+    "missing_observation": "The certificate validity and expiry could not be read reliably."
+  },
+  "gcp_cloudbuild_trigger_trust": {
+    "purpose": "An unapproved source can introduce code into builds; build execution and deployment were not established.",
+    "observation": [
+      "value",
+      "repository",
+      "Build trigger source repository"
+    ],
+    "missing_observation": "The recorded evidence does not establish build trigger source repository.",
+    "prose": {
+      "kind": "text",
+      "present": "The build trigger takes its source from repository {value}.",
+      "missing": "The build source repository was not recorded."
+    }
+  },
+  "gcp_resource_approved_location": {
+    "purpose": "Approved locations support residency requirements; actual data movement and replicas need separate review.",
+    "observation": [
+      "value",
+      "location",
+      "Declared resource location"
+    ],
+    "missing_observation": "The recorded evidence does not establish declared resource location.",
+    "prose": {
+      "kind": "text",
+      "present": "The resource is located in {value}.",
+      "missing": "The resource location was not recorded."
+    }
+  },
+  "gcp_resource_label_inventory": {
+    "purpose": "Classification and inventory labels identify required handling rules; correct labels do not prove those rules are enforced.",
+    "observation": [
+      "list",
+      "missing_labels",
+      "Missing inventory labels"
+    ],
+    "missing_observation": "The recorded evidence does not establish missing inventory labels.",
+    "prose": {
+      "kind": "list",
+      "present": "The resource is missing these inventory labels: {values}.",
+      "empty": "All required inventory labels are present."
+    }
+  },
+  "gcp_gke_client_certificate_enabled": {
+    "purpose": "Legacy client certificates create an additional cluster credential; actual certificate use and authorization remain separate.",
+    "observation": [
+      "value",
+      "issuance_enabled",
+      "Legacy cluster client-certificate issuance"
+    ],
+    "missing_observation": "The recorded evidence does not establish legacy cluster client-certificate issuance.",
+    "prose": {
+      "kind": "bool",
+      "true": "Legacy client-certificate issuance is enabled for the cluster.",
+      "false": "Legacy client-certificate issuance is disabled for the cluster."
+    }
+  },
+  "gcp_c5_tls_policy": {
+    "purpose": "The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested.",
+    "observation": [
+      "value",
+      "min_tls_version",
+      "Declared minimum TLS version"
+    ],
+    "missing_observation": "Minimum frontend TLS version could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "min_tls_version",
+      "label": "Minimum frontend TLS version",
+      "values": {
+        "TLS_1_0": "The frontend allows TLS 1.0 and later.",
+        "TLS_1_1": "The frontend allows TLS 1.1 and later.",
+        "TLS_1_2": "The frontend requires TLS 1.2 or later.",
+        "TLS_1_3": "The frontend requires TLS 1.3 or later."
+      }
+    }
+  },
+  "gcp.appengine.version_https_only": {
+    "purpose": "HTTPS enforcement protects frontend traffic in transit; actual redirects and negotiated connections were not tested.",
+    "missing_observation": "The recorded evidence does not establish app Engine handlers declare these transport-security levels."
+  },
+  "gcp_https_proxy_mtls_required": {
+    "purpose": "Strict client-certificate validation adds caller authentication; actual connections and identity authorization were not tested.",
+    "missing_observation": "Frontend client-certificate validation could not be read reliably.",
+    "prose": {
+      "kind": "enum",
+      "field": "client_validation_mode",
+      "label": "Frontend client-certificate validation",
+      "values": {
+        "REJECT_INVALID": "The frontend rejects missing or invalid client certificates.",
+        "ALLOW_INVALID_OR_MISSING_CLIENT_CERT": "The frontend accepts connections with missing or invalid client certificates."
+      }
+    }
+  },
+  "gcp_autoscaler_capacity_target": {
+    "purpose": "Scaling headroom helps handle demand; live load and application capacity were not measured.",
+    "missing_observation": "The evidence needed to evaluate “Autoscaler cannot expand at 80 percent capacity” was not recorded reliably."
+  },
+  "gcp_pci_firewall_2080b14f1361": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp_c5_network_separation": {
+    "purpose": "Separate environment subnets support isolation; subnet declarations do not prove firewall or application separation.",
+    "observation": [
+      "list",
+      "shared_environment_subnets",
+      "Subnets shared by environments"
+    ],
+    "missing_observation": "The recorded evidence does not establish subnets shared by environments.",
+    "prose": {
+      "kind": "list",
+      "present": "These subnets are shared by different environments: {values}.",
+      "empty": "No subnet is shared by the assessed environments."
+    }
+  },
+  "gcp_c5_network_topology": {
+    "purpose": "Topology mismatches can hide missing network components; only registered assets were compared.",
+    "observation": [
+      "count",
+      "deviations",
+      "deviations from the approved network topology"
+    ],
+    "missing_observation": "The recorded evidence does not establish deviations from the approved network topology."
+  },
+  "gcp_c5_iam_inventory": {
+    "purpose": "Unapproved IAM bindings can grant unintended privileges; policy declarations do not establish effective access.",
+    "observation": [
+      "count",
+      "unapproved_bindings",
+      "unapproved IAM bindings"
+    ],
+    "missing_observation": "The recorded evidence does not establish unapproved IAM bindings."
+  },
+  "gcp_c5_deletion_recoverability": {
+    "purpose": "Soft deletion creates a recovery window for deleted objects; a successful restore was not tested.",
+    "observation": [
+      "list",
+      "recovery_blockers",
+      "Declared object-recovery blockers"
+    ],
+    "missing_observation": "The recorded evidence does not establish declared object-recovery blockers.",
+    "prose": {
+      "kind": "list",
+      "present": "Object recovery is missing these required controls: {values}.",
+      "empty": "No missing object-recovery control was recorded."
+    }
+  },
+  "gcp_c5_log_retention": {
+    "purpose": "Log retention preserves records for investigations; the configured duration does not prove complete log delivery.",
+    "observation": [
+      "value",
+      "retention_days",
+      "Configured log retention in days"
+    ],
+    "missing_observation": "The recorded evidence does not establish configured log retention in days.",
+    "prose": {
+      "kind": "number",
+      "present": "Logs are retained for {value} days.",
+      "zero": "The log retention period is zero days."
+    }
+  },
+  "gcp_gcs_replication_status": {
+    "purpose": "Replica placement and health affect recovery from regional failure; successful failover was not tested.",
+    "observation": [
+      "list",
+      "actual_locations",
+      "Recorded bucket replica locations"
+    ],
+    "missing_observation": "The recorded evidence does not establish recorded bucket replica locations.",
+    "prose": {
+      "kind": "list",
+      "present": "The bucket has replicas in {values}.",
+      "empty": "No replica locations were recorded."
+    }
+  },
+  "gcp_pci_bucket_157fb0c69361": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp_c5_asset_risk_label": {
+    "purpose": "Classification and inventory labels identify required handling rules; correct labels do not prove those rules are enforced.",
+    "observation": [
+      "value",
+      "value",
+      "Recorded resource risk classification"
+    ],
+    "missing_observation": "The recorded evidence does not establish recorded resource risk classification.",
+    "prose": {
+      "kind": "text",
+      "present": "The resource has risk classification {value}.",
+      "missing": "The resource has no recorded risk classification."
+    }
+  },
+  "gcp_c5_region": {
+    "purpose": "Approved locations support residency requirements; actual data movement and replicas need separate review.",
+    "observation": [
+      "value",
+      "location",
+      "Declared resource location"
+    ],
+    "missing_observation": "The recorded evidence does not establish declared resource location.",
+    "prose": {
+      "kind": "text",
+      "present": "The resource is located in {value}.",
+      "missing": "The resource location was not recorded."
+    }
+  },
+  "gcp_c5_key_versions": {
+    "purpose": "Scheduled or early key destruction can make encrypted data unrecoverable; actual affected data was not enumerated.",
+    "observation": [
+      "value",
+      "checked_versions",
+      "Key versions whose lifecycle was assessed"
+    ],
+    "missing_observation": "The recorded evidence does not establish key versions whose lifecycle was assessed.",
+    "prose": {
+      "kind": "number",
+      "present": "The lifecycle of {value} key versions was assessed.",
+      "zero": "No key versions were assessed."
+    }
+  },
+  "gcp_backend_service_checks_armor_security_policy_contains_f48cc81ccae3": {
+    "purpose": "Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence.",
+    "missing_observation": "The evidence needed to evaluate “Cloud Armor policy has a non-default rule” was not recorded reliably."
+  },
+  "gcp_c5_cloud_armor_waf": {
+    "purpose": "Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence.",
+    "observation": [
+      "value",
+      "policy",
+      "Attached Cloud Armor policy"
+    ],
+    "missing_observation": "The recorded evidence does not establish attached Cloud Armor policy.",
+    "prose": {
+      "kind": "text",
+      "present": "The backend uses Cloud Armor policy {value}.",
+      "missing": "The backend has no recorded Cloud Armor policy."
+    }
+  },
+  "gcp_cloud_armor_cidr_deny": {
+    "purpose": "Cloud Armor can filter malicious requests; actual enforcement was not tested.",
+    "observation": [
+      "value",
+      "internet_backends",
+      "Internet-facing backends assessed against Cloud Armor policy"
+    ],
+    "missing_observation": "The recorded evidence does not establish internet-facing backends assessed against Cloud Armor policy.",
+    "prose": {
+      "kind": "number",
+      "present": "Cloud Armor source restrictions were assessed for {value} internet-facing backends.",
+      "zero": "No internet-facing backend was assessed for Cloud Armor source restrictions."
+    }
+  },
+  "gcp_cloud_armor_rate_limit": {
+    "purpose": "Cloud Armor can filter malicious requests; actual enforcement was not tested.",
+    "observation": [
+      "value",
+      "internet_backends",
+      "Internet-facing backends assessed against Cloud Armor policy"
+    ],
+    "missing_observation": "The recorded evidence does not establish internet-facing backends assessed against Cloud Armor policy.",
+    "prose": {
+      "kind": "number",
+      "present": "Cloud Armor rate limiting was assessed for {value} internet-facing backends.",
+      "zero": "No internet-facing backend was assessed for Cloud Armor rate limiting."
+    }
+  },
+  "gcp_cloudcdn_cache_policy": {
+    "purpose": "Cache settings affect how long sensitive responses persist; actual response headers and cache contents were not inspected.",
+    "observation": [
+      "value",
+      "client_ttl",
+      "Configured CDN client cache lifetime in seconds"
+    ],
+    "missing_observation": "The recorded evidence does not establish configured CDN client cache lifetime in seconds.",
+    "prose": {
+      "kind": "number",
+      "present": "The CDN allows clients to cache responses for {value} seconds.",
+      "zero": "The CDN client cache lifetime is zero seconds."
+    }
+  },
+  "gcp_pci_backend_service_2ce96d36d0bf": {
+    "purpose": "The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested.",
+    "missing_observation": "The recorded evidence does not establish serving HTTPS proxies with an insufficient TLS policy."
+  },
+  "gcp_pci_backend_service_571fd0bfec67": {
+    "purpose": "Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained.",
+    "observation": [
+      "value",
+      "logging_enabled",
+      "Backend request logging"
+    ],
+    "missing_observation": "The recorded evidence does not establish backend request logging.",
+    "prose": {
+      "kind": "bool",
+      "true": "The backend logs incoming requests.",
+      "false": "The backend does not log incoming requests."
+    }
+  },
+  "gcp.identity.non_service_account_mfa": {
+    "purpose": "This check requires both settings for the directly observed Cloud IAM user.",
+    "missing_observation": "The Directory user's two-step verification enrollment and enforcement could not be verified."
+  },
+  "gcp.identity.super_admin_recovery_group": {
+    "purpose": "A shared recovery group can avoid reliance on one administrator; account recovery was not exercised.",
+    "missing_observation": "The evidence needed to evaluate “Super-admin recovery email belongs to a multi-person group” was not recorded reliably."
+  },
+  "gcp.identity.super_admin_separation": {
+    "purpose": "Separating super-admin and routine IAM duties reduces combined privilege; actual account activity was not inspected.",
+    "missing_observation": "The recorded evidence does not establish matching non-super-admin access roles."
+  },
+  "gcp.orgpolicy.central_constraints": {
+    "purpose": "Central constraints set organization guardrails; exceptions and enforcement on individual resources need separate review.",
+    "observation": [
+      "list",
+      "violated_constraints",
+      "Constraints that do not meet the required policy"
+    ],
+    "missing_observation": "The recorded evidence does not establish constraints that do not meet the required policy.",
+    "prose": {
+      "kind": "list",
+      "present": "These required organization constraints are not satisfied: {values}.",
+      "empty": "All assessed organization constraints meet the required policy."
+    }
+  },
+  "gcp_cloud_armor_waf_enabled": {
+    "purpose": "Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence.",
+    "missing_observation": "The evidence needed to evaluate “Public backend has no web application filtering” was not recorded reliably."
+  },
+  "gcp_cloudbuild_private_pool": {
+    "purpose": "The selected VPC constrains the workload network path; firewall policy and actual reachability were not tested.",
+    "observation": [
+      "value",
+      "peered_network",
+      "Build worker pool peered network"
+    ],
+    "missing_observation": "The recorded evidence does not establish build worker pool peered network.",
+    "prose": {
+      "kind": "text",
+      "present": "The build worker pool peers with network {value}.",
+      "missing": "The build pool peered network was not recorded."
+    }
+  },
+  "gcp_source_repo_access_restricted": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "observation": [
+      "list",
+      "unauthorized_members",
+      "Principals outside the approved access list"
+    ],
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "prose": {
+      "kind": "list",
+      "present": "The repository grants access outside its approved list to {values}.",
+      "empty": "No repository member falls outside its approved access list."
+    }
+  },
+  "gcp_c5_secret_access": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "observation": [
+      "list",
+      "unauthorized_members",
+      "Principals outside the approved access list"
+    ],
+    "missing_observation": "The recorded evidence does not establish public principal grants.",
+    "prose": {
+      "kind": "list",
+      "present": "The secret grants access outside its approved list to {values}.",
+      "empty": "No secret member falls outside its approved access list."
+    }
+  },
+  "gcp_c5_security_event_route": {
+    "purpose": "Notification routes help owners respond to security events; delivery and response were not verified.",
+    "observation": [
+      "list",
+      "unrouted_metrics",
+      "Security metrics missing notification routes"
+    ],
+    "missing_observation": "The recorded evidence does not establish security metrics missing notification routes.",
+    "prose": {
+      "kind": "list",
+      "present": "These security metrics have no notification route: {values}.",
+      "empty": "All assessed security metrics have a notification route."
+    }
+  },
+  "gcp_lb_server_header_rewrite": {
+    "purpose": "Replacing the Server header can reduce software disclosure; actual HTTP responses were not inspected.",
+    "missing_observation": "The recorded evidence does not establish routes missing the required response-header rewrite."
+  },
+  "gcp_pci_url_map_9ed56c323a05": {
+    "purpose": "HTTPS enforcement protects frontend traffic in transit; actual redirects and negotiated connections were not tested.",
+    "missing_observation": "The recorded evidence does not establish routes missing the required HTTPS redirect."
+  },
+  "gcp_c5_sql_backup_run": {
+    "purpose": "A recent successful backup supports the recovery objective; a successful restore was not demonstrated.",
+    "observation": [
+      "value",
+      "successful_runs_in_rpo",
+      "Successful backups within the approved recovery window"
+    ],
+    "missing_observation": "The recorded evidence does not establish successful backups within the approved recovery window.",
+    "prose": {
+      "kind": "number",
+      "present": "The record contains {value} successful backups within the approved recovery window.",
+      "zero": "No successful backup was recorded within the approved recovery window."
+    }
+  },
+  "gcp_c5_malware_telemetry": {
+    "purpose": "An approved malware agent is an inventory signal; it does not prove the agent is running or detecting threats.",
+    "observation": [
+      "value",
+      "required_package",
+      "Malware-agent package assessed in VM inventory"
+    ],
+    "missing_observation": "The recorded evidence does not establish malware-agent package assessed in VM inventory.",
+    "prose": {
+      "kind": "text",
+      "present": "The VM inventory was assessed for malware-agent package {value}.",
+      "missing": "The expected malware-agent package was not recorded."
+    }
+  },
+  "gcp_c5_software_inventory": {
+    "purpose": "Software inventory comparisons expose unmanaged packages; installed package names do not establish execution or vulnerability.",
+    "observation": [
+      "count",
+      "unregistered_packages",
+      "unregistered installed packages"
+    ],
+    "missing_observation": "The recorded evidence does not establish unregistered installed packages."
+  },
+  "gcp_compute_approved_packages": {
+    "purpose": "Software inventory comparisons expose unmanaged packages; installed package names do not establish execution or vulnerability.",
+    "observation": [
+      "count",
+      "unapproved_packages",
+      "unapproved installed packages"
+    ],
+    "missing_observation": "The recorded evidence does not establish unapproved installed packages."
+  },
+  "gcp_c5_iam_change_timeliness": {
+    "purpose": "Overdue grant removal prolongs unwanted access; policy timestamps do not establish credential use.",
+    "observation": [
+      "count",
+      "overdue_grants",
+      "IAM grants overdue for removal"
+    ],
+    "missing_observation": "The recorded evidence does not establish iAM grants overdue for removal."
+  },
+  "gcp_c5_iam_conditions": {
+    "purpose": "Contextual IAM conditions can narrow when grants apply; condition declarations do not prove effective authorization.",
+    "observation": [
+      "count",
+      "bindings_missing_attributes",
+      "IAM bindings missing required contextual attributes"
+    ],
+    "missing_observation": "The recorded evidence does not establish iAM bindings missing required contextual attributes."
+  },
+  "gcp_c5_iam_expiry": {
+    "purpose": "Expiry conditions can limit privileged access duration; actual expiry enforcement was not tested.",
+    "observation": [
+      "count",
+      "grants_without_expiry",
+      "IAM grants missing required expiry conditions"
+    ],
+    "missing_observation": "The recorded evidence does not establish iAM grants missing required expiry conditions."
+  },
+  "gcp.logging.access_transparency_entries": {
+    "purpose": "Access Transparency records help review provider activity; record presence does not establish complete coverage.",
+    "missing_observation": "The recorded evidence does not establish access Transparency log records."
+  },
+  "gcp_cloudsql_backup_failure_alert": {
+    "purpose": "Backup-failure alerts help detect recovery gaps; configured alerting does not prove notification delivery.",
+    "missing_observation": "The recorded evidence does not establish the project declares these enabled backup-failure alerts."
+  },
+  "gcp_kms_key_destroy_alert": {
+    "purpose": "Key-destruction alerts help detect loss of decryptability; configured alerting does not prove notification delivery.",
+    "missing_observation": "The evidence needed to evaluate “KMS key disable or destroy events lack an alert” was not recorded reliably."
+  },
+  "gcp_logging_enumeration_alert": {
+    "purpose": "Enumeration alerts can reveal reconnaissance; configured alerting does not establish malicious activity or delivery.",
+    "missing_observation": "The evidence needed to evaluate “Cloud resource enumeration lacks an alert” was not recorded reliably."
+  },
+  "gcp_logging_query_rate_alert": {
+    "purpose": "Query-rate alerts can reveal excessive log access; configured alerting does not prove notification delivery.",
+    "missing_observation": "The evidence needed to evaluate “Excessive log queries lack an alert” was not recorded reliably."
+  },
+  "gcp_c5_log_export": {
+    "purpose": "Audit exports provide customer access to records; sink configuration does not prove delivered log coverage.",
+    "observation": [
+      "list",
+      "missing_classes",
+      "Required log classes without a qualifying destination"
+    ],
+    "missing_observation": "The recorded evidence does not establish required log classes without a qualifying destination.",
+    "prose": {
+      "kind": "list",
+      "present": "These required log classes have no qualifying export destination: {values}.",
+      "empty": "All assessed log classes have a qualifying export destination."
+    }
+  },
+  "gcp_c5_log_isolation": {
+    "purpose": "Separate log storage reduces shared exposure with customer data; storage declarations do not prove independent administration.",
+    "observation": [
+      "list",
+      "unsafe_sinks",
+      "Sinks sharing storage with customer data"
+    ],
+    "missing_observation": "The recorded evidence does not establish sinks sharing storage with customer data.",
+    "prose": {
+      "kind": "list",
+      "present": "These log sinks share storage with customer data: {values}.",
+      "empty": "No log sink shares storage with customer data."
+    }
+  },
+  "gcp_c5_logging_redundancy": {
+    "purpose": "Multiple log destinations reduce reliance on one archive; configuration does not prove independent successful delivery.",
+    "observation": [
+      "list",
+      "missing_classes",
+      "Required log classes without a qualifying destination"
+    ],
+    "missing_observation": "The recorded evidence does not establish required log classes without a qualifying destination.",
+    "prose": {
+      "kind": "list",
+      "present": "These required log classes lack the required destination redundancy: {values}.",
+      "empty": "All assessed log classes have the required destination redundancy."
+    }
+  },
+  "gcp_c5_siem_sink": {
+    "purpose": "An approved SIEM sink supports centralized investigation; successful ingestion and retention were not verified.",
+    "observation": [
+      "list",
+      "missing_classes",
+      "Required log classes without a qualifying destination"
+    ],
+    "missing_observation": "The recorded evidence does not establish required log classes without a qualifying destination.",
+    "prose": {
+      "kind": "list",
+      "present": "These required log classes lack an approved SIEM destination: {values}.",
+      "empty": "All assessed log classes have an approved SIEM destination."
+    }
+  },
+  "gcp_certificate_renewal_30_days": {
+    "purpose": "Expired or old certificates can disrupt or weaken trusted connections; served certificates and replacement coverage need separate review.",
+    "missing_observation": "The evidence needed to evaluate “Certificate lacks timely renewal” was not recorded reliably."
+  },
+  "gcp_certificate_rotation_180_days": {
+    "purpose": "Expired or old certificates can disrupt or weaken trusted connections; served certificates and replacement coverage need separate review.",
+    "missing_observation": "The recorded evidence does not establish deployed certificate age."
+  },
+  "gcp_certificate_rotation_90_days": {
+    "purpose": "Expired or old certificates can disrupt or weaken trusted connections; served certificates and replacement coverage need separate review.",
+    "missing_observation": "The recorded evidence does not establish served certificate issuance date."
+  },
+  "gcp_c5_cloudbuild_gate": {
+    "purpose": "Approval and security-test gates control production builds; actual blocking was not tested.",
+    "observation": [
+      "value",
+      "approval_required",
+      "Production build approval requirement"
+    ],
+    "missing_observation": "The recorded evidence does not establish production build approval requirement.",
+    "prose": {
+      "kind": "bool",
+      "true": "Production builds require approval.",
+      "false": "Production builds do not require approval."
+    }
+  },
+  "gcp_c5_workforce_federation": {
+    "purpose": "Workforce federation centralizes external identity trust; provider state does not prove successful or authorized sign-ins.",
+    "observation": [
+      "list",
+      "unsafe_providers",
+      "Federation providers missing required trust or MFA controls"
+    ],
+    "missing_observation": "The recorded evidence does not establish federation providers missing required trust or MFA controls.",
+    "prose": {
+      "kind": "list",
+      "present": "These federation providers lack required trust controls: {values}.",
+      "empty": "No assessed federation provider lacks a required trust control."
+    }
+  },
+  "gcp_iam_workforce_mfa": {
+    "purpose": "Federation MFA claims need identity-provider enforcement review.",
+    "observation": [
+      "list",
+      "unsafe_providers",
+      "Federation providers missing required trust or MFA controls"
+    ],
+    "missing_observation": "The recorded evidence does not establish federation providers missing required trust or MFA controls.",
+    "prose": {
+      "kind": "list",
+      "present": "These federation providers lack required MFA conditions: {values}.",
+      "empty": "No assessed federation provider lacks the required MFA conditions."
+    }
+  },
+  "gcp_gke_small_cluster_auto_upgrade": {
+    "purpose": "Automatic node upgrades help keep nodes current; installed versions and workload disruption need separate review.",
+    "missing_observation": "The recorded evidence does not establish node pools with automatic upgrade disabled."
+  },
+  "gcp.bigquery.table_classification_tags": {
+    "purpose": "Classification and inventory labels identify required handling rules; correct labels do not prove those rules are enforced.",
+    "observation": [
+      "list",
+      "unclassified_columns",
+      "Columns missing approved classification tags"
+    ],
+    "missing_observation": "The recorded evidence does not establish columns missing approved classification tags.",
+    "prose": {
+      "kind": "list",
+      "present": "These table columns lack approved classification tags: {values}.",
+      "empty": "All assessed table columns have approved classification tags."
+    }
+  },
+  "gcp.resourcemanager.folder_environment_structure": {
+    "purpose": "Classification and inventory labels identify required handling rules; correct labels do not prove those rules are enforced.",
+    "observation": [
+      "list",
+      "projects_missing_labels",
+      "Projects missing environment or sensitivity labels"
+    ],
+    "missing_observation": "The recorded evidence does not establish projects missing environment or sensitivity labels.",
+    "prose": {
+      "kind": "list",
+      "present": "These projects lack environment or sensitivity labels: {values}.",
+      "empty": "All assessed projects have environment and sensitivity labels."
+    }
+  },
+  "gcp.network.vpc_service_controls_supported_services": {
+    "purpose": "Service perimeters limit covered Google API access; actual requests and all access exceptions need separate review.",
+    "observation": [
+      "list",
+      "missing_enabled_supported_services",
+      "Enabled supported APIs missing from the perimeter"
+    ],
+    "missing_observation": "The recorded evidence does not establish enabled supported APIs missing from the perimeter.",
+    "prose": {
+      "kind": "list",
+      "present": "The service perimeter does not cover these enabled APIs: {values}.",
+      "empty": "The service perimeter covers every assessed enabled supported API."
+    }
+  },
+  "gcp_gke_cluster_endpoint_publicly_accessible_ea8dcc0ec97d": {
+    "purpose": "These network declarations affect exposure; firewall paths and authentication determine who can connect.",
+    "missing_observation": "The recorded evidence does not establish public endpoint or ingress declarations."
+  },
+  "gcp_logging_detect_t1136": {
+    "purpose": "The observed service-account creation is compared with approved administrators; it does not prove compromise or complete event coverage.",
+    "missing_observation": "The recorded evidence does not establish service-account creation events and approved creators."
+  },
+  "gcp_logging_detect_t1546": {
+    "purpose": "The observed trigger creation is compared with approved creators; it does not prove compromise or complete event coverage.",
+    "missing_observation": "The recorded evidence does not establish event-trigger creation events and approved creators."
+  },
+  "gcp.network.private_service_connect_google_apis": {
+    "purpose": "PSC and private DNS declarations support private API paths; DNS precedence, traffic and firewall enforcement were not measured.",
+    "observation": [
+      "count",
+      "missing_configuration",
+      "missing required PSC endpoint or private DNS declarations"
+    ],
+    "missing_observation": "The recorded evidence does not establish missing required PSC endpoint or private DNS declarations."
+  },
+  "gcp_logging_detect_t1518": {
+    "purpose": "Recorded discovery calls are compared with the approved rate; this window does not prove intent or complete audit coverage.",
+    "missing_observation": "The recorded evidence does not establish discovery call counts and the approved rate."
+  },
+  "gcp_logging_detect_t1614": {
+    "purpose": "Recorded discovery calls are compared with the approved rate; this window does not prove intent or complete audit coverage.",
+    "missing_observation": "The recorded evidence does not establish discovery call counts and the approved rate."
+  },
+  "gcp.compute.os_patch_compliance": {
+    "purpose": "Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence.",
+    "missing_observation": "The recorded evidence does not establish vM patch inventory and approved patch deadlines.",
+    "observation": [
+      "list",
+      "overdue_packages",
+      "Installed packages overdue for security patching"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These installed packages are overdue for security updates: {values}.",
+      "empty": "No assessed installed package is overdue for a security update."
+    }
+  },
+  "gcp_c5_access_approval": {
+    "purpose": "Access Approval supports explicit consent before provider access; actual provider access events need separate review.",
+    "missing_observation": "The recorded evidence does not establish prior customer approvals and provider access events.",
+    "observation": [
+      "list",
+      "unapproved_access_events",
+      "Provider access events without matching prior approval"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These provider access events lack matching prior customer approval: {values}.",
+      "empty": "Every assessed provider access event has matching prior customer approval."
+    }
+  },
+  "gcp_c5_asset_change_audit": {
+    "purpose": "Audit matches support attribution; event history may be incomplete.",
+    "missing_observation": "The recorded evidence does not establish asset changes and their matching audit records.",
+    "observation": [
+      "list",
+      "without_admin_activity",
+      "Changed assets without a matching administrative audit event"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These changed assets have no matching administrative audit event: {values}.",
+      "empty": "Every assessed asset change has a matching administrative audit event."
+    }
+  },
+  "gcp_c5_asset_inventory": {
+    "purpose": "Inventory coverage helps identify unmanaged assets; approved-scope comparison does not discover every possible asset.",
+    "missing_observation": "The recorded evidence does not establish independent asset inventories and required metadata."
+  },
+  "gcp_c5_backup_remote_location": {
+    "purpose": "A separate backup location reduces shared regional risk; replication success and restore capability were not tested.",
+    "missing_observation": "The recorded evidence does not establish backup target regions and the approved offsite policy.",
+    "observation": [
+      "list",
+      "target_regions",
+      "Backup target regions"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "The backup targets are in {values}.",
+      "empty": "No backup target Region was recorded."
+    }
+  },
+  "gcp_c5_build_provenance": {
+    "purpose": "Build provenance links artifacts to source revisions; the record alone does not verify source trust or reproducibility.",
+    "missing_observation": "The recorded evidence does not establish build results and resolved source revision provenance.",
+    "observation": [
+      "list",
+      "unsafe_builds",
+      "Builds without approved source revision provenance"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These builds lack approved source-revision provenance: {values}.",
+      "empty": "Every assessed build has approved source-revision provenance."
+    }
+  },
+  "gcp_c5_log_event_fields": {
+    "purpose": "Actor and timestamp fields support reconstructing activity; one valid record does not establish complete audit coverage.",
+    "missing_observation": "The recorded evidence does not establish audit event actor and timestamp fields."
+  },
+  "gcp_c5_patch_deployment": {
+    "purpose": "Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence.",
+    "missing_observation": "The recorded evidence does not establish vM patch inventory and approved patch deadlines.",
+    "observation": [
+      "list",
+      "applicable_deployments",
+      "Enabled recurring patch deployments covering this VM"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "The VM is covered by recurring patch deployments {values}.",
+      "empty": "No enabled recurring patch deployment covers this VM."
+    }
+  },
+  "gcp_c5_restore_destination": {
+    "purpose": "Restore target permissions affect who can access recovered data; declarations do not prove effective access parity.",
+    "missing_observation": "The recorded evidence does not establish restore-target permissions and exposure settings.",
+    "observation": [
+      "list",
+      "unsafe_restore_targets",
+      "Restore targets with unsafe access or exposure settings"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These restore targets have unsafe access or exposure settings: {values}.",
+      "empty": "No assessed restore target has unsafe access or exposure settings."
+    }
+  },
+  "gcp_c5_restore_test": {
+    "purpose": "A recorded restore test supports recoverability; one test does not prove every backup can be restored.",
+    "missing_observation": "The recorded evidence does not establish validated restore events.",
+    "observation": [
+      "value",
+      "validated_restore_events",
+      "Recorded validated restore tests"
+    ],
+    "prose": {
+      "kind": "number",
+      "present": "The record contains {value} validated restore tests.",
+      "zero": "No validated restore test was recorded."
+    }
+  },
+  "gcp_c5_sbom": {
+    "purpose": "An SBOM supports tracking deployed image components; attachment alone does not establish completeness or absence of vulnerabilities.",
+    "missing_observation": "The recorded evidence does not establish deployed image digests and SBOM references.",
+    "observation": [
+      "list",
+      "missing_sbom_digests",
+      "Deployed image digests without SBOM references"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These deployed image digests have no SBOM reference: {values}.",
+      "empty": "Every assessed deployed image digest has an SBOM reference."
+    }
+  },
+  "gcp_cloudsql_failed_attempts_lockout": {
+    "purpose": "Failed-sign-in controls can slow password guessing; actual sign-in enforcement was not tested.",
+    "missing_observation": "The recorded evidence does not establish managed MySQL account lockout configuration and approved account scope."
+  },
+  "gcp_compute_os_patch_compliance": {
+    "purpose": "Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence.",
+    "missing_observation": "The recorded evidence does not establish vM patch inventory and approved patch deadlines.",
+    "observation": [
+      "list",
+      "overdue_packages",
+      "Installed packages overdue for security patching"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These installed packages are overdue for security updates: {values}.",
+      "empty": "No assessed installed package is overdue for a security update."
+    }
+  },
+  "gcp_logging_detect_t1110": {
+    "purpose": "Repeated failed sign-ins may indicate password guessing; observed events do not prove attacker identity or complete coverage.",
+    "missing_observation": "The recorded evidence does not establish failed sign-in counts and their observation window."
+  },
+  "gcp_logging_detect_t1119": {
+    "purpose": "The observed activity is compared with approved actor or rate rules; a match does not prove malicious intent or complete log coverage.",
+    "missing_observation": "The automated collection events and approved rate could not be read reliably."
+  },
+  "gcp_logging_detect_t1490": {
+    "purpose": "The observed activity is compared with approved actor or rate rules; a match does not prove malicious intent or complete log coverage.",
+    "missing_observation": "The recorded evidence does not establish backup deletion events and approved actors."
+  },
+  "gcp_logging_detect_t1526": {
+    "purpose": "The observed activity is compared with approved actor or rate rules; a match does not prove malicious intent or complete log coverage.",
+    "missing_observation": "The recorded evidence does not establish cloud service discovery events and approved rates."
+  },
+  "gcp_logging_detect_t1619": {
+    "purpose": "The observed activity is compared with approved actor or rate rules; a match does not prove malicious intent or complete log coverage.",
+    "missing_observation": "The recorded evidence does not establish storage object discovery events and approved rates."
+  },
+  "gcp_logging_detect_t1648": {
+    "purpose": "The observed activity is compared with approved actor or rate rules; a match does not prove malicious intent or complete log coverage.",
+    "missing_observation": "The recorded evidence does not establish serverless invocation events and approved callers."
+  },
+  "gcp_logging_detect_t1651": {
+    "purpose": "The observed activity is compared with approved actor or rate rules; a match does not prove malicious intent or complete log coverage.",
+    "missing_observation": "The recorded evidence does not establish administrative change events and approved actors."
+  },
+  "gcp_logging_scc_findings_alert": {
+    "purpose": "SCC alert routes help owners act on severe findings; route declarations do not prove notification delivery or response.",
+    "missing_observation": "The recorded evidence does not establish severe SCC findings and approved notification routes.",
+    "observation": [
+      "list",
+      "findings_without_route",
+      "Severe SCC findings without an approved notification route"
+    ],
+    "prose": {
+      "kind": "list",
+      "present": "These severe SCC findings have no approved notification route: {values}.",
+      "empty": "Every assessed severe SCC finding has an approved notification route."
+    }
+  },
+  "gcp_pci_bucket_56c6b1b7f813": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp_pci_bucket_7dc6cb8c2e05": {
+    "purpose": "Public grants can admit unintended callers; conditions and other access controls still affect access.",
+    "missing_observation": "The recorded evidence does not establish public principal grants."
+  },
+  "gcp_pci_kms_key_a3927a5f3b84": {
+    "purpose": "Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions.",
+    "missing_observation": "The recorded evidence does not establish identity role assignments and permissions."
+  },
+  "gcp.compute.os_login": {
+    "purpose": "OS Login supports centrally managed SSH access; the resolved setting does not prove an actual login is allowed.",
+    "missing_observation": "The recorded evidence does not establish instance OS Login.",
+    "alias_of": "gcp.ports.compute_oslogin_metadata_precedence"
+  },
+  "gcp.sql.require_tls": {
+    "purpose": "Requiring encrypted SQL connections protects data in transit; client authentication and negotiated TLS were not tested.",
+    "missing_observation": "SQL connection encryption could not be read reliably.",
+    "alias_of": "gcp.ports.sql_instance_require_ssl_enabled",
+    "prose": {
+      "kind": "enum",
+      "field": "sslMode",
+      "label": "SQL connection encryption",
+      "values": {
+        "TRUSTED_CLIENT_CERTIFICATE_REQUIRED": "SQL connections require encryption and a trusted client certificate.",
+        "ENCRYPTED_ONLY": "SQL connections require encryption.",
+        "ALLOW_UNENCRYPTED_AND_ENCRYPTED": "SQL permits both encrypted and unencrypted connections.",
+        "SSL_MODE_UNSPECIFIED": "No explicit SQL connection-encryption mode is declared."
+      }
+    }
+  },
+  "gcp.review.workbench.public_ip_disabled": {
+    "purpose": "Other network controls still determine internet reachability.",
+    "missing_observation": "The Workbench setting could not be established from the collected configuration."
+  },
+  "gcp.review.workbench.root_access_disabled": {
+    "purpose": "This controls notebook user root access.",
+    "missing_observation": "The Workbench setting could not be established from the collected configuration."
+  },
+  "gcp.review.function.literal_environment_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected literal environment values could not be completely scanned."
+  },
+  "gcp.review.instance.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The returned literal configuration could not be completely scanned."
+  },
+  "gcp.review.instance_template.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The returned literal configuration could not be completely scanned."
+  },
+  "gcp.review.project.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The returned literal configuration could not be completely scanned."
+  },
+  "gcp.review.cloudrun_service.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The returned literal configuration could not be completely scanned."
+  },
+  "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The returned literal configuration could not be completely scanned."
+  },
+  "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The returned literal configuration could not be completely scanned."
+  },
+  "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The returned literal configuration could not be completely scanned."
+  },
+  "gcp.review.logging.application_log_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.storage.selected_object_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.artifact_image.content_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.storage.selected_archive_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.scheduler_job.literal_target_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.app_engine_version.literal_environment_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.workflow.deployed_source_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.dataform.selected_file_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.dataflow_job.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.batch_job.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.dataproc_cluster.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.dataproc_job.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.gke_workload.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.composer_environment.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.workbench_instance.literal_configuration_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.function.resolved_source_archive_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.artifactregistry.selected_file_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.review.composer.dag_source_secret_indicators": {
+    "purpose": "Values remain hidden and credential validity is not tested.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  },
+  "gcp.compute.os_config_fixable_vulnerabilities": {
+    "purpose": "This describes the collected assessment; current patch state and freshness were not assessed.",
+    "missing_observation": "The VM assessment is unavailable, incomplete or cannot be matched to this VM."
+  },
+  "gcp.review.cloudbuild.stored_log_secret_indicators": {
+    "purpose": "This covers the observed log object generation, not the build’s complete log history.",
+    "missing_observation": "The selected Cloud Build log object could not be completely scanned or bound to its build."
+  },
+  "gcp.review.appengine.deployment_source_secret_indicators": {
+    "purpose": "This covers the native deployment file manifest, not runtime contents or generated artifacts.",
+    "missing_observation": "The selected App Engine deployment files could not be completely scanned and matched to their native hashes."
+  },
+  "gcp.review.cloudbuild.artifact_secret_indicators": {
+    "purpose": "This covers the observed output manifest and its pinned artifacts, not complete historical build contents.",
+    "missing_observation": "The selected Cloud Build output manifest and artifacts could not be completely scanned and bound."
+  },
+  "gcp.review.clouddeploy.release_source_secret_indicators": {
+    "purpose": "This covers the observed source archive, not historical release bytes or deployed configuration.",
+    "missing_observation": "The selected Cloud Deploy source archive could not be completely scanned and bound."
+  },
+  "gcp.review.sourcerepo.selected_file_secret_indicators": {
+    "purpose": "Only selected files at this commit were inspected; repository history and credential validity were not checked.",
+    "missing_observation": "The selected supported content could not be completely scanned."
+  }
+}

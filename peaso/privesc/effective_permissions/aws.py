@@ -33,6 +33,7 @@ from urllib.parse import unquote, urlsplit
 from . import (ANY, AllTargets, Grant, Model, Node, as_list, combine, downgrade, glob_match, inventory_status,
                items, unavailable)
 from . import best as _BEST
+from . import permission_match
 from .aws_conditions import (ABSENT, CHOSEN, Context, evaluate as evaluate_condition, principal_dependent, resource_dependent,
                              substitute)
 from ..schema import flatten_requirements
@@ -1042,10 +1043,10 @@ class AwsModel(Model):
                 got = self.cached_check(principal, req, cand)
                 if got is None:
                     break
-                grants.append(got)
+                grants.append(permission_match(got, req, cand))
             else:
                 got = combine(*grants)
-                winner = _BEST(winner, Grant(got.confidence, ({"bound_resource": cand},) + got.refs, got.conditions))
+                winner = _BEST(winner, Grant(got.confidence, ({"bound_resource": cand},) + got.refs, got.conditions, got.permission_refs))
                 if winner.confidence == "derived":
                     break
         if winner is not None:
@@ -2676,7 +2677,8 @@ class AwsModel(Model):
                     if verdict is False:
                         continue
                     proven = verdict is True and not st.resource_dep
-                    g = Grant("derived" if proven else "conditional", [st.ref], [] if proven else ["allow_statement_has_condition"])
+                    g = Grant("derived" if proven else "conditional", [st.ref], [] if proven else ["allow_statement_has_condition"],
+                              [{"permission": next(a for a in st.actions if a in ("*", "*:*")), "grant": st.ref}])
                     grant = _best(grant, g)
         if grant is None:
             return []

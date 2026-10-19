@@ -34,6 +34,7 @@ mean absence.
 from __future__ import annotations
 
 import copy
+import re
 
 OK = ("collected", "empty")
 
@@ -523,6 +524,20 @@ def _rolesanywhere_profiles(requests, session, region, account):
         if not isinstance(profile, dict) or not isinstance(profile.get("profileArn"), str):
             continue
         row = _pick(profile, keys)
+        if "managedPolicyArns" in profile:
+            managed = profile["managedPolicyArns"]
+            if (not isinstance(managed, list) or any(not isinstance(arn, str) or
+                    re.fullmatch(r"arn:[a-z0-9-]+:iam::(?:[0-9]{12}|aws):policy/\S+", arn) is None
+                    for arn in managed)):
+                continue
+        elif read.status in OK:
+            # ProfileDetail omits this optional array when no managed session
+            # policies are configured. Only a successful complete ListProfiles
+            # read authenticates that omission; unreadability is not absence.
+            row["managedPolicyArns"] = []
+            row.setdefault("_coverage", {})["managedPolicyArns"] = {
+                "status": "empty", "reason": "documented_optional_api_omission",
+                "source_operation": "rolesanywhere:ListProfiles", "native_member_present": False}
         row["SessionPolicy"] = policy(profile["sessionPolicy"]) if profile.get("sessionPolicy") else None
         row["id"] = profile["profileArn"]
         items.append(row)
@@ -707,6 +722,8 @@ def _amplify_apps(requests, session, region, account):
         # Never environmentVariables, basicAuthCredentials, buildSpec or customHeaders.
         row = _pick(app, ("appId", "appArn", "name", "platform", "iamServiceRoleArn", "computeRoleArn", "defaultDomain", "enableBasicAuth",
                           "createTime", "updateTime"))
+        if "AdditionalSecretIndicators" in app:
+            row["AdditionalSecretIndicators"] = copy.deepcopy(app["AdditionalSecretIndicators"])
         row["id"] = app.get("appArn") or app["appId"]
         backends = requests.pages(session, "amplify", region, "list_backend_environments", "backendEnvironments",
                                   _tokens=("nextToken", "nextToken"), appId=app["appId"])

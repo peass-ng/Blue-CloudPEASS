@@ -1,7 +1,7 @@
 """Offline defensive IAM, least-privilege, exposure, and network projections."""
 from __future__ import annotations
 
-from .common import FRAMEWORKS, RANK, analysis_context, finding, node, source, with_analysis_context
+from .common import FRAMEWORKS, RANK, analysis_context, finding, frameworks_for, node, source, with_analysis_context
 from .iam import IAM_TYPES, azure_assignment_reviews, build_iam, review_findings
 from .network import NETWORK_TYPES, build_network, exposure_findings
 from .projection import collapse_unreferenced_definitions, expand_projected_node, filter_graph, page_graph, project_graph, stored_aggregate_members
@@ -54,6 +54,14 @@ REQUIRED_TYPES["azure"]["privesc"] = ["tenant", "management_group", "subscriptio
 REQUIRED_TYPES["k8s"]["privesc"] = ["role", "clusterrole", "rolebinding", "clusterrolebinding", "serviceaccount", "namespace", "pod", "node"]
 
 
+from peaso.principal_exposure_requirements import REQUIRED_TYPES as _PRINCIPAL_EXPOSURE_TYPES
+for _provider, _types in _PRINCIPAL_EXPOSURE_TYPES.items():
+    # Filter names against provider support when constructing the collection plan.
+    from peaso.collectors import supported_types as _supported_types
+    for _category in ("least_privilege", "privesc"):
+        REQUIRED_TYPES[_provider][_category] = sorted(set(REQUIRED_TYPES[_provider][_category]) | (_types & set(_supported_types(_provider))))
+
+
 def privesc_required_types(provider):
     """Collection types the privesc evaluator needs for a provider: the floor above plus every supported
     type its model reads (see privesc_requirements). Strings that are not collection types are dropped."""
@@ -74,8 +82,10 @@ ANALYSIS_CHECKS = [
 ]
 from .finding_clarity import HOW as _CLARITY_HOW, ACTION as _CLARITY_ACTION
 for _check in ANALYSIS_CHECKS:
-    _check.update({"provider": "all", "type": "projection", "frameworks": list(FRAMEWORKS),
-        "mapping": {"hacktricks": "Defensive identity and network review"},
+    from peaso.finding_types import type_for as _finding_type_for
+    _check["finding_type"] = _finding_type_for(_check["id"])
+    _check.update({"provider": "all", "type": "projection", "frameworks": frameworks_for(_check["id"]),
+        "mapping": {"hacktricks": "Defensive identity and network review"} if frameworks_for(_check["id"]) else {},
         "remediation": _CLARITY_ACTION.get(_check["id"], "Review the recorded access declaration before changing it.")})
     if _check["id"] in _CLARITY_HOW:
         _check["description"] = _CLARITY_HOW[_check["id"]]

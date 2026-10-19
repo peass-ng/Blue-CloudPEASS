@@ -96,6 +96,149 @@ def test_verified_ledger_maps_both_directions_and_preserves_unknown(tmp_path):
     assert matrix_report["unique_implemented_native_checks"] == 1
 
 
+def extension_tree(tmp_path, linked=False):
+    root, matrix, native = fixture_tree(tmp_path)
+    spec = {"id": "aws.fixture.security_extension", "provider": "aws", "resource_kind": "fixture",
+            "data_source": "Read-only fixture policy document", "predicate": "Restrictive policy is present",
+            "severity": "medium", "category": "hardening", "title": "Fixture policy is restrictive",
+            "description": "Checks the independent fixture policy document for its explicit restrictive condition.",
+            "remediation_hint": "Restrict the fixture policy."}
+    native["checks"].append({"id": spec["id"], "provider": "aws", "title": spec["title"],
+                             "type": "fixture", "category": "hardening", "severity": "medium",
+                             "target": "resource", "dependencies": ["fixture"]})
+    row = {"spec": spec, "sources": [{"url": "https://example.org/pinned/fixture.py", "sha256": "a" * 64}],
+           "requirements": ([{"framework_id": "aws_fixture", "requirement_id": "2",
+                              "reason": "This policy is an additional technical signal only; the process remainder is unchanged."}]
+                            if linked else [])}
+    path = "native-extensions/aws-fixture.json"
+    sha = write(root / path, {"schema_version": 1, "checks": [row]})
+    description = {"description": spec["description"], "evaluated": [spec["data_source"]],
+                   "pass_when": "The restrictive condition is present.",
+                   "fail_when": "The restrictive condition is absent.", "not_applicable_when": None,
+                   "proposed_spec_sha256": spec_digest(spec)}
+    supplemental = "descriptions/implemented-new-checks.json"
+    desc_sha = write(root / supplemental, {spec["id"]: description})
+    manifest = json.loads((root / "manifest.json").read_text())
+    manifest["native_extensions"] = [{"path": path, "sha256": sha, "verified": True}]
+    manifest["new_descriptions"] = {"path": supplemental, "sha256": desc_sha, "verified": True, "checks": 1}
+    write(root / "manifest.json", manifest)
+    return root, matrix, native
+
+
+@pytest.mark.parametrize("linked", [False, True])
+def test_reviewed_security_extensions_preserve_truthful_checklist_scope(tmp_path, linked):
+    root, matrix, native = extension_tree(tmp_path, linked)
+    pack, descriptions = compile_verified(root, matrix, native)
+    cid = "aws.fixture.security_extension"
+    assert cid in descriptions["checks"]
+    assert cid in {s["id"] for s in pack["proposed_checks"]}
+    assert len(pack["by_check"][cid]) == int(linked)
+    if linked:
+        assert pack["by_check"][cid] == [{"framework_id": "aws_fixture", "requirement_id": "2",
+                                         "decision": "PARTIAL", "runtime_status": "partial"}]
+    else:
+        assert all(cid not in r["native_checks"] for f in pack["frameworks"] for r in f["requirements"])
+
+
+@pytest.mark.parametrize("change", ["unverified", "hash", "duplicate", "no_sources", "unknown_requirement", "foreign_provider"])
+def test_native_extension_intake_is_fail_closed(tmp_path, change):
+    root, matrix, native = extension_tree(tmp_path)
+    manifest = json.loads((root / "manifest.json").read_text())
+    entry = manifest["native_extensions"][0]
+    document = json.loads((root / entry["path"]).read_text())
+    row = document["checks"][0]
+    if change == "unverified":
+        entry["verified"] = False
+    elif change == "hash":
+        entry["sha256"] = "0" * 64
+    else:
+        if change == "duplicate":
+            document["checks"].append(row)
+        elif change == "no_sources":
+            row["sources"] = []
+        elif change == "unknown_requirement":
+            row["requirements"] = [{"framework_id": "aws_fixture", "requirement_id": "invented",
+                                    "reason": "This is not an existing reviewed checklist requirement."}]
+        else:
+            row["spec"]["provider"] = "azure"
+        entry["sha256"] = write(root / entry["path"], document)
+    write(root / "manifest.json", manifest)
+    with pytest.raises(ValueError):
+        compile_verified(root, matrix, native)
+
+
+@pytest.mark.parametrize("field,value", [("resource_kind", "wrong_kind"), ("category", "exposure"),
+                                        ("category", "historical_compliance_category"),
+                                        ("severity", "critical"), ("severity", "UNSPECIFIED")])
+def test_rehashed_extension_must_match_registered_typed_contract(tmp_path, field, value):
+    root, matrix, native = extension_tree(tmp_path)
+    manifest = json.loads((root / "manifest.json").read_text())
+    entry = manifest["native_extensions"][0]
+    document = json.loads((root / entry["path"]).read_text())
+    document["checks"][0]["spec"][field] = value
+    entry["sha256"] = write(root / entry["path"], document)
+    write(root / "manifest.json", manifest)
+    with pytest.raises(ValueError, match="registered typed contract"):
+        compile_verified(root, matrix, native)
+
+
+@pytest.mark.parametrize("target", [None, "invalid", "scope"])
+def test_extension_cannot_silently_change_registered_target(tmp_path, target):
+    root, matrix, native = extension_tree(tmp_path)
+    native["checks"][-1]["target"] = target
+    with pytest.raises(ValueError, match="registered typed contract"):
+        compile_verified(root, matrix, native)
+
+
+def test_scope_extension_requires_explicit_matching_target(tmp_path):
+    root, matrix, native = extension_tree(tmp_path)
+    native["checks"][-1]["target"] = "scope"
+    manifest = json.loads((root / "manifest.json").read_text())
+    entry = manifest["native_extensions"][0]
+    document = json.loads((root / entry["path"]).read_text())
+    document["checks"][0]["target"] = "scope"
+    entry["sha256"] = write(root / entry["path"], document)
+    write(root / "manifest.json", manifest)
+    pack, _ = compile_verified(root, matrix, native)
+    assert "aws.fixture.security_extension" in pack["by_check"]
+
+
+def test_extension_validation_uses_live_contract_even_with_stale_stored_native_row(tmp_path):
+    from types import SimpleNamespace
+    root, matrix, native = extension_tree(tmp_path)
+    existing = SimpleNamespace(id="aws.fixture.existing", provider="aws", title="Existing check")
+    changed = SimpleNamespace(id="aws.fixture.security_extension", provider="aws", title="Fixture policy is restrictive",
+                               kind="changed_runtime_kind", category="hardening", severity="medium", target="resource")
+    augmented = catalog_with_registered_checks(native, [existing, changed])
+    assert native["checks"][-1]["type"] == "fixture"  # Input and historical metadata untouched.
+    assert augmented["checks"][-1]["type"] == "fixture"
+    with pytest.raises(ValueError, match="registered typed contract"):
+        compile_verified(root, matrix, augmented)
+
+
+@pytest.mark.parametrize("mutation", [None, "prior", "replacement", "unsigned"])
+def test_description_errata_preserve_exact_ancestry(tmp_path, mutation):
+    root, matrix, native = fixture_tree(tmp_path)
+    original = json.loads((root / "descriptions/desc-fixture.json").read_text())["aws.fixture.existing"]
+    replacement = {**original, "description": "Checks the exact enabled configuration flag; unresolved collection remains unknown and does not imply disabled protection."}
+    row = {"prior_sha256": spec_digest(original), "replacement_sha256": spec_digest(replacement),
+           "description": replacement, "reason": "A reviewed clarification preserves the actual existing predicate semantics."}
+    if mutation == "prior":
+        row["prior_sha256"] = "0" * 64
+    elif mutation == "replacement":
+        row["replacement_sha256"] = "0" * 64
+    path = "descriptions/reviewed-errata.json"
+    sha = write(root / path, {"schema_version": 1, "checks": {"aws.fixture.existing": row}})
+    manifest = json.loads((root / "manifest.json").read_text())
+    manifest["description_errata"] = {"path": path, "sha256": sha, "verified": mutation != "unsigned"}
+    write(root / "manifest.json", manifest)
+    if mutation:
+        with pytest.raises(ValueError):
+            compile_verified(root, matrix, native)
+    else:
+        assert compile_verified(root, matrix, native)[1]["checks"]["aws.fixture.existing"] == replacement
+
+
 def test_empty_pinned_title_can_be_enriched_but_nonempty_title_cannot_change(tmp_path):
     root, matrix, native = fixture_tree(tmp_path)
     matrix["frameworks"][0]["requirements"][0]["name"] = ""
@@ -281,15 +424,34 @@ def test_registry_additions_wait_for_signed_proposal_and_description(tmp_path):
     from types import SimpleNamespace
     root, matrix, native = fixture_tree(tmp_path)
     existing = SimpleNamespace(id="aws.fixture.existing", provider="aws", title="Existing check")
-    proposed = SimpleNamespace(id="aws.fixture.proposed", provider="aws", title="Fixture enabled")
+    proposed = SimpleNamespace(id="aws.fixture.proposed", provider="aws", title="Fixture enabled",
+                               kind="fixture", category="hardening", severity="medium", target="resource",
+                               dependencies=["fixture"])
     augmented = catalog_with_registered_checks(native, [existing, proposed])
     assert [row["id"] for row in augmented["checks"]] == [existing.id, proposed.id]
+    assert augmented["checks"][-1] == {"id": proposed.id, "provider": "aws", "title": proposed.title,
+                                         "type": "fixture", "category": "hardening", "severity": "medium",
+                                         "target": "resource", "dependencies": ["fixture"]}
     with pytest.raises(ValueError, match="signed proposal descriptions"):
         compile_verified(root, matrix, augmented)
     with pytest.raises(ValueError, match="provider differs"):
         catalog_with_registered_checks({"checks": [{"id": existing.id, "provider": "gcp"}]}, [existing])
     with pytest.raises(ValueError, match="unregistered"):
         catalog_with_registered_checks(native, [proposed])
+
+
+def test_archived_legacy_category_bootstrap_preserves_history_without_admitting_new_categories():
+    from types import SimpleNamespace
+    legacy = SimpleNamespace(id="aws.fixture.archived", provider="aws", title="Historical contract",
+                              kind="fixture", category="compliance", severity="medium", target="resource",
+                              dependencies=["fixture"])
+    native = {"checks": [], "archived_checks": [{"id": legacy.id, "provider": "aws", "category": "compliance"}]}
+    result = catalog_with_registered_checks(native, [legacy])
+    assert result["checks"][0]["category"] == "compliance"
+    assert result["checks"][0]["type"] == "fixture"
+    assert native["checks"] == []
+    with pytest.raises(ValueError, match="typed contract"):
+        catalog_with_registered_checks({"checks": [], "archived_checks": []}, [legacy])
 
 
 @pytest.mark.parametrize("change", ["valid", "wrong_spec_hash", "legacy_override", "unknown_extra", "unsigned"])

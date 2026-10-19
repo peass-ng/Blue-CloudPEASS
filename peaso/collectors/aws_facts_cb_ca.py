@@ -406,6 +406,8 @@ def _glue_connections(requests, session, region, account):
         if not isinstance(original, dict):
             continue
         item = _pick(original, _GLUE_CONNECTION_KEYS)
+        if "AdditionalSecretIndicators" in original:
+            item["AdditionalSecretIndicators"] = copy.deepcopy(original["AdditionalSecretIndicators"])
         properties = original.get("ConnectionProperties")
         item["ConnectionProperties"] = {key: value for key, value in (properties or {}).items() if key in _GLUE_CONNECTION_PROPERTIES and isinstance(value, str)} if isinstance(properties, dict) or properties is None else {}
         physical = original.get("PhysicalConnectionRequirements")
@@ -896,7 +898,7 @@ _MERGES = {
     "sagemaker_domain": ("sagemaker", "describe_domain", "DomainId", "DomainId", None,
         ("DomainArn", "DomainId", "DomainName", "Status", "AuthMode", "SingleSignOnApplicationArn", "AppNetworkAccessType", "SubnetIds", "VpcId", "KmsKeyId", "CreationTime")),
     "sfn_state_machine": ("stepfunctions", "describe_state_machine", "stateMachineArn", "stateMachineArn", None,
-        ("stateMachineArn", "name", "status", "type", "roleArn", "loggingConfiguration", "tracingConfiguration", "encryptionConfiguration", "creationDate")),
+        ("stateMachineArn", "name", "status", "type", "roleArn", "loggingConfiguration", "tracingConfiguration", "encryptionConfiguration", "creationDate", "PayloadSecretIndicators")),
     "kinesis_stream": ("kinesis", "describe_stream_summary", "StreamName", "StreamName", "StreamDescriptionSummary",
         ("StreamName", "StreamARN", "StreamStatus", "StreamModeDetails", "RetentionPeriodHours", "StreamCreationTimestamp", "EnhancedMonitoring",
          "EncryptionType", "KeyId", "OpenShardCount", "ConsumerCount")),
@@ -940,6 +942,8 @@ def _merge_enricher(kind):
                 _mark(item, response, operation)
             elif not isinstance(body, dict):
                 _mark(item, {"collection_status": "malformed", "error": {"code": "malformed_detail"}}, operation)
+            elif kind == "network_firewall" and body.get("FirewallArn") != item.get("FirewallArn"):
+                _mark(item, {"collection_status": "malformed", "error": {"code": "firewall_identity_mismatch"}}, operation)
             else:
                 item.update(_pick(body, keys))
                 if kind in _NESTED:
@@ -1240,13 +1244,15 @@ def _analyzer_findings(requests, session, region, items):
             findings = requests.pages(session, "accessanalyzer", region, "list_findings_v2", projection, analyzerArn=item["arn"], filter={"status": {"eq": ["ACTIVE"]}})
             if findings.status in _OK:
                 item["Findings"] = findings.items
-                if item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}:
+                if item.get("_scan_temporary") or item.get("type") in {"ACCOUNT_UNUSED_ACCESS", "ORGANIZATION_UNUSED_ACCESS"}:
                     for finding in item["Findings"]:
-                        if finding.get("findingType") != "UnusedPermission" or not isinstance(finding.get("id"), str):
+                        if (finding.get("findingType") != "UnusedPermission" and not item.get("_scan_temporary")) or not isinstance(finding.get("id"), str):
                             continue
                         detail = requests.pages(session, "accessanalyzer", region, "get_finding_v2", "findingDetails",
                             analyzerArn=item["arn"], id=finding["id"])
-                        finding["UnusedPermissionDetails"] = _listing(detail)
+                        finding["FindingDetails"] = _listing(detail)
+                        if finding.get("findingType") == "UnusedPermission":
+                            finding["UnusedPermissionDetails"] = _listing(detail)
             else:
                 _cover(item, "Findings", *_cause(findings), source_operation="access-analyzer:ListFindingsV2")
         output.append(item)

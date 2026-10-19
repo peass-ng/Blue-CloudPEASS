@@ -215,9 +215,28 @@ def permissive_role_assumption(document):
     return False
 
 
-def document_of(value):
+def document_of(value, *, identity=True):
     if not isinstance(value, dict):
         raise Unavailable("policy document is not an object")
+    statements = get(value, "Statement")
+    if isinstance(statements, dict):
+        statements = [statements]
+    if not isinstance(statements, list):
+        raise Unavailable("policy Statement is not an object or list")
+    for statement in statements:
+        if get(statement, "Effect", str) not in {"Allow", "Deny"}:
+            raise Unavailable("policy statement Effect is not Allow or Deny")
+        selectors = (("Action", "NotAction"), ("Resource", "NotResource")) if identity else (("Action", "NotAction"),)
+        for positive, negative in selectors:
+            if (positive in statement) == (negative in statement):
+                raise Unavailable("policy statement requires exactly one " + positive + " selector")
+            selected = get(statement, positive if positive in statement else negative)
+            selected = [selected] if isinstance(selected, str) else selected
+            if (not isinstance(selected, list) or not selected or
+                    any(not isinstance(v, str) or not v.strip() for v in selected)):
+                raise Unavailable("policy statement selector malformed: " + positive)
+        if "Condition" in statement:
+            get(statement, "Condition", dict)
     return value
 
 
@@ -393,7 +412,7 @@ HUMAN = doc({"Effect": "Allow", "Principal": {"AWS": "arn:aws:iam::%s:root" % AC
 def confused_deputy(item, index):
     if not is_service_role(item) or "aws-service-role" in get(item, "Arn", str):
         return "NOT_APPLICABLE", {"reason": "not a customer service role"}
-    statements = statements_of(document_of(get(item, "AssumeRolePolicyDocument")))
+    statements = statements_of(document_of(get(item, "AssumeRolePolicyDocument"), identity=False))
     public = is_policy_public(statements, account(index), check_cross_service_confused_deputy=True,
                               not_allowed_actions=["sts:AssumeRole", "sts:*"])
     return result(bool(public), confused_deputy_exposed=bool(public))

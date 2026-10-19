@@ -1,5 +1,7 @@
 # IAM and RBAC audit CLI
 
+For the native CLI with connector-compatible credentials and principal-level JSON results, see [Run checks from the CLI](peaso-cli.md).
+
 The provider-specific scripts preserve the original console and JSON IAM/RBAC reports. Run them from the repository root after installing the cloud dependencies. These commands are separate from the native `peaso` snapshot engine; use `--hardening off` for IAM-only output. For AWS, add `--no-access-analyzer` to prevent analyzer creation.
 
 See the [main guide](../README.md) for installation, native checks, the web application and snapshot workflows. The detailed provider permissions and existing CLI examples follow.

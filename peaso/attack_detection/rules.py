@@ -20,10 +20,107 @@ from .aws import normalize_aws_cloudtrail
 from .aws_login_profile_next import normalize_aws_other_user_login_profile, normalize_aws_other_user_login_profile_update
 from .aws_security_controls import normalize_aws_security_control
 from .aws_trail_update import normalize_aws_trail_update
+from .aws_cloudtrail_selectors_next import normalize_aws_cloudtrail_selectors
 from .aws_role_boundary_next import normalize_aws_role_boundary_delete
 from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
+from .aws_codebuild_next import normalize_aws_codebuild_change
+from .aws_s3_retention_next import normalize_aws_s3_retention
+from .aws_s3_notification_next import normalize_aws_s3_template_notification
+from .aws_s3_replication_next import normalize_aws_s3_replication
+from .aws_ecr_replication_next import normalize_aws_ecr_replication
+from .aws_ecr_registry_policy_next import normalize_aws_ecr_registry_policy
+from .aws_efs_access_next import normalize_aws_efs_access, normalize_aws_efs_deletion
+from .aws_waf_logging_next import normalize_aws_waf_logging, normalize_aws_waf_deletion, normalize_aws_waf_disassociation
+from .aws_waf_web_acl_next import normalize_aws_waf_web_acl
+from .aws_codeartifact_policy_next import normalize_aws_codeartifact_policy
+from .aws_appconfig_extension_next import normalize_aws_appconfig_extension
+from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
+from .aws_config_recorder_next import normalize_aws_config_recorder_stop, normalize_aws_config_auto_remediation
+from .aws_eventbridge_archive_next import normalize_aws_eventbridge_archive
+from .aws_eventbridge_rule_targets_next import normalize_aws_eventbridge_rule_targets
+from .aws_scheduler_controls_next import normalize_aws_scheduler_controls
+from .aws_pipes_controls_next import normalize_aws_pipes_controls
+from .aws_eventsv2_controls_next import normalize_aws_eventsv2_controls
+from .aws_eventsv2_policy_next import normalize_aws_eventsv2_policy
+from .aws_ecr_policy_next import normalize_aws_ecr_policy
+from .aws_backup_vault_next import normalize_aws_backup_self_grant
+from .aws_ecr_template_next import normalize_aws_ecr_template
+from .aws_secretsmanager_self_policy_next import normalize_aws_secret_self_read_grant
+from .aws_secretsmanager_tamper_next import normalize_aws_secret_tamper
+from .aws_secretsmanager_followup_next import normalize_aws_secretsmanager_followup
+from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
+from .aws_ecr_retention_next import normalize_aws_ecr_retention
+from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
+from .aws_sns_sqs_controls_next import normalize_aws_sns_sqs_controls
+from .aws_sqs_followup_next import normalize_aws_sqs_followup, correlate_aws_sqs_tagged_receive
+from .aws_sqs_data_next import normalize_aws_sqs_data, correlate_aws_sqs_fifo_dedup_collision
+from .aws_sqs_redrive_next import normalize_aws_sqs_redrive
+from .aws_sns_controls_next import normalize_aws_sns_topic_controls
+from .aws_chime_admin_next import normalize_aws_chime_admin
+from .aws_glue_controls_next import normalize_aws_glue_controls
+from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
+from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
+from .aws_glue_job_correlations_next import correlate_aws_glue_job_script_runs
+from .aws_cognito_controls_next import normalize_aws_cognito_controls
+from .aws_cognito_identity_next import normalize_aws_cognito_identity
+from .aws_cognito_federation_next import normalize_aws_cognito_federation
+from .aws_cognito_mfa_next import normalize_aws_cognito_mfa
+from .aws_cognito_import_next import normalize_aws_cognito_import
+from .aws_cognito_pool_client_next import normalize_aws_cognito_pool_client
+from .aws_cognito_group_correlations_next import correlate_aws_cognito_role_group_membership
+from .aws_sts_correlations_next import correlate_aws_sts_role_cycle
+from .aws_rolesanywhere_controls_next import normalize_aws_rolesanywhere_controls
+from .aws_sts_web_token_next import normalize_aws_sts_web_token
+from .aws_supportauthz_next import normalize_aws_support_permit
+from .aws_iam_saml_provider_next import normalize_aws_iam_saml_provider_update
+from .aws_iam_federation_providers_next import normalize_aws_iam_federation_provider
+from .aws_iam_federation_deletion_next import normalize_aws_iam_federation_deletion
+from .aws_resource_explorer_next import normalize_aws_resource_explorer_view
+from .aws_ses_receipt_next import normalize_aws_ses_receipt
+from .aws_kinesis_controls_next import normalize_aws_kinesis_controls
+from .aws_kinesis_controls_extended_next import normalize_aws_kinesis_controls_extended
+from .aws_kinesis_channel_next import normalize_aws_kinesis_channel
+from .aws_kinesis_video_controls_next import normalize_aws_kinesis_video_controls
+from .aws_ecs_controls_next import normalize_aws_ecs_controls
+from .aws_ecs_correlations_next import correlate_aws_ecs_dormant_sidecar
+from .aws_emr_serverless_next import normalize_aws_emr_serverless_runtime
+from .aws_emr_serverless_session_next import correlate_aws_emr_session_endpoint_cross_actor
+from .aws_cloudwatch_controls_next import normalize_aws_cloudwatch_controls
+from .aws_lambda_controls_next import normalize_aws_lambda_controls
+from .aws_lambda_alias_grant_next import normalize_aws_lambda_qualified_grant
+from .aws_lambda_config_next import normalize_aws_lambda_config
+from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, correlate_aws_lambda_privesc
+from .aws_ec2_controls_next import normalize_aws_ec2_controls
+from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_custom_dns
+from .aws_apigateway_controls_next import normalize_aws_apigateway_controls
+from .aws_eventbridge_controls_next import normalize_aws_eventbridge_controls
+from .aws_eventbridge_connections_next import normalize_aws_eventbridge_connections
+from .aws_ssm_controls_next import normalize_aws_ssm_controls
+from .aws_ssm_parameter_read_next import normalize_aws_ssm_parameter_read
+from .aws_ssm_association_next import normalize_aws_ssm_association_start
+from .aws_ssm_command_history_next import correlate_aws_ssm_command_output_read
+from .aws_ssm_session_next import normalize_aws_ssm_session_start
+from .aws_ssm_automation_window_next import normalize_aws_ssm_automation_window, correlate_aws_ssm_document_window
+from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
+from .aws_rds_controls_next import normalize_aws_rds_controls
+from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_aws_rds_public_clone_password_reset
+from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
+from .aws_rds_replica_next import normalize_aws_rds_public_replica, correlate_aws_rds_public_replica_controls
+from .aws_rds_secret_read_next import normalize_aws_rds_managed_secret_read, correlate_aws_rds_proxy_auth_secret_read
+from .aws_rds_pending_signals_next import normalize_aws_rds_pending_signals
+from .aws_service_credentials_next import normalize_aws_service_credentials
+from .aws_cloudformation_controls_next import normalize_aws_cloudformation_controls
+from .aws_cloudformation_policy_next import normalize_aws_cloudformation_stack_policy
+from .aws_kms_grants_next import normalize_aws_kms_standing_access, normalize_aws_kms_key_deletion, normalize_aws_kms_key_disabled
+from .aws_kms_alias_rotation_next import normalize_aws_kms_alias_rotation
+from .aws_kms_imported_material_next import normalize_aws_kms_imported_material
+from .aws_kms_cancel_deletion_next import normalize_aws_kms_cancel_deletion
+from .aws_kms_replicate_next import normalize_aws_kms_replication
+from .aws_kms_rotation_complete_next import normalize_aws_kms_on_demand_rotation
+from .aws_iam_group_role_next import normalize_aws_iam_group_role
+from .aws_iam_mfa_controls_next import normalize_aws_iam_mfa_controls
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -45,8 +142,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "bbf89c5e54cf970a24f13c3c91038efa33388baa"
-DEFAULT_RULE_PACK_SHA256 = "c0c465eb02dd91161c789832dedf1c8e3edfebb38f9e040f2d3db8d88b68ea98"
+DEFAULT_RULE_REF = "d70e31fb67162979d4bcfe03ceeb844b1b5753e7"
+DEFAULT_RULE_PACK_SHA256 = "b4a9480034334892c597ad898386b369967ecb54e23ca4c556d642c1a84272dd"
 
 
 @dataclass(frozen=True)
@@ -156,21 +253,291 @@ def detect_aws_events(
     def normalize(record: Mapping[str, Any]) -> list[dict[str, Any]]:
         base = (normalize_aws_cloudtrail(record) or normalize_aws_security_control(record)
                 or normalize_aws_trail_update(record))
+        cloudtrail_selectors = normalize_aws_cloudtrail_selectors(record)
         profile = normalize_aws_other_user_login_profile(record)
         updated_profile = normalize_aws_other_user_login_profile_update(record)
         boundary = normalize_aws_role_boundary_delete(record)
         self_user_boundary = normalize_aws_self_user_boundary_delete(record)
         trust = normalize_aws_wildcard_role_trust(record)
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
+        codebuild_change = normalize_aws_codebuild_change(record)
+        s3_retention = normalize_aws_s3_retention(record)
+        s3_notification = normalize_aws_s3_template_notification(record)
+        s3_replication = normalize_aws_s3_replication(record)
+        ecr_replication = normalize_aws_ecr_replication(record)
+        ecr_registry_policy = normalize_aws_ecr_registry_policy(record)
+        efs_access = normalize_aws_efs_access(record)
+        efs_deletion = normalize_aws_efs_deletion(record)
+        waf_logging = normalize_aws_waf_logging(record)
+        waf_deletion = normalize_aws_waf_deletion(record)
+        waf_disassociation = normalize_aws_waf_disassociation(record)
+        waf_web_acl = normalize_aws_waf_web_acl(record)
+        codeartifact_policy = normalize_aws_codeartifact_policy(record)
+        appconfig_extension = normalize_aws_appconfig_extension(record)
+        athena_workgroup = normalize_aws_athena_workgroup(record)
+        config_recorder_stop = normalize_aws_config_recorder_stop(record)
+        config_auto_remediation = normalize_aws_config_auto_remediation(record)
+        eventbridge_archive = normalize_aws_eventbridge_archive(record)
+        eventbridge_rule_targets = normalize_aws_eventbridge_rule_targets(record)
+        scheduler_controls = normalize_aws_scheduler_controls(record)
+        pipes_controls = normalize_aws_pipes_controls(record)
+        eventsv2_controls = normalize_aws_eventsv2_controls(record)
+        eventsv2_policy = normalize_aws_eventsv2_policy(record)
+        ecr_policy = normalize_aws_ecr_policy(record)
+        backup_self_grant = normalize_aws_backup_self_grant(record)
+        ecr_template = normalize_aws_ecr_template(record)
+        secret_self_read = normalize_aws_secret_self_read_grant(record)
+        secret_tamper = normalize_aws_secret_tamper(record)
+        secret_followup = normalize_aws_secretsmanager_followup(record)
+        guardduty_controls = normalize_aws_guardduty_controls(record)
+        ecr_retention = normalize_aws_ecr_retention(record)
+        dynamodb_controls = normalize_aws_dynamodb_controls(record)
+        sns_sqs_controls = normalize_aws_sns_sqs_controls(record)
+        sqs_followup = normalize_aws_sqs_followup(record)
+        sqs_data = normalize_aws_sqs_data(record)
+        sqs_redrive = normalize_aws_sqs_redrive(record)
+        sns_topic_controls = normalize_aws_sns_topic_controls(record)
+        chime_admin = normalize_aws_chime_admin(record)
+        glue_controls = normalize_aws_glue_controls(record)
+        cloudfront_controls = normalize_aws_cloudfront_controls(record)
+        cognito_controls = normalize_aws_cognito_controls(record)
+        cognito_identity = normalize_aws_cognito_identity(record)
+        cognito_federation = normalize_aws_cognito_federation(record)
+        cognito_mfa = normalize_aws_cognito_mfa(record)
+        cognito_import = normalize_aws_cognito_import(record)
+        cognito_pool_client = normalize_aws_cognito_pool_client(record)
+        rolesanywhere_controls = normalize_aws_rolesanywhere_controls(record)
+        sts_web_token = normalize_aws_sts_web_token(record)
+        support_permit = normalize_aws_support_permit(record)
+        saml_provider_update = normalize_aws_iam_saml_provider_update(record)
+        federation_provider = normalize_aws_iam_federation_provider(record)
+        federation_deletion = normalize_aws_iam_federation_deletion(record)
+        resource_explorer_view = normalize_aws_resource_explorer_view(record)
+        ses_receipt = normalize_aws_ses_receipt(record)
+        kinesis_controls = normalize_aws_kinesis_controls(record)
+        kinesis_controls_extended = normalize_aws_kinesis_controls_extended(record)
+        kinesis_channel = normalize_aws_kinesis_channel(record)
+        kinesis_video_controls = normalize_aws_kinesis_video_controls(record)
+        ecs_controls = normalize_aws_ecs_controls(record)
+        emr_runtime = normalize_aws_emr_serverless_runtime(record)
+        cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
+        lambda_controls = normalize_aws_lambda_controls(record)
+        lambda_qualified_grant = normalize_aws_lambda_qualified_grant(record)
+        lambda_config = normalize_aws_lambda_config(record)
+        lambda_role_assignment = normalize_aws_lambda_role_assignment(record)
+        ec2_controls = normalize_aws_ec2_controls(record)
+        vpc_network = normalize_aws_vpc_network(record)
+        apigateway_controls = normalize_aws_apigateway_controls(record)
+        eventbridge_controls = normalize_aws_eventbridge_controls(record)
+        eventbridge_connections = normalize_aws_eventbridge_connections(record)
+        ssm_controls = normalize_aws_ssm_controls(record)
+        ssm_parameter_read = normalize_aws_ssm_parameter_read(record)
+        ssm_association_start = normalize_aws_ssm_association_start(record)
+        ssm_session_start = normalize_aws_ssm_session_start(record)
+        ssm_automation_window = normalize_aws_ssm_automation_window(record)
+        stepfunctions_controls = normalize_aws_stepfunctions_controls(record)
+        stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
+        stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
+        rds_controls = normalize_aws_rds_controls(record)
+        rds_restore_controls = normalize_aws_rds_restore_controls(record)
+        rds_parameters = normalize_aws_rds_parameters(record)
+        rds_public_replica = normalize_aws_rds_public_replica(record)
+        rds_managed_secret_read = normalize_aws_rds_managed_secret_read(record)
+        rds_pending_signals = normalize_aws_rds_pending_signals(record)
+        service_credentials = normalize_aws_service_credentials(record)
+        cloudformation_controls = normalize_aws_cloudformation_controls(record)
+        cloudformation_policy = normalize_aws_cloudformation_stack_policy(record)
+        kms_standing_access = normalize_aws_kms_standing_access(record)
+        kms_key_deletion = normalize_aws_kms_key_deletion(record)
+        kms_key_disabled = normalize_aws_kms_key_disabled(record)
+        kms_alias_rotation = normalize_aws_kms_alias_rotation(record)
+        kms_imported_material = normalize_aws_kms_imported_material(record)
+        kms_cancel_deletion = normalize_aws_kms_cancel_deletion(record)
+        kms_replication = normalize_aws_kms_replication(record)
+        kms_rotation_complete = normalize_aws_kms_on_demand_rotation(record)
+        iam_group_role = normalize_aws_iam_group_role(record)
+        iam_mfa_controls = normalize_aws_iam_mfa_controls(record)
         return (([base] if base is not None else [])
+                + ([cloudtrail_selectors] if cloudtrail_selectors is not None else [])
                 + ([profile] if profile is not None else [])
                 + ([updated_profile] if updated_profile is not None else [])
                 + ([boundary] if boundary is not None else [])
                 + ([self_user_boundary] if self_user_boundary is not None else [])
                 + ([trust] if trust is not None else [])
-                + ([keyspaces_credential] if keyspaces_credential is not None else []))
+                + ([keyspaces_credential] if keyspaces_credential is not None else [])
+                + ([codebuild_change] if codebuild_change is not None else [])
+                + ([s3_retention] if s3_retention is not None else [])
+                + ([s3_notification] if s3_notification is not None else [])
+                + ([s3_replication] if s3_replication is not None else [])
+                + ([ecr_replication] if ecr_replication is not None else [])
+                + ([ecr_registry_policy] if ecr_registry_policy is not None else [])
+                + ([efs_access] if efs_access is not None else [])
+                + ([efs_deletion] if efs_deletion is not None else [])
+                + ([waf_logging] if waf_logging is not None else [])
+                + ([waf_deletion] if waf_deletion is not None else [])
+                + ([waf_disassociation] if waf_disassociation is not None else [])
+                + ([waf_web_acl] if waf_web_acl is not None else [])
+                + ([codeartifact_policy] if codeartifact_policy is not None else [])
+                + ([appconfig_extension] if appconfig_extension is not None else [])
+                + ([athena_workgroup] if athena_workgroup is not None else [])
+                + ([config_recorder_stop] if config_recorder_stop is not None else [])
+                + ([config_auto_remediation] if config_auto_remediation is not None else [])
+                + ([eventbridge_archive] if eventbridge_archive is not None else [])
+                + ([eventbridge_rule_targets] if eventbridge_rule_targets is not None else [])
+                + ([scheduler_controls] if scheduler_controls is not None else [])
+                + ([pipes_controls] if pipes_controls is not None else [])
+                + ([eventsv2_controls] if eventsv2_controls is not None else [])
+                + ([eventsv2_policy] if eventsv2_policy is not None else [])
+                + ([ecr_policy] if ecr_policy is not None else [])
+                + ([backup_self_grant] if backup_self_grant is not None else [])
+                + ([ecr_template] if ecr_template is not None else [])
+                + ([secret_self_read] if secret_self_read is not None else [])
+                + ([secret_tamper] if secret_tamper is not None else [])
+                + ([secret_followup] if secret_followup is not None else [])
+                + ([guardduty_controls] if guardduty_controls is not None else [])
+                + ([ecr_retention] if ecr_retention is not None else [])
+                + ([dynamodb_controls] if dynamodb_controls is not None else [])
+                + ([sns_sqs_controls] if sns_sqs_controls is not None else [])
+                + ([sqs_followup] if sqs_followup is not None else [])
+                + ([sqs_data] if sqs_data is not None else [])
+                + ([sqs_redrive] if sqs_redrive is not None else [])
+                + ([sns_topic_controls] if sns_topic_controls is not None else [])
+                + ([chime_admin] if chime_admin is not None else [])
+                + ([glue_controls] if glue_controls is not None else [])
+                + ([cloudfront_controls] if cloudfront_controls is not None else [])
+                + ([cognito_controls] if cognito_controls is not None else [])
+                + ([cognito_identity] if cognito_identity is not None else [])
+                + ([cognito_federation] if cognito_federation is not None else [])
+                + ([cognito_mfa] if cognito_mfa is not None else [])
+                + ([cognito_import] if cognito_import is not None else [])
+                + ([cognito_pool_client] if cognito_pool_client is not None else [])
+                + ([rolesanywhere_controls] if rolesanywhere_controls is not None else [])
+                + ([sts_web_token] if sts_web_token is not None else [])
+                + ([support_permit] if support_permit is not None else [])
+                + ([saml_provider_update] if saml_provider_update is not None else [])
+                + ([federation_provider] if federation_provider is not None else [])
+                + ([federation_deletion] if federation_deletion is not None else [])
+                + ([resource_explorer_view] if resource_explorer_view is not None else [])
+                + ([ses_receipt] if ses_receipt is not None else [])
+                + ([kinesis_controls] if kinesis_controls is not None else [])
+                + ([kinesis_controls_extended] if kinesis_controls_extended is not None else [])
+                + ([kinesis_channel] if kinesis_channel is not None else [])
+                + ([kinesis_video_controls] if kinesis_video_controls is not None else [])
+                + ([ecs_controls] if ecs_controls is not None else [])
+                + ([emr_runtime] if emr_runtime is not None else [])
+                + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
+                + ([lambda_controls] if lambda_controls is not None else [])
+                + ([lambda_qualified_grant] if lambda_qualified_grant is not None else [])
+                + ([lambda_config] if lambda_config is not None else [])
+                + ([lambda_role_assignment] if lambda_role_assignment is not None else [])
+                + ([ec2_controls] if ec2_controls is not None else [])
+                + ([vpc_network] if vpc_network is not None else [])
+                + ([apigateway_controls] if apigateway_controls is not None else [])
+                + ([eventbridge_controls] if eventbridge_controls is not None else [])
+                + ([eventbridge_connections] if eventbridge_connections is not None else [])
+                + ([ssm_controls] if ssm_controls is not None else [])
+                + ([ssm_parameter_read] if ssm_parameter_read is not None else [])
+                + ([ssm_association_start] if ssm_association_start is not None else [])
+                + ([ssm_session_start] if ssm_session_start is not None else [])
+                + ([ssm_automation_window] if ssm_automation_window is not None else [])
+                + ([stepfunctions_controls] if stepfunctions_controls is not None else [])
+                + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
+                + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
+                + ([rds_controls] if rds_controls is not None else [])
+                + ([rds_restore_controls] if rds_restore_controls is not None else [])
+                + ([rds_parameters] if rds_parameters is not None else [])
+                + ([rds_public_replica] if rds_public_replica is not None else [])
+                + ([rds_managed_secret_read] if rds_managed_secret_read is not None else [])
+                + ([rds_pending_signals] if rds_pending_signals is not None else [])
+                + ([service_credentials] if service_credentials is not None else [])
+                + ([cloudformation_controls] if cloudformation_controls is not None else [])
+                + ([cloudformation_policy] if cloudformation_policy is not None else [])
+                + ([kms_standing_access] if kms_standing_access is not None else [])
+                + ([kms_key_deletion] if kms_key_deletion is not None else [])
+                + ([kms_key_disabled] if kms_key_disabled is not None else [])
+                + ([kms_alias_rotation] if kms_alias_rotation is not None else [])
+                + ([kms_imported_material] if kms_imported_material is not None else [])
+                + ([kms_cancel_deletion] if kms_cancel_deletion is not None else [])
+                + ([kms_replication] if kms_replication is not None else [])
+                + ([kms_rotation_complete] if kms_rotation_complete is not None else [])
+                + ([iam_group_role] if iam_group_role is not None else [])
+                + ([iam_mfa_controls] if iam_mfa_controls is not None else []))
 
-    return _detect_events(records, rules if rules is not None else load_rules(product="aws"), normalize, "aws")
+    selected = rules if rules is not None else load_rules(product="aws")
+    glue_correlation_records: list[Mapping[str, Any]] = []
+    cognito_group_records: list[Mapping[str, Any]] = []
+    sts_records: list[Mapping[str, Any]] = []
+    ecs_records: list[Mapping[str, Any]] = []
+    emr_session_records: list[Mapping[str, Any]] = []
+    vpc_network_records: list[Mapping[str, Any]] = []
+    sqs_tag_records: list[Mapping[str, Any]] = []
+    sqs_fifo_records: list[Mapping[str, Any]] = []
+    lambda_privesc_records: list[Mapping[str, Any]] = []
+    ssm_command_records: list[Mapping[str, Any]] = []
+    ssm_automation_window_records: list[Mapping[str, Any]] = []
+    rds_restore_records: list[Mapping[str, Any]] = []
+    rds_parameter_records: list[Mapping[str, Any]] = []
+    rds_replica_records: list[Mapping[str, Any]] = []
+    rds_proxy_secret_records: list[Mapping[str, Any]] = []
+    def remembering_records() -> Iterable[Mapping[str, Any]]:
+        for record in records:
+            if record.get("eventSource") == "glue.amazonaws.com" and record.get("eventName") in {"CreateSession", "RunStatement", "CreateJob", "UpdateJob", "StartJobRun"}:
+                glue_correlation_records.append(record)
+            if record.get("eventSource") == "cognito-idp.amazonaws.com" and record.get("eventName") in {"CreateGroup", "UpdateGroup", "AdminAddUserToGroup"}:
+                cognito_group_records.append(record)
+            if record.get("eventSource") == "sts.amazonaws.com" and record.get("eventName") == "AssumeRole":
+                sts_records.append(record)
+            if record.get("eventSource") == "ecs.amazonaws.com" and record.get("eventName") in {"RegisterTaskDefinition", "CreateService", "UpdateService"}:
+                ecs_records.append(record)
+            if record.get("eventSource") == "emr-serverless.amazonaws.com" and record.get("eventName") in {"StartSession", "GetSessionEndpoint"}:
+                emr_session_records.append(record)
+            if record.get("eventSource") == "ec2.amazonaws.com" and record.get("eventName") in {"CreateDhcpOptions", "AssociateDhcpOptions"}:
+                vpc_network_records.append(record)
+            if ((record.get("eventSource") == "iam.amazonaws.com" and record.get("eventName") == "PutRolePolicy")
+                    or (record.get("eventSource") == "sqs.amazonaws.com" and record.get("eventName") == "TagQueue")):
+                sqs_tag_records.append(record)
+            if record.get("eventSource") == "sqs.amazonaws.com" and record.get("eventName") == "SendMessage":
+                sqs_fifo_records.append(record)
+            if record.get("eventSource") == "lambda.amazonaws.com" and record.get("eventName") in {
+                    "CreateFunction20150331", "UpdateFunctionConfiguration20150331v2",
+                    "UpdateFunctionCode20150331v2", "AddPermission20150331v2",
+                    "CreateEventSourceMapping20150331"}:
+                lambda_privesc_records.append(record)
+            if record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") in {
+                    "ListCommands", "ListCommandInvocations", "GetCommandInvocation"}:
+                ssm_command_records.append(record)
+            if record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") in {"UpdateDocument", "UpdateDocumentDefaultVersion", "RegisterTargetWithMaintenanceWindow", "RegisterTaskWithMaintenanceWindow"}:
+                ssm_automation_window_records.append(record)
+            if record.get("eventSource") == "rds.amazonaws.com" and record.get("eventName") in {"RestoreDBInstanceFromDBSnapshot", "ModifyDBInstance"}:
+                rds_restore_records.append(record)
+            if record.get("eventSource") == "rds.amazonaws.com" and record.get("eventName") in {"ModifyDBParameterGroup", "ModifyDBInstance", "RebootDBInstance", "DownloadDBLogFilePortion"}:
+                rds_parameter_records.append(record)
+            if record.get("eventSource") == "rds.amazonaws.com" and record.get("eventName") in {"CreateDBInstanceReadReplica", "ModifyDBInstance", "PromoteReadReplica"}:
+                rds_replica_records.append(record)
+            if ((record.get("eventSource") == "rds.amazonaws.com" and record.get("eventName") == "CreateDBProxy")
+                    or (record.get("eventSource") == "secretsmanager.amazonaws.com" and record.get("eventName") == "GetSecretValue")):
+                rds_proxy_secret_records.append(record)
+            yield record
+    matches = _detect_events(remembering_records(), selected, normalize, "aws")
+    correlated = (correlate_aws_glue_cross_actor_statements(glue_correlation_records)
+                  + correlate_aws_glue_job_script_runs(glue_correlation_records)
+                  + correlate_aws_cognito_role_group_membership(cognito_group_records)
+                  + correlate_aws_sts_role_cycle(sts_records)
+                  + correlate_aws_ecs_dormant_sidecar(ecs_records))
+    correlated += correlate_aws_emr_session_endpoint_cross_actor(emr_session_records)
+    correlated += correlate_aws_vpc_custom_dns(vpc_network_records)
+    correlated += correlate_aws_sqs_tagged_receive(sqs_tag_records)
+    correlated += correlate_aws_sqs_fifo_dedup_collision(sqs_fifo_records)
+    correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
+    correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
+    correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
+    correlated += correlate_aws_rds_public_clone_password_reset(rds_restore_records)
+    correlated += correlate_aws_rds_sql_log_capture_path(rds_parameter_records)
+    correlated += correlate_aws_rds_public_replica_controls(rds_replica_records)
+    correlated += correlate_aws_rds_proxy_auth_secret_read(rds_proxy_secret_records)
+    if correlated:
+        matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
+    return matches
 
 
 def detect_gcp_events(

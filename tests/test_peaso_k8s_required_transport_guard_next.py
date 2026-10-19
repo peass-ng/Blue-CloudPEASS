@@ -35,7 +35,7 @@ def test_new_direct_api_closes_client_and_inline_material_on_missing_pool(monkey
 
 
 @pytest.mark.parametrize("method", ["in_cluster", "kubeconfig"])
-def test_new_loaded_api_closes_client_on_missing_pool(monkeypatch, method):
+def test_new_loaded_api_closes_client_on_missing_pool(monkeypatch, method, tmp_path):
     from kubernetes import client, config
 
     obj = SimpleNamespace(rest_client=SimpleNamespace(pool_manager=None), closed=False)
@@ -45,8 +45,14 @@ def test_new_loaded_api_closes_client_on_missing_pool(monkeypatch, method):
         monkeypatch.setattr(client, "ApiClient", lambda configuration: obj)
         auth = {"method": method}
     else:
-        monkeypatch.setattr(config, "new_client_from_config", lambda **kwargs: obj)
-        auth = {"method": method, "kubeconfig": "/unused/local/config"}
+        import json
+        path = tmp_path / 'config'
+        path.write_text(json.dumps({'current-context': 'scan',
+            'clusters': [{'name': 'cluster', 'cluster': {'server': 'https://cluster.example'}}],
+            'users': [{'name': 'reader', 'user': {'token': 'customer-token'}}],
+            'contexts': [{'name': 'scan', 'context': {'cluster': 'cluster', 'user': 'reader'}}]}))
+        monkeypatch.setattr(client, "ApiClient", lambda configuration: obj)
+        auth = {"method": method, "kubeconfig": str(path)}
     with pytest.raises(ValueError, match="pool_manager"):
         k8s._new_api(auth)
     assert obj.closed

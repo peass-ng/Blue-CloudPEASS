@@ -18,6 +18,7 @@ _MAX_FAILURE_ERROR_BYTES = 128 * 1024
 _ROLE_ARN = re.compile(r"arn:(?:aws|aws-us-gov|aws-cn):iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
 _TARGET_MESSAGES = {
     "external_id_not_required_by_trust": "trust policy does not require External ID; add the sts:ExternalId condition shown in onboarding.",
+    "external_id_trust_unverified": "the role's External ID boundary could not be verified; require an exact workspace External ID and retry.",
     "platform_owned_account": "this platform account cannot be a customer scan target.",
     "role_target_limit": "the hosted scan limit of 50 role targets was reached.",
 }
@@ -174,6 +175,7 @@ class SQLiteStore:
 
     def invite_workspace(self, workspace_id, user_id, email, role, invited_by):
         with self.transaction() as db:
+            self._require_workspace_admin(db, workspace_id, invited_by)
             if db.execute("SELECT 1 FROM workspace_members WHERE workspace_id=? AND user_id=?", (workspace_id, user_id)).fetchone():
                 raise StoreError(409, "This person is already a workspace member")
             if db.execute("SELECT 1 FROM workspace_invites WHERE workspace_id=? AND user_id=?", (workspace_id, user_id)).fetchone():
@@ -193,21 +195,31 @@ class SQLiteStore:
                 db.execute("INSERT INTO workspace_members VALUES(?,?,?,?,?)", (workspace_id, user_id, row["email"], row["role"], time.time()))
             db.execute("DELETE FROM workspace_invites WHERE workspace_id=? AND user_id=?", (workspace_id, user_id))
 
-    def revoke_workspace_invitation(self, workspace_id, user_id):
+    @staticmethod
+    def _require_workspace_admin(db, workspace_id, actor):
+        if actor is not None:
+            row = db.execute("SELECT role FROM workspace_members WHERE workspace_id=? AND user_id=?", (workspace_id, actor)).fetchone()
+            if not row or row["role"] != "admin":
+                raise StoreError(403, "Workspace admin access required")
+
+    def revoke_workspace_invitation(self, workspace_id, user_id, *, actor=None):
         with self.transaction() as db:
+            self._require_workspace_admin(db, workspace_id, actor)
             if db.execute("DELETE FROM workspace_invites WHERE workspace_id=? AND user_id=?", (workspace_id, user_id)).rowcount != 1:
                 raise StoreError(404, "Invitation not found")
 
-    def set_workspace_role(self, workspace_id, user_id, role):
+    def set_workspace_role(self, workspace_id, user_id, role, *, actor=None):
         with self.transaction() as db:
+            self._require_workspace_admin(db, workspace_id, actor)
             row = db.execute("SELECT owner FROM workspaces WHERE id=?", (workspace_id,)).fetchone()
             if not row or row["owner"] == user_id:
                 raise StoreError(403, "The workspace owner's role cannot be changed")
             if db.execute("UPDATE workspace_members SET role=? WHERE workspace_id=? AND user_id=?", (role, workspace_id, user_id)).rowcount != 1:
                 raise StoreError(404, "Workspace member not found")
 
-    def remove_workspace_member(self, workspace_id, user_id):
+    def remove_workspace_member(self, workspace_id, user_id, *, actor=None):
         with self.transaction() as db:
+            self._require_workspace_admin(db, workspace_id, actor)
             row = db.execute("SELECT owner FROM workspaces WHERE id=?", (workspace_id,)).fetchone()
             if not row or row["owner"] == user_id:
                 raise StoreError(403, "The workspace owner cannot be removed")
@@ -267,6 +279,25 @@ class SQLiteStore:
             db.execute("INSERT OR IGNORE INTO workspace_external_ids VALUES(?,?)",
                        (tenant, "hacktricks-cspm-ws-" + secrets.token_urlsafe(48)))
             return db.execute("SELECT external_id FROM workspace_external_ids WHERE tenant=?", (tenant,)).fetchone()["external_id"]
+
+    def ai_state(self, user, name):
+        with self.connect() as db:
+            db.execute("CREATE TABLE IF NOT EXISTS ai_state (user TEXT, name TEXT, value TEXT, PRIMARY KEY(user,name))")
+            row = db.execute("SELECT value FROM ai_state WHERE user=? AND name=?", (user, name)).fetchone()
+            return row[0] if row else None
+
+    def set_ai_state(self, user, name, value, expected=None):
+        # Compare-and-swap serializes device polling and refresh-token rotation.
+        with self.transaction() as db:
+            db.execute("CREATE TABLE IF NOT EXISTS ai_state (user TEXT, name TEXT, value TEXT, PRIMARY KEY(user,name))")
+            row = db.execute("SELECT value FROM ai_state WHERE user=? AND name=?", (user, name)).fetchone()
+            if (row[0] if row else None) != expected:
+                return False
+            if value is None:
+                db.execute("DELETE FROM ai_state WHERE user=? AND name=?", (user, name))
+            else:
+                db.execute("INSERT INTO ai_state VALUES(?,?,?) ON CONFLICT(user,name) DO UPDATE SET value=excluded.value", (user, name, value))
+            return True
 
     def add_connector(self, tenant, data, encrypted_auth):
         value = dict(data, id=uuid.uuid4().hex, created_at=utc())
@@ -540,6 +571,9 @@ class SQLiteStore:
                 raise StoreError(404, "Schedule not found")
             data = dict(json.loads(row["data"]), **patch)
             self.connector(tenant, data["connector_id"], db)
+            if next_run is None and (set(patch) & {'rules', 'timezone', 'interval_hours'} or enabled is True and not row['enabled']):
+                from peaso.scheduling import next_run as following_run
+                next_run = following_run(data, time.time())
             db.execute("UPDATE schedules SET data=?,next_run=?,enabled=?,last_error=NULL WHERE tenant=? AND id=?", (json.dumps(data), row["next_run"] if next_run is None else next_run, row["enabled"] if enabled is None else enabled, tenant, ident))
             return self.public_schedule(db.execute("SELECT * FROM schedules WHERE id=?", (ident,)).fetchone())
 
@@ -563,7 +597,7 @@ class SQLiteStore:
             if not current:
                 return None
             data = json.loads(current["data"])
-            request = {k: data[k] for k in ("connector_id", "categories", "checks", "frameworks") if k in data}
+            request = {k: data[k] for k in ("connector_id", "categories", "checks", "frameworks", "ai_enabled", "ai_user_id") if k in data}
             error, result = None, None
             # Savepoint ensures a rejected enqueue never partially reserves quota.
             db.execute("SAVEPOINT scheduled_enqueue")
@@ -573,5 +607,6 @@ class SQLiteStore:
                 db.execute("ROLLBACK TO scheduled_enqueue")
                 error = exc.message
             db.execute("RELEASE scheduled_enqueue")
-            db.execute("UPDATE schedules SET next_run=?,last_error=? WHERE id=? AND tenant=?", (now + data["interval_hours"] * 3600, error, row["id"], row["tenant"]))
+            from peaso.scheduling import next_run as following_run
+            db.execute("UPDATE schedules SET next_run=?,last_error=? WHERE id=? AND tenant=?", (following_run(data, now), error, row["id"], row["tenant"]))
             return result

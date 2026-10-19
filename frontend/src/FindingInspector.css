@@ -1,5 +1,5 @@
 .inspector.finding-inspector {
-  width: min(660px, 100vw);
+  width: min(693px, 100vw);
   padding: 0;
   background: #101b29;
 }
@@ -81,6 +81,48 @@
 
 .finding-detail-observation {
   border-left: 3px solid #9bf1d1;
+}
+
+.finding-group-statuses,
+.finding-group-member-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.finding-group-statuses {
+  margin-top: 12px;
+}
+
+.finding-group-statuses > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.finding-group-members {
+  padding: 0 !important;
+  list-style: none;
+}
+
+.finding-group-members > li {
+  padding: 12px 0;
+  border-top: 1px solid #35495c;
+}
+
+.finding-group-member-heading .text-button {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.finding-group-members p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.finding-group-member-scope {
+  color: #a6bbcd !important;
 }
 
 .finding-inspector .finding-detail-section > h3 {
@@ -178,6 +220,15 @@
 .finding-detail-metadata dd {
   margin: 3px 0 0;
   overflow-wrap: anywhere;
+}
+
+.finding-inspector .evidence-fields {
+  margin: 4px 0 12px;
+}
+
+.finding-inspector .evidence-field dt,
+.finding-inspector .evidence-field dd {
+  margin: 0;
 }
 
 .finding-detail-metadata {

@@ -97,6 +97,8 @@ def test_hosted_rejects_cross_provider_psc_policy(provider):
 
 
 def test_signed_intake_changes_only_one_requirement_and_one_description():
+ # Compare the historical admission with its immutable views. Later, unrelated
+ # AWS admissions legitimately change the working manifest and descriptions.
  from pathlib import Path
  import json,zipfile,hashlib
  root=Path(__file__).resolve().parents[1]
@@ -113,8 +115,19 @@ def test_signed_intake_changes_only_one_requirement_and_one_description():
    assert 'firewall enforcement' in row['reason']
   row.pop('decision');row.pop('reason')
  assert before==after
- old_manifest=json.loads(historical_bytes(archive_path, 'docs/compliance-ledgers/manifest.json'))
- current_manifest=ancestor_json(ledger/'manifest.json')
+ import gzip
+ from tests.release_successor_history import historical_release, ANCESTOR_MANIFEST
+ packed=(root/'tests/fixtures/gcp-psc-admission-history.json.gz').read_bytes()
+ assert hashlib.sha256(packed).hexdigest()=='e3ce566868d26c6d34d6bcc03433b92fb1138af871ee8709111a5e5eb27f7a0c'
+ history=json.loads(gzip.decompress(packed))
+ assert history['historical_release']==version
+ release=historical_release(archive_path)
+ for name,text in history['original_members'].items():
+  assert hashlib.sha256(text.encode()).hexdigest()==release['files'][name]
+ ancestor=history['ancestor_members']
+ assert hashlib.sha256(ancestor['docs/compliance-ledgers/manifest.json'].encode()).hexdigest()==ANCESTOR_MANIFEST
+ old_manifest=json.loads(history['original_members']['docs/compliance-ledgers/manifest.json'])
+ current_manifest=json.loads(ancestor['docs/compliance-ledgers/manifest.json'])
  assert set(old_manifest)==set(current_manifest)
  for key in old_manifest:
   if key not in ['slices','new_descriptions']:assert old_manifest[key]==current_manifest[key]
@@ -122,10 +135,13 @@ def test_signed_intake_changes_only_one_requirement_and_one_description():
   newer=current_manifest['slices'][name]
   if name in json.loads((root/'tests/fixtures/post_dfaf_integration/two_hour_native_cohort.json').read_text())['changed_slices']:
    assert {k for k in entry if entry[k]!=newer[k]}=={'sha256'}
-   assert newer['sha256']==hashlib.sha256((ledger/entry['path']).read_bytes()).hexdigest()
+   if name.startswith('gcp'):
+    assert newer['sha256']==hashlib.sha256((ledger/entry['path']).read_bytes()).hexdigest()
   else:assert entry==newer
- old=json.loads(historical_bytes(archive_path, 'docs/compliance-ledgers/descriptions/implemented-new-checks.json'))
- new=ancestor_json(ledger/'descriptions/implemented-new-checks.json')
+ old=json.loads(history['original_members']['docs/compliance-ledgers/descriptions/implemented-new-checks.json'])
+ text=ancestor['docs/compliance-ledgers/descriptions/implemented-new-checks.json']
+ assert hashlib.sha256(text.encode()).hexdigest()==current_manifest['new_descriptions']['sha256']
+ new=json.loads(text)
  additive=set(json.loads((root/'tests/fixtures/post_dfaf_integration/two_hour_native_cohort.json').read_text())['ids'])|{m.CHECK_ID}
  assert set(new)-set(old)==additive
  assert {k:v for k,v in new.items() if k not in additive}==old

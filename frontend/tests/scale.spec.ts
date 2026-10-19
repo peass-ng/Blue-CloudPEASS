@@ -69,11 +69,10 @@ test("5k-node network map renders grouped and drills VPC → subnet → assets",
   await timed("network_vpc_to_subnet_ms", () => explore(page, /^vpc-/));
   await expect(visibleNodes(page).locator("strong").filter({ hasText: /^subnet-/ })).toHaveCount(10, { timeout: 30000 });
   await timed("network_subnet_to_assets_ms", () => explore(page, /^subnet-/));
-  const assetTypes = visibleNodes(page).locator("span");
-  await expect(assetTypes.filter({ hasText: /^network interface$/ }).first()).toBeVisible({ timeout: 30000 });
-  await expect(assetTypes.filter({ hasText: /^instance$/ }).first()).toBeVisible();
+  await expect(visibleNodes(page).filter({ has: page.locator('[aria-label="network interface icon"]') }).first()).toBeVisible({ timeout: 30000 });
+  await expect(visibleNodes(page).filter({ has: page.locator('[aria-label="instance icon"]') }).first()).toBeVisible();
   // Firewall context: the security groups protecting the subnet's members.
-  await expect(assetTypes.filter({ hasText: /^security group$/ }).first()).toBeVisible();
+  await expect(visibleNodes(page).filter({ has: page.locator('[aria-label="security group icon"]') }).first()).toBeVisible();
   mkdirSync(evidenceDir, { recursive: true });
   await page.screenshot({ path: join(evidenceDir, "scale-network-subnet.png") });
   // Breadcrumb collapses back one level at a time.

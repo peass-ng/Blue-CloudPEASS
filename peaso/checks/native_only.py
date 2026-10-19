@@ -7,7 +7,7 @@ from pathlib import Path
 
 @lru_cache(maxsize=1)
 def exclusions():
-    """Reviewed mandatory external requirements, never inferred from read failures."""
+    """Reviewed scope exclusions, never inferred merely from read failures."""
     document = json.loads(Path(__file__).with_suffix(".json").read_text())
     if document.get("schema_version") != "1.0" or not isinstance(document.get("checks"), dict):
         raise ValueError("Invalid native-only admission manifest")
@@ -35,15 +35,21 @@ def automated_frameworks(rows):
             row["requirement_counts_scope"] = "reviewed_source_reference"
         row["native_check_ids"] = [ident for ident in original if ident not in excluded]
         row["supported_native_checks"] = len(row["native_check_ids"])
-        row["excluded_custom_checks"] = len(set(original).intersection(excluded))
-        if row["excluded_custom_checks"]:
+        removed = set(original).intersection(excluded)
+        unsupported = {cid for cid in removed if excluded[cid].get('disposition') == 'unsupported_exact_contract'}
+        row["excluded_custom_checks"] = len(removed - unsupported)
+        if unsupported:
+            row['excluded_unsupported_checks'] = len(unsupported)
+        if removed:
             row["status"] = "partially_supported" if row["native_check_ids"] else "pending"
     return output
 
 
 def scope():
+    unsupported = sum(entry.get('disposition') == 'unsupported_exact_contract' for entry in exclusions().values())
     return {"mode": "provider_read_only", "manual_attestations": False,
-            "excluded_custom_controls": len(exclusions())}
+            "excluded_custom_controls": len(exclusions()) - unsupported,
+            **({'excluded_unsupported_controls': unsupported} if unsupported else {})}
 
 
 def automated_coverage(coverage):

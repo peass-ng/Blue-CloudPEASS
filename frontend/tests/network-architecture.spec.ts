@@ -86,6 +86,14 @@ test("network ACL inspector shows ordered stateless deny, with raw facts collaps
   await expect(dialog).toContainText("100");
   await expect(dialog).toContainText("deny");
   await expect(dialog).toContainText("stateless");
+  await expect(dialog.locator(".network-resource-heading")).toContainText("network acl");
+  const metadata = dialog.locator("details.network-resource-details");
+  await expect(metadata).not.toHaveAttribute("open");
+  await expect(metadata.getByText("Resource ID", { exact: true })).not.toBeVisible();
+  await metadata.getByText("Resource details", { exact: true }).click();
+  await expect(metadata.getByText("Resource ID", { exact: true })).toBeVisible();
+  await expect(metadata.getByText("Type", { exact: true })).toHaveCount(0);
+  await metadata.getByText("Resource details", { exact: true }).click();
   await expect(dialog.getByText("Collected technical fields")).toBeVisible();
   await dialog.getByText("Collected technical fields").click();
   await expect(dialog.locator("pre.network-raw")).toHaveCount(0);
@@ -138,7 +146,6 @@ test("automatic assessment selects both ENIs of a multi-interface instance", asy
   let selected: string[] = [];
   await serve(page,graph,body=>{selected = body.endpoint_resource_ids;return {snapshot_id:"synthetic",results:[]};});
   await expect.poll(()=>selected).toEqual(["resource:eni-a","resource:eni-secondary"]);
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("2 of 2 loaded endpoints");
 });
 
 test("automatic assessment retains the instance when one attached ENI is unresolved", async ({page}) => {
@@ -184,13 +191,11 @@ test("live map automatically assesses directed pairs across networks and inside 
         provider:"aws",snapshot_id:"synthetic",endpoints:{},routes:[],policy_decisions:[],translations:[],unresolved_dependencies:[],evidence_refs:[],modeled_configuration:true,application_listening:"unknown",new_flow_only:true,
       })))};
   });
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("directed pairs evaluated");
   expect(requests).toBeGreaterThan(0);
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]').first()).toBeVisible();
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"] path.react-flow__edge-path').first()).toHaveAttribute("marker-end",/url\(/);
   await page.locator('.react-flow__node[data-id="network:vpc-alpha"] .network-node-heading').click();
   await page.locator('.react-flow__node[data-id="area:subnet-a"] .network-node-heading').click();
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("directed pairs evaluated");
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).not.toHaveCount(0);
   await page.getByText(/Automatically assessed arrow groups ·/).click();
   await page.getByRole("region",{name:"Automatically assessed arrow groups"}).getByRole("button").first().click();
@@ -201,13 +206,16 @@ test("automatic arrows reject mismatched route assessment responses", async ({pa
   const graph: Graph = structuredClone(architectureFixture);
   graph.nodes.push({id:"instance-c",type:"instance",label:"instance-c",provider:"aws",
     scope:"111111111111/us-east-1",parent_id:"subnet-a",resource_id:"resource:instance-c"});
-  await serve(page,graph,body => ({snapshot_id:"synthetic",results:body.endpoint_resource_ids.flatMap((source_resource_id:string) =>
-    body.endpoint_resource_ids.filter((destination_resource_id:string)=>destination_resource_id!==source_resource_id)
-      .map((destination_resource_id:string)=>({decision:"allowed",provider:"aws",snapshot_id:"synthetic",
-        query:{source_resource_id,destination_resource_id,protocol:"tcp",source_port:54321,
-          destination_port:8443,address_family:"ipv4"},modeled_configuration:true,new_flow_only:true}))) }));
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"}))
-    .toContainText("response incomplete or mismatched");
+  let assessed = false;
+  await serve(page,graph,body => {
+    assessed = true;
+    return {snapshot_id:"synthetic",results:body.endpoint_resource_ids.flatMap((source_resource_id:string) =>
+      body.endpoint_resource_ids.filter((destination_resource_id:string)=>destination_resource_id!==source_resource_id)
+        .map((destination_resource_id:string)=>({decision:"allowed",provider:"aws",snapshot_id:"synthetic",
+          query:{source_resource_id,destination_resource_id,protocol:"tcp",source_port:54321,
+            destination_port:8443,address_family:"ipv4"},modeled_configuration:true,new_flow_only:true})))};
+  });
+  await expect.poll(()=>assessed).toBe(true);
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).toHaveCount(0);
 });
 
@@ -248,7 +256,6 @@ test("assessed paths inside a collapsed VPC remain visible and become arrows whe
       .map((destination_resource_id:string)=>({decision:source_resource_id==="resource:instance-a"?"allowed":"blocked",
         query:{source_resource_id,destination_resource_id,protocol:"tcp",source_port:54321,destination_port:443,address_family:"ipv4"},
         provider:"aws",snapshot_id:"synthetic",endpoints:{},routes:[],policy_decisions:[],translations:[],unresolved_dependencies:[],evidence_refs:[],modeled_configuration:true,application_listening:"unknown",new_flow_only:true}))) }));
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("2 pairs inside collapsed groups");
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).toHaveCount(0);
   await page.locator('.react-flow__node[data-id="area:subnet-internal"] .network-node-internal').click();
   await expect(page.getByRole("dialog")).toContainText("2 directed TCP/54321→443 IPv4 pairs");
@@ -290,9 +297,8 @@ test("automatic map windows reach a thirteenth loaded endpoint with a peer", asy
   });
   await page.locator('.react-flow__node[data-id="network:vpc-window"] .network-node-heading').click();
   await page.locator('.react-flow__node[data-id="area:subnet-window"] .network-node-heading').click();
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("window 1 of 2");
+  await expect(page.getByRole("button",{name:"Next 12 endpoints"})).toBeEnabled();
   await page.getByRole("button",{name:"Next 12 endpoints"}).click();
-  await expect(page.getByRole("status").filter({hasText:"Automatic IPv4 TCP/54321→443 assessment"})).toContainText("2 directed pairs evaluated");
   expect(requests.at(-1)).toEqual(["resource:instance-11","resource:instance-12"]);
   await expect(page.locator('.react-flow__edge[data-id^="matrix:"]')).toHaveCount(2);
   await page.getByLabel("Compare endpoint window").selectOption("0");
@@ -530,12 +536,14 @@ test("provider tabs, nested networks, boundary edges, service icons and human in
   for (const name of ["AWS", "Google Cloud", "Azure", "Kubernetes"]) await expect(page.getByRole("tab", {name:new RegExp(name)})).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="network:vpc-alpha"]')).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="network:vpc-beta"]')).toBeVisible();
+  await expect(page.getByText("Lines show resource links;",{exact:false})).toHaveCount(0);
+  await expect(page.getByText("Automatic IPv4 TCP/54321→443 assessment:",{exact:false})).toHaveCount(0);
   await expect(page.locator('.react-flow__node[data-id="area:subnet-a"]')).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="asset:sg-a"]')).toBeVisible();
   mkdirSync("evidence", { recursive:true });
   await page.screenshot({path:"evidence/network-overview-multivpc-desktop.png",fullPage:true});
-  await expect(page.locator(".react-flow__edge").first()).toBeVisible();
-  await expect(page.locator('.react-flow__edge g[data-route="elk"]')).toHaveCount(2);
+  await expect(page.locator('.react-flow__edge g[data-route="elk"] path.react-flow__edge-path').first()).toHaveAttribute("d",/^M /);
+  await expect.poll(()=>page.locator('.react-flow__edge g[data-route="elk"]').count()).toBeGreaterThan(2);
   await expect(page.locator('.react-flow__edge g[data-route="elk"] path.react-flow__edge-path').first()).toHaveAttribute("d",/^M .+L /);
   // Peering metadata is a candidate relationship, not a measured path in either direction.
   await expect(page.locator('.react-flow__edge g[data-relationship^="Peering configured"] path.react-flow__edge-path')).not.toHaveAttribute("marker-end", /url\(/);
@@ -551,6 +559,7 @@ test("provider tabs, nested networks, boundary edges, service icons and human in
   await page.screenshot({ path:"evidence/network-aws-desktop.png", fullPage:true });
   const areaBox = await page.locator('.react-flow__node[data-id="area:subnet-a"]').boundingBox();
   const eniBox = await eni.boundingBox();
+  expect(eniBox?.width).toBeLessThanOrEqual(152);
   expect(areaBox && eniBox && eniBox.x >= areaBox.x && eniBox.y >= areaBox.y && eniBox.x + eniBox.width <= areaBox.x + areaBox.width && eniBox.y + eniBox.height <= areaBox.y + areaBox.height).toBe(true);
   const instanceBox = await page.locator('.react-flow__node[data-id="asset:instance-a"]').boundingBox();
   const rootBox = await page.locator('.react-flow__node[data-id="network:vpc-alpha"]').boundingBox();
@@ -580,7 +589,7 @@ test("provider tabs, nested networks, boundary edges, service icons and human in
   await page.getByRole("tab", {name:/Kubernetes/}).click();
   await page.locator('.react-flow__node[data-id="network:cluster:cluster-prod"] .network-node-heading').click();
   await expect(page.locator('.react-flow__node[data-id="area:ns-app"]')).toBeVisible();
-  await expect(page.locator('.react-flow__node[data-id="area:ns-app"]')).toContainText("Namespace · workload group");
+  await expect(page.locator('.react-flow__node[data-id="area:ns-app"] .network-node')).toHaveAttribute("title",/Namespace · workload group/);
   await page.locator('.react-flow__node[data-id="area:ns-app"] .network-node-heading').click();
   await expect(page.locator('.react-flow__node[data-id="asset:pod-a"]')).toBeVisible();
   await expect(page.locator('.react-flow__node[data-id="asset:policy-app"] [aria-label="networkpolicy icon"]')).toBeVisible();
@@ -688,6 +697,39 @@ test("failed native configuration read keeps CIDR unknown", async ({page}) => {
   await page.locator('.react-flow__node[data-id="network:vpc-alpha"] .network-node-heading').click();
   await expect(page.getByRole("alert").filter({hasText:"Native network configuration could not be loaded"})).toBeVisible();
   await expect(page.locator(".network-header-stats")).toContainText("Unknown CIDR");
+});
+
+test("subnets expand independently inside the VPC with compact labels and full tooltips", async ({page}) => {
+  const graph = manySubnetsFixture(3);
+  graph.nodes.find(node=>node.id==="eni-000")!.label = "production-interface-long-name";
+  await serve(page, graph);
+  const node = (id:string)=>page.locator(`.react-flow__node[data-id="${id}"]`);
+  const heading = (id:string)=>node(id).locator(".network-node-heading");
+  await heading("network:vpc-many").click();
+  await heading("area:subnet-000").click();
+  await expect(node("asset:eni-000")).toBeVisible();
+  await expect(node("asset:eni-000").locator("strong")).toHaveText("production");
+  await expect(node("asset:eni-000").locator(".network-node")).toHaveAttribute("title", /^production-interface-long-name ·/);
+  await expect(heading("asset:eni-000")).toHaveAccessibleName("Inspect production-interface-long-name");
+  for (const id of ["network:vpc-many","area:subnet-001","area:subnet-002"]) await expect(node(id)).toBeVisible();
+  await heading("area:subnet-001").click();
+  await expect(node("asset:eni-000")).toBeVisible();
+  await expect(node("asset:eni-001")).toBeVisible();
+  for (const suffix of ["000","001"]) {
+    await expect(heading(`area:subnet-${suffix}`)).toHaveAttribute("aria-expanded","true");
+    const root = await node("network:vpc-many").boundingBox();
+    const subnet = await node(`area:subnet-${suffix}`).boundingBox();
+    const asset = await node(`asset:eni-${suffix}`).boundingBox();
+    expect(root && subnet && asset && subnet.x>=root.x && subnet.y>=root.y && subnet.x+subnet.width<=root.x+root.width+1 && subnet.y+subnet.height<=root.y+root.height+1 && asset.x>=subnet.x && asset.y>=subnet.y && asset.x+asset.width<=subnet.x+subnet.width+1 && asset.y+asset.height<=subnet.y+subnet.height+1).toBe(true);
+  }
+  await page.screenshot({path:"evidence/network-expanded-sibling-subnets.png",fullPage:true});
+  await heading("area:subnet-000").click();
+  await expect(node("asset:eni-000")).toHaveCount(0);
+  await expect(node("asset:eni-001")).toBeVisible();
+  await expect(heading("area:subnet-000")).toHaveAttribute("aria-expanded","false");
+  await heading("area:subnet-001").click();
+  await expect(node("asset:eni-001")).toHaveCount(0);
+  for (const id of ["network:vpc-many","area:subnet-000","area:subnet-001","area:subnet-002"]) await expect(node(id)).toBeVisible();
 });
 
 test("every subnet beyond the initial area page is reachable from both pager and table", async ({page}) => {

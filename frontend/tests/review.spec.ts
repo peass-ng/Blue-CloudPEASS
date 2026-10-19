@@ -46,7 +46,7 @@ test("review current large snapshot layout and exact checklist coverage", async 
   );
   await page
     .getByLabel("Status", { exact: true })
-    .selectOption("NOT_APPLICABLE");
+    .selectOption({ label: "Not applicable" });
   await expect(page.getByText(/matching findings/).first()).toBeVisible();
   await page.screenshot({
     path: "evidence/large-azure-status-current.png",

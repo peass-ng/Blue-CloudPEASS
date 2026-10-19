@@ -8,7 +8,7 @@ import pytest
 
 boto3 = pytest.importorskip("boto3")
 from botocore.exceptions import ReadTimeoutError
-from botocore.stub import Stubber
+from botocore.stub import Stubber, ANY
 
 from peaso.collectors import aws
 from peaso.snapshot import validate
@@ -444,13 +444,14 @@ def test_hosted_fanout_refuses_unprotected_trust_and_continues(sdk, monkeypatch)
     _, add, _ = sdk
     unsafe, safe = (f"arn:aws:iam::{account}:role/Audit" for account in ("222222222222", "333333333333"))
     sts = add("sts")
-    sts.add_response("get_caller_identity", {"Account": "202533532952",
-        "Arn": "arn:aws:sts::202533532952:assumed-role/collector/scan",
+    sts.add_response("get_caller_identity", {"Account": "111122223333",
+        "Arn": "arn:aws:sts::111122223333:assumed-role/collector/scan",
         "UserId": "AROACOLLECTOR123456789:scan"}, {})
     unsafe_credentials = assumed_credentials()
     unsafe_credentials["Credentials"]["AccessKeyId"] = "ASIAUNSAFE123456789"
-    sts.add_response("assume_role", unsafe_credentials, {"RoleArn": unsafe, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
-    sts.add_client_error("assume_role", "AccessDenied", "External ID required", expected_params={"RoleArn": safe, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+    sts.add_response("assume_role", unsafe_credentials, {"RoleArn": unsafe, "RoleSessionName": "peaso-read-only"})
+    sts.add_client_error("assume_role", "AccessDenied", "External ID required", expected_params={"RoleArn": safe, "RoleSessionName": "peaso-read-only"})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={"RoleArn": safe, "RoleSessionName": "peaso-read-only", "ExternalId": ANY})
     sts.add_response("assume_role", assumed_credentials(), {"RoleArn": safe, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
     sts.add_response("get_caller_identity", {"Account": "333333333333", "Arn": "arn:aws:sts::333333333333:assumed-role/Audit/peaso-read-only", "UserId": "AROASAFEROLE123456789:peaso-read-only"}, {})
     add("ec2").add_response("describe_vpcs", {"Vpcs": []}, {})
@@ -461,7 +462,7 @@ def test_hosted_fanout_refuses_unprotected_trust_and_continues(sdk, monkeypatch)
         "error": {"code": "external_id_not_required_by_trust"}, "status": "denied"}]
     assert next(c for c in snapshot["collections"] if c["type"] == "vpc" and c["scope"].startswith("222222222222/"))["status"] == "denied"
     assert next(c for c in snapshot["collections"] if c["type"] == "vpc" and c["scope"].startswith("333333333333/"))["status"] == "empty"
-    assert "202533532952" not in {identity["Account"] for identity in snapshot["metadata"]["caller_identities"]}
+    assert "111122223333" not in {identity["Account"] for identity in snapshot["metadata"]["caller_identities"]}
     assert "peaso-server-only" not in json.dumps(snapshot)
     assert "ASIAUNSAFE123456789" not in repr(captured[0]._cache)
     assert not any("222222222222" in key[-1] for key in captured[0]._cache)
@@ -472,11 +473,11 @@ def test_hosted_all_targets_refused_has_no_resource_reads(sdk):
     _, add, clients = sdk
     role = "arn:aws:iam::222222222222:role/Audit"
     sts = add("sts")
-    sts.add_response("get_caller_identity", {"Account": "202533532952",
-        "Arn": "arn:aws:sts::202533532952:assumed-role/collector/scan",
+    sts.add_response("get_caller_identity", {"Account": "111122223333",
+        "Arn": "arn:aws:sts::111122223333:assumed-role/collector/scan",
         "UserId": "AROACOLLECTOR123456789:scan"}, {})
     sts.add_response("assume_role", assumed_credentials(),
-        {"RoleArn": role, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+        {"RoleArn": role, "RoleSessionName": "peaso-read-only"})
     snapshot = aws.collect({"provider": "aws", "scopes": ["222222222222"],
         "auth": {"method": "task_role", "external_id": "peaso-server-only", "assume_roles": [role]},
         "options": {"hosted": True, "include_source_account": False, "regions": [REGION]}}, ["vpc"])
@@ -489,13 +490,14 @@ def test_hosted_all_targets_refused_has_no_resource_reads(sdk):
 
 def test_hosted_second_role_same_account_skips_before_any_sts(sdk):
     _, add, _ = sdk
-    account = "947247140022"
+    account = "222233334444"
     first = f"arn:aws:iam::{account}:role/RoleA"
     second = f"arn:aws:iam::{account}:role/RoleB"
     sts = add("sts")
     sts.add_response("get_caller_identity", IDENTITY, {})
     sts.add_client_error("assume_role", "AccessDenied", expected_params={
-        "RoleArn": first, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+        "RoleArn": first, "RoleSessionName": "peaso-read-only"})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={"RoleArn": first, "RoleSessionName": "peaso-read-only", "ExternalId": ANY})
     sts.add_response("assume_role", assumed_credentials(), {
         "RoleArn": first, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
     sts.add_response("get_caller_identity", {"Account": account,
@@ -515,22 +517,24 @@ def test_hosted_second_role_same_account_skips_before_any_sts(sdk):
         "account": account, "role_arn": second, "status": "not_collected", "code": "duplicate_account_target",
         "error_code": "duplicate_account_target"}]
     assert len(snapshot["metadata"]["caller_identities"]) == 1
-    assert snapshot["metadata"]["calls"] == 5
+    assert snapshot["metadata"]["calls"] == 6
 
 
 def test_hosted_failed_first_role_allows_second_role_same_account(sdk):
     _, add, _ = sdk
-    account = "947247140022"
+    account = "222233334444"
     first = f"arn:aws:iam::{account}:role/RoleA"
     second = f"arn:aws:iam::{account}:role/RoleB"
     sts = add("sts")
     sts.add_response("get_caller_identity", IDENTITY, {})
     sts.add_client_error("assume_role", "AccessDenied", expected_params={
-        "RoleArn": first, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+        "RoleArn": first, "RoleSessionName": "peaso-read-only"})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={"RoleArn": first, "RoleSessionName": "peaso-read-only", "ExternalId": ANY})
     sts.add_client_error("assume_role", "AccessDenied", expected_params={
         "RoleArn": first, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
     sts.add_client_error("assume_role", "AccessDenied", expected_params={
-        "RoleArn": second, "RoleSessionName": "peaso-read-only", "DurationSeconds": 900})
+        "RoleArn": second, "RoleSessionName": "peaso-read-only"})
+    sts.add_client_error("assume_role", "AccessDenied", expected_params={"RoleArn": second, "RoleSessionName": "peaso-read-only", "ExternalId": ANY})
     sts.add_response("assume_role", assumed_credentials(), {
         "RoleArn": second, "RoleSessionName": "peaso-read-only", "ExternalId": "peaso-server-only"})
     sts.add_response("get_caller_identity", {"Account": account,
@@ -584,9 +588,9 @@ def test_hosted_owned_target_never_reaches_sts_assume_role(sdk, monkeypatch):
     monkeypatch.setattr(aws, "_assume", record_assume)
     _, add, _ = sdk
     add("sts").add_response("get_caller_identity", IDENTITY, {})
-    snapshot = aws.collect({"provider": "aws", "scopes": ["202533532952"],
+    snapshot = aws.collect({"provider": "aws", "scopes": ["111122223333"],
         "auth": {"method": "task_role", "external_id": "peaso-server-only",
-                 "assume_roles": ["arn:aws:iam::202533532952:role/Internal"]},
+                 "assume_roles": ["arn:aws:iam::111122223333:role/Internal"]},
         "options": {"hosted": True, "regions": [REGION]}}, ["vpc"])
     assert snapshot["metadata"]["calls"] == 1
     assert assumed == [COLLECTOR_ROLE_ARN]
@@ -765,7 +769,7 @@ def test_local_explicit_60_role_targets_have_no_implicit_fanout_cap(sdk):
     assert all(error["error"]["code"] == "AccessDenied" for error in snapshot["metadata"]["authentication_errors"])
 
 
-def test_hosted_worker_injects_trusted_scan_flag_after_validation(monkeypatch):
+def test_hosted_worker_injects_trusted_scan_flag_after_validation(monkeypatch, tmp_path):
     import threading
     import time
     from peaso.worker import Worker
@@ -818,7 +822,8 @@ def test_hosted_worker_injects_trusted_scan_flag_after_validation(monkeypatch):
     monkeypatch.setattr("peaso.worker.multiprocessing.get_context", lambda _: Context())
     worker = Worker.__new__(Worker)
     worker.role = "collector"
-    worker.settings = SimpleNamespace(auth_mode="cognito", lease_seconds=30)
+    worker.settings = SimpleNamespace(auth_mode="cognito", lease_seconds=30,
+                                     state_dir=tmp_path, identity_dir=tmp_path / "identities")
     worker.store = Store()
     worker.artifacts = SimpleNamespace(bucket="unused", kms_key=None)
     worker.cipher = SimpleNamespace(decrypt=lambda _: private)
@@ -945,7 +950,7 @@ def _client_error(operation, code, message):
 @pytest.mark.parametrize("operation, code, message, state", [
     ("GetMacieSession", "AccessDeniedException", "Macie is not enabled.", "service_not_enabled"),
     ("ListClassificationJobs", "AccessDeniedException", "Macie is not enabled", "service_not_enabled"),
-    ("ListPolicies", "AccessDeniedException", "No default admin could be found for account 947247140022 in Region us-east-1", "no_service_administrator"),
+    ("ListPolicies", "AccessDeniedException", "No default admin could be found for account 222233334444 in Region us-east-1", "no_service_administrator"),
     ("DescribeOrganizationConfiguration", "AccessDeniedException", "Invoking account does not have access to describe the organization configuration.", "not_delegated_administrator"),
     ("GetDelegatedAdminAccount", "ResourceNotFoundException", "No delegated admin found for caller account.", "no_delegated_administrator"),
     ("GetDevEndpoints", "AccessDeniedException", "GetDevEndpoints operation is currently disabled.", "operation_disabled_for_account"),
@@ -962,7 +967,7 @@ def test_documented_service_state_replies_are_facts_not_denials(operation, code,
 
 @pytest.mark.parametrize("operation, code, message", [
     ("GetMacieSession", "AccessDeniedException", "User is not authorized to perform: macie2:GetMacieSession"),
-    ("ListPolicies", "AccessDeniedException", "No default admin could be found for account 947247140022 in Region us-east-1 because of SCP"),
+    ("ListPolicies", "AccessDeniedException", "No default admin could be found for account 222233334444 in Region us-east-1 because of SCP"),
     ("DescribeOrganizationConfiguration", "AccessDeniedException", "Access denied"),
     ("ListFindings", "AccessDeniedException", "Macie is not enabled."),
     ("ListCustomModels", "ValidationException", "1 validation error detected"),

@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Annotated, Literal
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator, model_validator
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 class StrictModel(BaseModel):
@@ -28,6 +29,7 @@ class ConnectorCreate(StrictModel):
     options: dict = Field(default_factory=dict)
     prepared_id: str | None = None
     check_token: str | None = None
+    acknowledge_access_warnings: StrictBool = False
 
 
 class ConnectorCheck(ConnectorCreate):
@@ -44,6 +46,7 @@ class ConnectorPatch(StrictModel):
 
 
 class ScanCreate(StrictModel):
+    ai_enabled: StrictBool = True
     connector_id: str = Field(min_length=1, max_length=100)
     categories: list[str] = Field(default_factory=list, max_length=100)
     checks: list[str] = Field(default_factory=list, max_length=10000)
@@ -68,10 +71,41 @@ class AttackLogRun(AttackLogSource):
     check_token: str = Field(min_length=1, max_length=4096)
 
 
+class ScheduleRule(StrictModel):
+    frequency: Literal['daily', 'weekly', 'monthly']
+    time: str = Field(pattern=r'^(?:[01][0-9]|2[0-3]):[0-5][0-9]$')
+    weekdays: list[Annotated[int, Field(strict=True, ge=0, le=6)]] = Field(default_factory=list, max_length=7)
+    day_of_month: int | None = Field(default=None, strict=True, ge=1, le=31)
+
+    @model_validator(mode='after')
+    def valid_days(self):
+        if self.frequency == 'weekly':
+            if not self.weekdays or len(set(self.weekdays)) != len(self.weekdays):
+                raise ValueError('Select unique weekdays for a weekly rule')
+        elif self.weekdays:
+            raise ValueError('Weekdays only apply to weekly rules')
+        if (self.frequency == 'monthly') != (self.day_of_month is not None):
+            raise ValueError('Select a day of the month only for monthly rules')
+        return self
+
+
+def valid_schedule_timezone(value):
+    if value is not None:
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, ValueError):
+            raise ValueError('Choose a valid IANA time zone') from None
+    return value
+
+
 class ScheduleCreate(ScanCreate):
     interval_hours: float = Field(default=168, ge=1, le=8760)
+    rules: list[ScheduleRule] | None = Field(default=None, min_length=1, max_length=20)
+    timezone: str = Field(default='UTC', min_length=1, max_length=100)
     enabled: bool = True
     next_run_at: datetime | None = None
+
+    _timezone_valid = field_validator('timezone')(valid_schedule_timezone)
 
     @field_validator("next_run_at")
     @classmethod
@@ -82,13 +116,18 @@ class ScheduleCreate(ScanCreate):
 
 
 class SchedulePatch(StrictModel):
+    ai_enabled: StrictBool | None = None
     connector_id: str | None = Field(default=None, min_length=1, max_length=100)
     categories: list[str] | None = Field(default=None, max_length=100)
     checks: list[str] | None = Field(default=None, max_length=10000)
     frameworks: list[str] | None = Field(default=None, max_length=100)
     interval_hours: float | None = Field(default=None, ge=1, le=8760)
+    rules: list[ScheduleRule] | None = Field(default=None, min_length=1, max_length=20)
+    timezone: str | None = Field(default=None, min_length=1, max_length=100)
     enabled: bool | None = None
     next_run_at: datetime | None = None
+
+    _timezone_valid = field_validator('timezone')(valid_schedule_timezone)
 
     @field_validator("next_run_at")
     @classmethod

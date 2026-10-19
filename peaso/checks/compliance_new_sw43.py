@@ -279,10 +279,9 @@ def _backtracking(item, index):
         if engine in {"aurora-postgresql", "mysql", "postgres", "mariadb", "docdb"}:
             return "NOT_APPLICABLE", {"cluster_id": identity, "engine": engine}
         return unknown("unrecognized engine capability", engine=engine)
-    if get(item, "BacktrackingSupported", bool) is False:
-        return "NOT_APPLICABLE", {"cluster_id": identity, "engine": engine, "reason": "engine version does not support backtracking"}
-    if "BacktrackWindow" not in item and "BacktrackWindow" not in item.get("_coverage", {}):
-        return result(True, cluster_id=identity, backtrack_window=None)
+    # DescribeDBClusters exposes the target window, not a capability flag.
+    # Its DBCluster.BacktrackWindow contract explicitly defines zero as disabled
+    # and nonzero as enabled. Omission cannot prove either state/applicability.
     window = get(item, "BacktrackWindow", int)
     if window < 0:
         raise Unavailable("negative backtrack window")

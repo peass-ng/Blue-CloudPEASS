@@ -24,9 +24,11 @@ resource "aws_iam_role_policy" "api" {
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
     { Effect = "Allow", Action = ["s3:ListBucket"], Resource = aws_s3_bucket.artifacts.arn, Condition = { StringLike = { "s3:prefix" = "artifacts/*" } } },
     { Effect = "Allow", Action = ["cognito-idp:AdminGetUser", "cognito-idp:ListUsers", "cognito-idp:ListUserPoolClients", "cognito-idp:DescribeUserPoolClient"], Resource = local.pool_arn },
-    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn, local.stripe_arn] },
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn, aws_secretsmanager_secret.ai.arn, local.stripe_arn] },
     { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = local.customer_trust_arn },
     { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn },
+    { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.ai.arn },
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = aws_secretsmanager_secret.ai.arn },
     { Effect = "Allow", Action = ["states:StartExecution"], Resource = local.workflow_arn },
     { Effect = "Allow", Action = ["states:DescribeExecution"], Resource = "arn:aws:states:${var.region}:${local.account_id}:execution:${local.name}:*" }
     ], var.gcp_platform_sa_secret_arn == "" ? [] : [
@@ -60,6 +62,8 @@ resource "aws_iam_role_policy" "collector" {
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = [aws_secretsmanager_secret.credentials.arn] },
     { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.connectors.arn },
+    { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.ai.arn },
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = aws_secretsmanager_secret.ai.arn },
     { Effect = "Allow", Action = ["sts:AssumeRole"], Resource = local.customer_trust_arn }
     ], var.gcp_platform_sa_secret_arn == "" ? [] : [
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.gcp_platform_sa_secret_arn }
@@ -78,9 +82,7 @@ resource "aws_iam_role_policy" "customer_trust" {
   role = aws_iam_role.customer_trust.id
   policy = jsonencode({ Version = "2012-10-17", Statement = [
     { Sid = "AssumeCustomerRoles", Effect = "Allow", Action = "sts:AssumeRole", Resource = "*" },
-    { Sid = "BlockPlatformAccounts", Effect = "Deny", Action = "sts:AssumeRole", Resource = [
-      "arn:aws:iam::202533532952:role/*", "arn:aws:iam::418720621023:role/*"
-    ] },
+    { Sid = "BlockPlatformAccounts", Effect = "Deny", Action = "sts:AssumeRole", Resource = [for account in distinct(concat([var.account_id], var.platform_account_ids)) : "arn:aws:iam::${account}:role/*"] },
     { Sid = "BlockLocalAndOtherActions", Effect = "Deny", NotAction = "sts:AssumeRole", Resource = "*" }
   ] })
 }
@@ -90,16 +92,23 @@ resource "aws_iam_role" "analyzer" {
 }
 resource "aws_iam_role_policy" "analyzer" {
   role = aws_iam_role.analyzer.id
-  policy = jsonencode({ Version = "2012-10-17", Statement = [
+  policy = jsonencode({ Version = "2012-10-17", Statement = concat([
     { Effect = "Allow", Action = ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:Query"], Resource = aws_dynamodb_table.metadata.arn },
     { Effect = "Allow", Action = ["s3:GetObject", "s3:PutObject"], Resource = "${aws_s3_bucket.artifacts.arn}/*" },
-    # Explicit deny prevents future shared permissions from exposing cloud credentials.
-    { Effect = "Deny", Action = ["sts:AssumeRole", "secretsmanager:GetSecretValue"], Resource = "*" },
+    # AI can decrypt only captured sessions, never source connector credentials.
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = aws_secretsmanager_secret.ai.arn },
+    { Effect = "Allow", Action = ["kms:Decrypt"], Resource = aws_kms_key.ai.arn },
+    { Effect = "Deny", Action = ["sts:AssumeRole"], Resource = "*" },
+    { Effect = "Deny", Action = ["secretsmanager:GetSecretValue"], NotResource = compact([aws_secretsmanager_secret.ai.arn, var.codex_token_secret_arn]) },
     {
-      Effect    = "Deny", Action = ["kms:Decrypt"], Resource = "*",
+      Effect    = "Deny", Action = ["kms:Decrypt"], NotResource = compact([aws_kms_key.ai.arn, var.codex_token_kms_key_arn]),
       Condition = { StringNotEquals = { "kms:ViaService" = "dynamodb.${var.region}.amazonaws.com" } }
     }
-  ] })
+    ], var.codex_token_secret_arn == "" ? [] : [
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.codex_token_secret_arn }
+    ], var.codex_token_kms_key_arn == "" ? [] : [
+    { Effect = "Allow", Action = ["kms:Decrypt"], Resource = var.codex_token_kms_key_arn }
+  ]) })
 }
 resource "aws_iam_role" "workflow" {
   name = "${local.name}-workflow"

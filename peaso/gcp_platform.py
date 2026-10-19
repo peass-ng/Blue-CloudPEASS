@@ -6,19 +6,18 @@ never included in a connector record, API response, release artifact, or plan.
 from __future__ import annotations
 
 import json
+import os
 import re
 import secrets
 
-PLATFORM_PROJECT = "billing-static-info-no-delete"
-PLATFORM_EMAIL = (
-    "hacktricks-cspm-sa-acc-third-p@billing-static-info-no-delete.iam.gserviceaccount.com"
-)
+PLATFORM_PROJECT = os.getenv("PEASO_GCP_PLATFORM_PROJECT", "")
+PLATFORM_EMAIL = os.getenv("PEASO_GCP_PLATFORM_EMAIL", "")
 PROOF_VALUE = "approved"
 PROOF_LABEL = re.compile(r"hacktricks-cspm-[0-9a-f]{20}\Z")
 
 
 def enabled(settings) -> bool:
-    return bool(getattr(settings, "gcp_platform_sa_secret_arn", ""))
+    return bool(getattr(settings, "gcp_platform_sa_secret_arn", "") and PLATFORM_PROJECT and PLATFORM_EMAIL)
 
 
 def new_proof_label() -> str:

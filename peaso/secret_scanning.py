@@ -1,0 +1,319 @@
+"""Offline dual-engine content detection and value-level, redacted correlation.
+
+Only the collector process retains the random HMAC key. It links occurrences
+within that collection, never stores secrets, and cannot link separate scans.
+"""
+from copy import deepcopy
+from functools import lru_cache
+from collections import OrderedDict
+import hashlib
+import base64
+import hmac
+import json
+import os
+import re
+import secrets
+import selectors
+import shutil
+import signal
+import subprocess
+import threading
+import time
+
+KINGFISHER_VERSION = '1.4.0'
+TRUFFLEHOG_VERSION = '3.92.5'
+_KEY = secrets.token_bytes(32)
+_LOCK = threading.Lock()
+_RESULT_LOCK = threading.Lock()
+_RESULTS = OrderedDict()
+MAX_INPUT = 64 * 1024 * 1024
+MAX_OUTPUT = 4 * 1024 * 1024
+MAX_FINDINGS = 5000
+
+
+def _after_fork():
+    global _KEY, _LOCK, _RESULT_LOCK, _RESULTS
+    _KEY, _LOCK = secrets.token_bytes(32), threading.Lock()
+    _RESULT_LOCK, _RESULTS = threading.Lock(), OrderedDict()
+    _kingfisher.cache_clear()
+
+
+if hasattr(os, 'register_at_fork'):
+    os.register_at_fork(after_in_child=_after_fork)
+
+
+def _fingerprint(value):
+    # Exact bytes: no lowercasing, trimming, or fuzzy merging distinct secrets.
+    return hmac.new(_KEY, value.encode('utf-8'), hashlib.sha256).hexdigest()
+
+
+def _label(value):
+    # Rule names are metadata, never trust arbitrary engine output as display text.
+    return value if isinstance(value, str) and re.fullmatch(r'[A-Za-z0-9_.:/ -]{1,160}', value) else 'secret'
+
+
+@lru_cache(maxsize=1)
+def _kingfisher():
+    from importlib.metadata import version
+    from kingfisher_sdk import Rules, Scanner
+    if version('kingfisher-secret-scanner') != KINGFISHER_VERSION:
+        raise RuntimeError('unsupported scanner version')
+    return Scanner(Rules(cache=False), dedup=False)
+
+
+def _scan_kingfisher(payload, path, timeout):
+    from kingfisher_sdk import ScanInput
+    # Detection only: no Validator/Revoker imports, caches, remote enumeration.
+    with _LOCK:
+        findings = _kingfisher().scan_input(ScanInput(path, payload), timeout=timeout)
+    result = []
+    for finding in findings:
+        if not finding.visible:
+            continue
+        location = finding.location
+        result.append((finding.secret, finding.rule_id, location.get('line', 1)))
+        if len(result) > MAX_FINDINGS:
+            raise ValueError('finding bound')
+    return result
+
+
+def _run(argv, payload, timeout):
+    """Bound stdin, output and lifetime; discard tool stderr, including secrets."""
+    environment = {'PATH': os.defpath, 'HOME': '/nonexistent', 'NO_COLOR': '1',
+                   'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': os.devnull}
+    process = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.DEVNULL, env=environment,
+                               start_new_session=True)
+    output, offset = bytearray(), 0
+    deadline = time.monotonic() + timeout
+    try:
+        with selectors.DefaultSelector() as selector:
+            for stream in (process.stdin, process.stdout):
+                os.set_blocking(stream.fileno(), False)
+            if payload:
+                selector.register(process.stdin, selectors.EVENT_WRITE)
+            else:
+                process.stdin.close()
+            selector.register(process.stdout, selectors.EVENT_READ)
+            while selector.get_map():
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError('scanner deadline')
+                for key, _ in selector.select(min(remaining, .1)):
+                    if key.fileobj is process.stdin:
+                        offset += os.write(process.stdin.fileno(), payload[offset:offset+65536])
+                        if offset == len(payload):
+                            selector.unregister(process.stdin)
+                            process.stdin.close()
+                    else:
+                        chunk = os.read(process.stdout.fileno(), 65536)
+                        if not chunk:
+                            selector.unregister(process.stdout)
+                        else:
+                            output.extend(chunk)
+                            if len(output) > MAX_OUTPUT:
+                                raise ValueError('scanner output bound')
+            if process.wait(timeout=max(.001, deadline-time.monotonic())) != 0:
+                raise RuntimeError('scanner failed')
+        return bytes(output)
+    finally:
+        if process.poll() is None:
+            os.killpg(process.pid, signal.SIGKILL)
+        process.wait()
+        process.stdout.close()
+        if not process.stdin.closed:
+            process.stdin.close()
+
+
+@lru_cache(maxsize=1)
+def _trufflehog():
+    executable = shutil.which('trufflehog')
+    if executable is None:
+        raise RuntimeError('scanner unavailable')
+    version = _run([executable, '--version'], b'', 5).decode('utf-8').strip()
+    if version != 'trufflehog ' + TRUFFLEHOG_VERSION:
+        raise RuntimeError('unsupported scanner version')
+    return executable
+
+
+def _scan_trufflehog(payload, path, timeout):
+    output = _run([_trufflehog(), 'stdin', '--json', '--no-verification', '--no-update',
+                   '--log-level=-1', '--concurrency=1', '--force-skip-archives',
+                   '--no-verification-cache', '--fail-on-scan-errors'], payload, timeout)
+    result = []
+    for line in output.splitlines():
+        row = json.loads(line)
+        # RawV2 is a composite display representation for some detectors. Raw
+        # is the primary matched value, shared with Kingfisher's secret field.
+        value = row.get('Raw')
+        if not isinstance(value, str) or not value or row.get('Verified') is not False:
+            raise ValueError('invalid offline detector result')
+        # stdin metadata has no file line. Recover all exact plaintext
+        # occurrences; decoded-only results have an explicitly unknown line.
+        needle, start, found = value.encode('utf-8'), 0, False
+        while (position := payload.find(needle, start)) != -1:
+            result.append((value, row.get('DetectorName', 'secret'), payload[:position].count(b'\n') + 1))
+            start, found = position + len(needle), True
+            if len(result) > MAX_FINDINGS:
+                raise ValueError('finding bound')
+        if not found:
+            result.append((value, row.get('DetectorName', 'secret'), None))
+        if len(result) > MAX_FINDINGS:
+            raise ValueError('finding bound')
+    return result
+
+
+def merge_leaks(rows):
+    """Merge already-redacted observations, including different files/layers."""
+    merged = {}
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {'fingerprint', 'detectors', 'locations'}:
+            raise ValueError('invalid secret observation')
+        ident = row['fingerprint']
+        if not isinstance(ident, str) or re.fullmatch('[0-9a-f]{64}', ident) is None:
+            raise ValueError('invalid secret fingerprint')
+        item = merged.setdefault(ident, {'fingerprint': ident, 'detectors': [], 'locations': []})
+        if not isinstance(row['detectors'], list) or not row['detectors'] or not isinstance(row['locations'], list) or not row['locations']:
+            raise ValueError('missing detector or location')
+        for detector in row['detectors']:
+            if (not isinstance(detector, dict) or set(detector) != {'engine', 'rule'}
+                    or detector['engine'] not in ('kingfisher', 'trufflehog')
+                    or _label(detector['rule']) != detector['rule']):
+                raise ValueError('invalid detector')
+        for location in row['locations']:
+            if (not isinstance(location, dict) or not {'path'} <= set(location)
+                    or set(location) - {'path', 'line', 'layer', 'timestamp', 'resource_id', 'scope'}):
+                raise ValueError('invalid location')
+            for field, value in location.items():
+                if field in ('line', 'timestamp'):
+                    if type(value) is not int or value < (1 if field == 'line' else 0):
+                        raise ValueError('invalid source position')
+                elif not isinstance(value, str) or not value or len(value) > 4096:
+                    raise ValueError('invalid source reference')
+        for field in ('detectors', 'locations'):
+            for value in row[field]:
+                if value not in item[field]:
+                    item[field].append(value)
+    for row in merged.values():
+        row['detectors'].sort(key=lambda d: (d['engine'], d['rule']))
+        row['locations'].sort(key=lambda d: json.dumps(d, sort_keys=True))
+    return [merged[key] for key in sorted(merged)]
+
+
+def omit_free_text_metadata(value):
+    """Omit arbitrary metadata in selected configuration projections.
+
+    A later page can reveal a credential repeated in an earlier description or
+    label. Drop those fields before caching without retaining a run-global raw
+    secret set. Native identities and typed configuration fields are unchanged.
+    This is not a guarantee for arbitrary encodings or secret-bearing identities.
+    """
+    if isinstance(value, list):
+        return [omit_free_text_metadata(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    removed = set(value) & {'description', 'descriptions', 'labels', 'annotations'}
+    result = {key: omit_free_text_metadata(item) for key, item in value.items()
+              if key not in removed and key != '_coverage'}
+    if '_coverage' in value:
+        from copy import deepcopy
+        result['_coverage'] = deepcopy(value['_coverage'])
+    if removed:
+        coverage = result.setdefault('_coverage', {})
+        if not isinstance(coverage, dict):
+            coverage = result['_coverage'] = {}
+        coverage.update({key: {'status': 'unknown', 'reason': 'free_text_not_retained'}
+                         for key in removed})
+    return result
+
+
+def redact_matches(value, matches):
+    """Hide detected plaintext and common textual encodings in metadata.
+
+    This covers exact plaintext, JSON escaping, and one standard/URL-safe base64
+    layer with optional padding. It does not promise arbitrary decoding.
+    """
+    patterns = set(matches)
+    for match in matches:
+        patterns.add(json.dumps(match, ensure_ascii=True)[1:-1])
+        for encode in (base64.b64encode, base64.urlsafe_b64encode):
+            encoded = encode(match.encode('utf-8')).decode('ascii')
+            patterns.update((encoded, encoded.rstrip('=')))
+    patterns = sorted((p for p in patterns if p), key=lambda s: (-len(s), s))
+
+    def redact(original):
+        if isinstance(original, dict):
+            output, changed = {}, []
+            for key, member in original.items():
+                safe_key, safe_member = redact(key), redact(member)
+                output[safe_key] = safe_member
+                if key != '_coverage' and (safe_key != key or safe_member != member):
+                    changed.append(safe_key)
+            if changed:
+                coverage = output.get('_coverage', {})
+                coverage = dict(coverage) if isinstance(coverage, dict) else {}
+                for key in changed:
+                    coverage[key] = {'status': 'unknown', 'reason': 'detected_secret_redacted'}
+                output['_coverage'] = coverage
+            return output
+        if isinstance(original, list):
+            return [redact(member) for member in original]
+        if isinstance(original, str):
+            for pattern in patterns:
+                original = original.replace(pattern, '[redacted]')
+        return original
+
+    return redact(value)
+
+
+def scan_content(payload, path='content', *, timeout=15, _redact_values=None):
+    """Both engines must succeed for a negative result to be complete."""
+    if not isinstance(payload, bytes) or len(payload) > MAX_INPUT or not 0 < timeout <= 60:
+        raise ValueError('content bound')
+    cache_key = (hmac.new(_KEY, payload, hashlib.sha256).digest(),
+                 hmac.new(_KEY, path.encode('utf-8'), hashlib.sha256).digest())
+    with _RESULT_LOCK:
+        cached = _RESULTS.get(cache_key)
+    if cached is not None and (_redact_values is None or not cached['leaks']):
+        if _redact_values is not None:
+            _redact_values(frozenset())
+        return deepcopy(cached)
+    observations, engines, matches_by_engine, known_values = [], [], [], set()
+    for name, version, scanner in (('kingfisher', KINGFISHER_VERSION, _scan_kingfisher),
+                                   ('trufflehog', TRUFFLEHOG_VERSION, _scan_trufflehog)):
+        try:
+            matches = scanner(payload, path, timeout)
+            for value, rule, line in matches:
+                if not isinstance(value, str) or not value:
+                    raise ValueError('empty secret')
+                known_values.add(value)
+            matches_by_engine.append((name, matches))
+            engines.append({'engine': name, 'version': version, 'status': 'complete'})
+        except Exception:
+            # No exception text, matched values, raw JSON or tracebacks escape.
+            engines.append({'engine': name, 'version': version, 'status': 'unavailable'})
+    # Scrub the UNION of both engines' values before retaining any path. Doing
+    # this per engine can disclose the other engine's secret in a filename.
+    safe_path = path
+    if _redact_values is not None:
+        # The callback may redact a separate metadata projection in memory.
+        # Matched values never enter the result/cache or survive this call.
+        _redact_values(frozenset(known_values))
+    for value in sorted(known_values, key=lambda value: (-len(value), value)):
+        safe_path = safe_path.replace(value, 'REDACTED')
+    for name, matches in matches_by_engine:
+        for value, rule, line in matches:
+            observations.append({'fingerprint': _fingerprint(value),
+                'detectors': [{'engine': name, 'rule': _label(rule)}],
+                'locations': [{'path': safe_path, **({'line': line} if type(line) is int and line > 0 else {})}]})
+    outcome = {'leaks': merge_leaks(observations), 'engines': engines,
+               'complete': all(row['status'] == 'complete' for row in engines)}
+    # Repeated logs/layers reuse only a bounded, fully redacted successful
+    # outcome. No raw content, raw path, secret or failed result is cached.
+    if ((_redact_values is None or not outcome['leaks']) and outcome['complete']
+            and len(outcome['leaks']) <= 32 and sum(len(r['locations']) for r in outcome['leaks']) <= 128):
+        with _RESULT_LOCK:
+            _RESULTS[cache_key] = deepcopy(outcome)
+            while len(_RESULTS) > 128:
+                _RESULTS.popitem(last=False)
+    return outcome

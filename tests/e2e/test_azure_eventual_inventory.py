@@ -1,7 +1,7 @@
 """An eventually consistent search index cannot establish absence of ARM facts."""
 from peaso.collectors.azure import collect
 
-SUB = "cfbcdcf4-cb4f-4e4e-9f3e-a6b3b3abadfc"
+SUB = "66666666-7777-4888-8999-000000000000"
 VNET = "/subscriptions/" + SUB + "/resourceGroups/peaso-test/providers/Microsoft.Network/virtualNetworks/peaso-test"
 
 

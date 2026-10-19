@@ -1,0 +1,128 @@
+[
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminConfirmSignUp",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "861308de-31ef-4478-aeee-702e7dc2ab85",
+    "eventTime": "2026-10-19T15:45:23Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_3JZFAN7kt"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminUpdateUserAttributes",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "b80478fb-5e49-4413-b44b-7a6c50067bdb",
+    "eventTime": "2026-10-19T15:45:24Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_3JZFAN7kt",
+      "userAttributes": "HIDDEN_DUE_TO_SECURITY_REASONS"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminInitiateAuth",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "8f0c7029-584f-4247-9cb3-08c0b43d0dbe",
+    "eventTime": "2026-10-19T15:45:24Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_3JZFAN7kt",
+      "clientId": "lmq0inthispm4lucb8rb82cc2",
+      "authFlow": "ADMIN_USER_PASSWORD_AUTH"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "CreateIdentityProvider",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "c901cf51-66ae-464d-b7bf-7d27d729e3fd",
+    "eventTime": "2026-10-19T15:45:24Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_3JZFAN7kt",
+      "providerName": "Google",
+      "providerType": "Google",
+      "providerDetails": {
+        "authorize_scopes": "openid email"
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "UpdateIdentityProvider",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "1ad3846a-0c4f-4470-9929-675f6523029a",
+    "eventTime": "2026-10-19T15:45:25Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_3JZFAN7kt",
+      "providerName": "Google",
+      "providerDetails": {
+        "authorize_scopes": "openid email profile"
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventName": "AdminLinkProviderForUser",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "eventID": "8fc73179-9133-4c5f-af05-ecf5fa875451",
+    "eventTime": "2026-10-19T15:45:25Z",
+    "awsRegion": "us-east-1",
+    "requestParameters": {
+      "userPoolId": "us-east-1_3JZFAN7kt",
+      "destinationUser": {
+        "providerName": "Cognito"
+      },
+      "sourceUser": {
+        "providerName": "Google"
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

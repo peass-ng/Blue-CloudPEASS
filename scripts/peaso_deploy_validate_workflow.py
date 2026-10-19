@@ -50,19 +50,27 @@ def compile_definition(root: Path, terraform: str):
     for begin, end in reversed(removals):
         text = text[:begin] + text[end:]
     text += "\nlocals { validation_definition = " + definitions[0] + " }\n"
-    prefix = "arn:aws:ecs:us-east-1:202533532952:"
+    prefix = "arn:aws:ecs:us-east-1:111122223333:"
     values = {
         "aws_ecs_task_definition.tasks[stage].arn": '"' + prefix + 'task-definition/hacktricks-cspm-${stage}:1"',
         "aws_ecs_cluster.cspm.arn": json.dumps(prefix + "cluster/hacktricks-cspm"),
         "aws_subnet.tasks.id": '"subnet-0123456789abcdef0"',
         "aws_security_group.tasks.id": '"sg-0123456789abcdef0"',
-        "aws_s3_bucket.artifacts.id": '"hacktricks-cspm-artifacts-202533532952"',
+        "aws_s3_bucket.artifacts.id": '"hacktricks-cspm-artifacts-111122223333"',
         "aws_dynamodb_table.metadata.name": '"hacktricks-cspm"',
         "aws_cloudwatch_log_group.tasks.name": '"/ecs/hacktricks-cspm"',
-        "aws_secretsmanager_secret.credentials.arn": '"arn:aws:secretsmanager:us-east-1:202533532952:secret:hacktricks-cspm-validation-abcdef"',
+        "aws_secretsmanager_secret.credentials.arn": '"arn:aws:secretsmanager:us-east-1:111122223333:secret:hacktricks-cspm-validation-abcdef"',
         "var.region": '"us-east-1"', "var.source_version": '"validation"',
-        "local.issuer": '"https://cognito-idp.us-east-1.amazonaws.com/us-east-1_7rbhezdKX"',
-        "local.client_id": '"3g2u5ilb7kbte92lra40ji2ht0"',
+        "local.issuer": '"https://cognito-idp.us-east-1.amazonaws.com/us-east-1_example"',
+        "local.client_id": '"example-client"',
+        "aws_secretsmanager_secret.ai.arn": '"arn:aws:secretsmanager:us-east-1:111122223333:secret:example-ai-abcdef"',
+        "aws_iam_role.customer_trust.arn": '"arn:aws:iam::111122223333:role/ExampleCollector"',
+        "var.codex_token_secret_arn": '""',
+        "var.account_id": '"111122223333"',
+        "var.platform_account_ids": '[]',
+        "var.gcp_platform_project": '"example-project"',
+        "var.gcp_platform_email": '"auditor@example-project.iam.gserviceaccount.com"',
+        "var.gcp_platform_sa_secret_arn": '""',
     }
     # Resolve sizing/time limits from the actual dedicated configuration, rather
     # than validating a second, stale hard-coded workflow definition.
@@ -85,7 +93,7 @@ def compile_definition(root: Path, terraform: str):
             expression = block[default.end() + left:default.end() + right]
         values["var." + name] = "(" + expression + ")"
     for role in ["collector", "analyzer"]:
-        values[f"aws_iam_role.{role}.arn"] = json.dumps(f"arn:aws:iam::202533532952:role/hacktricks-cspm-{role}")
+        values[f"aws_iam_role.{role}.arn"] = json.dumps(f"arn:aws:iam::111122223333:role/hacktricks-cspm-{role}")
     for reference, value in values.items():
         text = text.replace(reference, value)
     if re.search(r"\b(?:aws_[a-z_]+\.[a-z_]+|var\.|data\.)", text):

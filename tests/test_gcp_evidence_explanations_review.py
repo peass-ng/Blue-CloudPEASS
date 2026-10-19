@@ -1,0 +1,101 @@
+"""Every registered/historical GCP ID and recorded fixture branch is reviewed."""
+import copy
+import json
+from pathlib import Path
+
+import pytest
+
+from peaso.checks import CHECKS, CHECK_ALIASES
+from peaso.checks.fixtures import CASES
+from peaso.checks.gcp_evidence_explanations import CATALOG, evidence_summary, reviewed_explanation
+
+ROOT = Path(__file__).resolve().parents[1]
+CHECK_BY_ID = {check.id: check for check in CHECKS if check.provider == 'gcp'}
+SUPPLEMENTAL = json.loads((ROOT / 'tests/fixtures/gcp-reviewed-evidence.json').read_text())
+LEDGER = json.loads((ROOT / 'docs/evidence-reviews/gcp.json').read_text())
+LABELS = ('pass', 'fail', 'unknown', 'missing', 'malformed', 'manual', 'not_applicable', 'empty', 'denied')
+
+
+def test_enrollment_alone_does_not_explain_enforced_mfa():
+    summary = evidence_summary({'provider': 'gcp', 'check_id': 'gcp.identity.non_service_account_mfa',
+                                'status': 'FAIL', 'evidence': {'isEnrolledIn2Sv': True, 'isEnforcedIn2Sv': False}})
+    assert 'enrollment is enabled and enforcement is disabled' in summary
+    assert evidence_summary({'provider': 'gcp', 'check_id': 'gcp.identity.non_service_account_mfa',
+                             'status': 'PASS', 'evidence': {'isEnrolledIn2Sv': True}}).startswith(
+                                 CATALOG['gcp.identity.non_service_account_mfa']['missing_observation'])
+
+
+def test_inherited_bucket_read_grant_is_explained_directly():
+    summary = evidence_summary({'provider': 'gcp', 'check_id': 'gcp_pci_bucket_157fb0c69361',
+                                'status': 'FAIL', 'evidence': {'inherited_public_read_grants': [
+                                    {'scope': 'organizations/123', 'role': 'roles/storage.objectViewer'}]}})
+    assert summary.startswith('An ancestor IAM policy grants public read access to this bucket.')
+
+
+def findings():
+    for cid, check in CHECK_BY_ID.items():
+        case = CASES.get(cid, {})
+        for label in LABELS:
+            if label in case:
+                status, evidence = check.evaluate(copy.deepcopy(case[label]), copy.deepcopy(case.get(label + '_index', case.get('index', {}))))
+                yield pytest.param(dict(provider='gcp', check_id=cid, status=status, evidence=evidence), id=cid + '-' + label)
+        for i, captured in enumerate(SUPPLEMENTAL.get(cid, [])):
+            yield pytest.param(dict(provider='gcp', check_id=cid, **captured), id=cid + '-native-' + str(i))
+
+
+def test_catalog_and_ledger_account_for_every_native_and_retired_alias():
+    aliases = {old: new for old, new in CHECK_ALIASES.items() if old.startswith('gcp')}
+    assert set(CATALOG) == set(CHECK_BY_ID) | set(aliases)
+    assert set(LEDGER['checks']) == set(CATALOG)
+    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 525
+    for cid in CHECK_BY_ID:
+        assert CASES.get(cid) or SUPPLEMENTAL.get(cid), cid
+        assert LEDGER['checks'][cid]['branch_coverage'], cid
+    for cid, canonical in aliases.items():
+        assert CATALOG[cid]['alias_of'] == canonical
+        assert CATALOG[cid]['purpose'] == CATALOG[canonical]['purpose']
+
+
+@pytest.mark.parametrize('finding', list(findings()))
+def test_every_recorded_branch_has_a_brief_observation_and_specific_interpretation(finding):
+    original = copy.deepcopy(finding)
+    summary = evidence_summary(finding)
+    assert isinstance(summary, str) and summary.strip(), finding
+    assert CATALOG[finding['check_id']]['purpose'] in summary
+    assert '\n' not in summary
+    assert '{"' not in summary and "{'" not in summary
+    assert len(summary.split()) <= 100, summary
+    if finding['status'] in ('PASS', 'FAIL'):
+        assert not summary.startswith(CATALOG[finding['check_id']]['missing_observation']), finding
+    assert finding == original
+    assert reviewed_explanation(finding['check_id'], summary, finding['status']) == summary
+
+
+@pytest.mark.parametrize('cid', sorted(CHECK_BY_ID))
+@pytest.mark.parametrize('status', ['PASS', 'FAIL', 'UNKNOWN', 'DENIED', 'MANUAL', 'NOT_APPLICABLE', 'EMPTY'])
+def test_absent_evidence_never_creates_a_setting_or_grant(cid, status):
+    summary = evidence_summary(dict(provider='gcp', check_id=cid, status=status, evidence={}))
+    assert summary
+    if status in ('UNKNOWN', 'DENIED'):
+        assert summary.startswith(CATALOG[cid]['missing_observation'])
+    if status in ('PASS', 'FAIL') and not summary.startswith(CATALOG[cid]['missing_observation']):
+        assert not any(claim in summary.split(CATALOG[cid]['purpose'])[0] for claim in (' is enabled', ' is disabled', 'grants roles/', ' permits unencrypted'))
+
+
+def test_public_identity_explains_who_can_use_the_declared_grant():
+    finding = dict(provider='gcp', check_id='gcp.storage.no_public_iam', status='FAIL', evidence={'public_bindings': [{'role': 'roles/storage.objectViewer', 'members': ['allUsers']}]})
+    summary = evidence_summary(finding)
+    assert 'allUsers (anyone, including anonymous users)' in summary
+    assert 'roles/storage.objectViewer' in summary
+    assert 'other access controls still affect access' in summary
+
+
+def test_failed_scalar_is_read_from_the_recorded_value_and_field():
+    finding = dict(provider='gcp', check_id='gcp.compute.secure_boot', status='FAIL', evidence={'field': 'shieldedInstanceConfig.enableSecureBoot', 'configured': False})
+    assert evidence_summary(finding).startswith('Secure Boot is disabled.')
+    finding['evidence']['configured'] = True
+    assert evidence_summary(finding).startswith('Secure Boot is enabled.')
+    finding['evidence']['configured'] = 'false'
+    assert 'Secure Boot is disabled.' not in evidence_summary(finding)
+    finding['evidence'] = {'field': 'unrelated', 'configured': True}
+    assert 'Secure Boot is enabled.' not in evidence_summary(finding)

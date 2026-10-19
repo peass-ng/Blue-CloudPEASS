@@ -53,9 +53,16 @@ def test_engine_produces_privesc_findings_graph_coverage_and_stats(report):
     assert passrole["resource_id"] == ALICE and passrole["status"] == "FAIL"
     assert passrole["frameworks"] == ["HackTricks Cloud Best Practices"]
     assert passrole["resource_name"] == "alice" and passrole["evidence"]["granting_statements"]
+    permissions = passrole["evidence"]["granting_permissions"]
+    assert {(item["permission"].lower(), item["grant"].get("statement")) for item in permissions
+            if item["grant"].get("policy_name") == "alice-inline"} >= {
+        ("iam:passrole", 0), ("ec2:runinstances", 1)}
     assert {f["status"] for f in privesc} <= {"FAIL", "UNKNOWN"}
     graph = report["graphs"]["privesc"]
     assert graph["nodes"] and graph["edges"] and report["graphs"]["network"] == {"nodes": [], "edges": []}
+    edge = next(e for e in graph["edges"] if "aws-ec2-passrole-runinstances" in e["techniques"])
+    detail = next(d for d in edge["technique_details"] if d["id"] == "aws-ec2-passrole-runinstances")
+    assert any(item["permission"].lower() == "iam:passrole" for item in detail["granting_permissions"])
     assert any(c["level"] == "privesc" for c in report["coverage"]) or report["stats"]["privesc"]["catalog_errors"] == 0
     summary = next(c for c in report["coverage"] if c["level"] == "check" and c["check_id"] == "privesc")
     assert summary["by_status"].get("FAIL")
@@ -278,6 +285,9 @@ def test_api_principal_card_edges_carry_catalog_technique_details(api):
     assert "conditions" in detail and detail["edge_confidence"] == edge["confidence"]
     assert detail["evidence"] == edge["evidence_refs"] and any(r.get("policy_name") == "alice-inline" for r in detail["evidence"])
     assert card["technique_details"]["aws-ec2-passrole-runinstances"]["title"]
+    assert {p["permission"].lower() for p in detail["granting_permissions"]} >= {"iam:passrole", "ec2:runinstances"}
+    assert all(p["grant"]["statement_document"]["Resource"] == ["*"] for p in detail["granting_permissions"])
+
     role = client.get(f"/api/scans/{ident}/privesc/principals/{ADMIN_ROLE}").json()
     admin_edge = next(e for e in role["outgoing"] if "admin-equivalent" in e["techniques"])
     # Already-admin is a synthetic assessment label, not an escalation entry
@@ -288,3 +298,6 @@ def test_api_principal_card_edges_carry_catalog_technique_details(api):
     assert admin_detail["catalog_lookup_status"] == "exact_strict_privesc"
     assert admin_detail["edge_confidence"] == admin_edge["confidence"]
     assert admin_detail["evidence"] == admin_edge["evidence_refs"]
+    permission = admin_detail["granting_permissions"][0]
+    assert permission["permission"] == "*"
+    assert permission["grant"]["statement_document"] == {"Effect": "Allow", "Action": ["*"], "Resource": ["*"]}

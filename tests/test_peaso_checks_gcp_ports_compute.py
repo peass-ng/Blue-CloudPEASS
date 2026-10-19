@@ -38,7 +38,7 @@ def test_missing_ports_and_ipv6_broad_range_are_real_declared_ingress(query, por
 
 def test_stricter_sql_tls_mode_is_not_a_failure():
     check = REGISTRY[ports.REFERENCE_SPECS["sql_instance_require_ssl_enabled"]]
-    item = {"settings": {"ipConfiguration": {"sslMode": "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"}}}
+    item = {"databaseVersion": "POSTGRES_16", "settings": {"ipConfiguration": {"sslMode": "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"}}}
     assert check.evaluate(item, {})[0] == "PASS"
     assert item["settings"]["ipConfiguration"]["sslMode"] != "ENCRYPTED_ONLY"
 

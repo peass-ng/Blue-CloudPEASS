@@ -56,7 +56,7 @@ def normal_plan_fixture(state, refresh):
                 after['environment'][0]['variables']['PEASO_SOURCE_VERSION'] = 'f' * 64
             elif address.startswith('aws_ecs_task_definition.'):
                 container = json.loads(after['container_definitions'])
-                container[0]['image'] = '202533532952.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker@sha256:' + 'f' * 64
+                container[0]['image'] = '111122223333.dkr.ecr.us-east-1.amazonaws.com/hacktricks-cspm-worker@sha256:' + 'f' * 64
                 for item in container[0]['environment']:
                     if item['name'] == 'PEASO_SOURCE_VERSION':
                         item['value'] = 'f' * 64

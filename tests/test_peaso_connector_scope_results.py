@@ -219,6 +219,9 @@ def test_aws_account_results_include_denied_targets_and_selected_scope(monkeypat
             if account == two: raise PermissionError("denied")
             return {"Credentials": {"AccessKeyId": account, "SecretAccessKey": "inert", "SessionToken": "inert"}}
         def get_caller_identity(self): return {"Account": self.account, "Arn": f"arn:aws:iam::{self.account}:role/Audit"}
+        def list_attached_role_policies(self, **kwargs):
+            return {"AttachedPolicies": [{"PolicyArn": "arn:aws:iam::aws:policy/" + name}
+                    for name in ("ReadOnlyAccess", "SecurityAudit", "IAMAccessAnalyzerFullAccess")]}
         def __getattr__(self, name): return lambda **kwargs: {}
     monkeypatch.setattr("peaso.collectors.aws._session", lambda auth, region: (Session(), region))
     monkeypatch.setattr(boto3, "Session", lambda **kwargs: Session(kwargs["aws_access_key_id"]))

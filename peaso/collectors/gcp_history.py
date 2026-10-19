@@ -64,6 +64,8 @@ def cloudbuild_builds(collector, scope):
             substitutions = row.get('substitutions', {})
             if isinstance(substitutions, dict) and 'COMMIT_SHA' in substitutions:
                 kept['substitutions'] = {'COMMIT_SHA': substitutions['COMMIT_SHA']}
+            if isinstance(row.get('ConfigurationSecretIndicators'), dict):
+                kept['ConfigurationSecretIndicators'] = row['ConfigurationSecretIndicators']
             return {'name': name, **kept, '_representation': 'partial'}
         try:
             yield from collector.pages(f'https://cloudbuild.googleapis.com/v1/{scope}/locations/{location}/builds',

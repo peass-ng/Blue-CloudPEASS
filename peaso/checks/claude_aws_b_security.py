@@ -1041,6 +1041,8 @@ def v2_rules_c(item, index):
     note="WAFNonexistentItemException = not configured; both sources require a logging configuration (with LogDestinationConfigs).")
 def v2_logging(item, index):
     response = detail(item, "LoggingConfiguration")
+    if response and get(response, "LoggingConfiguration.ResourceArn", str) != get(item, "ARN", str):
+        raise Unavailable("WAF logging configuration identity mismatch")
     destinations = strings(get(response, "LoggingConfiguration.LogDestinationConfigs", list)) if response else []
     return result(not destinations, destinations=len(destinations))
 

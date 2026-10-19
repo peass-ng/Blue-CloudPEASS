@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import pytest
 from scripts import peaso_deploy_customer_policy as policy
+from tests.customer_policy_history import historical_role_bytes, historical_derivative_sha256
 
 EXPECTED={
  'appsync:GetWebACLForResource','appsync:ListResourcesForWebACL',
@@ -19,10 +20,10 @@ def test_default_companion_policy_preserves_three_existing_documents_and_scopes(
  root=policy.REVIEWED_ROLE_PATH.parent
  before_hash='a57cdf166f64c9ad96a367a48fb62e54754a58a89ed767119f9dc46c05e46980'
  after_hash='0eeba5694a23a8fd93013b1c15dd2bfbc3f0ec4de7554a9a9405b0306b611e6d'
- before_raw=(root/f'customer-role-{before_hash}.json').read_bytes()
- after_raw=(root/f'customer-role-{after_hash}.json').read_bytes()
- assert hashlib.sha256(before_raw).hexdigest()==before_hash
- assert hashlib.sha256(after_raw).hexdigest()==after_hash
+ before_raw=historical_role_bytes(before_hash)
+ after_raw=historical_role_bytes(after_hash)
+ assert hashlib.sha256(before_raw).hexdigest()==historical_derivative_sha256(before_hash)
+ assert hashlib.sha256(after_raw).hexdigest()==historical_derivative_sha256(after_hash)
  baseline=json.loads(before_raw);updated=json.loads(after_raw)
  assert set(updated['Resources'])-set(baseline['Resources'])=={'CspmConfigurationReadOnly4'}
  assert all(updated['Resources'][key]==value for key,value in baseline['Resources'].items())
@@ -63,7 +64,7 @@ def test_refresh_is_idempotent_and_preserves_role_and_every_existing_resource(tm
  assert all(updated['Resources'][key]==value for key,value in original['Resources'].items()
             if not key.startswith('CspmConfigurationReadOnly'))
  assert updated['Parameters']==original['Parameters'] and updated['Outputs']==original['Outputs']
- documents=[updated['Resources'][f'CspmConfigurationReadOnly{i}']['Properties']['PolicyDocument'] for i in range(1,5)]
+ documents=[r['Properties']['PolicyDocument'] for name,r in sorted(updated['Resources'].items()) if r['Type']=='AWS::IAM::ManagedPolicy']
  assert documents==policy.split_policy(policy.build_policy())
  assert all(policy.policy_size(document)<=6144 for document in documents)
  assert len(first)<=51200  # Existing customer-role source export budget.
@@ -80,7 +81,7 @@ def test_unknown_companion_mapping_fails_closed(monkeypatch):
 
 def test_companions_still_obey_the_existing_policy_count_budget(monkeypatch):
  monkeypatch.setattr(policy,'IAM_MANAGED_POLICIES_PER_ROLE',3)
- with pytest.raises(ValueError,match='existing IAM policy budgets'):
+ with pytest.raises(ValueError,match='existing IAM policy budgets|attached managed-policy quota'):
   policy.build_policy()
 
 

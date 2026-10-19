@@ -21,7 +21,7 @@ def teardown_module():
 
 def policy(action="s3:GetObject", resource="arn:aws:s3:::example/object", **extra):
     statement = {"Effect": "Allow", "Action": action, "Resource": resource, **extra}
-    return {"Arn": ARN, "PolicyVersionList": [{"IsDefaultVersion": True,
+    return {"Arn": ARN, "DefaultVersionId": "v1", "PolicyVersionList": [{"VersionId": "v1", "IsDefaultVersion": True,
         "Document": {"Statement": [statement]}}],
         "AttachedUsers": [], "AttachedGroups": [], "AttachedRoles": []}
 

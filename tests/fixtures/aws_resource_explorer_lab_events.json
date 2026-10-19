@@ -1,0 +1,267 @@
+[
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:36Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "CreateView",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "IncludedProperties": [
+        {
+          "Name": "tags"
+        }
+      ],
+      "Filters": "***",
+      "ViewName": "example-re-lab-0016b42e6016",
+      "Tags": "***"
+    },
+    "responseElements": {
+      "View": {
+        "Filters": "***",
+        "IncludedProperties": [
+          {
+            "Name": "tags"
+          }
+        ],
+        "LastUpdatedAt": "2026-10-19T17:00:36.859Z",
+        "Owner": "222233334444",
+        "Scope": "arn:aws:iam::222233334444:root",
+        "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa",
+        "ViewName": "example-re-lab-0016b42e6016"
+      }
+    },
+    "requestID": "46a341a3-effd-457b-8aa9-6d09e0807db9",
+    "eventID": "c56be6c9-b7ec-4658-9c87-6f3cddc66227",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:37Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "Search",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa",
+      "QueryString": "***",
+      "MaxResults": 10
+    },
+    "responseElements": null,
+    "requestID": "9f679ee3-fdfc-4024-a2d7-4ae9e719365c",
+    "eventID": "032471d9-ad66-4d1e-a0e2-36cf2c9e5342",
+    "readOnly": true,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::ResourceExplorer2::View",
+        "ARN": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:37Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "Search",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa",
+      "QueryString": "***",
+      "MaxResults": 10
+    },
+    "responseElements": null,
+    "requestID": "05dd891e-1ab5-4525-8666-3b97563ac0cc",
+    "eventID": "6e978ee7-c461-4122-bb0c-cee0fcfd5786",
+    "readOnly": true,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::ResourceExplorer2::View",
+        "ARN": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:37Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "UpdateView",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "IncludedProperties": [
+        {
+          "Name": "tags"
+        }
+      ],
+      "Filters": "***",
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+    },
+    "responseElements": {
+      "View": {
+        "Filters": "***",
+        "IncludedProperties": [
+          {
+            "Name": "tags"
+          }
+        ],
+        "LastUpdatedAt": "2026-10-19T17:00:37.215Z",
+        "Owner": "222233334444",
+        "Scope": "arn:aws:iam::222233334444:root",
+        "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa",
+        "ViewName": "example-re-lab-0016b42e6016"
+      }
+    },
+    "requestID": "d3cafa38-a976-46cb-9119-821c8aec7e76",
+    "eventID": "8b97cab5-5c08-4937-9e0f-f04a07275e8a",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:47Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "Search",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa",
+      "QueryString": "***",
+      "MaxResults": 10
+    },
+    "responseElements": null,
+    "requestID": "7bf0323f-a2a8-4281-b615-e5a35880ce0d",
+    "eventID": "c046b852-217d-41ce-b7ce-087937d401fa",
+    "readOnly": true,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::ResourceExplorer2::View",
+        "ARN": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:57Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "Search",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa",
+      "QueryString": "***",
+      "MaxResults": 10
+    },
+    "responseElements": null,
+    "requestID": "0f061259-adac-406b-9f3b-cda0b5cca0a5",
+    "eventID": "25bc2dd8-c03f-41ab-8846-363bd8f829d5",
+    "readOnly": true,
+    "resources": [
+      {
+        "accountId": "222233334444",
+        "type": "AWS::ResourceExplorer2::View",
+        "ARN": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+      }
+    ],
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:58Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "AssociateDefaultView",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+    },
+    "responseElements": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+    },
+    "requestID": "ee624cfb-2e76-4b48-b87f-2a77b31a56f4",
+    "eventID": "48f10c45-9d51-4e87-b46d-e4a50b0e4ea1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  },
+  {
+    "eventVersion": "1.11",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "eventTime": "2026-10-19T17:00:58Z",
+    "eventSource": "resource-explorer-2.amazonaws.com",
+    "eventName": "DeleteView",
+    "awsRegion": "us-east-2",
+    "requestParameters": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+    },
+    "responseElements": {
+      "ViewArn": "arn:aws:resource-explorer-2:us-east-2:222233334444:view/example-re-lab-0016b42e6016/7d28a8e9-6da7-49ee-bcad-b85966044ffa"
+    },
+    "requestID": "2630c9fe-a847-4e10-ac54-e15dab5b1de0",
+    "eventID": "baa9ab0b-1c61-4584-99dd-37c19d33cf61",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management"
+  }
+]

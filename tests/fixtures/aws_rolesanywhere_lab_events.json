@@ -1,0 +1,220 @@
+[
+  {
+    "eventTime": "2026-10-19T16:26:49Z",
+    "eventSource": "rolesanywhere.amazonaws.com",
+    "eventName": "DeleteAttributeMapping",
+    "awsRegion": "us-east-1",
+    "eventID": "bf6190db-ae8e-44cc-b0b6-f36feb36f398",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "profileId": "e83f25b1-ded5-45fa-88c0-2942ed6580f1",
+      "certificateField": "x509Issuer",
+      "specifiers": [
+        "*"
+      ]
+    },
+    "responseElements": {
+      "profile": {
+        "profileId": "e83f25b1-ded5-45fa-88c0-2942ed6580f1",
+        "sessionPolicy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}]}",
+        "roleArns": [
+          "arn:aws:iam::222233334444:role/example-ra-06b9f2e536-role"
+        ],
+        "managedPolicyArns": [],
+        "attributeMappings": [
+          {
+            "certificateField": "x509SAN",
+            "mappingRules": [
+              {
+                "specifier": "DNS"
+              },
+              {
+                "specifier": "URI"
+              },
+              {
+                "specifier": "Name/*"
+              }
+            ]
+          },
+          {
+            "certificateField": "x509Subject",
+            "mappingRules": [
+              {
+                "specifier": "*"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:26:53Z",
+    "eventSource": "rolesanywhere.amazonaws.com",
+    "eventName": "PutAttributeMapping",
+    "awsRegion": "us-east-1",
+    "eventID": "a553c6de-32c8-4f13-aa9a-e6063535243b",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "profileId": "e83f25b1-ded5-45fa-88c0-2942ed6580f1",
+      "certificateField": "x509Issuer",
+      "mappingRules": [
+        {
+          "specifier": "O"
+        }
+      ]
+    },
+    "responseElements": {
+      "profile": {
+        "profileId": "e83f25b1-ded5-45fa-88c0-2942ed6580f1",
+        "sessionPolicy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}]}",
+        "roleArns": [
+          "arn:aws:iam::222233334444:role/example-ra-06b9f2e536-role"
+        ],
+        "managedPolicyArns": [],
+        "attributeMappings": [
+          {
+            "certificateField": "x509Issuer",
+            "mappingRules": [
+              {
+                "specifier": "O"
+              }
+            ]
+          },
+          {
+            "certificateField": "x509SAN",
+            "mappingRules": [
+              {
+                "specifier": "DNS"
+              },
+              {
+                "specifier": "URI"
+              },
+              {
+                "specifier": "Name/*"
+              }
+            ]
+          },
+          {
+            "certificateField": "x509Subject",
+            "mappingRules": [
+              {
+                "specifier": "*"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:26:33Z",
+    "eventSource": "rolesanywhere.amazonaws.com",
+    "eventName": "UpdateProfile",
+    "awsRegion": "us-east-1",
+    "eventID": "856a7dde-d1c3-4a52-90ef-7cdaf82d6cf5",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "profileId": "e83f25b1-ded5-45fa-88c0-2942ed6580f1",
+      "sessionPolicy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}]}",
+      "managedPolicyArns": [],
+      "durationSeconds": 900,
+      "acceptRoleSessionName": true
+    },
+    "responseElements": {
+      "profile": {
+        "profileId": "e83f25b1-ded5-45fa-88c0-2942ed6580f1",
+        "sessionPolicy": "{\"Version\": \"2012-10-17\", \"Statement\": [{\"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}]}",
+        "roleArns": [
+          "arn:aws:iam::222233334444:role/example-ra-06b9f2e536-role"
+        ],
+        "managedPolicyArns": [],
+        "attributeMappings": [
+          {
+            "certificateField": "x509Issuer",
+            "mappingRules": [
+              {
+                "specifier": "*"
+              }
+            ]
+          },
+          {
+            "certificateField": "x509SAN",
+            "mappingRules": [
+              {
+                "specifier": "DNS"
+              },
+              {
+                "specifier": "URI"
+              },
+              {
+                "specifier": "Name/*"
+              }
+            ]
+          },
+          {
+            "certificateField": "x509Subject",
+            "mappingRules": [
+              {
+                "specifier": "*"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:26:35Z",
+    "eventSource": "rolesanywhere.amazonaws.com",
+    "eventName": "UpdateTrustAnchor",
+    "awsRegion": "us-east-1",
+    "eventID": "e8c1f0ae-310c-45bc-b33f-2545abddd52c",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "trustAnchorId": "7e772fd3-e045-4617-b8b8-f7737b595756",
+      "source": {
+        "sourceType": "CERTIFICATE_BUNDLE",
+        "sourceData": {
+          "x509CertificateData": "REDACTED_PUBLIC_CA_CERTIFICATE"
+        }
+      }
+    },
+    "responseElements": {
+      "trustAnchor": {
+        "trustAnchorId": "7e772fd3-e045-4617-b8b8-f7737b595756",
+        "source": {
+          "sourceType": "CERTIFICATE_BUNDLE"
+        }
+      }
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

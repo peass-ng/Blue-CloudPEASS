@@ -28,9 +28,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Remove unused disabled API targets; keep only the APIs the key\u2019s clients require."
+        "Remove unused disabled API targets; keep only the APIs the key’s clients require."
       ],
-      "summary": "Remove unused disabled API targets; keep only the APIs the key\u2019s clients require."
+      "summary": "Remove unused disabled API targets; keep only the APIs the key’s clients require."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -1333,7 +1333,7 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {},
       "predicate_qualname": "gke_man",
-      "predicate_source_sha256": "8933e18b7e95d00cc4db7bf8082756bfb84a71386f7845483b280d7ca4a7c3ce",
+      "predicate_source_sha256": "dfbc2917db37263eacbeb990471040991f85acad1015ffcff170f4f396a17fb6",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "high",
@@ -1719,9 +1719,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Choose a supported release channel compatible with the cluster\u2019s maintenance requirements."
+        "Choose a supported release channel compatible with the cluster’s maintenance requirements."
       ],
-      "summary": "Choose a supported release channel compatible with the cluster\u2019s maintenance requirements."
+      "summary": "Choose a supported release channel compatible with the cluster’s maintenance requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -2164,9 +2164,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Replace unnecessary Owner or Editor grants with the VM\u2019s required permissions."
+        "Replace unnecessary Owner or Editor grants with the VM’s required permissions."
       ],
-      "summary": "Replace unnecessary Owner or Editor grants with the VM\u2019s required permissions."
+      "summary": "Replace unnecessary Owner or Editor grants with the VM’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -3110,17 +3110,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*protoPayload.methodName\\s*=\\s*\"SetIamPolicy\"\\s*AND\\s*protoPayload.serviceData.policyDelta.auditConfigDeltas:\\*\\s*"
-        ]
+        "name": "audit_configuration_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_bucket_iam_changes": {
     "description_base_sha256": "8b836fd01bb81cfeaa66a783e97e1c99a649987ed76df2bcd4475006f03142be",
@@ -3172,17 +3176,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*resource\\.type\\s*=\\s*\"gcs_bucket\"\\s*AND\\s*protoPayload\\.methodName\\s*=\\s*\"storage\\.setIamPermissions\""
-        ]
+        "name": "bucket_iam_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_compute_configuration_changes": {
     "description_base_sha256": "bc2701018610ed2ec29b4ae37c5a8cad8c252f5619928f319890b5b166ce8f70",
@@ -3234,17 +3242,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "protoPayload\\.serviceName\\s*=\\s*\"compute\\.googleapis\\.com\""
-        ]
+        "name": "compute_configuration_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_custom_role_changes": {
     "description_base_sha256": "50f33727e66183886607b268d5e76bcca94218bef20f7c1f0283a684745b2919",
@@ -3296,17 +3308,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*resource\\.type\\s*=\\s*\"iam_role\"\\s*AND\\s*\\(\\s*protoPayload\\.methodName\\s*=\\s*\"google\\.iam\\.admin\\.v1\\.CreateRole\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"google\\.iam\\.admin\\.v1\\.DeleteRole\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"google\\.iam\\.admin\\.v1\\.UpdateRole\"\\s*"
-        ]
+        "name": "custom_role_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_custom_role_changes_with_undelete": {
     "description_base_sha256": "89e02335b82d17eeb1cd9a525f7de5133dbde451a345c17c56bea9f766dde5c5",
@@ -3358,17 +3374,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*resource\\.type\\s*=\\s*\"iam_role\"\\s*AND\\s*\\(\\s*protoPayload\\.methodName\\s*=\\s*\"google\\.iam\\.admin\\.v1\\.CreateRole\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"google\\.iam\\.admin\\.v1\\.DeleteRole\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"google\\.iam\\.admin\\.v1\\.UpdateRole\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"google\\.iam\\.admin\\.v1\\.UndeleteRole\"\\s*\\)"
-        ]
+        "name": "custom_role_changes_with_undelete"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_firewall_rule_changes": {
     "description_base_sha256": "edd3f82d72355da0a74d2ac52c5fc9d5ee4714cfd8a963c6f94eeb94529857f2",
@@ -3420,17 +3440,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*resource\\.type\\s*=\\s*\"gce_firewall_rule\"\\s*AND\\s*\\(\\s*protoPayload\\.methodName\\s*:\\s*\"compute\\.firewalls\\.patch\"\\s*OR\\s*protoPayload\\.methodName\\s*:\\s*\"compute\\.firewalls\\.insert\"\\s*OR\\s*protoPayload\\.methodName\\s*:\\s*\"compute\\.firewalls\\.delete\"\\s*\\)"
-        ]
+        "name": "firewall_rule_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_network_changes": {
     "description_base_sha256": "0cc2119ba13f3e8a42e1098fcdcc3c77ff77f6d8be710079b84cb9906ea1574b",
@@ -3482,17 +3506,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "resource\\.type\\s*=\\s*\"gce_network\"\\s+AND\\s+\\s*\\(\\s*protoPayload\\.methodName\\s*:\\s*\"compute\\.networks\\.insert\"\\s+OR\\s+protoPayload\\.methodName\\s*:\\s*\"compute\\.networks\\.patch\"\\s+OR\\s+protoPayload\\.methodName\\s*:\\s*\"compute\\.networks\\.delete\"\\s+OR\\s+protoPayload\\.methodName\\s*:\\s*\"compute\\.networks\\.removePeering\"\\s+OR\\s+protoPayload\\.methodName\\s*:\\s*\"compute\\.networks\\.addPeering\"\\s*\\)\\s*"
-        ]
+        "name": "network_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_network_changes_beta_methods": {
     "description_base_sha256": "95c006f7520d850622df53c847562c404bc0627d368cd92c80e97cdd3637cfc7",
@@ -3544,17 +3572,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*resource\\.type\\s*=\\s*gce_network\\s*AND\\s*\\(\\s*protoPayload\\.methodName\\s*=\\s*\"beta\\.compute\\.networks\\.insert\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"beta\\.compute\\.networks\\.patch\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"v1\\.compute\\.networks\\.delete\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"v1\\.compute\\.networks\\.removePeering\"\\s*OR\\s*protoPayload\\.methodName\\s*=\\s*\"v1\\.compute\\.networks\\.addPeering\"\\s*\\)"
-        ]
+        "name": "network_changes_beta_methods"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_project_ownership_changes": {
     "description_base_sha256": "89df7e32b3119bc88db4f7a92b5d9d4ee0866226077e6dda556170fd8162f71a",
@@ -3606,17 +3638,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*\\(protoPayload.serviceName\\s*=\\s*\"cloudresourcemanager.googleapis.com\"\\s*\\)\\s*AND\\s*\\(\\s*ProjectOwnership\\s*OR\\s*projectOwnerInvitee\\s*\\)\\s*OR\\s*\\(\\s*protoPayload.serviceData.policyDelta.bindingDeltas.action\\s*=\\s*\"REMOVE\"\\s*AND\\s*protoPayload.serviceData.policyDelta.bindingDeltas.role\\s*=\\s*\"roles/owner\"\\s*\\)\\s*OR\\s*\\(\\s*protoPayload.serviceData.policyDelta.bindingDeltas.action\\s*=\\s*\"ADD\"\\s*AND\\s*protoPayload.serviceData.policyDelta.bindingDeltas.role\\s*=\\s*\"roles/owner\"\\s*\\)\\s*"
-        ]
+        "name": "project_ownership_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_route_changes": {
     "description_base_sha256": "7013a7e3e46484b7868cb0a945f2268ffc3f494f5d6505b9213ffa29d81861c8",
@@ -3668,17 +3704,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*resource\\.type\\s*=\\s*\"gce_route\"\\s*AND\\s*\\(\\s*protoPayload\\.methodName\\s*:\\s*\"compute\\.routes\\.delete\"\\s*OR\\s*protoPayload\\.methodName\\s*:\\s*\"compute\\.routes\\.insert\"\\s*\\)"
-        ]
+        "name": "route_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.metric_alert_sql_instance_configuration_changes": {
     "description_base_sha256": "6434bd470da29eac05a0b5d377678d0b6bcf1c504c526f4e0df76c21ce635218",
@@ -3730,17 +3770,21 @@ ROWS = json.loads(r'''
       "kind": "project",
       "module": "peaso.checks.claude_gcp_k8s_common",
       "predicate_bindings": {
-        "patterns": [
-          "\\s*protoPayload.methodName\\s*=\\s*\"cloudsql.instances.update\"\\s*"
-        ]
+        "name": "sql_instance_configuration_changes"
       },
       "predicate_qualname": "metric_alert.<locals>.evaluate",
-      "predicate_source_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb",
+      "predicate_source_sha256": "5f517c6613a84c14457bb8ad40df037bf233995633b6a339c63c4ad48d49c169",
       "source_qualname": "_register.<locals>.decorator.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found."
+    "static_observed_sentence": "No matching same-project metric and enabled alert declaration was found.",
+    "native_semantic_followup": {
+      "report": "metric-alert-semantic-followup.json",
+      "helper": "peaso/checks/gcp_metric_alert_native.py",
+      "helper_sha256": "3573b825861e476ff5627840ea21ee445d17e72ba245e5f52c1d4183d35ac91f",
+      "prior_predicate_sha256": "ea46d16ec5ddf934820876455e817bb231546bdbc42145e33de47717dd7b66eb"
+    }
   },
   "gcp.claude.logging.project_sink_all_entries": {
     "description_base_sha256": "1dc6a3139b1e47d280de4b95f04bc9ae330e30c8e572ca858b535e6d7440920d",
@@ -4451,7 +4495,7 @@ ROWS = json.loads(r'''
   "gcp.claude.secret.rotation_90_days": {
     "description_base_sha256": "fae99f955291ad7b9bf6bddbc95fc6f0233364ead38bd46e261a2c72b776677a",
     "description_fields": {
-      "description": "Checks the secret\u2019s declared rotation notification period and whether nextRotationTime is overdue."
+      "description": "Checks the secret’s declared rotation notification period and whether nextRotationTime is overdue."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -4501,7 +4545,7 @@ ROWS = json.loads(r'''
   "gcp.claude.service_account.recently_used": {
     "description_base_sha256": "7d91faef464299777558a5c7d3349fdb39c86a51c972da5c817086784dc74cd3",
     "description_fields": {
-      "description": "Checks Policy Analyzer\u2019s last authentication observation for an enabled service account against 180 elapsed days."
+      "description": "Checks Policy Analyzer’s last authentication observation for an enabled service account against 180 elapsed days."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -4602,7 +4646,7 @@ ROWS = json.loads(r'''
   "gcp.claude.service_account_key.recently_used": {
     "description_base_sha256": "b566880d8fe2ddc523ea3ba650f835199ce2e5c6a03f99036f30566ef8d69f5f",
     "description_fields": {
-      "description": "Checks user-managed enabled keys\u2019 last authentication observation against 180 elapsed days."
+      "description": "Checks user-managed enabled keys’ last authentication observation against 180 elapsed days."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -5892,7 +5936,7 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.claude2_gcp_common",
       "predicate_bindings": {},
       "predicate_qualname": "sink_all_log_entries",
-      "predicate_source_sha256": "f0af3c92add53cd681722362d8e7e7c87c58f49f71e98bff22c7953deb9afad1",
+      "predicate_source_sha256": "9872bae0f1f8b46367428810e0abe80655b82ee695860abebf2fda47caa89e7e",
       "source_qualname": "gcp.<locals>.apply.<locals>.evaluate"
     },
     "reviewed_severity": "low",
@@ -6071,7 +6115,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The TCP ingress sources are outside the profile\u2019s IAP and health-check list."
+    "static_observed_sentence": "The TCP ingress sources are outside the profile’s IAP and health-check list."
   },
   "gcp.gap.iam_user_managed_sa_no_admin_roles": {
     "description_base_sha256": "7e52133581538ce6dfb4555d93e13af4056443dfd868507f6aeab8699f7044ca",
@@ -6081,12 +6125,12 @@ ROWS = json.loads(r'''
     "remediation_base_sha256": "f8e73327dc7365711dd6e0acd5bac115ce093a0d85742ae740d4512780f22c86",
     "remediation_fields": {
       "caveats": [
-        "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access. Role-name matching does not resolve every role\u2019s permissions."
+        "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access. Role-name matching does not resolve every role’s permissions."
       ],
       "steps": [
-        "Replace unnecessary administrative role declarations with the workload\u2019s required permissions."
+        "Replace unnecessary administrative role declarations with the workload’s required permissions."
       ],
-      "summary": "Replace unnecessary administrative role declarations with the workload\u2019s required permissions."
+      "summary": "Replace unnecessary administrative role declarations with the workload’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -6569,7 +6613,7 @@ ROWS = json.loads(r'''
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
       "caveats": [
-        "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access. Application defaults do not determine every deployed version\u2019s identity."
+        "Bindings and conditions are reported as declarations; inherited permissions, deny policies and principal access boundaries can change effective access. Application defaults do not determine every deployed version’s identity."
       ],
       "cli": [],
       "field_binding": {
@@ -6798,9 +6842,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Use a dedicated service account with only the workload\u2019s required permissions."
+        "Use a dedicated service account with only the workload’s required permissions."
       ],
-      "summary": "Use a dedicated service account with only the workload\u2019s required permissions."
+      "summary": "Use a dedicated service account with only the workload’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -6904,9 +6948,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Use a dedicated service account with only the workload\u2019s required permissions."
+        "Use a dedicated service account with only the workload’s required permissions."
       ],
-      "summary": "Use a dedicated service account with only the workload\u2019s required permissions."
+      "summary": "Use a dedicated service account with only the workload’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -7010,9 +7054,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Use a dedicated Composer identity with only the environment\u2019s required permissions."
+        "Use a dedicated Composer identity with only the environment’s required permissions."
       ],
-      "summary": "Use a dedicated Composer identity with only the environment\u2019s required permissions."
+      "summary": "Use a dedicated Composer identity with only the environment’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -7060,9 +7104,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Use a dedicated runtime service account with only the function\u2019s required permissions."
+        "Use a dedicated runtime service account with only the function’s required permissions."
       ],
-      "summary": "Use a dedicated runtime service account with only the function\u2019s required permissions."
+      "summary": "Use a dedicated runtime service account with only the function’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -7967,9 +8011,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Attach dedicated identities with only the notebook workload\u2019s required permissions."
+        "Attach dedicated identities with only the notebook workload’s required permissions."
       ],
-      "summary": "Attach dedicated identities with only the notebook workload\u2019s required permissions."
+      "summary": "Attach dedicated identities with only the notebook workload’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -8175,40 +8219,43 @@ ROWS = json.loads(r'''
   "gcp.identity.non_service_account_mfa": {
     "description_base_sha256": "b94a510dac878285adfcb3bbd031cc3698fe069f9bc7bad8e8c053b308445128",
     "description_fields": {
-      "description": "Checks active Workspace users with declared Cloud IAM access for isEnrolledIn2Sv."
+      "description": "Checks native two-step verification enrollment and enforcement for active, customer-bound Directory users directly declared in Cloud IAM."
     },
     "remediation_base_sha256": "d4f98eac9f7140894902c2d51572f6ff835e39074459f6ea8f03991855d8a6b2",
     "remediation_fields": {
       "caveats": [
-        "Enrollment is not proof that every sign-in required MFA; indirect access needs complete principal expansion."
+        "Enrollment and enforcement are Directory configuration; sign-in behavior and indirect IAM access remain separate."
       ],
       "cli": [],
       "review_status": "approved",
       "steps": [
-        "Enroll the affected human identity in two-step verification and separately review enforcement."
+        "Enroll the affected human identity in two-step verification and require enforcement in the Admin console."
       ],
-      "summary": "Enroll the affected human identity in two-step verification and separately review enforcement."
+      "summary": "Enroll the affected human identity in two-step verification and require enforcement in the Admin console."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
       "closure": {
+        "Unavailable": {
+          "callable": "Unavailable"
+        },
         "_bindings": {
           "callable": "_load_52.<locals>._bindings"
         },
+        "_directory_user": {
+          "callable": "_load_52.<locals>._directory_user"
+        },
         "_iam_members": {
           "callable": "_load_52.<locals>._iam_members"
-        },
-        "_member": {
-          "callable": "_load_52.<locals>._member"
-        },
-        "_policy": {
-          "callable": "_load_52.<locals>._policy"
         },
         "_rows": {
           "callable": "_load_52.<locals>._rows"
         },
         "get": {
           "callable": "get"
+        },
+        "re": {
+          "type": "module"
         },
         "result": {
           "callable": "result"
@@ -8220,23 +8267,26 @@ ROWS = json.loads(r'''
       "kind": "workspace_user",
       "module": "peaso.checks.batch_remaining_gcp",
       "predicate_bindings": {
+        "Unavailable": {
+          "callable": "Unavailable"
+        },
         "_bindings": {
           "callable": "_load_52.<locals>._bindings"
         },
+        "_directory_user": {
+          "callable": "_load_52.<locals>._directory_user"
+        },
         "_iam_members": {
           "callable": "_load_52.<locals>._iam_members"
-        },
-        "_member": {
-          "callable": "_load_52.<locals>._member"
-        },
-        "_policy": {
-          "callable": "_load_52.<locals>._policy"
         },
         "_rows": {
           "callable": "_load_52.<locals>._rows"
         },
         "get": {
           "callable": "get"
+        },
+        "re": {
+          "type": "module"
         },
         "result": {
           "callable": "result"
@@ -8246,17 +8296,17 @@ ROWS = json.loads(r'''
         }
       },
       "predicate_qualname": "_load_52.<locals>.non_service_account_mfa",
-      "predicate_source_sha256": "8c907d2fd0d90980607a7d15c73a7e787692c8c9208d7ba36ab60a6732ba8ba9",
+      "predicate_source_sha256": "50cbbdc399eee40571270f10471855db37bfa5127b30028faefaa73f4c635b99",
       "source_qualname": "_load_52.<locals>.non_service_account_mfa"
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "high",
-    "static_observed_sentence": "The in-scope Workspace user is not enrolled in two-step verification."
+    "static_observed_sentence": "The directly observed IAM user lacks two-step verification enrollment or enforcement."
   },
   "gcp.identity.super_admin_recovery_group": {
     "description_base_sha256": "86ca35dcdee791efa621202797f5bf5a048b9aebd43af08dfd23ec15c44b93c9",
     "description_fields": {
-      "description": "Joins active Workspace super-admin users to recovery groups and counts distinct ACTIVE members."
+      "description": "Joins assigned super administrators to same-customer recovery groups and counts distinct direct members matched to active Directory users."
     },
     "remediation_base_sha256": "72b491b2adcfc2713386b94bee0212ceb444df2baff2d66a0998f68e39f6df9f",
     "remediation_fields": {
@@ -8273,11 +8323,14 @@ ROWS = json.loads(r'''
     "review_batch": "native-families-1",
     "reviewed_binding": {
       "closure": {
-        "_full_omitted": {
-          "callable": "_load_52.<locals>._full_omitted"
+        "Unavailable": {
+          "callable": "Unavailable"
         },
-        "_member": {
-          "callable": "_load_52.<locals>._member"
+        "_directory_user": {
+          "callable": "_load_52.<locals>._directory_user"
+        },
+        "_list": {
+          "callable": "_load_52.<locals>._list"
         },
         "_rows": {
           "callable": "_load_52.<locals>._rows"
@@ -8285,24 +8338,30 @@ ROWS = json.loads(r'''
         "_super_admin_ids": {
           "callable": "_load_52.<locals>._super_admin_ids"
         },
+        "datetime": {
+          "callable": "datetime"
+        },
         "get": {
           "callable": "get"
         },
+        "re": {
+          "type": "module"
+        },
         "result": {
           "callable": "result"
-        },
-        "unknown": {
-          "callable": "unknown"
         }
       },
       "kind": "workspace_user",
       "module": "peaso.checks.batch_remaining_gcp",
       "predicate_bindings": {
-        "_full_omitted": {
-          "callable": "_load_52.<locals>._full_omitted"
+        "Unavailable": {
+          "callable": "Unavailable"
         },
-        "_member": {
-          "callable": "_load_52.<locals>._member"
+        "_directory_user": {
+          "callable": "_load_52.<locals>._directory_user"
+        },
+        "_list": {
+          "callable": "_load_52.<locals>._list"
         },
         "_rows": {
           "callable": "_load_52.<locals>._rows"
@@ -8310,18 +8369,21 @@ ROWS = json.loads(r'''
         "_super_admin_ids": {
           "callable": "_load_52.<locals>._super_admin_ids"
         },
+        "datetime": {
+          "callable": "datetime"
+        },
         "get": {
           "callable": "get"
         },
+        "re": {
+          "type": "module"
+        },
         "result": {
           "callable": "result"
-        },
-        "unknown": {
-          "callable": "unknown"
         }
       },
       "predicate_qualname": "_load_52.<locals>.super_admin_recovery_group",
-      "predicate_source_sha256": "2678422138737208c2c483731a55840d011c595d1d886866d39ae966da432400",
+      "predicate_source_sha256": "bb844feb23d638990eb1739079019b9fc6375e3dba700e40baf1654c1f5a6415",
       "source_qualname": "_load_52.<locals>.super_admin_recovery_group"
     },
     "reviewed_severity": "medium",
@@ -8594,9 +8656,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Configure log_error_verbosity for the database\u2019s logging requirements."
+        "Configure log_error_verbosity for the database’s logging requirements."
       ],
-      "summary": "Configure log_error_verbosity for the database\u2019s logging requirements."
+      "summary": "Configure log_error_verbosity for the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -8652,9 +8714,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Configure log_min_error_statement for the database\u2019s logging requirements."
+        "Configure log_min_error_statement for the database’s logging requirements."
       ],
-      "summary": "Configure log_min_error_statement for the database\u2019s logging requirements."
+      "summary": "Configure log_min_error_statement for the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -8704,9 +8766,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Configure log_min_messages for the database\u2019s logging requirements."
+        "Configure log_min_messages for the database’s logging requirements."
       ],
-      "summary": "Configure log_min_messages for the database\u2019s logging requirements."
+      "summary": "Configure log_min_messages for the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -8829,7 +8891,7 @@ ROWS = json.loads(r'''
   "gcp.ports.apikeys_api_restricted_with_gemini_api": {
     "description_base_sha256": "9d558c2a1f67d0c7bad963a5603e6d637a074e34b57b26366e06c1275b7218b4",
     "description_fields": {
-      "description": "Checks API-key target restrictions when the project\u2019s Gemini API is enabled."
+      "description": "Checks API-key target restrictions when the project’s Gemini API is enabled."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -8876,7 +8938,7 @@ ROWS = json.loads(r'''
   "gcp.ports.app_engine_application_iap_enabled": {
     "description_base_sha256": "9338ff64c42a17b7057891334bddb90ba1f2a673177208266cf9ebd65c979ea1",
     "description_fields": {
-      "description": "Checks the identified App Engine application\u2019s IAP enabled setting."
+      "description": "Checks the identified App Engine application’s IAP enabled setting."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -9085,7 +9147,7 @@ ROWS = json.loads(r'''
   "gcp.ports.cloud_run_not_publicly_accessible": {
     "description_base_sha256": "f8915d0f0b61e2ac7fa995fd219d572750790a5d39d62f0b7fe52c66e674d866",
     "description_fields": {
-      "description": "Checks Cloud Run\u2019s ingress boundary for INGRESS_TRAFFIC_ALL."
+      "description": "Checks Cloud Run’s ingress boundary for INGRESS_TRAFFIC_ALL."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -9176,7 +9238,7 @@ ROWS = json.loads(r'''
   "gcp.ports.cloudfunction_function_no_ingress_settings_allow_all": {
     "description_base_sha256": "12c1adaa534a7925612f8b369adbd9c544114b1535f4314e56df338cd0346677",
     "description_fields": {
-      "description": "Checks function ingress for ALLOW_ALL, including the explicit unspecified enum\u2019s default.",
+      "description": "Checks function ingress for ALLOW_ALL, including the explicit unspecified enum’s default.",
       "description_correction": {
         "base_row_sha256": "12c1adaa534a7925612f8b369adbd9c544114b1535f4314e56df338cd0346677",
         "change": "Unknown ingress strings remain UNKNOWN; explicit INGRESS_SETTINGS_UNSPECIFIED uses the documented ALLOW_ALL default.",
@@ -9862,9 +9924,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Enable DNS query logging on the network\u2019s intended DNS policy."
+        "Enable DNS query logging on the network’s intended DNS policy."
       ],
-      "summary": "Enable DNS query logging on the network\u2019s intended DNS policy."
+      "summary": "Enable DNS query logging on the network’s intended DNS policy."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -10026,7 +10088,7 @@ ROWS = json.loads(r'''
   "gcp.ports.dataproc_cluster_encryption_with_cmek": {
     "description_base_sha256": "7d7131807d210b8ac15b5db768af4fa275c60f302422da2d5b68bf8e10186049",
     "description_fields": {
-      "description": "Checks Dataproc\u2019s declared persistent-disk customer-managed key reference."
+      "description": "Checks Dataproc’s declared persistent-disk customer-managed key reference."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -10049,9 +10111,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Configure the cluster\u2019s disk encryption key if required, after reviewing replacement and access requirements."
+        "Configure the cluster’s disk encryption key if required, after reviewing replacement and access requirements."
       ],
-      "summary": "Configure the cluster\u2019s disk encryption key if required, after reviewing replacement and access requirements."
+      "summary": "Configure the cluster’s disk encryption key if required, after reviewing replacement and access requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -10225,7 +10287,7 @@ ROWS = json.loads(r'''
         ]
       },
       "predicate_qualname": "iap_sources.<locals>.evaluate",
-      "predicate_source_sha256": "bed3a2284b4e73471827b7fcd23a2ba73ef98baa2ba7bda1b65b2d5aaeff8426",
+      "predicate_source_sha256": "1e06218e38d643a203e3bf09f93fb228152a52f61ab1529c099c9011c0888731",
       "source_qualname": "iap_sources.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
@@ -10285,7 +10347,7 @@ ROWS = json.loads(r'''
         ]
       },
       "predicate_qualname": "iap_sources.<locals>.evaluate",
-      "predicate_source_sha256": "bed3a2284b4e73471827b7fcd23a2ba73ef98baa2ba7bda1b65b2d5aaeff8426",
+      "predicate_source_sha256": "1e06218e38d643a203e3bf09f93fb228152a52f61ab1529c099c9011c0888731",
       "source_qualname": "iap_sources.<locals>.evaluate"
     },
     "reviewed_severity": "medium",
@@ -10407,9 +10469,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Replace broad Owner or Editor grants with the function\u2019s required permissions."
+        "Replace broad Owner or Editor grants with the function’s required permissions."
       ],
-      "summary": "Replace broad Owner or Editor grants with the function\u2019s required permissions."
+      "summary": "Replace broad Owner or Editor grants with the function’s required permissions."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -11029,7 +11091,7 @@ ROWS = json.loads(r'''
   "gcp.ports.kubernetes_cluster_auto_repair_enabled": {
     "description_base_sha256": "442188ffab64e36d8a839cf51c85f6040b4dc9841daea458ab588e08d1e6c28a",
     "description_fields": {
-      "description": "Checks each node pool\u2019s autoRepair management setting."
+      "description": "Checks each node pool’s autoRepair management setting."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -11079,7 +11141,7 @@ ROWS = json.loads(r'''
   "gcp.ports.kubernetes_cluster_auto_upgrade_enabled": {
     "description_base_sha256": "cbaad18a0619f634a9e94f679d0b43bb289b87db8cbdb72046ae174d743edd65",
     "description_fields": {
-      "description": "Checks each node pool\u2019s autoUpgrade management setting."
+      "description": "Checks each node pool’s autoUpgrade management setting."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -11129,7 +11191,7 @@ ROWS = json.loads(r'''
   "gcp.ports.kubernetes_cluster_intra_node_visibility_enabled": {
     "description_base_sha256": "259d2df06d5299ea69479a18f56b8d8d9e20657b09ae6a127430277895d6553b",
     "description_fields": {
-      "description": "Checks the cluster\u2019s intra-node visibility flag, including known false omission."
+      "description": "Checks the cluster’s intra-node visibility flag, including known false omission."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -11299,7 +11361,7 @@ ROWS = json.loads(r'''
   "gcp.ports.kubernetes_cluster_shielded_instance_integrity_monitoring_enabled": {
     "description_base_sha256": "cd286d1154d03f50f20cf33675085fc013cde7edce6abc9ac8d486476ee3d8a2",
     "description_fields": {
-      "description": "Checks each node pool\u2019s integrity-monitoring setting, including its true omission default."
+      "description": "Checks each node pool’s integrity-monitoring setting, including its true omission default."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -11361,7 +11423,7 @@ ROWS = json.loads(r'''
   "gcp.ports.kubernetes_cluster_shielded_node_secure_boot_enabled": {
     "description_base_sha256": "6f95b17c3adb9d4d15bdda7239741d14cb43b143e25eb815d9bd6dbcf774ae22",
     "description_fields": {
-      "description": "Checks each node pool\u2019s Secure Boot setting, treating known omission as false."
+      "description": "Checks each node pool’s Secure Boot setting, treating known omission as false."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12190,7 +12252,7 @@ ROWS = json.loads(r'''
   "gcp.ports.reference_sql_pg_min_duration": {
     "description_base_sha256": "a6bf621741ae293d7c650989c708701795a4acc11e08350a01adf3257aa6b22f",
     "description_fields": {
-      "description": "Compares POSTGRES flag log_min_duration_statement with '-1', applying this profile\u2019s omission rule."
+      "description": "Compares POSTGRES flag log_min_duration_statement with '-1', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12240,17 +12302,17 @@ ROWS = json.loads(r'''
         "flag": "log_min_duration_statement"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_min_duration_statement declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_min_duration_statement declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sql_pg_min_error": {
     "description_base_sha256": "3525d84c02256e4c10f76405309d17cee13e7e886d419903c3b08beb5e4fbe52",
     "description_fields": {
-      "description": "Compares POSTGRES flag log_min_error_statement with 'error', applying this profile\u2019s omission rule."
+      "description": "Compares POSTGRES flag log_min_error_statement with 'error', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12300,17 +12362,17 @@ ROWS = json.loads(r'''
         "flag": "log_min_error_statement"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_min_error_statement declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_min_error_statement declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sql_pg_min_messages": {
     "description_base_sha256": "785144142df5b6040c2fd0696c6bbb965b72a54eadb0ce66c0d5757f7043e2fe",
     "description_fields": {
-      "description": "Compares POSTGRES flag log_min_messages with 'WARNING' or 'ERROR' or 'LOG' or 'FATAL' or 'PANIC' or 'warning' or 'error' or 'log' or 'fatal' or 'panic', applying this profile\u2019s omission rule."
+      "description": "Compares POSTGRES flag log_min_messages with 'WARNING' or 'ERROR' or 'LOG' or 'FATAL' or 'PANIC' or 'warning' or 'error' or 'log' or 'fatal' or 'panic', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12378,29 +12440,38 @@ ROWS = json.loads(r'''
         "flag": "log_min_messages"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_min_messages declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_min_messages declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sql_ssl_connections": {
     "description_base_sha256": "1431994006a4607531997f5eb29f1f96fabc62f5477b3b2af94f6c96de483d37",
     "description_fields": {
-      "description": "Checks Cloud SQL sslMode, using requireSsl only when the mode is unspecified."
+      "description": "Checks native Cloud SQL encryption enforcement, including engine-specific SSL modes and the observed legacy fallback.",
+      "pass_when": "PASS for supported native encryption-enforcing SSL modes or an explicit legacy requireSsl=true when the mode is absent or unspecified.",
+      "fail_when": "FAIL for a supported allow-unencrypted mode or explicit legacy requireSsl=false; missing, conflicting or unsupported observations remain UNKNOWN.",
+      "description_correction": {
+        "base_row_sha256": "1431994006a4607531997f5eb29f1f96fabc62f5477b3b2af94f6c96de483d37",
+        "change": "Validate engine/mode applicability and compatible native flag pairs; preserve explicit legacy encryption enforcement and keep missing or conflicting observations UNKNOWN.",
+        "prior_predicate_sha256": "3a5f3e585d7924c7028fb65f2cc39d1ed04c55243e99a6fbe20972002dfb256b",
+        "reference": "https://cloud.google.com/sql/docs/postgres/admin-api/rest/v1/instances#IpConfiguration",
+        "version": "gcp-native-sql-transport-review-v1"
+      }
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
       "caveats": [
-        "Client-certificate authentication is separate; explicit unencrypted-and-encrypted mode overrides the legacy flag."
+        "Unsupported engine/mode pairs or conflicting flags remain UNKNOWN; runtime TLS and client authentication are outside this check."
       ],
       "cli": [],
       "field_binding": {
         "fields": [
-          "settings.ipConfiguration",
-          "settings.ipConfiguration.requireSsl",
-          "settings.ipConfiguration.sslMode"
+          "databaseVersion",
+          "settings.ipConfiguration.sslMode",
+          "settings.ipConfiguration.requireSsl"
         ],
         "kind": "sql_instance",
         "target": "resource"
@@ -12424,17 +12495,23 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.gcp_ports_perimeter",
       "predicate_bindings": {},
       "predicate_qualname": "sql_ssl",
-      "predicate_source_sha256": "3a5f3e585d7924c7028fb65f2cc39d1ed04c55243e99a6fbe20972002dfb256b",
+      "predicate_source_sha256": "261e43839b630ca1802fd07ae434982405fadb7e1e0f6024f76bd1d95741a90c",
       "source_qualname": "sql_ssl"
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "Cloud SQL permits unencrypted client connections."
+    "static_observed_sentence": "Cloud SQL permits unencrypted client connections.",
+    "native_semantic_followup": {
+      "report": "sql-transport-semantic-followup.json",
+      "helper": "peaso/checks/gcp_sql_transport_native.py",
+      "helper_sha256": "51f4f29c98bb0c5bbf593d4eb54ca277f437893c9de75b4197b7aca4378afb86",
+      "prior_predicate_sha256": "3a5f3e585d7924c7028fb65f2cc39d1ed04c55243e99a6fbe20972002dfb256b"
+    }
   },
   "gcp.ports.reference_sqlserver_contained_database_authentication": {
     "description_base_sha256": "54199a81b5d192b0b650cce8ce0be5f19af574fe03613f8d7524affc4b7d8897",
     "description_fields": {
-      "description": "Compares SQLSERVER flag contained database authentication with 'off', applying this profile\u2019s omission rule."
+      "description": "Compares SQLSERVER flag contained database authentication with 'off', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12484,17 +12561,17 @@ ROWS = json.loads(r'''
         "flag": "contained database authentication"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The contained database authentication declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The contained database authentication declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sqlserver_cross_db_ownership_chaining": {
     "description_base_sha256": "d2e2d84e2e599255f634680b5b9a7fc68f60b48224fe91fab82e2f18d761453f",
     "description_fields": {
-      "description": "Compares SQLSERVER flag cross db ownership chaining with 'off', applying this profile\u2019s omission rule."
+      "description": "Compares SQLSERVER flag cross db ownership chaining with 'off', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12544,17 +12621,17 @@ ROWS = json.loads(r'''
         "flag": "cross db ownership chaining"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The cross db ownership chaining declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The cross db ownership chaining declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sqlserver_external_scripts_enabled": {
     "description_base_sha256": "5fd4fcea3a589643856d1299ee053be718152cad5a1082ac91692250747fb10a",
     "description_fields": {
-      "description": "Compares SQLSERVER flag external scripts enabled with 'off', applying this profile\u2019s omission rule."
+      "description": "Compares SQLSERVER flag external scripts enabled with 'off', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12604,17 +12681,17 @@ ROWS = json.loads(r'''
         "flag": "external scripts enabled"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The external scripts enabled declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The external scripts enabled declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sqlserver_remote_access": {
     "description_base_sha256": "efad24543971361e54343c7286ff9ff1311eee39ad11521d75cdc000b3112742",
     "description_fields": {
-      "description": "Compares SQLSERVER flag remote access with 'off', applying this profile\u2019s omission rule."
+      "description": "Compares SQLSERVER flag remote access with 'off', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12664,17 +12741,17 @@ ROWS = json.loads(r'''
         "flag": "remote access"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The remote access declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The remote access declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sqlserver_trace3625": {
     "description_base_sha256": "ed8e2ae1a5a7d3e8d6aba8b591e92ac050682c39f9f500566d1137fc9e3d6de8",
     "description_fields": {
-      "description": "Compares SQLSERVER flag 3625 with 'on', applying this profile\u2019s omission rule."
+      "description": "Compares SQLSERVER flag 3625 with 'on', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12724,17 +12801,17 @@ ROWS = json.loads(r'''
         "flag": "3625"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The 3625 declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The 3625 declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sqlserver_user_connections": {
     "description_base_sha256": "354761428f4b7262c95e7677913a5bddd6304f5e94814c14f477320746004b84",
     "description_fields": {
-      "description": "Compares SQLSERVER flag user connections with '0', applying this profile\u2019s omission rule."
+      "description": "Compares SQLSERVER flag user connections with '0', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12784,17 +12861,17 @@ ROWS = json.loads(r'''
         "flag": "user connections"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The user connections declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The user connections declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.reference_sqlserver_user_options": {
     "description_base_sha256": "b087a0cb262651981f969f24c1d05e3340f188745bb117e26330adc5443da3c6",
     "description_fields": {
-      "description": "Compares SQLSERVER flag user options with '', applying this profile\u2019s omission rule."
+      "description": "Compares SQLSERVER flag user options with '', applying this profile’s omission rule."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -12844,12 +12921,12 @@ ROWS = json.loads(r'''
         "flag": "user options"
       },
       "predicate_qualname": "sql.<locals>.evaluate",
-      "predicate_source_sha256": "aefa33e6ae552befd7be48780549194cad5877ca215233dc95af00f319a215c8",
+      "predicate_source_sha256": "a8cc5cf8182c180eeb7decfd16a60a207abd9d306156056f19c341bf389cc45f",
       "source_qualname": "sql.<locals>.evaluate"
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The user options declaration does not meet this profile\u2019s accepted values."
+    "static_observed_sentence": "The user options declaration does not meet this profile’s accepted values."
   },
   "gcp.ports.service_account_mutating_role_declarations": {
     "description_base_sha256": "45576d02c5c4ba7dfb17a9be25587fdb387d9d7a5e9876d4ae8caf8207522c17",
@@ -13076,7 +13153,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_checkpoints flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_checkpoints flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_duration_database_flag_on": {
     "description_base_sha256": "43c721d71ca5630c12426993f9be592855c9f5987b74bfb06262756521ae4de0",
@@ -13121,7 +13198,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_duration flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_duration flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_error_verbosity_database_flag_default_or_stricter": {
     "description_base_sha256": "4b95302685b1926fc8305bd49c6fee89879ba05773082d273dad98f7f44e606e",
@@ -13168,7 +13245,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_error_verbosity flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_error_verbosity flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_executor_stats_database_flag_off": {
     "description_base_sha256": "3724be92c27d17688b6059430dc20856bb835eaa6c973a2d3a8b7a42bca9bb6c",
@@ -13213,7 +13290,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_executor_stats flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_executor_stats flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_hostname_database_flag_configured": {
     "description_base_sha256": "675af5c289b116d2d8dea71165b07ac9d7d19be6dbe73159d11f66fc651b49b7",
@@ -13275,7 +13352,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_hostname flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_hostname flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_lock_waits_database_flag_on": {
     "description_base_sha256": "bc653ec487d01e3ac1fda2346e0b9dade790a3f1e29208c5ef69276a915c9853",
@@ -13320,7 +13397,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_lock_waits flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_lock_waits flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_min_duration_statement_database_flag_disabled": {
     "description_base_sha256": "cdd18ce17a2bb68018aa3e848d63d19b2473839d56d09bfbf43d7c2721274ef6",
@@ -13382,7 +13459,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_min_duration_statement flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_min_duration_statement flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_min_error_statement_database_flag_configured": {
     "description_base_sha256": "a5fab4ebc7953efbb1b4121ebd659900c7c8e48a03e83dd8ee26eb1b8bbf8236",
@@ -13412,9 +13489,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Configure log_min_error_statement explicitly for the database\u2019s logging requirements."
+        "Configure log_min_error_statement explicitly for the database’s logging requirements."
       ],
-      "summary": "Configure log_min_error_statement explicitly for the database\u2019s logging requirements."
+      "summary": "Configure log_min_error_statement explicitly for the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -13487,7 +13564,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_min_messages flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_min_messages flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_parser_stats_database_flag_off": {
     "description_base_sha256": "83ef5107da33b434e44ebab2719d8896d8ad2c8f12d96f1ff9b0e678f3ad7654",
@@ -13532,7 +13609,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_parser_stats flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_parser_stats flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_planner_stats_database_flag_off": {
     "description_base_sha256": "6c808def56d7485bc74c869a245cdfbabf6bac0c6460f4d3c1133cbd06c8c939",
@@ -13577,7 +13654,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_planner_stats flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_planner_stats flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_statement_stats_database_flag_off": {
     "description_base_sha256": "4d7c5fea6b34e35003d1d9123475bb379706d17941b6a2bcbff7646e59841cbf",
@@ -13622,7 +13699,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_statement_stats flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_statement_stats flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_postgresql_log_temp_files_database_flag_0": {
     "description_base_sha256": "a23afb624e421fdd4ceb7ba9f8a7de23040720623fd56a3eeb6f886c074d13dd",
@@ -13667,22 +13744,33 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "low",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The log_temp_files flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The log_temp_files flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_require_ssl_enabled": {
     "description_base_sha256": "970ae57f5331c919bed0ef1390a2cd04582c2fe8cb36333190d5bb3f58b455f7",
     "description_fields": {
-      "description": "Checks explicit Cloud SQL sslMode for an encrypted-only mode."
+      "description": "Checks native Cloud SQL encryption enforcement, including engine-specific SSL modes and the observed legacy fallback.",
+      "pass_when": "PASS for supported native encryption-enforcing SSL modes or an explicit legacy requireSsl=true when the mode is absent or unspecified.",
+      "fail_when": "FAIL for a supported allow-unencrypted mode or explicit legacy requireSsl=false; missing, conflicting or unsupported observations remain UNKNOWN.",
+      "description_correction": {
+        "base_row_sha256": "970ae57f5331c919bed0ef1390a2cd04582c2fe8cb36333190d5bb3f58b455f7",
+        "change": "Validate engine/mode applicability and compatible native flag pairs; preserve explicit legacy encryption enforcement and keep missing or conflicting observations UNKNOWN.",
+        "prior_predicate_sha256": "9762e3d59a15eeba148639267033ae2d6d6cefae54502589fa3655e16faf46f3",
+        "reference": "https://cloud.google.com/sql/docs/postgres/admin-api/rest/v1/instances#IpConfiguration",
+        "version": "gcp-native-sql-transport-review-v1"
+      }
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
       "caveats": [
-        "No database connections are attempted; client-certificate authentication is a separate requirement."
+        "Unsupported engine/mode pairs or conflicting flags remain UNKNOWN; runtime TLS and client authentication are outside this check."
       ],
       "cli": [],
       "field_binding": {
         "fields": [
-          "settings.ipConfiguration.sslMode"
+          "databaseVersion",
+          "settings.ipConfiguration.sslMode",
+          "settings.ipConfiguration.requireSsl"
         ],
         "kind": "sql_instance",
         "target": "resource"
@@ -13706,12 +13794,18 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.gcp_ports_compute",
       "predicate_bindings": {},
       "predicate_qualname": "sql_ssl",
-      "predicate_source_sha256": "9762e3d59a15eeba148639267033ae2d6d6cefae54502589fa3655e16faf46f3",
+      "predicate_source_sha256": "261e43839b630ca1802fd07ae434982405fadb7e1e0f6024f76bd1d95741a90c",
       "source_qualname": "sql_ssl"
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "Cloud SQL permits unencrypted client connections."
+    "static_observed_sentence": "Cloud SQL permits unencrypted client connections.",
+    "native_semantic_followup": {
+      "report": "sql-transport-semantic-followup.json",
+      "helper": "peaso/checks/gcp_sql_transport_native.py",
+      "helper_sha256": "51f4f29c98bb0c5bbf593d4eb54ca277f437893c9de75b4197b7aca4378afb86",
+      "prior_predicate_sha256": "9762e3d59a15eeba148639267033ae2d6d6cefae54502589fa3655e16faf46f3"
+    }
   },
   "gcp.ports.sql_instance_sql_3625_trace_database_flag_on": {
     "description_base_sha256": "f2f4a660467f2f01d7448652ea065a4416aa84c48b6a5fe7f791048a53dd7b0c",
@@ -13756,7 +13850,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The 3625 flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The 3625 flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_sql_contained_database_authentication_database_flag_off": {
     "description_base_sha256": "07320353fbd2074dd96f42acb987ed04f2196b8d64d5bd613834bf6f06baa5c0",
@@ -13801,7 +13895,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The contained database authentication flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The contained database authentication flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_sql_cross_db_ownership_chaining_database_flag_off": {
     "description_base_sha256": "e6d425efb9b4a67e3bfa8f27045bffae9fa2f6045d9851964b5659b26e807661",
@@ -13846,7 +13940,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The cross db ownership chaining flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The cross db ownership chaining flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_sql_external_scripts_enabled_database_flag_off": {
     "description_base_sha256": "3f40646d583635fa38fb8b4b6bde0fd079fc3421bc4dbf7856c141666b6eb7d6",
@@ -13891,7 +13985,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The external scripts enabled flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The external scripts enabled flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_sql_remote_access_database_flag_off": {
     "description_base_sha256": "06ff97246a646a0d2462033eaad6f34b5250eb883a88885a5992271b2eac7f52",
@@ -13936,7 +14030,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "The remote access flag is absent or outside this profile\u2019s accepted values."
+    "static_observed_sentence": "The remote access flag is absent or outside this profile’s accepted values."
   },
   "gcp.ports.sql_instance_sql_user_connections_database_flag_configured": {
     "description_base_sha256": "c122b0bdedee8713e77c82aae06e97d12e1c2843d5496e9c842734fda3ab0838",
@@ -13966,9 +14060,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Configure user connections explicitly for the database\u2019s logging requirements."
+        "Configure user connections explicitly for the database’s logging requirements."
       ],
-      "summary": "Configure user connections explicitly for the database\u2019s logging requirements."
+      "summary": "Configure user connections explicitly for the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -14961,9 +15055,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Set local_infile to off if this profile matches the database\u2019s logging requirements."
+        "Set local_infile to off if this profile matches the database’s logging requirements."
       ],
-      "summary": "Set local_infile to off if this profile matches the database\u2019s logging requirements."
+      "summary": "Set local_infile to off if this profile matches the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15020,9 +15114,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Set skip_show_database to on if this profile matches the database\u2019s logging requirements."
+        "Set skip_show_database to on if this profile matches the database’s logging requirements."
       ],
-      "summary": "Set skip_show_database to on if this profile matches the database\u2019s logging requirements."
+      "summary": "Set skip_show_database to on if this profile matches the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15079,9 +15173,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Set log_connections to on if this profile matches the database\u2019s logging requirements."
+        "Set log_connections to on if this profile matches the database’s logging requirements."
       ],
-      "summary": "Set log_connections to on if this profile matches the database\u2019s logging requirements."
+      "summary": "Set log_connections to on if this profile matches the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15138,9 +15232,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Set log_disconnections to on if this profile matches the database\u2019s logging requirements."
+        "Set log_disconnections to on if this profile matches the database’s logging requirements."
       ],
-      "summary": "Set log_disconnections to on if this profile matches the database\u2019s logging requirements."
+      "summary": "Set log_disconnections to on if this profile matches the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15197,9 +15291,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Set log_error_verbosity to default if this profile matches the database\u2019s logging requirements."
+        "Set log_error_verbosity to default if this profile matches the database’s logging requirements."
       ],
-      "summary": "Set log_error_verbosity to default if this profile matches the database\u2019s logging requirements."
+      "summary": "Set log_error_verbosity to default if this profile matches the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15264,9 +15358,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Set log_statement to ddl if this profile matches the database\u2019s logging requirements."
+        "Set log_statement to ddl if this profile matches the database’s logging requirements."
       ],
-      "summary": "Set log_statement to ddl if this profile matches the database\u2019s logging requirements."
+      "summary": "Set log_statement to ddl if this profile matches the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15333,9 +15427,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Set cloudsql.enable_pgaudit to on if this profile matches the database\u2019s logging requirements."
+        "Set cloudsql.enable_pgaudit to on if this profile matches the database’s logging requirements."
       ],
-      "summary": "Set cloudsql.enable_pgaudit to on if this profile matches the database\u2019s logging requirements."
+      "summary": "Set cloudsql.enable_pgaudit to on if this profile matches the database’s logging requirements."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15422,9 +15516,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Add lifecycle rules appropriate to the objects\u2019 retention and storage-class needs."
+        "Add lifecycle rules appropriate to the objects’ retention and storage-class needs."
       ],
-      "summary": "Add lifecycle rules appropriate to the objects\u2019 retention and storage-class needs."
+      "summary": "Add lifecycle rules appropriate to the objects’ retention and storage-class needs."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -15785,7 +15879,7 @@ ROWS = json.loads(r'''
   "gcp.storage.public_access_prevention": {
     "description_base_sha256": "9d69b59a2f9d3f415d4ba77e4b18fdd790a729a3ce7338c53301224be5a23da7",
     "description_fields": {
-      "description": "Checks public access prevention, resolving inherited settings through the project\u2019s effective organization policy."
+      "description": "Checks public access prevention, resolving inherited settings through the project’s effective organization policy."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -15829,7 +15923,7 @@ ROWS = json.loads(r'''
   "gcp.storage.uniform_access": {
     "description_base_sha256": "bd61009be4897d5c583f8de026138d4ade160841e9e11562972a3d4da5718229",
     "description_fields": {
-      "description": "Checks the bucket\u2019s uniformBucketLevelAccess.enabled declaration."
+      "description": "Checks the bucket’s uniformBucketLevelAccess.enabled declaration."
     },
     "remediation_base_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
     "remediation_fields": {
@@ -16253,7 +16347,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "high",
     "reviewed_source_severity": "high",
-    "static_observed_sentence": "No timely ACTIVE replacement covers the deployed certificate\u2019s domains."
+    "static_observed_sentence": "No timely ACTIVE replacement covers the deployed certificate’s domains."
   },
   "gcp_certificate_rotation_180_days": {
     "description_base_sha256": "47c8958110421c74251912bd873873c27cb1a3af2007423c52e57e2d9757ae24",
@@ -16515,7 +16609,7 @@ ROWS = json.loads(r'''
   "gcp_cloudsql_backup_failure_alert": {
     "description_base_sha256": "1f1947112bc38c030b286704b73fa089f385400dcbe0a48b525f208210ff8c57",
     "description_fields": {
-      "description": "Joins recognized failed-backup log metrics to enabled threshold alerts with exact metric references."
+      "description": "Checks native local alert declarations for failed Cloud SQL automated-backup windows; unsupported filters or thresholds remain unknown."
     },
     "remediation_base_sha256": "3947090a6608694b697045d385336d80c21d9e343f8a2226cf47f97f61ea96f4",
     "remediation_fields": {
@@ -16525,9 +16619,9 @@ ROWS = json.loads(r'''
       "cli": [],
       "review_status": "approved",
       "steps": [
-        "Configure a suitable failed-backup metric and enabled alert, then verify notification delivery."
+        "Configure an enabled alert for failed automated-backup windows, then test its notification delivery."
       ],
-      "summary": "Configure a suitable failed-backup metric and enabled alert, then verify notification delivery."
+      "summary": "Configure an enabled alert for failed automated-backup windows, then test its notification delivery."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -16595,23 +16689,17 @@ ROWS = json.loads(r'''
         "_rows": {
           "callable": "_load_53.<locals>._rows"
         },
-        "get": {
-          "callable": "get"
-        },
-        "re": {
-          "type": "module"
-        },
         "result": {
           "callable": "result"
         }
       },
       "predicate_qualname": "_load_53.<locals>._backup_alert",
-      "predicate_source_sha256": "28b8389c93550d5bcb3de41183af045c12257514f85d2f252cdba281975438a3",
+      "predicate_source_sha256": "db939ded69928487b29c549a93fa29143249c19a4d1b0de243189ea70abe077d",
       "source_qualname": "_load_53.<locals>._evaluate"
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "high",
-    "static_observed_sentence": "No enabled qualifying Cloud SQL backup-failure alert was found."
+    "static_observed_sentence": "No enabled local alert for failed automated-backup windows was found."
   },
   "gcp_gke_cluster_endpoint_publicly_accessible_ea8dcc0ec97d": {
     "description_base_sha256": "8dcfabe88a6a3f646ddb04c8817c2d682b8281c36c9ec3182e372d61e84850b9",
@@ -16899,9 +16987,9 @@ ROWS = json.loads(r'''
       "cli": [],
       "review_status": "approved",
       "steps": [
-        "Remove unnecessary server-identifying headers or apply the profile\u2019s intended replacement."
+        "Remove unnecessary server-identifying headers or apply the profile’s intended replacement."
       ],
-      "summary": "Remove unnecessary server-identifying headers or apply the profile\u2019s intended replacement."
+      "summary": "Remove unnecessary server-identifying headers or apply the profile’s intended replacement."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -16959,7 +17047,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "info",
     "reviewed_source_severity": "medium",
-    "static_observed_sentence": "A public URL-map route lacks the profile\u2019s Server: lb replacement."
+    "static_observed_sentence": "A public URL-map route lacks the profile’s Server: lb replacement."
   },
   "gcp_logging_detect_t1110": {
     "description_base_sha256": "56551971ec8f647ac18027039c1827af7be52c7782c78c79830925277456a8cf",
@@ -17246,7 +17334,7 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.compliance_new_gcp_bigquery",
       "predicate_bindings": {},
       "predicate_qualname": "no_anonymous_reader",
-      "predicate_source_sha256": "cbfa8eaa597e595fa6a742df8da745308bf7ecdb1dae0337036c47c937187ee3",
+      "predicate_source_sha256": "f754068ff3f29c48c220094851da457b6626a51cb0ccb14bb36191e6ccacb615",
       "source_qualname": "no_anonymous_reader"
     },
     "reviewed_severity": "high",
@@ -17314,7 +17402,7 @@ ROWS = json.loads(r'''
   "gcp_pci_bucket_157fb0c69361": {
     "description_base_sha256": "1daefffd4e46b04e5b68c41a2e2c0b688cb449f7be39d01be477e4d8d0149080",
     "description_fields": {
-      "description": "Checks known public read IAM roles and complete active bucket or object ACL public read grants."
+      "description": "Checks known local and ancestor public read IAM roles and complete active bucket or object ACL read grants."
     },
     "remediation_base_sha256": "181a43c9ccc3ed881d8da9a6bed4ec147e65d8ff2bcbfe5a4b90ba4f4656e9dc",
     "remediation_fields": {
@@ -17375,7 +17463,7 @@ ROWS = json.loads(r'''
         }
       },
       "predicate_qualname": "_load_50.<locals>._pci",
-      "predicate_source_sha256": "0827b43cefc19403daac11b43685b9c72738389e93d8eb526273281f6cfa69c5",
+      "predicate_source_sha256": "2d0622b5e6478316a5d598df9fb5c7169951f443c57a31d56af52dead4fac6b8",
       "source_qualname": "_load_50.<locals>._evaluate"
     },
     "reviewed_severity": "high",
@@ -17485,9 +17573,9 @@ ROWS = json.loads(r'''
       ],
       "review_status": "approved",
       "steps": [
-        "Select a suitable stored-log mode for the inline build and verify a later build\u2019s logs."
+        "Select a suitable stored-log mode for the inline build and verify a later build’s logs."
       ],
-      "summary": "Select a suitable stored-log mode for the inline build and verify a later build\u2019s logs."
+      "summary": "Select a suitable stored-log mode for the inline build and verify a later build’s logs."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -17624,7 +17712,7 @@ ROWS = json.loads(r'''
       "module": "peaso.checks.compliance_new_gcp",
       "predicate_bindings": {},
       "predicate_qualname": "instance_template_no_public_ip",
-      "predicate_source_sha256": "cbea3e58e5b68399bc6cc17978e44fbc2b7ea0dfad1981294a2157c6c25bcdaa",
+      "predicate_source_sha256": "ed6eb881af82605d50e46c6e3bb74645f2d367e05b8b10392ce266099ad9b1a6",
       "source_qualname": "instance_template_no_public_ip"
     },
     "reviewed_severity": "medium",
@@ -17961,3 +18049,762 @@ def severity_review(check_id, source_severity):
     if review[0] != source_severity:
         raise ValueError("Reviewed GCP source severity changed: " + check_id)
     return review[1]
+
+
+# Exact admitted extension cohort; independently owned copy and native fixtures.
+NATIVE_EXTENSION_REVIEWS = json.loads(r'''
+{
+  "gcp.compute.os_config_fixable_vulnerabilities": {
+    "admission_sha256": "026df0e60b8c5db0ecb0a5abc076d871a0d4375b49b16cff352e731338cf4795",
+    "copy_catalog_sha256": "f6d236d35da7f2cc42dcd8000d9272d3c34795337d6c354186946dfc09639b20",
+    "fixture_sha256": "094fd5156694c9a8d8dd2a81a57571999ce9083227782f710a67a7ddbefe560b",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_os_security_update_fixtures.json.gz",
+        "sha256": "933d8f0acdb115994609ec768fbb87a5c50982b55dce8278009e4cbed0786db7"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "instance",
+      "module": "peaso.checks.gcp_os_security_update_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "b2329dc4fa4389cf81dc687d96be2e9877270d12e8bfdc499ba89afb09d7a649",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_os_security_update_review_20261019.py",
+    "source_sha256": "f0d1942d5701f20cdeed4da36cd0baa02b818bd0ca7d169bae8df7275a87408f"
+  },
+  "gcp.review.app_engine_version.literal_environment_secret_indicators": {
+    "admission_sha256": "2be25798f8972e791494e2c853738f0340e00f9dbfafa73111b2ef8ddd544726",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "3664fdb983f8a5d67bcf02936b86ca9c54f6d24b21de6793a2b0cdef2afeb2a2",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_additional_literal_secret_fixtures.json.gz",
+        "sha256": "e5a8dda25d2d3ba103376d9462b2ef44cbcf622da57f84fbb2f6b387e96e6953"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "app_engine_version_secret",
+      "module": "peaso.checks.gcp_additional_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "appengine",
+      "predicate_source_sha256": "984f8b21afccc3abf35b0be5ac8e1f6978ae793e215b0dc4f507fc922edb9e55",
+      "source_qualname": "appengine"
+    },
+    "source": "peaso/checks/gcp_additional_literal_secret_review_20261019.py",
+    "source_sha256": "db1e168a8499fde496bc2c1550b76c32d86133c45702096bd081b57675c1a2b4"
+  },
+  "gcp.review.artifact_image.content_secret_indicators": {
+    "admission_sha256": "df9d14c2fa14dadb0cb35c92a36a013f0699cc49499d6a5515dc01482244068b",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "6d43e9e8b618c39c0956acba54737ea4fba3c9618c4e9844a4e2dd46651286f8",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_image_secret_fixtures.json.gz",
+        "sha256": "43f37613977f0dd8ae83ca30557a23775074a48e2d54204a76b252552a056c42"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "artifact_image",
+      "module": "peaso.checks.gcp_image_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "3e7924e4bccdd5aa1ea83b3e9254deffce20b7322d528e640ba0afafd9c45866",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_image_secret_review_20261019.py",
+    "source_sha256": "83fe957437bdb4a8142361bc4329af903dede65cb2e0242d2c35cda5211c79fd",
+    "native_source_integration_review": "docs/gcp-review/cloudrun-image-integration.json"
+  },
+  "gcp.review.artifactregistry.selected_file_secret_indicators": {
+    "admission_sha256": "8b3db5bb266772fc0ee4cde6419909f6c8dc3b88f5ab6b53bc5f9efd98258b4a",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "6b59067ce79952ba3c2b764838b395d57804f9cb1223971a91d71ebb90b60245",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_artifact_file_secret_fixtures.json.gz",
+        "sha256": "be8b74e08f4ebd873ce3cf8a3bb1a5404ef378f9f94891ee9a1bd6276d3af894"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "artifact_selected_file",
+      "module": "peaso.checks.gcp_artifact_file_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "6f4b7c50441776d28a7a4e06f8610bf3b79ea0c9984e11cc49326d7479e5d3a6",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_artifact_file_secret_review_20261019.py",
+    "source_sha256": "0fe7d4fcbcd953d913e2ffa1df5b08573f01c8527ff333d351ddd3e037b36e54"
+  },
+  "gcp.review.batch_job.literal_configuration_secret_indicators": {
+    "admission_sha256": "e1e1cf1548213e302c8ebb918b2b19c285eeedad295a1f87bb5b6a3233473b41",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "b27b452e05074a6c373a3daa7fb3923d4cc1bf45e1ef2827d0c757df66cfaee9",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_job_literal_secret_fixtures.json.gz",
+        "sha256": "351d21bf4b7c7701e7d9125897873e436a52f0bfab10232e688479257981454e"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "batch_job",
+      "module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "<lambda>",
+      "predicate_source_sha256": "0044fd7b54fcad9621302f083b58f07f578d57be039dfeb076083bf550edaa92",
+      "source_qualname": "<lambda>"
+    },
+    "source": "peaso/checks/gcp_job_literal_secret_review_20261019.py",
+    "source_sha256": "1710755805361a8f035aef2c64d6ed6a432a64a598966d265e2c589fa42313dd"
+  },
+  "gcp.review.cloudbuild_build.literal_configuration_secret_indicators": {
+    "admission_sha256": "0335a0b853382ba1081a50b8e14a2bd0f5711c28ecd75b9b2f326cc51ba40fae",
+    "copy_catalog_sha256": "9710e39f3fbcc6643c88e9618d51aaae13f65d757c4f7eb93fddd265860a7caf",
+    "fixture_sha256": "5dd1da77946194a2ad82f1d723857e0d884100e89059c995dc5615463106b892",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_configuration_secret_fixtures.json.gz",
+        "sha256": "5cca35ee4d869d1f099859252689e86b43cc9a6d7123f31f76691415ecde51ed"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "cloudbuild_build",
+      "module": "peaso.checks.gcp_configuration_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "cloudbuild_build",
+      "predicate_source_sha256": "c1f24882bca17f78ef1f94d91123d6c8762df9ba5beb03135d6ebe2563396992",
+      "source_qualname": "cloudbuild_build"
+    },
+    "source": "peaso/checks/gcp_configuration_secret_review_20261019.py",
+    "source_sha256": "bb0b2d16b21e611a1961f3f917a11f1bfa504ec6c587b61be36a77422985d1be"
+  },
+  "gcp.review.cloudbuild_trigger.literal_configuration_secret_indicators": {
+    "admission_sha256": "7e1975fbee9aa99ed97524885651beb1ea50d914fdf07d027619306689d8cebc",
+    "copy_catalog_sha256": "9710e39f3fbcc6643c88e9618d51aaae13f65d757c4f7eb93fddd265860a7caf",
+    "fixture_sha256": "9606eb1a54a888e12bcb20bdaca9c5d63dc933ec723b8cd7634d2aa5e13161be",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_configuration_secret_fixtures.json.gz",
+        "sha256": "5cca35ee4d869d1f099859252689e86b43cc9a6d7123f31f76691415ecde51ed"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "cloudbuild_trigger",
+      "module": "peaso.checks.gcp_configuration_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "cloudbuild_trigger",
+      "predicate_source_sha256": "d1c5d88a8fd2c3c8208cf92c4423694da60e6ebe9e01a0569eb75c69d1805d66",
+      "source_qualname": "cloudbuild_trigger"
+    },
+    "source": "peaso/checks/gcp_configuration_secret_review_20261019.py",
+    "source_sha256": "bb0b2d16b21e611a1961f3f917a11f1bfa504ec6c587b61be36a77422985d1be"
+  },
+  "gcp.review.cloudrun_job.literal_configuration_secret_indicators": {
+    "admission_sha256": "9ea35f881a4ed3e55f31ab3e19c5c0184a7b853a9c5b63b19d970802ee376e63",
+    "copy_catalog_sha256": "9710e39f3fbcc6643c88e9618d51aaae13f65d757c4f7eb93fddd265860a7caf",
+    "fixture_sha256": "aff71e7c8c26f3a093dad4e9fff5e41ac24a068798886f5b9503e9fa1e374e10",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_configuration_secret_fixtures.json.gz",
+        "sha256": "5cca35ee4d869d1f099859252689e86b43cc9a6d7123f31f76691415ecde51ed"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "cloudrun_job",
+      "module": "peaso.checks.gcp_configuration_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "cloudrun_job",
+      "predicate_source_sha256": "2abbe88efdbd723e407bc71186dcc6d3857b5bedf4b95e1710125d2a0b78d3d9",
+      "source_qualname": "cloudrun_job"
+    },
+    "source": "peaso/checks/gcp_configuration_secret_review_20261019.py",
+    "source_sha256": "bb0b2d16b21e611a1961f3f917a11f1bfa504ec6c587b61be36a77422985d1be"
+  },
+  "gcp.review.cloudrun_service.literal_configuration_secret_indicators": {
+    "admission_sha256": "8345c5ae651bdcfe082a17163075e3400d51ad5e5d444d85937c69d70d3e3bbd",
+    "copy_catalog_sha256": "9710e39f3fbcc6643c88e9618d51aaae13f65d757c4f7eb93fddd265860a7caf",
+    "fixture_sha256": "470ac3ab060d75a0c24d00d36216a7ecccc7f6cd8a31f0fdb9b3115e3daf54e5",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_configuration_secret_fixtures.json.gz",
+        "sha256": "5cca35ee4d869d1f099859252689e86b43cc9a6d7123f31f76691415ecde51ed"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "cloudrun_service",
+      "module": "peaso.checks.gcp_configuration_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "cloudrun_service",
+      "predicate_source_sha256": "7691998e9ab66d23fc1ca418699c1ffe369e215853affb33bb3920d770b79d3d",
+      "source_qualname": "cloudrun_service"
+    },
+    "source": "peaso/checks/gcp_configuration_secret_review_20261019.py",
+    "source_sha256": "bb0b2d16b21e611a1961f3f917a11f1bfa504ec6c587b61be36a77422985d1be"
+  },
+  "gcp.review.composer.dag_source_secret_indicators": {
+    "admission_sha256": "1fe0bcb7e068019e0556ae3b987cd0fcbc4b30e36ed861881b140ece4a0cefe8",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "40d6cc580165450ca78eb475f684a3860f446d2919dbf20159ef9cce2237ae45",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_composer_source_secret_fixtures.json.gz",
+        "sha256": "430911930ba429c127d1ee6f71b0c56e2afca14f6db8f5d7944b7c1f5fa50afd"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "composer_dag_source",
+      "module": "peaso.checks.gcp_composer_source_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "f85e0b7feb17116f32cb5f8f3b030c549e00fbbcd6e8c2635da5c52957ff7acf",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_composer_source_secret_review_20261019.py",
+    "source_sha256": "d176034b246ff2f901e767f52d3c02832ec192766f361e552852d579dd567027"
+  },
+  "gcp.review.composer_environment.literal_configuration_secret_indicators": {
+    "admission_sha256": "a14778051d66f83609f23bc9049ab4d33bc13ed62bf5fa9dbc05473d55c599c5",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "63263252eac04638893d9a6b23b2e70287ee4a5ffcdf27ab47feb8baf8f8fe30",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_notebook_airflow_secret_fixtures.json.gz",
+        "sha256": "5b401634d4af7e5ce05a66943c3b19805f84542cbda32129f226158a93c97ec5"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "composer_environment",
+      "module": "peaso.checks.gcp_notebook_airflow_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "<lambda>",
+      "predicate_source_sha256": "b56a4950a0377a0269e28d65d2714d63870d22320b676b1f724d795be36fffc4",
+      "source_qualname": "<lambda>"
+    },
+    "source": "peaso/checks/gcp_notebook_airflow_secret_review_20261019.py",
+    "source_sha256": "86cc47cb8583d5a0ba81a4e131e49362fb505b8da463aa76f8ede268068c5a2b"
+  },
+  "gcp.review.dataflow_job.literal_configuration_secret_indicators": {
+    "admission_sha256": "a8048e9d0a674a186448018793eb859dce0cc8d08bb04f901ac930e2a1f058e0",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "4943a96083b782b3acc5a30c00645c9063257a6f1d0622fa5b604451eabbdeee",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_job_literal_secret_fixtures.json.gz",
+        "sha256": "351d21bf4b7c7701e7d9125897873e436a52f0bfab10232e688479257981454e"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "dataflow_job",
+      "module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "<lambda>",
+      "predicate_source_sha256": "0044fd7b54fcad9621302f083b58f07f578d57be039dfeb076083bf550edaa92",
+      "source_qualname": "<lambda>"
+    },
+    "source": "peaso/checks/gcp_job_literal_secret_review_20261019.py",
+    "source_sha256": "1710755805361a8f035aef2c64d6ed6a432a64a598966d265e2c589fa42313dd"
+  },
+  "gcp.review.dataform.selected_file_secret_indicators": {
+    "admission_sha256": "4c1374b4162114f6914274429a1a48d742ab4d285659a7e0c367f88c680d0e72",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "0665a89e0a8d93fb901da2cbf7933b9b9a110204752645d9c14fd4e7be39b9a0",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_dataform_secret_fixtures.json.gz",
+        "sha256": "659dad36fb1c6bd45c8c2f1a53198300375c6141dae0aa8db1bc764908096b06"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "dataform_selected_file",
+      "module": "peaso.checks.gcp_dataform_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "b335ad9219d20acd1bf1bec018d2078b144f1778655aed2634e61f91173d908f",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_dataform_secret_review_20261019.py",
+    "source_sha256": "df2bbc09817426dcba2ea4f54c9b574539b1e197131218b86614cf48a21faf3a"
+  },
+  "gcp.review.dataproc_cluster.literal_configuration_secret_indicators": {
+    "admission_sha256": "d7c29e63ff333d5049c92946c512fe2753b4e11d581d6e81ddd7afd9723b3a8c",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "26653c541699cc48abf7dda10ba02105e792c4276e73ab03331d5dc8236f27dd",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_job_literal_secret_fixtures.json.gz",
+        "sha256": "351d21bf4b7c7701e7d9125897873e436a52f0bfab10232e688479257981454e"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "dataproc_cluster",
+      "module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "<lambda>",
+      "predicate_source_sha256": "0044fd7b54fcad9621302f083b58f07f578d57be039dfeb076083bf550edaa92",
+      "source_qualname": "<lambda>"
+    },
+    "source": "peaso/checks/gcp_job_literal_secret_review_20261019.py",
+    "source_sha256": "1710755805361a8f035aef2c64d6ed6a432a64a598966d265e2c589fa42313dd"
+  },
+  "gcp.review.dataproc_job.literal_configuration_secret_indicators": {
+    "admission_sha256": "ff73967a6743bfbf691867126e11904487dd772cc175509c2842f1ab878e1571",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "147aca938c54c270540f9f943c39ad70941e828929f452322abefd2afaad297b",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_job_literal_secret_fixtures.json.gz",
+        "sha256": "351d21bf4b7c7701e7d9125897873e436a52f0bfab10232e688479257981454e"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "dataproc_job",
+      "module": "peaso.checks.gcp_job_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "<lambda>",
+      "predicate_source_sha256": "0044fd7b54fcad9621302f083b58f07f578d57be039dfeb076083bf550edaa92",
+      "source_qualname": "<lambda>"
+    },
+    "source": "peaso/checks/gcp_job_literal_secret_review_20261019.py",
+    "source_sha256": "1710755805361a8f035aef2c64d6ed6a432a64a598966d265e2c589fa42313dd"
+  },
+  "gcp.review.function.literal_environment_secret_indicators": {
+    "admission_sha256": "6dedaec790abdcb45bc8f86e3752a0b83eeceacdcc88926e0d599ea4fd7e3737",
+    "copy_catalog_sha256": "373d825d5cfea29c036d3efa2bcf471b51fd97ab0c516a6c2a93cacd99a819fa",
+    "fixture_sha256": "44507049c3b622a66dcab830af71a5dd7a77e79054659302070a84f6111ad2de",
+    "fixture_sources": [
+      {
+        "note": "install() constructs the native-shaped fixture locally",
+        "path": "peaso/checks/gcp_function_secret_review_20261019.py",
+        "sha256": "53a529741f79b2de837cf4deb228c517be8ec1572d8d9ea6e5a4ec975035da14"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "function",
+      "module": "peaso.checks.gcp_function_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "511ce21638a098c5c48e781b91b1652770f14d80fbde9b32d831aa36aa4f24cc",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_function_secret_review_20261019.py",
+    "source_sha256": "53a529741f79b2de837cf4deb228c517be8ec1572d8d9ea6e5a4ec975035da14"
+  },
+  "gcp.review.function.resolved_source_archive_secret_indicators": {
+    "admission_sha256": "dae7b656407153aa9565f5c41b181fc61e370565ec6e99f63f7bf461392a648f",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "46dcd350e73b019f961ac47140f3e7331534d0b6b47b5d0221c2dfe5ae851810",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_function_source_secret_fixtures.json.gz",
+        "sha256": "5abe5283e927c80b97f4b89c6d5d174a70c50ed8c8d69ed7b5e4a43ca468bacd"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "function_source_archive",
+      "module": "peaso.checks.gcp_function_source_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "ee8f6acf855282c0b95c6f41f72336897407eb923ce81c20b80d3cdc6195f6c4",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_function_source_secret_review_20261019.py",
+    "source_sha256": "fb51def8c4cc2be7787b0734299753ef51e78e273f51ff9673f2bf2ced4a7b01"
+  },
+  "gcp.review.gke_workload.literal_configuration_secret_indicators": {
+    "admission_sha256": "2fc9295f4438d9f64e7ee8198a0a3f61a150c758b7ae546093a3f69372541b6e",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "c731ba4607ac2eb7237e4a1491a87903db5867213c825afd8d8334f7b0e78e32",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_gke_literal_secret_fixtures.json.gz",
+        "sha256": "cdde447292ac3e9a736088bba731f82c834302dd749499935b51ca9f1340178d"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "gke_workload_literal",
+      "module": "peaso.checks.gcp_gke_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "f061d951d1ab3876b43189576126341b1897961a3898041969610ab3e9f5f8d0",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_gke_literal_secret_review_20261019.py",
+    "source_sha256": "0b4f7908437e0088d1ea3bb76900d3663464a539bd513c3b1a6ca8358b573e68"
+  },
+  "gcp.review.instance.literal_configuration_secret_indicators": {
+    "admission_sha256": "165fd18bc4879f0e9c9ab537fe88943bde445c78b42a252a21f19976e3599faa",
+    "copy_catalog_sha256": "9710e39f3fbcc6643c88e9618d51aaae13f65d757c4f7eb93fddd265860a7caf",
+    "fixture_sha256": "a47cff23fffd9ca4220de630453a87bee263187e805e3b36f3e1d6533fe2b470",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_configuration_secret_fixtures.json.gz",
+        "sha256": "5cca35ee4d869d1f099859252689e86b43cc9a6d7123f31f76691415ecde51ed"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "instance",
+      "module": "peaso.checks.gcp_configuration_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "instance",
+      "predicate_source_sha256": "354203a632f37a316848d0a2c4cbc0dc65ca43753f212403968525ccb632005b",
+      "source_qualname": "instance"
+    },
+    "source": "peaso/checks/gcp_configuration_secret_review_20261019.py",
+    "source_sha256": "bb0b2d16b21e611a1961f3f917a11f1bfa504ec6c587b61be36a77422985d1be"
+  },
+  "gcp.review.instance_template.literal_configuration_secret_indicators": {
+    "admission_sha256": "8309826a4880a834a6eb97596f4f2559b29caaeb2d84566f1453195a6141bb9b",
+    "copy_catalog_sha256": "9710e39f3fbcc6643c88e9618d51aaae13f65d757c4f7eb93fddd265860a7caf",
+    "fixture_sha256": "10dee125630485b387afb3a9d5e61b7d3ea41546e9a485bdb7c0a8c4868e904d",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_configuration_secret_fixtures.json.gz",
+        "sha256": "5cca35ee4d869d1f099859252689e86b43cc9a6d7123f31f76691415ecde51ed"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "instance_template",
+      "module": "peaso.checks.gcp_configuration_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "instance_template",
+      "predicate_source_sha256": "a5f2716203dcd676c3934f9f68751c2445f41ed4c7254dfcb6add1616589d4fe",
+      "source_qualname": "instance_template"
+    },
+    "source": "peaso/checks/gcp_configuration_secret_review_20261019.py",
+    "source_sha256": "bb0b2d16b21e611a1961f3f917a11f1bfa504ec6c587b61be36a77422985d1be"
+  },
+  "gcp.review.logging.application_log_secret_indicators": {
+    "admission_sha256": "2582ceca7284d2c399f07cd486c73f38a5bd2bec9f45bbfa429cdb84b09fec27",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "aeafd78ea299382caa6e6128ecb7deaba2c2b6604d782897f93f4cfe0f6f57be",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_log_secret_fixtures.json.gz",
+        "sha256": "afeac127c0e893c34ad190609a6d6a81216d92532bf02c3078f0f6a838ad535e"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "log_secret_sample",
+      "module": "peaso.checks.gcp_log_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "e584714cb0c7284f76afc77694a7725c6274e065a5d8f9a12811f81dcb598f50",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_log_secret_review_20261019.py",
+    "source_sha256": "0cd008e9118895183b000ff7fd56b4f6985d83dcaa5eb35f382ea93b83724f02"
+  },
+  "gcp.review.project.literal_configuration_secret_indicators": {
+    "admission_sha256": "29a11df77dc427bbb19953b44dacb25369bd68f4a3d955854aa6a74f1d3ce2f0",
+    "copy_catalog_sha256": "9710e39f3fbcc6643c88e9618d51aaae13f65d757c4f7eb93fddd265860a7caf",
+    "fixture_sha256": "77fda1e78547bb20f6272bb00bbd2334758e90913f775d2b48411e26d07d0325",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_configuration_secret_fixtures.json.gz",
+        "sha256": "5cca35ee4d869d1f099859252689e86b43cc9a6d7123f31f76691415ecde51ed"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "project",
+      "module": "peaso.checks.gcp_configuration_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "project",
+      "predicate_source_sha256": "a3aa3125aa934c9b12cc0cf3db28a9ce6857b35f8c34309e9293c9f72a746bd2",
+      "source_qualname": "project"
+    },
+    "source": "peaso/checks/gcp_configuration_secret_review_20261019.py",
+    "source_sha256": "bb0b2d16b21e611a1961f3f917a11f1bfa504ec6c587b61be36a77422985d1be"
+  },
+  "gcp.review.scheduler_job.literal_target_secret_indicators": {
+    "admission_sha256": "65b645f4ba8746603bd9fe45f58196be6bc7048b84d31f8b416b9b1e94b66c97",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "675e6996df808ac372fd530e25d3aa57eb41d9104734d89410cb351464f2e576",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_additional_literal_secret_fixtures.json.gz",
+        "sha256": "e5a8dda25d2d3ba103376d9462b2ef44cbcf622da57f84fbb2f6b387e96e6953"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "scheduler_job",
+      "module": "peaso.checks.gcp_additional_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "scheduler",
+      "predicate_source_sha256": "ad60a56a88774d4df4399054e4a0397b73be606df6b84a50ae1baf8baf85b5ef",
+      "source_qualname": "scheduler"
+    },
+    "source": "peaso/checks/gcp_additional_literal_secret_review_20261019.py",
+    "source_sha256": "db1e168a8499fde496bc2c1550b76c32d86133c45702096bd081b57675c1a2b4"
+  },
+  "gcp.review.storage.selected_archive_secret_indicators": {
+    "admission_sha256": "6cbdc735c9c8c3321ce7ab49f3069aff4de27491bb01912c98b2f179c14fcb9f",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "103cf7c55a8e74977d68a905f0574c91a6d8d64f341d5cb242e0c3d41591d29d",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_selected_archive_secret_fixtures.json.gz",
+        "sha256": "e4dffce5a79a31fa7a6baf308d56c44bae567ed1b0456aa4464d7a7045193e12"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "gcs_selected_archive",
+      "module": "peaso.checks.gcp_selected_archive_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "67ae5ee1485f86d7a817c9ad180dcb5cc1254832d92af29bec618a6f8bff71c1",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_selected_archive_secret_review_20261019.py",
+    "source_sha256": "d7636cee350ce0aa0c9fc32f3a71ef141f960050abb0757af082772a4f315a6a"
+  },
+  "gcp.review.storage.selected_object_secret_indicators": {
+    "admission_sha256": "576813862d3a88cd813c401a9b5dffdf737b8b17b2f22df65449746468812759",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "d55449b34aab48a4629ef6202f738507cab3370446adf6ec7c6b635258bfa60b",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_selected_object_secret_fixtures.json.gz",
+        "sha256": "de6915e1f9c294aa27777f47e88d8918c43003d66ee767425fc7ffba105efb68"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "gcs_selected_object",
+      "module": "peaso.checks.gcp_selected_object_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "f6ab10c5737a9462b4579e1e8d53352da34119b1e44f8ce6f36bf675d9d6202f",
+      "source_qualname": "evaluate"
+    },
+    "source": "peaso/checks/gcp_selected_object_secret_review_20261019.py",
+    "source_sha256": "e8d791bf5329b47abd8144fb60958c33cdaf21abb8681733884c9bfccea87236"
+  },
+  "gcp.review.workbench.public_ip_disabled": {
+    "admission_sha256": "4d70c71f2dd6b6ee7f59aa1478ba0e2d97878cc06bbe0210620d20b9a46e7472",
+    "copy_catalog_sha256": "5c5fbe584cae9e4e28946f25ab0f76d0dd85ac1a830d25ade7a50cf84d7473c1",
+    "fixture_sha256": "e67ca739bf575eb516c1b9b4b05f843bdb17023337335b5db110879bf988a9fc",
+    "fixture_sources": [
+      {
+        "note": "install() constructs the native-shaped fixture locally",
+        "path": "peaso/checks/gcp_workbench_review_20261019.py",
+        "sha256": "2b64af4029781cfa10f2a106eb72bd30108493fa36ada4f88689e783995a2eda"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "workbench_instance",
+      "module": "peaso.checks.gcp_workbench_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "public_ip",
+      "predicate_source_sha256": "ad007a94299f01209e7b9f7db2d067b03854a206da35783b38d16df3ccba8228",
+      "source_qualname": "public_ip"
+    },
+    "source": "peaso/checks/gcp_workbench_review_20261019.py",
+    "source_sha256": "2b64af4029781cfa10f2a106eb72bd30108493fa36ada4f88689e783995a2eda"
+  },
+  "gcp.review.workbench.root_access_disabled": {
+    "admission_sha256": "34312b3214d2088f524b8f62f168383977fe11e356629556ed903e0d8f740f40",
+    "copy_catalog_sha256": "4a01b33aa9e65e8116d82f2d4d6bb06748bddb2d89347a6906b5c9b76b5d520e",
+    "fixture_sha256": "1b6506467edaf903ed42b58fd0fbde8da4c8a401bf2ace4f4e554d6cd11d1ea8",
+    "fixture_sources": [
+      {
+        "note": "install() constructs the native-shaped fixture locally",
+        "path": "peaso/checks/gcp_workbench_review_20261019.py",
+        "sha256": "2b64af4029781cfa10f2a106eb72bd30108493fa36ada4f88689e783995a2eda"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "workbench_instance",
+      "module": "peaso.checks.gcp_workbench_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "root_access",
+      "predicate_source_sha256": "1376ae92e677e218259070b7b5d4fd92db6a988af185d5032f9116a1d1c079e9",
+      "source_qualname": "root_access"
+    },
+    "source": "peaso/checks/gcp_workbench_review_20261019.py",
+    "source_sha256": "2b64af4029781cfa10f2a106eb72bd30108493fa36ada4f88689e783995a2eda"
+  },
+  "gcp.review.workbench_instance.literal_configuration_secret_indicators": {
+    "admission_sha256": "4b8abde5ed33f4faf787314e5d32def0955f368d388e9bd63f4f7007f974c121",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "6756eb00c565acb4c7fda904c854f4a91d4ea001c6491634b7b31981812b9212",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_notebook_airflow_secret_fixtures.json.gz",
+        "sha256": "5b401634d4af7e5ce05a66943c3b19805f84542cbda32129f226158a93c97ec5"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "workbench_instance",
+      "module": "peaso.checks.gcp_notebook_airflow_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "<lambda>",
+      "predicate_source_sha256": "b56a4950a0377a0269e28d65d2714d63870d22320b676b1f724d795be36fffc4",
+      "source_qualname": "<lambda>"
+    },
+    "source": "peaso/checks/gcp_notebook_airflow_secret_review_20261019.py",
+    "source_sha256": "86cc47cb8583d5a0ba81a4e131e49362fb505b8da463aa76f8ede268068c5a2b"
+  },
+  "gcp.review.workflow.deployed_source_secret_indicators": {
+    "admission_sha256": "2c61de87a953612b1e95f7679a421cbc74fab9fdb12b2bb72f2f84af45d663a4",
+    "copy_catalog_sha256": "cae94f897b7d1530b42100f79bd1ba285abec13fbbd048f99f780ad1872ac946",
+    "fixture_sha256": "6e263030f8ef35d897bd4f2f936bc316a6bec97a4c32605c5b4d3d428b8b37b4",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_additional_literal_secret_fixtures.json.gz",
+        "sha256": "e5a8dda25d2d3ba103376d9462b2ef44cbcf622da57f84fbb2f6b387e96e6953"
+      }
+    ],
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "workflow_source",
+      "module": "peaso.checks.gcp_additional_literal_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "workflow",
+      "predicate_source_sha256": "edb59914c6eda6f0ec455f5cbc7cadcaab2536efa923796d6bcc01c96d1e66a1",
+      "source_qualname": "workflow"
+    },
+    "source": "peaso/checks/gcp_additional_literal_secret_review_20261019.py",
+    "source_sha256": "db1e168a8499fde496bc2c1550b76c32d86133c45702096bd081b57675c1a2b4"
+  },
+  "gcp.review.cloudbuild.stored_log_secret_indicators": {
+    "admission_sha256": "3d5323c32b35d46d0aba60caaa352c2d43726b5005f6dde0f11e16592baaa91c",
+    "copy_catalog_sha256": "9580d4052a717d8b703585859ba46b7b95930d61a638f50565c90a6c89f03274",
+    "fixture_sha256": "ca4134b10a861dd1ba9b880906f9c1e8136be6382056bfb74ab65ccbf1e70003",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_cloudbuild_log_secret_review_20261019_fixtures.json.gz",
+        "sha256": "500251be960b27060d983b1640adc9e65a423d9cfc5e4751f8ae5f157475c57d"
+      }
+    ],
+    "source": "peaso/checks/gcp_cloudbuild_log_secret_review_20261019.py",
+    "source_sha256": "d1f3618df951b59b8ebc73424acb7b1fed9795121f21054571061a4173c01967",
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "cloudbuild_log_source",
+      "module": "peaso.checks.gcp_cloudbuild_log_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "7a4d78e54b01344cae0539f479c8dc841be8b07e5a53fc171499ad080cb9390c",
+      "source_qualname": "evaluate"
+    }
+  },
+  "gcp.review.appengine.deployment_source_secret_indicators": {
+    "admission_sha256": "12bc18e9c3f617c4d5c9ca30e7a863d3ae3769ef8ea661550226000f5fcd794d",
+    "copy_catalog_sha256": "a150e416c1e641f5bb865396ee28ad78c8b18946470520ba5fcaa8e93bea046b",
+    "fixture_sha256": "0cf6fb3193cbb795b7384b033e79587015e9e98bcb7251c1034a8b0731fdcbbd",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_appengine_source_secret_review_20261019_fixtures.json.gz",
+        "sha256": "913856603087ab7e9668ef680c3919abe660e6ca0c3489cb9bbd96c7669d5c27"
+      }
+    ],
+    "source": "peaso/checks/gcp_appengine_source_secret_review_20261019.py",
+    "source_sha256": "2dabaf4b09352a4095e89c55e090682638ee95cf5d9efbd7d2699e64a720d2a1",
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "appengine_deployment_source",
+      "module": "peaso.checks.gcp_appengine_source_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "fb5e8835864727ecb41376dd95f3849692ee8edd17a325dfd64dd063bc6afc82",
+      "source_qualname": "evaluate"
+    }
+  },
+  "gcp.review.cloudbuild.artifact_secret_indicators": {
+    "admission_sha256": "10da91e27cb95e40235d2ace390d2e30fa1d6fe367abb1a1be48a15784694966",
+    "copy_catalog_sha256": "0a4e81a0d9f2ee76291d78b8b7b282806ecb6a4458469180f17e52bd65928514",
+    "fixture_sha256": "59cb56ea9b5b994f8699ba58aa3134ed93c5b1b42fff35c4f7a7034ecba0aef2",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_cloudbuild_artifact_secret_review_20261019_fixtures.json.gz",
+        "sha256": "772e086e570e3cbde90e70c4ef8f2e1a393fd84a82ff944165cb9b50f55cf7e2"
+      }
+    ],
+    "source": "peaso/checks/gcp_cloudbuild_artifact_secret_review_20261019.py",
+    "source_sha256": "c23a04e0cee0f7392e91f1d9344015ccfd2b9109dcfc08f55d980a677c9e90e0",
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "cloudbuild_artifact_source",
+      "module": "peaso.checks.gcp_cloudbuild_artifact_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "d942c80c15c18289a6d0be13bb9668da98f80f37de0dd0ba8986f775ffbaee17",
+      "source_qualname": "evaluate"
+    }
+  },
+  "gcp.review.clouddeploy.release_source_secret_indicators": {
+    "admission_sha256": "2dfe5742eefe0d9d730c5d9386a4fbfe630925f167263da9d7671ea49c50f763",
+    "copy_catalog_sha256": "fdf6c63d5c7f81b8ec9761407477086e47d7943e469a6e85f85e6c3d2ad15046",
+    "fixture_sha256": "6ea3f79f526a085f528eaebb6cbd0f1c503c143bafe51ebd20a9e84a6be2ff66",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_clouddeploy_source_secret_review_20261019_fixtures.json.gz",
+        "sha256": "811fd8fb21a1b4d23aac2eecffcd0de00efffa6f3c03710e43f38bd4c42a2162"
+      }
+    ],
+    "source": "peaso/checks/gcp_clouddeploy_source_secret_review_20261019.py",
+    "source_sha256": "e10c324a6eb280c64cb26aa44d579fdedaff199b24d524bd02900f9fd3b2ec71",
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "clouddeploy_release_source",
+      "module": "peaso.checks.gcp_clouddeploy_source_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "e2c97d8f4f68011179efea1c878ddf07a01c9aefa12923c196d1ec21534f4c75",
+      "source_qualname": "evaluate"
+    }
+  },
+  "gcp.review.sourcerepo.selected_file_secret_indicators": {
+    "admission_sha256": "7270dbbc569183afbac5557bc877d8c6a1d459dbe1a4e4c8d65eeac39d107cb9",
+    "copy_catalog_sha256": "78be3bcb048698c1be18d8f46bf7cfb0f1c6c0baddfb6b84610410409f0de7d2",
+    "fixture_sha256": "4e9b5fb430053355aeeabf8bac78171aec83ec3e545792c93230b2800cb594f1",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_sourcerepo_secret_review_20261019_fixtures.json.gz",
+        "sha256": "928251b151458cfd73d568d0a7d96aa7228e92057a9fcc477d742f370c3c8b6c"
+      }
+    ],
+    "source": "peaso/checks/gcp_sourcerepo_secret_review_20261019.py",
+    "source_sha256": "f397ee93b511f396bb49fb467e05a88e23a741e492a22dcb93d9f8d99aded5d0",
+    "reviewed_binding": {
+      "closure": {},
+      "kind": "source_repository_file",
+      "module": "peaso.checks.gcp_sourcerepo_secret_review_20261019",
+      "predicate_bindings": {},
+      "predicate_qualname": "evaluate",
+      "predicate_source_sha256": "9efdc7277d249274984369dfd0db9cf279fb154c75b31ae00119dbce484d91a5",
+      "source_qualname": "evaluate"
+    }
+  }
+}
+''')

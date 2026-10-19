@@ -9,12 +9,16 @@ services:
       - "127.0.0.1:${PEASO_PORT:-8000}:8000"
     environment:
       PEASO_AUTH_MODE: local
+      CODEX_ACCESS_TOKEN: ${CODEX_ACCESS_TOKEN:-}
+      CODEX_TOKEN_SECRET_ARN: ${CODEX_TOKEN_SECRET_ARN:-}
+      PEASO_REQUIRE_CONNECTOR_ACCESS_CHECK: "true"
       PEASO_LOCAL_TOKEN: ${PEASO_LOCAL_TOKEN:-}
       PEASO_SCAN_TIMEOUT_SECONDS: ${PEASO_SCAN_TIMEOUT_SECONDS:-900}
       PEASO_ALLOWED_ORIGINS: ${PEASO_ALLOWED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000,http://localhost:5173,http://127.0.0.1:5173}
     volumes:
       - state:/var/lib/peaso/state
       - identity:/var/lib/peaso/identity
+      - ai-identity:/var/lib/peaso/identity/ai
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
@@ -35,6 +39,8 @@ services:
       target: collector
     environment:
       PEASO_AUTH_MODE: local
+      CODEX_ACCESS_TOKEN: ${CODEX_ACCESS_TOKEN:-}
+      CODEX_TOKEN_SECRET_ARN: ${CODEX_TOKEN_SECRET_ARN:-}
       PEASO_LOCAL_TOKEN: ${PEASO_LOCAL_TOKEN:-}
       PEASO_SCAN_TIMEOUT_SECONDS: ${PEASO_SCAN_TIMEOUT_SECONDS:-900}
     depends_on:
@@ -43,6 +49,7 @@ services:
     volumes:
       - state:/var/lib/peaso/state
       - identity:/var/lib/peaso/identity:ro
+      - ai-identity:/var/lib/peaso/identity/ai:ro
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=128m
@@ -55,15 +62,21 @@ services:
       context: .
       dockerfile: Dockerfile.peaso
       target: analyzer
+    environment:
+      CODEX_ACCESS_TOKEN: ${CODEX_ACCESS_TOKEN:-}
+      CODEX_TOKEN_SECRET_ARN: ${CODEX_TOKEN_SECRET_ARN:-}
+      PEASO_AI_TIMEOUT_SECONDS: ${PEASO_AI_TIMEOUT_SECONDS:-300}
+      PEASO_AI_MAX_CONCURRENCY: ${PEASO_AI_MAX_CONCURRENCY:-2}
+      PEASO_AI_ISOLATION_LAUNCHER: ${PEASO_AI_ISOLATION_LAUNCHER:-}
     depends_on:
       api:
         condition: service_healthy
-    network_mode: none
     volumes:
       - state:/var/lib/peaso/state
+      - ai-identity:/var/lib/peaso/identity/ai:ro
     read_only: true
     tmpfs:
-      - /tmp:rw,noexec,nosuid,size=128m
+      - /tmp:rw,noexec,nosuid,size=1024m
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     init: true
@@ -71,3 +84,4 @@ services:
 volumes:
   state:
   identity:
+  ai-identity:

@@ -2553,8 +2553,10 @@
           "native_checks": [
             "aws.c2b.codebuild.no_plaintext_sensitive_env_names"
           ],
-          "removed_checks": [],
-          "reason": "CodeBuild project environment variables should not contain clear text credentials is tested by CodeBuild project has no PLAINTEXT environment variables named like AWS keys or passwords (AssumeRolePolicyDocument, Deny); the old mapping was absent or used a different predicate or scope.",
+          "removed_checks": [
+            "aws.review.codebuild_project.configuration_secret_indicators"
+          ],
+          "reason": "CodeBuild project environment variables should not contain clear text credentials is tested by CodeBuild project has no PLAINTEXT environment variables named like AWS keys or passwords (AssumeRolePolicyDocument, Deny); the old mapping was absent or used a different predicate or scope. Explicit source-association disposition: The existing exact CodeBuild variable-name predicate is retained; the supplemental content detector is not substituted for that admitted requirement.",
           "evidence": [
             "peaso/checks/claude2_aws_b_devtools.py:220"
           ],
@@ -7067,12 +7069,14 @@
           "name": "",
           "decision": "PARTIAL",
           "native_checks": [
-            "aws.secretsmanager.rotation"
+            "aws.secretsmanager.rotation",
+            "aws_cis_ec2_userdata_embedded_secrets"
           ],
           "removed_checks": [],
-          "reason": "Secrets Manager rotation covers one secret-management setting; workload identity proof, secure retrieval and other credential types remain untested.",
+          "reason": "Secrets Manager rotation covers one secret-management setting; workload identity proof, secure retrieval and other credential types remain untested. Additional bounded native signal: An observed embedded secret is a credential-handling signal; it does not establish workload identity proof, purpose-built retrieval, lifecycle or rotation.",
           "evidence": [
-            "peaso/checks/facts.py:46"
+            "peaso/checks/facts.py:46",
+            "peaso/collectors/aws_user_data_secret_indicators.py"
           ],
           "new_checks": []
         },

@@ -74,7 +74,18 @@ def _settings(item, index, *, allow_missing=False):
         raise Unavailable("stage identity differs from collected GetStages fact")
     if allow_missing and "methodSettings" not in item and "methodSettings" not in item.get("_coverage", {}):
         return arn, {}
-    settings = get(item, "methodSettings", dict)
+    raw_settings = get(item, "methodSettings", dict)
+    settings = {}
+    for key, value in raw_settings.items():
+        normalized = key
+        if key == "/*/*":
+            normalized = "*/*"
+        elif isinstance(key, str) and key.startswith("/"):
+            path, sep, method = key.rpartition("/")
+            normalized = path.replace("/", "~1") + sep + method
+        if normalized in settings:
+            raise Unavailable("duplicate normalized method setting key")
+        settings[normalized] = value
     if not settings and not allow_missing:
         raise Unavailable("stage method settings unavailable")
     for key, value in settings.items():

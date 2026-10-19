@@ -26,9 +26,9 @@ def _record() -> dict:
         "managementEvent": True, "readOnly": False,
         "eventID": "f74419f8-3944-47aa-8f47-02575c06f580",
         "eventTime": "2026-10-18T16:33:57Z", "awsRegion": "us-east-1",
-        "recipientAccountId": "947247140022",
-        "userIdentity": {"type": "IAMUser", "accountId": "947247140022",
-                         "arn": "arn:aws:iam::947247140022:user/lab"},
+        "recipientAccountId": "222233334444",
+        "userIdentity": {"type": "IAMUser", "accountId": "222233334444",
+                         "arn": "arn:aws:iam::222233334444:user/lab"},
         "requestParameters": {"roleName": "disposable-proof-role"},
         "responseElements": None,
     }
@@ -42,8 +42,8 @@ def test_live_shaped_boundary_delete_matches_only_observed_write() -> None:
     row = _record()
     event = normalize_aws_role_boundary_delete(row)
     assert event is not None
-    assert event["target.id"] == "iam-role:947247140022:disposable-proof-role"
-    assert event["account.id"] == "947247140022"
+    assert event["target.id"] == "iam-role:222233334444:disposable-proof-role"
+    assert event["account.id"] == "222233334444"
     assert event["actor.id"] == row["userIdentity"]["arn"]
     assert event["event.id"] == row["eventID"]
     assert event["event.time"] == row["eventTime"]

@@ -1,4 +1,5 @@
 """Differential source CASE fixtures and native read-only service boundaries."""
+from peaso.checks.hacktricks_scope import includes
 import copy
 import json
 from pathlib import Path
@@ -85,7 +86,7 @@ def test_missing_denied_malformed_are_unknown_and_framework_is_present(cid):
     passing = copy.deepcopy(CASES[cid]["pass"])
     passing["collection_status"] = "partial"
     assert check.evaluate(passing, {})[0] == "UNKNOWN"
-    assert HACKTRICKS in check.frameworks
+    assert (HACKTRICKS in check.frameworks) == includes(check.id)
     assert check.dependencies == [check.kind]
 
 

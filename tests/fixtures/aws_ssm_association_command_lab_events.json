@@ -1,0 +1,176 @@
+[
+  {
+    "eventID": "3e8a6e84-cb8a-4f65-9f55-b559bc4b52c0",
+    "eventTime": "2026-10-19T19:01:32Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "StartAssociationsOnce",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-command-b9ec5b4a-start/example-start"
+    },
+    "requestParameters": {
+      "associationIds": [
+        "ae373f5e-1f2a-41d7-af8d-7297e095c2a4"
+      ]
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "94a32731-a807-4bf6-b684-b87bad7d0355",
+    "eventTime": "2026-10-19T19:01:32Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "SendCommand",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-command-b9ec5b4a-start/example-start"
+    },
+    "requestParameters": {},
+    "responseElements": null,
+    "errorCode": "AccessDenied"
+  },
+  {
+    "eventID": "13ea32b0-b097-4d81-8345-bd23c0d38ef6",
+    "eventTime": "2026-10-19T19:01:42Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "ListCommands",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-command-b9ec5b4a-reader/example-reader"
+    },
+    "requestParameters": {
+      "commandId": "3506783b-ab62-469c-8504-13c72c851c5d"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "40058f1a-c6d6-4339-801a-370d54ce7afe",
+    "eventTime": "2026-10-19T19:01:42Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "GetParameters",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-command-b9ec5b4a-reader/example-reader"
+    },
+    "requestParameters": {
+      "names": [
+        "/example-ssm-command-b9ec5b4a/canary"
+      ]
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "607a57ed-e88e-4449-8676-1eb0dcb5c87f",
+    "eventTime": "2026-10-19T19:01:42Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "ListCommandInvocations",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-command-b9ec5b4a-reader/example-reader"
+    },
+    "requestParameters": {
+      "commandId": "3506783b-ab62-469c-8504-13c72c851c5d",
+      "details": false
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "7bfc9361-7f61-4a5b-afed-9319b8929a70",
+    "eventTime": "2026-10-19T19:01:42Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "SendCommand",
+    "awsRegion": "us-east-1",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    },
+    "requestParameters": {
+      "targets": [
+        {
+          "key": "tag:example-ssm-command-lab",
+          "values": [
+            "example-ssm-command-b9ec5b4a"
+          ]
+        }
+      ],
+      "documentName": "example-ssm-command-b9ec5b4a-doc"
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "84cc8d9e-7811-4793-8cdd-ac4be075f7f9",
+    "eventTime": "2026-10-19T19:01:42Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "DescribeParameters",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-command-b9ec5b4a-reader/example-reader"
+    },
+    "requestParameters": {
+      "filters": [
+        {
+          "key": "Name",
+          "values": [
+            "/example-ssm-command-b9ec5b4a/canary"
+          ]
+        }
+      ]
+    },
+    "responseElements": null
+  },
+  {
+    "eventID": "652e2448-0190-48a6-acf8-02c18684f840",
+    "eventTime": "2026-10-19T19:04:11Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "GetParameters",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-getmany-b1bd930d-reader/example-getmany"
+    },
+    "requestParameters": {
+      "names": [
+        "/example-ssm-getmany-b1bd930d/secret"
+      ],
+      "withDecryption": true
+    },
+    "responseElements": null
+  }
+]

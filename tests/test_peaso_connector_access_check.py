@@ -60,13 +60,18 @@ def test_hosted_single_role_access_check_uses_customer_broker(monkeypatch):
                 assert kwargs["RoleArn"] == COLLECTOR_ROLE_ARN
                 return {"Credentials": {"AccessKeyId": "broker", "SecretAccessKey": "secret", "SessionToken": "token"}}
             assert self.phase == "broker" and kwargs["RoleArn"] == target
-            if not kwargs.get("ExternalId"):
-                raise PermissionError("External ID required")
+            if kwargs.get("ExternalId") != "peaso-review":
+                from botocore.exceptions import ClientError
+                raise ClientError({"Error": {"Code": "AccessDenied"}}, "AssumeRole")
             return {"Credentials": {"AccessKeyId": "customer", "SecretAccessKey": "secret", "SessionToken": "token"}}
 
         def get_caller_identity(self):
             assert self.phase == "customer"
             return {"Account": "123456789012", "Arn": target}
+
+        def list_attached_role_policies(self, **kwargs):
+            assert self.phase == "customer"
+            return {"AttachedPolicies": [{"PolicyArn": "arn:aws:iam::aws:policy/ReadOnlyAccess"}]}
 
         def __getattr__(self, name):
             return lambda **kwargs: {}
@@ -75,8 +80,9 @@ def test_hosted_single_role_access_check_uses_customer_broker(monkeypatch):
     monkeypatch.setattr(boto3, "Session", lambda **kwargs: Session(kwargs["aws_access_key_id"]))
     issues, principals = [], []
     _aws({"method": "assume_role", "external_id": "peaso-review", "role_arn": target}, [], {}, issues, principals)
-    assert calls == [("source", COLLECTOR_ROLE_ARN, None), ("broker", target, None),
-                     ("broker", target, "peaso-review")]
+    assert calls[:2] == [("source", COLLECTOR_ROLE_ARN, None), ("broker", target, None)]
+    assert calls[2][0:2] == ("broker", target) and calls[2][2] != "peaso-review"
+    assert calls[3:] == [("broker", target, "peaso-review")]
     assert principals == [{"scope": target, "principal": target}]
     assert not any(issue["severity"] == "critical" for issue in issues)
 
@@ -93,7 +99,7 @@ def test_hosted_preparation_is_tenant_bound_and_survives_app_recreation(tmp_path
         prepared = client.post("/api/connectors/prepare", json={"provider": "aws", "method": "assume_role"})
         assert prepared.status_code == 200
         setup = prepared.json()
-        assert setup["collector_role_arn"] == "arn:aws:iam::202533532952:role/HackTricks-CSPM"
+        assert setup["collector_role_arn"] == "arn:aws:iam::111122223333:role/HackTricks-CSPM"
     with TestClient(create_app(settings, authenticator=IdentityStub())) as client:
         client.headers["Authorization"] = "Bearer owner"
         body["prepared_id"] = setup["prepared_id"]
@@ -119,14 +125,16 @@ def test_hosted_gcp_prepare_binds_customer_project_label(tmp_path, monkeypatch):
         prepared = client.post("/api/connectors/prepare", json={"provider": "gcp", "method": "platform-service-account"})
         assert prepared.status_code == 200
         setup = prepared.json()
-        assert setup["service_account_email"] == "hacktricks-cspm-sa-acc-third-p@billing-static-info-no-delete.iam.gserviceaccount.com"
+        assert setup["service_account_email"] == "cspm@example-platform-project.iam.gserviceaccount.com"
         body = {"name": "Customer project", "provider": "gcp", "auth": {"method": "platform-service-account"},
                 "scopes": ["customer-project"], "options": {"all_projects": False}, "prepared_id": setup["prepared_id"]}
         checked = client.post("/api/connectors/check-access", json=body)
         assert checked.status_code == 200 and checked.json()["status"] == "warning"
         body["check_token"] = checked.json()["check_token"]
+        assert client.post("/api/connectors", json=body).status_code == 422
+        body["acknowledge_access_warnings"] = True
         saved = client.post("/api/connectors", json=body)
         assert saved.status_code == 201, saved.text
         assert saved.json()["gcp_onboarding"]["project_label_key"] == setup["project_label_key"]
-        body["scopes"] = ["billing-static-info-no-delete"]
+        body["scopes"] = ["example-platform-project"]
         assert client.post("/api/connectors", json=body).status_code == 422

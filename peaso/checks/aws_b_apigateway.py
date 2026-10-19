@@ -12,7 +12,9 @@ def stage(item, family):
 def method_settings(item):
     stage(item, "rest")
     settings = get(item, "methodSettings", dict)
-    wildcard = settings.get("*/*", {})
+    if "/*/*" in settings and "*/*" in settings:
+        raise ValueError("duplicate wildcard method settings")
+    wildcard = settings.get("/*/*", settings.get("*/*", {}))
     if not isinstance(wildcard, dict):
         raise ValueError("malformed wildcard method settings")
     return wildcard
@@ -64,7 +66,7 @@ for _field, _suffix, _query in [("clientCertificateId", "client_certificate", "a
             value = item.get(field)
             if value is not None and not isinstance(value, str):
                 return unknown("malformed stage reference", field=field)
-            return result(value is None, field=field, declared_reference=value, semantics="Reference presence only; certificate validity/WAF effectiveness is not inferred.")
+            return result(not value, field=field, declared_reference=value, semantics="Reference presence only; certificate validity/WAF effectiveness is not inferred.")
     _presence(_field, _suffix, _query)
 
 

@@ -8,8 +8,9 @@ def main():
     os.umask(0o077)
     if os.getuid() == 0:
         if os.getenv("PEASO_INITIALIZE") == "1":
-            for setting in ("PEASO_STATE_DIR", "PEASO_IDENTITY_DIR"):
-                path = Path(os.environ[setting])
+            paths = [Path(os.environ[setting]) for setting in ("PEASO_STATE_DIR", "PEASO_IDENTITY_DIR")]
+            paths.append(Path(os.environ["PEASO_IDENTITY_DIR"]) / "ai")
+            for path in paths:
                 path.mkdir(parents=True, exist_ok=True, mode=0o700)
                 os.chown(path, 10001, 10001)
                 os.chmod(path, 0o700)

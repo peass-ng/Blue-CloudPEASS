@@ -108,6 +108,13 @@ def _describe_batches(requests, session, region, operation, key, cluster, arns, 
         if not isinstance(found, list):
             failure = ("malformed", "malformed_response")
             continue
+        if key == "containerInstances":
+            requested = set(chunk)
+            identities = [row.get("containerInstanceArn") if isinstance(row, dict) else None for row in found]
+            if (any(not isinstance(value, str) or value not in requested for value in identities)
+                    or len(set(identities)) != len(identities) or set(identities) != requested):
+                failure = ("malformed", "ecs_container_instance_identity_incomplete")
+                continue
         rows.extend(row for row in found if isinstance(row, dict))
         if response.get("failures"):
             failure = ("partial", "describe_reported_failures")

@@ -4,7 +4,7 @@ import type { Edge, EdgeProps, Node, NodeProps, ReactFlowInstance } from "@xyflo
 import type { ElkEdgeSection, ElkNode } from "elkjs";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { Boxes, ChevronDown, ChevronRight, CircleHelp, Cloud, Disc3, Flame, Focus, GitFork, Globe2, HardDrive, Layers, LockKeyhole, Network, Route, Search, Server, Shield, ShieldAlert, ShieldCheck, Table2, Waypoints } from "lucide-react";
+import { Boxes, ChevronDown, ChevronRight, Cloud, Disc3, Flame, Focus, GitFork, Globe2, HardDrive, Layers, LockKeyhole, Network, Route, Search, Server, Shield, ShieldAlert, ShieldCheck, Table2, Waypoints } from "lucide-react";
 import { json, request, useApi } from "./api";
 import { ConnectionAssessment } from "./ConnectionAssessment";
 import type { ConfigurationDecision } from "./ConnectionAssessment";
@@ -41,11 +41,11 @@ function Asset({ data }: NodeProps<N>) {
   const { item } = data;
   const Icon = icons[item.kind] || HardDrive;
   const isGroup = item.id.startsWith("network:") || item.id.startsWith("area:");
-  return <div className={`network-node ${isGroup ? "network-compound" : ""} ${item.id.startsWith("network:") ? "network-root" : ""}`} style={{ width: item.width, height: item.height }} data-kind={item.kind} data-hidden={item.hidden}>
+  return <div className={`network-node ${isGroup ? "network-compound" : ""} ${item.id.startsWith("network:") ? "network-root" : ""}`} style={{ width: item.width, height: item.height }} data-kind={item.kind} data-hidden={item.hidden} title={`${item.title} · ${item.subtitle}`}>
     <Handle type="target" position={Position.Left} />
-    <button type="button" className="network-node-heading" aria-label={`${isGroup ? "Open" : "Inspect"} ${item.title}`}><Icon size={20} aria-label={`${item.kind.replaceAll("_", " ")} icon`} /><span className="network-node-label"><strong>{item.title}</strong><span>{item.subtitle}</span></span>{isGroup && (data.expanded ? <ChevronDown size={17} /> : <ChevronRight size={17} />)}</button>
+    <button type="button" className="network-node-heading" aria-expanded={isGroup ? data.expanded : undefined} aria-label={`${isGroup ? "Open" : "Inspect"} ${item.title}`}><Icon size={16} aria-label={`${item.kind.replaceAll("_", " ")} icon`} /><span className="network-node-label"><strong>{Array.from(item.title).slice(0,10).join("")}</strong></span>{isGroup && (data.expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}</button>
     {isGroup && (data.internalResults?.length ? <button type="button" className="network-node-meta network-node-internal" onClick={event=>{event.stopPropagation();data.onInspectInternal?.(data.internalResults!);}}>{data.internalResults.length.toLocaleString()} assessed internal pairs · inspect</button>
-      : <div className="network-node-meta">{item.hidden > 0 ? `${item.hidden.toLocaleString()} resources inside · open to inspect` : "Observed group"}</div>)}
+      : null)}
     <Handle type="source" position={Position.Right} />
   </div>;
 }
@@ -147,7 +147,9 @@ function ResourceDetail({ n, graph }: { n: GraphNode; graph: Graph }) {
   const last = Math.min(refs.length, first + pageSize);
   useEffect(() => setPage(0), [n.id]);
   return <>
-    <div className="network-facts">{nativeDetails(n).map(x => <div key={x.name}><dt>{x.name}</dt><dd>{x.value}</dd></div>)}</div>
+    <details className="network-resource-details"><summary>Resource details</summary>
+      <dl className="network-facts">{nativeDetails(n).filter(x => x.name !== "Name" && x.name !== "Type").map(x => <div key={x.name}><dt>{x.name}</dt><dd>{x.value}</dd></div>)}</dl>
+    </details>
     {!observed(n) && <p className="notice">Referenced resource was not collected in this scope. Its configuration and attachment are unknown.</p>}
     <h3>Loaded attachment records · {refs.length}</h3>
     <p>{represented.toLocaleString()} represented attachment{represented===1?"":"s"} · {loaded.toLocaleString()} loaded individual record{loaded===1?"":"s"} · {unresolved.toLocaleString()} underlying record{unresolved===1?"":"s"} not loaded.</p>
@@ -256,6 +258,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
   const [provider, setProvider] = useState("");
   const [networkId, setNetworkId] = useState("");
   const [areaId, setAreaId] = useState("");
+  const [expandedAreas, setExpandedAreas] = useState<Set<string>>(() => new Set());
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<"map" | "table">("map");
   const [connection, setConnection] = useState(false);
@@ -294,7 +297,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
     window.addEventListener("resize", refit);
     return () => window.removeEventListener("resize", refit);
   }, []);
-  useEffect(() => { batchRun.current += 1; setProvider(""); setNetworkId(""); setAreaId(""); setExpansion(""); setInventoryEnabled(false); setFlowResult(undefined); setBatchSource(""); setBatchResults([]); setBatchPageResults([]); setBatchError(""); setBatchPending(false); setPage(0); }, [scanId,demo]);
+  useEffect(() => { batchRun.current += 1; setProvider(""); setNetworkId(""); setAreaId(""); setExpandedAreas(new Set()); setExpansion(""); setInventoryEnabled(false); setFlowResult(undefined); setBatchSource(""); setBatchResults([]); setBatchPageResults([]); setBatchError(""); setBatchPending(false); setPage(0); }, [scanId,demo]);
   const currentProvider = model.providers.includes(provider) ? provider : model.providers[0] || "";
   useEffect(() => setMatrixPage(0), [scanId, demo, currentProvider, networkId, areaId, page]);
   const flowQuery = flowResult?.query && typeof flowResult.query === "object" ? flowResult.query as Record<string, unknown> : {};
@@ -316,7 +319,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
     ...graph.nodes.filter(node => node.provider === currentProvider && typeof node.resource_id === "string" && batchFocusIds.includes(node.resource_id)).map(node => node.id),
   ].filter((id): id is string => !!id))];
   const focusNetworks = focusAssets.map(id => model.owner.get(id)).filter((id): id is string => !!id);
-  const view = useMemo(() => networkView(model, currentProvider, networkId, areaId, search, page, focusNetworks, focusAssets), [model, currentProvider, networkId, areaId, search, page, focusNetworks.join("|"), focusAssets.join("|")]);
+  const view = useMemo(() => networkView(model, currentProvider, networkId, areaId, search, page, focusNetworks, focusAssets, [...expandedAreas]), [model, currentProvider, networkId, areaId, search, page, focusNetworks.join("|"), focusAssets.join("|"), expandedAreas]);
   const matrixCandidates = useMemo(() => {
     const interfacesByMachine = new Map<string, Set<string>>();
     for (const edge of graph.edges) {
@@ -505,7 +508,6 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
     }
     return groups;
   }, [validatedMatrixResults, validatedGridResults, view.items, graph.nodes, model, currentProvider]);
-  const internalMatrixPairCount = [...internalMatrixGroups.values()].reduce((sum, results) => sum + results.length, 0);
   const sharedArea = sourceNode && targetNode && model.area.get(sourceNode.id) === model.area.get(targetNode.id)
     ? model.area.get(sourceNode.id) : undefined;
   const sharedNetwork = sourceNode && targetNode && model.owner.get(sourceNode.id) === model.owner.get(targetNode.id)
@@ -523,56 +525,109 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
   useEffect(() => {
     let live = true;
     if (!view.items.length) { setLayout({ nodes: [], edges: [] }); return; }
-    const roots = view.items.filter(x=>!x.parentId);
-    const rootIds = new Set(roots.map(n=>n.id));
-    const rootEdges = view.edges.filter(e=>rootIds.has(e.source) && rootIds.has(e.target));
-    if (flowEdge && rootIds.has(flowEdge.source) && rootIds.has(flowEdge.target)) rootEdges.push({ ...flowEdge, count:1, recordIndices:[], records:[], availableCount:0, unresolvedCount:0, uncertain:flowEdge.decision==="unknown" });
-    for (const edge of batchEdges) if (rootIds.has(edge.source) && rootIds.has(edge.target)) rootEdges.push({ ...edge, count:1, recordIndices:[], records:[], availableCount:0, unresolvedCount:0, uncertain:edge.decision==="unknown" });
-    for (const edge of matrixEdges) if (rootIds.has(edge.source) && rootIds.has(edge.target)) rootEdges.push({ ...edge, count:edge.results.length, recordIndices:[], records:[], availableCount:0, unresolvedCount:0, uncertain:edge.decision==="unknown" });
-    const input: ElkNode = { id: "root", layoutOptions: { "elk.algorithm": "layered", "elk.direction": "RIGHT", "elk.spacing.nodeNode": "70", "elk.layered.spacing.nodeNodeBetweenLayers": "130", "elk.edgeRouting": "ORTHOGONAL" }, children: roots.map(x=>({ id:x.id, width:x.width, height:x.height })), edges: rootEdges.map(x=>({id:x.id,sources:[x.source],targets:[x.target]})) };
-    sharedElk().layout(input).then(result => {
+    const items = view.items.map(item=>({...item}));
+    const byId = new Map(items.map(item=>[item.id,item]));
+    const links = [...view.edges, ...(flowEdge ? [flowEdge] : []), ...batchEdges, ...matrixEdges];
+    const positions = new Map<string,{x:number;y:number}>();
+    const localSections = new Map<string,{parentId?:string;sections:ElkEdgeSection[]}>();
+    const arrange = async () => {
+      // Lay out each container from the inside out so ELK can route links around
+      // the actual child bounds, including expanded subnets and their endpoints.
+      for (const parentId of [...items.filter(item=>item.id.startsWith("area:")).map(item=>item.id),
+        ...items.filter(item=>item.id.startsWith("network:")).map(item=>item.id), "root"]) {
+        const children = items.filter(item=>parentId==="root" ? !item.parentId : item.parentId===parentId);
+        if (!children.length) continue;
+        const childIds = new Set(children.map(item=>item.id));
+        const siblingLinks = links.filter(edge=>childIds.has(edge.source) && childIds.has(edge.target));
+        const directChild = (id:string) => {
+          let item = byId.get(id);
+          while (item?.parentId && item.parentId!==parentId) item = byId.get(item.parentId);
+          return item && (parentId==="root" ? !item.parentId : item.parentId===parentId) ? item.id : undefined;
+        };
+        const projected = new Map<string,{id:string;sources:string[];targets:string[]}>();
+        for (const edge of links) {
+          const source = directChild(edge.source), target = directChild(edge.target);
+          if (!source || !target || source===target || source===edge.source && target===edge.target) continue;
+          const key = `${source}\u0000${target}`;
+          if (!projected.has(key)) projected.set(key,{id:`layout:${parentId}:${projected.size}`,sources:[source],targets:[target]});
+        }
+        const input: ElkNode = {id:parentId,layoutOptions:{
+          "elk.algorithm":"layered","elk.direction":"RIGHT","elk.edgeRouting":"ORTHOGONAL",
+          "elk.spacing.nodeNode":"38","elk.layered.spacing.nodeNodeBetweenLayers":"78",
+          "elk.padding":parentId==="root" ? "[top=20,left=20,bottom=20,right=20]" : "[top=56,left=18,bottom=20,right=18]",
+        },children:children.map(item=>({id:item.id,width:item.width,height:item.height})),
+        edges:[...siblingLinks.map(edge=>({id:edge.id,sources:[edge.source],targets:[edge.target]})),...projected.values()]};
+        const result = await sharedElk().layout(input);
+        for (const node of result.children || []) positions.set(node.id,{x:node.x || 0,y:node.y || 0});
+        for (const edge of result.edges || []) if (!edge.id.startsWith("layout:")) localSections.set(edge.id,{parentId:parentId==="root" ? undefined : parentId,sections:edge.sections || []});
+        const parent = byId.get(parentId);
+        if (parent) {parent.width=Math.max(parent.width,result.width || 0);parent.height=Math.max(parent.height,result.height || 0);}
+      }
+      return items;
+    };
+    arrange().then(positionedItems => {
       if (!live) return;
       const positioned: N[] = [];
-      const rootPosition = new Map((result.children || []).map(n=>[n.id,{x:n.x || 0,y:n.y || 0}]));
-      for (const item of view.items) {
-        let pos = rootPosition.get(item.id) || {x:0,y:0};
-        if (item.parentId) pos = {x:item.x || 0,y:item.y || 0};
-        positioned.push({ id:item.id, type:"networkAsset", parentId:item.parentId, extent:item.parentId ? "parent" : undefined, position:pos, zIndex:item.parentId ? 4 : 2, data:{ item, expanded: item.id === `network:${networkId}` || item.id === `area:${areaId}`, internalResults:internalMatrixGroups.get(item.id), onInspectInternal:setMatrixInspect }, width:item.width,height:item.height,style:{ width:item.width,height:item.height }, sourcePosition:Position.Right,targetPosition:Position.Left, draggable:false });
+      const absolute = (id:string):{x:number;y:number} => {
+        const item = byId.get(id);
+        const pos = positions.get(id) || {x:0,y:0};
+        if (!item?.parentId) return pos;
+        const parent = absolute(item.parentId);
+        return {x:pos.x+parent.x,y:pos.y+parent.y};
+      };
+      for (const item of positionedItems) {
+        const pos = positions.get(item.id) || {x:0,y:0};
+        positioned.push({ id:item.id, type:"networkAsset", parentId:item.parentId, extent:item.parentId ? "parent" : undefined, position:pos, zIndex:item.parentId ? 4 : 2, data:{ item, expanded: item.id === `network:${networkId}` || item.id === `area:${areaId}` || !!item.node && expandedAreas.has(item.node.id), internalResults:internalMatrixGroups.get(item.id), onInspectInternal:setMatrixInspect }, width:item.width,height:item.height,style:{ width:item.width,height:item.height }, sourcePosition:Position.Right,targetPosition:Position.Left, draggable:false });
       }
-      const sections = new Map((result.edges || []).map(edge=>[edge.id,edge.sections || []]));
+      const sections = new Map([...localSections].map(([id,route])=>{
+        const origin = route.parentId ? absolute(route.parentId) : {x:0,y:0};
+        const points = route.sections.map(section=>({...section,startPoint:{x:section.startPoint.x+origin.x,y:section.startPoint.y+origin.y},
+          endPoint:{x:section.endPoint.x+origin.x,y:section.endPoint.y+origin.y},
+          bendPoints:section.bendPoints?.map(point=>({x:point.x+origin.x,y:point.y+origin.y}))}));
+        return [id,points] as const;
+      }));
       const drawn: E[] = [...view.edges.map(x=>({id:x.id,source:x.source,target:x.target,type:"networkLink" as const,zIndex:3,
-        ariaLabel:`${x.type}, ${x.count} supplied relationships`,data:{count:x.count,type:x.type,uncertain:x.uncertain,showLabel:x.id.startsWith("peering:"),rooted:rootIds.has(x.source)&&rootIds.has(x.target),sections:sections.get(x.id)||[]}}))];
+        ariaLabel:`${x.type}, ${x.count} supplied relationships`,data:{count:x.count,type:x.type,uncertain:x.uncertain,showLabel:x.id.startsWith("peering:"),rooted:sections.has(x.id),sections:sections.get(x.id)||[]}}))];
       if (flowEdge) {
         const color = flowEdge.decision === "allowed" ? "#6de1a7" : flowEdge.decision === "blocked" ? "#f07878" : "#dbb778";
         drawn.push({id:flowEdge.id,source:flowEdge.source,target:flowEdge.target,type:"networkLink",zIndex:7,
           markerEnd:{type:MarkerType.ArrowClosed,color,width:22,height:22},ariaLabel:flowEdge.type,
-          data:{count:1,type:flowEdge.type,uncertain:flowEdge.decision==="unknown",grouped:flowEdge.grouped,color,showLabel:true,rooted:rootIds.has(flowEdge.source)&&rootIds.has(flowEdge.target),sections:sections.get(flowEdge.id)||[]}});
+          data:{count:1,type:flowEdge.type,uncertain:flowEdge.decision==="unknown",grouped:flowEdge.grouped,color,showLabel:true,rooted:sections.has(flowEdge.id),sections:sections.get(flowEdge.id)||[]}});
       }
       for (const edge of batchEdges) {
         const color = edge.decision === "allowed" ? "#6de1a7" : edge.decision === "blocked" ? "#f07878" : edge.decision === "mixed" ? "#bca7f5" : "#dbb778";
         drawn.push({id:edge.id,source:edge.source,target:edge.target,type:"networkLink",zIndex:7,
           markerEnd:{type:MarkerType.ArrowClosed,color,width:20,height:20},ariaLabel:`${edge.type}, ${edge.results.length} assessed pairs`,
-          data:{count:edge.results.length,type:edge.type,uncertain:edge.decision==="unknown" || edge.decision==="mixed",grouped:edge.grouped,color,showLabel:edge.results.length>1,rooted:rootIds.has(edge.source)&&rootIds.has(edge.target),sections:sections.get(edge.id)||[]}});
+          data:{count:edge.results.length,type:edge.type,uncertain:edge.decision==="unknown" || edge.decision==="mixed",grouped:edge.grouped,color,showLabel:edge.results.length>1,rooted:sections.has(edge.id),sections:sections.get(edge.id)||[]}});
       }
       for (const edge of matrixEdges) {
         const color = edge.decision === "allowed" ? "#6de1a7" : edge.decision === "blocked" ? "#f07878" : edge.decision === "mixed" ? "#bca7f5" : "#dbb778";
         drawn.push({id:edge.id,source:edge.source,target:edge.target,type:"networkLink",zIndex:6,
           markerEnd:{type:MarkerType.ArrowClosed,color,width:18,height:18},ariaLabel:`${edge.type}, ${edge.results.length} assessed pairs`,
-          data:{count:edge.results.length,type:edge.type,uncertain:edge.decision==="unknown" || edge.decision==="mixed",grouped:edge.results.length>1,color,showLabel:true,rooted:rootIds.has(edge.source)&&rootIds.has(edge.target),sections:sections.get(edge.id)||[]}});
+          data:{count:edge.results.length,type:edge.type,uncertain:edge.decision==="unknown" || edge.decision==="mixed",grouped:edge.results.length>1,color,showLabel:true,rooted:sections.has(edge.id),sections:sections.get(edge.id)||[]}});
       }
       setLayout({ nodes: positioned, edges: drawn });
       setLayoutError("");
       requestAnimationFrame(()=>void flow.current?.fitView({padding:0.18,maxZoom:1.1}));
     }).catch(error => { if (live) setLayoutError(error instanceof Error ? error.message : "Layout failed"); });
     return () => { live=false; };
-  }, [view, networkId, areaId, flowEdge, batchEdges, matrixEdges, internalMatrixGroups]);
+  }, [view, networkId, areaId, expandedAreas, flowEdge, batchEdges, matrixEdges, internalMatrixGroups]);
   function open(item: VisibleItem) {
     if (item.id.startsWith("network:")) { setNetworkId(item.group?.id || ""); setAreaId(""); setSearch(""); setPage(0); }
     else if (item.id.startsWith("area:")) {
       const owner = item.node && model.owner.get(item.node.id);
       if (owner) setNetworkId(owner);
       if (item.aggregate && !demo) { setExpansion(item.node?.id || ""); setAreaId(""); }
-      else setAreaId(item.node?.id || "");
+      else {
+        const id = item.node?.id || "";
+        const collapse = areaId === id || expandedAreas.has(id);
+        setExpandedAreas(previous => {
+          const next = new Set(previous);
+          if (collapse) next.delete(id); else next.add(id);
+          return next;
+        });
+        if (!collapse || areaId === id) setAreaId(collapse ? "" : id);
+      }
       setSearch("");
       setPage(0);
     }
@@ -686,9 +741,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
   }
   return <>
     <div className="section-top"><p>Collected network architecture and explicit relationships from this scan.</p><span className="count-pill">{(graph.projection?.node_count ?? graph.nodes.length).toLocaleString()} resources · {(graph.projection?.edge_count ?? graph.edges.length).toLocaleString()} relationships</span></div>
-    <div className="notice"><CircleHelp size={17}/><p>Lines show resource links; colored arrows show whether network settings allow a connection. Open an arrow for details. “Allowed” does not mean the connection succeeded.</p></div>
     <div className="network-legend" aria-label="Network link legend"><span><i className="reference"/> Collected reference</span><span><i className="candidate"/> Candidate link</span><span><i className="allowed"/> Configuration allows</span><span><i className="blocked"/> Configuration blocks</span><span><i className="unknown"/> Configuration unknown</span><span><i className="mixed"/> Mixed assessed pairs</span></div>
-    {!demo && !!scanId && <p className="muted" role="status">Automatic IPv4 TCP/54321→443 assessment: {matrixEndpointIds.length} of {matrixEndpointOrder.length} loaded endpoints in window {currentMatrixPage+1} of {matrixPageCount}{matrixWindow.length===1 && currentMatrixPage>0 ? " · includes one endpoint from the previous window" : ""}{matrix.isPending && matrixEndpointIds.length >= 2 ? " · assessing…" : matrix.error ? ` · failed: ${matrix.error.message}` : matrix.data && !validatedMatrixResults ? " · response incomplete or mismatched" : validatedMatrixResults ? ` · ${validatedMatrixResults.length} directed pairs evaluated · ${matrixEdges.length} visible arrow groups · ${internalMatrixPairCount} pairs inside collapsed groups` : matrixEndpointIds.length < 2 ? " · at least two loaded endpoints are needed" : ""}. A network or subnet arrow represents only the listed endpoint pairs; open the arrow for their decisions.</p>}
     {!demo && matrixPageCount > 1 && <div className="button-row"><button type="button" className="button" disabled={currentMatrixPage===0} onClick={()=>setMatrixPage(currentMatrixPage-1)}>Previous 12 endpoints</button><button type="button" className="button" disabled={currentMatrixPage+1>=matrixPageCount} onClick={()=>setMatrixPage(currentMatrixPage+1)}>Next 12 endpoints</button><label>Compare endpoint window <select aria-label="Compare endpoint window" value={matrixComparePage===null ? "" : String(matrixComparePage)} onChange={event=>setMatrixComparePage(event.target.value==="" ? null : Number(event.target.value))}><option value="">Select another window</option>{Array.from({length:matrixPageCount},(_,index)=>index).filter(index=>index!==currentMatrixPage).map(index=><option key={index} value={index}>Window {index+1}</option>)}</select></label></div>}
     {matrixComparePage !== null && matrixComparePage !== currentMatrixPage && <p className="muted" role="status">Cross-window IPv4 TCP/54321→443: window {currentMatrixPage+1} ↔ window {matrixComparePage+1}{grid.isPending ? " · assessing…" : grid.error ? ` · failed: ${grid.error.message}` : grid.data && !validatedGridResults ? " · response incomplete or mismatched" : validatedGridResults ? ` · ${validatedGridResults.length} directed pairs evaluated` : ""}. Only the named pairs are assessed.</p>}
     {validatedGridResults && validatedGridResults.length > 0 && <details className="network-matrix-results"><summary>Cross-window assessed pairs · {validatedGridResults.length}</summary><div className="network-rule-scroll" role="region" aria-label="Cross-window assessed pairs" tabIndex={0}>{validatedGridResults.map((result,index)=>{const query=result.query as Record<string,unknown>;const source=graph.nodes.find(node=>node.resource_id===query.source_resource_id);const target=graph.nodes.find(node=>node.resource_id===query.destination_resource_id);return <button key={index} type="button" className="text-button" onClick={()=>{setMatrixInspect([result]);}}>{source?label(source):String(query.source_resource_id)} → {target?label(target):String(query.destination_resource_id)} · {result.decision.toUpperCase()}</button>;})}</div></details>}
@@ -722,7 +775,7 @@ export function NetworkMap({ scanId, demo }: { scanId: string; demo: boolean }) 
       {(expanded.isPending && expansion || inventoryEnabled && pages.isFetching) && <p role="status" className="network-load">Loading bounded network evidence…</p>}
       {(expanded.error || pages.error) && <p role="alert" className="network-load">Additional network evidence could not be loaded. The current map remains available.</p>}
     </Panel>
-    {inspect && <Inspector title={"records" in inspect ? "Observed relationship" : "Network resource"} onClose={()=>setInspect(undefined)}><h3>{"records" in inspect ? inspect.type : inspect.title}</h3>{"records" in inspect ? <RelationshipDetail edge={view.edges.find(edge => edge.id === inspect.id) || inspect} graph={graph} scanId={scanId} demo={demo} /> : <>{inspect.group && <><p>{inspect.group.count} resources · {inspect.group.unresolvedCount} unresolved references.</p><button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>Open network</button></>}{inspect.id.startsWith("area:") && <button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>{inspect.kind==="namespace"?"Open workloads":"Open subnet"}</button>}{needsNative && native.isPending && <p role="status">Loading collected configuration…</p>}{native.error && <p role="alert">Native configuration could not be loaded; graph identifiers and attachments remain available.</p>}{inspect.node && typeof inspect.node.resource_id === "string" && flowEndpointTypes[String(inspect.node.provider)]?.includes(kind(inspect.node)) && !demo && <div className="button-row"><button className="button" onClick={()=>{setAssessSource(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess from this resource</button><button className="button" onClick={()=>{setAssessTarget(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess to this resource</button><button className="button" onClick={()=>{const selectedSource=String(inspect.node?.resource_id);batchRun.current+=1;setBatchSource(selectedSource);setBatchResults([]);setBatchPageResults([]);setBatchError("");setBatchPending(false);setInspect(undefined);void assessLoadedConnections(0,selectedSource);}}>Assess connections from this resource</button></div>}{detailedNode && <ResourceDetail n={detailedNode} graph={graph} />}{inspect.aggregate && !demo && <button className="button" onClick={()=>{setExpansion(inspect.node?.id||"");setInspect(undefined);}}>Expand supplied resource group</button>}</>}</Inspector>}
+    {inspect && <Inspector title={"records" in inspect ? "Observed relationship" : "Network resource"} onClose={()=>setInspect(undefined)}>{"records" in inspect ? <h3>{inspect.type}</h3> : <div className="network-resource-heading"><h3>{inspect.title}</h3><span className="count-pill">{inspect.kind.replaceAll("_", " ")}</span></div>}{"records" in inspect ? <RelationshipDetail edge={view.edges.find(edge => edge.id === inspect.id) || inspect} graph={graph} scanId={scanId} demo={demo} /> : <>{inspect.group && <><p>{inspect.group.count} resources · {inspect.group.unresolvedCount} unresolved references.</p><button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>Open network</button></>}{inspect.id.startsWith("area:") && <button className="button primary" onClick={()=>{open(inspect);setInspect(undefined);}}>{inspect.kind==="namespace"?"Open workloads":"Open subnet"}</button>}{needsNative && native.isPending && <p role="status">Loading collected configuration…</p>}{native.error && <p role="alert">Native configuration could not be loaded; graph identifiers and attachments remain available.</p>}{inspect.node && typeof inspect.node.resource_id === "string" && flowEndpointTypes[String(inspect.node.provider)]?.includes(kind(inspect.node)) && !demo && <div className="button-row"><button className="button" onClick={()=>{setAssessSource(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess from this resource</button><button className="button" onClick={()=>{setAssessTarget(String(inspect.node?.resource_id));setInspect(undefined);setConnection(true);}}>Assess to this resource</button><button className="button" onClick={()=>{const selectedSource=String(inspect.node?.resource_id);batchRun.current+=1;setBatchSource(selectedSource);setBatchResults([]);setBatchPageResults([]);setBatchError("");setBatchPending(false);setInspect(undefined);void assessLoadedConnections(0,selectedSource);}}>Assess connections from this resource</button></div>}{detailedNode && <ResourceDetail key={detailedNode.id} n={detailedNode} graph={graph} />}{inspect.aggregate && !demo && <button className="button" onClick={()=>{setExpansion(inspect.node?.id||"");setInspect(undefined);}}>Expand supplied resource group</button>}</>}</Inspector>}
     {flowInspect && flowResult && <Inspector title="Assessed configuration path" onClose={()=>setFlowInspect(false)}><h3>{flowResult.decision.toUpperCase()} · {flowFamily} {String(flowQuery.protocol || "TCP").toUpperCase()}/{flowQuery.source_port ? `${flowQuery.source_port}→` : ""}{String(flowQuery.destination_port || "?")}</h3><p>{sourceNode ? label(sourceNode) : String(flowQuery.source_resource_id)} → {targetNode ? label(targetNode) : String(flowQuery.destination_resource_id)}</p><p>Configuration decision from this snapshot. Application listening and actual traffic were not measured.</p><Evidence data={{routes:flowResult.routes,policy_decisions:flowResult.policy_decisions,unresolved_dependencies:flowResult.unresolved_dependencies,evidence_refs:flowResult.evidence_refs}} /></Inspector>}
     {batchInspect && <Inspector title="Assessed configuration paths" onClose={()=>setBatchInspect(undefined)}><h3>{batchInspect.length} selected endpoint pair{batchInspect.length===1?"":"s"}</h3><p>Each result applies only to its named endpoints and ports. Application listening and actual traffic were not measured.</p>{batchInspect.map((result,index)=>{const query=result.query as Record<string,unknown>;const source=graph.nodes.find(node=>node.resource_id===query.source_resource_id);const target=graph.nodes.find(node=>node.resource_id===query.destination_resource_id);return <details key={index} open={batchInspect.length===1}><summary>{source?label(source):String(query.source_resource_id)} → {target?label(target):String(query.destination_resource_id)} · {`${addressFamilyLabel(query.address_family)} ${String(query.protocol).toUpperCase()}/${query.source_port ? `${query.source_port}→` : ""}${String(query.destination_port)}`} · {result.decision.toUpperCase()}</summary><Evidence data={{routes:result.routes,policy_decisions:result.policy_decisions,unresolved_dependencies:result.unresolved_dependencies,evidence_refs:result.evidence_refs}} /></details>;})}</Inspector>}
     {matrixInspect && <Inspector title="Automatically assessed flows" onClose={()=>setMatrixInspect(undefined)}><h3>{matrixInspect.length} directed TCP/54321→443 IPv4 pair{matrixInspect.length===1?"":"s"}</h3><p>Each result applies only to its named endpoints and ports. Application listening and actual traffic were not measured.</p>{matrixInspect.map((result,index)=>{const query=result.query as Record<string,unknown>;const source=graph.nodes.find(node=>node.resource_id===query.source_resource_id);const target=graph.nodes.find(node=>node.resource_id===query.destination_resource_id);return <details key={index}><summary>{source?label(source):String(query.source_resource_id)} → {target?label(target):String(query.destination_resource_id)} · {result.decision.toUpperCase()}</summary><Evidence data={{routes:result.routes,policy_decisions:result.policy_decisions,unresolved_dependencies:result.unresolved_dependencies,evidence_refs:result.evidence_refs}} /></details>;})}</Inspector>}

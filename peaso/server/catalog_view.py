@@ -35,9 +35,16 @@ def frameworks_view():
     from peaso.checks.catalog import coverage, framework_catalog
     from peaso.engine import PROVIDERS, SCHEMA_VERSION, framework_labels
 
-    versions = [{key: value for key, value in row.items() if key != "native_check_ids"} for row in framework_catalog()]
+    return frameworks_view_from_catalog([{"frameworks": c.frameworks} for c in CHECKS], framework_catalog(), coverage())
+
+
+def frameworks_view_from_catalog(checks, frameworks, source_coverage):
+    """Render selectors from one captured catalog generation, including builds."""
+    from peaso.checks.native_only import scope as automation_scope, automated_coverage
+    from peaso.engine import PROVIDERS, SCHEMA_VERSION, framework_labels
+    versions = [{key: value for key, value in row.items() if key != "native_check_ids"} for row in frameworks]
     return {"schema_version": SCHEMA_VERSION, "view": "frameworks", "details_url": "/api/catalog",
-            "providers": list(PROVIDERS), "frameworks": framework_labels([{"frameworks": c.frameworks} for c in CHECKS]),
-            "framework_versions": versions, "upstream_coverage": automated_coverage(coverage()), "automation_scope": automation_scope(),
+            "providers": list(PROVIDERS), "frameworks": framework_labels(checks),
+            "framework_versions": versions, "upstream_coverage": automated_coverage(source_coverage), "automation_scope": automation_scope(),
             "limitations": ["Framework and checklist-version selectors only; per-version native check ids are in /api/catalog?view=summary.",
                             "Framework mappings are review guidance, not certification. Pending references remain unsupported."]}

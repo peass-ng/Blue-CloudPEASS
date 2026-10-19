@@ -12,7 +12,7 @@ from pathlib import Path
 
 VERSION='archived-finding-presentation-v1'
 CRITERIA_FIELDS=('evaluated','pass_when','fail_when','not_applicable_when')
-PRESENTATION_FIELDS=('description','rationale','remediation','remediation_details','evidence_summary','guidance_refresh')
+PRESENTATION_FIELDS=('description','rationale','remediation','remediation_details','evidence_summary','evidence_summary_format','guidance_refresh')
 CORRECTED_CHECK_IDS=frozenset({
     'gcp.claude.kms_key.rotation_100_days',
     'gcp.claude.gke.binary_authorization',

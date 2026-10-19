@@ -281,7 +281,7 @@ def test_role_permissions_and_immutable_versions():
     old = json.loads(previous_bytes)
     current_role = current['Resources']['AuditRole']
     old_role = old['Resources']['AuditRole']
-    assert current_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']['AWS'] == 'arn:aws:iam::202533532952:role/HackTricks-CSPM'
+    assert current_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']['AWS'] == 'arn:aws:iam::111122223333:role/HackTricks-CSPM'
     current_role = json.loads(json.dumps(current_role))
     current_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal'] = old_role['Properties']['AssumeRolePolicyDocument']['Statement'][0]['Principal']
     assert current_role == old_role

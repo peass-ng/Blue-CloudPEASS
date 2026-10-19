@@ -541,7 +541,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "inst_profile",
-      "predicate_source_sha256": "7c6d0383d71740f667eebabc5502c78c316214c190a528dcbff5d0900f052a24",
+      "predicate_source_sha256": "527a0496a88c6c529a83e256bc3ebf22388c361915e4689c515d74d543ff1f4d",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -568,7 +568,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "inst_profile_live",
-      "predicate_source_sha256": "3f4d9551e833792bcf931e1f68906c1489ae0d992fdf9e7c582a7ca97bba229b",
+      "predicate_source_sha256": "2f30cee75a508ec06c00969b4e6041ebe4e6d593a83eb2579eddf0ab2694a1b2",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -684,7 +684,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "inst_public_profile",
-      "predicate_source_sha256": "e65583af93af4df4b7f07e42e154026facf6198a3ec51fcf0f468e60483fa97d",
+      "predicate_source_sha256": "d1b7dec2c9246fe63b15b3d4f307c5b2609c59e9414b5c0997a263c33fb5f2c6",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -2073,7 +2073,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "ec2_launch_template",
       "predicate_qualname": "lt_instances_public",
-      "predicate_source_sha256": "2d763209089d5c7eee4f51c22a68e0c7c6d2123db6a670f470a4cc8e5cb6f4e9",
+      "predicate_source_sha256": "ce2e2aa97441112491b38b9cb10d6c6c83fd9efadc147bd7651a695711286162",
       "closure": {}
     },
     "batch": "ec2-ebs"
@@ -6202,7 +6202,7 @@ ROWS = json.loads(r'''
     "reviewed_binding": {
       "kind": "instance",
       "predicate_qualname": "userdata_embedded_secrets",
-      "predicate_source_sha256": "44fa5456ac7be07aa7cfde1d17ff4b0c3e3401b8046b7730b233263280f74276",
+      "predicate_source_sha256": "d01ef6b1e851c9100c016dd087638d73f59ecf0a884ff266f5cab3c83d847bdc",
       "closure": {},
       "delegates": []
     }
@@ -6243,7 +6243,7 @@ ROWS = json.loads(r'''
       "delegates": [
         {
           "qualname": "_https_listener",
-          "sha256": "3e07e2d0fa40cb28ae8bede4f9bbe62b6b299719c293f152c91ed61d9dd56079"
+          "sha256": "3dd0921a28699a8e6b2ff29f0c2cfa2abcc55b09afb2bd59f1d4cb186ef18b96"
         }
       ]
     }
@@ -6325,7 +6325,7 @@ ROWS = json.loads(r'''
       "delegates": [
         {
           "qualname": "_admin",
-          "sha256": "9e7485240d026315b5a8e354ce03272e57309c1f3c861f26a53802d5f34d7117"
+          "sha256": "4a6e5fb046eb40a36ca2e5235eb7263c4aa99323b68f277b2819d71036e9f0b9"
         }
       ]
     }

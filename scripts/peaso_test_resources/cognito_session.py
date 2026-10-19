@@ -6,6 +6,7 @@ Does not modify the existing pool, client, plan attributes or other users.
 import argparse
 from datetime import datetime, timedelta, timezone
 import json
+from peaso import deployment
 import os
 from pathlib import Path
 import secrets
@@ -15,9 +16,9 @@ import uuid
 
 import boto3
 
-ACCOUNT = "202533532952"
-POOL = "us-east-1_7rbhezdKX"
-CLIENT = "3g2u5ilb7kbte92lra40ji2ht0"
+ACCOUNT = deployment.value("account_id")
+POOL = deployment.value("cognito_pool_id")
+CLIENT = deployment.value("cognito_client_id")
 
 
 def main():

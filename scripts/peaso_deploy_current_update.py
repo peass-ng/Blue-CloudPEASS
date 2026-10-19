@@ -13,11 +13,11 @@ from pathlib import Path
 import re
 import stat
 import zlib
+from peaso import deployment
 
 
-ACCOUNT = "202533532952"
-BACKEND = {"bucket": "terraform-state-hacktricks-wiki", "key": "cspm/terraform.tfstate",
-           "region": "us-east-1", "encrypt": True, "use_lockfile": True}
+ACCOUNT = deployment.value("account_id")
+BACKEND = deployment.backend()
 BASELINE_COUNT = 72
 BASELINE_ADDRESSES_SHA256 = "bf637eafe4bcec3150881ce994869909007319457ab8095e17fd5b839d846341"
 PRIOR_DATA_SOURCES = {
@@ -444,7 +444,7 @@ def check_api_policy(before: dict, after: dict) -> None:
     statements = new.get("Statement")
     if not isinstance(statements, list):
         raise RuntimeError("Current-update API IAM statements are malformed")
-    pool = f"arn:aws:cognito-idp:us-east-1:{ACCOUNT}:userpool/us-east-1_7rbhezdKX"
+    pool = f"arn:aws:cognito-idp:us-east-1:{ACCOUNT}:userpool/{deployment.value('cognito_pool_id')}"
     candidates = [item for item in statements if isinstance(item, dict) and item.get("Resource") == pool and
                   isinstance(item.get("Action"), list) and "cognito-idp:ListUserPoolClients" in item["Action"]]
     if len(candidates) != 1 or candidates[0]["Action"].count("cognito-idp:ListUserPoolClients") != 1:

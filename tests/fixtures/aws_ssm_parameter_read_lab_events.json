@@ -1,0 +1,82 @@
+[
+  {
+    "eventID": "6b90f7ca-bfe9-4d0d-afab-100ef1ff5187",
+    "eventTime": "2026-10-19T18:48:25Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "GetParameterHistory",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "name": "/example-ssm-read-8bdde3b4/secret",
+      "withDecryption": true
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-read-8bdde3b4-parameterhistor/example-ssm-GetParameterHistory"
+    }
+  },
+  {
+    "eventID": "37b18345-d745-4543-966d-8240646961ee",
+    "eventTime": "2026-10-19T18:48:35Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "GetParametersByPath",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "path": "/example-ssm-read-8bdde3b4",
+      "recursive": true,
+      "withDecryption": true
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-read-8bdde3b4-parametersbypat/example-ssm-GetParametersByPath"
+    }
+  },
+  {
+    "eventID": "faa25711-85a8-48fe-8638-2c81b13413c4",
+    "eventTime": "2026-10-19T18:48:45Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "GetParameter",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "name": "/example-ssm-read-8bdde3b4/secret",
+      "withDecryption": true
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:sts::222233334444:assumed-role/example-ssm-read-8bdde3b4-parameter/example-ssm-GetParameter"
+    }
+  },
+  {
+    "eventID": "30276f1c-3607-4c8b-86e9-cc76184a6b34",
+    "eventTime": "2026-10-19T18:49:05Z",
+    "eventSource": "ssm.amazonaws.com",
+    "eventName": "GetParameter",
+    "awsRegion": "us-east-1",
+    "readOnly": true,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "requestParameters": {
+      "name": "/example-ssm-read-8bdde3b4/secret"
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

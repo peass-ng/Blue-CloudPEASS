@@ -36,7 +36,8 @@ def test_bedrock_signed_contract_is_archived_out_of_native_only_admission():
     archived = next(row for row in catalog["archived_checks"] if row["id"] == BEDROCK)
     assert catalog["excluded_controls"][BEDROCK] == entry
     assert archived["proposal_provenance"]["signed_spec_sha256"] == "5e6dd7252b56c8d9d4dd46868567b160e8c9bc8ab248baf4a9157a4478abf4e2"
-    assert archived["proposal_provenance"]["source_manifest_sha256"] == "ffb564cedbf575c3d1f94a158c4565f198c14919f93236207e02177855de5879"
+    assert archived["proposal_provenance"]["source_manifest_sha256"] == hashlib.sha256(
+        (root / "docs/compliance-ledgers/manifest.json").read_bytes()).hexdigest()
 
 
 @pytest.mark.parametrize("check_id", sorted(exclusions()))
@@ -141,3 +142,21 @@ def test_owner_scoped_gcp_deployment_projection_is_not_automatic_inventory():
     with pytest.raises(ValueError,match='inventories must be supported'):
         engine.plan_collection({'connector':{'provider':'gcp','options':{'inventories':['deployed_image']}}})
     assert 'deployed_image' not in engine.get_catalog()['inventories']['gcp']
+
+
+def test_unsupported_listener_contract_is_separate_from_customer_inputs():
+    from peaso.checks.native_only import exclusions, scope
+    ident = 'aws_nist_ec2_instance_not_publicly_accessible'
+    row = exclusions()[ident]
+    assert row['disposition'] == 'unsupported_exact_contract'
+    assert row['mandatory_external_fields'] == []
+    unsupported = {cid for cid, item in exclusions().items()
+                   if item.get('disposition') == 'unsupported_exact_contract'}
+    assert unsupported == {ident, 'aws_cis_lightsail_ssm_patch_compliance', 'gcp_logging_detect_t1110'}
+    assert scope()['excluded_unsupported_controls'] == len(unsupported)
+    lightsail = exclusions()['aws_cis_lightsail_ssm_patch_compliance']
+    assert lightsail['mandatory_external_fields'] == []
+    assert 'aws_cis_lightsail_ssm_patch_compliance' not in {check.id for check in engine._registry()}
+    assert ident not in {check.id for check in engine._registry()}
+    assert row['native_alternative'] in {check.id for check in engine._registry()}
+    assert len(row['native_alternatives']) == 5

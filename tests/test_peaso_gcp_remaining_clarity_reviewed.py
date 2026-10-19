@@ -8,9 +8,26 @@ from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 from peaso.checks.gcp_remaining_clarity_reviewed import ROWS, _digest, description, remediation, severity_review
 from peaso.checks.gcp_remaining_finding_summary import evidence_summary
+from peaso.checks.gcp_remaining_clarity_reviewed import NATIVE_EXTENSION_REVIEWS
+from peaso.checks.facts import MemoIndex
 
 PACK=Path(__file__).resolve().parents[1]/'peaso/rulepacks'
 CHECK_BY_ID={c.id:c for c in CHECKS}
+# Current source-produced cases are a test-local overlay. CENTRAL stays historical.
+NATIVE=json.loads((Path(__file__).parent/'fixtures/gcp-native-review-behavior.json').read_text())
+CURRENT_NATIVE_IDS={row['check_id'] for row in NATIVE['cases']}
+
+
+def _current_cases(cid):
+    if cid not in CURRENT_NATIVE_IDS:
+        return CASES.get(cid) or _bulk_cases(cid)
+    cases={}
+    for row in NATIVE['cases']:
+        if row['check_id']==cid and row['expected_status'] in ('PASS','FAIL'):
+            branch=row['expected_status'].lower()
+            cases.setdefault(branch,deepcopy(row['item']))
+            cases.setdefault(branch+'_index',MemoIndex(deepcopy(row['index'])))
+    return cases
 # These legacy fixture payloads omit a sufficient deciding observation (or
 # retain joined results without the underlying role/permission/protocol values).
 # Their raw evidence/verdict remain visible; no inferred summary is supplied.
@@ -23,7 +40,6 @@ LEGACY_NO_DECISIVE_OBSERVATION = {'gcp.claude.firewall.public_ingress_common_por
  'gcp.claude.instance.sa_no_iam_write_permission',
  'gcp.claude.instance.sa_no_service_account_impersonate_permission',
  'gcp.claude2.logging.sink_all_log_entries',
- 'gcp.identity.super_admin_recovery_group',
  'gcp.ports.api_key_meaningful_restrictions',
  'gcp.ports.bigquery_dataset_not_publicly_accessible',
  'gcp.ports.cloud_run_service_policy_prohibit_public_access',
@@ -46,10 +62,9 @@ LEGACY_NO_DECISIVE_OBSERVATION = {'gcp.claude.firewall.public_ingress_common_por
  'gcp_kms_key_destroy_alert',
  'gcp_logging_detect_t1110',
  'gcp_logging_enumeration_alert',
- 'gcp_pci_bucket_157fb0c69361',
  'gcp_pci_bucket_56c6b1b7f813'}
 
-VALIDATION_CORRECTIONS={'gcp.claude.kms_key.rotation_100_days','gcp.claude.gke.binary_authorization','gcp.claude.gke.release_channel','gcp.ports.cloudfunction_function_no_ingress_settings_allow_all'}
+VALIDATION_CORRECTIONS={'gcp.ports.sql_instance_require_ssl_enabled','gcp.ports.reference_sql_ssl_connections','gcp.claude.kms_key.rotation_100_days','gcp.claude.gke.binary_authorization','gcp.claude.gke.release_channel','gcp.ports.cloudfunction_function_no_ingress_settings_allow_all'}
 
 
 def _index(groups, scope='projects/p', **metadata):
@@ -145,7 +160,7 @@ def test_per_id_kind_predicate_severity_and_real_cases(cid):
     assert row['reviewed_binding']['module']==f.__module__
     assert severity_review(cid,check.severity)==row['reviewed_severity']
     with pytest.raises(ValueError):severity_review(cid,'different')
-    cases=CASES.get(cid) or _bulk_cases(cid)
+    cases=_current_cases(cid)
     if cases is None:
         if cid=='gcp.storage.uniform_access':
             cases={'pass':{'iamConfiguration':{'uniformBucketLevelAccess':{'enabled':True}}},'fail':{'iamConfiguration':{'uniformBucketLevelAccess':{'enabled':False}}}}
@@ -269,7 +284,9 @@ def test_all_current_active_gcp_checks_have_exactly_one_review_owner():
     from peaso.checks.gcp_scalar_clarity_reviewed import ROWS as scalar
     from peaso.checks.finding_clarity_reviewed import ROWS as first
     active={c.id for c in automated_checks(CHECKS) if c.provider=='gcp'}
-    groups=[set(ROWS)&active,set(firewall)&active,set(scalar)&active,set(first)&active]
+    admitted=json.loads((PACK.parents[1]/'docs/compliance-ledgers/native-extensions/gcp-20261019.json').read_text())['checks']
+    assert set(NATIVE_EXTENSION_REVIEWS)=={row['spec']['id'] for row in admitted}
+    groups=[set(ROWS)&active,set(firewall)&active,set(scalar)&active,set(first)&active,set(NATIVE_EXTENSION_REVIEWS)]
     assert set.union(*groups)==active
     assert sum(map(len,groups))==len(active)
     assert not {'gcp_pci_iam_policy_ca1281da7ab2','gcp_pci_iam_policy_9a8ce875703d','gcp_c5_sbom'}&active
@@ -292,3 +309,54 @@ def test_reviewed_approved_guidance_has_precise_primary_references(cid,originals
     template=remediation(cid,originals[1][cid])
     assert template['references']
     assert all(r.get('url','').startswith(('https://cloud.google.com/','https://developers.google.com/')) for r in template['references'])
+
+
+@pytest.mark.parametrize('case',NATIVE['cases'],ids=lambda row:row['id'])
+def test_current_native_overlay_preserves_status_evidence_and_summary(case):
+    before=_digest(CASES)
+    status,evidence=CHECK_BY_ID[case['check_id']].evaluate(deepcopy(case['item']),MemoIndex(deepcopy(case['index'])))
+    assert status==case['expected_status']
+    assert json.loads(json.dumps(evidence))==case['expected_evidence']
+    finding={'provider':'gcp','status':status,'check_id':case['check_id'],'evidence':evidence}
+    assert bool(evidence_summary(finding))==(status=='FAIL')
+    if status!='FAIL':
+        assert evidence_summary({**finding,'status':'FAIL'}) is None
+    assert _digest(CASES)==before
+
+
+@pytest.mark.parametrize('cid',sorted(NATIVE_EXTENSION_REVIEWS))
+def test_admitted_extension_owner_binds_source_fixtures_and_copy(cid):
+    import hashlib
+    from peaso.checks.gcp_evidence_explanations import CATALOG, evidence_summary as natural_summary
+    row=NATIVE_EXTENSION_REVIEWS[cid]
+    root=PACK.parents[1]
+    admitted=json.loads((root/'docs/compliance-ledgers/native-extensions/gcp-20261019.json').read_text())['checks']
+    assert _digest(next(x for x in admitted if x['spec']['id']==cid))==row['admission_sha256']
+    assert hashlib.sha256((root/row['source']).read_bytes()).hexdigest()==row['source_sha256']
+    for asset in row['fixture_sources']:
+        assert hashlib.sha256((root/asset['path']).read_bytes()).hexdigest()==asset['sha256']
+    assert _digest(CASES[cid])==row['fixture_sha256']
+    assert _digest(CATALOG[cid])==row['copy_catalog_sha256']
+    check=CHECK_BY_ID[cid];f=inspect.unwrap(check.evaluate)
+    binding=row['reviewed_binding']
+    assert (check.kind,f.__module__,f.__qualname__)==(binding['kind'],binding['module'],binding['source_qualname'])
+    nonlocals=inspect.getclosurevars(f).nonlocals
+    assert _stable_binding(nonlocals)==binding['closure']
+    assert hashlib.sha256(inspect.getsource(f).encode()).hexdigest()==binding['predicate_source_sha256']
+    assert _stable_binding(inspect.getclosurevars(f).nonlocals)==binding['predicate_bindings']
+    for branch in ('pass','fail','unknown'):
+        if branch not in CASES[cid]:continue
+        spec=CASES[cid]
+        status,evidence=check.evaluate(deepcopy(spec[branch]),MemoIndex(deepcopy(spec.get(branch+'_index',spec.get('index',{})))))
+        assert status==branch.upper()
+        finding={'provider':'gcp','status':status,'check_id':cid,'evidence':evidence}
+        assert natural_summary(finding)
+        # Extensions have their own typed prose; legacy FAIL templates do not own them.
+        assert evidence_summary(finding) is None
+
+
+@pytest.mark.parametrize('evidence',[{'isEnrolledIn2Sv':True},
+    {'isEnrolledIn2Sv':False,'isEnforcedIn2Sv':'false'},
+    {'isEnrolledIn2Sv':True,'isEnforcedIn2Sv':True}])
+def test_mfa_missing_malformed_or_positive_native_values_never_supply_failure(evidence):
+    assert evidence_summary({'provider':'gcp','status':'FAIL','check_id':'gcp.identity.non_service_account_mfa','evidence':evidence}) is None

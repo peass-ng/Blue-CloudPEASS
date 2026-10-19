@@ -16,7 +16,14 @@ def collect_live(connector, requirements=None):
         normalized["options"] = {**connector.get("options", {}), "_progress_callback": runtime_progress}
     from importlib import import_module
     from .bulk_evidence import collect
-    return collect(import_module("peaso.collectors." + provider), normalized, requirements)
+    from peaso.cancellation import current_event
+    cancelled = current_event()
+    if cancelled is not None:
+        normalized["options"] = {**normalized.get("options", {}), "cancel_event": cancelled}
+    result = collect(import_module("peaso.collectors." + provider), normalized, requirements)
+    if cancelled is not None and cancelled.is_set():
+        raise KeyboardInterrupt
+    return result
 
 
 def supported_types(provider):

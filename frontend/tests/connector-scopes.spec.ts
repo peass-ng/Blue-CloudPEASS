@@ -9,8 +9,8 @@ async function connectorForm(page: Page) {
     runtime_mode: "hosted", connector_auth_methods: { aws: ["access_keys", "assume_role"], gcp: ["platform-service-account", "service-account"], azure: ["client-secret"], k8s: ["inline"] },
   } }));
   await page.route("**/api/connectors/prepare", (route) => route.fulfill({ json: {
-    prepared_id: "fixture", external_id: "hacktricks-cspm-ws-fixture", collector_role_arn: "arn:aws:iam::202533532952:role/HackTricks-CSPM",
-    service_account_email: "hacktricks-cspm-sa-acc-third-p@billing-static-info-no-delete.iam.gserviceaccount.com",
+    prepared_id: "fixture", external_id: "hacktricks-cspm-ws-fixture", collector_role_arn: "arn:aws:iam::111122223333:role/HackTricks-CSPM",
+    service_account_email: "cspm@example-platform-project.iam.gserviceaccount.com",
     project_label_key: "hacktricks-cspm-00000000000000000000", project_label_value: "approved",
   } }));
   await page.route("**/api/connectors/check-access", (route) => {

@@ -1,6 +1,5 @@
 """IAM evidence enrichment cannot alter the authenticated historical release."""
 import hashlib
-from pathlib import Path
 import pytest
 from tests import release_successor_history as history
 
@@ -11,13 +10,13 @@ MANIFEST='tests/fixtures/post_dfaf_integration/historical-release-manifests.json
 def test_exact_evidence_successor_recovers_original_baseline_bytes():
  current=(history.ROOT/MEMBER).read_bytes()
  original=history._source414_reviewed_baseline(MEMBER,current,history._IAM_HISTORICAL_BASELINE_SHA256)
- assert hashlib.sha256(current).hexdigest()==history._IAM_EVIDENCE_SUCCESSOR_SHA256
+ assert hashlib.sha256(current).hexdigest()==history._IAM_SECURITY_SUCCESSOR_SHA256
  assert hashlib.sha256(original).hexdigest()==history._IAM_HISTORICAL_BASELINE_SHA256
  assert len(history._IAM_EVIDENCE_ONLY_REVERSE_HUNKS)==4
 
 
 def test_no_zip_iam_reconstruction_is_hermetic_and_release_bound(tmp_path,monkeypatch):
- for member in (MEMBER,MANIFEST):
+ for member in (MEMBER,MANIFEST,history._IAM_RETAINED_PREDECESSOR):
   target=tmp_path/member;target.parent.mkdir(parents=True,exist_ok=True)
   target.write_bytes((history.ROOT/member).read_bytes())
  monkeypatch.setattr(history,'ROOT',tmp_path)
@@ -26,6 +25,17 @@ def test_no_zip_iam_reconstruction_is_hermetic_and_release_bound(tmp_path,monkey
  release=history.historical_release(archive)
  raw=history.historical_bytes(archive,MEMBER)
  assert hashlib.sha256(raw).hexdigest()==release['files'][MEMBER]
+
+
+def test_retained_iam_predecessor_tampering_is_rejected(tmp_path,monkeypatch):
+ source=history.ROOT/history._IAM_RETAINED_PREDECESSOR
+ current=(history.ROOT/MEMBER).read_bytes()
+ target=tmp_path/history._IAM_RETAINED_PREDECESSOR
+ target.parent.mkdir(parents=True,exist_ok=True)
+ target.write_bytes(source.read_bytes()+b'tampered')
+ monkeypatch.setattr(history,'ROOT',tmp_path)
+ with pytest.raises(ValueError,match='predecessor digest'):
+  history._source414_reviewed_baseline(MEMBER,current,history._IAM_HISTORICAL_BASELINE_SHA256)
 
 @pytest.mark.parametrize('change',['unknown_bytes','different_member','wrong_baseline'])
 def test_unreviewed_successor_member_or_baseline_rejected(change):

@@ -56,6 +56,11 @@ def _metric_filters(requests, session, region, account):
         if not isinstance(item, dict) or not isinstance(item.get("logGroupName"), str) or not isinstance(item.get("filterName"), str):
             continue
         row = {key: value for key, value in item.items() if value is not None}
+        # The JMESPath object constructor emits null for omitted optional
+        # dimensions. Preserve omission instead of manufacturing a malformed map.
+        for transformation in row.get("metricTransformations", []):
+            if isinstance(transformation, dict) and transformation.get("dimensions") is None:
+                transformation.pop("dimensions", None)
         row["id"] = f"{item['logGroupName']}/{item['filterName']}"
         output.append(row)
     if len(output) != len(read.items) and read.status in _OK:
@@ -72,7 +77,7 @@ def _alarm(item):
     for query in item.get("Metrics") or []:
         if not isinstance(query, dict):
             continue
-        entry = {key: copy.deepcopy(query[key]) for key in ("Id", "ReturnData") if key in query}
+        entry = {key: copy.deepcopy(query[key]) for key in ("Id", "ReturnData", "AccountId") if key in query}
         if "Expression" in query:
             entry["ExpressionPresent"] = True
         stat = query.get("MetricStat")

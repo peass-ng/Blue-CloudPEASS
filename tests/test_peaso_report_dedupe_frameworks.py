@@ -337,7 +337,8 @@ def test_labels_are_stored_once_per_check_and_round_trip_losslessly():
     assert report["check_frameworks"]
     assert {f["check_id"] for f in report["findings"]} <= set(report["check_frameworks"])
     hydrated = hydrate_frameworks(report)
-    assert all(isinstance(f["frameworks"], list) and HACKTRICKS in f["frameworks"] for f in hydrated["findings"])
+    from peaso.checks.hacktricks_scope import includes
+    assert all(isinstance(f["frameworks"], list) and (HACKTRICKS in f["frameworks"]) == includes(f["check_id"]) for f in hydrated["findings"])
     # compact(expand(r)) == r, and hydrate does not modify its input.
     assert compact_report(expand_report(report, snapshot)) == report
     assert not any("frameworks" in f for f in report["findings"])
@@ -489,7 +490,8 @@ def test_api_hydrates_per_check_fields_for_filters_facets_summary_and_detail(tmp
         assert client.get(f"/api/scans/{ident}/findings", params={"search": title, "limit": 500}).json()["total"] >= 1
         detail = client.get(f"/api/scans/{ident}/findings/{override['id']}").json()
         assert detail["guidance_refresh"] == {"version":"archived-finding-presentation-v1", "status":"current_text", "basis":"matching_archived_criteria", "allow_summary":True}
-        assert {k: v for k, v in detail.items() if k not in {"runtime", "remediation_details", "guidance_refresh"}} == full[override["id"]]
+        assert {k: v for k, v in detail.items() if k not in {"runtime", "remediation_details", "guidance_refresh", "evidence_summary"}} == full[override["id"]]
+        assert isinstance(detail.get("evidence_summary"), str) and detail["evidence_summary"]
         from peaso.remediation import template
         expected = bundle["remediation_templates"][override["check_id"]]
         assert template(override["check_id"], override["provider"])["review_status"] == "approved"

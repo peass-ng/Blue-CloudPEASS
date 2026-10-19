@@ -179,7 +179,15 @@ def test_glue_connection_properties_allowlist_drops_credentials(sdk):
     add("glue").add_response("get_connections", {"ConnectionList": [{"Name": "db", "ConnectionType": "JDBC", "ConnectionProperties": {
         "JDBC_CONNECTION_URL": "jdbc:mysql://h/db", "USERNAME": "admin", "PASSWORD": "pw", "SECRET_ID": "s", "JDBC_ENFORCE_SSL": "true"}}]}, {"HidePassword": True})
     read = facts.FETCHERS["glue_connection"](aws.Requests({}), session, REGION, ACCOUNT)
-    assert read.items == [{"Name": "db", "ConnectionType": "JDBC", "ConnectionProperties": {"JDBC_ENFORCE_SSL": "true"}}]
+    assert [{key: value for key, value in item.items() if key != "AdditionalSecretIndicators"} for item in read.items] == [
+        {"Name": "db", "ConnectionType": "JDBC", "ConnectionProperties": {"JDBC_ENFORCE_SSL": "true"}}]
+    marker = read.items[0]["AdditionalSecretIndicators"]
+    assert marker["Coverage"] == "visible_nonpassword_properties"
+    assert marker["HighConfidenceSecretPresent"] is False
+    assert marker["NativeResponseComplete"] is True and marker["collection_status"] == "collected"
+    assert marker["SourceOperation"] == "glue:GetConnections" and marker["ResourceId"] == "db"
+    assert marker["Kind"] == "glue_connection" and marker["Region"] == REGION
+    assert marker["AccountId"] is None  # native CatalogId omission: account authority is the scoped collection
 
 
 def test_glue_data_catalog_encryption_and_absent_policy(sdk):

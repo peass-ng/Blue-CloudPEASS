@@ -1,0 +1,288 @@
+[
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:07:10Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "CreateDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "2a6432d7-443f-4203-a5bd-1c378a993bc1",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-src",
+      "engine": "mysql",
+      "dBParameterGroupName": "example-rds-mysql-393e3221-pg",
+      "publiclyAccessible": false,
+      "backupRetentionPeriod": 1
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-src",
+      "dBInstanceStatus": "creating",
+      "publiclyAccessible": false
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:14:18Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBParameterGroup",
+    "awsRegion": "us-east-1",
+    "eventID": "431f1fd6-69e4-494d-9379-0fae61ab1d1b",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBParameterGroupName": "example-rds-mysql-393e3221-pg",
+      "parameters": [
+        {
+          "parameterName": "require_secure_transport",
+          "parameterValue": "ON",
+          "isModifiable": false,
+          "applyMethod": "immediate"
+        }
+      ]
+    },
+    "responseElements": {
+      "dBParameterGroupName": "example-rds-mysql-393e3221-pg"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:14:19Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBParameterGroup",
+    "awsRegion": "us-east-1",
+    "eventID": "8f251515-40c2-470e-9880-75f3bae09920",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBParameterGroupName": "example-rds-mysql-393e3221-pg",
+      "parameters": [
+        {
+          "parameterName": "require_secure_transport",
+          "parameterValue": "OFF",
+          "isModifiable": false,
+          "applyMethod": "immediate"
+        }
+      ]
+    },
+    "responseElements": {
+      "dBParameterGroupName": "example-rds-mysql-393e3221-pg"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:14:19Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBParameterGroup",
+    "awsRegion": "us-east-1",
+    "eventID": "bdc60d20-d1f6-48e2-ac7e-c13105acf13c",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBParameterGroupName": "example-rds-mysql-393e3221-pg",
+      "parameters": [
+        {
+          "parameterName": "general_log",
+          "parameterValue": "1",
+          "isModifiable": false,
+          "applyMethod": "immediate"
+        },
+        {
+          "parameterName": "log_output",
+          "parameterValue": "FILE",
+          "isModifiable": false,
+          "applyMethod": "immediate"
+        }
+      ]
+    },
+    "responseElements": {
+      "dBParameterGroupName": "example-rds-mysql-393e3221-pg"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:15:03Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "DescribeDBLogFiles",
+    "awsRegion": "us-east-1",
+    "eventID": "fdd27479-978f-4841-9001-32afd52c1f81",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-src"
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:15:37Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "DownloadDBLogFilePortion",
+    "awsRegion": "us-east-1",
+    "eventID": "0fb8c703-c7a8-4b6f-b644-e59e6de32f0e",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-src",
+      "logFileName": "general/mysql-general.log",
+      "numberOfLines": 5
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:15:37Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "DescribeDBLogFiles",
+    "awsRegion": "us-east-1",
+    "eventID": "9bd8eca6-3510-41db-8d15-d3dc3e501ff8",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-src"
+    },
+    "responseElements": {}
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:15:39Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "CreateDBInstanceReadReplica",
+    "awsRegion": "us-east-1",
+    "eventID": "701601e8-2fcb-4f52-a65a-4c79a1477c7b",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-rep",
+      "sourceDBInstanceIdentifier": "example-rds-mysql-393e3221-src",
+      "dBInstanceClass": "db.t4g.micro",
+      "publiclyAccessible": true,
+      "vpcSecurityGroupIds": [
+        "sg-054f0125f62ddd25d"
+      ]
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-rep",
+      "dBInstanceStatus": "creating",
+      "readReplicaSourceDBInstanceIdentifier": "example-rds-mysql-393e3221-src",
+      "publiclyAccessible": true
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:24:50Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "ModifyDBInstance",
+    "awsRegion": "us-east-1",
+    "eventID": "7ae64fe5-06e3-4ed9-8345-31aafbb19b69",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-rep",
+      "masterUserPassword": "HIDDEN_DUE_TO_SECURITY_REASONS",
+      "applyImmediately": true
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-rep",
+      "dBInstanceStatus": "available"
+    }
+  },
+  {
+    "eventVersion": "1.11",
+    "eventTime": "2026-10-19T21:24:51Z",
+    "eventSource": "rds.amazonaws.com",
+    "eventName": "PromoteReadReplica",
+    "awsRegion": "us-east-1",
+    "eventID": "f4a06236-0c46-4ef8-8dbd-0a0bc8ba9144",
+    "eventType": "AwsApiCall",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "222233334444",
+    "userIdentity": {
+      "type": "IAMUser",
+      "arn": "arn:aws:iam::222233334444:user/testenv",
+      "accountId": "222233334444"
+    },
+    "requestParameters": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-rep"
+    },
+    "responseElements": {
+      "dBInstanceIdentifier": "example-rds-mysql-393e3221-rep",
+      "dBInstanceStatus": "available",
+      "readReplicaSourceDBInstanceIdentifier": "example-rds-mysql-393e3221-src"
+    }
+  }
+]

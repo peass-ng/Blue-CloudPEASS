@@ -10,7 +10,7 @@ from peaso.server.validation import auth_capabilities, validate_connector
 
 
 LABEL = "hacktricks-cspm-0123456789abcdefabcd"
-SETTINGS = SimpleNamespace(auth_mode="cognito", gcp_platform_sa_secret_arn="arn:aws:secretsmanager:us-east-1:202533532952:secret:fixture")
+SETTINGS = SimpleNamespace(auth_mode="cognito", gcp_platform_sa_secret_arn="arn:aws:secretsmanager:us-east-1:111122223333:secret:fixture")
 
 
 def project(ident, number, *, label=LABEL):

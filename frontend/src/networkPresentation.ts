@@ -119,7 +119,7 @@ export type VisibleEdge = {
 };
 export type NetworkView = { items: VisibleItem[]; edges: VisibleEdge[]; hiddenNodes: number; hiddenEdges: number; matching: GraphNode[]; pageCount: number; pageLabel: string; visibleEdgeTotal: number };
 function titleFor(n: GraphNode) { return label(n); }
-export function networkView(model: NetworkModel, provider: string, selectedNetwork: string, selectedArea: string, search: string, page = 0, focusNetworks: string[] = [], focusAssets: string[] = []): NetworkView {
+export function networkView(model: NetworkModel, provider: string, selectedNetwork: string, selectedArea: string, search: string, page = 0, focusNetworks: string[] = [], focusAssets: string[] = [], expandedAreas: string[] = []): NetworkView {
   const providerGroups = model.groups.filter(g => g.provider === provider);
   const groupById = new Map(providerGroups.map(g => [g.id, g]));
   const linked = new Set<string>();
@@ -158,8 +158,17 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
   const phase = !selectedNetwork ? "network" : !selectedArea ? "area" : "asset";
   const pageCount = Math.max(1, Math.ceil((phase === "network" ? groups.length : phase === "area" ? areaCandidates.length : assetCandidates.length) / (phase === "network" ? NETWORKS_PER_PAGE : phase === "area" ? AREAS_PER_PAGE : ASSETS_PER_PAGE)));
   const shownGroups = phase === "network" ? groups.slice(page * NETWORKS_PER_PAGE, (page + 1) * NETWORKS_PER_PAGE) : groups;
-  const shownAreas = phase === "area" ? areaCandidates.slice(page * AREAS_PER_PAGE, (page + 1) * AREAS_PER_PAGE) : phase === "asset" ? areaCandidates.filter(n => n.id === selectedArea) : [];
-  const shownAssets = phase === "asset" ? assetCandidates.slice(page * ASSETS_PER_PAGE, (page + 1) * ASSETS_PER_PAGE) : [];
+  const areaPage = phase === "asset" ? Math.floor(Math.max(0, areaCandidates.findIndex(n => n.id === selectedArea)) / AREAS_PER_PAGE) : page;
+  const shownAreas = selectedNetwork ? areaCandidates.slice(areaPage * AREAS_PER_PAGE, (areaPage + 1) * AREAS_PER_PAGE) : [];
+  const expandedAreaIds = new Set([...expandedAreas, ...(selectedArea ? [selectedArea] : [])]);
+  // Keep the VPC's sibling subnets visible. Only the active subnet's resource page advances.
+  const shownAssets = shownAreas.filter(area => expandedAreaIds.has(area.id))
+    .sort((a,b) => Number(b.id === selectedArea) - Number(a.id === selectedArea))
+    .flatMap(area => {
+      const candidates = area.id === selectedArea ? assetCandidates : (primary?.members.filter(n => model.area.get(n.id) === area.id && n.id !== area.id && matches(n)) || []).sort((a,b) => focusRank(a)-focusRank(b));
+      const offset = area.id === selectedArea ? page * ASSETS_PER_PAGE : 0;
+      return candidates.slice(offset, offset + ASSETS_PER_PAGE);
+    }).slice(0, Math.max(ASSETS_PER_PAGE, NETWORK_BUDGET - shownAreas.length - 25 - shownGroups.length * 9));
   const richOverview = phase === "network" && providerGroups.filter(g => !!g.root).length <= 3;
   const items: VisibleItem[] = [];
   const representative = new Map<string, string>();
@@ -187,8 +196,8 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
     const areaItems: VisibleItem[] = directAreas.map(area => {
       const areaAssets = assets.filter(n => model.area.get(n.id) === area.id);
       const count = areaWeights.get(area.id) || memberWeight(area);
-      const width = areaAssets.length ? 20 + Math.min(4, areaAssets.length) * 210 : 198;
-      const height = areaAssets.length ? 86 + Math.ceil(areaAssets.length / 4) * 78 : 70;
+      const width = areaAssets.length ? 180 : 144;
+      const height = areaAssets.length ? 120 : 48;
       displayed.add(area.id);
       representative.set(area.id, `area:${area.id}`);
       return { id:`area:${area.id}`, title:label(area), subtitle:`${provider === "k8s" ? "Namespace · workload group" : "Subnet"} · ${count} resources`, kind:kind(area), parentId:rootId, width, height, count, hidden:Math.max(0,count-memberWeight(area)-areaAssets.reduce((sum,n)=>sum+memberWeight(n),0)), node:area, aggregate:!!area.aggregate };
@@ -200,30 +209,17 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
     const serviceItems: VisibleItem[] = directServices.map(n => {
       displayed.add(n.id);
       representative.set(n.id, `asset:${n.id}`);
-      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:rootId, width:194, height:62, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
+      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:rootId, width:128, height:40, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
     });
-    const assetItems: VisibleItem[] = assets.map((n,index) => {
+    const assetItems: VisibleItem[] = assets.map(n => {
       displayed.add(n.id);
       representative.set(n.id, `asset:${n.id}`);
-      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:`area:${selectedArea}`, x:12+(index%4)*210, y:76+Math.floor(index/4)*78, width:194, height:62, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
+      return { id:`asset:${n.id}`, title:label(n), subtitle:kind(n).replaceAll("_", " "), kind:kind(n), parentId:`area:${model.area.get(n.id)}`, width:128, height:40, count:memberWeight(n), hidden:0, node:n, aggregate:!!n.aggregate };
     });
     if (group.root) displayed.add(group.root.id);
     const direct = [...areaItems, ...serviceItems];
-    let width = 320, height = 128;
-    if (direct.length) {
-      const columns = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(direct.length))));
-      width = Math.max(340, 24 + columns * 218);
-      if (selectedArea && expanded && areaItems.length) {
-        const area = areaItems[0];
-        width = Math.max(width, area.width + 24);
-        area.x = 12; area.y = 76;
-        serviceItems.forEach((item,i) => { item.x = 12+(i%columns)*218; item.y = 92+area.height+Math.floor(i/columns)*94; });
-        height = 108 + area.height + Math.ceil(serviceItems.length/columns)*94;
-      } else {
-        direct.forEach((item,i) => { item.x = 12+(i%columns)*218; item.y = 76+Math.floor(i/columns)*94; });
-        height = 92 + Math.ceil(direct.length/columns)*94;
-      }
-    }
+    const width = direct.length ? 200 : 144;
+    const height = direct.length ? 120 : 48;
     const visibleWeight = group.members.filter(n => displayed.has(n.id)).reduce((sum,n)=>sum+memberWeight(n),0);
     items.push({ id:rootId, title:group.title, subtitle:`${group.count.toLocaleString()} resources · ${group.unresolvedCount} unresolved · ${group.root?.scope || group.members[0]?.scope || "scope unknown"}`, kind: provider === "k8s" ? "cluster" : kind(group.root || {id:"",type:"network"}), width, height, count:group.count, hidden:Math.max(0,group.count-visibleWeight), node:group.root, group });
     items.push(...areaItems,...serviceItems,...assetItems);
@@ -260,7 +256,7 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
   // A peering object is stored outside its two VPCs. Project its two
   // explicit endpoint references onto the VPC pair so the link is visible
   // in the overview. It remains a candidate until routes/policies are tested.
-  if (!selectedArea) {
+  {
     const peerLinks = new Map<string, { network: string; index: number }[]>();
     model.edges.forEach((edge, index) => {
       if (edge.type !== "peering_endpoint") return;

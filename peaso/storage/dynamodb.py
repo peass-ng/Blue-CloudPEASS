@@ -139,6 +139,7 @@ class DynamoStore:
         pointer = dict(self._workspace_user_key(user_id, "invite", workspace_id), **payload)
         try:
             self.client.transact_write_items(TransactItems=[
+                self._workspace_admin_condition(workspace_id, invited_by),
                 {"ConditionCheck": {"TableName": self.table, "Key": attrs(self._workspace_key(workspace_id, "member", user_id)),
                                     "ConditionExpression": "attribute_not_exists(PK)"}},
                 {"Put": {"TableName": self.table, "Item": attrs(invite), "ConditionExpression": "attribute_not_exists(PK)"}},
@@ -149,6 +150,8 @@ class DynamoStore:
             ])
         except ClientError as exc:
             if exc.response["Error"]["Code"] == "TransactionCanceledException":
+                if self.workspace_role(workspace_id, invited_by) != "admin":
+                    raise StoreError(403, "Workspace admin access required") from None
                 if self.workspace_role(workspace_id, user_id):
                     raise StoreError(409, "This person is already a workspace member") from None
                 if self._workspace_get(self._workspace_key(workspace_id, "invite", user_id)):
@@ -162,7 +165,10 @@ class DynamoStore:
         if not invite:
             raise StoreError(404, "Invitation not found")
         actions = [
-            {"Delete": {"TableName": self.table, "Key": attrs(invite_key), "ConditionExpression": "attribute_exists(PK)"}},
+            {"Delete": {"TableName": self.table, "Key": attrs(invite_key),
+                        "ConditionExpression": "attribute_exists(PK) AND #role=:role AND #email=:email AND #created=:created AND #invited_by=:invited_by",
+                        "ExpressionAttributeNames": {'#' + key: key for key in ('role', 'email', 'created', 'invited_by')},
+                        "ExpressionAttributeValues": attrs({':' + key: invite[key] for key in ('role', 'email', 'created', 'invited_by')})}},
             {"Delete": {"TableName": self.table, "Key": attrs(self._workspace_user_key(user_id, "invite", workspace_id))}},
         ]
         if accept:
@@ -183,44 +189,72 @@ class DynamoStore:
                 raise StoreError(409, "Invitation changed; refresh and try again") from None
             raise
 
-    def revoke_workspace_invitation(self, workspace_id, user_id):
+    def _workspace_admin_condition(self, workspace_id, actor):
+        return {"ConditionCheck": {"TableName": self.table,
+            "Key": attrs(self._workspace_key(workspace_id, "member", actor)),
+            "ConditionExpression": "#actor_role=:actor_admin",
+            "ExpressionAttributeNames": {"#actor_role": "role"},
+            "ExpressionAttributeValues": attrs({":actor_admin": "admin"})}}
+
+    def _workspace_admin_transaction(self, actions, workspace_id, actor):
+        if actor is not None:
+            guard = self._workspace_admin_condition(workspace_id, actor)["ConditionCheck"]
+            # DynamoDB forbids checking and writing one item twice in a transaction.
+            # A self-demotion/removal carries its guard on the write itself.
+            own = next((value for action in actions for value in action.values()
+                        if value.get("Key") == guard["Key"]), None)
+            if own is None:
+                actions.append({"ConditionCheck": guard})
+            else:
+                own["ConditionExpression"] = "(" + own.get("ConditionExpression", "attribute_exists(PK)") + ") AND " + guard["ConditionExpression"]
+                for key in ("ExpressionAttributeNames", "ExpressionAttributeValues"):
+                    own.setdefault(key, {}).update(guard[key])
         try:
-            self.client.transact_write_items(TransactItems=[
+            self.client.transact_write_items(TransactItems=actions)
+        except ClientError as exc:
+            if (exc.response["Error"]["Code"] == "TransactionCanceledException" and actor is not None
+                    and self.workspace_role(workspace_id, actor) != "admin"):
+                raise StoreError(403, "Workspace admin access required") from None
+            raise
+
+    def revoke_workspace_invitation(self, workspace_id, user_id, *, actor=None):
+        try:
+            self._workspace_admin_transaction([
                 {"Delete": {"TableName": self.table, "Key": attrs(self._workspace_key(workspace_id, "invite", user_id)),
                             "ConditionExpression": "attribute_exists(PK)"}},
                 {"Delete": {"TableName": self.table, "Key": attrs(self._workspace_user_key(user_id, "invite", workspace_id))}},
                 {"Update": {"TableName": self.table, "Key": attrs(self._workspace_key(workspace_id, "meta", "current")),
                             "UpdateExpression": "ADD occupied :minus", "ExpressionAttributeValues": attrs({":minus": -1})}},
-            ])
+            ], workspace_id, actor)
         except ClientError as exc:
             if exc.response["Error"]["Code"] == "TransactionCanceledException":
                 raise StoreError(404, "Invitation not found") from None
             raise
 
-    def set_workspace_role(self, workspace_id, user_id, role):
+    def set_workspace_role(self, workspace_id, user_id, role, *, actor=None):
         workspace = self.workspace(workspace_id)
         if not workspace or workspace["owner"] == user_id:
             raise StoreError(403, "The workspace owner's role cannot be changed")
         try:
-            self.client.update_item(TableName=self.table, Key=attrs(self._workspace_key(workspace_id, "member", user_id)),
+            self._workspace_admin_transaction([{"Update": dict(TableName=self.table, Key=attrs(self._workspace_key(workspace_id, "member", user_id)),
                                     UpdateExpression="SET #role=:role", ConditionExpression="attribute_exists(PK)",
-                                    ExpressionAttributeNames={"#role": "role"}, ExpressionAttributeValues=attrs({":role": role}))
+                                    ExpressionAttributeNames={"#role": "role"}, ExpressionAttributeValues=attrs({":role": role}))}], workspace_id, actor)
         except ClientError as exc:
-            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            if exc.response["Error"]["Code"] in {"ConditionalCheckFailedException", "TransactionCanceledException"}:
                 raise StoreError(404, "Workspace member not found") from None
             raise
 
-    def remove_workspace_member(self, workspace_id, user_id):
+    def remove_workspace_member(self, workspace_id, user_id, *, actor=None):
         workspace = self.workspace(workspace_id)
         if not workspace or workspace["owner"] == user_id:
             raise StoreError(403, "The workspace owner cannot be removed")
         try:
-            self.client.transact_write_items(TransactItems=[
+            self._workspace_admin_transaction([
                 {"Delete": {"TableName": self.table, "Key": attrs(self._workspace_key(workspace_id, "member", user_id)), "ConditionExpression": "attribute_exists(PK)"}},
                 {"Delete": {"TableName": self.table, "Key": attrs(self._workspace_user_key(user_id, "workspace", workspace_id))}},
                 {"Update": {"TableName": self.table, "Key": attrs(self._workspace_key(workspace_id, "meta", "current")),
                             "UpdateExpression": "ADD occupied :minus", "ExpressionAttributeValues": attrs({":minus": -1})}},
-            ])
+            ], workspace_id, actor)
         except ClientError as exc:
             if exc.response["Error"]["Code"] == "TransactionCanceledException":
                 raise StoreError(404, "Workspace member not found") from None
@@ -362,6 +396,25 @@ class DynamoStore:
             if not existing:
                 raise
             return existing["external_id"]
+
+    def ai_state(self, user, name):
+        item = self.client.get_item(TableName=self.table, Key=attrs(self.key(user, "ai", name)), ConsistentRead=True).get("Item")
+        return row(item)["value"] if item else None
+
+    def set_ai_state(self, user, name, value, expected=None):
+        arguments = dict(TableName=self.table, ConditionExpression="attribute_not_exists(PK)" if expected is None else "#v=:old")
+        if expected is not None:
+            arguments.update(ExpressionAttributeNames={"#v": "value"}, ExpressionAttributeValues=attrs({":old": expected}))
+        try:
+            if value is None:
+                self.client.delete_item(Key=attrs(self.key(user, "ai", name)), **arguments)
+            else:
+                self.client.put_item(Item=attrs(dict(self.key(user, "ai", name), value=value)), **arguments)
+            return True
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                return False
+            raise
 
     def add_connector(self, tenant, data, encrypted_auth):
         value = dict(data, id=uuid.uuid4().hex, created_at=utc())
@@ -689,7 +742,11 @@ class DynamoStore:
                 raise StoreError(404, "Schedule not found")
             data = dict(json.loads(old["data"]), **patch)
             self.connector(tenant, data["connector_id"])
-            new = dict(old, data=json.dumps(data), next_run=old["next_run"] if next_run is None else next_run, enabled=old["enabled"] if enabled is None else enabled, last_error=None)
+            effective_next = next_run
+            if effective_next is None and (set(patch) & {'rules', 'timezone', 'interval_hours'} or enabled is True and not old['enabled']):
+                from peaso.scheduling import next_run as following_run
+                effective_next = following_run(data, time.time())
+            new = dict(old, data=json.dumps(data), next_run=old["next_run"] if effective_next is None else effective_next, enabled=old["enabled"] if enabled is None else enabled, last_error=None)
             try:
                 self._put(tenant, "schedule", ident, new, old)
                 return self.public_schedule(new)
@@ -723,17 +780,21 @@ class DynamoStore:
     def trigger_schedule(self, current, limit=1, timeout=900, now=None):
         now = time.time() if now is None else now
         data = json.loads(current["data"])
-        request = {k: data[k] for k in ("connector_id", "categories", "checks", "frameworks") if k in data}
+        if not current['enabled'] or current['next_run'] > now:
+            return None
+        from peaso.scheduling import next_run as following_run
+        upcoming = following_run(data, now)
+        request = {k: data[k] for k in ("connector_id", "categories", "checks", "frameworks", "ai_enabled", "ai_user_id") if k in data}
         update = {"TableName": self.table, "Key": attrs(self.key(current["tenant"], "schedule", current["id"])),
                   "UpdateExpression": "SET next_run=:next, last_error=:null ADD #rev :one", "ConditionExpression": "#enabled=:true AND next_run=:old AND #rev=:rev",
                   "ExpressionAttributeNames": {"#enabled": "enabled", "#rev": "rev"},
-                  "ExpressionAttributeValues": attrs({":next": now + data["interval_hours"] * 3600, ":old": current["next_run"], ":rev": current["rev"], ":one": 1, ":true": True, ":null": None})}
+                  "ExpressionAttributeValues": attrs({":next": upcoming, ":old": current["next_run"], ":rev": current["rev"], ":one": 1, ":true": True, ":null": None})}
         try:
             return self.enqueue(current["tenant"], request, limit, timeout, f"schedule:{current['id']}:{current['next_run']}", now, {"Update": update})
         except StoreError as exc:
             if exc.status == 409:
                 return None
-            update["ExpressionAttributeValues"] = attrs({":next": now + data["interval_hours"] * 3600, ":old": current["next_run"], ":rev": current["rev"], ":one": 1, ":true": True, ":null": exc.message})
+            update["ExpressionAttributeValues"] = attrs({":next": upcoming, ":old": current["next_run"], ":rev": current["rev"], ":one": 1, ":true": True, ":null": exc.message})
             try:
                 self.client.update_item(**update)
             except ClientError as update_error:

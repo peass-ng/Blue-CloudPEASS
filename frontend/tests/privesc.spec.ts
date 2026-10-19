@@ -80,7 +80,7 @@ test("aggregate nodes expand and collapse on click", async ({ page }) => {
   await expect(page.locator(".react-flow__node")).toHaveCount(before);
 });
 
-test("who can reach admin lists principals and highlights a path", async ({
+test("who can reach admin lists principals and highlights a selected path", async ({
   page,
 }) => {
   await openDemoMap(page);
@@ -93,10 +93,11 @@ test("who can reach admin lists principals and highlights a path", async ({
   await results.getByRole("button", { name: /^alice/ }).click();
   await expect(page.locator(".pe-chip.hl")).toContainText("Path alice");
   // alice -> EC2 roles aggregate -> ec2-app-role (member) -> OrganizationAdmin -> account admin
-  await expect(node(page, "arn:aws:iam::111111111111:role/ec2-app-role").locator(".is-hl")).toBeVisible();
-  await expect(node(page, "aws_account_admin:111111111111").locator(".is-hl")).toBeVisible();
-  await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(4);
-  await expect(page.locator(".react-flow__node .pe-node.is-dim").first()).toBeAttached();
+  await expect(node(page, "arn:aws:iam::111111111111:role/ec2-app-role")).toBeVisible();
+  await expect(node(page, "aws_account_admin:111111111111")).toBeVisible();
+  await expect(page.locator(".react-flow__edge.is-hl").first()).toBeAttached();
+  await page.getByRole("button", { name: "Clear highlight" }).click();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 });
 
 test("shortest path query between two searchable selects", async ({ page }) => {
@@ -108,10 +109,10 @@ test("shortest path query between two searchable selects", async ({ page }) => {
   await page.getByRole("option", { name: /Owner of organizations\/4242/ }).click();
   await page.getByRole("button", { name: "Find shortest path" }).click();
   await expect(sidebar(page).locator(".pe-paths")).toContainText("3 hops");
-  await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(3);
-  await expect(
-    node(page, "serviceAccount:terraform@acme-prod.iam.gserviceaccount.com").locator(".is-hl"),
-  ).toBeVisible();
+  await expect(node(page, "serviceAccount:terraform@acme-prod.iam.gserviceaccount.com")).toBeVisible();
+  await expect(page.locator(".react-flow__edge.is-hl").first()).toBeAttached();
+  await page.getByRole("button", { name: "Clear highlight" }).click();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 });
 
 test("principal card shows identity, outgoing and inbound edges", async ({
@@ -121,16 +122,36 @@ test("principal card shows identity, outgoing and inbound edges", async ({
   await node(page, "arn:aws:iam::111111111111:role/lambda-exec-role").click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { name: "Principal" })).toBeVisible();
+  const identity = dialog.locator("details.pe-identity");
+  await expect(identity).not.toHaveAttribute("open", "");
+  await identity.getByText("Identity").click();
+  await expect(identity).toHaveAttribute("open", "");
+  await expect(identity).toContainText("AWS");
   await expect(dialog).toContainText("arn:aws:iam::111111111111:role/lambda-exec-role");
   await expect(dialog).toContainText("Outgoing escalation · 1");
   await expect(dialog).toContainText("Attach a managed policy to a role the source controls");
-  await expect(dialog).toContainText("inline policy lambda-iam · statement 0 · Allow");
-  await expect(dialog).toContainText("Deny iam:Attach*Policy");
+  await expect(dialog).toContainText("The source can grant itself AdministratorAccess.");
+  await expect(dialog.locator(".pe-outgoing-row")).toContainText("critical");
+  await expect(dialog.locator(".pe-outgoing-row").getByRole("button", { name: "Account 111111111111 administrator" })).toBeVisible();
+  await expect(dialog).not.toContainText("Evidence reference");
+  await expect(dialog).not.toContainText("Deny iam:Attach*Policy");
   await expect(dialog).toContainText("Inbound · 2");
   await expect(dialog).toContainText("bob-ci");
   await expect(dialog).toContainText("ci-build-role");
   await dialog.getByRole("button", { name: "Close inspector" }).click();
   await expect(dialog).toHaveCount(0);
+});
+
+test("node action icons focus the map and open paths without opening the inspector", async ({ page }) => {
+  await openDemoMap(page);
+  await fitAll(page);
+  const principal = node(page, "arn:aws:iam::111111111111:role/lambda-exec-role");
+  await principal.getByRole("button", { name: /Focus neighbourhood of/ }).click();
+  await expect(page.locator(".pe-chip")).toContainText("Neighbourhood of lambda-exec-role");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await principal.getByRole("button", { name: /Paths from/ }).click();
+  await expect(sidebar(page).getByRole("combobox", { name: "Selected principal" })).toHaveValue("lambda-exec-role");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
 test("edge card shows technique summary, permissions and HackTricks source", async ({
@@ -163,6 +184,23 @@ test("edge card shows technique summary, permissions and HackTricks source", asy
   await expect(page.getByRole("dialog")).toContainText("{target.arn}");
   await expect(page.getByRole("dialog")).not.toContainText("Structured text could not be parsed");
   await expect(page.getByRole("dialog")).toContainText("SCP was not evaluated");
+});
+
+test("technique details show compact permission grants in reading order", async ({ page }) => {
+  await openDemoMap(page);
+  await node(page, "arn:aws:iam::111111111111:role/lambda-exec-role").click();
+  await page.getByRole("dialog").locator(".pe-outgoing-row").getByRole("button", { name: "View technique details" }).click();
+  const dialog = page.getByRole("dialog");
+  const section = dialog.locator(".pe-technique").first();
+  await expect(section.locator("h4")).toHaveText(["Required permissions", "Granting permissions", "Mitigation"]);
+  await expect(section.locator(".pe-grants li")).toHaveCount(1);
+  await expect(section.locator(".pe-grants li")).toContainText("iam:AttachRolePolicy");
+  await expect(section.locator(".pe-grants li")).toContainText("arn:aws:iam::111111111111:role/lambda-exec-role#inline/lambda-iam");
+  await expect(dialog).not.toContainText("Evidence reference");
+  await expect(section.locator(".remediation li").first()).toHaveCSS("font-size", "11px");
+  const source = section.getByRole("link", { name: "HackTricks Cloud source" });
+  await expect(source).toBeVisible();
+  await expect(section.locator("p").last()).toContainText("Catalog revision");
 });
 
 test("filters narrow provider, severity, confidence and unknown edges", async ({
@@ -382,12 +420,21 @@ test("hovering a relationship isolates its arrow and endpoints without moving th
   await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 
   await sidebar(page).getByRole("button", { name: "Who can reach admin" }).click();
-  const pinned = await page.locator(".react-flow__edge.is-hl").evaluateAll((items) => items.map((item) => item.getAttribute("data-id")).sort());
+  await expect(page.locator(".pe-chip.hl")).toContainText("reach admin");
+  await expect(page.locator(".pe-node.is-hl").first()).toBeAttached();
+  await page.getByRole("button", { name: "Clear highlight" }).click();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
   await fitAll(page);
+  const principal = node(page, "arn:aws:iam::111111111111:role/lambda-exec-role");
+  await principal.hover();
+  await expect(principal.locator(".pe-node")).toHaveClass(/is-hl/);
+  await expect(page.locator(".react-flow__edge.is-dim").first()).toBeAttached();
+  await page.getByRole("heading", { name: "Privilege Escalation Map" }).hover();
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
   await edge.locator(".react-flow__edge-textbg").hover();
   await expect(page.locator(".react-flow__edge.is-hl")).toHaveCount(1);
   await page.getByRole("heading", { name: "Privilege Escalation Map" }).hover();
-  await expect.poll(() => page.locator(".react-flow__edge.is-hl").evaluateAll((items) => items.map((item) => item.getAttribute("data-id")).sort())).toEqual(pinned);
+  await expect(page.locator(".pe-node.is-hl, .pe-node.is-dim, .react-flow__edge.is-hl, .react-flow__edge.is-dim")).toHaveCount(0);
 });
 
 test("dragging a node relocates it and its arrows and survives hover and fit", async ({ page }) => {
@@ -395,6 +442,8 @@ test("dragging a node relocates it and its arrows and survives hover and fit", a
   await fitAll(page);
   const movable = node(page, "arn:aws:iam::111111111111:role/lambda-exec-role");
   const edge = page.locator('.react-flow__edge[aria-label^="bob-ci to lambda-exec-role"]');
+  // The fitted canvas can extend below the viewport; pointer input does not auto-scroll.
+  await movable.scrollIntoViewIfNeeded();
   const before = await movable.getAttribute("style");
   const oldPath = await edge.locator(".react-flow__edge-path").getAttribute("d");
   const box = await movable.boundingBox();

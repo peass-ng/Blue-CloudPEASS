@@ -69,7 +69,7 @@ def test_metric_filters_paginate_every_log_group(sdk):
     read = facts.FETCHERS["log_metric_filter"](aws.Requests({}), session, REGION, ACCOUNT)
     assert read.status == "collected"
     assert [item["id"] for item in read.items] == ["g1/a", "g2/b"]
-    assert read.items[0]["metricTransformations"] == [{"metricName": "m", "metricNamespace": "CISBenchmark", "dimensions": None}]
+    assert read.items[0]["metricTransformations"] == [{"metricName": "m", "metricNamespace": "CISBenchmark"}]
     assert "creationTime" not in read.items[0]
 
 

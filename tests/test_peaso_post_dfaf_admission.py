@@ -1,4 +1,5 @@
 """Exact ten-ID successor, signed mapping and historical conservation gates."""
+from peaso.checks.hacktricks_scope import includes
 from tests.release_successor_history import historical_release as read_historical_release
 import hashlib,json
 from pathlib import Path
@@ -82,7 +83,7 @@ def test_canonical_specs_all_control_edges_and_pending_counts_conserved():
         assert provenance['signed_category']==spec['category']
         assert (check.provider,check.severity,check.title,check.remediation)==(spec['provider'],spec['severity'],spec['title'],spec['remediation_hint'])
         assert {(t['framework_id'],t['requirement_id']) for t in requirement_tags_for(cid)}=={tuple(e) for e in contract['signed_control_edges']}
-        assert HACKTRICKS in check.frameworks
+        assert (HACKTRICKS in check.frameworks) == includes(check.id)
     aliases={'aws_g6_redshift_automatic_version_upgrade','aws.pci.cloudtrail.authentication_events','aws_fedramp_rds_cluster_members_enhanced_monitoring'}
     counts={p:sum(c['provider']==p and c['id'] not in native and c['id'] not in aliases for c in requirements['proposed_checks']) for p in ('aws','azure','gcp','k8s')}
     assert counts=={'aws':201,'azure':320,'gcp':24,'k8s':7}
@@ -133,7 +134,9 @@ def test_only_exact_successor_derived_requirement_rows_changed():
 
 def test_finalized_central_cases_are_exact_and_decisive():
     expected=json.loads((ROOT/'peaso/checks/central_batch_fixtures.json').read_text())
-    assert len(expected)==204 and {cid:CASES[cid] for cid in expected}==expected
+    from tests.release_successor_history import assert_reviewed_central_fixture_successor
+    assert len(expected)==204
+    assert_reviewed_central_fixture_successor({cid:CASES[cid] for cid in expected},expected)
     for cid in IDS:
         case=CASES[cid]
         for name,status in [('pass','PASS'),('fail','FAIL'),('missing','UNKNOWN'),('malformed','UNKNOWN')]:

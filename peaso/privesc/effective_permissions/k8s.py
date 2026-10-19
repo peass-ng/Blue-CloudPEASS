@@ -580,7 +580,7 @@ class K8sModel(ExactEvidenceMixin, Model):
                 yield ns, None, dict(evidence)
                 continue
             for rule in role["rules"]:
-                yield ns, rule, dict(evidence)
+                yield ns, rule, {**dict(evidence), "namespace": ns, "rule": rule}
         del cluster
 
     def possible(self, principal):
@@ -1786,7 +1786,7 @@ class K8sModel(ExactEvidenceMixin, Model):
                 continue
             if "*" in as_list(rule.get("verbs")) and "*" in as_list(rule.get("resources")) and "*" in as_list(rule.get("apiGroups")) \
                     and not rule.get("resourceNames"):
-                return [(self.entity(principal.attrs["cluster"]), Grant("derived", [evidence]))]
+                return [(self.entity(principal.attrs["cluster"]), Grant("derived", [evidence], permission_refs=[{"permission": "* *", "grant": evidence}]))]
         return []
 
     def scope_within(self, inner, outer):

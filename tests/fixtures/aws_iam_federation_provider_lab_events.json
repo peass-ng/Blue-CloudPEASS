@@ -1,0 +1,90 @@
+[
+  {
+    "eventTime": "2026-10-19T16:50:00Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "AddClientIDToOpenIDConnectProvider",
+    "awsRegion": "us-east-1",
+    "eventID": "636a5078-418c-4762-b6af-ae1f6c013011",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "openIDConnectProviderArn": "arn:aws:iam::222233334444:oidc-provider/cognito-idp.us-east-1.amazonaws.com/us-east-1_V3d5ldfUT",
+      "clientID": "example-added-2572471a43b4"
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:49:59Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "CreateOpenIDConnectProvider",
+    "awsRegion": "us-east-1",
+    "eventID": "1fcc56df-3bef-42ec-8b57-ebfe872af42d",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "url": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_V3d5ldfUT",
+      "clientIDList": [
+        "45e9geq1aumviq8vnu6dtgvq0r"
+      ]
+    },
+    "responseElements": {
+      "openIDConnectProviderArn": "arn:aws:iam::222233334444:oidc-provider/cognito-idp.us-east-1.amazonaws.com/us-east-1_V3d5ldfUT"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:45:38Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "CreateSAMLProvider",
+    "awsRegion": "us-east-1",
+    "eventID": "aa4873f3-8df3-4d10-8448-983e28af7036",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "name": "example-saml-68506f7eb9",
+      "sAMLMetadataDocument": "REDACTED_PUBLIC_SAML_METADATA"
+    },
+    "responseElements": {
+      "sAMLProviderArn": "arn:aws:iam::222233334444:saml-provider/example-saml-68506f7eb9"
+    },
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  },
+  {
+    "eventTime": "2026-10-19T16:50:00Z",
+    "eventSource": "iam.amazonaws.com",
+    "eventName": "UpdateOpenIDConnectProviderThumbprint",
+    "awsRegion": "us-east-1",
+    "eventID": "128ba49d-2276-4501-98cf-1776e8cbaba0",
+    "eventType": "AwsApiCall",
+    "recipientAccountId": "222233334444",
+    "eventCategory": "Management",
+    "managementEvent": true,
+    "readOnly": false,
+    "requestParameters": {
+      "openIDConnectProviderArn": "arn:aws:iam::222233334444:oidc-provider/cognito-idp.us-east-1.amazonaws.com/us-east-1_V3d5ldfUT",
+      "thumbprintList": [
+        "0123456789abcdef0123456789abcdef01234567"
+      ]
+    },
+    "responseElements": null,
+    "userIdentity": {
+      "arn": "arn:aws:iam::222233334444:user/testenv"
+    }
+  }
+]

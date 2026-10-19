@@ -147,7 +147,7 @@ def test_foreign_duplicate_stale_task_and_rolling_remain_unknown():
     foreign = collect(native(service=SERVICE.replace(ACCOUNT, '999999999999')))
     assert foreign.status == 'malformed' and verdict(foreign) == 'UNKNOWN'
     duplicate = collect(duplicate=True)
-    assert duplicate.status == 'partial' and verdict(duplicate) == 'UNKNOWN'
+    assert duplicate.status == 'malformed' and not duplicate.items and verdict(duplicate) == 'UNKNOWN'
     assert verdict(collect(), outer=TASK.replace(ACCOUNT, '999999999999')) == 'UNKNOWN'
     assert verdict(collect(), inner=TASK.replace(ACCOUNT, '999999999999')) == 'UNKNOWN'
     assert verdict(collect(), inner=TASK.replace(REGION, 'eu-west-1')) == 'UNKNOWN'

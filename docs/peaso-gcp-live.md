@@ -4,7 +4,7 @@ This acceptance belongs to task `task_5e05a82b0109`, dispatch `ctx_d12c7cfe9bea`
 
 ## Authentication and discovery evidence
 
-On 2026-10-10 the selected gcloud account `carlos@hacktricks-training.com` successfully authenticated. Impersonation is explicitly disabled, including any configured CLI default. A fresh, unrestricted-pagination gcloud project/organization listing observed **78 active accessible projects and two organizations**. The list completed in 18.609 seconds and is recorded privately; visibility is limited to the selected identity and the observation time.
+On 2026-10-10 the selected gcloud account `auditor@example.com` successfully authenticated. Impersonation is explicitly disabled, including any configured CLI default. A fresh, unrestricted-pagination gcloud project/organization listing observed **78 active accessible projects and two organizations**. The list completed in 18.609 seconds and is recorded privately; visibility is limited to the selected identity and the observation time.
 
 | Private evidence | SHA256 of normalized JSON |
 | --- | --- |
@@ -35,7 +35,7 @@ All 72 HTTP 400 collection errors are Shared VPC reads, not IAM-deny attachment 
 
 ## Disposable GKE lifecycle
 
-The only approved cluster name is `peaso-qa-a95372b98e2b`, project `gcp-labs-ly3gvnn7` (number `882210141464`), zone `us-central1-a`. The private ledger was written and the plan sent to the coordinator before writes. The cleanup deadline is **2026-10-10 20:31:41 UTC**.
+The only approved cluster name is `peaso-qa-a95372b98e2b`, project `example-audit-project` (number `882210141464`), zone `us-central1-a`. The private ledger was written and the plan sent to the coordinator before writes. The cleanup deadline is **2026-10-10 20:31:41 UTC**.
 
 The fixture plan uses a single e2-medium node, a 20 GB standard boot disk, DNS-only control-plane access, Workload Identity configuration and NetworkPolicy support. An owned VPC/subnet with explicit pod/service secondary ranges keeps existing default network configuration untouched. The node service account receives only `roles/container.defaultNodeServiceAccount` on this project; the separate workload service account receives no cloud roles. A Kubernetes annotation establishes declared identity metadata without a token issuance or effective-access claim. Two pause-only pods, a private ClusterIP service, deny-all NetworkPolicy, and a get/list-only namespace Role/RoleBinding produce inert PASS/FAIL/UNKNOWN review evidence. No public workload, payload, probe, or escalation is planned.
 

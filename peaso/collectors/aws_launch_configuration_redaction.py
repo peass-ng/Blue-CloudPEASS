@@ -41,5 +41,7 @@ def project_response(response):
             raise ReadFailure('malformed', 'invalid_launch_configuration_row')
         safe = _metadata(row)
         safe['UserDataIndicators'] = indicators(row.get('UserData'))
+        from .aws_configuration_payload_secret_indicators import launch_configuration_indicator
+        safe['PayloadSecretIndicators'] = launch_configuration_indicator(row)
         rows.append(safe)
     return {**_metadata(response), 'LaunchConfigurations': rows}

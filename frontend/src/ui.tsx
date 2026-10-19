@@ -213,6 +213,16 @@ function evidenceInput(data: unknown): unknown {
   }
 }
 
+function EvidenceField({ name, value, depth }: { name: string; value: unknown; depth: number }) {
+  const hidden = sensitiveField(name);
+  const content = hidden ? undefined : evidenceInput(value);
+  const structured = content !== null && typeof content === "object";
+  return <div className={`evidence-field${structured ? " evidence-field-structured" : ""}`}>
+    <dt>{evidenceLabel(name)}</dt>
+    <dd>{hidden ? "Sensitive value withheld from preview" : <EvidenceValue value={value} depth={depth} />}</dd>
+  </div>;
+}
+
 function EvidenceValue({ value, depth = 0, initiallyOpen }: { value: unknown; depth?: number; initiallyOpen?: boolean }) {
   const [view, setView] = useState({ value, open: initiallyOpen ?? (depth <= 1), page: 0, deep: false });
   const current = view.value === value;
@@ -258,7 +268,7 @@ function EvidenceValue({ value, depth = 0, initiallyOpen }: { value: unknown; de
     const start = shownPage * EVIDENCE_PAGE;
     return <div className="evidence-policy">
       <dl className="evidence-fields">{fields.filter(([key]) => key !== "Statement").map(([key, field]) =>
-        <div className="evidence-field" key={key}><dt>{evidenceLabel(key)}</dt><dd>{sensitiveField(key) ? "Sensitive value withheld from preview" : <EvidenceValue value={field} depth={childDepth} />}</dd></div>)}</dl>
+        <EvidenceField key={key} name={key} value={field} depth={childDepth} />)}</dl>
       <h4>Policy statements · {rows.length}</h4>
       {rows.slice(start, start + EVIDENCE_PAGE).map((row, index) =>
         <section className="evidence-policy-statement" key={start + index}>
@@ -273,7 +283,7 @@ function EvidenceValue({ value, depth = 0, initiallyOpen }: { value: unknown; de
   return <>
     <dl className="evidence-fields">
       {fields.slice(start, start + EVIDENCE_PAGE).map(([key, field]) =>
-        <div className="evidence-field" key={key}><dt>{evidenceLabel(key)}</dt><dd>{sensitiveField(key) ? "Sensitive value withheld from preview" : <EvidenceValue value={field} depth={childDepth} />}</dd></div>)}
+        <EvidenceField key={key} name={key} value={field} depth={childDepth} />)}
     </dl>
     {fields.length > EVIDENCE_PAGE && <div className="evidence-pager"><span>Fields {start + 1}–{Math.min(start + EVIDENCE_PAGE, fields.length)} of {fields.length}</span><button type="button" disabled={shownPage === 0} onClick={() => update({ page: shownPage - 1 })}>Previous</button><button type="button" disabled={start + EVIDENCE_PAGE >= fields.length} onClick={() => update({ page: shownPage + 1 })}>Next</button></div>}
   </>;

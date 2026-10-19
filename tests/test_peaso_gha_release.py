@@ -1,4 +1,4 @@
-"""Safety checks for plans dispatched through wiki-infrastructure Actions."""
+"""Safety checks for plans dispatched through operator-owned release Actions."""
 from __future__ import annotations
 
 import pytest
@@ -10,13 +10,25 @@ VERSION = "a" * 64
 IMAGE = release.WORKER_REPOSITORY + "@sha256:" + "b" * 64
 
 
+@pytest.fixture(autouse=True)
+def private_integration(monkeypatch):
+    monkeypatch.setenv("PEASO_DEPLOY_GCP_PLATFORM_SA_SECRET_ARN", "arn:aws:secretsmanager:us-east-1:111122223333:secret:example-gcp-platform-sa-ABC123")
+
+
+def test_review_rejects_a_different_operator_secret():
+    candidate = plan()
+    candidate["variables"]["gcp_platform_sa_secret_arn"]["value"] += "-different"
+    with pytest.raises(ValueError, match="private configuration"):
+        release.review_plan(candidate, {"source_version": VERSION})
+
+
 def plan():
     return {
         "variables": {
             "source_version": {"value": VERSION},
             "region": {"value": release.REGION},
             "enable_public_customer_role_template": {"value": True},
-            "gcp_platform_sa_secret_arn": {"value": "arn:aws:secretsmanager:us-east-1:202533532952:secret:hacktricks-cspm-gcp-platform-sa-ABC123"},
+            "gcp_platform_sa_secret_arn": {"value": "arn:aws:secretsmanager:us-east-1:111122223333:secret:example-gcp-platform-sa-ABC123"},
             "worker_image": {"value": IMAGE},
             "api_zip": {"value": str(release.deploy.BUILD / "api.zip")},
         },

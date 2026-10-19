@@ -1,12 +1,26 @@
 """Hosted connectors cannot select service filesystem, helper commands or task identity."""
 from datetime import datetime, timezone
 import json
+import os
 from functools import lru_cache
 import secrets
 import re
 from fastapi import HTTPException
 
 OPTIONS = {
+    "content_secret_scans",
+    "selected_gcs_objects",
+    "selected_gcs_archives",
+    "selected_dataform_files",
+    "selected_gke_clusters", "selected_gke_namespaces",
+    "selected_artifact_images", "selected_artifact_files",
+    "selected_cloudrun_services",
+    "selected_cloudbuild_builds",
+    "selected_source_repository_files",
+    "selected_clouddeploy_releases",
+    "selected_cloudbuild_artifact_builds",
+    "selected_appengine_versions",
+    "dataflow_regions", "batch_regions", "dataproc_regions",
     "node_clock_evidence",
     "native_disclosure_metadata", "inventories", "audit_window", "audit_detection_policy", "max_pages", "max_resources", "max_calls", "regions", "organization_role_name",
     "all_projects", "discover_projects", "project_restrictions", "allowed_projects", "quota_project",
@@ -21,14 +35,131 @@ AUTH = {
     "k8s": {"method", "server", "token", "kubeconfig_data", "context", "cluster_id", "ca_cert_data", "client_cert_data", "client_key_data"},
 }
 AWS_ROLE_ARN = re.compile(r"arn:aws:iam::([0-9]{12}):role/[A-Za-z0-9+=,.@_/-]{1,512}\Z")
-PLATFORM_ACCOUNT_IDS = frozenset({"202533532952", "418720621023"})
-COLLECTOR_ROLE_ARN = "arn:aws:iam::202533532952:role/HackTricks-CSPM"
+COLLECTOR_ROLE_ARN = os.getenv("PEASO_AWS_COLLECTOR_ROLE_ARN", "")
+PLATFORM_ACCOUNT_IDS = frozenset(filter(None, os.getenv("PEASO_PLATFORM_ACCOUNT_IDS", "").split(","))) | frozenset(
+    [COLLECTOR_ROLE_ARN.split(":")[4]] if re.fullmatch(r"arn:aws:iam::[0-9]{12}:role/.+", COLLECTOR_ROLE_ARN) else []
+)
 CUSTOMER_ROLE_TEMPLATE_URL = "https://cspm.hacktricks.wiki/aws/customer-role.json"
 EXTERNAL_ID_PREFIX = "hacktricks-cspm-"
 LEGACY_EXTERNAL_ID_PREFIX = "peaso-"
 
 
 def validate_connector(provider, auth, options, settings, *, server_external_id=False, scopes=None):
+    if 'selected_cloudbuild_builds' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.collectors.gcp_cloudbuild_log_secret_indicators import selected_builds, KIND
+            selected_builds({**options, 'content_secret_scans': True,
+                '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Cloud Build log inspection requires 1–4 exact same-project Build names and one explicit project') from None
+    if 'selected_source_repository_files' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.collectors.gcp_sourcerepo_secret_indicators import selected_targets, KIND
+            selected_targets({**options, 'content_secret_scans': True,
+                '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Source Repository inspection requires one exact project, repository, 40-character commit and 1–8 file paths') from None
+    if 'selected_clouddeploy_releases' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.collectors.gcp_clouddeploy_source_secret_indicators import selected_releases, KIND
+            selected_releases({**options, 'content_secret_scans': True,
+                '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Cloud Deploy source inspection requires 1–4 exact same-project Release names and one explicit project') from None
+    if 'selected_cloudbuild_artifact_builds' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.collectors.gcp_cloudbuild_artifact_secret_indicators import selected_builds, KIND
+            selected_builds({**options, 'content_secret_scans': True,
+                '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Cloud Build artifact inspection requires 1–2 exact same-project Build names and one explicit project') from None
+    if 'selected_appengine_versions' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.collectors.gcp_appengine_source_secret_indicators import selected_versions, KIND
+            selected_versions({**options, 'content_secret_scans': True,
+                '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'App Engine source inspection requires 1–4 exact same-project Version names and one explicit project') from None
+    if 'selected_cloudrun_services' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.collectors.gcp_cloudrun_image_inspection import validate_selection
+            validate_selection(options['selected_cloudrun_services'], scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Cloud Run image selection requires 1–4 exact same-project service names and one explicit project') from None
+    if 'selected_artifact_files' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from peaso.collectors.gcp_artifact_file_secret_indicators import normalize_selection, KIND
+            normalize_selection({**options, 'content_secret_scans': True, '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Artifact file selections require exact scoped file names, SHA256 and supported formats') from None
+    if 'selected_gke_clusters' in options or 'selected_gke_namespaces' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selection')
+            from types import SimpleNamespace
+            from peaso.collectors.gcp_gke_literal_secret_indicators import selected, KIND
+            candidate = SimpleNamespace(options={**options, 'content_secret_scans': True,
+                '_content_secret_scan_kinds': [KIND]}, requested_scopes=scopes or [])
+            selected(candidate, (scopes or [''])[0])
+        except Exception:
+            raise HTTPException(422, 'GKE scans require exact selected cluster scopes and an optional complete cluster-to-namespace mapping') from None
+    if 'selected_dataform_files' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only content selection')
+            from peaso.collectors.gcp_dataform_secret_indicators import selected_targets as dataform_targets, KIND
+            dataform_targets({**options, 'content_secret_scans': True, '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Dataform files require exact scoped repository/file and commit SHA or explicit workspace targets') from None
+    if 'selected_gcs_archives' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only content selection')
+            from peaso.collectors.gcp_selected_archive_secret_indicators import normalize_selection, KIND
+            normalize_selection({**options, 'content_secret_scans': True, '_content_secret_scan_kinds': [KIND]}, scopes or [])
+            if len(options.get('selected_gcs_objects', [])) + len(options['selected_gcs_archives']) > 10:
+                raise ValueError('combined target limit')
+        except Exception:
+            raise HTTPException(422, 'Selected GCS archives require scoped immutable targets, supported formats and at most 10 combined object/archive targets') from None
+    if 'selected_artifact_images' in options:
+        try:
+            if provider != 'gcp' or not scopes or len(scopes) != 1:
+                raise ValueError('One exact GCP project is required')
+            from peaso.collectors.gcp_image_secret_indicators import normalize_selected
+            normalize_selected(options['selected_artifact_images'], scopes[0])
+        except Exception:
+            raise HTTPException(422, 'Selected images require one explicit project scope and 1–4 immutable Artifact Registry image references') from None
+    if 'selected_gcs_objects' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only content selection')
+            from peaso.collectors.gcp_selected_object_secret_indicators import selected_targets, KIND
+            selected_targets({**options, 'content_secret_scans': True, '_content_secret_scan_kinds': [KIND]}, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected GCS objects require exact project, bucket, object and generation targets in the requested project scopes') from None
+    for key in ('dataflow_regions', 'batch_regions', 'dataproc_regions'):
+        if key in options:
+            value = options[key]
+            if (provider != 'gcp' or not isinstance(value, list) or not 1 <= len(value) <= 5
+                    or any(not isinstance(region, str) or not re.fullmatch(r'[a-z][a-z0-9-]{0,62}', region)
+                           or region == 'global' for region in value) or len(set(value)) != len(value)):
+                raise HTTPException(422, 'GCP job scan regions must contain 1–5 distinct explicit non-global regions')
+    if 'content_secret_scans' in options and (provider not in {'aws', 'gcp'} or type(options['content_secret_scans']) is not bool):
+        raise HTTPException(422, 'content_secret_scans must be an AWS or GCP boolean option')
     if 'node_clock_evidence' in options:
         try:
             if provider != 'k8s':raise ValueError('Node clock observations are Kubernetes-only')
@@ -506,10 +637,8 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
             raise HTTPException(422, "Unsupported hosted Azure authentication")
     elif provider == "k8s":
         try:
-            from peaso.collectors.k8s import validate_inline_kubeconfig, _public_server
-            resolved = validate_inline_kubeconfig(auth["kubeconfig_data"], auth.get("context")) if "kubeconfig_data" in auth else auth
-            if not resolved.get("token") and not (resolved.get("client_cert_data") and resolved.get("client_key_data")):
-                raise ValueError("Explicit credential material required")
+            from peaso.collectors.k8s import hosted_auth, _public_server
+            resolved = hosted_auth(auth)
             _public_server(resolved["server"])
         except Exception:
             raise HTTPException(422, "Hosted Kubernetes requires safe inline credentials and a public HTTPS API server") from None

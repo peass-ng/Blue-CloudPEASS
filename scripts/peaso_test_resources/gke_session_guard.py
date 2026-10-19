@@ -6,6 +6,7 @@ This helper is deliberately pinned to this dispatch's authorized project/account
 """
 from __future__ import annotations
 
+from peaso import deployment
 import argparse
 import copy
 from datetime import datetime, timedelta, timezone
@@ -22,8 +23,8 @@ import time
 import uuid
 from urllib.parse import urlsplit
 
-ACCOUNT = "carlos@hacktricks-training.com"
-PROJECT = "gcp-labs-ly3gvnn7"
+ACCOUNT = deployment.value("test_gcp_account")
+PROJECT = deployment.value("test_gcp_project")
 NUMBER = "882210141464"
 TASK = "task_5e05a82b0109"
 DISPATCH = "ctx_d12c7cfe9bea"

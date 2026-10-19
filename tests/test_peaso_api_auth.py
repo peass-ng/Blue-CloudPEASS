@@ -229,15 +229,15 @@ def test_hosted_external_id_is_server_generated_and_stable_within_workspace(cogn
         second = client.post("/api/connectors", json=body)
         assert first.status_code == second.status_code == 201
         assert first.json()["onboarding"]["external_id"].startswith("hacktricks-cspm-")
-        assert first.json()["onboarding"]["collector_role_arn"] == "arn:aws:iam::202533532952:role/HackTricks-CSPM"
+        assert first.json()["onboarding"]["collector_role_arn"] == "arn:aws:iam::111122223333:role/HackTricks-CSPM"
         assert first.json()["onboarding"]["target_role_arns"] == [role]
         assert first.json()["onboarding"]["template_url"] == "https://cspm.hacktricks.wiki/aws/customer-role.json"
         assert first.json()["onboarding"]["quick_create_template_url"] is None
         template_sha256 = hashlib.sha256((Path(__file__).parents[1] / "infra/aws/customer-role.json").read_bytes()).hexdigest()
-        public_url = f"https://hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com/customer-role-{template_sha256}.json"
+        public_url = f"https://hacktricks-cspm-templates-111122223333.s3.us-east-1.amazonaws.com/customer-role-{template_sha256}.json"
         monkeypatch.setenv("PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL", public_url)
         assert client.get("/api/connectors/" + first.json()["id"]).json()["onboarding"]["quick_create_template_url"] == public_url
-        monkeypatch.setenv("PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL", "https://hacktricks-cspm-templates-202533532952.s3.us-east-1.amazonaws.com/customer-role.json")
+        monkeypatch.setenv("PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL", "https://hacktricks-cspm-templates-111122223333.s3.us-east-1.amazonaws.com/customer-role.json")
         assert client.get("/api/connectors/" + first.json()["id"]).json()["onboarding"]["quick_create_template_url"] is None
         monkeypatch.setenv("PEASO_PUBLIC_CUSTOMER_ROLE_TEMPLATE_URL", public_url)
         assert client.get("/api/connectors").json()["items"][0]["onboarding"]["external_id"] == first.json()["onboarding"]["external_id"]
@@ -259,10 +259,10 @@ def test_customer_credentials_preserve_existing_role_chain_external_id(cognito_s
 
 
 @pytest.mark.parametrize("bad_auth", [
-    {"method": "assume_role", "assume_roles": [{"role_arn": "arn:aws:iam::202533532952:role/Internal"}]},
-    {"method": "assume_role", "assume_roles": [{"role_arn": "arn:aws:iam::418720621023:role/Internal"}]},
+    {"method": "assume_role", "assume_roles": [{"role_arn": "arn:aws:iam::111122223333:role/Internal"}]},
+    {"method": "assume_role", "assume_roles": [{"role_arn": "arn:aws:iam::444455556666:role/Internal"}]},
     {"method": "access_keys", "aws_access_key_id": "customer-fixture", "aws_secret_access_key": "customer-secret-fixture",
-     "assume_roles": [{"role_arn": "arn:aws:iam::202533532952:role/Internal"}]},
+     "assume_roles": [{"role_arn": "arn:aws:iam::111122223333:role/Internal"}]},
     {"method": "assume_role", "assume_roles": [{"role_arn": "arn:aws:iam::123456789012:role/ReadOnly", "external_id": "chosen-id"}]},
     {"method": "assume_role", "assume_roles": [{"role_arn": "arn:aws:iam::123456789012:role/Bad*"}]},
     {"method": "assume_role", "assume_roles": [{"role_arn": f"arn:aws:iam::{i:012d}:role/ReadOnly"} for i in range(51)]},
@@ -279,7 +279,7 @@ def test_coverage_api_exposes_duplicate_role_skip_without_changing_account_colle
     from peaso.storage import SQLiteStore, FileArtifacts
     from peaso.storage.reports import publish_report
 
-    account = "947247140022"
+    account = "222233334444"
     second = f"arn:aws:iam::{account}:role/RoleB"
     settings = Settings(state_dir=tmp_path / "state", identity_dir=tmp_path / "identity",
         local_token="source52-coverage-token-0123456789")

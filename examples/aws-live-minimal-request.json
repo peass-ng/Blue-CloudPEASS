@@ -2,7 +2,7 @@
   "connector": {
     "provider": "aws",
     "name": "core-readonly-smoke",
-    "auth": {"profile": "naxusai-admin"},
+    "auth": {"profile": "example-audit-profile"},
     "scopes": [],
     "options": {
       "regions": ["us-east-1"],

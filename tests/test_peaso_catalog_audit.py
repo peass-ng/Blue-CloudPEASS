@@ -11,7 +11,7 @@ from scripts.peaso_compliance_compile import lookup_index
 
 @pytest.fixture
 def catalogs():
-    native = {"id": "aws.storage.encryption", "provider": "aws", "frameworks": ["HackTricks Cloud Best Practices"],
+    native = {"id": "aws.ebs.encryption", "provider": "aws", "frameworks": ["HackTricks Cloud Best Practices"],
               "framework_ids": ["cis.test"], "dependencies": ["bucket"], "expected_cost": {"cloud_calls": 0},
               "mapping": {"CIS": {"controls": [{"framework_id": "cis.test", "control_id": "2.1", "version": "1.0"}]}}}
     supported = {"check_id": "source.encryption", "provider": "aws", "disposition": "ported",
@@ -38,6 +38,15 @@ def test_complete_consistent_catalog_does_not_claim_certification(catalogs):
     assert report["providers"]["aws"]["native_predicates"] == 1
     assert report["frameworks"][0]["control_version_pairs"] == 1
     assert "zero false positives" in report["limitations"][-1]
+
+
+def test_reviewed_exclusion_does_not_require_hacktricks_tag(catalogs):
+    native = catalogs["native_catalog.json"]["checks"][0]
+    native.update(id="aws.a.cloudwatch.alarm_actions_enabled", frameworks=[])
+    catalogs["upstream_manifest.json"]["checks"][0]["native_checks"] = [native["id"]]
+    assert audit_documents(catalogs)["catalog_consistent"]
+    native["frameworks"] = ["HackTricks Cloud Best Practices"]
+    assert "unexpected_hacktricks_mapping" in codes(audit_documents(catalogs))
 
 
 def test_explicit_zero_dispositions_are_not_stale_counts(catalogs):
@@ -110,7 +119,7 @@ def test_duplicate_identifiers_cannot_inflate_native_coverage(catalogs):
 def reviewed_catalogs(catalogs):
     """Upstream source control and signed requirement have distinct IDs."""
     signed = "a" * 64
-    cid = "aws.storage.encryption"
+    cid = "aws.ebs.encryption"
     source = catalogs["upstream_manifest.json"]["checks"][0]
     tag = {"framework_id": "cis.test", "requirement_id": "R-1", "decision": "MAPPED",
            "runtime_status": "automated"}
@@ -167,7 +176,7 @@ def test_ported_sources_do_not_hide_pending_automatable_requirements(catalogs):
 
 def test_zero_pending_with_partial_requirement_is_not_complete(catalogs):
     reviewed_catalogs(catalogs)
-    cid = "aws.storage.encryption"
+    cid = "aws.ebs.encryption"
     version = catalogs["compliance_requirements.json"]["frameworks"][0]
     version["requirements"][0]["runtime_status"] = "partial"
     catalogs["compliance_requirements.json"]["counts"] = {"partial": 1}
@@ -195,7 +204,7 @@ def test_zero_pending_with_partial_requirement_is_not_complete(catalogs):
 ])
 def test_reviewed_requirement_materialization_tampering_fails(catalogs, mutation, expected):
     reviewed_catalogs(catalogs)
-    cid = "aws.storage.encryption"
+    cid = "aws.ebs.encryption"
     if mutation == "tag":
         catalogs["native_catalog.json"]["checks"][0]["requirement_controls"] = []
     elif mutation == "control":
@@ -326,3 +335,34 @@ def test_source_erratum_keeps_both_frozen_and_current_provenance(catalogs, mutat
     else:
         native["proposal_provenance"]["signed_spec_sha256"] = "0" * 64
     assert not audit_documents(catalogs)["catalog_consistent"]
+
+
+@pytest.mark.parametrize("name", [
+    "aws_ecr_source_correction", "aws_pci_iam_scoped_source_correction",
+    "aws_apigateway_logging_source_correction",
+])
+def test_admitted_aws_errata_require_exact_spec_and_proof(name):
+    from importlib import import_module
+    from scripts.peaso_catalog_audit import reviewed_correction_matches
+    module = import_module("peaso.checks." + name)
+    record = {"spec": copy.deepcopy(module.CORRECTED_SPEC),
+              "provenance": module.correction_provenance()}
+    assert reviewed_correction_matches(module.CHECK_ID, record)
+    assert not reviewed_correction_matches("aws.some_other_check", record)
+    changed = copy.deepcopy(record)
+    changed["spec"]["predicate"] += " unreviewed change"
+    assert not reviewed_correction_matches(module.CHECK_ID, changed)
+    changed = copy.deepcopy(record)
+    changed["provenance"]["version"] += "-unreviewed"
+    assert not reviewed_correction_matches(module.CHECK_ID, changed)
+
+
+def test_admitted_service_name_erratum_requires_exact_record():
+    from scripts.peaso_catalog_audit import reviewed_correction_matches
+    from peaso.checks.gcp_api_key_service_names_native import (
+        CHECK_ID, PRIOR_SPEC_SHA256, source_correction)
+    spec, proof = source_correction(PRIOR_SPEC_SHA256)
+    record = {"spec": spec, "provenance": proof}
+    assert reviewed_correction_matches(CHECK_ID, record)
+    record["provenance"]["current_canonical_spec_sha256"] = "0" * 64
+    assert not reviewed_correction_matches(CHECK_ID, record)

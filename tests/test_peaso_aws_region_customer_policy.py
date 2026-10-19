@@ -5,14 +5,18 @@ import pytest
 from scripts import peaso_deploy_customer_policy as builder
 
 ROOT=Path(builder.__file__).resolve().parents[1]
-NEW_ROLE_SHA='1d8b49e45753dc7cba7069d772ad5286b5d033b294dacf6bea3a4ffd1c2aa2b1'
-DELTA={'new_role_sha256':NEW_ROLE_SHA,'new_archive':'customer-role-'+NEW_ROLE_SHA+'.json'}
-BASE_BYTES=(ROOT/'infra/aws/customer-role-0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2.json').read_bytes()
-assert hashlib.sha256(BASE_BYTES).hexdigest()=='0484deedf711ac855f691e08531561c5b29abff7e46fa16320b79a32465eb6b2'
-BASE=json.loads(BASE_BYTES)
-HISTORICAL_ROLE_BYTES=(ROOT/'infra/aws'/DELTA['new_archive']).read_bytes()
-ROLE=json.loads(HISTORICAL_ROLE_BYTES)
-ACTIVE_ROLE_SHA='b3ba1910f63def680269a6877ae106fd6a7001c00f9d9d6e0b07d9600ae21535'
+# Synthetic historical derivatives retain the exact permission delta without
+# bundling a private collector principal or claiming the original byte hashes.
+FIXTURE_BYTES=(ROOT/'tests/fixtures/aws-region-customer-policy-history.json').read_bytes()
+assert hashlib.sha256(FIXTURE_BYTES).hexdigest()=='fde88927692adb1b0a17bbf1c6626c360c091a372cc203e429fe1163b4ff2f05'
+HISTORY=json.loads(FIXTURE_BYTES)
+NEW_ROLE_SHA='74813fd6631bd7a03873208235cf6d3ea05d41ffec587ed8a900c4c53f520bdd'
+DELTA={'new_role_sha256':NEW_ROLE_SHA}
+BASE=HISTORY['baseline']
+ROLE=HISTORY['regional']
+BASE_BYTES=(json.dumps(BASE,indent=2)+'\n').encode()
+HISTORICAL_ROLE_BYTES=(json.dumps(ROLE,indent=2)+'\n').encode()
+ACTIVE_ROLE_SHA='d43535005ba3ccf7c3179253d2dadb4ff6c521eb26884c571bc1f01c780995b8'
 ACTIVE_ROLE_BYTES=(ROOT/'infra/aws/customer-role.json').read_bytes()
 ACTIVE_ROLE=json.loads(ACTIVE_ROLE_BYTES)
 OPS={('outposts','list_outposts'):'outposts:ListOutposts',('s3control','list_regional_buckets'):'s3-outposts:ListRegionalBuckets',('s3tables','list_table_buckets'):'s3tables:ListTableBuckets',('s3vectors','list_vector_buckets'):'s3vectors:ListVectorBuckets',('dynamodb','list_backups'):'dynamodb:ListBackups',('rds','describe_db_instance_automated_backups'):'rds:DescribeDBInstanceAutomatedBackups',('rds','describe_db_cluster_automated_backups'):'rds:DescribeDBClusterAutomatedBackups',('redshift-serverless','list_snapshots'):'redshift-serverless:ListSnapshots',('redshift-serverless','list_recovery_points'):'redshift-serverless:ListRecoveryPoints'}
@@ -92,7 +96,7 @@ def test_current_active_template_retains_exact_historical_metadata_and_transit_g
  expected={row['Action']:row for row in historical_rows}
  transit_actions=set(transit['Action'])
  assert len(expected)==9 and len(transit_actions)==3
- scoped=ACTIVE_ROLE['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement']
+ scoped=[statement for resource in ACTIVE_ROLE['Resources'].values() if resource['Type']=='AWS::IAM::ManagedPolicy' for statement in resource['Properties']['PolicyDocument']['Statement']]
  for action,row in expected.items():
   assert [current for current in scoped if current.get('Sid')==row['Sid']]==[row]
  # Inspect every generated managed-policy statement: none may repeat or widen one
