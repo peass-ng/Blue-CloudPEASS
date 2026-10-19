@@ -1,0 +1,946 @@
+[
+  {
+    "id": "aws.c2b.codebuild.project_private",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "project_visibility": "PRIVATE"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.project_private",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "project_visibility": "PUBLIC_READ"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.project_private",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.project_private",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_url_no_credentials",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "credentials_in_source_urls": []
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_url_no_credentials",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "credentials_in_source_urls": [
+        {
+          "source": "secondary[0]",
+          "credential": "token"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_url_no_credentials",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_url_no_credentials",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_user_controlled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "buildspec_file": null
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_user_controlled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "buildspec_file": "ci/buildspec.yaml"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_user_controlled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_user_controlled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_yml_file",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "buildspec_file": null
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_yml_file",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "buildspec_file": "buildspec.yml"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_yml_file",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.buildspec_not_yml_file",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.webhook_filters_anchored",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "unanchored_filters": []
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.webhook_filters_anchored",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "unanchored_filters": [
+        {
+          "type": "HEAD_REF",
+          "pattern": "refs/heads/main"
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.webhook_filters_anchored",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.webhook_filters_anchored",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.no_plaintext_sensitive_env_names",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "plaintext_sensitive_names": []
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.no_plaintext_sensitive_env_names",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "plaintext_sensitive_names": [
+        "aws_secret_access_key"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.no_plaintext_sensitive_env_names",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.no_plaintext_sensitive_env_names",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_repo_oauth",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "source_type": "GITHUB",
+      "credential_auth_types": [
+        "OAUTH"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_repo_oauth",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "source_type": "BITBUCKET",
+      "credential_auth_types": [
+        "BASIC_AUTH"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_repo_oauth",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.source_repo_oauth",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.invoked_last_90_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_since_last_build": 31
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.invoked_last_90_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_since_last_build": 122
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.invoked_last_90_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Builds"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.invoked_last_90_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.built_within_90_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_since_latest_build": 31
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.built_within_90_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_since_latest_build": 90
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.built_within_90_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Builds"
+    }
+  },
+  {
+    "id": "aws.c2b.codebuild.built_within_90_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.drift_in_sync",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "stack_drift_status": "IN_SYNC"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.drift_in_sync",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "stack_drift_status": "DRIFTED"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.drift_in_sync",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StackName"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.drift_in_sync",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.notifications",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "notification_arns": 1
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.notifications",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "notification_arns": 0
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.notifications",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StackName"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.notifications",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.rollback_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "disable_rollback": false
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.rollback_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "disable_rollback": true
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.rollback_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StackName"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.rollback_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_all_stacks",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "termination_protection": true
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_all_stacks",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "termination_protection": false
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_all_stacks",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StackName"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_all_stacks",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_root_stacks",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "termination_protection": true
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_root_stacks",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "termination_protection": false
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_root_stacks",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StackName"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.termination_protection_root_stacks",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.cdktoolkit_bootstrap_version",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "bootstrap_version": 25,
+      "recommended": 21
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.cdktoolkit_bootstrap_version",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "bootstrap_version": 14,
+      "recommended": 21
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.cdktoolkit_bootstrap_version",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: StackName"
+    }
+  },
+  {
+    "id": "aws.c2b.cloudformation.cdktoolkit_bootstrap_version",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codedeploy.lambda_not_all_at_once",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "deployment_config": "CodeDeployDefault.LambdaCanary10Percent5Minutes"
+    }
+  },
+  {
+    "id": "aws.c2b.codedeploy.lambda_not_all_at_once",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "deployment_config": "CodeDeployDefault.LambdaAllAtOnce"
+    }
+  },
+  {
+    "id": "aws.c2b.codedeploy.lambda_not_all_at_once",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: computePlatform"
+    }
+  },
+  {
+    "id": "aws.c2b.codedeploy.lambda_not_all_at_once",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_no_wildcard_principal",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "wildcard_statements": 0
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_no_wildcard_principal",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "wildcard_statements": 1
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_no_wildcard_principal",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Policy"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_no_wildcard_principal",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_not_public",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 1,
+      "public_policy": false
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_not_public",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "public_policy": true
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_not_public",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Policy"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_not_public",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_prohibit_public_perimeter",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 0,
+      "public_allow_statements": 0
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_prohibit_public_perimeter",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "public_allow_statements": 1
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_prohibit_public_perimeter",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Policy"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.repository_policy_prohibit_public_perimeter",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_enhanced_scanning",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "scan_type": "ENHANCED"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_enhanced_scanning",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "scan_type": "BASIC"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_enhanced_scanning",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_enhanced_scanning",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_automated_scanning",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "scan_type": "BASIC",
+      "automated_frequencies": [
+        "SCAN_ON_PUSH"
+      ],
+      "automated_all_repository_rule": true
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_automated_scanning",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "scan_type": "ENHANCED",
+      "automated_frequencies": [
+        "CONTINUOUS_SCAN"
+      ],
+      "automated_all_repository_rule": false
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_automated_scanning",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.c2b.ecr.registry_automated_scanning",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.custom_bus_policy_attached",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "policy_attached": true
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.custom_bus_policy_attached",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "policy_attached": false
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.custom_bus_policy_attached",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Name"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.custom_bus_policy_attached",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_no_cross_account",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 1,
+      "cross_account_policy": false
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_no_cross_account",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "cross_account_policy": true
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_no_cross_account",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Name"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_no_cross_account",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_prohibit_public_perimeter",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 0,
+      "public_allow_statements": 0
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_prohibit_public_perimeter",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "public_allow_statements": 1
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_prohibit_public_perimeter",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Name"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.bus_policy_prohibit_public_perimeter",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.global_endpoint_replication",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "replication_state": "ENABLED"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.global_endpoint_replication",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "replication_state": "DISABLED"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.global_endpoint_replication",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.global_endpoint_replication",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.schema_registry_no_cross_account",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 1,
+      "cross_account_policy": false
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.schema_registry_no_cross_account",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "cross_account_policy": true
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.schema_registry_no_cross_account",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RegistryName"
+    }
+  },
+  {
+    "id": "aws.c2b.eventbridge.schema_registry_no_cross_account",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.domain_policy_prohibit_public_perimeter",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 0,
+      "public_allow_statements": 0
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.domain_policy_prohibit_public_perimeter",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "public_allow_statements": 1
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.domain_policy_prohibit_public_perimeter",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: arn"
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.domain_policy_prohibit_public_perimeter",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.internal_packages_block_upstream",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "internal_packages": 1,
+      "upstream_allowed": []
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.internal_packages_block_upstream",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "internal_packages": 1,
+      "upstream_allowed": [
+        "internal-lib"
+      ]
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.internal_packages_block_upstream",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: arn"
+    }
+  },
+  {
+    "id": "aws.c2b.codeartifact.internal_packages_block_upstream",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

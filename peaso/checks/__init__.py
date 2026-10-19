@@ -63,9 +63,11 @@ class Check:
         from .facts import FIELD_SPECS
         from .batch import scalar_sql
         from peaso.remediation import details_for
+        from peaso.finding_priority import effective_priority, review_metadata
+        from peaso.finding_presentation import evaluator_contract_fingerprint
         detail = details_for(self.id, provider=self.provider)
         result = {"id": self.id, "provider": self.provider, "category": self.category, "type": self.kind,
-                "title": self.title, "severity": self.severity, "frameworks": self.frameworks,
+                "title": self.title, "severity": effective_priority(self.id, self.severity), "frameworks": self.frameworks,
                 "framework_ids": self.framework_ids,
                 "mapping": self.mapping, "remediation": detail["summary"] if detail else self.remediation,
                 **({"remediation_details": detail} if detail else {}),
@@ -80,7 +82,11 @@ class Check:
             result.update(reviewed)
             result["rationale"] = reviewed["description"]
             result["requirement_controls"] = requirement_tags_for(self.id)
+        result["clarity_evaluation_contract"] = evaluator_contract_fingerprint()
         proposal = proposal_provenance_for(self.id)
+        priority_review = review_metadata(self.id, self.severity)
+        if priority_review:
+            result["severity_review"] = priority_review
         if proposal:
             result["proposal_provenance"] = proposal
         return result

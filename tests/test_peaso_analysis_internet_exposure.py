@@ -72,10 +72,11 @@ def aws(*collections, metadata=None):
 
 def test_aws_instance_open_ssh_fails_with_path_evidence():
     result = one(aws(*aws_network(), instance()), "instance")
-    assert result["status"] == "FAIL" and result["severity"] == "critical"
+    assert result["status"] == "FAIL" and result["severity"] == "high"
     assert result["evidence"]["exposed_ports"] == ["tcp/22"]
     assert result["evidence"]["public_addresses"] == ["54.1.2.3"]
     assert result["title"] == "Internet access to tcp/22 at 54.1.2.3"
+    assert result["evidence"]["observed"] == "Internet access to tcp/22 at 54.1.2.3 is allowed."
     assert [s["layer"] for s in result["evidence"]["path"]] == ["security_group", "route", "network_acl"]
 
 
@@ -109,6 +110,7 @@ def test_aws_internet_facing_alb_listener_and_sg():
     rules = [{"IpProtocol": "tcp", "FromPort": 443, "ToPort": 443, "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]
     result = one(aws(*aws_network(sg_rules=rules), coll("load_balancer", [lb], service="elbv2")), "load_balancer")
     assert result["status"] == "FAIL" and result["evidence"]["exposed_ports"] == ["tcp/443"]
+    assert result["severity"] == "medium"
     internal = copy.deepcopy(lb) | {"Scheme": "internal"}
     assert not exposure(aws(*aws_network(sg_rules=rules), coll("load_balancer", [internal], service="elbv2")))
     unknown = copy.deepcopy(lb) | {"Listeners": {"collection_status": "denied", "items": []}}
@@ -395,4 +397,59 @@ def test_stopped_instance_keeps_fail_with_lower_severity():
     stopped = instance()
     stopped["items"][0]["State"] = {"Name": "stopped"}
     result = one(aws(*aws_network(), stopped), "instance")
-    assert result["status"] == "FAIL" and result["severity"] == "high" and any("stopped" in n for n in result["evidence"]["notes"])
+    assert result["status"] == "FAIL" and result["severity"] == "medium" and any("stopped" in n for n in result["evidence"]["notes"])
+    assert "stopped or deallocated" in result["evidence"]["observed"]
+
+
+def test_public_https_observation_and_action_are_specific_and_brief():
+    endpoint = "https://9gi0nszlth.execute-api.ca-central-1.amazonaws.com"
+    api = {"ApiId": "9gi0nszlth", "ApiEndpoint": endpoint, "ProtocolType": "HTTP",
+           "Routes": [{"RouteKey": "GET /", "AuthorizationType": "NONE"}]}
+    result = one(aws(coll("http_api", [api], service="apigatewayv2")), "http_api")
+    assert result["status"] == "FAIL" and result["severity"] == "medium"
+    assert result["evidence"]["observed"] == f"Internet access to tcp/443 at {endpoint} is allowed."
+    assert result["remediation"] == "Consider whether this endpoint needs internet access; restrict unnecessary source networks or ports."
+    assert "no traffic was sent" in result["evidence"]["semantics"]
+
+
+def test_missing_authorization_does_not_become_a_public_access_claim():
+    api = {"ApiId": "a", "ApiEndpoint": "https://a.example.com", "ProtocolType": "HTTP"}
+    result = one(aws(coll("http_api", [api], service="apigatewayv2")), "http_api")
+    assert result["status"] == "UNKNOWN" and result["severity"] == "info"
+    assert "could not be determined" in result["evidence"]["observed"]
+    assert result["evidence"]["unresolved"] and result["evidence"]["collector_facts_needed"]
+    assert "Collect the missing configuration" in result["remediation"]
+
+
+@pytest.mark.parametrize("protocol,low,high,kind,severity", [
+    ("tcp", 443, 443, "api", "medium"),
+    ("udp", 443, 443, "public_ip", "high"),
+    ("tcp", 22, 22, "public_ip", "high"),
+    ("tcp", 3389, 3389, "public_ip", "high"),
+    ("tcp", 443, 443, "control_plane", "high"),
+    ("tcp", 5432, 5432, "database", "critical"),
+    ("tcp", 0, 65535, "public_ip", "critical"),
+    ("tcp", 0, 10000, "public_ip", "critical"),
+    ("tcp", 8443, 8443, "public_ip", "high"),
+])
+def test_network_severity_distinguishes_web_admin_data_and_broad_ranges(protocol, low, high, kind, severity):
+    from peaso.analysis.internet_exposure import Assessment
+    assessment = Assessment({"type": "instance"}, kind)
+    assessment.ports = pset(protocol, low, high)
+    assert assessment.verdict() == "FAIL"
+    assert assessment.severity() == severity
+
+
+def test_data_shares_keep_risk_and_have_share_specific_actions():
+    account_open = coll("s3_account_public_access_block", [], status="empty", service="s3control")
+    result = one(aws(coll("bucket", [bucket()], service="s3"), account_open), "bucket")
+    assert result["severity"] == "critical"
+    assert result["evidence"]["observed"] == "Public access to the stored data is allowed."
+    assert "policy or ACL" in result["remediation"] and "port" not in result["remediation"]
+    snapshot = {"DBSnapshotArn": f"arn:aws:rds:us-east-1:{ACCOUNT}:snapshot:s", "SnapshotType": "manual",
+                "Attributes": {"collection_status": "collected", "DBSnapshotAttributesResult": {
+                    "DBSnapshotAttributes": [{"AttributeName": "restore", "AttributeValues": ["999988887777"]}]}}}
+    result = one(aws(coll("rds_snapshot", [snapshot], service="rds")), "rds_snapshot")
+    assert result["severity"] == "high"
+    assert result["evidence"]["observed"] == "Snapshot restore access is granted to external accounts: 999988887777."
+    assert result["remediation"] == "Restrict snapshot restore access to the accounts that need it."

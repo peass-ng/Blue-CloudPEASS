@@ -6,6 +6,7 @@ import json
 import pytest
 
 from peaso.checks import CHECKS
+from peaso.remediation import template
 from peaso.checks.catalog import _compliance, description_for
 from peaso.checks.gcp_inherited_description_overlay import ROWS, description, validate_rows
 
@@ -21,7 +22,7 @@ def test_public_storage_audit_criterion():
     assert row["fail_when"] == public["fail_when"]
     assert "DATA_READ" in public["pass_when"] and "DATA_WRITE" in public["pass_when"]
     assert "complete" in public["fail_when"] and "exemptions" in public["fail_when"]
-    assert "log delivery" in public["description"]
+    assert "log delivery" in " ".join(template(ID)["caveats"])
     correction = public["description_correction"]
     assert correction["base_row_sha256"] == ROWS[ID]["base_row_sha256"]
     assert correction["base_catalog_row_sha256"] == ROWS[ID]["base_catalog_row_sha256"]

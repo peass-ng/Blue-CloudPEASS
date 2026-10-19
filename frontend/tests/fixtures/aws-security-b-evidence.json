@@ -1,0 +1,1014 @@
+[
+  {
+    "id": "aws.cb.inspector2.coverage_recently_scanned",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "last_scanned_at": "2025-12-31T00:00:00+00:00"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.coverage_recently_scanned",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "last_scanned_at": "2025-12-01T00:00:00+00:00"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.coverage_recently_scanned",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scanStatus.statusCode"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.coverage_recently_scanned",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.coverage_scan_active",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status_code": "ACTIVE",
+      "reason": "SUCCESSFUL"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.coverage_scan_active",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "status_code": "INACTIVE",
+      "reason": "UNMANAGED_EC2_INSTANCE"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.coverage_scan_active",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scanStatus.statusCode"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.coverage_scan_active",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.enabled_for_present_resources",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "not_enabled_for": []
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.enabled_for_present_resources",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "not_enabled_for": [
+        "EC2"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.enabled_for_present_resources",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.enabled_for_present_resources",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.findings_within_max_age",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "max_age_days": 192,
+      "stale_findings": 0
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.findings_within_max_age",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "max_age_days": 192,
+      "stale_findings": 1
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.findings_within_max_age",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.findings_within_max_age",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.kev_findings_within_due_date",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "overdue": []
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.kev_findings_within_due_date",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "overdue": [
+        "CVE-2024-0001"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.kev_findings_within_due_date",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.kev_findings_within_due_date",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_active_findings",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "active_findings": 0
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_active_findings",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "active_findings": 1
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_active_findings",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_active_findings",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_known_exploited_findings",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "known_exploited": []
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_known_exploited_findings",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "known_exploited": [
+        "CVE-2024-0001"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_known_exploited_findings",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.cb.inspector2.no_known_exploited_findings",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.macie.automated_discovery",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "automated_discovery": "ENABLED"
+    }
+  },
+  {
+    "id": "aws.cb.macie.automated_discovery",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "automated_discovery": "DISABLED"
+    }
+  },
+  {
+    "id": "aws.cb.macie.automated_discovery",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.cb.macie.automated_discovery",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.macie.enabled_where_buckets",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "status": "ENABLED"
+    }
+  },
+  {
+    "id": "aws.cb.macie.enabled_where_buckets",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "status": "PAUSED"
+    }
+  },
+  {
+    "id": "aws.cb.macie.enabled_where_buckets",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.cb.macie.enabled_where_buckets",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.resourceexplorer2.index_exists",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "indexes": 1
+    }
+  },
+  {
+    "id": "aws.cb.resourceexplorer2.index_exists",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "indexes": 0
+    }
+  },
+  {
+    "id": "aws.cb.resourceexplorer2.index_exists",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: resourceexplorer2_index"
+    }
+  },
+  {
+    "id": "aws.cb.resourceexplorer2.index_exists",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.rolesanywhere.trust_anchor_pqc",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status": "ACTIVE",
+      "key_algorithm": "ML_DSA_65"
+    }
+  },
+  {
+    "id": "aws.cb.rolesanywhere.trust_anchor_pqc",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "status": "ACTIVE",
+      "key_algorithm": "RSA_2048"
+    }
+  },
+  {
+    "id": "aws.cb.rolesanywhere.trust_anchor_pqc",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: source.sourceType"
+    }
+  },
+  {
+    "id": "aws.cb.rolesanywhere.trust_anchor_pqc",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_30_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_to_expiry": 365
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_30_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_to_expiry": 8
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_30_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Detail.ExpirationDate"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_30_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_7_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_to_expiry": 365
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_7_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_to_expiry": 6
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_7_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Detail.ExpirationDate"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_expires_after_7_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_not_expired",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "expiration_date": "2027-01-01T00:00:00+00:00"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_not_expired",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "expiration_date": "2025-06-01T00:00:00+00:00"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_not_expired",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Detail.ExpirationDate"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_not_expired",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_transfer_lock",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status_list": [
+        "clientTransferProhibited"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_transfer_lock",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "status_list": [
+        "ok"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_transfer_lock",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Detail"
+    }
+  },
+  {
+    "id": "aws.cb.route53.domain_transfer_lock",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.route53.public_zone_query_logging",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "log_groups": [
+        "arn:aws:logs:us-east-1:111111111111:log-group:/aws/route53/example.com"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.route53.public_zone_query_logging",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "log_groups": []
+    }
+  },
+  {
+    "id": "aws.cb.route53.public_zone_query_logging",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Config.PrivateZone"
+    }
+  },
+  {
+    "id": "aws.cb.route53.public_zone_query_logging",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_calendar_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_since_access": 31
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_calendar_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_since_access": 214
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_calendar_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_calendar_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "last_accessed": "2025-12-01T00:00:00+00:00"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "last_accessed": null
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.accessed_within_90_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_365_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_since_change": 17
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_365_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_since_change": 731
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_365_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_365_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_90_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_since_change": 17
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_90_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_since_change": 731
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_90_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.changed_within_90_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.cmk_encryption",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "kms_key_id": "arn:aws:kms:us-east-1:111111111111:key/k1",
+      "key_manager": "CUSTOMER"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.cmk_encryption",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "kms_key_id": "alias/aws/secretsmanager",
+      "key_manager": "AWS"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.cmk_encryption",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "collection authority absent or ambiguous: secret"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.cmk_encryption",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_not_public",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 1,
+      "public_policy": false
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_not_public",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "public_policy": true
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_not_public",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Policy"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_not_public",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_prohibit_public_access_perimeter",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "statements": 0,
+      "public_allow_statements": 0
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_prohibit_public_access_perimeter",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "statements": 1,
+      "public_allow_statements": 1
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_prohibit_public_access_perimeter",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Policy"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.policy_prohibit_public_access_perimeter",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_as_scheduled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_since": 12,
+      "automatically_after_days": 30,
+      "rotated": true
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_as_scheduled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_since": 92,
+      "automatically_after_days": 30,
+      "rotated": true
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_as_scheduled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_as_scheduled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_within_90_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_since_rotation": 31
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_within_90_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "last_rotated": null
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_within_90_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotated_within_90_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_lambda",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rotation_lambda": "arn:aws:lambda:us-east-1:111111111111:function:rot",
+      "rotation_rules_present": true
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_lambda",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rotation_lambda": null,
+      "rotation_rules_present": true
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_lambda",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_lambda",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_rules_present",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rotation_rules": {
+        "AutomaticallyAfterDays": 30
+      }
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_rules_present",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rotation_rules": null
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_rules_present",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.rotation_rules_present",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.used_after_creation_day",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "days_after_creation": 151
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.used_after_creation_day",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "days_after_creation": 0
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.used_after_creation_day",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: ARN"
+    }
+  },
+  {
+    "id": "aws.cb.secretsmanager.used_after_creation_day",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.no_account_shares",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "account_shares": []
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.no_account_shares",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "account_shares": [
+        "222222222222"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.no_account_shares",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Shares.ACCOUNT"
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.no_account_shares",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.org_member_no_account_shares",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "account_shares": []
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.org_member_no_account_shares",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "account_shares": [
+        "222222222222"
+      ]
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.org_member_no_account_shares",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Shares.ACCOUNT"
+    }
+  },
+  {
+    "id": "aws.cb.servicecatalog.org_member_no_account_shares",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

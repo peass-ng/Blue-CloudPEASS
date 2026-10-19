@@ -631,7 +631,8 @@ def _any_enabled_log(item):
         severity="low", control="AU-12",
         remediation="Add a diagnostic setting on the Logic App workflow that enables WorkflowRuntime logs to Log Analytics or storage.")
 def claude_logic_app_workflow_diagnostic_logging(item, index):
-    return result(not _any_enabled_log(item))
+    enabled = _any_enabled_log(item)
+    return result(not enabled, diagnostic_logging_enabled=enabled)
 
 
 CASES[cid("logic_app_workflow_diagnostic_logging")] = {"pass": diag_case(diag_log("WorkflowRuntime")),
@@ -643,7 +644,8 @@ CASES[cid("logic_app_workflow_diagnostic_logging")] = {"pass": diag_case(diag_lo
         remediation="Add a diagnostic setting on the NSG enabling NetworkSecurityGroupEvent and NetworkSecurityGroupRuleCounter "
                     "(or the allLogs group), e.g. through the built-in DeployIfNotExists policy.")
 def claude_nsg_diagnostic_logging(item, index):
-    return result(not _any_enabled_log(item))
+    enabled = _any_enabled_log(item)
+    return result(not enabled, diagnostic_logging_enabled=enabled)
 
 
 CASES[cid("nsg_diagnostic_logging")] = {"pass": diag_case(diag_log(group="allLogs")),
@@ -678,8 +680,8 @@ CASES[cid("mssql_managed_instance_tde_cmk")] = {
 def claude_mssql_managed_instance_vulnerability_assessment(item, index):
     for assessment in list_of_objects(get(item, "vulnerabilityAssessments", list)):
         if get(assessment, "name", str) == "Default" and get(assessment, "properties.recurringScans.isEnabled", bool):
-            return result(False)
-    return result(True, reason="no Default vulnerability assessment with recurring scans enabled")
+            return result(False, recurring_scans_enabled=True)
+    return result(True, recurring_scans_enabled=False, reason="no Default vulnerability assessment with recurring scans enabled")
 
 
 CASES[cid("mssql_managed_instance_vulnerability_assessment")] = {
@@ -1074,6 +1076,8 @@ def claude_network_watcher_flow_logs_retention_90(item, index):
     bad = []
     for flow_log in logs:
         days = get(flow_log, "properties.retentionPolicy.days", int)
+        if days < 0:
+            raise Unavailable("flow log retention days cannot be negative")
         if not get(flow_log, "properties.enabled", bool) or 0 < days < 90:
             bad.append({"flow_log": flow_log.get("name"), "retention_days": days})
     return result(bool(bad), flow_logs=bad)

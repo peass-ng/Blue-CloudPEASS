@@ -768,6 +768,8 @@ def kms_rotation_100(item, index):
     if period is None:
         return result(True, rotation_period=None, semantics="No automatic rotation declared")
     seconds = duration_seconds(period)
+    if seconds <= 0:
+        raise Unavailable("automatic rotation period must be positive")
     return result(seconds > 8640000, rotation_seconds=seconds)
 
 
@@ -961,6 +963,10 @@ def gke_binauthz(item, index):
         mode = optional(config, "evaluationMode", None, str)
         if mode is None:
             mode = "PROJECT_SINGLETON_POLICY_ENFORCE" if optional(config, "enabled", False, bool) else "DISABLED"
+    if mode is not None and mode not in (
+            "EVALUATION_MODE_UNSPECIFIED", "DISABLED", "PROJECT_SINGLETON_POLICY_ENFORCE",
+            "POLICY_BINDINGS", "POLICY_BINDINGS_AND_PROJECT_SINGLETON_POLICY_ENFORCE"):
+        raise Unavailable("unrecognized Binary Authorization evaluation mode")
     return result(mode in (None, "DISABLED", "EVALUATION_MODE_UNSPECIFIED"), evaluation_mode=mode)
 
 
@@ -1067,6 +1073,8 @@ cases(track(gid("gke.nodes_no_default_service_account")),
      remediation="Enroll the cluster in the RAPID, REGULAR, STABLE or EXTENDED release channel.")
 def gke_channel(item, index):
     channel = optional(optional(item, "releaseChannel", {}, dict), "channel", "UNSPECIFIED", str)
+    if channel not in ("UNSPECIFIED", "RAPID", "REGULAR", "STABLE", "EXTENDED"):
+        raise Unavailable("unrecognized GKE release channel")
     return result(channel == "UNSPECIFIED", channel=channel)
 
 

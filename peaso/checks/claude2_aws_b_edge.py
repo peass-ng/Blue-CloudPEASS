@@ -1135,7 +1135,11 @@ def apigw_cache(item, index):
     caching = [v for v in _settings(item).values() if v.get("cachingEnabled")]
     if not caching:
         return "NOT_APPLICABLE", {"reason": "stage caching disabled"}
-    return result(not any(v.get("cacheDataEncrypted") for v in caching), caching_settings=len(caching))
+    encrypted = any(v.get("cacheDataEncrypted") for v in caching)
+    return result(not encrypted, caching_settings=len(caching),
+                  encrypted_cache_setting_found=encrypted,
+                  observed="At least one cached method setting enables encryption." if encrypted else
+                           "None of the cached method settings enables encryption.")
 
 
 @install("aws.c2b.apigateway.stage_execution_logging", "rest_api_stage", "REST API stage has execution logging on some method setting",

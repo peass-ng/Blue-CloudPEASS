@@ -411,10 +411,19 @@ def _index(snapshot, inventory):
 
 
 def _finding(check, provider, scope, rid, service, status, evidence, frameworks=None):
-    return {"id": digest([provider, scope, rid, check.id]), "category": check.category, "check_id": check.id,
+    from .finding_priority import effective_priority
+    current = {"id": digest([provider, scope, rid, check.id]), "category": check.category, "check_id": check.id,
         "title": check.title, "provider": provider, "service": service, "resource_id": rid, "scope": scope,
-        "severity": check.severity, "status": status, "frameworks": list(check.frameworks if frameworks is None else frameworks),
+        "severity": effective_priority(check.id, check.severity), "status": status, "frameworks": list(check.frameworks if frameworks is None else frameworks),
         "evidence": evidence, "remediation": check.remediation}
+    if provider == "aws":
+        from .checks.aws_finding_priority import contextual_severity as aws_contextual_severity
+        from .checks.aws_compute_storage_priority import contextual_severity as compute_contextual_severity
+        current["severity"] = compute_contextual_severity(current, aws_contextual_severity(current, current["severity"]))
+    if provider == "azure":
+        from .checks.azure_finding_priority import contextual_severity
+        current["severity"] = contextual_severity(current, current["severity"])
+    return current
 
 
 def _unknown_coverage_reason(findings=(), *, collection_status=None):
@@ -1053,7 +1062,8 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     counts = dict(counts)
     complete = bool(selected or analysis_selected or privesc_stats is not None) and all(c["status"] in ("empty", "evaluated") for c in coverage if c["level"] in ("check", "framework", "manual", "scope"))
     inventory_complete = all(c["status"] in ("collected", "empty") for c in coverage if c["level"] in ("collection", "scope"))
-    report = {"schema_version": REPORT_SCHEMA_VERSION, "snapshot_id": snapshot["snapshot_id"], "provider": provider,
+    from .finding_priority import VERSION as risk_model_version
+    report = {"schema_version": REPORT_SCHEMA_VERSION, "risk_model_version": risk_model_version, "snapshot_id": snapshot["snapshot_id"], "provider": provider,
         "scopes": list(snapshot["scopes"]), "created_at": snapshot["created_at"],
         "resources": [{key: value for key, value in resource.items() if key != "data"} for resource in inventory],
         "native_data": dict(NATIVE_DATA, snapshot_id=snapshot["snapshot_id"]),
@@ -1082,7 +1092,7 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
     report["remediation_templates"] = report_templates((f["check_id"] for f in report["findings"]), provider)
     for finding in report["findings"]:
         detail = report["remediation_templates"].get(finding["check_id"])
-        if detail:
+        if detail and finding["check_id"] != "analysis.internet_exposure":
             finding["remediation"] = detail["summary"]
     report["check_frameworks"] = factor_frameworks(report["findings"])
     report["check_meta"] = encode_check_meta(
@@ -1129,7 +1139,7 @@ def finding_frameworks(finding, check_frameworks):
 
 
 CHECK_META_FIELDS = ("title", "remediation", "service", "category", "severity",
-                     "description", "evaluated", "pass_when", "fail_when", "not_applicable_when", "rationale")
+                     "description", "evaluated", "pass_when", "fail_when", "not_applicable_when", "rationale", "clarity_evaluation_contract")
 CHECK_META_ENCODING = {"version": 1, "per_check_marker": "_derived",
                        "r": "description", "m": "remediation_templates.summary"}
 
@@ -1137,10 +1147,12 @@ CHECK_META_ENCODING = {"version": 1, "per_check_marker": "_derived",
 def attach_reviewed_description_meta(meta):
     """Keep verified check prose once per check, without copying it into every finding row."""
     from .checks.catalog import description_for
+    from .finding_presentation import evaluator_contract_fingerprint
     for check_id, values in meta.items():
         reviewed = description_for(check_id)
         if not isinstance(reviewed, dict):
             continue
+        values["clarity_evaluation_contract"] = evaluator_contract_fingerprint()
         for field in ("description", "evaluated", "pass_when", "fail_when", "not_applicable_when"):
             value = reviewed.get(field)
             if isinstance(value, str) and value.strip():
@@ -1235,7 +1247,11 @@ def hydrate_finding(finding, check_frameworks=None, check_meta=None, check_meta_
             missing["remediation"] = summary
     if check_frameworks is not None and "frameworks" not in finding:
         missing["frameworks"] = list(check_frameworks.get(finding.get("check_id"), []))
-    return dict(finding, **missing) if missing else finding
+    hydrated = dict(finding, **missing) if missing else finding
+    if finding.get("check_id") == "analysis.internet_exposure":
+        from .remediation import exposure_action
+        return dict(hydrated, remediation=exposure_action(finding.get("evidence"), finding.get("status")))
+    return hydrated
 
 
 def hydrate_frameworks(report):

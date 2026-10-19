@@ -78,6 +78,24 @@ def full_requirements():
 
 
 def description_for(check_id):
+    """Apply reviewed concise copy without changing signed source contracts."""
+    from . import (finding_clarity_reviewed, gcp_firewall_clarity_reviewed,
+                   k8s_finding_clarity_reviewed, azure_finding_clarity_reviewed,
+                   aws_finding_clarity_reviewed, gcp_scalar_clarity_reviewed,
+                   k8s_workload_clarity_reviewed, k8s_gc_threshold_source_correction,
+                   gcp_remaining_clarity_reviewed, aws_database_clarity_reviewed, azure_bulk_clarity_reviewed, aws_remaining_clarity_reviewed, aws_final_clarity_reviewed, aws_bulk_clarity_reviewed, aws_compute_storage_clarity_reviewed)
+    original = _base_description_for(check_id)
+    for overlay in (finding_clarity_reviewed, gcp_firewall_clarity_reviewed,
+                    k8s_finding_clarity_reviewed, azure_finding_clarity_reviewed,
+                    aws_finding_clarity_reviewed, gcp_scalar_clarity_reviewed,
+                    k8s_workload_clarity_reviewed, k8s_gc_threshold_source_correction,
+                   gcp_remaining_clarity_reviewed, aws_database_clarity_reviewed, azure_bulk_clarity_reviewed, aws_remaining_clarity_reviewed, aws_final_clarity_reviewed, aws_bulk_clarity_reviewed, aws_compute_storage_clarity_reviewed):
+        if check_id in overlay.ROWS:
+            original = overlay.description(check_id, original)
+    return original
+
+
+def _base_description_for(check_id):
     if check_id == "aws_nist_apigateway_stage_logging_enabled":
         from .aws_apigateway_logging_source_correction import description
         return description()

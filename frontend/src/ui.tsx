@@ -283,7 +283,7 @@ export function EvidenceFields({ data }: { data: unknown }) {
   return <div className="evidence-presented"><EvidenceValue value={data} /></div>;
 }
 
-export function Evidence({ data }: { data: unknown }) {
+export function Evidence({ data, previewData = data }: { data: unknown; previewData?: unknown }) {
   const full = typeof data === "string" ? data : JSON.stringify(data ?? null, null, 2);
   function download() {
     const blob = new Blob([full], { type: "application/json" });
@@ -295,7 +295,7 @@ export function Evidence({ data }: { data: unknown }) {
     URL.revokeObjectURL(url);
   }
   return <section className="evidence-presented">
-    <EvidenceValue value={data} />
+    <EvidenceValue value={previewData} />
     <div className="button-row"><button className="button" onClick={download}>Download full evidence</button></div>
   </section>;
 }

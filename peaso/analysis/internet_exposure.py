@@ -273,12 +273,17 @@ class Assessment:
             return "info"
         if self.data_exposure:
             return "critical"
-        reachable = ports_of(self.ports or {})
         full = any((low, high) == (0, 65535) for p in ("tcp", "udp") for low, high in (self.ports or {}).get(p, ()))
-        if full or any(port in ADMIN_PORTS | DATA_PORTS for _, port in reachable):
+        contains = lambda ports: any(low <= port <= high for p in ("tcp", "udp")
+                                    for low, high in (self.ports or {}).get(p, ()) for port in ports)
+        if full or contains(DATA_PORTS):
             return "critical"
-        severity = "medium" if self.authenticated else "high"
-        return severity
+        if contains(ADMIN_PORTS) or self.kind in ("control_plane", "database"):
+            return "high"
+        # A web listener is an exposure to review, not by itself a critical flaw.
+        web_only = bool(self.ports) and all(p == "tcp" and all(low == high and low in (80, 443)
+                                        for low, high in intervals) for p, intervals in self.ports.items())
+        return "medium" if web_only or self.authenticated else "high"
 
     def adjusted_severity(self):
         """Stopped/deallocated compute keeps its exposed configuration but is not reachable right now."""
@@ -1652,12 +1657,37 @@ def _title(assessment, status):
     return "Internet exposure could not be fully resolved"
 
 
+def _observed(assessment, status):
+    """A short observation, with uncertainty retained when a path is incomplete."""
+    if status == "UNKNOWN":
+        return "Internet access could not be determined because required configuration is missing."
+    if status == "PASS":
+        if assessment.blocked_by:
+            return f"Public access is blocked by {assessment.blocked_by.replace('_', ' ')}."
+        return "The collected configuration does not allow public access."
+    if assessment.kind == "external_share":
+        accounts = ", ".join(assessment.external_ids)
+        return f"Snapshot restore access is granted to external accounts: {accounts}."
+    if assessment.data_exposure:
+        if assessment.resource["type"] in ("rds_snapshot", "rds_cluster_snapshot"):
+            return "Snapshot restore access is granted to everyone."
+        return "Public access to the stored data is allowed."
+    sentence = f"{_title(assessment, status)} is allowed."
+    if assessment.dormant:
+        return sentence.replace("Internet access", "Configured internet access", 1) + " The instance is stopped or deallocated."
+    if assessment.unresolved:
+        return sentence + " Some path layers remain unresolved."
+    return sentence
+
+
 def internet_findings(snapshot, resources):
+    from ..remediation import exposure_action
     output = []
     for assessment in assess(snapshot, resources):
         status = assessment.verdict()
         exposed = describe(assessment.ports or {})
-        evidence = {"exposure_kind": assessment.kind, "exposed_ports": exposed if status != "PASS" else [],
+        evidence = {"observed": _observed(assessment, status),
+                    "exposure_kind": assessment.kind, "exposed_ports": exposed if status != "PASS" else [],
                     "public_addresses": sorted(x for x in assessment.addresses if x), "path": assessment.path,
                     "blocked_by": assessment.blocked_by if status == "PASS" else None,
                     "unresolved": assessment.unresolved, "notes": assessment.notes,
@@ -1669,6 +1699,7 @@ def internet_findings(snapshot, resources):
                     "semantics": "Declared-configuration path model from 0.0.0.0/0; no traffic was sent."}
         severity = "high" if assessment.kind == "external_share" and status == "FAIL" else assessment.adjusted_severity()
         current = finding(snapshot, assessment.resource, "exposure", CHECK, _title(assessment, status), severity, evidence, status=status)
+        current["remediation"] = exposure_action(evidence, status)
         current["id"] = stable_id("exposure", CHECK, node_id(assessment.resource), node_id(assessment.origin), assessment.kind)
         output.append(current)
     output.extend(coverage_findings(snapshot, resources))

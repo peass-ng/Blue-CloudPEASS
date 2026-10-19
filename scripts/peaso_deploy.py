@@ -46,6 +46,12 @@ REPRODUCTION_INPUT_PATTERNS = (
     "docs/collectors/azure-certificate-issuance-native.md",
     "docs/cli-iam.md", "docs/permission-severity-policy.md", "docs/permission-categorization-sync.md",
     "tests/fixtures/native-kind-network-v27.json",
+    "tests/fixtures/aws_bulk_clarity_reviewed.json.gz",
+    "tests/fixtures/aws_final_clarity_reviewed.json.gz",
+    "tests/fixtures/azure_bulk_clarity_reviewed.json.gz",
+    "tests/fixtures/aws_compute_storage_signed_cases.json",
+    "tests/fixtures/post_dfaf_integration/source414-native-catalog-baseline.json.gz",
+    "tests/fixtures/azure_core6.json",
     "tests/conftest.py", "tests/compliance_draft_isolation.py", "tests/compliance_source_conservation.py",
     "tests/test_combined_release_gate.py", "tests/fixtures/remediation_aws_reviewed_overlay.json",
     "tests/fixtures/markdown_anchor_expected.json",
@@ -143,7 +149,7 @@ CURRENT_API_MEMBER_LIMIT = 4800
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
-CURRENT_SOURCE_MEMBER_LIMIT = 2601  # Includes release.json; independently bounds the current release.
+CURRENT_SOURCE_MEMBER_LIMIT = 2700  # Includes release.json; independently bounds the current release.
 CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 275_000_000
 
 

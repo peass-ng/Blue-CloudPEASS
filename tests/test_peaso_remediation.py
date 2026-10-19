@@ -7,11 +7,19 @@ from peaso.reports import _remediation_lines
 from peaso.reports import render_markdown
 from peaso.engine import attach_reviewed_description_meta, compact_report, expand_report, factor_check_meta, hydrate_finding
 from peaso.checks import CHECKS
+from peaso.checks.catalog import description_for
 
 
 def finding(provider, check_id, native, name=None, scope=""):
     return {"provider": provider, "check_id": check_id, "native_resource_id": native,
             "resource_name": name, "scope": scope, "remediation": "Legacy guidance"}
+
+
+def _public_guidance_prose(check_id):
+    value = template(check_id)
+    description = description_for(check_id) or {}
+    return " ".join([description.get("description", ""), value["summary"],
+                     *value["steps"], *value["caveats"]])
 
 
 def test_reviewed_template_coverage_is_explicit():
@@ -94,7 +102,7 @@ def test_reviewed_template_coverage_is_explicit():
         assert len(reviewed_sql["cli"]) == 2
         assert reviewed_sql["cli"][0]["code"].startswith("gcloud sql instances describe")
         assert reviewed_sql["cli"][1]["code"].endswith("--flags-file=<REVIEWED_FULL_FLAGS_YAML>")
-        assert "--database-flags:" in " ".join(reviewed_sql["steps"])
+        assert "--flags-file=<REVIEWED_FULL_FLAGS_YAML>" in reviewed_sql["cli"][1]["code"]
         assert any("replaces every existing flag" in caveat for caveat in reviewed_sql["caveats"])
     for check_id in ("gcp.ports.dns_managed_zone_dnssec_enabled",
                      "gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1",
@@ -111,7 +119,7 @@ def test_reviewed_template_coverage_is_explicit():
         public = template(check_id)
         assert public["field_binding"]["kind"] == kind
         assert "allUsers" in public["field_binding"]["field"]
-        assert len(public["steps"]) >= 3
+        assert 1 <= len(public["steps"]) <= 2
         if kind != "bigquery_dataset":
             assert "remove-iam-policy-binding" in public["cli"][1]["code"]
             assert "<REVIEWED_PUBLIC_MEMBER>" in public["cli"][1]["code"]
@@ -121,7 +129,7 @@ def test_reviewed_template_coverage_is_explicit():
         address = template(check_id)
         assert address["field_binding"]["kind"] == "sql_instance"
         assert "ipAddresses" in address["field_binding"]["field"]
-        assert "migration" in " ".join(address["steps"]).lower()
+        assert "private connectivity" in " ".join(address["steps"]).lower() or "private client connectivity" in " ".join(address["steps"]).lower()
     incoming = template("gcp.ports.sql_private_ip_assignments")
     assert incoming["field_binding"]["kind"] == "sql_instance"
     assert "PRIMARY|MIGRATED_1ST_GEN" in incoming["field_binding"]["field"]
@@ -136,14 +144,23 @@ def test_reviewed_template_coverage_is_explicit():
         assert storage["field_binding"]["kind"] == "storage_account"
         assert "blobServices/default" in storage["field_binding"]["field"]
         assert storage["cli"][0]["code"].startswith("az storage account blob-service-properties show")
-    assert "keyCreationTime" in " ".join(template("azure.port.storage_account_key_rotation_reminder_enabled")["steps"])
+    assert "keyExpirationPeriodInDays=90" in template("azure.port.storage_account_key_rotation_reminder_enabled")["field_binding"]["field"]
+    assert "does not establish actual key regeneration" in " ".join(template("azure.port.storage_account_key_rotation_reminder_enabled")["caveats"])
     for check_id in reviewed:
         value = rules()[check_id]
         assert value["summary"] and 1 <= len(value["steps"]) <= 5
         assert value["references"] and all(row["url"].startswith("https://") for row in value["references"])
     indexed = {check.id: check for check in CHECKS}
     assert indexed["aws.iam.no_full_admin"].public()["remediation_details"]["summary"] == template("aws.iam.no_full_admin")["summary"]
-    assert "remediation_details" not in indexed["k8s.ports.pod.container_argument_pod_security_policy_enabled"].public()
+    legacy = indexed["k8s.ports.pod.container_argument_pod_security_policy_enabled"].public()["remediation_details"]
+    assert legacy["cli"] == [] and not legacy.get("iac")
+    assert "legacy cluster" in legacy["summary"]
+    assert "only through Kubernetes 1.24" in legacy["caveats"][0]
+    from copy import deepcopy
+    from peaso.checks.fixtures import CASES
+    modern = deepcopy(CASES["k8s.ports.pod.container_argument_pod_security_policy_enabled"]["fail"])
+    modern["spec"]["containers"][0]["_component_config"]["version"] = "v1.25.0"
+    assert indexed["k8s.ports.pod.container_argument_pod_security_policy_enabled"].evaluate(modern, {})[0] == "NOT_APPLICABLE"
 
 
 def test_second_aws_shard_conflict_rejected(monkeypatch, tmp_path):
@@ -189,13 +206,13 @@ def test_approved_summaries_are_customer_actions_not_source_provenance():
 
 def test_sampled_c2b_remediation_does_not_invert_source_or_claim_unverified_fix():
     bedrock = rules()["aws.c2b.bedrock.api_key_long_term_expired"]
-    assert "unexpired" in bedrock["summary"].lower()
-    assert "already expired" in " ".join(bedrock["steps"])
+    assert "unexpired credential" in _public_guidance_prose("aws.c2b.bedrock.api_key_long_term_expired").lower()
+    assert "already expired" in " ".join(bedrock["caveats"])
     assert "--status Inactive" in bedrock["cli"][1]["code"]
     assert "--service-specific-credential-id <CREDENTIAL_ID>" in bedrock["cli"][2]["code"]
     efs = rules()["aws.c2b.efs.access_points_posix_user"]
     assert efs["field_binding"]["kind"] == "efs_file_system"
-    assert "access_points_without_posix_user" in " ".join(efs["steps"])
+    assert "PosixUser" in description_for("aws.c2b.efs.access_points_posix_user")["description"]
     assert "describe-access-points --file-system-id <RESOURCE_ID>" in efs["cli"][0]["code"]
     assert "--posix-user Uid=<APPROVED_UID>,Gid=<APPROVED_GID>" in efs["cli"][1]["code"]
     assert "without a PosixUser with" not in efs["summary"] + " ".join(efs["steps"])
@@ -267,15 +284,15 @@ def test_c2b_elasticache_public_subnet_repair_keeps_nat_egress():
     for suffix in ("cluster_public_subnet", "cluster_public_subnet_prowler"):
         rule = rules()[f"aws.c2b.elasticache.{suffix}"]
         assert "GatewayId=igw-*" in rule["field_binding"]["path"]
-        assert "NAT-only" in " ".join(rule["steps"])
+        assert "NAT-only" in _public_guidance_prose(f"aws.c2b.elasticache.{suffix}")
         assert "must not be removed" in " ".join(rule["caveats"])
         assert "implicit main table" in rule["cli"][3]["label"]
 
 
 def test_c2b_efs_repair_distinguishes_file_system_class_and_subnet_setting():
     multi = rules()["aws.c2b.efs.multi_az_mount_targets"]
-    assert "One Zone" in multi["summary"]
-    assert "cannot accept another" in " ".join(multi["steps"])
+    assert "One Zone" in " ".join(multi["caveats"])
+    assert "cannot accept another" in " ".join(multi["caveats"])
     assert "For Regional EFS only" in multi["cli"][2]["label"]
     subnet = rules()["aws.c2b.efs.mount_target_subnet_no_auto_public_ip"]
     assert "joined subnet.MapPublicIpOnLaunch=true" in subnet["field_binding"]["path"]
@@ -287,10 +304,10 @@ def test_c2b_efs_repair_distinguishes_file_system_class_and_subnet_setting():
     user = rules()["aws.c2b.efs.access_point_user_identity"]
     assert "--posix-user Uid=<APPROVED_UID>,Gid=<APPROVED_GID>" in user["cli"][1]["code"]
     aggregate = rules()["aws.c2b.efs.access_points_no_root_directory"]
-    assert "No access points is NOT_APPLICABLE" in " ".join(aggregate["steps"])
-    assert "every" in aggregate["summary"]
+    assert "No access points is not applicable" in " ".join(aggregate["caveats"])
+    assert "Joins filesystem access points" in description_for("aws.c2b.efs.access_points_no_root_directory")["description"]
     target = rules()["aws.c2b.efs.no_public_mount_targets"]
-    assert "one mount target per Availability Zone" in " ".join(target["steps"])
+    assert "one mount target per Availability Zone" in " ".join(target["caveats"])
     assert "forcibly breaks mounts" in " ".join(target["caveats"])
 
 
@@ -326,7 +343,7 @@ def test_c2b_codebuild_age_review_does_not_start_synthetic_build():
     assert "floor-days>=90" in built["field_binding"]["path"]
     for rule in (invoked, built):
         assert "IN_PROGRESS passes" in rule["field_binding"]["path"]
-        assert "do not start a token build" in " ".join(rule["steps"])
+        assert "do not run an unreviewed build as a compliance shortcut" in " ".join(rule["caveats"])
         assert all("start-build" not in cli["code"] for cli in rule["cli"])
 
 
@@ -334,24 +351,25 @@ def test_c2b_directconnect_redundancy_requires_separate_locations_and_connection
     connection = rules()["aws.c2b.directconnect.connection_redundancy"]
     vif = rules()["aws.c2b.directconnect.virtual_interface_redundancy"]
     assert connection["field_binding"]["target"] == vif["field_binding"]["target"] == "scope"
-    assert "two distinct locations" in " ".join(connection["steps"])
-    assert "two distinct VIF IDs" in " ".join(vif["steps"])
-    assert "two connection IDs" in " ".join(vif["steps"])
+    assert "two distinct locations" in " ".join(connection["steps"] + connection["caveats"])
+    assert "two distinct VIF IDs" in " ".join(vif["steps"] + vif["caveats"])
+    assert "two connection IDs" in " ".join(vif["steps"] + vif["caveats"])
     for rule in (connection, vif):
-        assert "NOT_APPLICABLE" in " ".join(rule["steps"])
-        assert "failover test" in " ".join(rule["steps"])
+        assert "NOT_APPLICABLE" in " ".join(rule["steps"] + rule["caveats"])
+        assert "failover test" in " ".join(rule["steps"] + rule["caveats"])
         assert all("create-" not in cli["code"] for cli in rule["cli"])
 
 
 def test_c2b_acm_and_private_ca_key_replacement_require_distinct_cutovers():
     acm = rules()["aws.c2b.acm.in_use_secure_key_algorithm"]
     pca = rules()["aws.c2b.acmpca.pqc_key_algorithm"]
-    assert "InUseBy" in " ".join(acm["steps"])
-    assert "reimporting the old ARN cannot change key type or size" in " ".join(acm["steps"])
-    assert "old ARN remains a failed resource finding" in " ".join(acm["steps"])
-    assert "DELETED is NOT_APPLICABLE" in " ".join(pca["steps"])
-    assert "ML_DSA_44/65/87" in " ".join(pca["steps"])
-    assert "old non-ML-DSA CA remains a resource finding" in " ".join(pca["steps"])
+    assert "InUseBy" in " ".join(acm["caveats"])
+    assert "ACM reimport cannot change a certificate's key type or size" in " ".join(acm["caveats"])
+    assert "old in-use ARN keeps failing until detached" in " ".join(acm["caveats"])
+    assert "skips only DELETED CAs" in " ".join(pca["caveats"])
+    assert "ML_DSA_44, ML_DSA_65 or ML_DSA_87" in " ".join(pca["caveats"])
+    assert "every other status fails unless" in " ".join(pca["caveats"])
+    assert "Do not disable or delete the old CA until every dependent" in " ".join(pca["caveats"])
     for rule in (acm, pca):
         assert all("create-" not in cli["code"] for cli in rule["cli"])
 
@@ -363,7 +381,7 @@ def test_c2b_dms_expired_certificate_retires_only_after_endpoint_cutover():
     assert "--endpoint-arn <REVIEWED_ENDPOINT_ARN> --certificate-arn <NEW_CERTIFICATE_ARN>" in codes[3]
     assert codes[4].startswith("aws dms delete-certificate --certificate-arn <RESOURCE_ARN>")
     assert "irreversible" in " ".join(rule["caveats"])
-    assert "importing a new certificate alone cannot clear" in " ".join(rule["steps"])
+    assert "importing a new certificate alone cannot clear" in " ".join(rule["caveats"])
 
 
 def test_c2b_documentdb_multi_az_adds_a_reviewed_second_zone_replica():
@@ -371,7 +389,8 @@ def test_c2b_documentdb_multi_az_adds_a_reviewed_second_zone_replica():
     assert rule["field_binding"]["path"] == "MultiAZ"
     assert "create-db-instance --db-cluster-identifier <RESOURCE_NAME>" in rule["cli"][2]["code"]
     assert "--availability-zone <REVIEWED_SECOND_AZ>" in rule["cli"][2]["code"]
-    assert "MultiAZ=true" in " ".join(rule["steps"])
+    assert "MultiAZ boolean" in " ".join(rule["caveats"])
+    assert "distinct supported Availability Zone" in " ".join(rule["caveats"])
     assert "compute charges" in " ".join(rule["caveats"])
 
 
@@ -391,13 +410,13 @@ def test_c2b_classic_elb_scheme_replacement_and_listener_migration_are_distinct(
     scheme = rules()["aws.c2b.classic_elb.not_internet_facing"]
     listeners = rules()["aws.c2b.classic_elb.ssl_listeners_only"]
     assert scheme["field_binding"]["path"] == "Scheme"
-    assert "Scheme cannot be changed in place" in " ".join(scheme["steps"])
-    assert "old internet-facing resource continues to fail" in " ".join(scheme["steps"])
+    assert "Scheme cannot be changed in place" in " ".join(scheme["caveats"])
+    assert "old internet-facing resource continues to fail" in " ".join(scheme["caveats"])
     assert all("create-load-balancer" not in cli["code"] for cli in scheme["cli"])
     assert "--listeners file://<REVIEWED_HTTPS_LISTENERS_JSON>" in listeners["cli"][1]["code"]
     assert "--load-balancer-ports <REVIEWED_OLD_LISTENER_PORTS>" in listeners["cli"][2]["code"]
     assert "cannot replace a different listener on the same port" in " ".join(listeners["caveats"])
-    assert "listener-free elb passes" in " ".join(listeners["steps"]).lower()
+    assert "load balancer without listeners passes" in _public_guidance_prose("aws.c2b.classic_elb.ssl_listeners_only")
 
 
 def test_c2b_cloudformation_rollback_and_cdk_bootstrap_use_real_owner_updates():
@@ -405,20 +424,21 @@ def test_c2b_cloudformation_rollback_and_cdk_bootstrap_use_real_owner_updates():
     bootstrap = rules()["aws.c2b.cloudformation.cdktoolkit_bootstrap_version"]
     assert rollback["field_binding"]["path"] == "DisableRollback"
     assert "update-stack --cli-input-json file://<REVIEWED_STACK_UPDATE_JSON>" in rollback["cli"][1]["code"]
-    assert "DisableRollback=false" in " ".join(rollback["steps"])
-    assert "synthetic no-op update" in " ".join(rollback["steps"])
+    assert "DisableRollback=false" in " ".join(rollback["caveats"])
+    assert "Do not fabricate a template change solely to clear this finding" in " ".join(rollback["caveats"])
     assert bootstrap["field_binding"]["path"] == "StackName=CDKToolkit; Outputs[].OutputKey=BootstrapVersion -> OutputValue"
     assert "Missing/no version is NOT_APPLICABLE" in " ".join(bootstrap["caveats"])
-    assert "do not change only the output value" in " ".join(bootstrap["steps"])
+    assert "Do not edit only the CloudFormation output value" in " ".join(bootstrap["caveats"])
 
 
 def test_c2b_cloudfront_missing_s3_origin_updates_exact_full_distribution():
     rule = rules()["aws.c2b.cloudfront.s3_origin_bucket_exists"]
-    assert "HeadBucket 404" in " ".join(rule["steps"])
-    assert "missing probe data is UNKNOWN" in " ".join(rule["caveats"])
+    prose = _public_guidance_prose("aws.c2b.cloudfront.s3_origin_bucket_exists")
+    assert "only a HeadBucket 404 fails" in prose
+    assert "missing probes remain UNKNOWN" in prose
     assert "--if-match <CURRENT_ETAG> --distribution-config file://<REVIEWED_DISTRIBUTION_JSON>" in rule["cli"][2]["code"]
-    assert "every cache behavior" in " ".join(rule["steps"])
-    assert "403 passes this existence predicate" in " ".join(rule["steps"])
+    assert "updating the behaviors" in prose
+    assert "403 does not establish ownership" in prose
     assert "do not create or claim a bucket name" in " ".join(rule["caveats"]).lower()
 
 
@@ -428,7 +448,8 @@ def test_c2b_bedrock_data_source_and_logging_destinations_are_exactly_bound():
     assert sources["field_binding"]["target"] == "resource"
     assert "update-data-source --cli-input-json file://<REVIEWED_BEDROCK_DATA_SOURCE_JSON>" in sources["cli"][3]["code"]
     assert "complete name and dataSourceConfiguration" in " ".join(sources["caveats"])
-    assert "every source shows kmsKeyArn" in " ".join(sources["steps"])
+    source_prose = _public_guidance_prose("aws.c2b.bedrock.knowledge_base_data_sources_cmk")
+    assert "every collected" in source_prose and "serverSideEncryptionConfiguration.kmsKeyArn" in source_prose
     assert logs["field_binding"]["target"] == "scope"
     assert "matching bucket.Encryption" in logs["field_binding"]["path"]
     assert "matching log_group.kmsKeyId" in logs["field_binding"]["path"]
@@ -439,14 +460,14 @@ def test_c2b_bedrock_data_source_and_logging_destinations_are_exactly_bound():
 
 def test_c2b_ecr_latest_scannable_digest_does_not_infer_clean_from_missing_scan_data():
     rule = rules()["aws.c2b.ecr.latest_image_no_medium_plus_findings"]
-    steps = " ".join(rule["steps"])
-    caveats = " ".join(rule["caveats"])
-    assert "newest scannable non-signature image by imagePushedAt" in steps
-    assert "For FAILED status" in steps
-    assert "MEDIUM/HIGH/CRITICAL" in steps
-    assert "incomplete pagination remain UNKNOWN" in steps
-    assert "omits scan status and finding summary" in caveats
-    assert "completion time" in steps
+    prose = _public_guidance_prose("aws.c2b.ecr.latest_image_no_medium_plus_findings")
+    assert "newest scannable non-signature image by imagePushedAt" in prose
+    assert "exact digest" in prose
+    assert "a failed scan also fails" in prose
+    assert "medium-or-higher findings" in prose
+    assert "complete pagination remains UNKNOWN" in prose
+    assert "Basic Scanning needs exact-digest scan details, not DescribeImages alone" in prose
+    assert "completion time" in prose
     assert all("batch-get-image" not in item["code"] and "put-image" not in item["code"] for item in rule["cli"])
 
 
@@ -456,9 +477,9 @@ def test_c2b_drs_guidance_tracks_current_source_replication_state():
     assert template("aws.c2b.drs.region_has_job") == rule
     assert rule["field_binding"]["kind"] == "drs_source_server"
     assert "dataReplicationState" in rule["field_binding"]["path"]
-    assert "STOPPED, STALLED or DISCONNECTED" in " ".join(rule["steps"])
+    assert "STOPPED, STALLED or DISCONNECTED" in description_for("aws.c2b.drs.region_has_job")["description"]
     assert "historical recovery jobs cannot establish" in " ".join(rule["caveats"])
-    assert "NOT_APPLICABLE" in " ".join(rule["steps"])
+    assert "NOT_APPLICABLE" in " ".join(rule["steps"] + rule["caveats"])
     assert "restarts billing" in " ".join(rule["caveats"])
     assert all("start-recovery" not in item["code"] for item in rule["cli"])
     assert "<STOPPED_SOURCE_SERVER_ID>" in rule["cli"][1]["code"]
@@ -466,12 +487,13 @@ def test_c2b_drs_guidance_tracks_current_source_replication_state():
 
 def test_cloud_sql_incoming_public_address_guidance_keeps_outgoing_and_unknown_separate():
     rule = template("gcp.ports.sql_private_ip_assignments")
-    prose = " ".join([rule["summary"], *rule["steps"], *rule["caveats"]])
+    prose = _public_guidance_prose("gcp.ports.sql_private_ip_assignments")
     assert "PRIMARY or MIGRATED_1ST_GEN" in prose
-    assert "PRIVATE plus OUTGOING or OUTGOING alone passes" in prose
-    assert "does not establish a private incoming endpoint" in prose
-    assert "Missing, malformed or new ipAddresses[].type values remain UNKNOWN" in prose
-    assert "Private Service Connect and settings.ipConfiguration.privateNetwork are separate" in prose
+    assert "OUTGOING is an outbound source" in prose
+    assert "Do not remove OUTGOING" in prose
+    assert "does not establish private connectivity" in prose
+    assert "Unknown address types remain UNKNOWN" in prose
+    assert "Migrate clients before removing public incoming addresses" in prose
     check = finding("gcp", "gcp.ports.sql_private_ip_assignments", "cloud-sql-prod", "cloud-sql-prod", "projects/project-123")
     command = bind_command(rule["cli"][1]["code"], check)
     assert command == "gcloud sql instances patch cloud-sql-prod --project=project-123 --no-assign-ip"
@@ -552,7 +574,7 @@ def test_template_is_factored_once_and_markdown_is_readable():
     assert list(templates) == ["aws.iam.no_full_admin"]
     row = finding("aws", "aws.iam.no_full_admin", "arn:aws:iam::123456789012:policy/ServicePolicy", "ServicePolicy", "123456789012")
     rendered = "\n".join(_remediation_lines(row, templates))
-    assert "1. Inspect PolicyDocument" in rendered
+    assert "Replace unnecessary full-administrator statements" in rendered
     assert "aws iam list-entities-for-policy" in rendered
     assert "https://docs.aws.amazon.com/" in rendered
     assert "Legacy guidance" in "\n".join(_remediation_lines(row, {}))

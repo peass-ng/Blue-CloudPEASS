@@ -1,0 +1,1195 @@
+[
+  {
+    "id": "aws.a.config.region_recorder_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "recorders": [
+        {
+          "name": "default",
+          "recording": true,
+          "last_status": "Success"
+        }
+      ],
+      "semantics": "Pinned Prowler predicate: recording and lastStatus is not Failure; Pending is distinct from Success"
+    }
+  },
+  {
+    "id": "aws.a.config.region_recorder_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "recorder": "absent",
+      "semantics": "Successfully collected empty regional recorder inventory"
+    }
+  },
+  {
+    "id": "aws.a.config.region_recorder_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.config.region_recorder_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.a.guardduty.region_enabled",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "status": "ENABLED"
+    }
+  },
+  {
+    "id": "aws.a.guardduty.region_enabled",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "detector": "absent",
+      "semantics": "Successfully collected empty regional detector inventory"
+    }
+  },
+  {
+    "id": "aws.a.guardduty.region_enabled",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.a.guardduty.region_enabled",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.backup.report_plan_presence",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "backup_plans": 1,
+      "backup_report_plans": 1
+    }
+  },
+  {
+    "id": "aws.b.backup.report_plan_presence",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "backup_plans": 1,
+      "backup_report_plans": 0
+    }
+  },
+  {
+    "id": "aws.b.backup.report_plan_presence",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.b.backup.report_plan_presence",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.backup_plan.regional_presence",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "inventory": "backup_plan",
+      "observed_configurations": 1,
+      "semantics": "Complete scoped inventory; known empty means required regional service configuration is absent."
+    }
+  },
+  {
+    "id": "aws.b.backup_plan.regional_presence",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "inventory": "backup_plan",
+      "observed_configurations": 0,
+      "semantics": "Complete scoped inventory; known empty means required regional service configuration is absent."
+    }
+  },
+  {
+    "id": "aws.b.backup_plan.regional_presence",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.b.backup_plan.regional_presence",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.backup_vault.regional_presence",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "inventory": "backup_vault",
+      "observed_configurations": 1,
+      "semantics": "Complete scoped inventory; known empty means required regional service configuration is absent."
+    }
+  },
+  {
+    "id": "aws.b.backup_vault.regional_presence",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "inventory": "backup_vault",
+      "observed_configurations": 0,
+      "semantics": "Complete scoped inventory; known empty means required regional service configuration is absent."
+    }
+  },
+  {
+    "id": "aws.b.backup_vault.regional_presence",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.b.backup_vault.regional_presence",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.docdb.seven_day_backups",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "BackupRetentionPeriod",
+      "configured": 7,
+      "minimum": 7,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.docdb.seven_day_backups",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "BackupRetentionPeriod",
+      "configured": 6,
+      "minimum": 7,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.docdb.seven_day_backups",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: BackupRetentionPeriod"
+    }
+  },
+  {
+    "id": "aws.b.docdb.seven_day_backups",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.encryption_type",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "encryption": "DynamoDB-owned default SSE",
+      "semantics": "Successful native table metadata and AWS-documented mandatory encryption default."
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.encryption_type",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "sse_type": "AES256"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.encryption_type",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Table.Table"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.encryption_type",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.kms_description",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "sse_description": {
+        "SSEType": "KMS"
+      },
+      "semantics": "Exact source description-presence control; DynamoDB-owned default encryption remains a separate passing security baseline."
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.kms_description",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "sse_description": null,
+      "semantics": "Exact source description-presence control; DynamoDB-owned default encryption remains a separate passing security baseline."
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.kms_description",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Table.Table"
+    }
+  },
+  {
+    "id": "aws.b.dynamodb.kms_description",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.eks.audit_log_category",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "audit_logging": true,
+      "configured_categories": [
+        {
+          "enabled": true,
+          "types": [
+            "audit"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.b.eks.audit_log_category",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "audit_logging": false,
+      "configured_categories": [
+        {
+          "enabled": false,
+          "types": [
+            "audit"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "aws.b.eks.audit_log_category",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Cluster.cluster.logging.clusterLogging"
+    }
+  },
+  {
+    "id": "aws.b.eks.audit_log_category",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.eks.disable_public_endpoint",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "Cluster.cluster.resourcesVpcConfig.endpointPublicAccess",
+      "configured": false,
+      "official_reference": "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html"
+    }
+  },
+  {
+    "id": "aws.b.eks.disable_public_endpoint",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "endpoint_public_access": true,
+      "public_access_cidrs": [
+        "0.0.0.0/0"
+      ],
+      "internet_wide_cidrs": [
+        "0.0.0.0/0"
+      ],
+      "semantics": "Public endpoint restricted to authorized CIDRs passes; Kubernetes authentication still applies.",
+      "official_reference": "https://docs.aws.amazon.com/eks/latest/APIReference/API_Cluster.html"
+    }
+  },
+  {
+    "id": "aws.b.eks.disable_public_endpoint",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Cluster.cluster.resourcesVpcConfig"
+    }
+  },
+  {
+    "id": "aws.b.eks.disable_public_endpoint",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.eks.no_default_vpc",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "vpc_id": "vpc-private",
+      "is_default": false
+    }
+  },
+  {
+    "id": "aws.b.eks.no_default_vpc",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "vpc_id": "vpc-default",
+      "is_default": true
+    }
+  },
+  {
+    "id": "aws.b.eks.no_default_vpc",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Cluster.cluster.resourcesVpcConfig.vpcId"
+    }
+  },
+  {
+    "id": "aws.b.eks.no_default_vpc",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.ec2_organization_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "ec2",
+      "auto_enable": true,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.ec2_organization_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "ec2",
+      "auto_enable": false,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.ec2_organization_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.b.inspector.ec2_organization_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.ecr_organization_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "ecr",
+      "auto_enable": true,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.ecr_organization_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "ecr",
+      "auto_enable": false,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.ecr_organization_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.b.inspector.ecr_organization_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_code_organization_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "lambda_code",
+      "auto_enable": true,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_code_organization_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "lambda_code",
+      "auto_enable": false,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_code_organization_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_code_organization_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_organization_auto_enable",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "lambda",
+      "auto_enable": true,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_organization_auto_enable",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "scope": "111111111111/us-east-1",
+      "auto_enable_service": "lambda",
+      "auto_enable": false,
+      "semantics": "Organization auto-enable configuration, not a claim that existing account resources were scanned."
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_organization_auto_enable",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: scope"
+    }
+  },
+  {
+    "id": "aws.b.inspector.lambda_organization_auto_enable",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.lambda.insights_layer",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "matching_layer_arns": [
+        "arn:aws:lambda:us-east-1:111111111111:layer:LambdaInsightsExtension:1"
+      ],
+      "semantics": "Layer declaration only; invocation/log delivery was not inspected."
+    }
+  },
+  {
+    "id": "aws.b.lambda.insights_layer",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "matching_layer_arns": [],
+      "semantics": "Layer declaration only; invocation/log delivery was not inspected."
+    }
+  },
+  {
+    "id": "aws.b.lambda.insights_layer",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration"
+    }
+  },
+  {
+    "id": "aws.b.lambda.insights_layer",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.lambda.reserved_concurrency",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "reserved_concurrency": 0,
+      "semantics": "Zero is a configured reservation; this control does not claim the workload remains invokable."
+    }
+  },
+  {
+    "id": "aws.b.lambda.reserved_concurrency",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "reserved_concurrency": "not_configured",
+      "semantics": "Successful GetFunctionConcurrency response lacks a reservation."
+    }
+  },
+  {
+    "id": "aws.b.lambda.reserved_concurrency",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Concurrency"
+    }
+  },
+  {
+    "id": "aws.b.lambda.reserved_concurrency",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.lambda.url_cors_single_wildcard",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "allow_origins": [
+        "https://app.example.test"
+      ],
+      "semantics": "Exact pinned source equality predicate; mixed wildcard lists require separate broader policy review."
+    }
+  },
+  {
+    "id": "aws.b.lambda.url_cors_single_wildcard",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "allow_origins": [
+        "*"
+      ],
+      "semantics": "Exact pinned source equality predicate; mixed wildcard lists require separate broader policy review."
+    }
+  },
+  {
+    "id": "aws.b.lambda.url_cors_single_wildcard",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: FunctionUrl"
+    }
+  },
+  {
+    "id": "aws.b.lambda.url_cors_single_wildcard",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.neptune.backup_retention_seven_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "BackupRetentionPeriod",
+      "configured": 7,
+      "minimum": 7,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune.backup_retention_seven_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "BackupRetentionPeriod",
+      "configured": 6,
+      "minimum": 7,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.neptune.backup_retention_seven_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: BackupRetentionPeriod"
+    }
+  },
+  {
+    "id": "aws.b.neptune.backup_retention_seven_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.backup_retention_seven_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "BackupRetentionPeriod",
+      "configured": 7,
+      "minimum": 7,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds.backup_retention_seven_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "BackupRetentionPeriod",
+      "configured": 6,
+      "minimum": 7,
+      "official_reference": "https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DBInstance.html"
+    }
+  },
+  {
+    "id": "aws.b.rds.backup_retention_seven_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: BackupRetentionPeriod"
+    }
+  },
+  {
+    "id": "aws.b.rds.backup_retention_seven_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_event_categories",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "source_type": "db-cluster",
+      "enabled": true,
+      "required": [
+        "failure",
+        "maintenance"
+      ],
+      "present": [
+        "failure",
+        "maintenance"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_event_categories",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "source_type": "db-cluster",
+      "enabled": false,
+      "required": [
+        "failure",
+        "maintenance"
+      ],
+      "present": [
+        "failure",
+        "maintenance"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_event_categories",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SourceType"
+    }
+  },
+  {
+    "id": "aws.b.rds.cluster_event_categories",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.engine_log_exports",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "engine": "postgres",
+      "exported_categories": [
+        "postgresql",
+        "upgrade"
+      ],
+      "required_categories": [
+        "postgresql",
+        "upgrade"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.engine_log_exports",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "engine": "postgres",
+      "exported_categories": [
+        "postgresql"
+      ],
+      "required_categories": [
+        "postgresql",
+        "upgrade"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.engine_log_exports",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Engine"
+    }
+  },
+  {
+    "id": "aws.b.rds.engine_log_exports",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.instance_event_categories",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "source_type": "db-instance",
+      "enabled": true,
+      "required": [
+        "failure",
+        "maintenance",
+        "configuration change"
+      ],
+      "present": [
+        "failure",
+        "maintenance",
+        "configuration change"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.instance_event_categories",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "source_type": "db-instance",
+      "enabled": false,
+      "required": [
+        "failure",
+        "maintenance",
+        "configuration change"
+      ],
+      "present": [
+        "failure",
+        "maintenance",
+        "configuration change"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.instance_event_categories",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SourceType"
+    }
+  },
+  {
+    "id": "aws.b.rds.instance_event_categories",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.parameter_group_event_categories",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "source_type": "db-parameter-group",
+      "enabled": true,
+      "required": [
+        "configuration change"
+      ],
+      "present": [
+        "configuration change"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.parameter_group_event_categories",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "source_type": "db-parameter-group",
+      "enabled": false,
+      "required": [
+        "configuration change"
+      ],
+      "present": [
+        "configuration change"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.parameter_group_event_categories",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SourceType"
+    }
+  },
+  {
+    "id": "aws.b.rds.parameter_group_event_categories",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds.security_group_event_categories",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "source_type": "db-security-group",
+      "enabled": true,
+      "required": [
+        "configuration change",
+        "failure"
+      ],
+      "present": [
+        "configuration change",
+        "failure"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.security_group_event_categories",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "source_type": "db-security-group",
+      "enabled": false,
+      "required": [
+        "configuration change",
+        "failure"
+      ],
+      "present": [
+        "configuration change",
+        "failure"
+      ]
+    }
+  },
+  {
+    "id": "aws.b.rds.security_group_event_categories",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: SourceType"
+    }
+  },
+  {
+    "id": "aws.b.rds.security_group_event_categories",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.nondefault_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "master_username": "owner_app",
+      "blocked_source_names": [
+        "admin",
+        "postgres"
+      ],
+      "semantics": "Declared username policy, not proof of authentication strength."
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.nondefault_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "master_username": "postgres",
+      "blocked_source_names": [
+        "admin",
+        "postgres"
+      ],
+      "semantics": "Declared username policy, not proof of authentication strength."
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.nondefault_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MasterUsername"
+    }
+  },
+  {
+    "id": "aws.b.rds_cluster.nondefault_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.nondefault_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "master_username": "owner_app",
+      "blocked_source_names": [
+        "admin",
+        "postgres"
+      ],
+      "semantics": "Declared username policy, not proof of authentication strength."
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.nondefault_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "master_username": "postgres",
+      "blocked_source_names": [
+        "admin",
+        "postgres"
+      ],
+      "semantics": "Declared username policy, not proof of authentication strength."
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.nondefault_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: MasterUsername"
+    }
+  },
+  {
+    "id": "aws.b.rds_instance.nondefault_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.redshift.snapshots_seven_days",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "field": "AutomatedSnapshotRetentionPeriod",
+      "configured": 7,
+      "minimum": 7,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.snapshots_seven_days",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "field": "AutomatedSnapshotRetentionPeriod",
+      "configured": 6,
+      "minimum": 7,
+      "official_reference": null
+    }
+  },
+  {
+    "id": "aws.b.redshift.snapshots_seven_days",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AutomatedSnapshotRetentionPeriod"
+    }
+  },
+  {
+    "id": "aws.b.redshift.snapshots_seven_days",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.b.ssm.document_not_public",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "shared_accounts": [
+        "111111111111"
+      ],
+      "semantics": "Sharing metadata only; document content and server execution are not requested."
+    }
+  },
+  {
+    "id": "aws.b.ssm.document_not_public",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "shared_accounts": [
+        "all"
+      ],
+      "semantics": "Sharing metadata only; document content and server execution are not requested."
+    }
+  },
+  {
+    "id": "aws.b.ssm.document_not_public",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Owner"
+    }
+  },
+  {
+    "id": "aws.b.ssm.document_not_public",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.gap.account.distinct_primary_billing_operations_security_contacts",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "contacts": 4
+    }
+  },
+  {
+    "id": "aws.gap.account.distinct_primary_billing_operations_security_contacts",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "failures": [
+        "contacts share a phone"
+      ]
+    }
+  },
+  {
+    "id": "aws.gap.account.distinct_primary_billing_operations_security_contacts",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Partition"
+    }
+  },
+  {
+    "id": "aws.gap.account.distinct_primary_billing_operations_security_contacts",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

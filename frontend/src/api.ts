@@ -87,15 +87,19 @@ export async function request<T>(
   if (isDownloadEnvelope(data)) {
     const artifact = await fetchArtifact(data.download_url);
     const downloaded: unknown = await artifact.json();
-    if (
-      data.remediation_details &&
-      typeof data.remediation_details === "object" &&
-      !Array.isArray(data.remediation_details) &&
-      downloaded &&
-      typeof downloaded === "object" &&
-      !Array.isArray(downloaded)
-    ) {
-      return { ...downloaded, remediation_details: data.remediation_details } as T;
+    if (downloaded && typeof downloaded === "object" && !Array.isArray(downloaded)) {
+      const refreshed: Record<string, unknown> = {};
+      // The authenticated response may refresh presentation around an immutable artifact.
+      // Never merge identities, criteria, evidence, verdict or severity from this envelope.
+      if (data.remediation_details && typeof data.remediation_details === "object" && !Array.isArray(data.remediation_details))
+        refreshed.remediation_details = data.remediation_details;
+      const presentation = data.finding_presentation;
+      if (presentation && typeof presentation === "object" && !Array.isArray(presentation)) {
+        const fields = presentation as Record<string, unknown>;
+        for (const key of ["description", "rationale", "remediation", "remediation_details", "evidence_summary", "guidance_refresh"] as const)
+          if (Object.prototype.hasOwnProperty.call(fields, key)) refreshed[key] = fields[key];
+      }
+      return { ...downloaded, ...refreshed } as T;
     }
     return downloaded as T;
   }
@@ -171,6 +175,7 @@ type DownloadEnvelope = {
   expires_in?: number;
   format?: string;
   remediation_details?: unknown;
+  finding_presentation?: unknown;
 };
 function isDownloadEnvelope(value: unknown): value is DownloadEnvelope {
   return (

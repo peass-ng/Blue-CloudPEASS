@@ -11,7 +11,10 @@ import type { Catalog, Finding, Report } from "./types";
 import { Badge, Evidence, Inspector, Panel, State } from "./ui";
 import { catalogFrameworksPath, items, request, useApi } from "./api";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { explainFindingEvidence, explainInternetExposure } from "./findingExplanation";
+import { explainExposureAction, explainFindingEvidence, explainInternetExposure } from "./findingExplanation";
+import { explainAzureFindingEvidence } from "./azureFindingEvidence";
+import { explainGcpFindingEvidence } from "./gcpFindingEvidence";
+import { explainExposureCheck } from "./exposureCheckExplanation";
 import { Remediation } from "./Remediation";
 import "./FindingInspector.css";
 type FindingPage = {
@@ -646,6 +649,15 @@ export function Findings({
     </>
   );
 }
+// Keep the full evidence export intact; the preview omits absent collector fields.
+function evidencePreview(value: unknown): unknown {
+  if (value == null || value === "Not supplied") return undefined;
+  if (Array.isArray(value)) return value.map(evidencePreview).filter((item) => item !== undefined);
+  if (typeof value === "object") return Object.fromEntries(Object.entries(value)
+    .map(([key, item]) => [key, evidencePreview(item)] as const)
+    .filter(([, item]) => item !== undefined));
+  return value;
+}
 function FindingInspector({
   finding,
   scanId,
@@ -666,23 +678,38 @@ function FindingInspector({
   );
   const observed = detail.data || finding;
   const internetExposure = observed.check_id === "analysis.internet_exposure";
-  const exposure = internetExposure ? explainInternetExposure(observed.evidence, observed.status) : undefined;
-  const evidenceSummary = internetExposure ? exposure?.summary
-    : explainFindingEvidence(observed.evidence, observed.status).replace(/^Observed evidence:\s*/i, "");
+  const allowCurrentSummary = observed.guidance_refresh?.allow_summary !== false;
+  const exposure = internetExposure && allowCurrentSummary ? explainInternetExposure(observed.evidence, observed.status) : undefined;
+  const evidenceSummary = !allowCurrentSummary
+    ? observed.evidence_summary || `Recorded result: ${observed.status}. Review the original technical evidence below.`
+    : observed.evidence_summary || (internetExposure ? exposure?.summary : undefined)
+      || explainAzureFindingEvidence(observed.check_id, observed.evidence, observed.status)
+      || explainGcpFindingEvidence(observed.check_id, observed.evidence, observed.status)
+      || explainFindingEvidence(observed.evidence, observed.status, observed.check_id).replace(/^Observed evidence:\s*/i, "");
+  const exposureAction = internetExposure && allowCurrentSummary ? explainExposureAction(observed.evidence, observed.status) : undefined;
+  const remediationDetails = exposureAction && observed.remediation_details
+    ? { ...observed.remediation_details, summary: exposureAction, steps: [exposureAction] }
+    : observed.remediation_details;
   const asset = assetLabel(observed);
   const scopeAsset = asset === observed.scope || asset === `scope:${observed.scope}`;
+  const technicalEvidence = evidencePreview(observed.evidence);
+  const hasTechnicalEvidence = technicalEvidence !== undefined &&
+    (typeof technicalEvidence !== "object" || Object.keys(technicalEvidence as object).length > 0);
   const definition = <>
-    <h3>What this check evaluates</h3>
-    <p>{observed.description}</p>
-    {Array.isArray(observed.evaluated) && observed.evaluated.length > 0 && <>
-      <h4>Fields read</h4>
-      <ul>{observed.evaluated.map((field, index) => <li key={`${field}-${index}`}>{field}</li>)}</ul>
-    </>}
-    <dl>
-      {observed.pass_when && <><dt>Pass</dt><dd>{observed.pass_when}</dd></>}
-      {observed.fail_when && <><dt>Fail</dt><dd>{observed.fail_when}</dd></>}
-      {observed.not_applicable_when && <><dt>Not applicable</dt><dd>{observed.not_applicable_when}</dd></>}
-    </dl>
+    <p>{internetExposure && allowCurrentSummary ? explainExposureCheck(observed.evidence) : observed.description}</p>
+    {(observed.evaluated?.length || observed.pass_when || observed.fail_when || observed.not_applicable_when || observed.remediation_details?.caveats?.length) ? <details className="finding-evaluation-details">
+      <summary>Evaluation details</summary>
+      {Array.isArray(observed.evaluated) && observed.evaluated.length > 0 && <>
+        <h4>Fields read</h4>
+        <ul>{observed.evaluated.map((field, index) => <li key={`${field}-${index}`}>{field}</li>)}</ul>
+      </>}
+      <dl>
+        {observed.pass_when && <><dt>Pass</dt><dd>{observed.pass_when}</dd></>}
+        {observed.fail_when && <><dt>Fail</dt><dd>{observed.fail_when}</dd></>}
+        {observed.not_applicable_when && <><dt>Not applicable</dt><dd>{observed.not_applicable_when}</dd></>}
+      </dl>
+      {observed.remediation_details?.caveats?.length ? <><h4>Limitations</h4><ul>{observed.remediation_details.caveats.map((caveat, index) => <li key={index}>{caveat}</li>)}</ul></> : null}
+    </details> : null}
   </>;
   return (
     <Inspector title="Finding details" className="finding-inspector" onClose={onClose}>
@@ -702,20 +729,21 @@ function FindingInspector({
           <section className="finding-detail-section finding-detail-observation">
             <h3>Observed evidence</h3>
             <p>{evidenceSummary}</p>
-            {internetExposure && !!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+            {!allowCurrentSummary && observed.guidance_refresh?.message && <p className="muted">{observed.guidance_refresh.message}</p>}
+            {internetExposure && observed.status === "UNKNOWN" && !!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
           </section>
           <section className="finding-detail-section">
             <h3>What to do</h3>
-            <Remediation legacy={observed.remediation} details={observed.remediation_details} compact />
+            <Remediation legacy={exposureAction || observed.remediation} details={remediationDetails} compact />
           </section>
           <div className="finding-detail-extras">
-            {observed.description && <details>
+            {(internetExposure || observed.description || observed.evaluated?.length || observed.pass_when || observed.fail_when || observed.not_applicable_when || observed.remediation_details?.caveats?.length) ? <details>
               <summary>How this check works</summary>
               <div className="finding-detail-extra-body">{definition}</div>
-            </details>}
-            {observed.evidence != null && <details>
+            </details> : null}
+            {hasTechnicalEvidence && <details>
               <summary>Technical evidence details</summary>
-              <div className="finding-detail-extra-body"><Evidence data={observed.evidence} /></div>
+              <div className="finding-detail-extra-body"><Evidence data={observed.evidence} previewData={technicalEvidence} /></div>
             </details>}
             <details>
               <summary>Identifiers &amp; frameworks</summary>

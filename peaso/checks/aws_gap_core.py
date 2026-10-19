@@ -191,7 +191,7 @@ def bedrock_coverage(trail):
 
 def _trail_scan(trails, accept):
     """PASS when a trail satisfies ``accept``; UNKNOWN when a candidate could not be evaluated; else FAIL."""
-    unknown_reasons = []
+    unknown_reasons, evaluated = [], []
     for trail in trails:
         try:
             verdict = accept(trail)
@@ -200,11 +200,14 @@ def _trail_scan(trails, accept):
             continue
         if verdict is True:
             return result(False, trail=trail.get("TrailARN") or trail.get("Name"))
+        evaluated.append({"trail": trail.get("TrailARN") or trail.get("Name"),
+                          "matches_required_configuration": verdict})
         if verdict is None:
             unknown_reasons.append("trail logging status unavailable")
     if unknown_reasons:
         raise Unavailable("; ".join(sorted(set(unknown_reasons))))
-    return result(True, trails_considered=len(trails))
+    return result(True, trails_considered=len(trails), trail_evaluations=evaluated,
+                  observed="No evaluated trail satisfies this check's logging and event-selector requirements.")
 
 
 def _logging_and(trail, predicate):

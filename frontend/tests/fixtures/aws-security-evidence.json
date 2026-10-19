@@ -1,0 +1,1015 @@
+[
+  {
+    "id": "aws.claude_a.guardduty.detector_no_findings",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "active_severity_8_findings": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.detector_no_findings",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "active_severity_8_findings": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.detector_no_findings",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.detector_no_findings",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "feature": "EBS_MALWARE_PROTECTION",
+      "configuration": null,
+      "enabled": true,
+      "feature_enabled": true,
+      "detector_enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "feature": "EBS_MALWARE_PROTECTION",
+      "configuration": null,
+      "enabled": false,
+      "feature_enabled": false,
+      "detector_enabled": null
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Features"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ebs_malware_protection_feature",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ec2_runtime_agent_management",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "feature": "RUNTIME_MONITORING",
+      "configuration": "EC2_AGENT_MANAGEMENT",
+      "enabled": true,
+      "feature_enabled": true,
+      "detector_enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ec2_runtime_agent_management",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "feature": "RUNTIME_MONITORING",
+      "configuration": "EC2_AGENT_MANAGEMENT",
+      "enabled": false,
+      "feature_enabled": false,
+      "detector_enabled": null
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ec2_runtime_agent_management",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Features"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ec2_runtime_agent_management",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ecs_runtime_agent_management",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "feature": "RUNTIME_MONITORING",
+      "configuration": "ECS_FARGATE_AGENT_MANAGEMENT",
+      "enabled": true,
+      "feature_enabled": true,
+      "detector_enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ecs_runtime_agent_management",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "feature": "RUNTIME_MONITORING",
+      "configuration": "ECS_FARGATE_AGENT_MANAGEMENT",
+      "enabled": false,
+      "feature_enabled": false,
+      "detector_enabled": null
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ecs_runtime_agent_management",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Features"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.ecs_runtime_agent_management",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.eks_runtime_monitoring_feature",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "feature": "EKS_RUNTIME_MONITORING",
+      "configuration": null,
+      "enabled": true,
+      "feature_enabled": true,
+      "detector_enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.eks_runtime_monitoring_feature",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "feature": "EKS_RUNTIME_MONITORING",
+      "configuration": null,
+      "enabled": false,
+      "feature_enabled": false,
+      "detector_enabled": null
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.eks_runtime_monitoring_feature",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Features"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.eks_runtime_monitoring_feature",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.finding_archived",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "archived": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.finding_archived",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "archived": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.finding_archived",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Service.Archived"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.finding_archived",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ai_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "ai_protection": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ai_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "ai_protection": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ai_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ai_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_centrally_managed",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "administrator": true,
+      "members": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_centrally_managed",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "administrator": false,
+      "members": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_centrally_managed",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Administrator"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_centrally_managed",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_delegated_admin_region",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "delegated_admin": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_delegated_admin_region",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "issue": "detector not enabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_delegated_admin_region",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: guardduty_detector"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_delegated_admin_region",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ec2_malware_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ec2_malware_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ec2_malware_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_ec2_malware_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_audit_logs",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_audit_logs",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_audit_logs",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_audit_logs",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_runtime_monitoring",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_runtime_monitoring",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_runtime_monitoring",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_eks_runtime_monitoring",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_lambda_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_lambda_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_lambda_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_lambda_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_no_high_severity_findings",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "findings": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_no_high_severity_findings",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "findings": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_no_high_severity_findings",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: HighSeverityFindingIds"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_no_high_severity_findings",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_rds_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_rds_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_rds_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_rds_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_runtime_monitoring",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "runtime_monitoring": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_runtime_monitoring",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "runtime_monitoring": false,
+      "legacy_eks_runtime": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_runtime_monitoring",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_runtime_monitoring",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_s3_protection",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_s3_protection",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled": false
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_s3_protection",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Configuration.Status"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.prowler_s3_protection",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.region_centrally_configured",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "managed": [
+        true
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.region_centrally_configured",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "managed": [
+        false
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.region_centrally_configured",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "audited region scope unavailable"
+    }
+  },
+  {
+    "id": "aws.claude_a.guardduty.region_centrally_configured",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_enabled_or_pending_deletion",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "enabled": true,
+      "key_state": "Enabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_enabled_or_pending_deletion",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "enabled": false,
+      "key_state": "Disabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_enabled_or_pending_deletion",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata.KeyManager"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_enabled_or_pending_deletion",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_not_pending_deletion",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "key_state": "Disabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_not_pending_deletion",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "key_state": "PendingDeletion"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_not_pending_deletion",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata.KeyManager"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.customer_key_not_pending_deletion",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.key_policy_not_public",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "public_statements": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.key_policy_not_public",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "public_statements": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.key_policy_not_public",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata.KeyManager"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.key_policy_not_public",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_rotation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "rotation_enabled": true
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_rotation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "rotation_enabled": false
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_rotation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata.KeyManager"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_rotation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_single_region",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "multi_region": false
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_single_region",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "multi_region": true
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_single_region",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata.KeyManager"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_single_region",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_used",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "key_state": "Enabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_used",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "key_state": "Disabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_used",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata.KeyManager"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_cmk_used",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_key_not_public",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "public": false
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_key_not_public",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "public": true
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_key_not_public",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Metadata.KeyMetadata.KeyManager"
+    }
+  },
+  {
+    "id": "aws.claude_a.kms.prowler_key_not_public",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.ai_services_opt_out",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "policy": "p-ai",
+      "opt_out_content_match": true
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.ai_services_opt_out",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "policies": 1,
+      "opt_out_content_match": false
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.ai_services_opt_out",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: aws_account_configuration"
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.ai_services_opt_out",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.scp_restricts_regions",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "policy": "p-scp",
+      "approved_regions": [
+        "us-east-1"
+      ],
+      "direct_region_deny_match": true
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.scp_restricts_regions",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "policies": 1,
+      "direct_region_deny_match": false
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.scp_restricts_regions",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: aws_account_configuration"
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.scp_restricts_regions",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.tag_policy_attached",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "attached_tag_policies": [
+        "p-tag"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.tag_policy_attached",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "attached_tag_policies": []
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.tag_policy_attached",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: aws_account_configuration"
+    }
+  },
+  {
+    "id": "aws.claude_a.organizations.tag_policy_attached",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.enabled_with_standard_or_integration",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "hubs": 1,
+      "standard_or_integration_found": true
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.enabled_with_standard_or_integration",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "standards": 0,
+      "integrations": 0,
+      "standard_or_integration_found": false
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.enabled_with_standard_or_integration",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: securityhub_hub"
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.enabled_with_standard_or_integration",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.prowler_delegated_admin_region",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "delegated_admin": true
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.prowler_delegated_admin_region",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "issue": "Security Hub not enabled"
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.prowler_delegated_admin_region",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "dependency not collected: securityhub_hub"
+    }
+  },
+  {
+    "id": "aws.claude_a.securityhub.prowler_delegated_admin_region",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

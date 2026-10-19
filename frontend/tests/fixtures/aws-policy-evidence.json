@@ -1,0 +1,303 @@
+[
+  {
+    "id": "aws.claude_a.iam.prowler_customer_attached_policy_no_admin",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "admin_access": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_customer_attached_policy_no_admin",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "admin_access": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_customer_attached_policy_no_admin",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_customer_attached_policy_no_admin",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_customer_policy_no_privilege_escalation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "escalation_actions": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_customer_policy_no_privilege_escalation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "escalation_actions": [
+        "ec2:RunInstances",
+        "iam:PassRole"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_customer_policy_no_privilege_escalation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_customer_policy_no_privilege_escalation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_inline_no_privilege_escalation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "failing_policies": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_inline_no_privilege_escalation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "failing_policies": [
+        "inline"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_inline_no_privilege_escalation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: GroupName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_group_inline_no_privilege_escalation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_agentcore_token_scoped",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "unscoped_token_operations": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_agentcore_token_scoped",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "unscoped_token_operations": [
+        "GetWorkloadAccessToken",
+        "GetWorkloadAccessTokenForJWT",
+        "GetWorkloadAccessTokenForUserId"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_agentcore_token_scoped",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_agentcore_token_scoped",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_passrole_agentcore_restricted",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "passrole_to_agentcore_on_all_roles": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_passrole_agentcore_restricted",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "passrole_to_agentcore_on_all_roles": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_passrole_agentcore_restricted",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_policy_passrole_agentcore_restricted",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_confused_deputy_prevented",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "confused_deputy_exposed": false
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_confused_deputy_prevented",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "confused_deputy_exposed": true
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_confused_deputy_prevented",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: AssumeRolePolicyDocument"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_confused_deputy_prevented",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_inline_no_privilege_escalation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "failing_policies": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_inline_no_privilege_escalation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "failing_policies": [
+        "inline"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_inline_no_privilege_escalation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: RoleName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_inline_no_privilege_escalation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_service_trust_bound_to_account",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "unscoped_statements": 0
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_service_trust_bound_to_account",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "unscoped_statements": 1
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_service_trust_bound_to_account",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: Arn"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_role_service_trust_bound_to_account",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_inline_no_privilege_escalation",
+    "case": "pass",
+    "status": "PASS",
+    "evidence": {
+      "failing_policies": []
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_inline_no_privilege_escalation",
+    "case": "fail",
+    "status": "FAIL",
+    "evidence": {
+      "failing_policies": [
+        "inline"
+      ]
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_inline_no_privilege_escalation",
+    "case": "missing",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: UserName"
+    }
+  },
+  {
+    "id": "aws.claude_a.iam.prowler_user_inline_no_privilege_escalation",
+    "case": "malformed",
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "native resource is not an object"
+    }
+  }
+]

@@ -1,0 +1,3904 @@
+{
+  "aws.pci.s3.bucket_backup_plan": {
+    "pass": {
+      "Name": "example-bucket"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "metadata": {
+          "sw38_policy": {
+            "status": "collected",
+            "scope": "123456789012/global"
+          }
+        }
+      },
+      "collections": {
+        "bucket": [
+          {
+            "type": "bucket",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Name": "example-bucket"
+              }
+            ]
+          }
+        ],
+        "s3_backup_plan_coverage": [
+          {
+            "type": "s3_backup_plan_coverage",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "AccountId": "123456789012",
+                "AllEnabledRegionsCollected": true,
+                "Selections": [
+                  {
+                    "Region": "us-east-1",
+                    "Active": true,
+                    "ScheduledRules": 1,
+                    "Resources": [
+                      "arn:aws:s3:::example-bucket"
+                    ],
+                    "NotResources": [],
+                    "Conditions": {},
+                    "ListOfTags": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "bucket": [
+        {
+          "type": "bucket",
+          "scope": "123456789012/global",
+          "data": {
+            "Name": "example-bucket"
+          }
+        }
+      ],
+      "s3_backup_plan_coverage": [
+        {
+          "type": "s3_backup_plan_coverage",
+          "scope": "123456789012/global",
+          "data": {
+            "AccountId": "123456789012",
+            "AllEnabledRegionsCollected": true,
+            "Selections": [
+              {
+                "Region": "us-east-1",
+                "Active": true,
+                "ScheduledRules": 1,
+                "Resources": [
+                  "arn:aws:s3:::example-bucket"
+                ],
+                "NotResources": [],
+                "Conditions": {},
+                "ListOfTags": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Name": "example-bucket"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "metadata": {
+          "sw38_policy": {
+            "status": "collected",
+            "scope": "123456789012/global"
+          }
+        }
+      },
+      "collections": {
+        "bucket": [
+          {
+            "type": "bucket",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Name": "example-bucket"
+              }
+            ]
+          }
+        ],
+        "s3_backup_plan_coverage": [
+          {
+            "type": "s3_backup_plan_coverage",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "AccountId": "123456789012",
+                "AllEnabledRegionsCollected": true,
+                "Selections": [
+                  {
+                    "Region": "us-east-1",
+                    "Active": true,
+                    "ScheduledRules": 1,
+                    "Resources": [],
+                    "NotResources": [],
+                    "Conditions": {},
+                    "ListOfTags": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "bucket": [
+        {
+          "type": "bucket",
+          "scope": "123456789012/global",
+          "data": {
+            "Name": "example-bucket"
+          }
+        }
+      ],
+      "s3_backup_plan_coverage": [
+        {
+          "type": "s3_backup_plan_coverage",
+          "scope": "123456789012/global",
+          "data": {
+            "AccountId": "123456789012",
+            "AllEnabledRegionsCollected": true,
+            "Selections": [
+              {
+                "Region": "us-east-1",
+                "Active": true,
+                "ScheduledRules": 1,
+                "Resources": [],
+                "NotResources": [],
+                "Conditions": {},
+                "ListOfTags": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aws_cis_s3_macie_classification_coverage": {
+    "pass": {
+      "Name": "example-bucket",
+      "Location": {
+        "collection_status": "collected",
+        "LocationConstraint": "us-east-1"
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "metadata": {
+          "sw38_policy": {
+            "status": "collected",
+            "scope": "123456789012/global"
+          }
+        }
+      },
+      "collections": {
+        "bucket": [
+          {
+            "type": "bucket",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Name": "example-bucket",
+                "Location": {
+                  "collection_status": "collected",
+                  "LocationConstraint": "us-east-1"
+                }
+              }
+            ]
+          }
+        ],
+        "s3_macie_region_coverage": [
+          {
+            "type": "s3_macie_region_coverage",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "AccountId": "123456789012",
+                "AllEnabledRegionsCollected": true,
+                "Regions": [
+                  {
+                    "Region": "us-east-1",
+                    "Session": {
+                      "status": "ENABLED"
+                    },
+                    "AutomatedDiscovery": {
+                      "status": "ENABLED"
+                    },
+                    "Jobs": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "bucket": [
+        {
+          "type": "bucket",
+          "scope": "123456789012/global",
+          "data": {
+            "Name": "example-bucket",
+            "Location": {
+              "collection_status": "collected",
+              "LocationConstraint": "us-east-1"
+            }
+          }
+        }
+      ],
+      "s3_macie_region_coverage": [
+        {
+          "type": "s3_macie_region_coverage",
+          "scope": "123456789012/global",
+          "data": {
+            "AccountId": "123456789012",
+            "AllEnabledRegionsCollected": true,
+            "Regions": [
+              {
+                "Region": "us-east-1",
+                "Session": {
+                  "status": "ENABLED"
+                },
+                "AutomatedDiscovery": {
+                  "status": "ENABLED"
+                },
+                "Jobs": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "Name": "example-bucket",
+      "Location": {
+        "collection_status": "collected",
+        "LocationConstraint": "us-east-1"
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/global",
+        "metadata": {
+          "sw38_policy": {
+            "status": "collected",
+            "scope": "123456789012/global"
+          }
+        }
+      },
+      "collections": {
+        "bucket": [
+          {
+            "type": "bucket",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Name": "example-bucket",
+                "Location": {
+                  "collection_status": "collected",
+                  "LocationConstraint": "us-east-1"
+                }
+              }
+            ]
+          }
+        ],
+        "s3_macie_region_coverage": [
+          {
+            "type": "s3_macie_region_coverage",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "AccountId": "123456789012",
+                "AllEnabledRegionsCollected": true,
+                "Regions": [
+                  {
+                    "Region": "us-east-1",
+                    "Session": {
+                      "status": "ENABLED"
+                    },
+                    "AutomatedDiscovery": {
+                      "status": "DISABLED"
+                    },
+                    "Jobs": {
+                      "collection_status": "empty",
+                      "items": []
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "bucket": [
+        {
+          "type": "bucket",
+          "scope": "123456789012/global",
+          "data": {
+            "Name": "example-bucket",
+            "Location": {
+              "collection_status": "collected",
+              "LocationConstraint": "us-east-1"
+            }
+          }
+        }
+      ],
+      "s3_macie_region_coverage": [
+        {
+          "type": "s3_macie_region_coverage",
+          "scope": "123456789012/global",
+          "data": {
+            "AccountId": "123456789012",
+            "AllEnabledRegionsCollected": true,
+            "Regions": [
+              {
+                "Region": "us-east-1",
+                "Session": {
+                  "status": "ENABLED"
+                },
+                "AutomatedDiscovery": {
+                  "status": "DISABLED"
+                },
+                "Jobs": {
+                  "collection_status": "empty",
+                  "items": []
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aws_cis_beanstalk_persistent_logs_s3": {
+    "pass": {
+      "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+      "EnvironmentName": "prod",
+      "Status": "Ready",
+      "Configuration": {
+        "collection_status": "collected",
+        "hostmanager_options_complete": true,
+        "ConfigurationSettings": [
+          {
+            "EnvironmentName": "prod",
+            "OptionSettings": [
+              {
+                "Namespace": "aws:elasticbeanstalk:hostmanager",
+                "OptionName": "LogPublicationControl",
+                "Value": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "S3LogDestination": {
+        "collection_status": "collected",
+        "bucket": "logs",
+        "prefix": "env/",
+        "resolved": true
+      },
+      "EnvironmentResources": {
+        "collection_status": "collected",
+        "LoadBalancers": [
+          {
+            "Name": "lb"
+          }
+        ]
+      },
+      "AssociatedLoadBalancers": [
+        {
+          "Name": "lb",
+          "Type": "application",
+          "Listeners": [
+            {
+              "Protocol": "HTTPS",
+              "Certificates": [
+                {
+                  "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                }
+              ],
+              "DefaultActions": []
+            },
+            {
+              "Protocol": "HTTP",
+              "Certificates": [],
+              "DefaultActions": [
+                {
+                  "Type": "redirect",
+                  "RedirectConfig": {
+                    "Protocol": "HTTPS"
+                  }
+                }
+              ]
+            }
+          ],
+          "Attributes": [
+            {
+              "Key": "access_logs.s3.enabled",
+              "Value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "enabled_regions": [
+            "us-east-1"
+          ],
+          "compliance_policy": {}
+        }
+      },
+      "collections": {
+        "elastic_beanstalk_environment": [
+          {
+            "type": "elastic_beanstalk_environment",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+                "EnvironmentName": "prod",
+                "Status": "Ready",
+                "Configuration": {
+                  "collection_status": "collected",
+                  "hostmanager_options_complete": true,
+                  "ConfigurationSettings": [
+                    {
+                      "EnvironmentName": "prod",
+                      "OptionSettings": [
+                        {
+                          "Namespace": "aws:elasticbeanstalk:hostmanager",
+                          "OptionName": "LogPublicationControl",
+                          "Value": "true"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "S3LogDestination": {
+                  "collection_status": "collected",
+                  "bucket": "logs",
+                  "prefix": "env/",
+                  "resolved": true
+                },
+                "EnvironmentResources": {
+                  "collection_status": "collected",
+                  "LoadBalancers": [
+                    {
+                      "Name": "lb"
+                    }
+                  ]
+                },
+                "AssociatedLoadBalancers": [
+                  {
+                    "Name": "lb",
+                    "Type": "application",
+                    "Listeners": [
+                      {
+                        "Protocol": "HTTPS",
+                        "Certificates": [
+                          {
+                            "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                          }
+                        ],
+                        "DefaultActions": []
+                      },
+                      {
+                        "Protocol": "HTTP",
+                        "Certificates": [],
+                        "DefaultActions": [
+                          {
+                            "Type": "redirect",
+                            "RedirectConfig": {
+                              "Protocol": "HTTPS"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "Attributes": [
+                      {
+                        "Key": "access_logs.s3.enabled",
+                        "Value": "true"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "account_id": "123456789012"
+          }
+        ]
+      },
+      "elastic_beanstalk_environment": [
+        {
+          "type": "elastic_beanstalk_environment",
+          "scope": "123456789012/us-east-1",
+          "account_id": "123456789012",
+          "data": {
+            "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+            "EnvironmentName": "prod",
+            "Status": "Ready",
+            "Configuration": {
+              "collection_status": "collected",
+              "hostmanager_options_complete": true,
+              "ConfigurationSettings": [
+                {
+                  "EnvironmentName": "prod",
+                  "OptionSettings": [
+                    {
+                      "Namespace": "aws:elasticbeanstalk:hostmanager",
+                      "OptionName": "LogPublicationControl",
+                      "Value": "true"
+                    }
+                  ]
+                }
+              ]
+            },
+            "S3LogDestination": {
+              "collection_status": "collected",
+              "bucket": "logs",
+              "prefix": "env/",
+              "resolved": true
+            },
+            "EnvironmentResources": {
+              "collection_status": "collected",
+              "LoadBalancers": [
+                {
+                  "Name": "lb"
+                }
+              ]
+            },
+            "AssociatedLoadBalancers": [
+              {
+                "Name": "lb",
+                "Type": "application",
+                "Listeners": [
+                  {
+                    "Protocol": "HTTPS",
+                    "Certificates": [
+                      {
+                        "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                      }
+                    ],
+                    "DefaultActions": []
+                  },
+                  {
+                    "Protocol": "HTTP",
+                    "Certificates": [],
+                    "DefaultActions": [
+                      {
+                        "Type": "redirect",
+                        "RedirectConfig": {
+                          "Protocol": "HTTPS"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "Attributes": [
+                  {
+                    "Key": "access_logs.s3.enabled",
+                    "Value": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+      "EnvironmentName": "prod",
+      "Status": "Ready",
+      "Configuration": {
+        "collection_status": "collected",
+        "hostmanager_options_complete": true,
+        "ConfigurationSettings": [
+          {
+            "EnvironmentName": "prod",
+            "OptionSettings": [
+              {
+                "Namespace": "aws:elasticbeanstalk:hostmanager",
+                "OptionName": "LogPublicationControl",
+                "Value": "false"
+              }
+            ]
+          }
+        ]
+      },
+      "S3LogDestination": {
+        "collection_status": "collected",
+        "bucket": "logs",
+        "prefix": "env/",
+        "resolved": true
+      },
+      "EnvironmentResources": {
+        "collection_status": "collected",
+        "LoadBalancers": [
+          {
+            "Name": "lb"
+          }
+        ]
+      },
+      "AssociatedLoadBalancers": [
+        {
+          "Name": "lb",
+          "Type": "application",
+          "Listeners": [
+            {
+              "Protocol": "HTTPS",
+              "Certificates": [
+                {
+                  "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                }
+              ],
+              "DefaultActions": []
+            },
+            {
+              "Protocol": "HTTP",
+              "Certificates": [],
+              "DefaultActions": [
+                {
+                  "Type": "redirect",
+                  "RedirectConfig": {
+                    "Protocol": "HTTPS"
+                  }
+                }
+              ]
+            }
+          ],
+          "Attributes": [
+            {
+              "Key": "access_logs.s3.enabled",
+              "Value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "enabled_regions": [
+            "us-east-1"
+          ],
+          "compliance_policy": {}
+        }
+      },
+      "collections": {
+        "elastic_beanstalk_environment": [
+          {
+            "type": "elastic_beanstalk_environment",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+                "EnvironmentName": "prod",
+                "Status": "Ready",
+                "Configuration": {
+                  "collection_status": "collected",
+                  "hostmanager_options_complete": true,
+                  "ConfigurationSettings": [
+                    {
+                      "EnvironmentName": "prod",
+                      "OptionSettings": [
+                        {
+                          "Namespace": "aws:elasticbeanstalk:hostmanager",
+                          "OptionName": "LogPublicationControl",
+                          "Value": "false"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "S3LogDestination": {
+                  "collection_status": "collected",
+                  "bucket": "logs",
+                  "prefix": "env/",
+                  "resolved": true
+                },
+                "EnvironmentResources": {
+                  "collection_status": "collected",
+                  "LoadBalancers": [
+                    {
+                      "Name": "lb"
+                    }
+                  ]
+                },
+                "AssociatedLoadBalancers": [
+                  {
+                    "Name": "lb",
+                    "Type": "application",
+                    "Listeners": [
+                      {
+                        "Protocol": "HTTPS",
+                        "Certificates": [
+                          {
+                            "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                          }
+                        ],
+                        "DefaultActions": []
+                      },
+                      {
+                        "Protocol": "HTTP",
+                        "Certificates": [],
+                        "DefaultActions": [
+                          {
+                            "Type": "redirect",
+                            "RedirectConfig": {
+                              "Protocol": "HTTPS"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "Attributes": [
+                      {
+                        "Key": "access_logs.s3.enabled",
+                        "Value": "true"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "account_id": "123456789012"
+          }
+        ]
+      },
+      "elastic_beanstalk_environment": [
+        {
+          "type": "elastic_beanstalk_environment",
+          "scope": "123456789012/us-east-1",
+          "account_id": "123456789012",
+          "data": {
+            "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+            "EnvironmentName": "prod",
+            "Status": "Ready",
+            "Configuration": {
+              "collection_status": "collected",
+              "hostmanager_options_complete": true,
+              "ConfigurationSettings": [
+                {
+                  "EnvironmentName": "prod",
+                  "OptionSettings": [
+                    {
+                      "Namespace": "aws:elasticbeanstalk:hostmanager",
+                      "OptionName": "LogPublicationControl",
+                      "Value": "false"
+                    }
+                  ]
+                }
+              ]
+            },
+            "S3LogDestination": {
+              "collection_status": "collected",
+              "bucket": "logs",
+              "prefix": "env/",
+              "resolved": true
+            },
+            "EnvironmentResources": {
+              "collection_status": "collected",
+              "LoadBalancers": [
+                {
+                  "Name": "lb"
+                }
+              ]
+            },
+            "AssociatedLoadBalancers": [
+              {
+                "Name": "lb",
+                "Type": "application",
+                "Listeners": [
+                  {
+                    "Protocol": "HTTPS",
+                    "Certificates": [
+                      {
+                        "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                      }
+                    ],
+                    "DefaultActions": []
+                  },
+                  {
+                    "Protocol": "HTTP",
+                    "Certificates": [],
+                    "DefaultActions": [
+                      {
+                        "Type": "redirect",
+                        "RedirectConfig": {
+                          "Protocol": "HTTPS"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "Attributes": [
+                  {
+                    "Key": "access_logs.s3.enabled",
+                    "Value": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aws_cis_elasticbeanstalk_https_listener": {
+    "pass": {
+      "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+      "EnvironmentName": "prod",
+      "Status": "Ready",
+      "Configuration": {
+        "collection_status": "collected",
+        "hostmanager_options_complete": true,
+        "ConfigurationSettings": [
+          {
+            "EnvironmentName": "prod",
+            "OptionSettings": [
+              {
+                "Namespace": "aws:elasticbeanstalk:hostmanager",
+                "OptionName": "LogPublicationControl",
+                "Value": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "S3LogDestination": {
+        "collection_status": "collected",
+        "bucket": "logs",
+        "prefix": "env/",
+        "resolved": true
+      },
+      "EnvironmentResources": {
+        "collection_status": "collected",
+        "LoadBalancers": [
+          {
+            "Name": "lb"
+          }
+        ]
+      },
+      "AssociatedLoadBalancers": [
+        {
+          "Name": "lb",
+          "Type": "application",
+          "Listeners": [
+            {
+              "Protocol": "HTTPS",
+              "Certificates": [
+                {
+                  "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                }
+              ],
+              "DefaultActions": []
+            },
+            {
+              "Protocol": "HTTP",
+              "Certificates": [],
+              "DefaultActions": [
+                {
+                  "Type": "redirect",
+                  "RedirectConfig": {
+                    "Protocol": "HTTPS"
+                  }
+                }
+              ]
+            }
+          ],
+          "Attributes": [
+            {
+              "Key": "access_logs.s3.enabled",
+              "Value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "enabled_regions": [
+            "us-east-1"
+          ],
+          "compliance_policy": {}
+        }
+      },
+      "collections": {
+        "elastic_beanstalk_environment": [
+          {
+            "type": "elastic_beanstalk_environment",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+                "EnvironmentName": "prod",
+                "Status": "Ready",
+                "Configuration": {
+                  "collection_status": "collected",
+                  "hostmanager_options_complete": true,
+                  "ConfigurationSettings": [
+                    {
+                      "EnvironmentName": "prod",
+                      "OptionSettings": [
+                        {
+                          "Namespace": "aws:elasticbeanstalk:hostmanager",
+                          "OptionName": "LogPublicationControl",
+                          "Value": "true"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "S3LogDestination": {
+                  "collection_status": "collected",
+                  "bucket": "logs",
+                  "prefix": "env/",
+                  "resolved": true
+                },
+                "EnvironmentResources": {
+                  "collection_status": "collected",
+                  "LoadBalancers": [
+                    {
+                      "Name": "lb"
+                    }
+                  ]
+                },
+                "AssociatedLoadBalancers": [
+                  {
+                    "Name": "lb",
+                    "Type": "application",
+                    "Listeners": [
+                      {
+                        "Protocol": "HTTPS",
+                        "Certificates": [
+                          {
+                            "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                          }
+                        ],
+                        "DefaultActions": []
+                      },
+                      {
+                        "Protocol": "HTTP",
+                        "Certificates": [],
+                        "DefaultActions": [
+                          {
+                            "Type": "redirect",
+                            "RedirectConfig": {
+                              "Protocol": "HTTPS"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "Attributes": [
+                      {
+                        "Key": "access_logs.s3.enabled",
+                        "Value": "true"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "account_id": "123456789012"
+          }
+        ]
+      },
+      "elastic_beanstalk_environment": [
+        {
+          "type": "elastic_beanstalk_environment",
+          "scope": "123456789012/us-east-1",
+          "account_id": "123456789012",
+          "data": {
+            "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+            "EnvironmentName": "prod",
+            "Status": "Ready",
+            "Configuration": {
+              "collection_status": "collected",
+              "hostmanager_options_complete": true,
+              "ConfigurationSettings": [
+                {
+                  "EnvironmentName": "prod",
+                  "OptionSettings": [
+                    {
+                      "Namespace": "aws:elasticbeanstalk:hostmanager",
+                      "OptionName": "LogPublicationControl",
+                      "Value": "true"
+                    }
+                  ]
+                }
+              ]
+            },
+            "S3LogDestination": {
+              "collection_status": "collected",
+              "bucket": "logs",
+              "prefix": "env/",
+              "resolved": true
+            },
+            "EnvironmentResources": {
+              "collection_status": "collected",
+              "LoadBalancers": [
+                {
+                  "Name": "lb"
+                }
+              ]
+            },
+            "AssociatedLoadBalancers": [
+              {
+                "Name": "lb",
+                "Type": "application",
+                "Listeners": [
+                  {
+                    "Protocol": "HTTPS",
+                    "Certificates": [
+                      {
+                        "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                      }
+                    ],
+                    "DefaultActions": []
+                  },
+                  {
+                    "Protocol": "HTTP",
+                    "Certificates": [],
+                    "DefaultActions": [
+                      {
+                        "Type": "redirect",
+                        "RedirectConfig": {
+                          "Protocol": "HTTPS"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "Attributes": [
+                  {
+                    "Key": "access_logs.s3.enabled",
+                    "Value": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+      "EnvironmentName": "prod",
+      "Status": "Ready",
+      "Configuration": {
+        "collection_status": "collected",
+        "hostmanager_options_complete": true,
+        "ConfigurationSettings": [
+          {
+            "EnvironmentName": "prod",
+            "OptionSettings": [
+              {
+                "Namespace": "aws:elasticbeanstalk:hostmanager",
+                "OptionName": "LogPublicationControl",
+                "Value": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "S3LogDestination": {
+        "collection_status": "collected",
+        "bucket": "logs",
+        "prefix": "env/",
+        "resolved": true
+      },
+      "EnvironmentResources": {
+        "collection_status": "collected",
+        "LoadBalancers": [
+          {
+            "Name": "lb"
+          }
+        ]
+      },
+      "AssociatedLoadBalancers": [
+        {
+          "Name": "lb",
+          "Type": "application",
+          "Listeners": [
+            {
+              "Protocol": "HTTPS",
+              "Certificates": [],
+              "DefaultActions": []
+            },
+            {
+              "Protocol": "HTTP",
+              "Certificates": [],
+              "DefaultActions": [
+                {
+                  "Type": "redirect",
+                  "RedirectConfig": {
+                    "Protocol": "HTTPS"
+                  }
+                }
+              ]
+            }
+          ],
+          "Attributes": [
+            {
+              "Key": "access_logs.s3.enabled",
+              "Value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "enabled_regions": [
+            "us-east-1"
+          ],
+          "compliance_policy": {}
+        }
+      },
+      "collections": {
+        "elastic_beanstalk_environment": [
+          {
+            "type": "elastic_beanstalk_environment",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+                "EnvironmentName": "prod",
+                "Status": "Ready",
+                "Configuration": {
+                  "collection_status": "collected",
+                  "hostmanager_options_complete": true,
+                  "ConfigurationSettings": [
+                    {
+                      "EnvironmentName": "prod",
+                      "OptionSettings": [
+                        {
+                          "Namespace": "aws:elasticbeanstalk:hostmanager",
+                          "OptionName": "LogPublicationControl",
+                          "Value": "true"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "S3LogDestination": {
+                  "collection_status": "collected",
+                  "bucket": "logs",
+                  "prefix": "env/",
+                  "resolved": true
+                },
+                "EnvironmentResources": {
+                  "collection_status": "collected",
+                  "LoadBalancers": [
+                    {
+                      "Name": "lb"
+                    }
+                  ]
+                },
+                "AssociatedLoadBalancers": [
+                  {
+                    "Name": "lb",
+                    "Type": "application",
+                    "Listeners": [
+                      {
+                        "Protocol": "HTTPS",
+                        "Certificates": [],
+                        "DefaultActions": []
+                      },
+                      {
+                        "Protocol": "HTTP",
+                        "Certificates": [],
+                        "DefaultActions": [
+                          {
+                            "Type": "redirect",
+                            "RedirectConfig": {
+                              "Protocol": "HTTPS"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "Attributes": [
+                      {
+                        "Key": "access_logs.s3.enabled",
+                        "Value": "true"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "account_id": "123456789012"
+          }
+        ]
+      },
+      "elastic_beanstalk_environment": [
+        {
+          "type": "elastic_beanstalk_environment",
+          "scope": "123456789012/us-east-1",
+          "account_id": "123456789012",
+          "data": {
+            "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+            "EnvironmentName": "prod",
+            "Status": "Ready",
+            "Configuration": {
+              "collection_status": "collected",
+              "hostmanager_options_complete": true,
+              "ConfigurationSettings": [
+                {
+                  "EnvironmentName": "prod",
+                  "OptionSettings": [
+                    {
+                      "Namespace": "aws:elasticbeanstalk:hostmanager",
+                      "OptionName": "LogPublicationControl",
+                      "Value": "true"
+                    }
+                  ]
+                }
+              ]
+            },
+            "S3LogDestination": {
+              "collection_status": "collected",
+              "bucket": "logs",
+              "prefix": "env/",
+              "resolved": true
+            },
+            "EnvironmentResources": {
+              "collection_status": "collected",
+              "LoadBalancers": [
+                {
+                  "Name": "lb"
+                }
+              ]
+            },
+            "AssociatedLoadBalancers": [
+              {
+                "Name": "lb",
+                "Type": "application",
+                "Listeners": [
+                  {
+                    "Protocol": "HTTPS",
+                    "Certificates": [],
+                    "DefaultActions": []
+                  },
+                  {
+                    "Protocol": "HTTP",
+                    "Certificates": [],
+                    "DefaultActions": [
+                      {
+                        "Type": "redirect",
+                        "RedirectConfig": {
+                          "Protocol": "HTTPS"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "Attributes": [
+                  {
+                    "Key": "access_logs.s3.enabled",
+                    "Value": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aws_cis_elasticbeanstalk_load_balancer_access_logs": {
+    "pass": {
+      "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+      "EnvironmentName": "prod",
+      "Status": "Ready",
+      "Configuration": {
+        "collection_status": "collected",
+        "hostmanager_options_complete": true,
+        "ConfigurationSettings": [
+          {
+            "EnvironmentName": "prod",
+            "OptionSettings": [
+              {
+                "Namespace": "aws:elasticbeanstalk:hostmanager",
+                "OptionName": "LogPublicationControl",
+                "Value": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "S3LogDestination": {
+        "collection_status": "collected",
+        "bucket": "logs",
+        "prefix": "env/",
+        "resolved": true
+      },
+      "EnvironmentResources": {
+        "collection_status": "collected",
+        "LoadBalancers": [
+          {
+            "Name": "lb"
+          }
+        ]
+      },
+      "AssociatedLoadBalancers": [
+        {
+          "Name": "lb",
+          "Type": "application",
+          "Listeners": [
+            {
+              "Protocol": "HTTPS",
+              "Certificates": [
+                {
+                  "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                }
+              ],
+              "DefaultActions": []
+            },
+            {
+              "Protocol": "HTTP",
+              "Certificates": [],
+              "DefaultActions": [
+                {
+                  "Type": "redirect",
+                  "RedirectConfig": {
+                    "Protocol": "HTTPS"
+                  }
+                }
+              ]
+            }
+          ],
+          "Attributes": [
+            {
+              "Key": "access_logs.s3.enabled",
+              "Value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "enabled_regions": [
+            "us-east-1"
+          ],
+          "compliance_policy": {}
+        }
+      },
+      "collections": {
+        "elastic_beanstalk_environment": [
+          {
+            "type": "elastic_beanstalk_environment",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+                "EnvironmentName": "prod",
+                "Status": "Ready",
+                "Configuration": {
+                  "collection_status": "collected",
+                  "hostmanager_options_complete": true,
+                  "ConfigurationSettings": [
+                    {
+                      "EnvironmentName": "prod",
+                      "OptionSettings": [
+                        {
+                          "Namespace": "aws:elasticbeanstalk:hostmanager",
+                          "OptionName": "LogPublicationControl",
+                          "Value": "true"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "S3LogDestination": {
+                  "collection_status": "collected",
+                  "bucket": "logs",
+                  "prefix": "env/",
+                  "resolved": true
+                },
+                "EnvironmentResources": {
+                  "collection_status": "collected",
+                  "LoadBalancers": [
+                    {
+                      "Name": "lb"
+                    }
+                  ]
+                },
+                "AssociatedLoadBalancers": [
+                  {
+                    "Name": "lb",
+                    "Type": "application",
+                    "Listeners": [
+                      {
+                        "Protocol": "HTTPS",
+                        "Certificates": [
+                          {
+                            "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                          }
+                        ],
+                        "DefaultActions": []
+                      },
+                      {
+                        "Protocol": "HTTP",
+                        "Certificates": [],
+                        "DefaultActions": [
+                          {
+                            "Type": "redirect",
+                            "RedirectConfig": {
+                              "Protocol": "HTTPS"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "Attributes": [
+                      {
+                        "Key": "access_logs.s3.enabled",
+                        "Value": "true"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "account_id": "123456789012"
+          }
+        ]
+      },
+      "elastic_beanstalk_environment": [
+        {
+          "type": "elastic_beanstalk_environment",
+          "scope": "123456789012/us-east-1",
+          "account_id": "123456789012",
+          "data": {
+            "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+            "EnvironmentName": "prod",
+            "Status": "Ready",
+            "Configuration": {
+              "collection_status": "collected",
+              "hostmanager_options_complete": true,
+              "ConfigurationSettings": [
+                {
+                  "EnvironmentName": "prod",
+                  "OptionSettings": [
+                    {
+                      "Namespace": "aws:elasticbeanstalk:hostmanager",
+                      "OptionName": "LogPublicationControl",
+                      "Value": "true"
+                    }
+                  ]
+                }
+              ]
+            },
+            "S3LogDestination": {
+              "collection_status": "collected",
+              "bucket": "logs",
+              "prefix": "env/",
+              "resolved": true
+            },
+            "EnvironmentResources": {
+              "collection_status": "collected",
+              "LoadBalancers": [
+                {
+                  "Name": "lb"
+                }
+              ]
+            },
+            "AssociatedLoadBalancers": [
+              {
+                "Name": "lb",
+                "Type": "application",
+                "Listeners": [
+                  {
+                    "Protocol": "HTTPS",
+                    "Certificates": [
+                      {
+                        "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                      }
+                    ],
+                    "DefaultActions": []
+                  },
+                  {
+                    "Protocol": "HTTP",
+                    "Certificates": [],
+                    "DefaultActions": [
+                      {
+                        "Type": "redirect",
+                        "RedirectConfig": {
+                          "Protocol": "HTTPS"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "Attributes": [
+                  {
+                    "Key": "access_logs.s3.enabled",
+                    "Value": "true"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+      "EnvironmentName": "prod",
+      "Status": "Ready",
+      "Configuration": {
+        "collection_status": "collected",
+        "hostmanager_options_complete": true,
+        "ConfigurationSettings": [
+          {
+            "EnvironmentName": "prod",
+            "OptionSettings": [
+              {
+                "Namespace": "aws:elasticbeanstalk:hostmanager",
+                "OptionName": "LogPublicationControl",
+                "Value": "true"
+              }
+            ]
+          }
+        ]
+      },
+      "S3LogDestination": {
+        "collection_status": "collected",
+        "bucket": "logs",
+        "prefix": "env/",
+        "resolved": true
+      },
+      "EnvironmentResources": {
+        "collection_status": "collected",
+        "LoadBalancers": [
+          {
+            "Name": "lb"
+          }
+        ]
+      },
+      "AssociatedLoadBalancers": [
+        {
+          "Name": "lb",
+          "Type": "application",
+          "Listeners": [
+            {
+              "Protocol": "HTTPS",
+              "Certificates": [
+                {
+                  "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                }
+              ],
+              "DefaultActions": []
+            },
+            {
+              "Protocol": "HTTP",
+              "Certificates": [],
+              "DefaultActions": [
+                {
+                  "Type": "redirect",
+                  "RedirectConfig": {
+                    "Protocol": "HTTPS"
+                  }
+                }
+              ]
+            }
+          ],
+          "Attributes": [
+            {
+              "Key": "access_logs.s3.enabled",
+              "Value": "false"
+            }
+          ]
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "enabled_regions": [
+            "us-east-1"
+          ],
+          "compliance_policy": {}
+        }
+      },
+      "collections": {
+        "elastic_beanstalk_environment": [
+          {
+            "type": "elastic_beanstalk_environment",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+                "EnvironmentName": "prod",
+                "Status": "Ready",
+                "Configuration": {
+                  "collection_status": "collected",
+                  "hostmanager_options_complete": true,
+                  "ConfigurationSettings": [
+                    {
+                      "EnvironmentName": "prod",
+                      "OptionSettings": [
+                        {
+                          "Namespace": "aws:elasticbeanstalk:hostmanager",
+                          "OptionName": "LogPublicationControl",
+                          "Value": "true"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "S3LogDestination": {
+                  "collection_status": "collected",
+                  "bucket": "logs",
+                  "prefix": "env/",
+                  "resolved": true
+                },
+                "EnvironmentResources": {
+                  "collection_status": "collected",
+                  "LoadBalancers": [
+                    {
+                      "Name": "lb"
+                    }
+                  ]
+                },
+                "AssociatedLoadBalancers": [
+                  {
+                    "Name": "lb",
+                    "Type": "application",
+                    "Listeners": [
+                      {
+                        "Protocol": "HTTPS",
+                        "Certificates": [
+                          {
+                            "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                          }
+                        ],
+                        "DefaultActions": []
+                      },
+                      {
+                        "Protocol": "HTTP",
+                        "Certificates": [],
+                        "DefaultActions": [
+                          {
+                            "Type": "redirect",
+                            "RedirectConfig": {
+                              "Protocol": "HTTPS"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "Attributes": [
+                      {
+                        "Key": "access_logs.s3.enabled",
+                        "Value": "false"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "account_id": "123456789012"
+          }
+        ]
+      },
+      "elastic_beanstalk_environment": [
+        {
+          "type": "elastic_beanstalk_environment",
+          "scope": "123456789012/us-east-1",
+          "account_id": "123456789012",
+          "data": {
+            "EnvironmentArn": "arn:aws:elasticbeanstalk:us-east-1:123456789012:environment/app/prod",
+            "EnvironmentName": "prod",
+            "Status": "Ready",
+            "Configuration": {
+              "collection_status": "collected",
+              "hostmanager_options_complete": true,
+              "ConfigurationSettings": [
+                {
+                  "EnvironmentName": "prod",
+                  "OptionSettings": [
+                    {
+                      "Namespace": "aws:elasticbeanstalk:hostmanager",
+                      "OptionName": "LogPublicationControl",
+                      "Value": "true"
+                    }
+                  ]
+                }
+              ]
+            },
+            "S3LogDestination": {
+              "collection_status": "collected",
+              "bucket": "logs",
+              "prefix": "env/",
+              "resolved": true
+            },
+            "EnvironmentResources": {
+              "collection_status": "collected",
+              "LoadBalancers": [
+                {
+                  "Name": "lb"
+                }
+              ]
+            },
+            "AssociatedLoadBalancers": [
+              {
+                "Name": "lb",
+                "Type": "application",
+                "Listeners": [
+                  {
+                    "Protocol": "HTTPS",
+                    "Certificates": [
+                      {
+                        "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/one"
+                      }
+                    ],
+                    "DefaultActions": []
+                  },
+                  {
+                    "Protocol": "HTTP",
+                    "Certificates": [],
+                    "DefaultActions": [
+                      {
+                        "Type": "redirect",
+                        "RedirectConfig": {
+                          "Protocol": "HTTPS"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "Attributes": [
+                  {
+                    "Key": "access_logs.s3.enabled",
+                    "Value": "false"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aws_g6_efs_effective_backup_plan_selection": {
+    "pass": {
+      "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+      "Tags": [
+        {
+          "Key": "backup",
+          "Value": "yes"
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012",
+        "metadata": {},
+        "created_at": "2026-10-12T00:00:00+00:00"
+      },
+      "collections": {
+        "efs_file_system": [
+          {
+            "type": "efs_file_system",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+                "Tags": [
+                  {
+                    "Key": "backup",
+                    "Value": "yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "backup_plan": [
+          {
+            "type": "backup_plan",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+                "Enabled": true,
+                "Selections": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "Selection": {
+                        "collection_status": "collected",
+                        "BackupSelection": {
+                          "Resources": [
+                            "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1"
+                          ],
+                          "NotResources": [],
+                          "ListOfTags": [],
+                          "Conditions": {},
+                          "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "efs_file_system": [
+        {
+          "type": "efs_file_system",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+            "Tags": [
+              {
+                "Key": "backup",
+                "Value": "yes"
+              }
+            ]
+          }
+        }
+      ],
+      "backup_plan": [
+        {
+          "type": "backup_plan",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+            "Enabled": true,
+            "Selections": {
+              "collection_status": "collected",
+              "items": [
+                {
+                  "Selection": {
+                    "collection_status": "collected",
+                    "BackupSelection": {
+                      "Resources": [
+                        "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1"
+                      ],
+                      "NotResources": [],
+                      "ListOfTags": [],
+                      "Conditions": {},
+                      "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+      "Tags": [
+        {
+          "Key": "backup",
+          "Value": "yes"
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012",
+        "metadata": {},
+        "created_at": "2026-10-12T00:00:00+00:00"
+      },
+      "collections": {
+        "efs_file_system": [
+          {
+            "type": "efs_file_system",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+                "Tags": [
+                  {
+                    "Key": "backup",
+                    "Value": "yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "backup_plan": [
+          {
+            "type": "backup_plan",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+                "Enabled": true,
+                "Selections": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "Selection": {
+                        "collection_status": "collected",
+                        "BackupSelection": {
+                          "Resources": [],
+                          "NotResources": [],
+                          "ListOfTags": [],
+                          "Conditions": {},
+                          "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "efs_file_system": [
+        {
+          "type": "efs_file_system",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+            "Tags": [
+              {
+                "Key": "backup",
+                "Value": "yes"
+              }
+            ]
+          }
+        }
+      ],
+      "backup_plan": [
+        {
+          "type": "backup_plan",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+            "Enabled": true,
+            "Selections": {
+              "collection_status": "collected",
+              "items": [
+                {
+                  "Selection": {
+                    "collection_status": "collected",
+                    "BackupSelection": {
+                      "Resources": [],
+                      "NotResources": [],
+                      "ListOfTags": [],
+                      "Conditions": {},
+                      "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aws_nist_efs_file_system_in_backup_plan": {
+    "pass": {
+      "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+      "Tags": [
+        {
+          "Key": "backup",
+          "Value": "yes"
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012",
+        "metadata": {},
+        "created_at": "2026-10-12T00:00:00+00:00"
+      },
+      "collections": {
+        "efs_file_system": [
+          {
+            "type": "efs_file_system",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+                "Tags": [
+                  {
+                    "Key": "backup",
+                    "Value": "yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "backup_plan": [
+          {
+            "type": "backup_plan",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+                "Enabled": true,
+                "Selections": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "Selection": {
+                        "collection_status": "collected",
+                        "BackupSelection": {
+                          "Resources": [
+                            "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1"
+                          ],
+                          "NotResources": [],
+                          "ListOfTags": [],
+                          "Conditions": {},
+                          "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "efs_file_system": [
+        {
+          "type": "efs_file_system",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+            "Tags": [
+              {
+                "Key": "backup",
+                "Value": "yes"
+              }
+            ]
+          }
+        }
+      ],
+      "backup_plan": [
+        {
+          "type": "backup_plan",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+            "Enabled": true,
+            "Selections": {
+              "collection_status": "collected",
+              "items": [
+                {
+                  "Selection": {
+                    "collection_status": "collected",
+                    "BackupSelection": {
+                      "Resources": [
+                        "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1"
+                      ],
+                      "NotResources": [],
+                      "ListOfTags": [],
+                      "Conditions": {},
+                      "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+      "Tags": [
+        {
+          "Key": "backup",
+          "Value": "yes"
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "Account": "123456789012",
+        "metadata": {},
+        "created_at": "2026-10-12T00:00:00+00:00"
+      },
+      "collections": {
+        "efs_file_system": [
+          {
+            "type": "efs_file_system",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+                "Tags": [
+                  {
+                    "Key": "backup",
+                    "Value": "yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "backup_plan": [
+          {
+            "type": "backup_plan",
+            "scope": "123456789012/us-east-1",
+            "account_id": "123456789012",
+            "global": false,
+            "status": "collected",
+            "items": [
+              {
+                "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+                "Enabled": true,
+                "Selections": {
+                  "collection_status": "collected",
+                  "items": [
+                    {
+                      "Selection": {
+                        "collection_status": "collected",
+                        "BackupSelection": {
+                          "Resources": [],
+                          "NotResources": [],
+                          "ListOfTags": [],
+                          "Conditions": {},
+                          "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "efs_file_system": [
+        {
+          "type": "efs_file_system",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1",
+            "Tags": [
+              {
+                "Key": "backup",
+                "Value": "yes"
+              }
+            ]
+          }
+        }
+      ],
+      "backup_plan": [
+        {
+          "type": "backup_plan",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "BackupPlanArn": "arn:aws:backup:us-east-1:123456789012:backup-plan:one",
+            "Enabled": true,
+            "Selections": {
+              "collection_status": "collected",
+              "items": [
+                {
+                  "Selection": {
+                    "collection_status": "collected",
+                    "BackupSelection": {
+                      "Resources": [],
+                      "NotResources": [],
+                      "ListOfTags": [],
+                      "Conditions": {},
+                      "IamRoleArn": "arn:aws:iam::123456789012:role/backup"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aws_cis_lightsail_ssm_patch_compliance": {
+    "pass": {
+      "id": "test-id",
+      "AccountId": "123456789012",
+      "Region": "us-east-1",
+      "arn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+      "SsmMatch": {
+        "Verified": true,
+        "LightsailArn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+        "InstanceId": "mi-abc"
+      },
+      "PatchState": {
+        "InstanceId": "mi-abc",
+        "MissingCount": 0,
+        "FailedCount": 0,
+        "InstalledRejectedCount": 0
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "settings": {},
+        "created_at": "2026-10-12T00:00:00Z"
+      },
+      "collections": {
+        "lightsail_instance": [
+          {
+            "type": "lightsail_instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "id": "test-id",
+                "AccountId": "123456789012",
+                "Region": "us-east-1",
+                "arn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+                "SsmMatch": {
+                  "Verified": true,
+                  "LightsailArn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+                  "InstanceId": "mi-abc"
+                },
+                "PatchState": {
+                  "InstanceId": "mi-abc",
+                  "MissingCount": 0,
+                  "FailedCount": 0,
+                  "InstalledRejectedCount": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "lightsail_instance": [
+        {
+          "type": "lightsail_instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "id": "test-id",
+            "AccountId": "123456789012",
+            "Region": "us-east-1",
+            "arn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+            "SsmMatch": {
+              "Verified": true,
+              "LightsailArn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+              "InstanceId": "mi-abc"
+            },
+            "PatchState": {
+              "InstanceId": "mi-abc",
+              "MissingCount": 0,
+              "FailedCount": 0,
+              "InstalledRejectedCount": 0
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "id": "test-id",
+      "AccountId": "123456789012",
+      "Region": "us-east-1",
+      "arn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+      "SsmMatch": {
+        "Verified": true,
+        "LightsailArn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+        "InstanceId": "mi-abc"
+      },
+      "PatchState": {
+        "InstanceId": "mi-abc",
+        "MissingCount": 2,
+        "FailedCount": 0,
+        "InstalledRejectedCount": 0
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "settings": {},
+        "created_at": "2026-10-12T00:00:00Z"
+      },
+      "collections": {
+        "lightsail_instance": [
+          {
+            "type": "lightsail_instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "id": "test-id",
+                "AccountId": "123456789012",
+                "Region": "us-east-1",
+                "arn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+                "SsmMatch": {
+                  "Verified": true,
+                  "LightsailArn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+                  "InstanceId": "mi-abc"
+                },
+                "PatchState": {
+                  "InstanceId": "mi-abc",
+                  "MissingCount": 2,
+                  "FailedCount": 0,
+                  "InstalledRejectedCount": 0
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "lightsail_instance": [
+        {
+          "type": "lightsail_instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "id": "test-id",
+            "AccountId": "123456789012",
+            "Region": "us-east-1",
+            "arn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+            "SsmMatch": {
+              "Verified": true,
+              "LightsailArn": "arn:aws:lightsail:us-east-1:123456789012:Instance/abc",
+              "InstanceId": "mi-abc"
+            },
+            "PatchState": {
+              "InstanceId": "mi-abc",
+              "MissingCount": 2,
+              "FailedCount": 0,
+              "InstalledRejectedCount": 0
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aws_cis_lambda_execution_role_no_admin": {
+    "pass": {
+      "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:fn",
+      "FunctionName": "fn",
+      "Role": "arn:aws:iam::123456789012:role/r",
+      "PackageType": "Zip",
+      "Runtime": "python3.13",
+      "Environment": {
+        "Variables": {}
+      },
+      "Policy": {
+        "collection_status": "empty",
+        "absent": true
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "parameters": {}
+        }
+      },
+      "collections": {
+        "lambda_function": [
+          {
+            "type": "lambda_function",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:fn",
+                "FunctionName": "fn",
+                "Role": "arn:aws:iam::123456789012:role/r",
+                "PackageType": "Zip",
+                "Runtime": "python3.13",
+                "Environment": {
+                  "Variables": {}
+                },
+                "Policy": {
+                  "collection_status": "empty",
+                  "absent": true
+                }
+              }
+            ]
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:role/r",
+                "EffectiveAdminAccess": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "role_arn": "arn:aws:iam::123456789012:role/r",
+                  "unconditional_action_resource_star": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "lambda_function": [
+        {
+          "type": "lambda_function",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:fn",
+            "FunctionName": "fn",
+            "Role": "arn:aws:iam::123456789012:role/r",
+            "PackageType": "Zip",
+            "Runtime": "python3.13",
+            "Environment": {
+              "Variables": {}
+            },
+            "Policy": {
+              "collection_status": "empty",
+              "absent": true
+            }
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:role/r",
+            "EffectiveAdminAccess": {
+              "collection_status": "collected",
+              "complete": true,
+              "role_arn": "arn:aws:iam::123456789012:role/r",
+              "unconditional_action_resource_star": false
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:fn",
+      "FunctionName": "fn",
+      "Role": "arn:aws:iam::123456789012:role/r",
+      "PackageType": "Zip",
+      "Runtime": "python3.13",
+      "Environment": {
+        "Variables": {}
+      },
+      "Policy": {
+        "collection_status": "empty",
+        "absent": true
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {
+          "parameters": {}
+        }
+      },
+      "collections": {
+        "lambda_function": [
+          {
+            "type": "lambda_function",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:fn",
+                "FunctionName": "fn",
+                "Role": "arn:aws:iam::123456789012:role/r",
+                "PackageType": "Zip",
+                "Runtime": "python3.13",
+                "Environment": {
+                  "Variables": {}
+                },
+                "Policy": {
+                  "collection_status": "empty",
+                  "absent": true
+                }
+              }
+            ]
+          }
+        ],
+        "iam_role": [
+          {
+            "type": "iam_role",
+            "scope": "123456789012/global",
+            "status": "collected",
+            "items": [
+              {
+                "Arn": "arn:aws:iam::123456789012:role/r",
+                "EffectiveAdminAccess": {
+                  "collection_status": "collected",
+                  "complete": true,
+                  "role_arn": "arn:aws:iam::123456789012:role/r",
+                  "unconditional_action_resource_star": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "lambda_function": [
+        {
+          "type": "lambda_function",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:fn",
+            "FunctionName": "fn",
+            "Role": "arn:aws:iam::123456789012:role/r",
+            "PackageType": "Zip",
+            "Runtime": "python3.13",
+            "Environment": {
+              "Variables": {}
+            },
+            "Policy": {
+              "collection_status": "empty",
+              "absent": true
+            }
+          }
+        }
+      ],
+      "iam_role": [
+        {
+          "type": "iam_role",
+          "scope": "123456789012/global",
+          "data": {
+            "Arn": "arn:aws:iam::123456789012:role/r",
+            "EffectiveAdminAccess": {
+              "collection_status": "collected",
+              "complete": true,
+              "role_arn": "arn:aws:iam::123456789012:role/r",
+              "unconditional_action_resource_star": true
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aws_ebs_snapshot_trusted_accounts": {
+    "pass": {
+      "SnapshotId": "snap-1",
+      "OwnerId": "123456789012",
+      "CreateVolumePermissions": [
+        {
+          "UserId": "210987654321"
+        }
+      ]
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "parameters": {
+            "trusted_account_ids": [
+              "210987654321"
+            ]
+          }
+        }
+      },
+      "collections": {
+        "ebs_snapshot": [
+          {
+            "type": "ebs_snapshot",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "SnapshotId": "snap-1",
+                "OwnerId": "123456789012",
+                "CreateVolumePermissions": [
+                  {
+                    "UserId": "210987654321"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ebs_snapshot": [
+        {
+          "type": "ebs_snapshot",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "SnapshotId": "snap-1",
+            "OwnerId": "123456789012",
+            "CreateVolumePermissions": [
+              {
+                "UserId": "210987654321"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "fail": {
+      "SnapshotId": "snap-1",
+      "OwnerId": "123456789012",
+      "CreateVolumePermissions": [
+        {
+          "Group": "all"
+        }
+      ]
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "parameters": {
+            "trusted_account_ids": [
+              "210987654321"
+            ]
+          }
+        }
+      },
+      "collections": {
+        "ebs_snapshot": [
+          {
+            "type": "ebs_snapshot",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "SnapshotId": "snap-1",
+                "OwnerId": "123456789012",
+                "CreateVolumePermissions": [
+                  {
+                    "Group": "all"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "ebs_snapshot": [
+        {
+          "type": "ebs_snapshot",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "SnapshotId": "snap-1",
+            "OwnerId": "123456789012",
+            "CreateVolumePermissions": [
+              {
+                "Group": "all"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aws_cis_ec2_userdata_embedded_secrets": {
+    "pass": {
+      "InstanceId": "i-123",
+      "UserDataSecretIndicators": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "Present": true,
+        "HighConfidenceSecretPresent": false,
+        "MatchedCategories": []
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {}
+      },
+      "collections": {
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-123",
+                "UserDataSecretIndicators": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "Present": true,
+                  "HighConfidenceSecretPresent": false,
+                  "MatchedCategories": []
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-123",
+            "UserDataSecretIndicators": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "Present": true,
+              "HighConfidenceSecretPresent": false,
+              "MatchedCategories": []
+            }
+          }
+        }
+      ]
+    },
+    "fail": {
+      "InstanceId": "i-123",
+      "UserDataSecretIndicators": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "Present": true,
+        "HighConfidenceSecretPresent": true,
+        "MatchedCategories": [
+          "private_key"
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "metadata": {}
+      },
+      "collections": {
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-123",
+                "UserDataSecretIndicators": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "Present": true,
+                  "HighConfidenceSecretPresent": true,
+                  "MatchedCategories": [
+                    "private_key"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-123",
+            "UserDataSecretIndicators": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "Present": true,
+              "HighConfidenceSecretPresent": true,
+              "MatchedCategories": [
+                "private_key"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "aws_ec2_instance_time_offset_monitored": {
+    "pass": {
+      "InstanceId": "i-123",
+      "InstanceType": "m5.large",
+      "Tags": [
+        {
+          "Key": "Workload",
+          "Value": "AI"
+        }
+      ],
+      "State": {
+        "Name": "running"
+      },
+      "TimeOffset": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "Namespace": "CWAgent",
+        "MetricName": "time_offset",
+        "Timestamp": "2026-10-12T00:00:00Z",
+        "ValueMilliseconds": 25
+      },
+      "PublicReachability": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "route_inventory_complete": true,
+        "ingress_inventory_complete": true,
+        "target_inventory_complete": true,
+        "listener_inventory_complete": true,
+        "Paths": []
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00Z"
+      },
+      "collections": {
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-123",
+                "InstanceType": "m5.large",
+                "Tags": [
+                  {
+                    "Key": "Workload",
+                    "Value": "AI"
+                  }
+                ],
+                "State": {
+                  "Name": "running"
+                },
+                "TimeOffset": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "Namespace": "CWAgent",
+                  "MetricName": "time_offset",
+                  "Timestamp": "2026-10-12T00:00:00Z",
+                  "ValueMilliseconds": 25
+                },
+                "PublicReachability": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "route_inventory_complete": true,
+                  "ingress_inventory_complete": true,
+                  "target_inventory_complete": true,
+                  "listener_inventory_complete": true,
+                  "Paths": []
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-123",
+            "InstanceType": "m5.large",
+            "Tags": [
+              {
+                "Key": "Workload",
+                "Value": "AI"
+              }
+            ],
+            "State": {
+              "Name": "running"
+            },
+            "TimeOffset": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "Namespace": "CWAgent",
+              "MetricName": "time_offset",
+              "Timestamp": "2026-10-12T00:00:00Z",
+              "ValueMilliseconds": 25
+            },
+            "PublicReachability": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "route_inventory_complete": true,
+              "ingress_inventory_complete": true,
+              "target_inventory_complete": true,
+              "listener_inventory_complete": true,
+              "Paths": []
+            }
+          }
+        }
+      ],
+      "approved_policy": {
+        "scope": "123456789012/us-east-1",
+        "checks": {}
+      }
+    },
+    "fail": {
+      "InstanceId": "i-123",
+      "InstanceType": "m5.large",
+      "Tags": [
+        {
+          "Key": "Workload",
+          "Value": "AI"
+        }
+      ],
+      "State": {
+        "Name": "running"
+      },
+      "TimeOffset": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "Namespace": "CWAgent",
+        "MetricName": "time_offset",
+        "Timestamp": "2026-10-12T00:00:00Z",
+        "ValueMilliseconds": 1001
+      },
+      "PublicReachability": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "route_inventory_complete": true,
+        "ingress_inventory_complete": true,
+        "target_inventory_complete": true,
+        "listener_inventory_complete": true,
+        "Paths": []
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00Z"
+      },
+      "collections": {
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-123",
+                "InstanceType": "m5.large",
+                "Tags": [
+                  {
+                    "Key": "Workload",
+                    "Value": "AI"
+                  }
+                ],
+                "State": {
+                  "Name": "running"
+                },
+                "TimeOffset": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "Namespace": "CWAgent",
+                  "MetricName": "time_offset",
+                  "Timestamp": "2026-10-12T00:00:00Z",
+                  "ValueMilliseconds": 1001
+                },
+                "PublicReachability": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "route_inventory_complete": true,
+                  "ingress_inventory_complete": true,
+                  "target_inventory_complete": true,
+                  "listener_inventory_complete": true,
+                  "Paths": []
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-123",
+            "InstanceType": "m5.large",
+            "Tags": [
+              {
+                "Key": "Workload",
+                "Value": "AI"
+              }
+            ],
+            "State": {
+              "Name": "running"
+            },
+            "TimeOffset": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "Namespace": "CWAgent",
+              "MetricName": "time_offset",
+              "Timestamp": "2026-10-12T00:00:00Z",
+              "ValueMilliseconds": 1001
+            },
+            "PublicReachability": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "route_inventory_complete": true,
+              "ingress_inventory_complete": true,
+              "target_inventory_complete": true,
+              "listener_inventory_complete": true,
+              "Paths": []
+            }
+          }
+        }
+      ],
+      "approved_policy": {
+        "scope": "123456789012/us-east-1",
+        "checks": {}
+      }
+    }
+  },
+  "aws_nist_ec2_instance_not_publicly_accessible": {
+    "pass": {
+      "InstanceId": "i-123",
+      "InstanceType": "m5.large",
+      "Tags": [
+        {
+          "Key": "Workload",
+          "Value": "AI"
+        }
+      ],
+      "State": {
+        "Name": "running"
+      },
+      "TimeOffset": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "Namespace": "CWAgent",
+        "MetricName": "time_offset",
+        "Timestamp": "2026-10-12T00:00:00Z",
+        "ValueMilliseconds": 25
+      },
+      "PublicReachability": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "route_inventory_complete": true,
+        "ingress_inventory_complete": true,
+        "target_inventory_complete": true,
+        "listener_inventory_complete": true,
+        "Paths": []
+      }
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00Z"
+      },
+      "collections": {
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-123",
+                "InstanceType": "m5.large",
+                "Tags": [
+                  {
+                    "Key": "Workload",
+                    "Value": "AI"
+                  }
+                ],
+                "State": {
+                  "Name": "running"
+                },
+                "TimeOffset": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "Namespace": "CWAgent",
+                  "MetricName": "time_offset",
+                  "Timestamp": "2026-10-12T00:00:00Z",
+                  "ValueMilliseconds": 25
+                },
+                "PublicReachability": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "route_inventory_complete": true,
+                  "ingress_inventory_complete": true,
+                  "target_inventory_complete": true,
+                  "listener_inventory_complete": true,
+                  "Paths": []
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-123",
+            "InstanceType": "m5.large",
+            "Tags": [
+              {
+                "Key": "Workload",
+                "Value": "AI"
+              }
+            ],
+            "State": {
+              "Name": "running"
+            },
+            "TimeOffset": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "Namespace": "CWAgent",
+              "MetricName": "time_offset",
+              "Timestamp": "2026-10-12T00:00:00Z",
+              "ValueMilliseconds": 25
+            },
+            "PublicReachability": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "route_inventory_complete": true,
+              "ingress_inventory_complete": true,
+              "target_inventory_complete": true,
+              "listener_inventory_complete": true,
+              "Paths": []
+            }
+          }
+        }
+      ],
+      "approved_policy": {
+        "scope": "123456789012/us-east-1",
+        "checks": {}
+      }
+    },
+    "fail": {
+      "InstanceId": "i-123",
+      "InstanceType": "m5.large",
+      "Tags": [
+        {
+          "Key": "Workload",
+          "Value": "AI"
+        }
+      ],
+      "State": {
+        "Name": "running"
+      },
+      "TimeOffset": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "Namespace": "CWAgent",
+        "MetricName": "time_offset",
+        "Timestamp": "2026-10-12T00:00:00Z",
+        "ValueMilliseconds": 25
+      },
+      "PublicReachability": {
+        "collection_status": "collected",
+        "InstanceId": "i-123",
+        "route_inventory_complete": true,
+        "ingress_inventory_complete": true,
+        "target_inventory_complete": true,
+        "listener_inventory_complete": true,
+        "Paths": [
+          {
+            "Source": "public_ipv4",
+            "AddressOrTargetArn": "8.8.8.8",
+            "RouteToInternet": true,
+            "IngressAllowed": true,
+            "ListeningPortVerified": true
+          }
+        ]
+      }
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00Z"
+      },
+      "collections": {
+        "instance": [
+          {
+            "type": "instance",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "InstanceId": "i-123",
+                "InstanceType": "m5.large",
+                "Tags": [
+                  {
+                    "Key": "Workload",
+                    "Value": "AI"
+                  }
+                ],
+                "State": {
+                  "Name": "running"
+                },
+                "TimeOffset": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "Namespace": "CWAgent",
+                  "MetricName": "time_offset",
+                  "Timestamp": "2026-10-12T00:00:00Z",
+                  "ValueMilliseconds": 25
+                },
+                "PublicReachability": {
+                  "collection_status": "collected",
+                  "InstanceId": "i-123",
+                  "route_inventory_complete": true,
+                  "ingress_inventory_complete": true,
+                  "target_inventory_complete": true,
+                  "listener_inventory_complete": true,
+                  "Paths": [
+                    {
+                      "Source": "public_ipv4",
+                      "AddressOrTargetArn": "8.8.8.8",
+                      "RouteToInternet": true,
+                      "IngressAllowed": true,
+                      "ListeningPortVerified": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "instance": [
+        {
+          "type": "instance",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "InstanceId": "i-123",
+            "InstanceType": "m5.large",
+            "Tags": [
+              {
+                "Key": "Workload",
+                "Value": "AI"
+              }
+            ],
+            "State": {
+              "Name": "running"
+            },
+            "TimeOffset": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "Namespace": "CWAgent",
+              "MetricName": "time_offset",
+              "Timestamp": "2026-10-12T00:00:00Z",
+              "ValueMilliseconds": 25
+            },
+            "PublicReachability": {
+              "collection_status": "collected",
+              "InstanceId": "i-123",
+              "route_inventory_complete": true,
+              "ingress_inventory_complete": true,
+              "target_inventory_complete": true,
+              "listener_inventory_complete": true,
+              "Paths": [
+                {
+                  "Source": "public_ipv4",
+                  "AddressOrTargetArn": "8.8.8.8",
+                  "RouteToInternet": true,
+                  "IngressAllowed": true,
+                  "ListeningPortVerified": true
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "approved_policy": {
+        "scope": "123456789012/us-east-1",
+        "checks": {}
+      }
+    }
+  },
+  "aws_g6_ecs_fargate_storage_encryption": {
+    "pass": {
+      "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "parameters": {}
+        }
+      },
+      "collections": {
+        "ecs_cluster": [
+          {
+            "type": "ecs_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+              }
+            ]
+          }
+        ],
+        "ecs_service": [
+          {
+            "type": "ecs_service",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                "serviceArn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                "volumeConfigurations": [
+                  {
+                    "name": "data",
+                    "managedEBSVolume": {
+                      "encrypted": true
+                    }
+                  }
+                ],
+                "taskDefinition": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "_coverage": {
+                  "volumeConfigurations": {
+                    "status": "collected",
+                    "source_operation": "ecs:DescribeServices",
+                    "native_member_present": true,
+                    "account_id": "123456789012",
+                    "region": "us-east-1",
+                    "service_arn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                    "cluster_arn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                    "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                    "deployment_status": "PRIMARY"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "ecs_task_definition": [
+          {
+            "type": "ecs_task_definition",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "Definition": {
+                  "collection_status": "collected",
+                  "taskDefinition": {
+                    "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                    "volumes": [
+                      {
+                        "name": "data",
+                        "configuredAtLaunch": true
+                      },
+                      {
+                        "efsVolumeConfiguration": {
+                          "fileSystemId": "fs1"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "efs_file_system": [
+          {
+            "type": "efs_file_system",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "FileSystemId": "fs1",
+                "Encrypted": true
+              }
+            ]
+          }
+        ]
+      },
+      "ecs_cluster": [
+        {
+          "type": "ecs_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+          }
+        }
+      ],
+      "ecs_service": [
+        {
+          "type": "ecs_service",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+            "serviceArn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+            "volumeConfigurations": [
+              {
+                "name": "data",
+                "managedEBSVolume": {
+                  "encrypted": true
+                }
+              }
+            ],
+            "taskDefinition": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+            "_coverage": {
+              "volumeConfigurations": {
+                "status": "collected",
+                "source_operation": "ecs:DescribeServices",
+                "native_member_present": true,
+                "account_id": "123456789012",
+                "region": "us-east-1",
+                "service_arn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                "cluster_arn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "deployment_status": "PRIMARY"
+              }
+            }
+          }
+        }
+      ],
+      "ecs_task_definition": [
+        {
+          "type": "ecs_task_definition",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+            "Definition": {
+              "collection_status": "collected",
+              "taskDefinition": {
+                "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "volumes": [
+                  {
+                    "name": "data",
+                    "configuredAtLaunch": true
+                  },
+                  {
+                    "efsVolumeConfiguration": {
+                      "fileSystemId": "fs1"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "efs_file_system": [
+        {
+          "type": "efs_file_system",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FileSystemId": "fs1",
+            "Encrypted": true
+          }
+        }
+      ]
+    },
+    "fail": {
+      "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "parameters": {}
+        }
+      },
+      "collections": {
+        "ecs_cluster": [
+          {
+            "type": "ecs_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+              }
+            ]
+          }
+        ],
+        "ecs_service": [
+          {
+            "type": "ecs_service",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                "serviceArn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                "volumeConfigurations": [
+                  {
+                    "name": "data",
+                    "managedEBSVolume": {
+                      "encrypted": true
+                    }
+                  }
+                ],
+                "taskDefinition": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "_coverage": {
+                  "volumeConfigurations": {
+                    "status": "collected",
+                    "source_operation": "ecs:DescribeServices",
+                    "native_member_present": true,
+                    "account_id": "123456789012",
+                    "region": "us-east-1",
+                    "service_arn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                    "cluster_arn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                    "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                    "deployment_status": "PRIMARY"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "ecs_task_definition": [
+          {
+            "type": "ecs_task_definition",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "Definition": {
+                  "collection_status": "collected",
+                  "taskDefinition": {
+                    "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                    "volumes": [
+                      {
+                        "name": "data",
+                        "configuredAtLaunch": true
+                      },
+                      {
+                        "efsVolumeConfiguration": {
+                          "fileSystemId": "fs1"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "efs_file_system": [
+          {
+            "type": "efs_file_system",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "FileSystemId": "fs1",
+                "Encrypted": false
+              }
+            ]
+          }
+        ]
+      },
+      "ecs_cluster": [
+        {
+          "type": "ecs_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+          }
+        }
+      ],
+      "ecs_service": [
+        {
+          "type": "ecs_service",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+            "serviceArn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+            "volumeConfigurations": [
+              {
+                "name": "data",
+                "managedEBSVolume": {
+                  "encrypted": true
+                }
+              }
+            ],
+            "taskDefinition": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+            "_coverage": {
+              "volumeConfigurations": {
+                "status": "collected",
+                "source_operation": "ecs:DescribeServices",
+                "native_member_present": true,
+                "account_id": "123456789012",
+                "region": "us-east-1",
+                "service_arn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                "cluster_arn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "deployment_status": "PRIMARY"
+              }
+            }
+          }
+        }
+      ],
+      "ecs_task_definition": [
+        {
+          "type": "ecs_task_definition",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+            "Definition": {
+              "collection_status": "collected",
+              "taskDefinition": {
+                "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "volumes": [
+                  {
+                    "name": "data",
+                    "configuredAtLaunch": true
+                  },
+                  {
+                    "efsVolumeConfiguration": {
+                      "fileSystemId": "fs1"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "efs_file_system": [
+        {
+          "type": "efs_file_system",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "FileSystemId": "fs1",
+            "Encrypted": false
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "aws",
+        "scope": "123456789012/us-east-1",
+        "created_at": "2026-10-12T00:00:00+00:00",
+        "metadata": {
+          "parameters": {}
+        }
+      },
+      "collections": {
+        "ecs_cluster": [
+          {
+            "type": "ecs_cluster",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+              }
+            ]
+          }
+        ],
+        "ecs_service": [
+          {
+            "type": "ecs_service",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                "serviceArn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                "volumeConfigurations": [
+                  {
+                    "name": "data",
+                    "managedEBSVolume": {
+                      "encrypted": true
+                    }
+                  }
+                ],
+                "taskDefinition": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "_coverage": {
+                  "volumeConfigurations": {
+                    "status": "collected",
+                    "source_operation": "ecs:DescribeServices",
+                    "native_member_present": true,
+                    "account_id": "123456789012",
+                    "region": "us-east-1",
+                    "service_arn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                    "cluster_arn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                    "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                    "deployment_status": "PRIMARY"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "ecs_task_definition": [
+          {
+            "type": "ecs_task_definition",
+            "scope": "123456789012/us-east-1",
+            "status": "collected",
+            "items": [
+              {
+                "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "Definition": {
+                  "collection_status": "collected",
+                  "taskDefinition": {
+                    "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                    "volumes": [
+                      {
+                        "name": "data",
+                        "configuredAtLaunch": true
+                      },
+                      {
+                        "efsVolumeConfiguration": {
+                          "fileSystemId": "fs1"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "ecs_cluster": [
+        {
+          "type": "ecs_cluster",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c"
+          }
+        }
+      ],
+      "ecs_service": [
+        {
+          "type": "ecs_service",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+            "serviceArn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+            "volumeConfigurations": [
+              {
+                "name": "data",
+                "managedEBSVolume": {
+                  "encrypted": true
+                }
+              }
+            ],
+            "taskDefinition": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+            "_coverage": {
+              "volumeConfigurations": {
+                "status": "collected",
+                "source_operation": "ecs:DescribeServices",
+                "native_member_present": true,
+                "account_id": "123456789012",
+                "region": "us-east-1",
+                "service_arn": "arn:aws:ecs:us-east-1:123456789012:service/s",
+                "cluster_arn": "arn:aws:ecs:us-east-1:123456789012:cluster/c",
+                "task_definition_arn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "deployment_status": "PRIMARY"
+              }
+            }
+          }
+        }
+      ],
+      "ecs_task_definition": [
+        {
+          "type": "ecs_task_definition",
+          "scope": "123456789012/us-east-1",
+          "data": {
+            "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+            "Definition": {
+              "collection_status": "collected",
+              "taskDefinition": {
+                "taskDefinitionArn": "arn:aws:ecs:us-east-1:123456789012:task-definition/t:1",
+                "volumes": [
+                  {
+                    "name": "data",
+                    "configuredAtLaunch": true
+                  },
+                  {
+                    "efsVolumeConfiguration": {
+                      "fileSystemId": "fs1"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

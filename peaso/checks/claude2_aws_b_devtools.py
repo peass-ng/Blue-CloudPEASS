@@ -498,7 +498,8 @@ def ecr_public(item, index):
     statements = _repo_policy(item)
     if statements is None:
         return "NOT_APPLICABLE", {"policy": None}
-    return result(is_policy_public(statements, account(index)), statements=len(statements))
+    public = is_policy_public(statements, account(index))
+    return result(public, statements=len(statements), public_policy=public)
 
 
 @install("aws.c2b.ecr.repository_policy_prohibit_public_perimeter", "ecr_repository", "ECR repository policy does not allow public access (perimeter)",
@@ -510,7 +511,7 @@ def ecr_perimeter(item, index):
     if statements is None:
         return "NOT_APPLICABLE", {"policy": None}
     hits = turbot_public_statements(statements)
-    return result(bool(hits), statements=len(hits))
+    return result(bool(hits), statements=len(hits), public_allow_statements=len(hits))
 
 
 def _registry(scan_type="ENHANCED", rules=()):
@@ -703,7 +704,8 @@ def bus_policy_attached(item, index):
     extra={"index": CTX, "absent": _bus()}, note="Prowler is_policy_public with the audited account; prowler reads DescribeEventBus Policy with a '{}' default, so a bus without a policy PASSes.")
 def bus_public(item, index):
     statements = _bus_policy(item) or []
-    return result(is_policy_public(statements, account(index)), statements=len(statements))
+    public = is_policy_public(statements, account(index))
+    return result(public, statements=len(statements), public_policy=public)
 
 
 @install("aws.c2b.eventbridge.bus_policy_no_cross_account", "eventbridge_bus", "EventBridge event bus policy does not allow cross-account access",
@@ -712,7 +714,8 @@ def bus_public(item, index):
     extra={"index": CTX, "absent": _bus()}, note="Prowler is_policy_public(is_cross_account_allowed=False) with the default empty trusted_account_ids; a bus without a policy PASSes.")
 def bus_cross_account(item, index):
     statements = _bus_policy(item) or []
-    return result(is_policy_public(statements, account(index), is_cross_account_allowed=False), statements=len(statements))
+    external = is_policy_public(statements, account(index), is_cross_account_allowed=False)
+    return result(external, statements=len(statements), cross_account_policy=external)
 
 
 @install("aws.c2b.eventbridge.bus_policy_prohibit_public_perimeter", "eventbridge_bus", "EventBridge event bus policy does not allow public access (perimeter)",
@@ -724,7 +727,7 @@ def bus_perimeter(item, index):
     if statements is None:
         return "NOT_APPLICABLE", {"policy": None}
     hits = turbot_public_statements(statements)
-    return result(bool(hits), statements=len(hits))
+    return result(bool(hits), statements=len(hits), public_allow_statements=len(hits))
 
 
 def _endpoint(state=None):
@@ -758,7 +761,8 @@ def schema_cross_account(item, index):
     if container is None:
         return "NOT_APPLICABLE", {"policy": None}
     statements = policy_document(get(container, "Policy"))
-    return result(is_policy_public(statements, account(index), is_cross_account_allowed=False), statements=len(statements))
+    external = is_policy_public(statements, account(index), is_cross_account_allowed=False)
+    return result(external, statements=len(statements), cross_account_policy=external)
 
 
 # =========================================================================== CodeArtifact
@@ -784,7 +788,7 @@ def _ca_perimeter(cid, kind, row, title, docs):
             return "NOT_APPLICABLE", {"policy": None}
         statements = policy_document(get(container, "policy.document"))
         hits = turbot_public_statements(statements)
-        return result(bool(hits), statements=len(hits))
+        return result(bool(hits), statements=len(hits), public_allow_statements=len(hits))
     evaluate.__name__ = cid.replace(".", "_")
     return evaluate
 

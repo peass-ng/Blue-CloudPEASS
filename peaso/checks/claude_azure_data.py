@@ -588,7 +588,9 @@ def sql_ltr(item, index):
     if get(item, "parent_id", str).rsplit("/", 1)[-1].lower() == "master":
         return _na("System master database is excluded upstream")
     values = {k: get(item, "properties." + k, str) for k in ("weeklyRetention", "monthlyRetention", "yearlyRetention")}
-    return result(all(v == "PT0S" for v in values.values()), retention=values)
+    from .azure_policy_periods import positive_duration
+    enabled = [positive_duration(value) for value in values.values()]
+    return result(not any(enabled), retention=values)
 _ltr = lambda w: {"parent_id": "/s/servers/a/databases/app", "properties": {"weeklyRetention": w, "monthlyRetention": "PT0S", "yearlyRetention": "PT0S"}}
 CASES[cid("sql_database_long_term_retention")] = {"pass": _ltr("P4W"), "fail": _ltr("PT0S")}
 
@@ -606,6 +608,8 @@ def sql_va_findings(item, index):
         return _manual("No vulnerability assessment scan records exist for this database")
     latest = max(scans, key=lambda s: _when(get(s, "properties.endTime", str)))
     failed = get(latest, "properties.numberOfFailedSecurityChecks", int)
+    if failed < 0:
+        return unknown("negative vulnerability assessment failed-check count")
     return result(failed > 0, latest_scan_end=latest["properties"]["endTime"], failed_checks=failed,
                   semantics="Latest scan per database; upstream's global LIMIT 1 is not reproduced")
 _scan = lambda n: {"name": "app", "vulnerabilityAssessmentScans": [{"properties": {"endTime": "2026-01-01T00:00:00Z", "numberOfFailedSecurityChecks": 9}},
@@ -795,6 +799,8 @@ CASES[cid("storage_key_expiration_policy_90")] = {"pass": nest("properties.keyPo
 @claude("storage_key_expiration_policy_max_90", "storage_account", "Storage key expiration policy is at most 90 days", control="IA-5")
 def key_policy_max_90(item, index):
     days = _key_period(item)
+    if days is not None and days < 0:
+        raise Unavailable("key expiration period cannot be negative")
     return result(not days or days > 90, key_expiration_period_days=days)
 CASES[cid("storage_key_expiration_policy_max_90")] = {"pass": nest("properties.keyPolicy.keyExpirationPeriodInDays", 60), "fail": nest("properties.keyPolicy.keyExpirationPeriodInDays", 180)}
 
@@ -907,13 +913,17 @@ def vhd_cmk(item, index):
         account = accounts.get(host.split(".", 1)[0].lower())
         if account is None:
             unresolved.append(host)
-        elif get(account, "properties.encryption.keySource", str) == "Microsoft.Storage":
-            offending.append(account["name"])
+        else:
+            source = get(account, "properties.encryption.keySource", str).casefold()
+            if source not in ("microsoft.storage", "microsoft.keyvault"):
+                raise Unavailable("unrecognized VHD storage key source")
+            if source == "microsoft.storage":
+                offending.append(account["name"])
     if offending:
         return result(True, platform_key_vhd_accounts=sorted(set(offending)))
     if unresolved:
         return unknown("VHD host account is outside the collected inventory", hosts=unresolved)
-    return result(False, semantics="Account matched by VHD URI host; upstream matched any name substring")
+    return result(False, platform_key_vhd_accounts=[], semantics="Account matched by VHD URI host; upstream matched any name substring")
 _vhd_vm = {"id": "/subscriptions/s/v", "properties": {"storageProfile": {"osDisk": {"vhd": {"uri": "https://disks.blob.core.windows.net/vhds/os.vhd"}}}}}
 _acct = lambda source: {"id": "/subscriptions/s/a", "name": "disks", "properties": {"encryption": {"keySource": source}}}
 CASES[cid("storage_vhd_accounts_cmk")] = {

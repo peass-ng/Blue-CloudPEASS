@@ -347,7 +347,15 @@ def _custom_action_check(cid, title, rows, matcher, failing, *, resource_ok=lamb
     def evaluate(item, index):
         if is_aws_managed(item):
             return "NOT_APPLICABLE", {"reason": "AWS managed policy"}
-        return result_rows(_identity_policy_hits(item, lambda rows: count_rows(rows, matcher, resource_ok)))
+        matched = set()
+        def count_and_describe(rows):
+            hits = count_rows(rows, matcher, resource_ok)
+            if hits:
+                for statement in rows:
+                    if statement["Effect"] == "Allow" and any(resource_ok(r) for r in statement.get("Resource", [])):
+                        matched.update(a for a in statement.get("Action", []) if matcher(a))
+            return hits
+        return result_rows(_identity_policy_hits(item, count_and_describe), matching_actions=sorted(matched))
     return evaluate
 
 
@@ -400,7 +408,8 @@ def _role_attachment_check(cid, title, rows, aws_managed):
             return "NOT_APPLICABLE", {"reason": "outside source policy population"}
         arn = get(item, "Arn", str)
         from . import result
-        return result(arn not in role_attached_arns(index), policy_arn=arn)
+        attached = arn in role_attached_arns(index)
+        return result(not attached, policy_arn=arn, role_attachment_found=attached)
     return evaluate
 
 
@@ -424,7 +433,8 @@ def _policy_in_use(cid, title, rows, custom_only):
             return "NOT_APPLICABLE", {"reason": "AWS managed policy"}
         arn = get(item, "Arn", str)
         from . import result
-        return result(arn not in in_use_arns(index), policy_arn=arn)
+        attached = arn in in_use_arns(index)
+        return result(not attached, policy_arn=arn, attached_to_active_identity=attached)
     return evaluate
 
 
@@ -984,7 +994,7 @@ def user_temp_creds(item, index):
     keys = access_keys(item)
     services = [get(s, "ServiceNamespace", str) for s in last_accessed(item)]
     other = [s for s in services if s not in ("iam", "sts")]
-    return result(bool(other) and bool(keys), access_keys=len(keys), other_services=len(other))
+    return result(bool(other) and bool(keys), access_keys=len(keys), other_services=len(other), non_iam_sts_services=other)
 
 
 def _stale(kind, label, namespace, days, row):

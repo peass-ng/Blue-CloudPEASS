@@ -1,0 +1,8 @@
+{
+ "azure.storage.https_only":{"pass":{"properties":{"supportsHttpsTrafficOnly":true}},"fail":{"properties":{"supportsHttpsTrafficOnly":false}}},
+ "azure.storage.no_blob_public_access":{"pass":{"properties":{"allowBlobPublicAccess":false}},"fail":{"properties":{"allowBlobPublicAccess":true}}},
+ "azure.storage.minimum_tls":{"pass":{"properties":{"minimumTlsVersion":"TLS1_2"}},"fail":{"properties":{"minimumTlsVersion":"TLS1_0"}}},
+ "azure.iam.review_owner_assignment":{"pass":{"properties":{"roleDefinitionId":"/subscriptions/s/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7","principalId":"u"}},"fail":{"properties":{"roleDefinitionId":"/subscriptions/s/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635","principalId":"u"}}},
+ "azure.iam.no_full_custom_role":{"pass":{"properties":{"type":"CustomRole","permissions":[{"actions":["Microsoft.Compute/*/read"]}]}},"fail":{"properties":{"type":"CustomRole","permissions":[{"actions":["*"]}]}}},
+ "azure.network.restrict_internet_ingress":{"pass":{"properties":{"securityRules":[]}},"fail":{"properties":{"securityRules":[{"name":"web","properties":{"access":"Allow","direction":"Inbound","sourceAddressPrefix":"Internet","destinationPortRange":"443","protocol":"Tcp"}}]}}}
+}

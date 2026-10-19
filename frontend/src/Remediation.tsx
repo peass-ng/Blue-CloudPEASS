@@ -49,8 +49,7 @@ export function Remediation({ legacy, details, compact = false }: Props) {
       </div>
     ))}
   </> : null;
-  const extra = details?.iac || details?.caveats?.length || details?.references?.length || (compact && details?.steps?.length) ? <>
-    {compact && details?.steps?.length ? <><h4>About this guidance</h4><p>{summary}</p></> : null}
+  const extra = details?.iac || details?.caveats?.length ? <>
     {details?.iac ? <>
       <h4>Infrastructure as code</h4>
       {typeof details.iac === "string" ? <p>{details.iac}</p> : <>
@@ -63,26 +62,20 @@ export function Remediation({ legacy, details, compact = false }: Props) {
         <ExampleBody code={details.iac.code} className="remediation-iac" />
       </>}
     </> : null}
-    {details?.caveats?.length ? <><h4>Before changing this</h4><ul>{details.caveats.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
-    {details?.references?.length ? <><h4>References</h4><ul>{details.references.filter(({ url }) => safeReference(url)).map(({ title, url }) => <li key={url}><a href={url} target="_blank" rel="noopener noreferrer">{title}</a></li>)}</ul></> : null}
+    {details?.caveats?.length ? <><h4>Change considerations</h4><ul>{details.caveats.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
   </> : null;
   return (
     <section className="remediation" aria-label="Defensive remediation guidance">
-      {(!compact || !details?.steps?.length) && <p className="remediation-summary">{summary}</p>}
-      {details?.steps?.length ? (
-        <>
-          {!compact && <h4>Recommended steps</h4>}
-          <ol>{(compact ? details.steps.slice(0, 2) : details.steps).map((step, index) => <li key={index}>{step}</li>)}</ol>
-          {compact && details.steps.length > 2 && <details className="remediation-expand">
-            <summary>Remaining steps ({details.steps.length - 2})</summary>
-            <div><ol start={3}>{details.steps.slice(2).map((step, index) => <li key={index + 2}>{step}</li>)}</ol></div>
-          </details>}
-        </>
-      ) : null}
+      {!compact && !!details?.steps?.length && <p className="remediation-summary">{summary}</p>}
+      <ul className="remediation-actions">{(details?.steps?.length ? details.steps : [summary]).map((step, index) => <li key={index}>{step}</li>)}</ul>
       {compact ? <>
-        {commands && <details className="remediation-expand"><summary>Commands ({details?.cli?.length})</summary><div>{commands}</div></details>}
-        {extra && <details className="remediation-expand"><summary>More guidance &amp; references</summary><div>{extra}</div></details>}
+        {commands && <details className="remediation-expand"><summary>Commands ({details?.cli?.length})</summary><div>{commands}{extra}</div></details>}
+        {!commands && details?.iac && <details className="remediation-expand"><summary>Configuration example</summary><div>{extra}</div></details>}
       </> : <>{commands}{extra}</>}
+      {details?.references?.some(({ url }) => safeReference(url)) ? <>
+        <h4>References</h4>
+        <ul className="remediation-references">{details.references.filter(({ url }) => safeReference(url)).map(({ title, url }) => <li key={url}><a href={url} target="_blank" rel="noopener noreferrer">{title}</a></li>)}</ul>
+      </> : null}
     </section>
   );
 }
