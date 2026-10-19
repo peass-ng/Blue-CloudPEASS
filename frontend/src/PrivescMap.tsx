@@ -9,7 +9,7 @@ import {
   Position,
   ReactFlow,
 } from "@xyflow/react";
-import type { Edge, Node, NodeProps, ReactFlowInstance } from "@xyflow/react";
+import type { Edge, Node, NodeChange, NodeProps, ReactFlowInstance } from "@xyflow/react";
 import { sharedElk } from "./elkWorker";
 import type { ELK as ElkInstance, ElkNode } from "elkjs";
 import {
@@ -358,12 +358,28 @@ export function PrivescMap({
     [card, setCard] = useState<Card | null>(null),
     [query, setQuery] = useState<QueryKind | null>(null),
     [cap, setCap] = useState(INITIAL_CAP);
+  const [hoveredRelation, setHoveredRelation] = useState("");
+  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const positionsRef = useRef(positions);
+  const onNodesChange = useCallback((changes: NodeChange<PeFlowNode>[]) => {
+    const moves = changes.filter((change) => change.type === "position" && change.position);
+    if (!moves.length) return;
+    const next = { ...positionsRef.current };
+    for (const move of moves) {
+      if (move.type === "position" && move.position) next[move.id] = move.position;
+    }
+    positionsRef.current = next;
+    setPositions(next);
+  }, []);
   const displayedPaths = useRef<{ query: QueryKind | null; paths: PrivescPath[] } | null>(null);
 
   useEffect(() => {
     setExpanded(new Set());
     setFocus("");
     setHighlight(null);
+    setHoveredRelation("");
+    positionsRef.current = {};
+    setPositions({});
     setSelected("");
     setCard(null);
     setQuery(null);
@@ -564,12 +580,12 @@ export function PrivescMap({
       layoutOptions: {
         "elk.algorithm": "layered",
         "elk.direction": "RIGHT",
-        "elk.spacing.nodeNode": "22",
-        "elk.layered.spacing.nodeNodeBetweenLayers": "170",
-        "elk.layered.spacing.edgeNodeBetweenLayers": "40",
+        "elk.spacing.nodeNode": "36",
+        "elk.layered.spacing.nodeNodeBetweenLayers": "260",
+        "elk.layered.spacing.edgeNodeBetweenLayers": "60",
         // One layering for every component so all admin targets share the last column.
         "elk.separateConnectedComponents": "false",
-        "elk.spacing.componentComponent": "60",
+        "elk.spacing.componentComponent": "80",
         "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
         "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
         "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
@@ -619,12 +635,19 @@ export function PrivescMap({
   }, [layoutKey]);
 
   const hl = highlight;
+  // Hover is temporary: it must not change the query, graph layout or viewport.
+  const renderHighlight = useMemo(() => {
+    const edge = layout?.edges.find((item) => item.id === hoveredRelation);
+    return edge
+      ? { nodes: new Set([edge.source, edge.target]), edges: new Set([edge.id]) }
+      : highlight;
+  }, [layout, hoveredRelation, highlight]);
   const flowNodes = useMemo<PeFlowNode[]>(
     () =>
       (layout?.nodes || []).map((n) => ({
         id: n.id,
         type: "pe",
-        position: layout!.pos[n.id] || { x: 0, y: 0 },
+        position: positions[n.id] || layout!.pos[n.id] || { x: 0, y: 0 },
         width: nodeWidth(n),
         height: NODE_H,
         selected: card?.type === "principal" && card.id === n.id,
@@ -632,20 +655,20 @@ export function PrivescMap({
           node: n,
           admin: index.isAdmin(n.id) || (n.kind === "entity" && n.attrs?.admin === true),
           expanded: expanded.has(n.id),
-          highlighted: !!hl?.nodes.has(n.id),
-          dimmed: !!hl && !hl.nodes.has(n.id),
+          highlighted: !!renderHighlight?.nodes.has(n.id),
+          dimmed: !!renderHighlight && !renderHighlight.nodes.has(n.id),
           focused: focus === n.id || selected === n.id,
         },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
       })),
-    [layout, index, expanded, hl, focus, selected, card],
+    [layout, positions, index, expanded, renderHighlight, focus, selected, card],
   );
   const flowEdges = useMemo<Edge[]>(
     () =>
       (layout?.edges || []).map((e) => {
-        const on = !!hl?.edges.has(e.id);
-        const dim = !!hl && !on;
+        const on = !!renderHighlight?.edges.has(e.id);
+        const dim = !!renderHighlight && !on;
         const color = e.membership ? "#6f8796" : SEV_COLOR[e.severity] || SEV_COLOR.high;
         const n = e.techniques.length;
         return {
@@ -653,6 +676,7 @@ export function PrivescMap({
           source: e.source,
           target: e.target,
           type: "default",
+          interactionWidth: 24,
           className: [
             "pe-edge",
             `sev-${e.severity}`,
@@ -687,7 +711,7 @@ export function PrivescMap({
             : `${nodeLabel(index.nodes.get(e.source), e.source)} to ${nodeLabel(index.nodes.get(e.target), e.target)}: ${e.techniques.join(", ")}`,
         };
       }),
-    [layout, hl, index],
+    [layout, renderHighlight, index],
   );
 
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -703,7 +727,7 @@ export function PrivescMap({
       const box = (list: VNode[]) => {
         let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
         for (const n of list) {
-          const p = layout.pos[n.id];
+          const p = positionsRef.current[n.id] || layout.pos[n.id];
           if (!p) continue;
           x0 = Math.min(x0, p.x);
           y0 = Math.min(y0, p.y);
@@ -758,7 +782,7 @@ export function PrivescMap({
       const right = all.x1;
       const anchorNodes = admins.length
         ? admins
-        : subset.filter((n) => (layout.pos[n.id]?.x ?? -Infinity) + nodeWidth(n) >= right - 1);
+        : subset.filter((n) => ((positionsRef.current[n.id] || layout.pos[n.id])?.x ?? -Infinity) + nodeWidth(n) >= right - 1);
       const a = box(anchorNodes);
       const zoom = Math.max(READABLE_ZOOM, Math.min(ANCHOR_ZOOM, fitZoom(a)));
       const tall = (a.y1 - a.y0) * zoom > h * 0.8;
@@ -782,7 +806,7 @@ export function PrivescMap({
     const kept = keepInView.current;
     keepInView.current = "";
     const id = requestAnimationFrame(() => {
-      const p = kept && !targets.length ? layout.pos[kept] : undefined;
+      const p = kept && !targets.length ? positionsRef.current[kept] || layout.pos[kept] : undefined;
       if (p && flow.current) {
         void flow.current.setCenter(p.x + AGG_W / 2, p.y + NODE_H / 2, {
           zoom: Math.max(READABLE_ZOOM, flow.current.getZoom()),
@@ -1099,7 +1123,12 @@ export function PrivescMap({
                   onInit={(instance) => {
                     flow.current = instance;
                   }}
-                  nodesDraggable={false}
+                  nodesDraggable
+                  nodeDragThreshold={4}
+                  onNodesChange={onNodesChange}
+                  onEdgeMouseEnter={(_, edge) => setHoveredRelation(edge.id)}
+                  onEdgeMouseLeave={() => setHoveredRelation("")}
+                  onNodeDragStart={() => setHoveredRelation("")}
                   nodesConnectable={false}
                   edgesReconnectable={false}
                   deleteKeyCode={null}
