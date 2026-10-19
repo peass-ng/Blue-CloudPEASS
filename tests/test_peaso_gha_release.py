@@ -84,3 +84,20 @@ def test_current_source_member_growth_keeps_an_explicit_upper_bound(tmp_path, mo
     else:
         with pytest.raises(ValueError, match="member count"):
             release.verify_source_archive(manifest)
+
+
+def test_current_source_reviewer_accepts_exact_byte_budget_and_rejects_one_byte_over(tmp_path, monkeypatch):
+    import json
+    import zipfile
+
+    manifest = {"source_version": VERSION, "files": {}}
+    archive = tmp_path / f"peaso-source-{VERSION}.zip"
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as target:
+        target.writestr("release.json", json.dumps(manifest, indent=2).encode())
+    monkeypatch.setattr(release.deploy, "BUILD", tmp_path)
+    measured = archive.stat().st_size
+    monkeypatch.setattr(release.deploy, "CURRENT_SOURCE_ARCHIVE_LIMIT", measured)
+    assert release.verify_source_archive(manifest) == archive
+    monkeypatch.setattr(release.deploy, "CURRENT_SOURCE_ARCHIVE_LIMIT", measured - 1)
+    with pytest.raises(ValueError, match="reviewed size"):
+        release.verify_source_archive(manifest)

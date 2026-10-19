@@ -151,6 +151,7 @@ CURRENT_API_MEMBER_LIMIT = 4800
 # historical artifact-update approvals retain their original measured limits.
 CURRENT_SOURCE_MEMBER_LIMIT = 2700  # Includes release.json; independently bounds the current release.
 CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 275_000_000
+CURRENT_SOURCE_ARCHIVE_LIMIT = 36_000_000  # Matches the current Actions reviewer; historical contracts stay at 32 MB.
 
 
 def checked_member(root, name):
@@ -395,7 +396,7 @@ def freeze_release(release_source=None):
         info.compress_type = zipfile.ZIP_DEFLATED
         info.external_attr = 0o644 << 16
         archive.writestr(info, json.dumps(release, indent=2), compresslevel=9)
-    if archive_path.stat().st_size > artifact_update.MAX_SOURCE_ARCHIVE_BYTES:
+    if archive_path.stat().st_size > CURRENT_SOURCE_ARCHIVE_LIMIT:
         try:
             from peaso_source_archive import optimize_source_archive
         except ModuleNotFoundError:
@@ -405,8 +406,8 @@ def freeze_release(release_source=None):
             max_member_bytes=artifact_update.MAX_SOURCE_MEMBER_BYTES,
             max_uncompressed_bytes=CURRENT_SOURCE_UNCOMPRESSED_LIMIT)
         (BUILD / "source-compression.json").write_text(json.dumps(compression, indent=2) + "\n")
-        if archive_path.stat().st_size > artifact_update.MAX_SOURCE_ARCHIVE_BYTES:
-            raise RuntimeError("Frozen source ZIP exceeds the unchanged archive byte limit")
+        if archive_path.stat().st_size > CURRENT_SOURCE_ARCHIVE_LIMIT:
+            raise RuntimeError("Frozen source ZIP exceeds the current archive byte limit")
     print(f"Frozen source {version}: {len(source)} files; {archive_path}")
     return release
 
