@@ -717,10 +717,24 @@ test("subnets expand independently inside the VPC with compact labels and full t
   await expect(node("asset:eni-001")).toBeVisible();
   for (const suffix of ["000","001"]) {
     await expect(heading(`area:subnet-${suffix}`)).toHaveAttribute("aria-expanded","true");
-    const root = await node("network:vpc-many").boundingBox();
-    const subnet = await node(`area:subnet-${suffix}`).boundingBox();
-    const asset = await node(`asset:eni-${suffix}`).boundingBox();
-    expect(root && subnet && asset && subnet.x>=root.x && subnet.y>=root.y && subnet.x+subnet.width<=root.x+root.width+1 && subnet.y+subnet.height<=root.y+root.height+1 && asset.x>=subnet.x && asset.y>=subnet.y && asset.x+asset.width<=subnet.x+subnet.width+1 && asset.y+asset.height<=subnet.y+subnet.height+1).toBe(true);
+    await expect.poll(() => page.evaluate((expandedSuffix) => {
+      const rect = (id:string) => document.querySelector<HTMLElement>(`.react-flow__node[data-id="${id}"]`)?.getBoundingClientRect();
+      // Read all three boxes in one layout frame while React Flow finishes fitView.
+      const root = rect("network:vpc-many");
+      const subnet = rect(`area:subnet-${expandedSuffix}`);
+      const asset = rect(`asset:eni-${expandedSuffix}`);
+      if (!root || !subnet || !asset) return ["missing node"];
+      const violations:string[] = [];
+      if (subnet.left < root.left) violations.push("subnet left of VPC");
+      if (subnet.top < root.top) violations.push("subnet above VPC");
+      if (subnet.right > root.right + 1) violations.push("subnet right of VPC");
+      if (subnet.bottom > root.bottom + 1) violations.push("subnet below VPC");
+      if (asset.left < subnet.left) violations.push("asset left of subnet");
+      if (asset.top < subnet.top) violations.push("asset above subnet");
+      if (asset.right > subnet.right + 1) violations.push("asset right of subnet");
+      if (asset.bottom > subnet.bottom + 1) violations.push("asset below subnet");
+      return violations;
+    }, suffix), {message:`subnet ${suffix} and its asset remain inside their parents`}).toEqual([]);
   }
   await page.screenshot({path:"evidence/network-expanded-sibling-subnets.png",fullPage:true});
   await heading("area:subnet-000").click();

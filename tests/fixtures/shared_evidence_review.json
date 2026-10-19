@@ -11481,7 +11481,7 @@
     "id": "analysis.principal_exposure",
     "provider": "aws",
     "status": "FAIL",
-    "summary": "Principal \u201c*\u201d (anyone) is allowed to assume this IAM role. This may admit unintended callers; other policies may still block requests."
+    "summary": "Principal \u201c*\u201d (anyone) is allowed sts:AssumeRole on the resources covered by the statement. This may admit unintended callers; other policies may still block requests."
   },
   {
     "id": "analysis.network_review",
@@ -11493,7 +11493,7 @@
     "id": "analysis.coverage",
     "provider": "aws",
     "status": "UNKNOWN",
-    "summary": "The scan lacks complete inventory for IAM users and IAM groups and 1 other required inventory. Missing records can hide grants or principals, so full access cannot be assessed."
+    "summary": "The scan lacks complete inventory for access analyzer and ecs service and 15 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed."
   },
   {
     "id": "analysis.federated_trust",
@@ -11541,7 +11541,7 @@
     "id": "analysis.coverage",
     "provider": "gcp",
     "status": "UNKNOWN",
-    "summary": "The scan lacks complete inventory for service accounts and IAM roles and 2 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed."
+    "summary": "The scan lacks complete inventory for firewall policy and function and 7 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed."
   },
   {
     "id": "analysis.federated_trust",
@@ -11583,7 +11583,7 @@
     "id": "analysis.coverage",
     "provider": "azure",
     "status": "UNKNOWN",
-    "summary": "The scan lacks complete inventory for directory users and directory groups and 1 other required inventory. Missing records can hide grants or principals, so full access cannot be assessed."
+    "summary": "The scan lacks complete inventory for container group and directory applications and 12 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed."
   },
   {
     "id": "analysis.federated_trust",
@@ -11625,7 +11625,7 @@
     "id": "analysis.coverage",
     "provider": "k8s",
     "status": "UNKNOWN",
-    "summary": "The scan lacks complete inventory for namespace roles and namespace role bindings and 1 other required inventory. Missing records can hide grants or principals, so full access cannot be assessed."
+    "summary": "The scan lacks complete inventory for endpointslice and ingress and 5 other required inventories. Missing records can hide grants or principals, so full access cannot be assessed."
   },
   {
     "id": "analysis.internet_exposure",

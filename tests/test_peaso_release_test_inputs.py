@@ -18,6 +18,8 @@ def archive_checkout(tmp_path):
     retained = tmp_path / "tests/fixtures/post_dfaf_integration/pre_review_ledger_inputs.json.gz"
     retained.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, retained)
+    pci_source = Path(__file__).parent / "fixtures/post_dfaf_integration/pre_review_gcp_pci.json.gz"
+    shutil.copyfile(pci_source, retained.parent / pci_source.name)
     return target
 
 
@@ -80,7 +82,6 @@ def test_historical_release_rosters_and_member_tampering(tmp_path, monkeypatch):
     from tests import release_successor_history as history
     archive_checkout(tmp_path)
     inputs.restore_missing_inputs(tmp_path)
-    original_root = history.ROOT
     monkeypatch.setattr(history, "ROOT", tmp_path)
     payload = json.loads((tmp_path / "tests/fixtures/post_dfaf_integration/historical-release-manifests.json").read_text())
     for version in payload["releases"]:
@@ -91,7 +92,7 @@ def test_historical_release_rosters_and_member_tampering(tmp_path, monkeypatch):
     member = "docs/compliance-ledgers/manifest.json"
     baseline = tmp_path / member
     baseline.parent.mkdir(parents=True, exist_ok=True)
-    baseline.write_bytes((original_root / member).read_bytes())
+    baseline.write_bytes(history.retained_ledger_inputs()["manifest.json"])
     assert history.historical_bytes(archive, member)
     baseline.write_text("{}")
     with pytest.raises(ValueError, match="digest"):

@@ -35,11 +35,14 @@ def test_unreadable_peer_inline_inventory_preserves_known_result_only(document):
 
 @pytest.mark.parametrize("document", [BAD, SAFE])
 def test_unreadable_peer_default_selector_preserves_known_result_only(document):
-    item = {"PolicyVersionList": [
-        {"IsDefaultVersion": True, "Document": deepcopy(document)},
-        {"IsDefaultVersion": False, "_coverage": {"IsDefaultVersion": {"status": "denied"}}},
+    item = {"DefaultVersionId": "v1", "PolicyVersionList": [
+        {"VersionId": "v1", "IsDefaultVersion": True, "Document": deepcopy(document)},
+        {"VersionId": "v2", "IsDefaultVersion": False,
+         "_coverage": {"IsDefaultVersion": {"status": "denied"}}},
     ]}
-    assert assessed(item) == ("FAIL" if document == BAD else "UNKNOWN")
+    # The selected managed default is not authenticated while another selector
+    # is unreadable; none of these version documents may decide the verdict.
+    assert assessed(item) == "UNKNOWN"
 
 
 @pytest.mark.parametrize("document", [BAD, SAFE])
@@ -53,7 +56,9 @@ def test_unreadable_peer_statement_preserves_known_result_only(document):
 def test_unreadable_direct_document_does_not_hide_known_default_version():
     item = {"PolicyDocument": deepcopy(SAFE),
             "_coverage": {"PolicyDocument": {"status": "denied"}},
-            "PolicyVersionList": [{"IsDefaultVersion": True, "Document": deepcopy(BAD)}]}
+            "DefaultVersionId": "v1",
+            "PolicyVersionList": [{"VersionId": "v1", "IsDefaultVersion": True,
+                                   "Document": deepcopy(BAD)}]}
     assert assessed(item) == "FAIL"
 
 

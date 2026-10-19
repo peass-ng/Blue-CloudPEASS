@@ -44,5 +44,9 @@ def test_scope_partial_dependencies_cannot_prove_pass(check):
             envelope['status'] = 'partial'
             changed += 1
     if not changed:
-        pytest.skip('shared fixture has no dependency envelopes to mutate')
+        # Legacy examples can predate a native dependency (for example the
+        # account-global Config proof). They must remain unresolved, rather
+        # than silently skipping this incomplete-evidence contract.
+        assert check.evaluate(item, index)[0] != 'PASS', check.id
+        return
     assert check.evaluate(item, index)[0] != 'PASS', check.id

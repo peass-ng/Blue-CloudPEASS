@@ -35,6 +35,11 @@ PRE_REVIEW_LEDGER_BUNDLE_SHA256 = "0a5dd6f4b192da6c2c0b5a9c2bbd92e982f6ce33b9928
 PRE_REVIEW_MANIFEST_SHA256 = "ffb564cedbf575c3d1f94a158c4565f198c14919f93236207e02177855de5879"
 REVIEWED_SUCCESSOR_MANIFEST_SHA256 = "2b6e09aa867063ec82de2df146ac085e08b09bc8e7bc8b6b9fdd3ae18325e399"
 REVIEWED_CLOUDSQL_FIXTURE_SHA256 = "d03f19c384786999ded6a9a9a462cf52c72a098bf0de697a57f506ceaad274d6"
+# Exact signed predecessor from commit 15842280dfb336f356497451d94ec46b2ba5d4ee.
+# The current ledger includes four accepted Workbench mapping rejections.
+PRE_REVIEW_GCP_PCI = 'tests/fixtures/post_dfaf_integration/pre_review_gcp_pci.json.gz'
+PRE_REVIEW_GCP_PCI_PACKED_SHA256 = '5f28c8335a2d008497ce1090960f9660684312d3caab70ca636d20d390a8068e'
+PRE_REVIEW_GCP_PCI_SHA256 = "8ebb75fdd0950e3689d3b531509140b020e4f9fdecca4114ccd8a50f48a686c2"
 
 
 def assert_reviewed_central_fixture_successor(cases, original):
@@ -73,6 +78,16 @@ def retained_ledger_inputs():
     for entry in manifest["slices"].values():
         if entry["path"] in result and hashlib.sha256(result[entry["path"]]).hexdigest() != entry["sha256"]:
             raise ValueError("Historical ledger slice digest differs")
+    packed_gcp = (ROOT / PRE_REVIEW_GCP_PCI).read_bytes()
+    if hashlib.sha256(packed_gcp).hexdigest() != PRE_REVIEW_GCP_PCI_PACKED_SHA256:
+        raise ValueError("Historical GCP PCI packed digest differs")
+    raw_gcp = gzip.decompress(packed_gcp)
+    if hashlib.sha256(raw_gcp).hexdigest() != PRE_REVIEW_GCP_PCI_SHA256:
+        raise ValueError("Historical GCP PCI source digest differs")
+    expected_gcp = next(entry for entry in manifest["slices"].values() if entry["path"] == "gcp-pci.json")
+    if expected_gcp["sha256"] != PRE_REVIEW_GCP_PCI_SHA256:
+        raise ValueError("Historical GCP PCI manifest binding differs")
+    result["gcp-pci.json"] = raw_gcp
     return result
 
 

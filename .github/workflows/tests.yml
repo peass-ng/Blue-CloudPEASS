@@ -94,7 +94,11 @@ jobs:
       - name: Run the performance gate in isolation
         id: benchmark
         # Measure before the large suite imports its fixtures and allocates worker heaps.
-        run: python -m pytest -q -s -p no:cacheprovider -rs --junitxml=benchmark-report.xml tests/test_peaso_perf_benchmark.py
+        run: >-
+          python -m pytest -q -s -p no:cacheprovider -rs --junitxml=benchmark-report.xml
+          tests/test_peaso_perf_benchmark.py
+          tests/test_peaso_privesc.py::test_perf_10k_principals
+          tests/test_peaso_privesc.py::test_perf_10k_principals_gcp_k8s_azure
       - name: Profile a failed performance gate
         if: ${{ failure() && steps.benchmark.outcome == 'failure' }}
         run: |
@@ -108,7 +112,12 @@ jobs:
           HACKTRICKS_CLOUD_ROOT: ${{ github.workspace }}/.hacktricks-cloud:${{ github.workspace }}/.hacktricks-cloud-azure:${{ github.workspace }}/.hacktricks-cloud-k8s
           PEASO_HACKTRICKS_ROOT: ${{ github.workspace }}/.hacktricks-cloud
         # --dist loadfile keeps each module's expensive fixtures on one worker.
-        run: python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs --ignore=tests/test_peaso_perf_benchmark.py --junitxml=pytest-report.xml tests
+        run: >-
+          python -m pytest -q -p no:cacheprovider -n auto --dist loadfile -rs
+          --ignore=tests/test_peaso_perf_benchmark.py
+          --deselect=tests/test_peaso_privesc.py::test_perf_10k_principals
+          --deselect=tests/test_peaso_privesc.py::test_perf_10k_principals_gcp_k8s_azure
+          --junitxml=pytest-report.xml tests
       - name: Fail on unexpected performance skips
         if: ${{ !cancelled() && steps.benchmark.outcome != 'skipped' }}
         run: python scripts/check_test_skips.py pytest benchmark-report.xml

@@ -25,7 +25,13 @@ spec.loader.exec_module(deploy)
 
 
 def test_current_freeze_uses_its_own_byte_budget_and_rejects_one_byte_over(tmp_path, monkeypatch):
-    from scripts import peaso_source_archive
+    # Match the deploy entrypoint's import path even when another CLI test has
+    # added scripts/ to sys.path. Patching a second module instance would run
+    # the real optimizer and legitimately shrink the archive under this cap.
+    try:
+        import peaso_source_archive
+    except ModuleNotFoundError:
+        from scripts import peaso_source_archive
 
     authored = tmp_path / "authored"
     authored.mkdir()
