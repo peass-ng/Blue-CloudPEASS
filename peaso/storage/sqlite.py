@@ -100,6 +100,7 @@ class SQLiteStore:
         with self.connect() as db:
             db.executescript("""
             PRAGMA journal_mode=WAL;
+            CREATE TABLE IF NOT EXISTS workspace_external_ids (tenant TEXT PRIMARY KEY, external_id TEXT NOT NULL UNIQUE);
             CREATE TABLE IF NOT EXISTS connectors (id TEXT PRIMARY KEY, tenant TEXT NOT NULL, data TEXT NOT NULL, auth TEXT NOT NULL);
             CREATE INDEX IF NOT EXISTS connectors_tenant ON connectors(tenant);
             CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, tenant TEXT NOT NULL, connector_id TEXT NOT NULL, data TEXT NOT NULL, connector TEXT NOT NULL, status TEXT NOT NULL, created REAL NOT NULL, deadline REAL NOT NULL, owner TEXT, lease REAL, snapshot TEXT, report TEXT, error TEXT, idem TEXT, digest TEXT);
@@ -258,6 +259,14 @@ class SQLiteStore:
         with self.transaction() as db:
             return db.execute("UPDATE api_keys SET last_used_at=? WHERE tenant=? AND id=? AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at>?)",
                               (now, tenant, key_id, now)).rowcount == 1
+
+    def workspace_external_id(self, tenant):
+        """Allocate once, atomically, without deriving the ID from public names."""
+        import secrets
+        with self.transaction() as db:
+            db.execute("INSERT OR IGNORE INTO workspace_external_ids VALUES(?,?)",
+                       (tenant, "hacktricks-cspm-ws-" + secrets.token_urlsafe(48)))
+            return db.execute("SELECT external_id FROM workspace_external_ids WHERE tenant=?", (tenant,)).fetchone()["external_id"]
 
     def add_connector(self, tenant, data, encrypted_auth):
         value = dict(data, id=uuid.uuid4().hex, created_at=utc())

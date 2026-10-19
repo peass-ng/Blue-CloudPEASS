@@ -105,7 +105,15 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             record = None
         if not record or record.get("tenant") != user.tenant_id or record.get("provider") != provider or record.get("expires", 0) < time.time():
             raise HTTPException(422, "Hosted setup has expired; reopen the setup guide")
+        if provider == "aws" and record["auth"].get("external_id") != store.workspace_external_id(user.tenant_id):
+            raise HTTPException(422, "Workspace setup has changed; reopen the setup guide")
         return record["auth"]
+
+    def bind_workspace_external_id(user, provider, auth):
+        if (settings.auth_mode == "cognito" and provider == "aws"
+                and auth.get("method") in {"assume_role", "task_role"}
+                and not auth.get("aws_access_key_id")):
+            auth["external_id"] = store.workspace_external_id(user.tenant_id)
 
     def connector_digest(value):
         return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()).hexdigest()
@@ -121,8 +129,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 or record.get("digest") != connector_digest(payload)
                 or record.get("status") not in {"pass", "warning"}):
             raise HTTPException(422, "Access check expired or connector settings changed; check access again")
-        if record.get("credential_expires_at") and record["credential_expires_at"] < time.time() + 3600:
-            raise HTTPException(422, "Temporary credential has less than one hour remaining; check access again")
+        if record.get("credential_expires_at") and record["credential_expires_at"] <= time.time():
+            raise HTTPException(422, "Temporary credential has expired; check access again")
     app.state.legacy_coverage_count_index = coverage_counts
     app.state.legacy_coverage_count_inflight = coverage_inflight
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.origins), allow_methods=["GET", "POST", "PATCH", "DELETE"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key"], allow_credentials=settings.auth_mode == "cognito")
@@ -501,7 +509,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             public = {"service_account_email": PLATFORM_EMAIL, "project_label_key": generated["project_proof_label"], "project_label_value": PROOF_VALUE}
         else:
             import secrets
-            generated = {"external_id": EXTERNAL_ID_PREFIX + secrets.token_urlsafe(24)}
+            generated = {"external_id": store.workspace_external_id(user.tenant_id)}
             public = {"external_id": generated["external_id"], "collector_role_arn": COLLECTOR_ROLE_ARN, "template_url": CUSTOMER_ROLE_TEMPLATE_URL}
         prepared_id = cipher.encrypt({"tenant": user.tenant_id, "provider": provider, "auth": generated, "expires": time.time() + 3600})
         return {"prepared_id": prepared_id, **public}
@@ -510,14 +518,20 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def connector_check_access(body: ConnectorCheck, user=Depends(identity)):
         submitted = body.model_dump(exclude={"credential_expires_at", "connector_id", "check_token"})
         auth = dict(body.auth)
-        if body.connector_id and not auth:
+        using_saved_auth = bool(body.connector_id and not auth)
+        if body.connector_id:
             row = store.connector(user.tenant_id, body.connector_id)
-            auth = dict(cipher.decrypt(row["auth"])["auth"])
+            if json.loads(row["data"])["provider"] != body.provider:
+                raise HTTPException(422, "Connector provider does not match the access check")
+            if using_saved_auth:
+                auth = dict(cipher.decrypt(row["auth"])["auth"])
         if body.prepared_id:
             auth.update(prepared_auth(user, body.prepared_id, body.provider))
         options = dict(body.options)
         validate_connector(body.provider, auth, options, settings,
-                           server_external_id=bool(body.prepared_id or body.connector_id), scopes=body.scopes)
+                           server_external_id=bool(body.prepared_id or using_saved_auth), scopes=body.scopes)
+        if not using_saved_auth:
+            bind_workspace_external_id(user, body.provider, auth)
         from .access_check import check_access
         result = check_access(body.provider, auth, body.scopes, options, settings,
                               credential_expires_at=body.credential_expires_at)
@@ -539,6 +553,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             auth.update(prepared_auth(user, prepared_id, body.provider))
         validate_connector(body.provider, auth, data["options"], settings,
                            server_external_id=bool(prepared_id), scopes=data["scopes"])
+        bind_workspace_external_id(user, body.provider, auth)
         data["input_mode"] = "offline_snapshot" if "snapshot" in data["options"] else "demo" if data["options"].get("demo") else "live"
         # Encrypt the whole connector input too: secrets can hide in arbitrary options.
         private_input = {"auth": auth, "options": data.pop("options")}
@@ -568,15 +583,22 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         row = store.connector(user.tenant_id, ident)
         private = cipher.decrypt(row["auth"])
         patch = body.model_dump(exclude_none=True)
+        prepared_id = patch.pop("prepared_id", None)
+        if prepared_id and "auth" not in patch:
+            raise HTTPException(422, "Prepared setup requires replacement authentication")
         if "auth" in patch:
             private["auth"] = patch.pop("auth")
+            if prepared_id:
+                private["auth"].update(prepared_auth(user, prepared_id, json.loads(row["data"])["provider"]))
         if "options" in patch:
             private["options"] = patch["options"]
             patch["options"] = redact(patch["options"], tuple(credential_values(private["auth"])))
             patch["options"].pop("snapshot", None)
         validate_connector(json.loads(row["data"])["provider"], private["auth"], private["options"], settings,
-                           server_external_id="auth" not in body.model_fields_set,
+                           server_external_id=bool(prepared_id or "auth" not in body.model_fields_set),
                            scopes=patch.get("scopes", json.loads(row["data"])["scopes"]))
+        if "auth" in body.model_fields_set:
+            bind_workspace_external_id(user, json.loads(row["data"])["provider"], private["auth"])
         patch["input_mode"] = "offline_snapshot" if "snapshot" in private["options"] else "demo" if private["options"].get("demo") else "live"
         input_mode = patch.pop("input_mode")
         store.update_connector(user.tenant_id, ident, dict(redact(patch, tuple(credential_values(private["auth"]))), input_mode=input_mode), cipher.encrypt(private))

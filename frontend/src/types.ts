@@ -139,6 +139,8 @@ export type Report = {
 };
 export type Scan = {
   id: string;
+  updated_at?: string;
+  timeline?: { status: string; at: string }[];
   display_name?: string;
   connector_id: string;
   status: string;

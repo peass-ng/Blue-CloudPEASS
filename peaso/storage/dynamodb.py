@@ -346,6 +346,23 @@ class DynamoStore:
                 return False
             raise
 
+    def workspace_external_id(self, tenant):
+        import secrets
+        existing = self._get(tenant, "aws_external_id", "workspace")
+        if existing:
+            return existing["external_id"]
+        value = "hacktricks-cspm-ws-" + secrets.token_urlsafe(48)
+        try:
+            self._put(tenant, "aws_external_id", "workspace", {"external_id": value})
+            return value
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] != "ConditionalCheckFailedException":
+                raise
+            existing = self._get(tenant, "aws_external_id", "workspace")
+            if not existing:
+                raise
+            return existing["external_id"]
+
     def add_connector(self, tenant, data, encrypted_auth):
         value = dict(data, id=uuid.uuid4().hex, created_at=utc())
         self._put(tenant, "connector", value["id"], {"id": value["id"], "tenant": tenant, "data": json.dumps(value), "auth": encrypted_auth})

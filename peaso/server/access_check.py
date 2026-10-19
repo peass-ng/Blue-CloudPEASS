@@ -8,6 +8,13 @@ import os
 import re
 
 
+def _probe_scopes(values, probe):
+    # Independent, read-only target probes share a small bounded worker pool.
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(probe, values))
+
+
 def _issue(items, severity, scope, message):
     items.append({"severity": severity, "scope": scope, "message": message})
 
@@ -73,9 +80,11 @@ def _check_lifetime(auth, declared, issues):
     for label, value in values:
         expires = _expiry(value)
         if expires is None:
-            _issue(issues, "critical", label, "Expiration could not be verified. Enter its UTC expiration time.")
+            continue  # Opaque credentials must be verified through provider reads.
+        if expires <= datetime.now(timezone.utc):
+            _issue(issues, "critical", label, "Credential has expired. Supply a current credential.")
         elif expires < datetime.now(timezone.utc) + timedelta(hours=1):
-            _issue(issues, "critical", label, "Credential expires in less than one hour. Supply a longer-lived credential.")
+            _issue(issues, "advisory", label, "Credential expires in less than one hour; a long scan may require renewed credentials.")
 
 
 def _aws(auth, scopes, options, issues, principals):
@@ -123,11 +132,42 @@ def _aws(auth, scopes, options, issues, principals):
         targets.append({"role_arn": auth["role_arn"]})
     if not hosted and options.get("include_source_account", True):
         targets = [{"source": True}] + targets
+    if not hosted and options.get("organization_role_name"):
+        token, seen = None, set()
+        try:
+            for _ in range(10):
+                page = session.client("organizations", config=config).list_accounts(MaxResults=20, **({"NextToken": token} if token else {}))
+                for account in page.get("Accounts", []):
+                    ident = account.get("Id")
+                    if re.fullmatch(r"[0-9]{12}", str(ident)) and account.get("State", account.get("Status")) == "ACTIVE":
+                        targets.append({"role_arn": f"arn:aws:iam::{ident}:role/{options['organization_role_name']}"})
+                token = page.get("NextToken")
+                if not token:
+                    break
+                if token in seen:
+                    raise ValueError("Repeated organization page")
+                seen.add(token)
+            if token:
+                _issue(issues, "critical", "accounts", "Organization account discovery is incomplete; select account IDs explicitly.")
+        except Exception:
+            _issue(issues, "critical", "accounts", "Could not complete organization account discovery (organizations:ListAccounts).")
+    selected_accounts = {value.split("/")[0] for value in scopes if re.match(r"^[0-9]{12}(?:/|$)", value)}
+    if selected_accounts:
+        targets = [target for target in targets if not (target.get("role_arn") if isinstance(target, dict) else target)
+                   or (target.get("role_arn") if isinstance(target, dict) else target).split(":")[4] in selected_accounts]
+    configured_accounts = {role.split(":")[4] for target in targets
+                           if (role := target.get("role_arn") if isinstance(target, dict) else target)}
+    if len(targets) > 100:
+        _issue(issues, "critical", "accounts", "Only the first 100 target contexts can be checked; narrow the selection.")
+        targets = targets[:100]
     if not targets:
         _issue(issues, "critical", "accounts", "No source account or target role is selected for scanning.")
-        return
+        for account in selected_accounts:
+            _issue(issues, "critical", account, "No configured identity or target role can access this selected account.")
+        return sorted(selected_accounts)
     selected_accounts = {s.split("/")[0] for s in scopes if re.match(r"^[0-9]{12}(?:/|$)", s)}
     verified_accounts = set()
+    attempted_accounts = set(selected_accounts) | configured_accounts
     for target in targets:
         role_arn = target.get("role_arn") if isinstance(target, dict) else target
         if hosted and role_arn and role_arn.split(":")[4] in PLATFORM_ACCOUNT_IDS:
@@ -135,7 +175,11 @@ def _aws(auth, scopes, options, issues, principals):
             continue
         if role_arn and selected_accounts and role_arn.split(":")[4] not in selected_accounts:
             continue
+        if role_arn and role_arn.split(":")[4] in verified_accounts:
+            continue  # Match collection: one authenticated context per account.
         scope = role_arn or "source account"
+        if role_arn:
+            attempted_accounts.add(role_arn.split(":")[4])
         try:
             active = session
             if role_arn:
@@ -155,6 +199,7 @@ def _aws(auth, scopes, options, issues, principals):
             if not role_arn and selected_accounts and identity["Account"] not in selected_accounts:
                 continue
             verified_accounts.add(identity["Account"])
+            attempted_accounts.add(identity["Account"])
             principals.append({"scope": scope, "principal": identity["Arn"]})
         except Exception:
             _issue(issues, "critical", scope, "Could not authenticate or assume this target role with the configured trust and External ID.")
@@ -177,6 +222,7 @@ def _aws(auth, scopes, options, issues, principals):
             _issue(issues, "advisory", scope, "IAM Access Analyzer inventory is unavailable (access-analyzer:ListAnalyzers). Grant read access if you use analyzer findings.")
     for missing in sorted(selected_accounts - verified_accounts):
         _issue(issues, "critical", missing, "No configured identity or target role could access this selected AWS account.")
+    return sorted(attempted_accounts)
 
 
 def _gcp(auth, scopes, options, issues, principals, settings):
@@ -184,7 +230,11 @@ def _gcp(auth, scopes, options, issues, principals, settings):
     from peaso.collectors.gcp import Credentials
     from peaso.gcp_platform import PLATFORM_PROJECT, approved_project, load_service_account
     if auth.get("method") == "platform-service-account":
-        auth = {"method": "service-account", "sa_json": load_service_account(settings.gcp_platform_sa_secret_arn)}
+        if not scopes or "*" in scopes or any(options.get(key) for key in ("all_projects", "discover_projects", "all_hierarchy")):
+            _issue(issues, "critical", "projects", "The shared HackTricks GCP account requires exact project IDs; discovery is unavailable.")
+            return []
+        auth = {"method": "service-account", "project_proof_label": auth.get("project_proof_label"),
+                "sa_json": load_service_account(settings.gcp_platform_sa_secret_arn)}
     service_account = auth.get("sa_json")
     if isinstance(service_account, str):
         try:
@@ -211,19 +261,23 @@ def _gcp(auth, scopes, options, issues, principals, settings):
             if page_token:
                 _issue(issues, "critical", "projects", "Too many accessible projects to verify in one check; select project IDs explicitly.")
         selected = list(dict.fromkeys(selected))
+        allowed = options.get("project_restrictions", options.get("allowed_projects"))
+        if allowed is not None:
+            allowed = {value.removeprefix("projects/") for value in allowed}
+            selected = [value for value in selected if value in allowed]
         if not selected:
             _issue(issues, "critical", "projects", "No accessible customer project was found.")
-        for project in selected[:100]:
+        def probe_project(project):
             if project == PLATFORM_PROJECT:
                 _issue(issues, "critical", project, "Choose a different project to scan.")
-                continue
+                return
             try:
                 response = requests.get(f"https://cloudresourcemanager.googleapis.com/v3/projects/{project}", headers=headers, timeout=10)
                 response.raise_for_status()
                 item = response.json()
                 if auth.get("project_proof_label") and not approved_project(item, auth["project_proof_label"]):
                     _issue(issues, "critical", project, "Project is missing this connector's approval label.")
-                    continue
+                    return
                 principals.append({"scope": project, "principal": principal})
                 perms = ["resourcemanager.projects.get", "cloudasset.assets.searchAllResources",
                          "iam.roles.list", "serviceusage.services.use", "logging.logEntries.list",
@@ -237,8 +291,10 @@ def _gcp(auth, scopes, options, issues, principals, settings):
                         _issue(issues, "critical" if permission in perms[:2] else "advisory", project, f"Missing {permission} on this project.")
             except Exception:
                 _issue(issues, "critical", project, "Could not read this project or verify its IAM permissions.")
+        _probe_scopes(selected[:100], probe_project)
         if len(selected) > 100:
             _issue(issues, "critical", "projects", "Access check supports at most 100 projects at a time; narrow the scope.")
+        return selected
     finally:
         credentials.close()
 
@@ -247,28 +303,48 @@ def _azure(auth, scopes, issues, principals):
     from peaso.collectors.azure import AzureTransport, GRAPH, _claims
     transport = AzureTransport(auth)
     try:
-        selected = scopes
-        if not selected:
-            response = transport.request("https://management.azure.com/subscriptions?api-version=2022-12-01")
-            selected = [item["subscriptionId"] for item in response.get("value", []) if item.get("subscriptionId")]
+        selected = list(dict.fromkeys(scopes))
+        if not selected or "*" in selected:
+            selected, url, seen = [], "https://management.azure.com/subscriptions?api-version=2022-12-01", set()
+            for _ in range(10):
+                if url in seen:
+                    _issue(issues, "critical", "subscriptions", "Subscription discovery returned a repeated page; discovery is incomplete.")
+                    break
+                seen.add(url)
+                response = transport.request(url)
+                selected.extend(item["subscriptionId"] for item in response.get("value", []) if item.get("subscriptionId"))
+                url = response.get("nextLink")
+                if not url:
+                    break
+                from urllib.parse import urlsplit
+                parsed = urlsplit(url)
+                if parsed.scheme != "https" or parsed.netloc != "management.azure.com" or parsed.path != "/subscriptions" or parsed.fragment:
+                    _issue(issues, "critical", "subscriptions", "Subscription discovery returned an invalid continuation; discovery is incomplete.")
+                    break
+            else:
+                _issue(issues, "critical", "subscriptions", "Subscription discovery reached its page limit; select subscription IDs explicitly.")
+            selected = list(dict.fromkeys(selected))
+        if len(selected) > 100:
+            _issue(issues, "critical", "subscriptions", "Only the first 100 subscriptions can be checked; narrow the selection.")
         if not selected:
             _issue(issues, "critical", "subscriptions", "No accessible Azure subscription was found.")
-        for value in selected[:100]:
+        def probe_subscription(value):
             subscription = value.removeprefix("/subscriptions/")
             if not re.fullmatch(r"[0-9a-fA-F-]{36}", subscription):
                 _issue(issues, "critical", value, "Enter a valid subscription ID.")
-                continue
+                return
             try:
                 transport.request(f"https://management.azure.com/subscriptions/{subscription}?api-version=2022-12-01")
                 principals.append({"scope": subscription, "principal": auth.get("client_id") or "authenticated Azure identity"})
             except Exception:
                 _issue(issues, "critical", subscription, "Cannot read this subscription (Microsoft.Resources/subscriptions/read).")
-                continue
+                return
             for resource, label in (("resources", "resource inventory"), ("providers/Microsoft.Security/pricings", "Security Reader inventory")):
                 try:
                     transport.request(f"https://management.azure.com/subscriptions/{subscription}/{resource}?api-version=" + ("2021-04-01" if resource == "resources" else "2024-01-01"))
                 except Exception:
                     _issue(issues, "advisory", subscription, f"Cannot read {label}; check Reader and Security Reader assignments.")
+        _probe_scopes(selected[:100], probe_subscription)
         try:
             graph_token = transport.token(GRAPH)
             claims = _claims(graph_token)
@@ -280,54 +356,149 @@ def _azure(auth, scopes, issues, principals):
             transport.request("https://graph.microsoft.com/v1.0/organization?$top=1", audience=GRAPH)
         except Exception:
             _issue(issues, "advisory", "Microsoft Graph", "Directory inventory is unavailable. Grant the documented Graph permissions and admin consent if directory checks are needed.")
+        return selected
     finally:
         if hasattr(transport, "close"):
             transport.close()
 
 
-def _k8s(auth, issues, principals):
+def _k8s(auth, issues, principals, scopes=()):
+    from urllib.parse import quote, urlencode
     from peaso.collectors.k8s import _new_api
     api = _new_api(auth)
     client = api.api_client
     client.rest_client.pool_manager.allow_self_subject_access_review = True
+    def request(path, method="GET", body=None):
+        response = client.call_api(path, method, **({"body": body} if body is not None else {}),
+            auth_settings=["BearerToken"], _preload_content=False,
+            _return_http_data_only=True, _request_timeout=15)
+        try:
+            return json.loads(response.data or response.read())
+        finally:
+            response.close()
+            response.release_conn()
     try:
-        for group, resource, severity in (("", "namespaces", "critical"), ("", "pods", "critical"),
-                                          ("apps", "deployments", "critical"),
-                                          ("rbac.authorization.k8s.io", "roles", "critical"),
-                                          ("rbac.authorization.k8s.io", "rolebindings", "critical"),
-                                          ("rbac.authorization.k8s.io", "clusterroles", "critical"),
-                                          ("rbac.authorization.k8s.io", "clusterrolebindings", "critical"),
-                                          ("", "secrets", "advisory")):
-            review = {"apiVersion": "authorization.k8s.io/v1", "kind": "SelfSubjectAccessReview", "spec": {"resourceAttributes": {"group": group, "resource": resource, "verb": "list"}}}
-            response = client.call_api("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews", "POST", body=review, auth_settings=["BearerToken"], _preload_content=False, _return_http_data_only=True, _request_timeout=15)
+        selected = list(dict.fromkeys(scopes))
+        if not selected or "*" in selected:
+            selected, token, seen = [], None, set()
+            for _ in range(10):
+                try:
+                    page = request("/api/v1/namespaces?" + urlencode({"limit": 100, **({"continue": token} if token else {})}))
+                    selected.extend(item["metadata"]["name"] for item in page.get("items", []) if item.get("metadata", {}).get("name"))
+                    token = page.get("metadata", {}).get("continue")
+                    if not token:
+                        break
+                    if token in seen:
+                        raise ValueError("Repeated namespace page")
+                    seen.add(token)
+                except Exception:
+                    _issue(issues, "critical", "namespace discovery", "Could not complete namespace discovery; grant permission to list namespaces or select namespaces explicitly.")
+                    break
+            else:
+                _issue(issues, "critical", "namespace discovery", "Namespace discovery reached its page limit; select namespaces explicitly.")
+        selected = list(dict.fromkeys(selected))
+        if not selected:
+            _issue(issues, "critical", "namespace discovery", "No namespace was found for this selection.")
+        if len(selected) > 100:
+            _issue(issues, "critical", "namespace discovery", "Only the first 100 namespaces can be checked; narrow the selection.")
+        def probe_namespace(namespace):
+            if not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", namespace):
+                _issue(issues, "critical", namespace, "Enter a valid namespace name.")
+                return
             try:
-                result = json.loads(response.data or response.read())
-            finally:
-                response.close()
-                response.release_conn()
-            allowed = result.get("status", {}).get("allowed", False)
-            if not principals:
-                principals.append({"scope": auth.get("cluster_id") or "cluster", "principal": "authenticated Kubernetes identity"})
-            if not allowed:
-                _issue(issues, severity, resource, f"Cannot list {resource}; grant the documented ClusterRole binding.")
+                request("/api/v1/namespaces/" + quote(namespace, safe=""))
+                principals.append({"scope": namespace, "principal": "authenticated Kubernetes identity"})
+            except Exception:
+                _issue(issues, "critical", namespace, "Cannot read this namespace.")
+                return
+            for group, resource, severity in (("", "pods", "critical"), ("apps", "deployments", "critical"),
+                    ("rbac.authorization.k8s.io", "roles", "critical"),
+                    ("rbac.authorization.k8s.io", "rolebindings", "critical"), ("", "secrets", "advisory")):
+                review = {"apiVersion": "authorization.k8s.io/v1", "kind": "SelfSubjectAccessReview",
+                    "spec": {"resourceAttributes": {"namespace": namespace, "group": group, "resource": resource, "verb": "list"}}}
+                try:
+                    result = request("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews", "POST", review)
+                    if result.get("status", {}).get("allowed") is not True:
+                        _issue(issues, severity, namespace, f"Cannot list {resource} in this namespace.")
+                except Exception:
+                    _issue(issues, severity, namespace, f"Could not verify list access to {resource} in this namespace.")
+        _probe_scopes(selected[:100], probe_namespace)
+        for resource in ("clusterroles", "clusterrolebindings"):
+            review = {"apiVersion": "authorization.k8s.io/v1", "kind": "SelfSubjectAccessReview",
+                "spec": {"resourceAttributes": {"group": "rbac.authorization.k8s.io", "resource": resource, "verb": "list"}}}
+            try:
+                if request("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews", "POST", review).get("status", {}).get("allowed") is not True:
+                    _issue(issues, "advisory", "cluster RBAC", f"Cannot list {resource}; cluster-wide RBAC evidence will be incomplete.")
+            except Exception:
+                _issue(issues, "advisory", "cluster RBAC", f"Could not verify access to {resource}.")
+        return selected
     finally:
         if hasattr(api, "close"):
             api.close()
 
 
+def _scope_report(provider, selected, issues, principals):
+    units = {"aws": "accounts", "gcp": "projects", "azure": "subscriptions", "k8s": "namespaces"}
+    def normalized(value):
+        if not isinstance(value, str) or value == "*":
+            return None
+        if provider == "aws":
+            match = re.search(r"(?<!\d)(\d{12})(?!\d)", value)
+            return match[1] if match else None
+        if provider == "azure":
+            value = value.removeprefix("/subscriptions/")
+            return value.lower() if re.fullmatch(r"[0-9a-fA-F-]{36}", value) else None
+        if provider == "gcp":
+            value = value.removeprefix("projects/")
+            return value if value != "projects" and re.fullmatch(r"[a-z][a-z0-9-]{4,28}[a-z0-9]", value) else None
+        return value if re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", value) else None
+    rows = {}
+    def row(scope):
+        return rows.setdefault(scope, {"scope": scope, "principals": [], "issues": [], "status": "not_checked"})
+    for value in selected:
+        scope = normalized(value)
+        if scope:
+            row(scope)
+    aliases = {}
+    for principal in principals:
+        scope = normalized(principal["scope"]) or (normalized(principal["principal"]) if provider == "aws" else None)
+        if scope:
+            aliases[principal["scope"]] = scope
+            if principal["principal"] not in row(scope)["principals"]:
+                row(scope)["principals"].append(principal["principal"])
+    for item in issues:
+        scope = aliases.get(item["scope"]) or normalized(item["scope"])
+        if scope in rows:
+            row(scope)["issues"].append(item)
+    for value in rows.values():
+        value["status"] = ("blocked" if any(item["severity"] == "critical" for item in value["issues"]) else
+                           "warning" if value["issues"] else "pass" if value["principals"] else "not_checked")
+    return {"scope_summary": {"unit": units[provider], "total": len(rows),
+                "accessible": sum(bool(value["principals"]) for value in rows.values()),
+                "blocked": sum(value["status"] == "blocked" for value in rows.values()),
+                "warning": sum(value["status"] == "warning" for value in rows.values()),
+                "not_checked": sum(value["status"] == "not_checked" for value in rows.values())},
+            "scope_results": list(rows.values())}
+
 def check_access(provider, auth, scopes, options, settings, *, credential_expires_at=None):
     issues, principals = [], []
+    selected = [scope for scope in scopes if scope != "*"]
     _check_lifetime(auth, credential_expires_at, issues)
     if not any(item["severity"] == "critical" for item in issues):
         try:
-            {"aws": _aws, "gcp": _gcp, "azure": _azure, "k8s": _k8s}[provider](
+            discovered = {"aws": _aws, "gcp": _gcp, "azure": _azure, "k8s": _k8s}[provider](
                 *((auth, scopes, options, issues, principals) if provider == "aws" else
                   (auth, scopes, options, issues, principals, settings) if provider == "gcp" else
                   (auth, scopes, issues, principals) if provider == "azure" else
-                  (auth, issues, principals)))
+                  (auth, issues, principals, scopes)))
+            if discovered is not None:
+                selected = discovered
         except Exception as exc:
             status = getattr(exc, "status", None)
             suffix = f" (HTTP {status})" if isinstance(status, int) and 100 <= status <= 599 else ""
             _issue(issues, "critical", provider, "Could not authenticate or complete the access check" + suffix + ". Verify the credential, endpoint and target scope.")
+    issues.sort(key=lambda item: (item["scope"], item["severity"], item["message"]))
+    principals.sort(key=lambda item: (item["scope"], item["principal"]))
     status = "blocked" if any(item["severity"] == "critical" for item in issues) else "warning" if issues else "pass"
-    return {"status": status, "issues": issues, "principals": principals}
+    return {"status": status, "issues": issues, "principals": principals,
+            **_scope_report(provider, selected, issues, principals)}

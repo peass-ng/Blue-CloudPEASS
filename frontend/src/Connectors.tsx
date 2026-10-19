@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, Check, Copy } from "lucide-react";
 import { items, json, request, useApi } from "./api";
 import { authGuides, gcpRoles } from "./authGuides";
+import { ConnectorFieldHelp } from "./ConnectorFieldHelp";
 import { providers } from "./types";
 import type { Connector, Me, Provider } from "./types";
 import { Badge, humanError, Inspector, Panel, ProviderIcon, State } from "./ui";
@@ -552,7 +553,8 @@ function GuideCommand({ label, value }: { label: string; value: string }) {
   </div>;
 }
 type PreparedSetup = { prepared_id: string; external_id?: string; collector_role_arn?: string; template_url?: string; service_account_email?: string; project_label_key?: string; project_label_value?: string };
-type AccessCheck = { status: "pass" | "warning" | "blocked"; check_token?: string; issues: { severity: "critical" | "advisory"; scope: string; message: string }[]; principals: { scope: string; principal: string }[] };
+type AccessScope = { scope: string; status: string; principals: string[]; issues: { severity: "critical" | "advisory"; scope: string; message: string }[] };
+type AccessCheck = { scope_summary?: { unit: string; total: number; accessible: number; blocked: number; warning: number; not_checked: number }; scope_results?: AccessScope[]; status: "pass" | "warning" | "blocked"; check_token?: string; issues: { severity: "critical" | "advisory"; scope: string; message: string }[]; principals: { scope: string; principal: string }[] };
 function AuthSetupGuide({ provider, method, label, hosted, prepared }: { provider: Provider; method: string; label: string; hosted: boolean; prepared?: PreparedSetup | null }) {
   const guide = authGuides[provider][method];
   const hostedAwsRole = hosted && provider === "aws" && method === "assume_role";
@@ -581,7 +583,7 @@ function AuthSetupGuide({ provider, method, label, hosted, prepared }: { provide
       <section className="auth-guide-step">
         <span className="auth-guide-step-number">1</span>
         <div className="auth-guide-step-body">
-          <h4>{hostedAwsRole ? "Create role and grant access" : "Create access"}</h4><p>{hostedAwsRole ? `In each customer AWS account, deploy the template and enter the resulting role ARN below. It uses this connector's External ID to grant access to ${collectorArn}.` : hostedGcp ? `Da acceso a la cuenta de servicio de HackTricks ${gcpEmail} en cada proyecto que quieras analizar y añade la etiqueta de aprobación del conector.` : guide.access}</p>
+          <h4>{hostedAwsRole ? "Create role and grant access" : "Create access"}</h4><p>{hostedAwsRole ? `In each customer AWS account, deploy the template and enter the resulting role ARN below. It uses this workspace's External ID to grant access to ${collectorArn}.` : hostedGcp ? `Grant the HackTricks service account ${gcpEmail} access to each selected project and add this connector’s approval label.` : guide.access}</p>
           {accessCommands.map((command) => <GuideCommand key={command.label} label={command.label} value={command.value} />)}
         </div>
       </section>
@@ -589,7 +591,7 @@ function AuthSetupGuide({ provider, method, label, hosted, prepared }: { provide
         <span className="auth-guide-step-number">2</span>
         <div className="auth-guide-step-body">
           <h4>Grant permissions</h4>
-          <p>{hostedGcp ? "Asigna los permisos del comando a esa cuenta de servicio en cada proyecto que quieras analizar." : guide.permissions}</p>
+          <p>{hostedGcp ? "Grant the listed permissions to that service account in each project you want to audit." : guide.permissions}</p>
           {guide.permissionIds && <ul className="auth-guide-policy-list">
             {guide.permissionIds.map((id) => <li key={id}><code>{id}</code></li>)}
           </ul>}
@@ -616,7 +618,7 @@ function HostedOnboarding({ details }: { details: NonNullable<Connector["onboard
     : null;
   const cli = `curl -fsSL '${template}' -o hacktricks-cspm-customer-role.json\naws cloudformation create-stack --stack-name HackTricksCspmReadOnly --template-body file://hacktricks-cspm-customer-role.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=ExternalId,ParameterValue=${details.external_id}`;
   return <div className="form">
-    <p>In each AWS account you want to scan, create a role that trusts the PEASS'o CSPM role below. Use this connector's External ID.</p>
+    <p>In each AWS account you want to scan, create a role that trusts the PEASS'o CSPM role below. Use this workspace's External ID.</p>
     <CopyValue label="Collector role ARN" value={details.collector_role_arn || COLLECTOR_ROLE_ARN} />
     <CopyValue label="ExternalID" value={details.external_id} />
     <CopyValue label="Target role ARNs" value={(details.target_role_arns || []).join("\n")} />
@@ -655,14 +657,14 @@ function GcpOnboarding({ details }: { details: NonNullable<Connector["gcp_onboar
     'gcloud alpha projects update "$PROJECT_ID" --update-labels="' + details.project_label_key + "=" + details.project_label_value + '"',
   ].join("\n");
   return <div className="form">
-    <p>Da acceso a la cuenta de servicio de HackTricks <strong>{details.service_account_email}</strong> en cada proyecto que quieras analizar. Añade también la etiqueta de este conector.</p>
+    <p>Grant <strong>{details.service_account_email}</strong> access to each selected project and add this connector’s approval label.</p>
     <CopyValue label="Service account email" value={details.service_account_email} />
     <CopyValue label="Project label key" value={details.project_label_key} />
     <CopyValue label="Project label value" value={details.project_label_value} />
     <CopyValue label="gcloud CLI: grant roles and label this project" value={grantCommand} />
     <ol>
-      <li>Sustituye PROJECT_ID y ejecuta el comando en cada proyecto que quieras analizar. El comando asigna los permisos y añade la etiqueta.</li>
-      <li>Después, introduce los ID de los proyectos en el conector o activa la búsqueda de proyectos aprobados.</li>
+      <li>Replace PROJECT_ID and run the command in each project to grant access and add its approval label.</li>
+      <li>Enter those exact project IDs in this connector. Shared service-account discovery is disabled.</li>
     </ol>
   </div>;
 }
@@ -692,10 +694,11 @@ function ConnectorForm({
   );
   const [name, setName] = useState(connector?.name || "");
   const [scopes, setScopes] = useState(connector?.scopes?.join(", ") || "");
+  const [allSubscriptions, setAllSubscriptions] = useState(!connector?.scopes?.length || connector.scopes.includes("*"));
+  const [allNamespaces, setAllNamespaces] = useState(!connector?.scopes?.length || connector.scopes.includes("*"));
   const [auth, setAuth] = useState<Record<string, string>>({});
   const [prepared, setPrepared] = useState<PreparedSetup | null>(null);
   const [prepareError, setPrepareError] = useState("");
-  const [credentialExpiresAt, setCredentialExpiresAt] = useState("");
   const [accessResult, setAccessResult] = useState<AccessCheck | null>(null);
   const [checkedPayload, setCheckedPayload] = useState("");
   const [checkPending, setCheckPending] = useState(false);
@@ -820,26 +823,27 @@ function ConnectorForm({
   ).sort((a, b) => methodOrder[hosted ? "hosted" : "local"][provider].indexOf(a.id) -
     methodOrder[hosted ? "hosted" : "local"][provider].indexOf(b.id));
   const selected = allowedModes.find((m) => m.id === mode) || allowedModes[0];
+  const discoverAllProjects = allProjects && selected.id !== "platform-service-account";
   useEffect(() => {
     if (selected && mode !== selected.id) setMode(selected.id);
   }, [mode, selected?.id]);
   const environmentIntro = !hosted ? ({
     aws: {
-      default: "Para usar credenciales del entorno, ejecuta primero PEASS'o CSPM en el servidor o contenedor que las tiene.",
-      container: "Para usar el rol de la tarea, ejecuta primero PEASS'o CSPM en esa tarea de ECS.",
-      instance: "Para usar el rol de la instancia, ejecuta primero PEASS'o CSPM en esa instancia EC2.",
+      default: "Run PEASS'o CSPM on the server or container that holds these environment credentials.",
+      container: "Run PEASS'o CSPM in the ECS task that has the selected task role.",
+      instance: "Run PEASS'o CSPM on the EC2 instance that has the selected instance role.",
     },
     gcp: {
-      adc: "Para usar credenciales del entorno, ejecuta primero PEASS'o CSPM en la VM o contenedor que las tiene.",
-      metadata: "Para usar la cuenta de servicio de la VM, ejecuta primero PEASS'o CSPM en esa VM de Google Cloud.",
-      ...(sourceMethod === "metadata" ? { impersonation: "Para usar la identidad asociada a la VM, ejecuta primero PEASS'o CSPM en esa VM de Google Cloud." } : {}),
+      adc: "Run PEASS'o CSPM on the VM or container that holds these environment credentials.",
+      metadata: "Run PEASS'o CSPM on the Google Cloud VM with the attached service account.",
+      ...(sourceMethod === "metadata" ? { impersonation: "Run PEASS'o CSPM on the Google Cloud VM with the attached identity." } : {}),
     },
     azure: {
-      default: "Para usar credenciales del entorno, ejecuta primero PEASS'o CSPM en el servidor o recurso que las tiene.",
-      "managed-identity": "Para usar la identidad administrada, ejecuta primero PEASS'o CSPM en el recurso de Azure que la tiene.",
+      default: "Run PEASS'o CSPM on the server or Azure resource that holds these environment credentials.",
+      "managed-identity": "Run PEASS'o CSPM on the Azure resource with the selected managed identity.",
     },
     k8s: {
-      in_cluster: "Para usar la identidad del pod, ejecuta primero PEASS'o CSPM dentro de ese clúster.",
+      in_cluster: "Run PEASS'o CSPM inside the Kubernetes cluster with the selected Pod identity.",
     },
   } as Record<Provider, Record<string, string>>)[provider][selected.id] : undefined;
   const mutation = useMutation({
@@ -950,8 +954,12 @@ function ConnectorForm({
       k8sPolicy = { cluster_id: cluster, max_policy_items: budget, system_namespaces: names,
         ...(hasFreshness ? { observed_at: k8sObservedAt, max_age_seconds: age } : {}) };
     }
-    if (provider === "gcp" && !allProjects && !scopes.trim())
-      return setError("Enter project IDs or select all accessible projects.");
+    if (provider === "gcp" && !discoverAllProjects && (!scopes.trim() || scopes.split(",").some((value) => value.trim() === "*")))
+      return setError(selected.id === "platform-service-account" ? "Enter exact project IDs for the shared HackTricks service account." : "Enter project IDs or select all accessible projects.");
+    if ((provider === "azure" && !allSubscriptions) || (provider === "k8s" && !allNamespaces)) {
+      if (!scopes.trim() || scopes.split(",").some((value) => value.trim() === "*"))
+        return setError(`Enter exact ${provider === "azure" ? "subscription IDs" : "namespace names"}, or enable discovery.`);
+    }
     let gcpAuditPolicy: Record<string, unknown>[] | null = null;
     if (provider === "gcp" && gcpAuditEnabled) {
       if (gcpAuditRecords.length > 100)
@@ -995,7 +1003,7 @@ function ConnectorForm({
       const networks = pscNetworks.split(/[,\n]/).map((s) => s.trim()).filter(Boolean);
       const names = pscDnsNames.split(/[,\n]/).map((s) => s.trim().toLowerCase().replace(/\.$/, "")).filter(Boolean);
       const age = Number(pscAgeDays) * 86400;
-      if (!GCP_POLICY_PROJECT.test(scope) || (!allProjects && !selectedScopes.includes(scope)))
+      if (!GCP_POLICY_PROJECT.test(scope) || (!discoverAllProjects && !selectedScopes.includes(scope)))
         return setError("Choose a selected project for the PSC requirement.");
       if (!networks.length || networks.length > 100 || new Set(networks).size !== networks.length ||
           networks.some((s) => !s.startsWith("https://") && !/^[a-z][a-z0-9-]{0,62}$/.test(s)))
@@ -1024,7 +1032,7 @@ function ConnectorForm({
         ? { regions: regions.split(",").map((s) => s.trim()).filter(Boolean) } : {}),
       ...(provider === "aws" && selected.id === "access_keys"
         ? { include_source_account: includeSourceAccount } : {}),
-      ...(provider === "gcp" ? { all_projects: allProjects } : {}),
+      ...(provider === "gcp" ? { all_projects: discoverAllProjects } : {}),
     };
     if (provider === "aws" && !regions.trim()) delete options.regions;
     if (provider === "aws") {
@@ -1043,7 +1051,8 @@ function ConnectorForm({
       name: name.trim(),
       ...(!connector ? { provider } : {}),
       scopes:
-        provider === "gcp" && allProjects && !scopes.trim()
+        (provider === "azure" && allSubscriptions) || (provider === "k8s" && allNamespaces) ||
+        (provider === "gcp" && discoverAllProjects && !scopes.trim())
           ? ["*"]
           : scopes
               .split(",")
@@ -1051,7 +1060,7 @@ function ConnectorForm({
               .filter(Boolean),
       options,
     };
-    if (prepared?.prepared_id) body.prepared_id = prepared.prepared_id;
+    if (replace && prepared?.prepared_id) body.prepared_id = prepared.prepared_id;
     if (
       connector &&
       JSON.stringify(body.options) === JSON.stringify(connector.options || {})
@@ -1108,7 +1117,6 @@ function ConnectorForm({
         ...body, provider, auth: body.auth || {},
         options: body.options || connector?.options || {},
         ...(connector ? { connector_id: connector.id } : {}),
-        ...(credentialExpiresAt ? { credential_expires_at: new Date(credentialExpiresAt).toISOString() } : {}),
       }, "POST"), demo);
       setAccessResult(result);
       setCheckedPayload(fingerprint);
@@ -1123,6 +1131,10 @@ function ConnectorForm({
   function chooseProvider(p: Provider) {
     if (connector || p === provider) return;
     setProvider(p);
+    setScopes("");
+    setAllProjects(false);
+    setAllSubscriptions(true);
+    setAllNamespaces(true);
     setMode("");
     setAuth({});
     setAwsRoles("");
@@ -1245,14 +1257,6 @@ function ConnectorForm({
                 )}
               </label>
             ))}
-        {replace && ((provider === "aws" && !!auth.aws_session_token) ||
-          (provider === "gcp" && ["token", "external-account"].includes(selected.id)) ||
-          (provider === "azure" && ["token", "workload-identity-inline", "workload-identity"].includes(selected.id)) ||
-          (provider === "k8s" && ["token", "kubeconfig-inline", "kubeconfig"].includes(selected.id))) &&
-          <label>Temporary credential expiration (UTC, if the token has no readable expiry)
-            <input type="datetime-local" value={credentialExpiresAt} onChange={(event) => setCredentialExpiresAt(event.target.value)} />
-            <small>Enter the expiration time if it is not included in the token. The token must remain valid for at least one hour.</small>
-          </label>}
         {replace && provider === "aws" && (selected.id === "access_keys" || (hosted && selected.id === "assume_role")) && (
           <label>
             {hosted && selected.id === "assume_role" ? "Target role ARNs (one per line)" : "Optional target roles (one ARN per line; External ID after |)"}
@@ -1280,31 +1284,23 @@ function ConnectorForm({
             </select>
           </label>
         )}
-        {hosted && provider === "gcp" && selected.id === "platform-service-account" && (
-          <p className="notice">Da acceso a la cuenta de servicio de HackTricks <strong>{String(me.data?.gcp_platform_service_account_email || "hacktricks-cspm-sa-acc-third-p@billing-static-info-no-delete.iam.gserviceaccount.com")}</strong> en cada proyecto que quieras analizar. Guarda el conector para obtener su etiqueta y añádela a esos proyectos.</p>
-        )}
         <label>
-          {provider === "gcp"
-            ? "Project IDs"
-            : provider === "azure"
-              ? "Subscription IDs"
-              : provider === "k8s"
-                ? "Namespaces"
-                : "AWS account IDs"}{" "}
-          (comma separated)
+          {provider === "aws" ? "AWS account IDs to Audit (comma separated) - All by default"
+            : `${provider === "gcp" ? "Project IDs" : provider === "azure" ? "Subscription IDs" : "Namespaces"} (comma separated)`}
           <input
-            value={scopes}
+            value={(provider === "azure" && allSubscriptions) || (provider === "k8s" && allNamespaces) ? "" : scopes}
+            disabled={(provider === "azure" && allSubscriptions) || (provider === "k8s" && allNamespaces)}
             onChange={(e) => setScopes(e.target.value)}
             placeholder={provider === "aws" ? "123456789012, 210987654321" : provider === "gcp" ? "my-project, another-project" : "Leave empty for the default accessible scope"}
           />
           {provider === "aws" && <small>Choose which AWS accounts to scan. Leave empty to scan {hosted && selected.id === "assume_role" ? "all configured target roles you can access" : "the source account and any configured target roles you can access"}.</small>}
           {provider === "gcp" && <small>{hosted && selected.id === "platform-service-account"
-            ? "Introduce los ID de los proyectos que quieras analizar o activa la búsqueda de proyectos aprobados."
+            ? "Enter the exact project IDs to audit. Discovery is unavailable with the shared HackTricks service account."
             : "Enter the project IDs to scan, or select “Discover all accessible projects” below."}</small>}
         </label>
         {provider === "aws" && (
           <label>
-            Regions (comma separated)
+            Regions (comma separated) - All by default
             <input
               value={regions}
               onChange={(e) => setRegions(e.target.value)}
@@ -1349,14 +1345,22 @@ function ConnectorForm({
             )}
           </fieldset>
         )}
-        {provider === "gcp" && (
+        {provider === "azure" && <label className="checkbox">
+          <input type="checkbox" checked={allSubscriptions} onChange={(e) => { setAllSubscriptions(e.target.checked); if (scopes === "*") setScopes(""); }} />
+          Discover and analyze all accessible subscriptions
+        </label>}
+        {provider === "k8s" && <label className="checkbox">
+          <input type="checkbox" checked={allNamespaces} onChange={(e) => { setAllNamespaces(e.target.checked); if (scopes === "*") setScopes(""); }} />
+          Discover and analyze all namespaces
+        </label>}
+        {provider === "gcp" && selected.id !== "platform-service-account" && (
           <label className="checkbox">
             <input
               type="checkbox"
               checked={allProjects}
               onChange={(e) => setAllProjects(e.target.checked)}
             />
-            {hosted && selected.id === "platform-service-account" ? "Discover all approved customer projects" : "Discover all accessible projects"}
+            Discover all accessible projects
           </label>
         )}
         <details>
@@ -1472,6 +1476,7 @@ function ConnectorForm({
               </fieldset>
             )}
             {replace && (
+              <div>
               <label>
                 Additional auth document (optional)
                 <input type="file" accept=".json,application/json"
@@ -1479,6 +1484,8 @@ function ConnectorForm({
                 <small>{advancedAuth ? "Additional auth document loaded; contents are hidden." : "Select a JSON file only when this connector requires extra credentials."}</small>
                 {advancedAuth && <button type="button" className="text-button" onClick={() => setAdvancedAuth("")}>Clear additional auth document</button>}
               </label>
+              <ConnectorFieldHelp provider={provider} kind="auth" platform={selected.id === "platform-service-account"} />
+              </div>
             )}
             <label>
                 Additional collector options JSON (no credentials)
@@ -1490,6 +1497,7 @@ function ConnectorForm({
                 rows={3}
               />
             </label>
+            <ConnectorFieldHelp provider={provider} kind="options" />
           </div>
         </details>
         {(error || mutation.error) && (
@@ -1499,9 +1507,14 @@ function ConnectorForm({
         )}
         {accessResult && <div className={`access-check-result access-check-${accessResult.status}`} role="status">
           <strong>{accessResult.status === "pass" ? "Access verified" : accessResult.status === "warning" ? "Access works with recommendations" : "Access check blocked saving"}</strong>
-          {accessResult.principals.length > 0 && <ul>{accessResult.principals.map((item) =>
+          {accessResult.scope_summary && <p>{accessResult.scope_summary.total} {accessResult.scope_summary.unit} in scope · {accessResult.scope_summary.accessible} accessible · {accessResult.scope_summary.blocked} blocked · {accessResult.scope_summary.warning} with recommendations{accessResult.scope_summary.not_checked ? ` · ${accessResult.scope_summary.not_checked} not checked` : ""}</p>}
+          {!!accessResult.scope_results?.length && <ul aria-label="Access results by scope">{accessResult.scope_results.map((item) => <li key={item.scope}>
+            <strong>{item.scope}</strong> · {item.status.replaceAll("_", " ")}
+            {!!item.issues.length && <ul>{item.issues.map((issue, index) => <li key={index}>{issue.message}</li>)}</ul>}
+          </li>)}</ul>}
+          {!accessResult.scope_results?.length && accessResult.principals.length > 0 && <ul>{accessResult.principals.map((item) =>
             <li key={`${item.scope}-${item.principal}`}>{item.scope}: {item.principal}</li>)}</ul>}
-          {accessResult.issues.length > 0 && <ul>{accessResult.issues.map((item, index) =>
+          {accessResult.issues.length > 0 && <ul>{accessResult.issues.filter((issue) => !accessResult.scope_results?.some((row) => row.issues.some((item) => item.scope === issue.scope && item.message === issue.message))).map((item, index) =>
             <li key={`${item.scope}-${index}`}><b>{item.severity === "critical" ? "Required" : "Recommended"}</b> · {item.scope}: {item.message}</li>)}</ul>}
           {accessResult.status === "warning" && <p>Recommended access can be added now. You may save this connector and recheck access after the grants propagate.</p>}
           {accessResult.status === "blocked" && <p>Resolve the required access or credential expiration, then run the check again.</p>}

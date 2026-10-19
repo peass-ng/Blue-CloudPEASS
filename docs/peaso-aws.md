@@ -54,8 +54,13 @@ Build outputs, raw state, binary plans, private overrides and deployment variabl
 
 ## Customer permissions
 
-`infra/aws/customer-role.json` is the generated customer-controlled AWS role template. It specifies the collector principal and a connector-specific external ID. Platform role assumptions require the explicit permitted role ARN and tenant binding; customer credentials do not borrow platform authority. Use the connector's generated instructions and the provider [collection guide](peaso-aws-collector.md) for the current permission contract.
+`infra/aws/customer-role.json` is the generated customer-controlled AWS role template. It specifies the collector principal and a workspace-specific external ID. Platform role assumptions require the explicit permitted role ARN and tenant binding; customer credentials do not borrow platform authority. Use the connector's generated instructions and the provider [collection guide](peaso-aws-collector.md) for the current permission contract.
 
 Native collection reads configuration and existing reports. It does not apply remediation, create Access Analyzers, generate IAM credential reports, enable APIs or retrieve secret values. Missing permissions remain visible as denied/unknown evidence. The original AWS IAM CLI has optional Access Analyzer creation; pass `--no-access-analyzer` for that separate read-only invocation.
 
 Azure ARM Reader does not imply Microsoft Graph access. Device-registration policy evidence, for example, needs a suitable Graph read permission such as `Policy.Read.DeviceConfiguration`; denied Graph reads must remain unassessed. GCP and Kubernetes similarly require the documented service/resource read permissions. See the README's provider guide links.
+
+
+Hosted AWS role setup allocates a persistent External ID for each personal/shared workspace using 48 cryptographically random bytes (384 bits). All new hosted role connectors in that workspace use the same ID; another workspace receives a different ID. Allocation is atomic in SQLite and DynamoDB. Prepared setup and access-check receipts are bound to the selected workspace, and clients cannot provide a hosted External ID. The customer role must require the exact value with `StringEquals` on `sts:ExternalId`.
+
+Existing connectors retain their previously generated, workspace-owned bindings so deployment does not invalidate customer trust policies. Replacing their authentication uses the workspace ID and requires updating the role trust accordingly. Customer-supplied source credentials keep their explicitly configured role-chain External IDs; they do not use the platform's role-assumption authority.
