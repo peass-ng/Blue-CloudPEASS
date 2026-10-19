@@ -1,0 +1,2018 @@
+{
+  "gcp_c5_build_provenance": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "trigger": "trigger-a",
+        "unsafe_builds": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "trigger": "trigger-a",
+        "unsafe_builds": [
+          "build-a"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "scoped inventory unavailable: cloudbuild_trigger"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: cloudbuild_trigger"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: items"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign inventory: cloudbuild_trigger"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "trigger": "trigger-a",
+        "reason": "outside approved production scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed list: production_trigger_ids"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "deployments outside Cloud Build unresolved"
+      }
+    }
+  ],
+  "gcp_c5_access_approval": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "unapproved_access_events": [],
+        "checked_events": [
+          "events/1"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "unapproved_access_events": [
+          "events/1"
+        ],
+        "checked_events": [
+          "events/1"
+        ]
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "no proven in-scope provider access events requiring consent"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "provider access log coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "invalid timestamp"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "access_approval_request inventory incomplete or foreign scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "access_approval_request inventory unavailable"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "access_approval_request wrapper foreign or inconsistent"
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "unapproved_access_events": [],
+        "checked_events": [
+          "projects/p-one/logs/cloudaudit.googleapis.com%2Faccess_transparency/entries/one/accesses/0"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "unapproved_access_events": [
+          "projects/p-one/logs/cloudaudit.googleapis.com%2Faccess_transparency/entries/one/accesses/0"
+        ],
+        "checked_events": [
+          "projects/p-one/logs/cloudaudit.googleapis.com%2Faccess_transparency/entries/one/accesses/0"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "automatic approval has no verified customer policy approval"
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "unapproved_access_events": [],
+        "checked_events": [
+          "projects/p-one/logs/cloudaudit.googleapis.com%2Faccess_transparency/entries/one/accesses/0",
+          "projects/p-one/logs/cloudaudit.googleapis.com%2Faccess_transparency/entries/one/accesses/1"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "provider_access_event inventory incomplete or foreign scope"
+      }
+    }
+  ],
+  "gcp_logging_scc_findings_alert": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "checked_findings": [
+          "organizations/123/sources/1/findings/1"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "findings_without_route": [
+          "organizations/123/sources/1/findings/1"
+        ],
+        "checked_findings": [
+          "organizations/123/sources/1/findings/1"
+        ]
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "no active HIGH or CRITICAL finding in complete inventory"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "approved route filter cannot be evaluated",
+        "uncertain_findings": [
+          "organizations/123/sources/1/findings/1"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: severity"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "scc_finding inventory incomplete or foreign scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "scc_finding inventory unavailable"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "scc_finding wrapper foreign or inconsistent"
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "checked_findings": [
+          "organizations/123/sources/1/findings/first"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "findings_without_route": [
+          "organizations/123/sources/1/findings/first"
+        ],
+        "checked_findings": [
+          "organizations/123/sources/1/findings/first"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "approved route filter cannot be evaluated",
+        "uncertain_findings": [
+          "organizations/123/sources/1/findings/first"
+        ]
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "checked_findings": [
+          "organizations/123/sources/1/findings/first",
+          "organizations/123/sources/1/findings/first-second"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "scc_notification_config inventory incomplete or foreign scope"
+      }
+    }
+  ],
+  "gcp_c5_backup_remote_location": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "instance": "db",
+        "target_regions": [
+          "us-east1"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "instance": "db",
+        "target_regions": [
+          "us-central1"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: backup_target"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "backup target join unavailable"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: sql_instance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign or absent collection scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "collection items differ from resource index"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: metadata"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "SQL instance outside approved scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: backup_target"
+      }
+    }
+  ],
+  "gcp_c5_asset_inventory": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "checked_assets": 1
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "missing_service_assets": [
+          "//compute.googleapis.com/projects/p-one/zones/us-central1-a/instances/vm"
+        ],
+        "missing_cai_metadata": []
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "no approved in-scope assets"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "missing_service_assets": [
+          "other"
+        ],
+        "missing_cai_metadata": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "missing_service_assets": [
+          "//storage.googleapis.com/buckets/b"
+        ],
+        "missing_cai_metadata": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "missing_service_assets": [],
+        "missing_cai_metadata": [
+          "//storage.googleapis.com/buckets/b"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: updateTime"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset_service_inventory collection missing or ambiguous"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset incomplete collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset foreign native provenance"
+      }
+    }
+  ],
+  "gcp_c5_asset_change_audit": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "changed_assets": [
+          "//compute.googleapis.com/projects/p-one/zones/us-central1-a/instances/vm"
+        ],
+        "without_admin_activity": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "changed_assets": [
+          "//compute.googleapis.com/projects/p-one/zones/us-central1-a/instances/vm"
+        ],
+        "without_admin_activity": [
+          "//compute.googleapis.com/projects/p-one/zones/us-central1-a/instances/vm"
+        ]
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "no observed asset changes"
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "changed_assets": [
+          "//compute.googleapis.com/projects/123456789012/zones/us-central1-a/instances/vm"
+        ],
+        "without_admin_activity": []
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "changed_assets": [
+          "//storage.googleapis.com/buckets/b"
+        ],
+        "without_admin_activity": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "changed_assets": [
+          "//storage.googleapis.com/buckets/b"
+        ],
+        "without_admin_activity": [
+          "//storage.googleapis.com/buckets/b"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset_audit_log collection missing or ambiguous"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset read times outside approved audit window"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset incomplete collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset foreign native provenance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "asset_previous collection missing or ambiguous"
+      }
+    }
+  ],
+  "gcp_c5_sbom": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "repository": "repo1",
+        "missing_sbom_digests": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "repository": "repo1",
+        "missing_sbom_digests": [
+          "sha256:abc"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete collection: artifact_repository"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing or ambiguous collection: artifact_repository"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed resource fact coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign collection: artifact_repository"
+      }
+    }
+  ],
+  "gcp_c5_log_event_fields": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "timestamp": "2026-01-01T00:00:00Z",
+        "method": "read",
+        "principal": "user@example.com"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "timestamp": "invalid",
+        "method": "read",
+        "principal": "user@example.com"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete collection: log_entry"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing or ambiguous collection: log_entry"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed resource fact coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign collection: log_entry"
+      }
+    }
+  ],
+  "gcp_c5_restore_destination": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "instance": "db",
+        "unsafe_restore_targets": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "instance": "db",
+        "unsafe_restore_targets": [
+          "restore"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: sql_instance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign or absent collection scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "collection items differ from resource index"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: metadata"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "SQL instance outside approved scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: sql_operation"
+      }
+    }
+  ],
+  "gcp_c5_restore_test": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "instance": "db",
+        "validated_restore_events": 1
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "instance": "db",
+        "validated_restore_events": 0
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: sql_instance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign or absent collection scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "collection items differ from resource index"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: metadata"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "SQL instance outside approved scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: sql_operation"
+      }
+    }
+  ],
+  "gcp.compute.os_patch_compliance": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "instance": "vm",
+        "overdue_packages": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "instance": "vm",
+        "overdue_packages": [
+          "openssl"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: instance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign or absent collection scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "collection items differ from resource index"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: metadata"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "VM outside approved patch scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: os_inventory"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: os_inventory"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "guest inventory stale"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: os_vulnerability_report"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native vulnerability report stale or future dated"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: availableInventoryItem"
+      }
+    }
+  ],
+  "gcp_c5_patch_deployment": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "instance": "vm",
+        "applicable_deployments": [
+          "deployment"
+        ],
+        "packages_over_age": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "instance": "vm",
+        "applicable_deployments": [],
+        "reason": "no enabled recurring patch deployment covers this VM"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: instance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign or absent collection scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "collection items differ from resource index"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: metadata"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "VM outside approved patch scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: os_inventory"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: os_inventory"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "guest inventory stale"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: os_patch_deployment"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: installTime"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native explicit VM filter malformed or foreign"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native patch state unresolved"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: nextExecuteTime"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native patch filter unsupported"
+      }
+    }
+  ],
+  "gcp_compute_os_patch_compliance": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "instance": "vm",
+        "overdue_packages": []
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "instance": "vm",
+        "overdue_packages": [
+          "openssl"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: instance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign or absent collection scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "collection items differ from resource index"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: metadata"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "reason": "VM outside approved patch scope"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: os_inventory"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: os_inventory"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "guest inventory stale"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "dependency incomplete or unavailable: os_vulnerability_report"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native vulnerability report stale or future dated"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: availableInventoryItem"
+      }
+    }
+  ],
+  "gcp_logging_detect_t1110": [
+    {
+      "status": "FAIL",
+      "evidence": {
+        "principal": "user@example.com",
+        "caller_ip": "192.0.2.4",
+        "count": 10
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 1,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "audit entry coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete or foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: protoPayload.status.code"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: audit_coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign audit resource"
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 10,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    }
+  ],
+  "gcp_logging_detect_t1119": [
+    {
+      "status": "FAIL",
+      "evidence": {
+        "principal": "user@example.com",
+        "caller_ip": null,
+        "count": 2
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 1,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "audit entry coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete or foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: approved_read_rate"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: protoPayload.status.code"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: audit_coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign audit resource"
+      }
+    }
+  ],
+  "gcp_logging_detect_t1490": [
+    {
+      "status": "FAIL",
+      "evidence": {
+        "principal": "user@example.com",
+        "caller_ip": null,
+        "count": 1
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 1,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "audit entry coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete or foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: approved_backup_admins"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: protoPayload.status.code"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: audit_coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign audit resource"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "backup update request intent unavailable"
+      }
+    }
+  ],
+  "gcp_logging_detect_t1526": [
+    {
+      "status": "FAIL",
+      "evidence": {
+        "principal": "user@example.com",
+        "caller_ip": null,
+        "count": 2
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 1,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "audit entry coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete or foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: approved_list_rate"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: protoPayload.status.code"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: audit_coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign audit resource"
+      }
+    }
+  ],
+  "gcp_logging_detect_t1619": [
+    {
+      "status": "FAIL",
+      "evidence": {
+        "principal": "user@example.com",
+        "caller_ip": null,
+        "count": 2
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 1,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "audit entry coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete or foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: approved_list_rate"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: protoPayload.status.code"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: audit_coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign audit resource"
+      }
+    }
+  ],
+  "gcp_logging_detect_t1648": [
+    {
+      "status": "FAIL",
+      "evidence": {
+        "principal": "user@example.com",
+        "caller_ip": null,
+        "count": 1
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 1,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "audit entry coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete or foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: approved_invokers"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: protoPayload.status.code"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: audit_coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign audit resource"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "serverless audit resource type mismatch"
+      }
+    }
+  ],
+  "gcp_logging_detect_t1651": [
+    {
+      "status": "FAIL",
+      "evidence": {
+        "principal": "user@example.com",
+        "caller_ip": null,
+        "count": 1
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "inspected_entries": 1,
+        "interval": [
+          "2026-10-11T23:00:00+00:00",
+          "2026-10-12T01:00:00+00:00"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "audit entry coverage incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "incomplete or foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: approved_cloud_admins"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "malformed fact: protoPayload.status.code"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: audit_coverage"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "foreign audit resource"
+      }
+    }
+  ],
+  "gcp_cloudsql_failed_attempts_lockout": [
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: missing fact: sw09_policy",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 2,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: missing fact: sw09_policy",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 1,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 1,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "instance password policy does not establish this witness; alternative rate limiting unresolved"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: settings.passwordValidationPolicy.enablePasswordPolicy"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: missing fact: sw09_policy",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 1,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 1,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "fact unavailable or malformed coverage: usersList"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "managed user lockout witness requires documented MySQL 8.0 or later"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native managed MySQL lockout witness unavailable for this engine; alternative protection unresolved"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "current primary managed user policy authority unresolved"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "empty API-visible user list cannot prove the original account universe"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "Cloud SQL user source or capture binding inconsistent"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "Cloud SQL native capture does not match current snapshot authority"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "users.list operation is not bound to the selected project and instance"
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 2,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "explicit_approved_customer_scope",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        },
+        "approved_scope": {
+          "responsibility": "customer-controlled-database-accounts",
+          "approved_account_count": 2,
+          "evidence_ref": "fixture:approved-customer-account-scope",
+          "reviewed_at": "2026-10-19T09:21:45.023363+00:00",
+          "expires_at": "2026-10-20T10:21:45.023363+00:00",
+          "claim": "explicit operator responsibility decision; not a provider-observed principal universe"
+        }
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 2,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "explicit_approved_customer_scope",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        },
+        "approved_scope": {
+          "responsibility": "customer-controlled-database-accounts",
+          "approved_account_count": 2,
+          "evidence_ref": "fixture:approved-customer-account-scope",
+          "reviewed_at": "2026-10-19T09:21:45.033921+00:00",
+          "expires_at": "2026-10-20T10:21:45.033921+00:00",
+          "claim": "explicit operator responsibility decision; not a provider-observed principal universe"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: approved customer accounts differ from the entire API-visible universe",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 2,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: customer scope approval is expired or not effective at capture",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 2,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: missing fact: approved_by",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 2,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: approved customer responsibility boundary unresolved",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 2,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "full in-scope login-principal authority remains unresolved: approved customer accounts differ from the entire API-visible universe",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 1,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 1,
+          "unresolved_builtin_policy_count": 0,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "approved scope includes unresolved protection; independent rate limiting remains unknown",
+        "native_lockout_witness": {
+          "provider_operation": "sqladmin.users.list",
+          "configured_builtin_user_count": 1,
+          "api_visible_account_count": 2,
+          "unsupported_authentication_type_count": 0,
+          "unresolved_builtin_policy_count": 1,
+          "scope_authority": "original_principal_universe_unresolved",
+          "claim": "managed MySQL account lock-after-N configuration; no runtime login test"
+        }
+      }
+    }
+  ],
+  "gcp_pci_bucket_7dc6cb8c2e05": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "bucket": "b",
+        "source": "IAM; uniform access disables ACLs"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "bucket": "b",
+        "source": "IAM"
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "bucket": "b",
+        "reason": "approved exclusion"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: excludedPublicBuckets"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "bucket": "b",
+        "source": "bucket ACL"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "bucket": "b",
+        "source": "effective IAM"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket_acl collection missing or ambiguous"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket incomplete collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket foreign native provenance"
+      }
+    }
+  ],
+  "gcp_pci_bucket_56c6b1b7f813": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "bucket": "b",
+        "source": "IAM; uniform access disables ACLs"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "bucket": "b",
+        "source": "known public object-write IAM role"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "bucket": "b",
+        "source": "active ACL"
+      }
+    },
+    {
+      "status": "PASS",
+      "evidence": {
+        "bucket": "b",
+        "source": "IAM and active ACLs"
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "bucket": "b",
+        "source": "effective IAM"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket_acl collection missing or ambiguous"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket incomplete collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "bucket foreign native provenance"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: iamPolicy.bindings"
+      }
+    }
+  ],
+  "gcp_pci_kms_key_a3927a5f3b84": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "key": "projects/p/locations/us-central1/keyRings/r/cryptoKeys/k",
+        "effective_principals": [
+          "user:a",
+          "user:b",
+          "user:c"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "key": "projects/p/locations/us-central1/keyRings/r/cryptoKeys/k",
+        "effective_principals": [
+          "user:a",
+          "user:b",
+          "user:c",
+          "user:d"
+        ]
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "key": "projects/p/locations/us-central1/keyRings/r/cryptoKeys/k",
+        "effective_principals": [
+          "allUsers"
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "effective KMS use resolution incomplete"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "kms_effective_use collection missing or ambiguous"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "kms_key incomplete collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "kms_key foreign collection"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "kms_key foreign native provenance"
+      }
+    }
+  ],
+  "gcp.iam.restrict_public_members": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "public_bindings": [],
+        "semantics": "Project policy only; organization/folder inheritance and deny policies were not collected."
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "public_bindings": [
+          {
+            "role": "roles/viewer",
+            "members": [
+              "allUsers"
+            ],
+            "condition": null
+          }
+        ],
+        "semantics": "Project policy declarations; inherited and effective permissions unassessed."
+      }
+    },
+    {
+      "status": "MANUAL",
+      "evidence": {
+        "conditional_public_bindings": [
+          {
+            "role": "roles/viewer",
+            "members": [
+              "allUsers"
+            ],
+            "condition": {
+              "expression": "true"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: bindings"
+      }
+    }
+  ],
+  "gcp.iam.avoid_basic_roles": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "broad_bindings": [],
+        "semantics": "Declared project grants, including conditions; not effective permissions."
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "broad_bindings": [
+          {
+            "role": "roles/editor",
+            "members": [
+              "user:a@example.com"
+            ]
+          }
+        ],
+        "semantics": "Declared project grants, including conditions; not effective permissions."
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: bindings"
+      }
+    }
+  ],
+  "gcp.storage.uniform_access": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "uniform_bucket_level_access": true
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "uniform_bucket_level_access": false
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: iamConfiguration.uniformBucketLevelAccess.enabled"
+      }
+    }
+  ],
+  "gcp.storage.public_access_prevention": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "configured": "enforced",
+        "semantics": "Preventative setting; bucket IAM and object ACL public access not evaluated."
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "public access prevention is inherited; effective organization policy unavailable",
+        "configured": "inherited",
+        "detail": "effective org policy missing or ambiguous: storage.publicAccessPrevention"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: iamConfiguration.publicAccessPrevention"
+      }
+    }
+  ],
+  "gcp.compute.restrict_internet_ingress": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "source_ranges": [
+          "10.0.0.0/8"
+        ],
+        "allowed": [
+          {
+            "IPProtocol": "tcp",
+            "ports": [
+              "22"
+            ]
+          }
+        ],
+        "network": null,
+        "target_tags": [],
+        "target_service_accounts": [],
+        "priority": 1000,
+        "semantics": "Declared firewall rule only, not effective reachability."
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "source_ranges": [
+          "0.0.0.0/0"
+        ],
+        "allowed": [
+          {
+            "IPProtocol": "tcp",
+            "ports": [
+              "22"
+            ]
+          }
+        ],
+        "network": null,
+        "target_tags": [],
+        "target_service_accounts": [],
+        "priority": 1000,
+        "target_instances": "unknown (instance inventory or rule attribution unavailable)",
+        "target_instances_running": "unknown (target attribution unavailable)",
+        "target_instances_complete": false,
+        "semantics": "Declared firewall rule only, not effective reachability."
+      }
+    },
+    {
+      "status": "NOT_APPLICABLE",
+      "evidence": {
+        "disabled": false,
+        "direction": "EGRESS"
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: allowed"
+      }
+    }
+  ],
+  "gcp.compute.no_external_ip": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "external_ips": [],
+        "semantics": "Assigned addresses; no reachability test was performed."
+      }
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "external_ips": [
+          "203.0.113.5"
+        ],
+        "semantics": "Assigned addresses; no reachability test was performed."
+      }
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: networkInterfaces"
+      }
+    }
+  ]
+}

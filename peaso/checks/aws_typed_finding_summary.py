@@ -565,7 +565,7 @@ def _custom(cid,e):
     if cid=='aws.pci.vpc.peering_dns_resolution':
         options=e.get('dns_options')
         if isinstance(options,dict) and options and all(k in {'RequesterVpcInfo','AccepterVpcInfo'} and type(v) is bool for k,v in options.items()):
-            return 'Peering remote DNS resolution: '+', '.join(('requester' if k=='RequesterVpcInfo' else 'accepter')+' '+('enabled' if v else 'disabled') for k,v in options.items())+'.'
+            return 'Peering remote DNS resolution: '+', '.join(('requester' if k=='RequesterVpcInfo' else 'accepter')+' '+('enabled' if options[k] else 'disabled') for k in ('RequesterVpcInfo','AccepterVpcInfo') if k in options)+'.'
         side=e.get('peering_side');enabled=e.get('remote_dns_resolution')
         if side in ('RequesterVpcInfo','AccepterVpcInfo') and type(enabled) is bool:return 'Remote DNS resolution is '+('enabled' if enabled else 'disabled')+' on the peering '+('requester' if side=='RequesterVpcInfo' else 'accepter')+' side.'
     if cid=='aws_g6_elbv2_only_https_tls_listeners':

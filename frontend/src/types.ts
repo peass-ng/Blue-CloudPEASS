@@ -77,6 +77,33 @@ export type Finding = {
   fail_when?: string;
   not_applicable_when?: string;
   rationale?: string;
+  grouped?: boolean;
+  member_count?: number;
+  status_counts?: Record<string, number>;
+  affected_asset_count?: number;
+  affected_regions?: string[];
+  affected_scopes?: string[];
+  affected_accounts?: string[];
+  member_filters?: Record<string, string | string[]>;
+};
+export type FindingGroupMember = {
+  id: string;
+  scope: string;
+  account?: string;
+  region?: string;
+  asset: string;
+  resource_id?: string;
+  resource_name?: string;
+  native_resource_id?: string;
+  status: string;
+  severity: string;
+  evidence_summary?: string;
+};
+export type FindingGroupDetail = Finding & {
+  members: FindingGroupMember[];
+  members_total: number;
+  members_next_offset?: number | null;
+  next_offset?: number | null;
 };
 export type RemediationDetails = {
   summary: string;

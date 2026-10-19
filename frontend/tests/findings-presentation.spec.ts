@@ -310,7 +310,7 @@ test("coverage is in completed Scan details and all finding columns sort", async
   await expect(page.getByRole("dialog").getByText("Collected default encryption configuration is absent. 0 rules recorded.")).toBeVisible();
   await page.getByRole("button", { name: "Close inspector" }).click();
   await page.getByRole("button", { name: "gcp gcp" }).click();
-  await expect(page.getByRole("dialog").getByText("enabled is true.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog").locator(".finding-detail-observation > p").first()).toContainText("enabled is true.");
   await page.getByRole("button", { name: "Close inspector" }).click();
   await page.getByRole("button", { name: "k8s k8s" }).click();
   await expect(page.getByRole("dialog").getByText("No observed evidence was supplied for this undetermined result.")).toBeVisible();

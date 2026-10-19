@@ -14,7 +14,7 @@ def test_malformed_projection_entries_do_not_make_access_claims(cid,field,values
 def test_actual_grant_shape_keeps_declared_and_effective_access_distinct():
     g={'native_grant':{'Effect':'Allow','Action':'*','Resource':'*'},'allowed_declaration':True,'severity':'high','broad':True}
     f={'provider':'aws','check_id':'analysis.grant_review','status':'MANUAL','evidence':{'grants':[g]}}
-    assert evidence_summary(f)=='The configuration declares 1 broad or high-impact permission grant; effective access is not established.'
+    assert evidence_summary(f)=='The declaration permits all actions (*) on all resources (*). These broad or high-impact grants can widen control; other policies still affect usable access.'
     for patch in [{'allowed_declaration':False},{'broad':False,'severity':'low'}]:
         f['evidence']['grants']=[dict(g,**patch)]
         assert evidence_summary(f) is None
@@ -57,7 +57,10 @@ def test_malformed_aws_tcp_intervals_do_not_make_public_rule_claims(start,end):
 def test_public_principal_summary_requires_the_declared_allow_grant():
     e={'principals':[{'classification':'public','native_grant':{'Effect':'Allow','Principal':{'AWS':'*'}},'restrictive_conditions':[],'reason':'public'}]}
     f={'provider':'aws','check_id':'analysis.principal_exposure','status':'FAIL','evidence':e}
-    assert evidence_summary(f)=='The policy declares a public wildcard principal; effective access is not established.'
+    assert evidence_summary(f) is None  # No permitted action was recorded.
+    f['evidence']['principals'][0]['native_grant']['Action']='s3:GetObject'
+    assert 's3:GetObject' in evidence_summary(f)
+    assert 'other policies may still block requests' in evidence_summary(f)
     f['evidence']['principals'][0]['native_grant']['Principal']={'AWS':'arn:aws:iam::111122223333:root'}
     assert evidence_summary(f) is None
     f['evidence']['principals'][0]['native_grant']={'Effect':'Deny','Principal':'*'}
@@ -65,15 +68,50 @@ def test_public_principal_summary_requires_the_declared_allow_grant():
 
 
 def test_public_conditional_principal_does_not_lose_its_constraints():
-    f={'check_id':'analysis.principal_exposure','status':'MANUAL','evidence':{'principals':[{'classification':'public','native_grant':{'Effect':'Allow','Principal':'*'},'reason':'public_conditional','restrictive_conditions':['source-account']} ]}}
-    assert 'with limiting conditions recorded' in evidence_summary(f)
-    assert 'effective access is not established' in evidence_summary(f)
+    f={'check_id':'analysis.principal_exposure','status':'MANUAL','evidence':{'principals':[{'classification':'public','native_grant':{'Effect':'Allow','Principal':'*','Action':'lambda:InvokeFunction','Condition':{'StringEquals':{'AWS:SourceAccount':'111122223333'}}},'reason':'public_conditional','restrictive_conditions':['source-account']} ]}}
+    assert 'Recorded conditions restrict this grant' in evidence_summary(f)
+    assert 'other policies may still block requests' in evidence_summary(f)
+
+
+def test_lambda_public_invocation_explains_the_audience_action_and_access_limit():
+    grant={'Effect':'Allow','Principal':{'AWS':['*']},'Action':'lambda:InvokeFunction'}
+    finding={'provider':'aws','service':'lambda','check_id':'analysis.principal_exposure',
+             'status':'FAIL','evidence':{'principals':[{'classification':'public','native_grant':grant}]}}
+    before=deepcopy(finding)
+    assert evidence_summary(finding)==('Principal “*” (anyone) is allowed to invoke this Lambda function. '
+                                      'This may admit unintended callers; other policies may still block requests.')
+    assert finding==before
+    # Even older observations without the projected condition list retain the
+    # native statement's condition in the explanation.
+    grant['Condition']={'StringEquals':{'AWS:SourceAccount':'111122223333'}}
+    assert 'Recorded conditions restrict this grant' in evidence_summary(finding)
+    assert 'may admit unintended callers' not in evidence_summary(finding)
+
+
+def test_public_actions_are_bounded_and_never_taken_from_a_deny_statement():
+    finding={'check_id':'analysis.principal_exposure','evidence':{'principals':[
+        {'classification':'public','native_grant':{'Effect':'Allow','Principal':'*','Action':['s3:GetObject','s3:PutObject','s3:DeleteObject']}},
+        {'classification':'public','native_grant':{'Effect':'Deny','Principal':'*','Action':'s3:BypassGovernanceRetention'}}]}}
+    summary=evidence_summary(finding)
+    assert 's3:GetObject, s3:PutObject and 1 other action' in summary
+    assert 's3:BypassGovernanceRetention' not in summary
+
+
+def test_wildcard_conditions_do_not_claim_to_restrict_a_public_grant():
+    entry={'classification':'public','native_grant':{'Effect':'Allow','Principal':'*','Action':'lambda:InvokeFunction',
+           'Condition':{'StringLike':{'aws:PrincipalArn':'*'}}}}
+    finding={'check_id':'analysis.principal_exposure','evidence':{'principals':[entry]}}
+    assert 'may admit unintended callers' in evidence_summary(finding)
+    limited=deepcopy(entry)
+    limited['native_grant']['Condition']={'StringEquals':{'aws:SourceAccount':'111122223333'}}
+    finding['evidence']['principals'].append(limited)
+    assert 'Only some grants have limiting conditions' in evidence_summary(finding)
 
 
 def test_oidc_problem_code_requires_matching_native_issuer_and_principal():
     t={'issuer':'token.actions.githubusercontent.com','federated_principal':'arn:aws:iam::111122223333:oidc-provider/token.actions.githubusercontent.com','problems':[{'code':'no_sub_condition'}]}
     f={'provider':'aws','check_id':'analysis.federated_trust','status':'FAIL','evidence':{'federated_trusts':[t]}}
-    assert evidence_summary(f)=='The OIDC trust for token.actions.githubusercontent.com has no positive subject restriction.'
+    assert evidence_summary(f)=='The OIDC trust for token.actions.githubusercontent.com has no positive subject restriction. This may admit unintended token holders; other trust and session controls still affect access.'
     t['federated_principal']='arn:aws:iam::111122223333:saml-provider/example'
     assert evidence_summary(f) is None
     t['federated_principal']='arn:aws:iam::111122223333:oidc-provider/different.example'
@@ -88,4 +126,4 @@ def test_undemonstrated_oidc_problem_shapes_do_not_invent_a_missing_restriction(
 
 def test_native_shape_error_is_explained_without_exposing_an_internal_reason_code():
     f={'provider':'aws','check_id':'analysis.coverage','status':'UNKNOWN','evidence':{'reason':'malformed_native_fact'}}
-    assert evidence_summary(f)=='A collected inventory record is malformed; the assessment remains undetermined.'
+    assert evidence_summary(f)=='A collected inventory record is malformed, preventing reliable identity or permission analysis.'

@@ -38,6 +38,11 @@ CUSTOMER_ROLE_DOWNLOAD_KEY = "aws/customer-role.json"
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    "docs/evidence-reviews/*.json", "docs/finding-groups.md", "docs/check-scope-review.csv",
+    "scripts/audit_observed_evidence.py", "scripts/sync_evidence_explanation_copy.py",
+    "tests/test_gcp_evidence_explanations_review.py",
+    "tests/fixtures/aws_evidence_review.json.gz", "tests/fixtures/azure_evidence_review.json.gz",
+    "tests/fixtures/gcp-reviewed-evidence.json", "tests/fixtures/shared_evidence_review.json",
     "docs/compliance-ledgers/*.json", "docs/compliance-ledgers/*.md",
     "docs/compliance-ledgers/descriptions/*.json", "docs/compliance-ledgers/descriptions/*.md",
     "docs/compliance-ledgers/inputs/*.json", "docs/compliance-ledgers/provenance/*.json",
@@ -155,9 +160,9 @@ CURRENT_API_UNCOMPRESSED_LIMIT = 245_000_000
 # Current corresponding source has grown beyond the historical artifact-update
 # contract. Keep these bounds aligned with the GitHub Actions release reviewer;
 # historical artifact-update approvals retain their original measured limits.
-CURRENT_SOURCE_MEMBER_LIMIT = 2700  # Includes release.json; independently bounds the current release.
-CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 275_000_000
-CURRENT_SOURCE_ARCHIVE_LIMIT = 36_000_000  # Matches the current Actions reviewer; historical contracts stay at 32 MB.
+CURRENT_SOURCE_MEMBER_LIMIT = 2750  # Includes per-check evidence reviews and their replay inputs.
+CURRENT_SOURCE_UNCOMPRESSED_LIMIT = 290_000_000
+CURRENT_SOURCE_ARCHIVE_LIMIT = 38_000_000  # Bounds the reviewed evidence ledgers; historical contracts stay at 32 MB.
 
 
 def checked_member(root, name):

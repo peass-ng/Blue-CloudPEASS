@@ -25,6 +25,8 @@ def _load(path):
 
 
 def _write(value, destination, format):
+    from .finding_groups import group_report
+    value = group_report(value)
     text = render_markdown(value) if format == "markdown" else json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     if destination:
         path = Path(destination).expanduser()

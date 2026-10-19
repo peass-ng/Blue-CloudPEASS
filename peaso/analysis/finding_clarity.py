@@ -65,7 +65,10 @@ def network_priority(evidence, default='high'):
 def evidence_summary(finding):
     if not isinstance(finding,dict):return None
     cid=finding.get('check_id');e=finding.get('evidence');status=finding.get('status')
-    if cid not in HOW or not isinstance(e,dict):return None
+    if not isinstance(cid,str) or cid not in HOW and cid!='analysis.internet_exposure' or not isinstance(e,dict):return None
+    if cid=='analysis.internet_exposure':return _internet_summary(finding)
+    if cid=='analysis.federated_trust' and e.get('reason')=='malformed_native_fact':
+        return 'The collected federation declaration is malformed, so issuer and claim restrictions cannot be assessed.'
     if cid=='analysis.network_review' and isinstance(e.get('rules'),list) and e['rules']:
         def valid_rule(row):
             if not isinstance(row,dict) or not isinstance(row.get('native_rule'),dict):return False
@@ -81,7 +84,18 @@ def evidence_summary(finding):
                 return isinstance(protocol,str) and bool(protocol) and (protocol in ('icmp','icmpv6','-1') or protocol.isdigit())
             if 'allowed' in native:
                 allowed=native['allowed']
-                return isinstance(allowed,list) and bool(allowed) and all(isinstance(v,dict) and isinstance(v.get('IPProtocol'),str) and bool(v['IPProtocol']) for v in allowed)
+                if not isinstance(allowed,list) or not allowed:return False
+                for value in allowed:
+                    if not isinstance(value,dict):return False
+                    protocol=value.get('IPProtocol')
+                    if not isinstance(protocol,str) or not (protocol in ('tcp','udp','icmp','esp','ah','ipip','sctp','all') or protocol.isascii() and protocol.isdigit() and 0<=int(protocol)<=255):return False
+                    ports=value.get('ports')
+                    if ports is not None:
+                        if not _strings(ports):return False
+                        for port in ports:
+                            parts=port.split('-')
+                            if len(parts)>2 or not all(p.isascii() and p.isdigit() and 0<=int(p)<=65535 for p in parts) or int(parts[0])>int(parts[-1]):return False
+                return True
             if isinstance(props,dict) and 'protocol' in props:return props['protocol'] in ('Tcp','TCP','tcp','Udp','UDP','udp','Icmp','ICMP','icmp','*')
             if 'ports' in native:
                 return isinstance(native['ports'],list) and all(isinstance(v,dict) and v.get('protocol','TCP') in ('TCP','UDP','SCTP') and (type(v.get('port')) is int or isinstance(v.get('port'),str)) for v in native['ports'])
@@ -104,25 +118,22 @@ def evidence_summary(finding):
         ports=[_web_ports(x.get('native_rule')) if isinstance(x,dict) else None for x in e['rules']]
         if all(ports):
             names=', '.join('TCP/'+str(p) for p in sorted({p for group in ports for p in group}))
-            return f'The collected rules allow Internet-wide sources on {names}; endpoint reachability is not established.'
-        return 'The collected rules contain Internet-wide allow declarations; endpoint reachability is not established.'
+            return f'The collected rules allow Internet-wide sources on {names}; these ports may expose web services, but endpoint reachability is not established.'
+        details = _network_details(e['rules'])
+        return 'The collected rules allow Internet-wide sources'+(' on '+details if details else '')+'; this can expose services, but endpoint reachability is not established.'
     if cid=='analysis.inactive_identity':
         usage=e.get('usage')
         if isinstance(usage,dict) and usage.get('inactive_observation') is True:
-            return 'No activity was recorded in the observed window; the identity may still be needed.'
+            window=usage.get('window')
+            interval=(' from '+window['start']+' to '+window['end']) if isinstance(window,dict) and _text(window.get('start'),50) and _text(window.get('end'),50) else ' in the recorded window'
+            return 'Zero identity activity was recorded'+interval+'; incomplete telemetry can miss use, so this does not establish that access is unnecessary.'
     if cid=='analysis.grant_review' and isinstance(e.get('grants'),list) and e['grants']:
         grants=e['grants']
         if not all(isinstance(g,dict) and g.get('allowed_declaration') is True
                    and isinstance(g.get('native_grant'),(dict,str)) and bool(g['native_grant'])
                    and (g.get('broad') is True or g.get('severity') in ('high','critical')) for g in grants):return None
-        n=len(grants)
-        return f'The configuration declares {n} broad or high-impact permission grant'+('s' if n!=1 else '')+'; effective access is not established.'
-    if cid=='analysis.coverage':
-        if e.get('reason')=='malformed_native_fact':return 'A collected inventory record is malformed; the assessment remains undetermined.'
-        gaps=e.get('gaps')
-        if isinstance(gaps,list) and gaps:
-            kinds=[x['type'] for x in gaps if isinstance(x,dict) and isinstance(x.get('type'),str)]
-            if kinds:return 'Required inventory is incomplete: '+', '.join(kinds[:4])+('.' if len(kinds)<=4 else ', and other types.')
+        return _grant_summary(finding,grants)
+    if cid=='analysis.coverage':return _coverage_summary(e)
     from .provider_observed_evidence import evidence_summary as provider_summary
     observed=provider_summary(finding)
     if observed is not None:return observed
@@ -134,12 +145,34 @@ def evidence_summary(finding):
             grant=entry.get('native_grant')
             if entry.get('classification')!='public' or not isinstance(grant,dict) or grant.get('Effect')!='Allow':continue
             principal=grant.get('Principal')
-            candidates=[principal] if isinstance(principal,str) else list(principal.values()) if isinstance(principal,dict) else []
+            candidates=[principal] if isinstance(principal,str) else list(principal.values()) if isinstance(principal,dict) and set(principal)<={'AWS','Service','Federated','CanonicalUser'} else []
             values=[v for group in candidates for v in (group if isinstance(group,list) else [group])]
             if '*' in values:public.append(entry)
         if public:
-            conditional=any(v.get('reason')=='public_conditional' or bool(v.get('restrictive_conditions')) for v in public)
-            return 'The policy declares a public wildcard principal'+(' with limiting conditions recorded' if conditional else '')+'; effective access is not established.'
+            from .trust import restrictive_conditions
+            constrained=[v.get('reason')=='public_conditional' or bool(v.get('restrictive_conditions'))
+                         or bool(restrictive_conditions(v['native_grant'].get('Condition'))) for v in public]
+            actions=[]
+            for entry in public:
+                value=entry['native_grant'].get('Action')
+                for action in value if isinstance(value,list) else [value]:
+                    if isinstance(action,str) and 0<len(action)<=100 and all(ord(c)>=32 for c in action):
+                        if action not in actions:actions.append(action)
+            if not actions:return None
+            extra=len(actions)-2
+            permission=('all actions' if '*' in actions else ', '.join(actions[:2])+
+                        (f' and {extra} other action'+('s' if extra!=1 else '') if extra>0 else '')) if actions else 'the listed actions'
+            target='this Lambda function' if finding.get('service') in ('lambda','lambda_function') else 'this IAM role' if finding.get('service')=='iam_role' else 'the resources covered by the statement'
+            observation=f'Principal “*” (anyone) is allowed {permission} on {target}.'
+            if finding.get('service') in ('lambda','lambda_function') and actions==['lambda:InvokeFunction']:
+                observation='Principal “*” (anyone) is allowed to invoke this Lambda function.'
+            if all(constrained):
+                return observation+' Recorded conditions restrict this grant; other policies may still block requests.'
+            if any(constrained):
+                return observation+' Only some grants have limiting conditions; other policies may still block requests.'
+            return observation+' This may admit unintended callers; other policies may still block requests.'
+        external=_aws_principal_summary(finding,entries)
+        if external:return external
     if cid=='analysis.federated_trust':
         trusts=e.get('federated_trusts')
         if not isinstance(trusts,list) or not trusts or any(not isinstance(v,dict) for v in trusts):return None
@@ -152,6 +185,23 @@ def evidence_summary(finding):
             if not (oidc or cognito) or not isinstance(problems,list) or any(not isinstance(p,dict) for p in problems):return None
             codes=[p.get('code') for p in problems]
             if any(not isinstance(code,str) for code in codes):return None
+            from .trust import _conditions, POSITIVE, _wildcard_subject
+            conditions=trust.get('conditions')
+            if conditions is not None and not isinstance(conditions,dict):return None
+            if isinstance(conditions,dict):
+                for operator,clauses in conditions.items():
+                    if not _text(operator,80) or not isinstance(clauses,dict):return None
+                    for key,value in clauses.items():
+                        if not _text(key) or not (_text(value) or _strings(value) and value):return None
+            def claim(name):
+                return [value for operator,key,values in _conditions(conditions)
+                    if key.lower()==issuer.lower()+':'+name and 'ifexists' not in operator.lower()
+                    and POSITIVE.match(operator.lower()) for value in values]
+            if 'no_sub_condition' in codes and claim('sub'):return None
+            if any(code in codes for code in ('no_aud_condition','cognito_no_aud')) and claim('aud'):return None
+            if 'wildcard_sub' in codes and not any(_wildcard_subject(issuer.lower(),v) for v in claim('sub')):return None
+            if 'cognito_unauthenticated' in codes and not any('unauthenticated' in v for v in claim('amr')):return None
+            if not codes and not claim('aud' if cognito else 'sub'):return None
             for code in codes:
                 if code=='no_sub_condition' and oidc:messages.append('The OIDC trust for '+issuer+' has no positive subject restriction.')
                 elif code=='wildcard_sub' and oidc:messages.append('The OIDC subject pattern leaves the tenant or repository owner unrestricted.')
@@ -162,7 +212,193 @@ def evidence_summary(finding):
             reviewed.append(issuer)
         if messages:
             unique=list(dict.fromkeys(messages))
-            return ' '.join(unique[:2])+(f' {len(unique)-2} additional restriction issues are recorded.' if len(unique)>2 else '')
+            return ' '.join(unique[:1])+' This may admit unintended token holders; other trust and session controls still affect access.'
         unique=list(dict.fromkeys(reviewed))
-        return 'No checked subject or audience restriction issue is recorded for '+', '.join(unique[:2])+(f' and {len(unique)-2} other issuers' if len(unique)>2 else '')+'.'
+        return 'No checked subject or audience restriction issue is recorded for '+', '.join(unique[:1])+(f' and {len(unique)-1} other issuers' if len(unique)>1 else '')+'; provider-side claim customization and effective role access remain unverified.'
     return None
+
+
+def _text(value, limit=240):
+    return isinstance(value,str) and 0<len(value)<=limit and all(ord(c)>=32 for c in value)
+
+
+def _strings(value):
+    return isinstance(value,list) and all(_text(v) for v in value)
+
+
+def _items(values):
+    return ', '.join(values[:2])+(f' and {len(values)-2} others' if len(values)>2 else '')
+
+
+def _network_details(rows):
+    labels=[]
+    for row in rows[:2]:
+        n=row['native_rule'];p=n.get('properties',n)
+        if 'IpProtocol' in n:
+            proto={'6':'TCP','17':'UDP','-1':'all protocols'}.get(n['IpProtocol'],n['IpProtocol'].upper())
+            a,b=n.get('FromPort'),n.get('ToPort')
+            labels.append(proto+('/'+str(a)+(('-'+str(b)) if a!=b else '') if type(a)is int and type(b)is int else ''))
+        elif 'allowed' in n:
+            for allow in n['allowed'][:2]:
+                ports=allow.get('ports')
+                if ports is not None and not _strings(ports):return None
+                labels.append(allow['IPProtocol'].upper()+('/'+_items(ports) if ports else ' (all ports)'))
+        elif 'protocol' in p:
+            values=p.get('destinationPortRanges') or [p.get('destinationPortRange')]
+            if not _strings(values):return None
+            labels.append(p['protocol'].upper()+'/'+_items(values))
+        elif isinstance(n.get('ports'),list):
+            for port in n['ports'][:2]:
+                value=port.get('port')
+                if not (type(value)is int and 0<=value<=65535 or _text(value,80)):return None
+                labels.append(port.get('protocol','TCP')+'/'+str(value))
+        elif 'from' in n or not n:
+            labels.append('all ports at the NetworkPolicy layer')
+    return _items(list(dict.fromkeys(labels))) if labels else None
+
+
+def _grant_summary(finding,grants):
+    provider=finding.get('provider');examples=[]
+    for grant in grants:
+        native=grant['native_grant']
+        if provider=='aws':
+            if not isinstance(native,dict) or native.get('Effect')!='Allow':return None
+            actions=native.get('Action');actions=[actions] if isinstance(actions,str) else actions
+            if actions is None and 'NotAction' in native:
+                actions=native['NotAction'];actions=[actions] if isinstance(actions,str) else actions
+                if not _strings(actions) or not actions:return None
+                label='all actions except '+_items(actions)
+            elif _strings(actions) and actions:
+                label='all actions (*)' if '*' in actions else _items(actions)
+            else:return None
+            resources=native.get('Resource');resources=[resources] if isinstance(resources,str) else resources
+            if resources is not None and not _strings(resources):return None
+            if resources:label+=' on '+('all resources (*)' if '*' in resources else _items(resources))
+            examples.append(label)
+        elif provider=='gcp':
+            if isinstance(native,str) and _text(native):examples.append(native)
+            elif isinstance(native,dict) and _text(native.get('role')):
+                members=native.get('members')
+                if not _strings(members) or not members:return None
+                examples.append(native['role']+' for '+_items(members))
+            else:return None
+        elif provider=='azure':
+            if not isinstance(native,dict):return None
+            actions=native.get('actions',[]);data=native.get('dataActions',[])
+            if not _strings(actions) or not _strings(data) or not actions+data:return None
+            examples.append(_items(actions+data))
+        elif provider=='k8s':
+            if not isinstance(native,dict) or not _strings(native.get('verbs')) or not native['verbs']:return None
+            targets=native.get('resources',native.get('nonResourceURLs'))
+            if not _strings(targets) or not targets:return None
+            examples.append(_items(native['verbs'])+' on '+_items(targets))
+        else:return None
+    prefix='The declaration permits '+_items(list(dict.fromkeys(examples)))+'.'
+    assignment=finding['evidence'].get('assignment')
+    if provider=='azure' and isinstance(assignment,dict) and _text(assignment.get('principalId')):
+        prefix='The assigned role for '+assignment['principalId']+' permits '+_items(list(dict.fromkeys(examples)))+'.'
+    conditional=any(g.get('conditional')is True for g in grants)
+    return prefix+' These broad or high-impact grants can widen control; '+('recorded restrictions and ' if conditional else '')+'other policies still affect usable access.'
+
+
+_INVENTORY_LABELS={
+    'iam_user':'IAM users','iam_role':'IAM roles','iam_group':'IAM groups','iam_policy':'IAM policies',
+    'instance_profile':'instance profiles','organization_account':'organization accounts',
+    'service_account':'service accounts','iam_binding':'IAM bindings','role_assignment':'role assignments',
+    'role_definition':'role definitions','directory_user':'directory users','directory_group':'directory groups',
+    'directory_service_principal':'directory service principals','directory_application':'directory applications',
+    'directory_role_assignment':'directory role assignments','directory_role_definition':'directory role definitions',
+    'directory_membership':'directory memberships','deny_assignment':'deny assignments','iam_deny_policy':'IAM deny policies',
+    'role':'namespace roles','clusterrole':'cluster roles','rolebinding':'namespace role bindings',
+    'clusterrolebinding':'cluster role bindings','serviceaccount':'Kubernetes service accounts',
+    'user':'users','group':'groups','principal':'principals',
+}
+
+def _coverage_summary(e):
+    reason=e.get('reason')
+    if reason=='malformed_native_fact':return 'A collected inventory record is malformed, preventing reliable identity or permission analysis.'
+    if reason=='permission_criticality_unknown' and isinstance(e.get('unclassified_grants'),list) and e['unclassified_grants']:
+        return 'The permission catalog could not classify '+str(len(e['unclassified_grants']))+' recorded grants; their security impact remains undetermined.'
+    gaps=e.get('gaps')
+    if not isinstance(gaps,list) or not gaps:return None
+    labels=[]
+    for gap in gaps:
+        if not isinstance(gap,dict) or not _text(gap.get('type'),80):return None
+        status=gap.get('status');label=_INVENTORY_LABELS.get(gap['type'],gap['type'].replace('_',' '))
+        if status not in ('not_collected','denied','partial','missing','failed','error','unsupported','unknown'):return None
+        labels.append(label+' ('+{'not_collected':'not collected','denied':'read denied','partial':'partial inventory'}.get(status,status)+')')
+    return 'Required inventory is incomplete: '+_items(labels)+'. These gaps can hide grants or principals, so the assessment cannot establish complete access coverage.'
+
+
+def _aws_principal_summary(finding,entries):
+    if finding.get('provider')!='aws':return None
+    from .common import principal_scope
+    for entry in entries:
+        identity,native=entry.get('principal'),entry.get('native_grant')
+        if not _text(identity) or not isinstance(native,dict) or native.get('Effect')!='Allow':continue
+        p=native.get('Principal');values=[]
+        if isinstance(p,str):values=[p]
+        elif isinstance(p,dict):
+            for group in p.values():values.extend(group if isinstance(group,list) else [group])
+        if identity not in values:continue
+        actions=native.get('Action');actions=[actions] if isinstance(actions,str) else actions
+        if not _strings(actions) or not actions:continue
+        permission='all actions (*)' if '*' in actions else _items(actions)
+        classification=entry.get('classification')
+        if classification=='external':
+            account=principal_scope('aws',identity)
+            if not account or account!=entry.get('external_scope_id'):continue
+            return f'The policy allows {permission} for {identity}, outside the trusted account scope. This can extend access to another account; conditions and other policies still apply.'
+        if classification=='unknown':
+            return f'The policy allows {permission} for {identity}, but its trusted or external ownership could not be resolved. The intended trust boundary and usable access remain undetermined.'
+        if classification=='service_unscoped' and isinstance(p,dict) and identity in (p.get('Service') if isinstance(p.get('Service'),list) else [p.get('Service')]):
+            return f'The policy allows {permission} for service {identity} without a recorded source restriction. Intended source accounts and effective access need review.'
+    return None
+
+
+_EXPOSURE_KINDS={
+    'public_ip':'public IP path','load_balancer':'load-balancer frontend','database':'database endpoint',
+    'managed_endpoint':'managed service endpoint','control_plane':'cluster control-plane endpoint',
+    'function_url':'Lambda function URL','api':'API endpoint','data_share':'stored-data sharing',
+    'external_share':'external snapshot sharing','serverless':'serverless endpoint','web_app':'web application endpoint',
+    'service':'Kubernetes service','ingress':'Kubernetes ingress','malformed':'internet path',
+}
+
+def _internet_summary(finding):
+    e=finding['evidence'];status=finding.get('status');kind=e.get('exposure_kind')
+    if e.get('reason')=='malformed_native_fact':return 'Malformed network inventory prevented the internet-path assessment; public exposure remains undetermined.'
+    if kind is None and isinstance(e.get('gaps'),list):
+        return _coverage_summary(e)
+    if not isinstance(kind,str) or kind not in _EXPOSURE_KINDS:return None
+    label=_EXPOSURE_KINDS[kind]
+    if status=='UNKNOWN':
+        unresolved=e.get('unresolved')
+        if not isinstance(unresolved,list) or not unresolved:return None
+        layers=[v.get('layer') for v in unresolved if isinstance(v,dict) and _text(v.get('layer'),60)]
+        detail='; '+_items([x.replace('_',' ') for x in layers])+' evidence is incomplete' if layers else ''
+        return 'The '+label+' cannot be resolved'+detail+'. Missing path layers prevent a public-reachability conclusion.'
+    if status=='PASS':
+        blocked=e.get('blocked_by')
+        path=e.get('path')
+        if kind=='function_url' and e.get('authenticated_endpoint')is True and isinstance(path,list) and any(isinstance(p,dict) and p.get('layer')=='authorization' and p.get('auth_type')=='AWS_IAM' for p in path):
+            return 'The Lambda function URL requires AWS_IAM signed requests, limiting anonymous invocation. Effective caller permissions and runtime behavior were not tested.'
+        if blocked is None and e.get('exposed_ports')==[] and isinstance(path,list) and path:
+            return 'The path model records no exposed ports; its deciding blocking layer was not stored. Live access was not tested.'
+        if not _text(blocked,80) or not isinstance(path,list) or not any(isinstance(p,dict) and p.get('layer')==blocked and p.get('decision')=='block' for p in path):return None
+        return 'The configured '+label+' is blocked at the '+blocked.replace('_',' ')+' layer. This is a configuration assessment; no connection was attempted.'
+    if status not in ('FAIL','MANUAL'):return None
+    path=e.get('path')
+    if not isinstance(path,list) or not path or any(not isinstance(p,dict) or not _text(p.get('layer'),80) or p.get('decision') not in ('allow','block','unknown','not_public') for p in path):return None
+    if not any(p.get('decision')=='allow' for p in path) or e.get('blocked_by')is not None:return None
+    ports=e.get('exposed_ports');addresses=e.get('public_addresses');external=e.get('external_scope_ids')
+    if not _strings(ports) or not _strings(addresses):return None
+    if kind=='external_share' and _strings(external) and external:
+        return 'Snapshot restore access is declared for external accounts '+_items(external)+'. These accounts may copy the data; actual restores and other controls were not tested.'
+    if e.get('data_exposure')is True:
+        noun='Snapshot restore access' if kind=='data_share' and 'snapshot' in str((e.get('source') if isinstance(e.get('source'),dict) else {}).get('resource_type','')) else 'Stored-data access'
+        return noun+' is declared public. This may expose data to unintended readers; actual reads and other access controls were not tested.'
+    target=(' at '+_items(addresses)) if addresses else ''
+    services=(' on '+_items(ports)) if ports else ''
+    limit=' Authentication still governs application access; no connection was attempted.' if e.get('authenticated_endpoint')is True else ' This can admit internet callers; no connection was attempted.'
+    if isinstance(e.get('unresolved'),list) and e['unresolved']:limit=' Some path layers remain unresolved, so usable access is not established.'
+    return 'The configured '+label+target+' admits internet sources'+services+'.'+limit

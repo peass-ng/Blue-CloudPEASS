@@ -129,7 +129,7 @@ export function App() {
     (available.some((scan) => scan.id === selected) ? selected : "") || available.find((s) => s.status === "completed")?.id || "";
   const current = available.find((s) => s.id === scanId);
   const report = useApi<Report>(
-    `/scans/${encodeURIComponent(scanId)}/summary`,
+    `/scans/${encodeURIComponent(scanId)}/summary?aggregation=check`,
     demo,
     !!scanId && current?.status === "completed",
   );

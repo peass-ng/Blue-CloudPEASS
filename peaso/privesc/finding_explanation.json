@@ -1,0 +1,3167 @@
+{
+  "aws-amplify-updateapp-passrole": {
+    "purpose": "Changing an Amplify role and controlled build or SSR code may expose the passed role\u2019s privileges.",
+    "label": "Repoint an Amplify app's service or compute role to a passed role and build it",
+    "review_status": "source_reviewed"
+  },
+  "aws-amplify-updateapp-passrole-ssr": {
+    "purpose": "Changing an Amplify role and controlled build or SSR code may expose the passed role\u2019s privileges.",
+    "label": "Repoint an Amplify SSR compute role and invoke controlled SSR code",
+    "review_status": "source_reviewed"
+  },
+  "aws-amplifybackend-createtoken-studio-admin": {
+    "purpose": "Minting a Studio login may grant administration of the linked Gen 1 application backend.",
+    "label": "Mint an Amplify Studio administrator login for a Gen 1 backend",
+    "review_status": "source_reviewed"
+  },
+  "aws-apigateway-integration-credentials-passrole": {
+    "purpose": "Invoking a changed API integration may exercise the passed API Gateway role\u2019s service actions.",
+    "label": "Create a REST API AWS-service integration that runs with a passed credentials role",
+    "review_status": "source_reviewed"
+  },
+  "aws-apprunner-passrole-createservice": {
+    "purpose": "A controlled App Runner service may run code with the passed instance role.",
+    "label": "Create an App Runner service with a passed instance role",
+    "review_status": "source_reviewed"
+  },
+  "aws-apprunner-updateservice-passrole": {
+    "purpose": "A controlled App Runner service may run code with the passed instance role.",
+    "label": "Repoint an existing App Runner service to a passed instance role",
+    "review_status": "source_reviewed"
+  },
+  "aws-apprunner-plaintext-credential": {
+    "purpose": "Reading the verified exposed credential may provide the named principal\u2019s usable permissions.",
+    "label": "DescribeService returns plaintext environment credentials",
+    "review_status": "source_reviewed"
+  },
+  "aws-appstream-passrole-createimagebuilder-createfleet": {
+    "purpose": "A controlled AppStream builder or fleet may expose the passed role\u2019s privileges.",
+    "label": "Create an image builder or fleet with a passed role and stream into it",
+    "review_status": "source_reviewed"
+  },
+  "aws-athena-passrole-createworkgroup-spark": {
+    "purpose": "A controlled Spark calculation may run as the role assigned to the new Athena workgroup.",
+    "label": "Create an Athena Spark workgroup with a passed execution role and run code in it",
+    "review_status": "source_reviewed"
+  },
+  "aws-batch-registerjobdefinition-passrole-submitjob": {
+    "purpose": "Submitting a controlled Batch job may run its container with the passed job role.",
+    "label": "Register a Batch job definition with a passed job role and submit it",
+    "review_status": "source_reviewed"
+  },
+  "aws-bedrock-agentcore-createcodeinterpreter-passrole": {
+    "purpose": "Invoking a new Code Interpreter may execute code with its passed Bedrock AgentCore role.",
+    "label": "Create an AgentCore Code Interpreter with a passed execution role and run code in it",
+    "review_status": "source_reviewed"
+  },
+  "aws-bedrock-agent-lambda-actiongroup-hijack": {
+    "purpose": "Replacing action-group Lambda code may run it with the existing function\u2019s execution role.",
+    "label": "Modify a Lambda action-group function and trigger it through a Bedrock agent",
+    "review_status": "source_reviewed"
+  },
+  "aws-bedrock-agentcore-createharness-passrole": {
+    "purpose": "An AgentCore harness may run controlled commands with its passed execution role.",
+    "label": "Create an AgentCore harness with a passed execution role and run shell commands in it",
+    "review_status": "source_reviewed"
+  },
+  "aws-bedrock-agentcore-createagentruntime-passrole": {
+    "purpose": "A controlled AgentCore runtime artifact may execute with the assigned role.",
+    "label": "Create an AgentCore agent runtime with a passed role and invoke it",
+    "review_status": "source_reviewed"
+  },
+  "aws-bedrock-agentcore-updateagentruntime-passrole": {
+    "purpose": "A controlled AgentCore runtime artifact may execute with the assigned role.",
+    "label": "Repoint an existing AgentCore agent runtime to a passed role and invoke it",
+    "review_status": "source_reviewed"
+  },
+  "aws-braket-passrole-createjob": {
+    "purpose": "A controlled Braket job may run code with the passed job role.",
+    "label": "Create a Braket hybrid job with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudcontrol-passrole-createresource": {
+    "purpose": "Cloud Control may perform chosen resource operations with the passed CloudFormation role.",
+    "label": "Create or update a resource through Cloud Control API with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudformation-passrole-createstack": {
+    "purpose": "A controlled CloudFormation template or change set may exercise the passed service role.",
+    "label": "Create a stack with a passed CloudFormation service role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudformation-passrole-updatestack": {
+    "purpose": "A controlled CloudFormation template or change set may exercise the passed service role.",
+    "label": "Update a stack with a passed CloudFormation service role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudformation-passrole-changeset": {
+    "purpose": "A controlled CloudFormation template or change set may exercise the passed service role.",
+    "label": "Create and execute a change set with a passed service role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudformation-passrole-stackset": {
+    "purpose": "A self-managed StackSet may exercise execution roles reachable through its administration role.",
+    "label": "Create or update a self-managed StackSet with a passed administration role",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudformation-registertype-passrole-extension": {
+    "purpose": "A registered CloudFormation extension may run handler code with its passed execution role.",
+    "label": "Register a private CloudFormation extension with a passed execution role and invoke it",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudformation-service-managed-stackset-org-members": {
+    "purpose": "A service-managed StackSet may run chosen resource operations in organization member accounts.",
+    "label": "Deploy a service-managed StackSet into organization member accounts",
+    "review_status": "source_reviewed"
+  },
+  "aws-cloudfront-lambda-edge-passrole": {
+    "purpose": "A changed distribution may run controlled Lambda@Edge code with the passed edge-compatible role.",
+    "label": "Associate a new Lambda@Edge function with a passed role to a distribution",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-startbuild-attached-role": {
+    "purpose": "A controlled CodeBuild build may run commands with the project\u2019s assigned service role.",
+    "label": "Start a build of an existing project with an overridden buildspec",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-passrole-createproject": {
+    "purpose": "A controlled CodeBuild build may run commands with the project\u2019s assigned service role.",
+    "label": "Create a CodeBuild project with a passed service role and run it",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-passrole-updateproject": {
+    "purpose": "A controlled CodeBuild build may run commands with the project\u2019s assigned service role.",
+    "label": "Change a CodeBuild project's service role and run it",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-updateproject-attached-role": {
+    "purpose": "A controlled CodeBuild build may run commands with the project\u2019s assigned service role.",
+    "label": "Change an existing CodeBuild project's build definition and run it",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-startcommandexecution": {
+    "purpose": "A usable CodeBuild sandbox or debug shell may expose the project\u2019s service-role permissions.",
+    "label": "Run a command in a running CodeBuild sandbox",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-startsandboxconnection": {
+    "purpose": "A usable CodeBuild sandbox or debug shell may expose the project\u2019s service-role permissions.",
+    "label": "Open an interactive Session Manager shell in a running CodeBuild sandbox",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-startsandbox-exec": {
+    "purpose": "A usable CodeBuild sandbox or debug shell may expose the project\u2019s service-role permissions.",
+    "label": "Start a CodeBuild sandbox for a project and run commands in it",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-ssm-debug-session-role": {
+    "purpose": "A usable CodeBuild sandbox or debug shell may expose the project\u2019s service-role permissions.",
+    "label": "ssm:StartSession into CodeBuild sandboxes",
+    "review_status": "source_reviewed"
+  },
+  "aws-codebuild-plaintext-env-credential": {
+    "purpose": "A verified usable plaintext build credential may provide the named identity\u2019s permissions.",
+    "label": "codebuild:BatchGetProjects / BatchGetBuilds",
+    "review_status": "source_reviewed"
+  },
+  "aws-codepipeline-passrole-createpipeline-codebuild": {
+    "purpose": "A changed pipeline and controlled build project may run code with the build service role.",
+    "label": "Create a pipeline and CodeBuild project with passed roles and start it",
+    "review_status": "source_reviewed"
+  },
+  "aws-codepipeline-updatepipeline-codebuild-updateproject": {
+    "purpose": "A changed pipeline and controlled build project may run code with the build service role.",
+    "label": "Alter a pipeline's CodeBuild project and run the pipeline",
+    "review_status": "source_reviewed"
+  },
+  "aws-config-passrole-automatic-remediation": {
+    "purpose": "An automatic Config remediation may run a controlled Automation document as the passed role.",
+    "label": "Attach an automatic remediation that runs an Automation document as a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-datapipeline-passrole-create-activate": {
+    "purpose": "A controlled Data Pipeline resource may execute commands with its EC2 instance-profile role.",
+    "label": "Create and activate a Data Pipeline with passed roles",
+    "review_status": "source_reviewed"
+  },
+  "aws-deadline-passrole-createqueue-updatequeue": {
+    "purpose": "A controlled Deadline queue or fleet worker may exchange credentials for the passed role.",
+    "label": "Attach a passed role to a queue and vend its credentials",
+    "review_status": "source_reviewed"
+  },
+  "aws-deadline-passrole-fleet-createworker": {
+    "purpose": "A controlled Deadline queue or fleet worker may exchange credentials for the passed role.",
+    "label": "Attach a passed role to a fleet and vend it to a registered worker",
+    "review_status": "source_reviewed"
+  },
+  "aws-devicefarm-passrole-project-schedulerun": {
+    "purpose": "A Device Farm test specification may run controlled commands with the passed execution role.",
+    "label": "Run a custom test with a passed execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-devicefarm-schedulerun-existing-test-spec-passrole": {
+    "purpose": "A Device Farm test specification may run controlled commands with the passed execution role.",
+    "label": "Schedule an existing malicious Device Farm test spec with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-passrole-runinstances": {
+    "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
+    "label": "Launch an EC2 instance with a passed instance profile",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-passrole-associate-instance-profile": {
+    "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
+    "label": "Associate or replace the instance profile of an instance the source controls",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-requestspotinstances-passrole": {
+    "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
+    "label": "Request a Spot Instance with a passed instance profile",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-autoscaling-create-update-asg-passrole": {
+    "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
+    "label": "Create a launch configuration or template with a passed role and launch it through Auto Scaling",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-passrole-requestspotfleet": {
+    "purpose": "A newly launched or reconfigured EC2 instance may expose the passed instance-profile role.",
+    "label": "Create a Spot Fleet with a passable EC2 instance-profile role",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-modifyinstanceattribute-userdata": {
+    "purpose": "A replaced startup script may execute with the existing instance-profile role after a restart.",
+    "label": "Replace the user data of an existing instance and restart it",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-launchtemplate-version-asg": {
+    "purpose": "A floating launch-template version may run changed code with future Auto Scaling instance roles.",
+    "label": "Publish a new default launch-template version consumed by an Auto Scaling group",
+    "review_status": "source_reviewed"
+  },
+  "aws-ec2-instance-connect-sendsshpublickey": {
+    "purpose": "An accepted SSH key and reachable login may expose the instance-profile role on that VM.",
+    "label": "Push a temporary SSH key to an instance with EC2 Instance Connect",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-passrole-registertaskdefinition-runtask": {
+    "purpose": "A controlled ECS task, service or task set may execute code with the assigned task role.",
+    "label": "Register a task definition with a passed task role and run it",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-passrole-runtask-overrides": {
+    "purpose": "A controlled ECS task, service or task set may execute code with the assigned task role.",
+    "label": "Run an existing task definition with overridden task role and command",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-passrole-registertaskdefinition-starttask": {
+    "purpose": "A controlled ECS task, service or task set may execute code with the assigned task role.",
+    "label": "Register a task definition with a passed task role and start it on a container instance",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-passrole-registertaskdefinition-service": {
+    "purpose": "A controlled ECS task, service or task set may execute code with the assigned task role.",
+    "label": "Register a task definition with a passed task role and deploy it as a service",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-taskset-primary": {
+    "purpose": "A controlled ECS task, service or task set may execute code with the assigned task role.",
+    "label": "Create a primary task set with a controlled container on an EXTERNAL-controller service",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-registertaskdefinition-node-escape": {
+    "purpose": "A privileged or host-mounted ECS container may reach the node and co-located task credentials.",
+    "label": "Run a privileged container without a task role on EC2 capacity to reach node and co-located task roles",
+    "review_status": "source_reviewed"
+  },
+  "aws-ecs-ecscape-agent-impersonation": {
+    "purpose": "The container-instance role may impersonate other tasks on that same EC2 container instance.",
+    "label": "Impersonate the ECS agent to obtain credentials of co-located tasks (ECScape)",
+    "review_status": "source_reviewed"
+  },
+  "aws-eks-createaccessentry-associateaccesspolicy": {
+    "purpose": "EKS access-entry changes may map a controlled principal to cluster-admin permissions.",
+    "label": "Create an EKS access entry for the source and associate a cluster-admin access policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-eks-updateclusterconfig-enable-access-entries": {
+    "purpose": "EKS access-entry changes may map a controlled principal to cluster-admin permissions.",
+    "label": "Switch a CONFIG_MAP EKS cluster to access-entry authentication and grant the source cluster-admin",
+    "review_status": "source_reviewed"
+  },
+  "aws-elasticbeanstalk-passrole-create-environment": {
+    "purpose": "A controlled Beanstalk environment may execute code with its passed EC2 instance-profile role.",
+    "label": "Create a Beanstalk application and environment with a passed instance profile",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-passrole-runjobflow": {
+    "purpose": "A controlled EMR cluster may run code with its passed EC2 instance-profile role.",
+    "label": "Launch an EMR cluster with a passed EC2 instance profile",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-getclustersessioncredentials-runtime-role": {
+    "purpose": "EMR session credentials may enable cluster work as the named runtime role without PassRole.",
+    "label": "Vend endpoint credentials for an EMR runtime role without iam:PassRole",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-serverless-passrole-startjobrun": {
+    "purpose": "An EMR Serverless job may execute controlled code with the passed execution role.",
+    "label": "Start an EMR Serverless job run with a passed execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-containers-passrole-startjobrun": {
+    "purpose": "EMR on EKS jobs or interactive sessions may execute code with the matching execution role.",
+    "label": "Start an EMR on EKS job run with a passed execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-emr-containers-getmanagedendpointsessioncredentials": {
+    "purpose": "EMR on EKS jobs or interactive sessions may execute code with the matching execution role.",
+    "label": "Open an interactive EMR on EKS session as a managed endpoint's execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-events-passrole-createsubscriber-universal-target": {
+    "purpose": "An EventBridge universal target may exercise supported write actions through the passed role.",
+    "label": "Create an enhanced-bus subscriber with a universal target and a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-audit-use-existing-parameterized-automation-runbook-with-runtime-passrole": {
+    "purpose": "A verified parameterized Automation runbook may run chosen steps with the passed role.",
+    "label": "Use existing parameterized Automation runbook with runtime PassRole",
+    "review_status": "source_reviewed"
+  },
+  "aws-iot-byo-certificate-existing-rolealias": {
+    "purpose": "A usable device certificate and existing IoT role alias may enable role-credential exchange.",
+    "label": "Use a BYO certificate with an existing privileged role alias",
+    "review_status": "source_reviewed"
+  },
+  "aws-iot-provisioning-claim-existing-rolealias": {
+    "purpose": "A usable device certificate and existing IoT role alias may enable role-credential exchange.",
+    "label": "Mint a provisioning certificate for an existing privileged role alias",
+    "review_status": "source_reviewed"
+  },
+  "aws-flink-passrole-createapplication": {
+    "purpose": "A controlled Flink application may run code with its passed execution role.",
+    "label": "Create and start a Managed Flink application with a passed execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-gamelift-passrole-createfleet": {
+    "purpose": "A controlled GameLift server fleet may execute code with its passed instance role.",
+    "label": "Create a GameLift fleet with a passed instance or container-fleet role",
+    "review_status": "source_reviewed"
+  },
+  "aws-gameliftstreams-passrole-startstreamsession": {
+    "purpose": "A controlled streaming application may expose a passable GameLiftStreams role.",
+    "label": "Start a stream session of a controlled application with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-passrole-createdevendpoint": {
+    "purpose": "A controlled Glue development endpoint may expose its passed execution-role permissions.",
+    "label": "Create a Glue development endpoint with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-startjobrun-override-script": {
+    "purpose": "A controlled Glue job script or argument override may run with the job execution role.",
+    "label": "Run an existing Glue job overriding its script or dependency arguments",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-passrole-createjob-or-updatejob-run": {
+    "purpose": "A controlled Glue job script or argument override may run with the job execution role.",
+    "label": "Create or update a Glue job with a passed role and run it",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-updatejob-existing-role": {
+    "purpose": "A controlled Glue job script or argument override may run with the job execution role.",
+    "label": "Replace an existing Glue job definition that keeps its attached role",
+    "review_status": "source_reviewed"
+  },
+  "aws-glue-passrole-createsession": {
+    "purpose": "A Glue interactive session may run controlled code with the passed execution role.",
+    "label": "Create a Glue interactive session with a passed role and run statements in it",
+    "review_status": "source_reviewed"
+  },
+  "aws-grafana-createworkspaceapikey-admin": {
+    "purpose": "A minted Grafana administrator key or service-account token may administer the workspace.",
+    "label": "Mint an ADMIN Grafana workspace API key",
+    "review_status": "source_reviewed"
+  },
+  "aws-grafana-serviceaccounttoken-admin": {
+    "purpose": "A minted Grafana administrator key or service-account token may administer the workspace.",
+    "label": "Mint a Grafana service-account token (optionally for a new ADMIN account)",
+    "review_status": "source_reviewed"
+  },
+  "aws-grafana-updateworkspaceauthentication-saml-admin": {
+    "purpose": "A replaced SAML provider may grant Grafana administrator access through controlled identities.",
+    "label": "Add an attacker-controlled SAML administrator to an existing Grafana workspace",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createpolicyversion-self": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Create a new default version of a customer-managed policy attached to the source",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-attachuserpolicy-self": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Attach a managed policy to the source IAM user",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-putuserpolicy-self": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Put an inline policy on the source IAM user",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-attachgrouppolicy-self": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Attach a managed policy to a group the source user belongs to",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-putgrouppolicy-self": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Put an inline policy on a group the source user belongs to",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-attachrolepolicy-self": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Attach a managed policy to the source's own role",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-putrolepolicy-self": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Put an inline policy on the source's own role",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-modify-assumable-role-policy": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Grant permissions to a role the source can already assume",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createrole-attach-assume": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Create a new role trusting the source, grant it admin, and assume it",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createpolicyversion-assumable-role": {
+    "purpose": "Changing a policy attached to the source or an assumable role may add administrative permissions.",
+    "label": "Rewrite a managed policy attached to an assumable role",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-setdefaultpolicyversion-self": {
+    "purpose": "Selecting a more permissive stored policy version may expand the source\u2019s permissions.",
+    "label": "Switch the default version of a customer-managed policy attached to the source",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createaccesskey-other-user": {
+    "purpose": "A newly created access key may allow requests as the named IAM user.",
+    "label": "Create access keys for another IAM user",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createloginprofile-other-user": {
+    "purpose": "Creating or replacing a console password may enable sign-in as the named IAM user.",
+    "label": "Create a console password for another IAM user",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-updateloginprofile-other-user": {
+    "purpose": "Creating or replacing a console password may enable sign-in as the named IAM user.",
+    "label": "Reset the console password of another IAM user",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createservicespecificcredential-other-user": {
+    "purpose": "Service-specific credentials may grant only that user\u2019s supported service-scoped access.",
+    "label": "Create or reset service-specific credentials for another IAM user",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-uploadsshpublickey-other-user": {
+    "purpose": "An uploaded SSH key may provide that IAM user\u2019s CodeCommit access.",
+    "label": "Upload an SSH public key for another IAM user (CodeCommit)",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-addusertogroup": {
+    "purpose": "Joining an IAM group may give the source the group\u2019s assigned permissions.",
+    "label": "Add the source user to an IAM group",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-updateassumerolepolicy": {
+    "purpose": "Rewriting role trust may let the source assume that role, subject to other controls.",
+    "label": "Rewrite a role's trust policy to allow the source",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-updatesamlprovider": {
+    "purpose": "Replacing or creating a trusted SAML provider may admit assertions signed by a controlled issuer.",
+    "label": "Replace the metadata of a SAML provider trusted by roles",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-recreate-samlprovider": {
+    "purpose": "Replacing or creating a trusted SAML provider may admit assertions signed by a controlled issuer.",
+    "label": "Replace a trusted SAML provider with an attacker-controlled one of the same name",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createsamlprovider-orphaned-trust": {
+    "purpose": "Replacing or creating a trusted SAML provider may admit assertions signed by a controlled issuer.",
+    "label": "Register a SAML provider that a role trusts but that no longer exists",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-enable-attacker-mfa-device-other-user": {
+    "purpose": "A controlled MFA device plus usable credentials may satisfy another IAM user\u2019s MFA-gated access.",
+    "label": "Enrol an attacker-controlled virtual MFA device on another user and mint its credentials",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-deactivate-mfa-loginprofile-other-user": {
+    "purpose": "Removing MFA and changing the password may enable console access as the named IAM user.",
+    "label": "Remove another user's MFA device and set its console password",
+    "review_status": "source_reviewed"
+  },
+  "aws-iam-createuser-policy-accesskey": {
+    "purpose": "Creating a user, granting policy and obtaining a key may create an independent administrator identity.",
+    "label": "Create a privileged IAM user and obtain its access key",
+    "review_status": "source_reviewed"
+  },
+  "aws-imagebuilder-component-version-hijack": {
+    "purpose": "A floating Image Builder component version may run chosen code with the pipeline infrastructure role.",
+    "label": "Publish a newer component version consumed by a wildcard recipe and run the pipeline",
+    "review_status": "source_reviewed"
+  },
+  "aws-iot-passrole-rolealias-certificate": {
+    "purpose": "A controlled IoT certificate, policy and role alias may enable exchange for the passed role.",
+    "label": "Point an IoT role alias at a passed role and assume it with a device certificate",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-passrole-createfunction-invokefunction": {
+    "purpose": "A new controlled Lambda function and usable trigger may execute code with the passed role.",
+    "label": "Create a Lambda function with a passed execution role and invoke it",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-passrole-createfunction-addpermission": {
+    "purpose": "A new controlled Lambda function and usable trigger may execute code with the passed role.",
+    "label": "Create a Lambda function with a passed role and grant itself invoke via the resource policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-passrole-createfunction-createeventsourcemapping": {
+    "purpose": "A new controlled Lambda function and usable trigger may execute code with the passed role.",
+    "label": "Create a Lambda function with a passed role and trigger it through an event source mapping",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-passrole-createfunction-dynamodb-stream-trigger": {
+    "purpose": "A new controlled Lambda function and usable trigger may execute code with the passed role.",
+    "label": "Create a Lambda function with a passed role and trigger it from a new DynamoDB stream",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-passrole-createfunction-functionurl": {
+    "purpose": "A new controlled Lambda function and usable trigger may execute code with the passed role.",
+    "label": "Create a Lambda with a passed role and invoke it through a Function URL",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-passrole-createfunction-eventbridge-trigger": {
+    "purpose": "A new controlled Lambda function and usable trigger may execute code with the passed role.",
+    "label": "Run a newly created Lambda with a passable role through EventBridge",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-updatefunctioncode": {
+    "purpose": "Replacing Lambda code may execute with the function\u2019s existing execution role.",
+    "label": "Replace the code of an existing Lambda function",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-codesigning-bypass-updatefunctioncode": {
+    "purpose": "Bypassing or satisfying code signing may allow replacement Lambda code under its execution role.",
+    "label": "Remove or replace a function's code-signing config, then replace its code",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-signer-startsigningjob-updatefunctioncode": {
+    "purpose": "Bypassing or satisfying code signing may allow replacement Lambda code under its execution role.",
+    "label": "Sign attacker code with a publisher profile already trusted by a function's code-signing config",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-passrole-updatefunctionconfiguration-role-swap": {
+    "purpose": "Changing a function\u2019s execution role and invoking it may execute code with the passed role.",
+    "label": "Repoint an existing Lambda function's execution role to a passable role",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-putresourcepolicy-grant-updatefunctioncode": {
+    "purpose": "Replacing a Lambda resource policy may add code-update access and reach its execution role.",
+    "label": "Grant code updates to oneself through a Lambda function resource policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-microvm-passrole-runmicrovm-shell": {
+    "purpose": "A controlled Lambda MicroVM shell may receive its execution-role credentials through IMDSv2.",
+    "label": "Launch a Lambda MicroVM with a passed execution role and open a shell into it",
+    "review_status": "source_reviewed"
+  },
+  "aws-lambda-getconfig-secret-identity": {
+    "purpose": "A verified usable environment credential may enable access as the distinct named identity.",
+    "label": "Recover a distinct identity credential from GetFunctionConfiguration environment",
+    "review_status": "source_reviewed"
+  },
+  "aws-m2-passrole-createapplication-deploy": {
+    "purpose": "Deploying controlled mainframe application artifacts may exercise the passed application role.",
+    "label": "Create, deploy and start an M2 application with a passed application role",
+    "review_status": "source_reviewed"
+  },
+  "aws-mgh-passrole-automation-unit": {
+    "purpose": "A controlled Migration Hub automation target may exercise the passed automation role.",
+    "label": "Run a custom Migration Hub automation unit with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-migrationhub-orchestrator-workflow-step": {
+    "purpose": "An Orchestrator step may run commands on SSM-managed instances and reach their instance roles.",
+    "label": "Add or change a workflow step that runs a script on managed nodes",
+    "review_status": "source_reviewed"
+  },
+  "aws-finspace-passrole-createkxcluster": {
+    "purpose": "A controlled FinSpace kdb cluster may run q code with the passed role.",
+    "label": "Create a FinSpace Managed kdb cluster with a passed execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-kafkaconnect-passrole-createconnector": {
+    "purpose": "A controlled MSK Connect plugin may run in workers carrying the passed execution role.",
+    "label": "Create an MSK Connect connector with a passed service execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-mwaa-serverless-passrole-createworkflow": {
+    "purpose": "A controlled serverless Airflow workflow may run with its passed execution role.",
+    "label": "Create an MWAA Serverless workflow with a passed execution role and run it",
+    "review_status": "source_reviewed"
+  },
+  "aws-mwaa-passrole-updateenvironment": {
+    "purpose": "Changing an MWAA environment role and its executed code may expose the passed role\u2019s privileges.",
+    "label": "Repoint an MWAA environment to a passed execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-organizations-management-to-member-accounts": {
+    "purpose": "Management-account trust may let the source assume a member account\u2019s cross-account admin role.",
+    "label": "Assume the organization access role in member accounts from the management account",
+    "review_status": "source_reviewed"
+  },
+  "aws-organizations-createaccount-principalorgid-trust": {
+    "purpose": "A controlled new member account may satisfy organization-wide trust and assume a target role.",
+    "label": "Create a member account to satisfy role trusts keyed on aws:PrincipalOrgID",
+    "review_status": "source_reviewed"
+  },
+  "aws-quicksight-registeruser-admin": {
+    "purpose": "Registering a controlled identity as QuickSight ADMIN may grant control of QuickSight resources.",
+    "label": "Register a controlled IAM identity as a QuickSight ADMIN",
+    "review_status": "source_reviewed"
+  },
+  "aws-s3-putbucketpolicy-self-grant": {
+    "purpose": "A same-account bucket-policy change may newly allow object reads on the reviewed prefix.",
+    "label": "Grant the source principal GetObject on an exact S3 prefix through a bucket policy",
+    "review_status": "source_reviewed"
+  },
+  "aws-s3-accessgrants-self-grant": {
+    "purpose": "An Access Grants session may newly allow object reads only on its reviewed storage prefix.",
+    "label": "Vend a newly authorized S3 Access Grants READ session for the source principal",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-passrole-createnotebookinstance": {
+    "purpose": "A controlled SageMaker notebook may execute code with the passed role.",
+    "label": "Create a notebook instance with a passed role and open it",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-createpresignednotebookinstanceurl": {
+    "purpose": "A presigned notebook or Studio session may run code with the existing notebook or profile role.",
+    "label": "Open an existing notebook instance via a presigned URL",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-createpresigneddomainurl": {
+    "purpose": "A presigned notebook or Studio session may run code with the existing notebook or profile role.",
+    "label": "Mint a Studio login URL for an existing user profile",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-passrole-createprocessingjob": {
+    "purpose": "A controlled SageMaker processing, training or tuning job may run code with the passed role.",
+    "label": "Create a Processing job with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-passrole-createtrainingjob": {
+    "purpose": "A controlled SageMaker processing, training or tuning job may run code with the passed role.",
+    "label": "Create a Training job with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-passrole-createhyperparametertuningjob": {
+    "purpose": "A controlled SageMaker processing, training or tuning job may run code with the passed role.",
+    "label": "Create a Hyperparameter Tuning job with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-updateuserprofile-passrole-createapp": {
+    "purpose": "A new or changed Studio profile and app may execute code with the assigned role.",
+    "label": "Swap a Studio user profile's execution role and launch an app",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-updatedomain-createuserprofile-passrole": {
+    "purpose": "A new or changed Studio profile and app may execute code with the assigned role.",
+    "label": "Change a Studio domain's default execution role and create a profile inheriting it",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-createuserprofile-passrole-createapp": {
+    "purpose": "A new or changed Studio profile and app may execute code with the assigned role.",
+    "label": "Create a Studio user profile with an explicit passed execution role and launch an app",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-updateclustersoftware-custom-ami": {
+    "purpose": "A custom HyperPod node image may run code with the instance-group execution roles.",
+    "label": "Replace HyperPod instance-group nodes with a custom AMI that keeps the group's execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-attach-notebook-lifecycle-config": {
+    "purpose": "An attached startup lifecycle configuration may execute with the notebook or Studio profile role.",
+    "label": "Attach a controlled lifecycle configuration to an existing notebook instance",
+    "review_status": "source_reviewed"
+  },
+  "aws-sagemaker-attach-studio-lifecycle-config-user-profile": {
+    "purpose": "An attached startup lifecycle configuration may execute with the notebook or Studio profile role.",
+    "label": "Attach a controlled Studio lifecycle configuration to an existing user profile",
+    "review_status": "source_reviewed"
+  },
+  "aws-scheduler-passrole-createschedule-or-updateschedule": {
+    "purpose": "A Scheduler target may exercise supported API actions with the passed role.",
+    "label": "Create or update a schedule that runs with a passed execution role",
+    "review_status": "source_reviewed"
+  },
+  "aws-secretsmanager-putresourcepolicy-self-grant": {
+    "purpose": "A same-account secret-policy change may newly allow secret reads with the required KMS authority.",
+    "label": "Grant the source IAM user GetSecretValue on an exact secret",
+    "review_status": "source_reviewed"
+  },
+  "aws-efs-putfilesystempolicy-self-grant": {
+    "purpose": "A file-system policy change may newly allow mounting that exact EFS file system.",
+    "label": "Grant the source ClientMount on an exact EFS file system",
+    "review_status": "source_reviewed"
+  },
+  "aws-cases-tagresource-domain-event-self-grant": {
+    "purpose": "Changing the exact Cases domain tag may satisfy its previously unmet event-configuration condition.",
+    "label": "Unlock PutCaseEventConfiguration by changing an exact domain authorization tag",
+    "review_status": "source_reviewed"
+  },
+  "aws-sitewise-createaccesspolicy-portal-self-grant": {
+    "purpose": "An accepted access policy may newly grant administration of that exact SiteWise Monitor portal.",
+    "label": "Grant the source identity SiteWise Monitor portal administrator access",
+    "review_status": "source_reviewed"
+  },
+  "aws-servicecatalog-createprovisioningartifact-provisionproduct": {
+    "purpose": "A modified provisioned product may exercise the product\u2019s launch-constraint role.",
+    "label": "Add a product version and provision it under the launch-constraint role",
+    "review_status": "source_reviewed"
+  },
+  "aws-servicecatalog-associateprincipal-createartifact-provision": {
+    "purpose": "A modified provisioned product may exercise the product\u2019s launch-constraint role.",
+    "label": "Grant itself portfolio access, add a product version and provision it under the launch role",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-incidents-response-plan-automation-passrole": {
+    "purpose": "Starting an incident may run a controlled response-plan Automation document with the passed role.",
+    "label": "Run controlled incident automation with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-sendcommand": {
+    "purpose": "An SSM command, session or scheduled task may execute with the managed instance\u2019s role.",
+    "label": "Run commands on SSM-managed instances",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-startsession": {
+    "purpose": "An SSM command, session or scheduled task may execute with the managed instance\u2019s role.",
+    "label": "Open a Session Manager shell on managed instances",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-createassociation": {
+    "purpose": "An SSM command, session or scheduled task may execute with the managed instance\u2019s role.",
+    "label": "Create a State Manager association that runs commands on instances",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-maintenancewindow-register-task-target": {
+    "purpose": "An SSM command, session or scheduled task may execute with the managed instance\u2019s role.",
+    "label": "Register or update a Run Command task on an existing maintenance window",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-createdocument-startautomationexecution-passrole": {
+    "purpose": "An authored Automation document may run chosen steps with the passed SSM service role.",
+    "label": "Create an Automation runbook with a passed assume role and start it",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-maintenancewindow-automation-task-passrole": {
+    "purpose": "An authored Automation document may run chosen steps with the passed SSM service role.",
+    "label": "Register or update a maintenance-window Automation task with a passed service role",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-passrole-createactivation": {
+    "purpose": "A registered controlled hybrid node may receive the passed SSM role\u2019s permissions.",
+    "label": "Create a hybrid activation bound to a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-ssm-jit-startaccessrequest-getaccesstoken": {
+    "purpose": "An approved just-in-time access request may enable a session reaching the managed node\u2019s role.",
+    "label": "Obtain just-in-time node access credentials and open a session",
+    "review_status": "source_reviewed"
+  },
+  "aws-stepfunctions-teststate-passrole": {
+    "purpose": "A controlled state or state machine may exercise supported service integrations with the passed role.",
+    "label": "Test an arbitrary state with a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-stepfunctions-createstatemachine-passrole-start": {
+    "purpose": "A controlled state or state machine may exercise supported service integrations with the passed role.",
+    "label": "Create a state machine with a passed role and execute it",
+    "review_status": "source_reviewed"
+  },
+  "aws-stepfunctions-updatestatemachine-passrole": {
+    "purpose": "A controlled state or state machine may exercise supported service integrations with the passed role.",
+    "label": "Modify an existing state machine and swap in a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-sts-assumerole-trusted": {
+    "purpose": "Matching identity permission and role trust may let the source assume the target role.",
+    "label": "Assume a role whose trust policy allows the source",
+    "review_status": "source_reviewed"
+  },
+  "aws-rolesanywhere-updatetrustanchor": {
+    "purpose": "A controlled trusted CA and accepted certificate may enable Roles Anywhere sessions for the role.",
+    "label": "Replace the CA of an IAM Roles Anywhere trust anchor",
+    "review_status": "source_reviewed"
+  },
+  "aws-rolesanywhere-createtrustanchor-createprofile-passrole": {
+    "purpose": "A controlled trusted CA and accepted certificate may enable Roles Anywhere sessions for the role.",
+    "label": "Create an attacker-CA Roles Anywhere trust anchor and a profile listing a passed role",
+    "review_status": "source_reviewed"
+  },
+  "aws-workspaces-instances-passrole-createworkspaceinstance": {
+    "purpose": "A controlled WorkSpaces instance may run user data with its passed instance-profile role.",
+    "label": "Create a WorkSpaces instance with a passed instance profile",
+    "review_status": "source_reviewed"
+  },
+  "gcp-agentregistry-skill-default-revision-replace": {
+    "purpose": "Replacing a floating Skill revision may run changed code with the consuming agent\u2019s runtime identity.",
+    "label": "Replace the default revision of a Skill mounted by agents",
+    "review_status": "source_reviewed"
+  },
+  "gcp-agentregistry-service-redirect-exact-external-principal": {
+    "purpose": "A redirected agent endpoint may capture a usable credential for the exact external principal.",
+    "label": "Capture one bound agent credential through a service endpoint redirect",
+    "review_status": "source_reviewed"
+  },
+  "gcp-apigee-proxy-deploy-with-sa-actas": {
+    "purpose": "A deployed Apigee proxy or shared flow may exercise the selected service account\u2019s API privileges.",
+    "label": "Deploy a proxy revision bound to a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-apigee-sharedflow-flowhook-with-sa-actas": {
+    "purpose": "A deployed Apigee proxy or shared flow may exercise the selected service account\u2019s API privileges.",
+    "label": "Deploy a shared flow bound to a chosen service account and attach it to an environment flow hook",
+    "review_status": "source_reviewed"
+  },
+  "gcp-apikeys-authorization-key-bound-sa": {
+    "purpose": "An authorization key bound to a service account may exercise only APIs that accept those keys.",
+    "label": "Create an authorization API key bound to a more-privileged service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-appengine-versions-create-actas": {
+    "purpose": "A new App Engine version may run controlled application code with the selected service account.",
+    "label": "Deploy an App Engine version running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-appengine-versions-create-legacy-default-sa-no-actas": {
+    "purpose": "A legacy deployment without the actAs guardrail may run as the default App Engine service account.",
+    "label": "Deploy an App Engine version as the legacy default service account without actAs",
+    "review_status": "source_reviewed"
+  },
+  "gcp-appengine-instances-enabledebug": {
+    "purpose": "A usable App Engine flexible debug login may expose the version\u2019s service-account credentials.",
+    "label": "SSH into an App Engine flexible instance and use its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-artifactregistry-upload-artifacts": {
+    "purpose": "A changed mutable artifact or tag may run attacker code in a later consuming workload.",
+    "label": "Push a malicious image or package version consumed by a privileged workload",
+    "review_status": "source_reviewed"
+  },
+  "gcp-artifactregistry-tags-update": {
+    "purpose": "A changed mutable artifact or tag may run attacker code in a later consuming workload.",
+    "label": "Repoint a mutable tag to an attacker digest already in the package",
+    "review_status": "source_reviewed"
+  },
+  "gcp-artifactregistry-repositories-setiampolicy": {
+    "purpose": "Changing repository IAM may enable artifact replacement and code execution by a consuming workload.",
+    "label": "Self-grant writer on a repository through its IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-artifactregistry-gcrio-namespace-squat": {
+    "purpose": "Claiming a legacy gcr.io repository namespace may replace artifacts consumed by an existing workload.",
+    "label": "Create the missing gcr.io-named repository to claim a redirected legacy namespace",
+    "review_status": "source_reviewed"
+  },
+  "gcp-artifactregistry-repositories-update-dependency-confusion": {
+    "purpose": "Changing virtual-repository precedence may feed an attacker package to a consuming workload.",
+    "label": "Reconfigure a virtual repository's upstreams to enable dependency confusion",
+    "review_status": "source_reviewed"
+  },
+  "gcp-batch-jobs-create-actas": {
+    "purpose": "A controlled Batch job may execute code with the selected service account.",
+    "label": "Create a Batch job whose VMs run as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-transfers-scheduled-query-actas": {
+    "purpose": "A transfer or continuous query may exercise the selected service account\u2019s BigQuery privileges.",
+    "label": "Create or update a Data Transfer Service scheduled query bound to a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-continuous-query-actas": {
+    "purpose": "A transfer or continuous query may exercise the selected service account\u2019s BigQuery privileges.",
+    "label": "Run a BigQuery continuous query bound to a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-table-row-credential": {
+    "purpose": "A verified usable table-row credential may reach only the named identity it authenticates.",
+    "label": "Read BigQuery table rows",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-spark-procedure-connection-identity": {
+    "purpose": "A Spark stored procedure may execute code with the delegated connection\u2019s service identity.",
+    "label": "Create or replace a Spark stored procedure that runs code as an existing Spark connection's service identity",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-row-policy-create-self-grant": {
+    "purpose": "A self-targeted row policy may newly permit filtered reads of that exact BigQuery table.",
+    "label": "Self-grant filtered row access by creating a row access policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigtable-row-credential": {
+    "purpose": "A verified usable Bigtable-cell credential may reach only its named identity.",
+    "label": "Read Bigtable base-table rows",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bms-direct-initial-secret-exact-server-user": {
+    "purpose": "A still-valid BMS initial password may enable login as the exact named server OS user.",
+    "label": "Reach one BMS server user through its still-valid initial password secret",
+    "review_status": "source_reviewed"
+  },
+  "gcp-biglake-connection-table-bounded-storage-read": {
+    "purpose": "A connection-backed BigLake table may newly expose one protected storage object.",
+    "label": "Read one protected storage object through a connection-backed BigLake table",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-remote-function-bounded-cloudrun-invoke": {
+    "purpose": "A connection-backed remote function may newly permit one configured Cloud Run application invocation.",
+    "label": "Invoke one protected Cloud Run endpoint through an exact remote function",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-authorized-routine-bounded-table-access": {
+    "purpose": "An authorized callable routine may newly expose one protected table through that routine.",
+    "label": "Gain bounded protected-table access through one authorized routine",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-authorized-view-bounded-table-access": {
+    "purpose": "An existing authorized view may newly expose its protected source table through that view.",
+    "label": "Gain bounded protected-table access through one authorized view",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-authorized-dataset-existing-view-bounded-table-access": {
+    "purpose": "An existing authorized view may newly expose its protected source table through that view.",
+    "label": "Gain bounded protected-table access through one existing view in an authorized dataset",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudbuild-builds-create-custom-sa-actas": {
+    "purpose": "A controlled Cloud Build job may execute steps with the selected service account.",
+    "label": "Submit a build running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudbuild-builds-create-default-identity": {
+    "purpose": "An enabled legacy Cloud Build identity may run controlled build steps without caller actAs.",
+    "label": "Submit a build running as the legacy Cloud Build service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudbuild-repositories-accessreadwritetoken": {
+    "purpose": "Repository-token access may change code later executed by connected build triggers.",
+    "label": "Obtain a read/write SCM token for a connected repository that feeds build triggers",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudbuild-connections-setiampolicy-token-access": {
+    "purpose": "Repository-token access may change code later executed by connected build triggers.",
+    "label": "Self-grant repository token access on a Cloud Build connection that feeds build triggers",
+    "review_status": "source_reviewed"
+  },
+  "gcp-clouddeploy-pipeline-target-release-actas": {
+    "purpose": "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+    "label": "Create a delivery pipeline and target whose render/deploy hooks run as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-clouddeploy-release-existing-pipeline": {
+    "purpose": "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+    "label": "Release attacker artifacts through an existing delivery pipeline",
+    "review_status": "source_reviewed"
+  },
+  "gcp-clouddeploy-resource-setiampolicy": {
+    "purpose": "A controlled Cloud Deploy release or pipeline may execute with its selected execution service account.",
+    "label": "Self-grant release rights on a delivery pipeline or target through its IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-clouddeploy-custom-target-render-actas": {
+    "purpose": "A changed custom target type may run controlled render tasks with its render service account.",
+    "label": "Run an updated custom-target render task as the target execution service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudfunctions-create-actas": {
+    "purpose": "A controlled function deployment or reconfiguration may execute with its selected service account.",
+    "label": "Create a Cloud Function running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudfunctions-update-sourcecodeset-actas": {
+    "purpose": "A controlled function deployment or reconfiguration may execute with its selected service account.",
+    "label": "Replace an existing function's code or attached service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudfunctions-update-env-actas": {
+    "purpose": "A controlled function deployment or reconfiguration may execute with its selected service account.",
+    "label": "Inject interpreter startup hooks through a function's environment variables",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudfunctions-setiampolicy-actas": {
+    "purpose": "A controlled function deployment or reconfiguration may execute with its selected service account.",
+    "label": "Self-grant function update rights through the function IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudfunctions-source-deploy-build-identity": {
+    "purpose": "A source-based function build may run controlled build steps with the project\u2019s default build identity.",
+    "label": "Run attacker build hooks as a function's build service account during source deployment",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudidentity-add-member-to-group": {
+    "purpose": "Adding a controlled member to a Google group may confer that group\u2019s assigned privileges.",
+    "label": "Add a controlled principal to a Google group that holds IAM roles",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudscheduler-jobs-create-actas": {
+    "purpose": "A changed Scheduler job may send authenticated API requests as the selected service account.",
+    "label": "Create a scheduler job that calls Google APIs authenticated as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudscheduler-jobs-update-actas": {
+    "purpose": "A changed Scheduler job may send authenticated API requests as the selected service account.",
+    "label": "Update an existing scheduler job to call Google APIs as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-secretmanager-managed-rotation-exact-cloudsql-user": {
+    "purpose": "Managed credential rotation may set a new password for one exact eligible Cloud SQL user.",
+    "label": "Reset one Cloud SQL user's password through managed secret rotation",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudtasks-tasks-create-actas": {
+    "purpose": "A controlled queued task may send authenticated requests as the selected service account.",
+    "label": "Enqueue HTTP tasks authenticated as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudtasks-queues-setiampolicy-actas": {
+    "purpose": "A controlled queued task may send authenticated requests as the selected service account.",
+    "label": "Self-grant Cloud Tasks admin on a queue and enqueue authenticated tasks",
+    "review_status": "source_reviewed"
+  },
+  "gcp-composer-environments-create-actas": {
+    "purpose": "A controlled Composer environment and delivered DAG may execute with the selected service account.",
+    "label": "Create a Composer environment running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-composer-environments-executeairflowcommand": {
+    "purpose": "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+    "label": "Execute Airflow CLI commands in a Composer environment",
+    "review_status": "source_reviewed"
+  },
+  "gcp-composer-environments-update": {
+    "purpose": "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+    "label": "Update a Composer environment's variables, Airflow overrides, PyPI packages or load a snapshot",
+    "review_status": "source_reviewed"
+  },
+  "gcp-composer-bucket-write": {
+    "purpose": "A command, changed configuration or planted DAG may run as the existing Composer environment identity.",
+    "label": "Write a DAG into a Composer environment's bucket",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instances-create-actas": {
+    "purpose": "A controlled Compute VM may run code with the selected attached service account.",
+    "label": "Create a VM running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instances-setserviceaccount-actas": {
+    "purpose": "A controlled Compute VM may run code with the selected attached service account.",
+    "label": "Swap the service account of an existing (stopped) VM",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instancetemplates-mig-actas": {
+    "purpose": "A changed instance template may use the Google APIs Service Agent\u2019s actAs authority to launch VMs.",
+    "label": "Launch VMs running as a chosen service account through a managed instance group",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instancegroupmanagers-update-template": {
+    "purpose": "A changed instance template may use the Google APIs Service Agent\u2019s actAs authority to launch VMs.",
+    "label": "Repoint an existing managed instance group to a new instance template",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instances-setmetadata-existing-vm": {
+    "purpose": "A later startup script or usable metadata SSH login may expose the existing VM service account.",
+    "label": "Modify an existing VM's metadata (SSH keys or startup script) to run as its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-projects-setcommoninstancemetadata": {
+    "purpose": "Changed project metadata may run startup or login code on VMs carrying the selected service accounts.",
+    "label": "Modify project-wide instance metadata to run on every VM of the project",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instances-setiampolicy": {
+    "purpose": "Changing VM IAM may enable a login path to the attached service account.",
+    "label": "Self-grant instance-level compute permissions through the VM IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instances-osadminlogin": {
+    "purpose": "A usable OS Login session may expose the VM\u2019s attached service-account credentials.",
+    "label": "Log in as root to an OS Login VM and use its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-instances-oslogin": {
+    "purpose": "A usable OS Login session may expose the VM\u2019s attached service-account credentials.",
+    "label": "Log in as an unprivileged user to an OS Login VM and use its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-images-create-family-poison": {
+    "purpose": "A later VM launched from a changed image family may execute with its attached service account.",
+    "label": "Publish a newer image into an image family consumed by instance templates",
+    "review_status": "source_reviewed"
+  },
+  "gcp-configcontroller-kcc-resource-write": {
+    "purpose": "A controlled Config Connector resource may exercise the reconciler\u2019s cloud identity.",
+    "label": "Write Config Connector resources so KCC acts as its configured Google service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-configdelivery-fleetpackage-publish": {
+    "purpose": "A published fleet package may apply manifests with the target cluster\u2019s root reconciler privileges.",
+    "label": "Publish a resource-bundle release to fleet clusters through a fleet package",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-clusterroles-bind": {
+    "purpose": "A cluster-role binding may grant the controlled identity cluster-admin permissions.",
+    "label": "Bind a privileged ClusterRole to oneself through GKE IAM bind permission",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-clusterroles-escalate": {
+    "purpose": "Expanding an already bound ClusterRole may confer cluster-admin permissions.",
+    "label": "Widen a ClusterRole bound to the source through GKE IAM escalate permission",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-pod-template-node-sa": {
+    "purpose": "Pod execution or a usable node proxy may expose the GKE node service account.",
+    "label": "Create or update a workload whose pod reads the node pool service account from the metadata server",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-pods-exec-node-sa": {
+    "purpose": "Pod execution or a usable node proxy may expose the GKE node service account.",
+    "label": "Exec into a pod and read the node pool service account from the metadata server",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-nodes-proxy-node-sa": {
+    "purpose": "Pod execution or a usable node proxy may expose the GKE node service account.",
+    "label": "Run commands in containers through the kubelet node proxy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-serviceaccounts-createtoken": {
+    "purpose": "Minting a KSA token may provide that account\u2019s Kubernetes permissions, including any admin grant.",
+    "label": "Mint a token for a privileged Kubernetes service account through GKE IAM",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-secrets-read-ksa-token-secret": {
+    "purpose": "Reading an existing service-account-token Secret may provide only its verified KSA\u2019s permissions.",
+    "label": "Read Kubernetes service-account token Secrets through GKE IAM",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-clusters-nodepools-create-actas": {
+    "purpose": "A new node pool may run nodes carrying the selected service account.",
+    "label": "Create a GKE cluster or node pool running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-gkehub-rbacrolebindings-gateway": {
+    "purpose": "A usable Fleet RBAC binding and API path may grant cluster administration within Fleet role limits.",
+    "label": "Push fleet-managed in-cluster RBAC through a fleet RBAC role binding and connect via Connect Gateway",
+    "review_status": "source_reviewed"
+  },
+  "gcp-gkehub-features-configmanagement": {
+    "purpose": "Changed Config Management reconciliation may apply privileged manifests on the selected member cluster.",
+    "label": "Point fleet Config Management at an attacker source to push manifests into member clusters",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-clusters-impersonate": {
+    "purpose": "GKE identity impersonation may exercise the target cluster\u2019s privileged Kubernetes identity.",
+    "label": "Impersonate privileged Kubernetes users or groups through GKE IAM",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-updatenodepool-expose-node-sa": {
+    "purpose": "Changing a Standard node pool\u2019s metadata mode may expose its node identity to a running pod.",
+    "label": "Downgrade a node pool's workload metadata mode to expose its service account to pods",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-mutatingwebhookconfigurations-write": {
+    "purpose": "A changed admission webhook may inject code into later pods and reach their mounted KSA identity.",
+    "label": "Install or repoint a mutating admission webhook to rewrite admitted pods",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-pod-template-ksa": {
+    "purpose": "A controlled pod template may run as a selected KSA and any cloud identity explicitly bound to it.",
+    "label": "Create or update a pod-template workload that runs as a chosen Kubernetes service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-namespaced-rbac-ksa": {
+    "purpose": "Namespaced RBAC changes may enable workloads under KSAs of only the affected namespaces.",
+    "label": "Grant oneself namespace RBAC beyond held permissions through GKE IAM bind or escalate",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-pods-exec-running-ksa": {
+    "purpose": "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+    "label": "Reach the KSA of a running pod through GKE exec",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-nodes-proxy-running-ksa": {
+    "purpose": "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+    "label": "Reach the KSA of a running pod through the kubelet proxy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-container-pods-update-running-ksa": {
+    "purpose": "A usable running-pod execution path may expose only KSA tokens mounted by those pods.",
+    "label": "Reach the KSA of an existing pod by changing its container image",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataflow-jobs-create-actas": {
+    "purpose": "A controlled Dataflow pipeline may run with the selected worker service account.",
+    "label": "Launch a Dataflow job with a chosen worker service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataflow-datapipelines-create-actas": {
+    "purpose": "A controlled Dataflow pipeline may run with the selected worker service account.",
+    "label": "Create a scheduled Data Pipeline that relaunches Dataflow as a chosen worker service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataflow-udf-template-bucket-write": {
+    "purpose": "Replacing a loaded Dataflow UDF or template may execute code with its existing worker identity.",
+    "label": "Overwrite a UDF or YAML job template in Cloud Storage consumed by Dataflow workers",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataform-workflow-invocation-actas": {
+    "purpose": "A controlled Dataform workflow may exercise the selected service account\u2019s BigQuery permissions.",
+    "label": "Run a Dataform workflow invocation as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-datafusion-pipelines-create-execute": {
+    "purpose": "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+    "label": "Deploy and run a code-capable Data Fusion pipeline as the pipeline VM service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-datafusion-setiampolicy-self-grant": {
+    "purpose": "A controlled Data Fusion pipeline may run code with its pipeline VM service account.",
+    "label": "Self-grant a Data Fusion instance or namespace role, then run pipelines",
+    "review_status": "source_reviewed"
+  },
+  "gcp-datafusion-artifacts-create-plugin-poison": {
+    "purpose": "A planted plugin may run with the pipeline identity when a legitimate Data Fusion job loads it.",
+    "label": "Plant a trojanized CDAP plugin used by existing Data Fusion pipelines",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataplex-tasks-create-actas": {
+    "purpose": "A controlled Dataplex Spark task may run with the selected execution service account.",
+    "label": "Create a Dataplex Spark task with a chosen execution service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-jobs-create-existing-cluster": {
+    "purpose": "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+    "label": "Submit a job to an existing Dataproc cluster and use the cluster service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-clusters-setiampolicy": {
+    "purpose": "Submitting a controlled Dataproc job may execute with the existing cluster service account.",
+    "label": "Self-grant job submission on a Dataproc cluster through its IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-clusters-batches-create-actas": {
+    "purpose": "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+    "label": "Create a Dataproc cluster or serverless batch running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-sessions-create-actas": {
+    "purpose": "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+    "label": "Create an interactive Dataproc Serverless session running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-workflowtemplates-actas": {
+    "purpose": "A controlled Dataproc cluster, batch, session or workflow may run as an eligible worker service account.",
+    "label": "Create and instantiate a workflow template with a chosen SA and initialization actions",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-component-gateway-existing-cluster": {
+    "purpose": "A usable Component Gateway notebook may run code as the existing cluster identity without job creation.",
+    "label": "Run notebook code as the service account of an existing Component Gateway-enabled Dataproc cluster",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-staging-object-replace": {
+    "purpose": "A replaced or planted staging object may execute when a later Dataproc workload loads it.",
+    "label": "Replace staged scripts or dependencies that an existing Dataproc cluster loads",
+    "review_status": "source_reviewed"
+  },
+  "gcp-dataproc-staging-object-plant": {
+    "purpose": "A replaced or planted staging object may execute when a later Dataproc workload loads it.",
+    "label": "Plant a new Dataproc staging dependency for a later job",
+    "review_status": "source_reviewed"
+  },
+  "gcp-deploymentmanager-deployments-create": {
+    "purpose": "A controlled Deployment Manager deployment may exercise the project\u2019s Google APIs Service Agent.",
+    "label": "Create a Deployment Manager deployment executed by the Google APIs Service Agent",
+    "review_status": "source_reviewed"
+  },
+  "gcp-deploymentmanager-deployments-update": {
+    "purpose": "A controlled Deployment Manager deployment may exercise the project\u2019s Google APIs Service Agent.",
+    "label": "Update an existing Deployment Manager deployment",
+    "review_status": "source_reviewed"
+  },
+  "gcp-deploymentmanager-deployments-setiampolicy": {
+    "purpose": "A controlled Deployment Manager deployment may exercise the project\u2019s Google APIs Service Agent.",
+    "label": "Self-grant update on a deployment through its IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-developerconnect-readwrite-token-pipeline-poison": {
+    "purpose": "A writable connected repository may alter code later run by an automated build or deployment identity.",
+    "label": "Write to a linked repository through Developer Connect and poison the pipeline that builds from it",
+    "review_status": "source_reviewed"
+  },
+  "gcp-domains-configuredns-workspace-admin-recovery": {
+    "purpose": "Usable control of a tenant\u2019s primary-domain DNS may support Workspace super-admin recovery.",
+    "label": "Repoint a Cloud Domains registration's name servers to recover the Workspace super administrator",
+    "review_status": "source_reviewed"
+  },
+  "gcp-domains-configuremanagement-transfer-workspace-admin-recovery": {
+    "purpose": "Usable control of a tenant\u2019s primary-domain DNS may support Workspace super-admin recovery.",
+    "label": "Transfer a Cloud Domains registration out with its authorization code to recover the Workspace super administrator",
+    "review_status": "source_reviewed"
+  },
+  "gcp-eventarc-pipeline-oauth-token-actas": {
+    "purpose": "A controlled Eventarc HTTPS destination may receive an OAuth token for the selected service account.",
+    "label": "Create an Eventarc Advanced pipeline that sends a service account's OAuth token to an attacker endpoint",
+    "review_status": "source_reviewed"
+  },
+  "gcp-firebaseauth-users-update-exact-user-credential": {
+    "purpose": "A changed Firebase password may enable a verified new application action as the exact user.",
+    "label": "Reset a known Firebase user password and reach that exact app principal",
+    "review_status": "source_reviewed"
+  },
+  "gcp-firebase-signblob-exact-custom-token-user": {
+    "purpose": "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+    "label": "Sign a custom token as a project service account and reach one Firebase user",
+    "review_status": "source_reviewed"
+  },
+  "gcp-firebase-signjwt-exact-custom-token-user": {
+    "purpose": "A valid signed Firebase custom token may authenticate the exact UID for a verified new application action.",
+    "label": "Sign a custom JWT as a project service account and reach one Firebase user",
+    "review_status": "source_reviewed"
+  },
+  "gcp-firebaseauth-configs-update-exact-idp-principal": {
+    "purpose": "A changed blocking function may capture a usable IdP credential for the exact external principal.",
+    "label": "Capture one usable federated IdP credential through a configured blocking function",
+    "review_status": "source_reviewed"
+  },
+  "gcp-firebaseapphosting-backends-update-actas": {
+    "purpose": "A changed App Hosting backend may deploy controlled code under the selected service account.",
+    "label": "Switch an App Hosting backend's runtime identity to a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-firebaseapphosting-build-rollout-existing-backend": {
+    "purpose": "A controlled build and rollout may execute as the existing App Hosting backend identity without caller actAs.",
+    "label": "Deploy an image to an existing Firebase App Hosting backend and run as its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-firebaseapphosting-backends-update-source": {
+    "purpose": "A redirected auto-rollout source may run changed code with the existing backend service account.",
+    "label": "Repoint an App Hosting backend's source repository to attacker-controlled code",
+    "review_status": "source_reviewed"
+  },
+  "gcp-hypercomputecluster-login-node-startup-actas": {
+    "purpose": "A changed Cluster Director login-node startup script may execute with the selected node identity.",
+    "label": "Replace a cluster's login-node startup script to run as the login VM service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iam-serviceaccounts-getaccesstoken": {
+    "purpose": "Access-token creation may enable requests as the target service account.",
+    "label": "Mint OAuth access tokens for a service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iam-serviceaccountkeys-create": {
+    "purpose": "A newly created service-account key may enable requests as that service account.",
+    "label": "Create or upload a user-managed key for a service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iam-serviceaccounts-implicitdelegation": {
+    "purpose": "An authorized delegation chain may mint credentials for its end account; intermediate delegates are not reached.",
+    "label": "Chain token minting through an intermediate service account via implicitDelegation",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iam-serviceaccounts-signblob": {
+    "purpose": "Signing authority may mint usable authentication material for the target service account.",
+    "label": "Sign arbitrary bytes (a JWT assertion) with a service account's Google-managed key",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iam-serviceaccounts-signjwt": {
+    "purpose": "Signing authority may mint usable authentication material for the target service account.",
+    "label": "Sign a JWT with a service account's Google-managed key",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iam-serviceaccounts-setiampolicy": {
+    "purpose": "Changing a service account\u2019s IAM policy may add authority to impersonate that account.",
+    "label": "Rewrite a service account's IAM policy to self-grant impersonation",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iam-roles-update-own-custom-role": {
+    "purpose": "Expanding a custom role already bound to the source may add owner-level scope privileges.",
+    "label": "Add permissions to a custom role bound to the source",
+    "review_status": "source_reviewed"
+  },
+  "gcp-inframanager-deployments-create-actas": {
+    "purpose": "A controlled Infrastructure Manager deployment may execute with the selected service account.",
+    "label": "Create an Infrastructure Manager deployment applied as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-osconfig-patchjobs-exec": {
+    "purpose": "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+    "label": "Run root pre/post-patch steps on project VMs through an OS Config patch job",
+    "review_status": "source_reviewed"
+  },
+  "gcp-osconfig-ospolicyassignments-create": {
+    "purpose": "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+    "label": "Run root code on project VMs through OS policy assignments",
+    "review_status": "source_reviewed"
+  },
+  "gcp-osconfig-guestpolicies-recipe": {
+    "purpose": "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+    "label": "Run a root software-recipe script on project VMs through a legacy OS Config guest policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-osconfig-policyorchestrators": {
+    "purpose": "A controlled patch, OS policy or orchestrated recipe may run code with the targeted VM service accounts.",
+    "label": "Propagate a root OS policy to VMs across projects with an OS Config policy orchestrator",
+    "review_status": "source_reviewed"
+  },
+  "gcp-privatecatalog-product-version-poison": {
+    "purpose": "A changed shared solution may exercise a consumer project\u2019s Google APIs Service Agent when deployed.",
+    "label": "Replace the template of a shared Service Catalog solution version that consumers deploy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-connectors-connections-setiampolicy-connection-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to execute a query through the exact connector.",
+    "label": "Self-grant connectors.connections.executeSqlQuery on a connection",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-machineimages-setiampolicy-machine-image-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact machine image read-only.",
+    "label": "Self-grant compute.machineImages.useReadOnly on a machine image",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-snapshots-setiampolicy-snapshot-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact snapshot read-only.",
+    "label": "Self-grant compute.snapshots.useReadOnly on a snapshot",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-disks-setiampolicy-disk-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact disk read-only.",
+    "label": "Self-grant compute.disks.useReadOnly on a disk",
+    "review_status": "source_reviewed"
+  },
+  "gcp-gkehub-memberships-setiampolicy-membership-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to generate gateway credentials for the exact fleet membership.",
+    "label": "Self-grant gkehub.gateway.generateCredentials on a membership",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iap-tunnelinstances-setiampolicy-instance-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to access the exact VM through an IAP tunnel.",
+    "label": "Self-grant iap.tunnelInstances.accessViaIAP on a instance",
+    "review_status": "source_reviewed"
+  },
+  "gcp-iap-tunnelzones-setiampolicy-zone-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to access VMs only within the exact IAP tunnel zone.",
+    "label": "Self-grant iap.tunnelInstances.accessViaIAP on a zone",
+    "review_status": "source_reviewed"
+  },
+  "gcp-cloudkms-cryptokeys-setiampolicy-crypto-key-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to decrypt with the exact crypto key.",
+    "label": "Self-grant cloudkms.cryptoKeyVersions.useToDecrypt on a crypto key",
+    "review_status": "source_reviewed"
+  },
+  "gcp-secretmanager-secrets-setiampolicy-secret-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read a version of the exact secret.",
+    "label": "Self-grant secretmanager.versions.access on a secret",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-recoverablesnapshots-setiampolicy-recoverable-snapshot-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to recover the exact recoverable snapshot.",
+    "label": "Self-grant compute.recoverableSnapshots.recover on a recoverable snapshot",
+    "review_status": "source_reviewed"
+  },
+  "gcp-containeranalysis-notes-setiampolicy-note-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to attach an occurrence to the exact analysis note.",
+    "label": "Self-grant containeranalysis.notes.attachOccurrence on a note",
+    "review_status": "source_reviewed"
+  },
+  "gcp-datacatalog-categories-setiampolicy-policy-tag-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read data protected by the exact policy tag.",
+    "label": "Self-grant datacatalog.categories.fineGrainedGet on a policy tag",
+    "review_status": "source_reviewed"
+  },
+  "gcp-metastore-services-setiampolicy-metastore-service-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Metastore service.",
+    "label": "Self-grant metastore.services.use on a metastore service",
+    "review_status": "source_reviewed"
+  },
+  "gcp-analyticshub-listings-setiampolicy-listing-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to subscribe to the exact Analytics Hub listing.",
+    "label": "Self-grant analyticshub.listings.subscribe on a listing",
+    "review_status": "source_reviewed"
+  },
+  "gcp-analyticshub-dataexchanges-setiampolicy-data-exchange-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to subscribe to the exact Analytics Hub exchange.",
+    "label": "Self-grant analyticshub.dataExchanges.subscribe on a data exchange",
+    "review_status": "source_reviewed"
+  },
+  "gcp-biglake-catalogs-setiampolicy-catalog-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake catalog metadata.",
+    "label": "Self-grant biglake.catalogs.get on a catalog",
+    "review_status": "source_reviewed"
+  },
+  "gcp-biglake-namespaces-setiampolicy-namespace-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake namespace metadata.",
+    "label": "Self-grant biglake.namespaces.get on a namespace",
+    "review_status": "source_reviewed"
+  },
+  "gcp-biglake-tables-setiampolicy-table-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact BigLake table metadata.",
+    "label": "Self-grant biglake.tables.get on a table",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-datasets-setiampolicy-dataset-iam-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read table data within the exact dataset.",
+    "label": "Self-grant bigquery.tables.getData on a dataset iam",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-datasets-update-dataset-acl-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read table data within the exact dataset ACL scope.",
+    "label": "Self-grant bigquery.tables.getData on a dataset acl",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-connections-setiampolicy-connection-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact BigQuery connection.",
+    "label": "Self-grant bigquery.connections.use on a connection",
+    "review_status": "source_reviewed"
+  },
+  "gcp-datacatalog-taxonomies-setiampolicy-taxonomy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read data protected by the exact taxonomy.",
+    "label": "Self-grant datacatalog.categories.fineGrainedGet on a taxonomy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigquery-tables-setiampolicy-table-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read data from the exact BigQuery table.",
+    "label": "Self-grant bigquery.tables.getData on a table",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigtable-instances-setiampolicy-instance-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows within the exact Bigtable instance.",
+    "label": "Self-grant bigtable.tables.readRows on a instance",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigtable-tables-setiampolicy-table-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows from the exact Bigtable table.",
+    "label": "Self-grant bigtable.tables.readRows on a table",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigtable-backups-setiampolicy-backup-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to restore the exact Bigtable backup.",
+    "label": "Self-grant bigtable.backups.restore on a backup",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigtable-authorizedviews-setiampolicy-authorized-view-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows through the exact authorized view.",
+    "label": "Self-grant bigtable.authorizedViews.readRows on a authorized view",
+    "review_status": "source_reviewed"
+  },
+  "gcp-bigtable-materializedviews-setiampolicy-materialized-view-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read rows through the exact materialized view.",
+    "label": "Self-grant bigtable.materializedViews.readRows on a materialized view",
+    "review_status": "source_reviewed"
+  },
+  "gcp-discoveryengine-engines-setiampolicy-engine-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Discovery Engine engine.",
+    "label": "Self-grant discoveryengine.engines.update on a engine",
+    "review_status": "source_reviewed"
+  },
+  "gcp-discoveryengine-datastores-setiampolicy-data-store-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Discovery Engine data store.",
+    "label": "Self-grant discoveryengine.dataStores.update on a data store",
+    "review_status": "source_reviewed"
+  },
+  "gcp-discoveryengine-collections-setiampolicy-collection-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Discovery Engine collection.",
+    "label": "Self-grant discoveryengine.collections.get on a collection",
+    "review_status": "source_reviewed"
+  },
+  "gcp-identitytoolkit-tenants-setiampolicy-tenant-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update users within the exact Identity Platform tenant.",
+    "label": "Self-grant firebaseauth.users.update on a tenant",
+    "review_status": "source_reviewed"
+  },
+  "gcp-healthcare-datasets-setiampolicy-dataset-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read FHIR resources in the exact Healthcare dataset.",
+    "label": "Self-grant healthcare.fhirResources.get on a dataset",
+    "review_status": "source_reviewed"
+  },
+  "gcp-healthcare-fhirstores-setiampolicy-fhir-store-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read resources in the exact FHIR store.",
+    "label": "Self-grant healthcare.fhirResources.get on a fhir store",
+    "review_status": "source_reviewed"
+  },
+  "gcp-healthcare-dicomstores-setiampolicy-dicom-store-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read resources in the exact DICOM store.",
+    "label": "Self-grant healthcare.dicomStores.dicomWebRead on a dicom store",
+    "review_status": "source_reviewed"
+  },
+  "gcp-healthcare-hl7v2stores-setiampolicy-hl7v2-store-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read messages in the exact HL7v2 store.",
+    "label": "Self-grant healthcare.hl7V2Messages.get on a hl7v2 store",
+    "review_status": "source_reviewed"
+  },
+  "gcp-healthcare-consentstores-setiampolicy-consent-store-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read consents in the exact consent store.",
+    "label": "Self-grant healthcare.consents.get on a consent store",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networkconnectivity-hubs-setiampolicy-hub-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact Network Connectivity hub.",
+    "label": "Self-grant networkconnectivity.hubs.update on a hub",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networkconnectivity-groups-setiampolicy-group-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Network Connectivity group.",
+    "label": "Self-grant networkconnectivity.groups.use on a group",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networksecurity-addressgroups-setiampolicy-address-group-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact network address group.",
+    "label": "Self-grant networksecurity.addressGroups.update on a address group",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networksecurity-authorizationpolicies-setiampolicy-authorization-policy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact authorization policy.",
+    "label": "Self-grant networksecurity.authorizationPolicies.update on a authorization policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networksecurity-authzpolicies-setiampolicy-authz-policy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact authz policy.",
+    "label": "Self-grant networksecurity.authzPolicies.update on a authz policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networksecurity-clienttlspolicies-setiampolicy-client-tls-policy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact client TLS policy.",
+    "label": "Self-grant networksecurity.clientTlsPolicies.update on a client tls policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-networksecurity-servertlspolicies-setiampolicy-server-tls-policy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact server TLS policy.",
+    "label": "Self-grant networksecurity.serverTlsPolicies.update on a server tls policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-pubsub-topics-setiampolicy-topic-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to publish to the exact Pub/Sub topic.",
+    "label": "Self-grant pubsub.topics.publish on a topic",
+    "review_status": "source_reviewed"
+  },
+  "gcp-pubsub-subscriptions-setiampolicy-subscription-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to consume the exact Pub/Sub subscription.",
+    "label": "Self-grant pubsub.subscriptions.consume on a subscription",
+    "review_status": "source_reviewed"
+  },
+  "gcp-runtimeconfig-configs-setiampolicy-config-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read variables from the exact runtime configuration.",
+    "label": "Self-grant runtimeconfig.variables.get on a config",
+    "review_status": "source_reviewed"
+  },
+  "gcp-spanner-databases-setiampolicy-database-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Spanner database.",
+    "label": "Self-grant spanner.databases.read on a database",
+    "review_status": "source_reviewed"
+  },
+  "gcp-spanner-instances-setiampolicy-instance-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read databases within the exact Spanner instance.",
+    "label": "Self-grant spanner.databases.read on a instance",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vmwareengine-privateclouds-setiampolicy-private-cloud-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read vCenter credentials for the exact private cloud.",
+    "label": "Self-grant vmwareengine.privateClouds.showVcenterCredentials on a private cloud",
+    "review_status": "source_reviewed"
+  },
+  "gcp-privateca-capools-setiampolicy-ca-pool-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to create certificates within the exact CA pool.",
+    "label": "Self-grant privateca.certificates.create on a ca pool",
+    "review_status": "source_reviewed"
+  },
+  "gcp-krmapihosting-krmapihosts-setiampolicy-krm-api-host-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact KRM API host.",
+    "label": "Self-grant krmapihosting.krmApiHosts.update on a krm api host",
+    "review_status": "source_reviewed"
+  },
+  "gcp-compute-images-setiampolicy-image-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to use the exact Compute image read-only.",
+    "label": "Self-grant compute.images.useReadOnly on a image",
+    "review_status": "source_reviewed"
+  },
+  "gcp-logging-views-setiampolicy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact log view.",
+    "label": "Self-grant logging.views.access on a log view",
+    "review_status": "source_reviewed"
+  },
+  "gcp-domains-registrations-setiampolicy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to change DNS for the exact domain registration.",
+    "label": "Self-grant domains.registrations.configureDns on a domain registration",
+    "review_status": "source_reviewed"
+  },
+  "gcp-servicedirectory-namespaces-setiampolicy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to create services within the exact directory namespace.",
+    "label": "Self-grant servicedirectory.services.create on a namespace",
+    "review_status": "source_reviewed"
+  },
+  "gcp-servicedirectory-services-setiampolicy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to update the exact directory service.",
+    "label": "Self-grant servicedirectory.services.update on a service",
+    "review_status": "source_reviewed"
+  },
+  "gcp-contactcenterinsights-authorizedviews-setiampolicy-self-grant": {
+    "purpose": "An accepted self-targeted policy change may newly allow the source to read the exact Contact Center authorized view.",
+    "label": "Self-grant authorized-view read access",
+    "review_status": "source_reviewed"
+  },
+  "gcp-resourcemanager-organizations-setiampolicy": {
+    "purpose": "Changing resource-hierarchy IAM may grant owner-level permissions over that organization, folder or project.",
+    "label": "Rewrite the organization IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-resourcemanager-folders-setiampolicy": {
+    "purpose": "Changing resource-hierarchy IAM may grant owner-level permissions over that organization, folder or project.",
+    "label": "Rewrite a folder IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-resourcemanager-projects-setiampolicy": {
+    "purpose": "Changing resource-hierarchy IAM may grant owner-level permissions over that organization, folder or project.",
+    "label": "Rewrite a project IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-services-create-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Deploy a Cloud Run service running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-services-update-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Redeploy an existing Cloud Run service with new code, environment or identity",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-services-setiampolicy-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Self-grant update rights on a Cloud Run service through its IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-jobs-create-run-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Create and execute a Cloud Run job running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-jobs-update-run-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Update and execute an existing Cloud Run job with new code or identity",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-workerpools-create-update-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Deploy or update a Cloud Run worker pool running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-instances-create-update-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Deploy or update a standalone Cloud Run instance running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-workerpools-setiampolicy-actas": {
+    "purpose": "A controlled Cloud Run workload may execute code with its selected service account.",
+    "label": "Self-grant update rights on a Cloud Run worker pool through its IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-ssh-into-running-instance": {
+    "purpose": "A usable Cloud Run SSH session may expose the existing running workload\u2019s service account.",
+    "label": "SSH into a running Cloud Run container and use its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-instances-ssh": {
+    "purpose": "A usable Cloud Run SSH session may expose the existing running workload\u2019s service account.",
+    "label": "SSH into a running standalone Cloud Run instance and use its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-jobs-setiampolicy": {
+    "purpose": "A controlled Cloud Run job invocation or override may execute as its already pinned service account.",
+    "label": "Self-grant execute-with-overrides on an existing Cloud Run job through its IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-run-jobs-runwithoverrides": {
+    "purpose": "A controlled Cloud Run job invocation or override may execute as its already pinned service account.",
+    "label": "Execute an existing Cloud Run job with overridden args or environment",
+    "review_status": "source_reviewed"
+  },
+  "gcp-saasservicemgmt-release-unit-actuation": {
+    "purpose": "A controlled release applied to a unit may exercise the existing actuation service account\u2019s management rights.",
+    "label": "Apply an attacker blueprint release to existing Units as their actuation service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-securesourcemanager-push-cicd": {
+    "purpose": "A writable source repository may supply code later executed by its linked build or deployment identity.",
+    "label": "Push code to a repository that feeds a CI/CD pipeline",
+    "review_status": "source_reviewed"
+  },
+  "gcp-securesourcemanager-setiampolicy": {
+    "purpose": "A writable source repository may supply code later executed by its linked build or deployment identity.",
+    "label": "Self-grant write on a Secure Source Manager instance or repository through IAM",
+    "review_status": "source_reviewed"
+  },
+  "gcp-sourcerepos-update-build-trigger": {
+    "purpose": "A writable source repository may supply code later executed by its linked build or deployment identity.",
+    "label": "Push code to a Cloud Source repository that feeds a Cloud Build trigger",
+    "review_status": "source_reviewed"
+  },
+  "gcp-sourcerepos-setiampolicy": {
+    "purpose": "A writable source repository may supply code later executed by its linked build or deployment identity.",
+    "label": "Self-grant repository write access through the repository IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-storage-hmackeys-create": {
+    "purpose": "A created HMAC key may provide only the target service account\u2019s Cloud Storage permissions.",
+    "label": "Create an HMAC key for an in-project service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-storage-buckets-setiampolicy-code-consumers": {
+    "purpose": "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+    "label": "Self-grant object write on a bucket whose code a Dataproc cluster or an unpinned Cloud Build source consumes",
+    "review_status": "source_reviewed"
+  },
+  "gcp-storage-buckets-setiampolicy-composer": {
+    "purpose": "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+    "label": "Self-grant write on a Composer environment bucket through the bucket IAM policy",
+    "review_status": "source_reviewed"
+  },
+  "gcp-storage-cloudbuild-unpinned-storagesource-poison": {
+    "purpose": "Replacing a mutable consumed bucket object may execute code as the existing build, Dataproc or Composer identity.",
+    "label": "Replace an unpinned Cloud Build StorageSource archive consumed by a later build",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-customjobs-create-actas": {
+    "purpose": "A controlled Vertex training job may run code with the selected service account.",
+    "label": "Create a Vertex AI custom job or custom training pipeline running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-pipelinejobs-create-actas": {
+    "purpose": "A controlled Vertex pipeline may run its tasks with the selected service account.",
+    "label": "Create a Vertex AI pipeline job running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-hptuningjobs-create-actas": {
+    "purpose": "A controlled tuning job may run training code with the selected service account.",
+    "label": "Create a hyperparameter tuning job whose trials run as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-batchprediction-create-actas": {
+    "purpose": "A controlled batch-prediction workload may run with the selected service account.",
+    "label": "Create a batch prediction job running a source-controlled model as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-models-upload-endpoint-deploy-actas": {
+    "purpose": "A deployed custom-container model may execute code with the selected endpoint service account.",
+    "label": "Deploy a controlled model to a Vertex AI endpoint under a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-reasoningengines-create-actas": {
+    "purpose": "A controlled reasoning engine may execute with the selected service account.",
+    "label": "Deploy an Agent Engine (reasoning engine) running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-notebookexecutionjobs-create-actas": {
+    "purpose": "A controlled notebook-execution job may run code with the selected service account.",
+    "label": "Create a Colab Enterprise notebook execution job running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-workbench-instances-create-actas": {
+    "purpose": "A new controlled Workbench VM may run with the selected service account.",
+    "label": "Create a Vertex AI Workbench instance attached to a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-customjob-custom-code-agent": {
+    "purpose": "A controlled custom job may expose the Vertex AI Custom Code Service Agent\u2019s privileges.",
+    "label": "Run a Vertex AI job with no service account so it runs as the Custom Code Service Agent",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-workbench-instance-update-or-setiampolicy": {
+    "purpose": "A changed and reset Workbench instance may execute code with its existing service account.",
+    "label": "Take over an existing Workbench instance through update/reset or an instance IAM self-grant",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vertex-reasoningengines-create-default-agent": {
+    "purpose": "A controlled default-identity reasoning engine may expose its Reasoning Engine Service Agent.",
+    "label": "Deploy an Agent Engine with no service account so it runs as the Reasoning Engine Service Agent",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vmmigration-migratingvm-metadata-clone": {
+    "purpose": "A changed migration clone may run metadata startup code as its preconfigured target service account.",
+    "label": "Add startup metadata to a migrating VM and clone it with its configured runtime service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vmwareengine-show-vcenter-credentials-external-principal": {
+    "purpose": "A current verified vCenter credential may grant a new action as the exact CloudOwner principal.",
+    "label": "Reach the named vCenter CloudOwner principal through a usable generated credential",
+    "review_status": "source_reviewed"
+  },
+  "gcp-vmwareengine-show-nsx-credentials-external-principal": {
+    "purpose": "A current verified NSX credential may grant a new action as the exact NSX administrator principal.",
+    "label": "Reach the named NSX admin principal through a usable generated credential",
+    "review_status": "source_reviewed"
+  },
+  "gcp-wif-provider-create": {
+    "purpose": "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+    "label": "Add a provider trusting attacker-controlled credentials to a pool with broad bindings",
+    "review_status": "source_reviewed"
+  },
+  "gcp-wif-provider-update": {
+    "purpose": "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+    "label": "Change an existing provider's trust configuration",
+    "review_status": "source_reviewed"
+  },
+  "gcp-wif-pool-provider-restore": {
+    "purpose": "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+    "label": "Re-enable or undelete a pool or provider that still trusts attacker-controlled credentials",
+    "review_status": "source_reviewed"
+  },
+  "gcp-wif-workforce-provider-control": {
+    "purpose": "A controlled or restored identity provider may satisfy existing pool trust and enable its bound identities.",
+    "label": "Create, change or restore a workforce pool provider to admit an attacker-controlled external user",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workflows-create-actas-execute": {
+    "purpose": "A controlled workflow execution may send API requests as the selected service account.",
+    "label": "Deploy and execute a workflow running as a chosen service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workflows-update-actas": {
+    "purpose": "A controlled workflow execution may send API requests as the selected service account.",
+    "label": "Update an existing workflow's definition and service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workflows-update-source-retain-sa": {
+    "purpose": "Updating and executing a workflow may send changed API requests as its already attached service account.",
+    "label": "Replace a workflow's source while keeping its attached service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workflows-update-source-await-execution": {
+    "purpose": "A later execution by another trigger may run the replaced workflow as its existing service account.",
+    "label": "Replace a workflow's source and let an existing trigger execute it as its service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-appintegration-runas-sa-actas": {
+    "purpose": "A published controlled integration may run API steps as the selected service account.",
+    "label": "Publish an Application Integration version with a chosen run-as service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workspace-dwd-keyless-signjwt": {
+    "purpose": "Domain-wide delegation may act as approved Workspace users only within the service account\u2019s delegated scopes.",
+    "label": "Sign a delegation JWT with a domain-wide-delegated service account's Google-managed key",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workspace-dwd-key-create": {
+    "purpose": "Domain-wide delegation may act as approved Workspace users only within the service account\u2019s delegated scopes.",
+    "label": "Create a key for a domain-wide-delegated service account",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workspace-cloud-dns-admin-recovery": {
+    "purpose": "Usable primary-domain DNS control may support recovery of the tenant\u2019s Workspace super-admin account.",
+    "label": "Publish the administrator-recovery DNS challenge for the Workspace primary domain",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workspace-addons-deployment-update": {
+    "purpose": "A changed HTTP add-on may reach invoking Workspace users only within their already consented scopes.",
+    "label": "Repoint an existing HTTP Workspace add-on deployment to a source-controlled endpoint",
+    "review_status": "source_reviewed"
+  },
+  "gcp-agentidentity-retrieve-credentials": {
+    "purpose": "A retrieved or redirected OAuth token may reach only its verified user and already consented scopes.",
+    "label": "Retrieve a stored OAuth token from an Agent Identity auth provider",
+    "review_status": "source_reviewed"
+  },
+  "gcp-agentidentity-update-token-url": {
+    "purpose": "A retrieved or redirected OAuth token may reach only its verified user and already consented scopes.",
+    "label": "Change an Agent Identity auth provider's token endpoint to intercept future refreshes",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workstations-config-create-actas": {
+    "purpose": "A controlled workstation configuration may run code with its selected or pinned service account.",
+    "label": "Create a workstation config pinning a chosen service account and start a workstation from it",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workstations-config-update-code": {
+    "purpose": "A controlled workstation configuration may run code with its selected or pinned service account.",
+    "label": "Update an existing workstation config's image or startup script to run code as its SA",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workstations-use-existing-workstation": {
+    "purpose": "A usable workstation created from an existing configuration may expose that configuration\u2019s pinned service account.",
+    "label": "Connect to an existing workstation (directly or after an IAM self-grant) and use its SA",
+    "review_status": "source_reviewed"
+  },
+  "gcp-workstations-create-from-existing-config": {
+    "purpose": "A usable workstation created from an existing configuration may expose that configuration\u2019s pinned service account.",
+    "label": "Launch a new workstation from an existing service-account-pinned config",
+    "review_status": "source_reviewed"
+  },
+  "azure-apim-developer-portal-sso-external-principal": {
+    "purpose": "A usable portal SSO link may grant new actions as the exact portal user.",
+    "label": "Sign in as one named API Management developer-portal user",
+    "review_status": "source_reviewed"
+  },
+  "azure-datafactory-github-oauth-external-principal": {
+    "purpose": "A usable factory OAuth token may grant new repository actions as its verified GitHub subject.",
+    "label": "Reach a named GitHub repository principal through a factory OAuth token",
+    "review_status": "source_reviewed"
+  },
+  "azure-eventgrid-mqtt-client-grant-external-principal": {
+    "purpose": "MQTT client and topic grants may create a usable broker identity with new messaging actions.",
+    "label": "Give an attacker-owned MQTT client new topic publish or subscribe authority",
+    "review_status": "source_reviewed"
+  },
+  "azure-analysisservices-server-admin-write": {
+    "purpose": "Changing server administrators may grant control over hosted Analysis Services models.",
+    "label": "Add a principal to the Analysis Services server administrators",
+    "review_status": "source_reviewed"
+  },
+  "azure-apim-policy-write-managed-identity-token": {
+    "purpose": "Controlling APIM policy deployment may expose the instance\u2019s managed-identity tokens.",
+    "label": "Edit an APIM policy to obtain the instance managed identity token",
+    "review_status": "source_reviewed"
+  },
+  "azure-apim-tenant-git-deploy-managed-identity-token": {
+    "purpose": "Controlling APIM policy deployment may expose the instance\u2019s managed-identity tokens.",
+    "label": "Deploy attacker policies through the APIM built-in Git configuration repository",
+    "review_status": "source_reviewed"
+  },
+  "azure-apim-restore-backup-managed-identity-token": {
+    "purpose": "Controlling APIM policy deployment may expose the instance\u2019s managed-identity tokens.",
+    "label": "Restore a crafted backup over an APIM service to install identity-using policies",
+    "review_status": "source_reviewed"
+  },
+  "azure-apim-gateway-config-credential": {
+    "purpose": "A verified usable stored credential may expose its exact service principal\u2019s permissions.",
+    "label": "APIM gateway configuration embedded credentials",
+    "review_status": "source_reviewed"
+  },
+  "azure-appconfig-snapshot-credential": {
+    "purpose": "A verified usable stored credential may expose its exact service principal\u2019s permissions.",
+    "label": "Recover credentials retained in App Configuration snapshot",
+    "review_status": "source_reviewed"
+  },
+  "azure-automation-job-output-credential": {
+    "purpose": "A verified usable stored credential may expose its exact service principal\u2019s permissions.",
+    "label": "Read tokens and credentials from prior Automation job output",
+    "review_status": "source_reviewed"
+  },
+  "azure-automation-runbook-source-credential": {
+    "purpose": "A verified usable stored credential may expose its exact service principal\u2019s permissions.",
+    "label": "Read hardcoded credentials from runbook source",
+    "review_status": "source_reviewed"
+  },
+  "azure-acr-layer-credential": {
+    "purpose": "A verified usable stored credential may expose its exact service principal\u2019s permissions.",
+    "label": "Extract credentials from ACR image layers",
+    "review_status": "source_reviewed"
+  },
+  "azure-storage-blob-content-credential": {
+    "purpose": "A verified usable stored credential may expose its exact service principal\u2019s permissions.",
+    "label": "Read Entra credentials embedded in blobs",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-kudu-publish-action": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Use the Kudu/SCM API with Entra credentials to run commands in the app",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-publishing-credentials-enable-basic-auth": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Obtain SCM/FTP publishing credentials and enable basic auth to deploy code",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-publishing-credentials-basic-auth-enabled": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Obtain SCM/FTP publishing credentials when basic auth is already enabled",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-sourcecontrols-write": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Redirect App Service deployment to an attacker repository",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-sitecontainers-write": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Replace an App Service sidecar/main SiteContainer image",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-config-write": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Change app configuration to load attacker code",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-siteextensions-write": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Install an attacker NuGet site extension",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-onedeploy-extensions-write": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Replace app content through the OneDeploy extension route",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-restore-from-backup-blob": {
+    "purpose": "Deploying App Service code may expose the app\u2019s attached managed-identity tokens.",
+    "label": "Restore the app from an attacker-supplied backup",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-assign-user-assigned-identity": {
+    "purpose": "Attaching an assignable identity to a controlled app may expose that identity\u2019s tokens.",
+    "label": "Attach a user-assigned identity to an App Service the source can execute code in",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-slot-code-execution": {
+    "purpose": "Deploying slot code may expose the slot\u2019s own managed identities.",
+    "label": "Run code in a deployment slot",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-slot-publishxml": {
+    "purpose": "Deploying slot code may expose the slot\u2019s own managed identities.",
+    "label": "Obtain slot publishing credentials and deploy into the slot",
+    "review_status": "source_reviewed"
+  },
+  "azure-appservice-slot-swap-promote-code": {
+    "purpose": "Promoting controlled slot code may expose the production site\u2019s managed identities.",
+    "label": "Plant code in a deployment slot and swap it into production",
+    "review_status": "source_reviewed"
+  },
+  "azure-arc-machine-extensions-write": {
+    "purpose": "Guest execution on the Arc server may expose its system-assigned identity.",
+    "label": "Deploy a Custom Script extension on an Arc-enabled server",
+    "review_status": "source_reviewed"
+  },
+  "azure-arc-hybrid-connectivity-entra-ssh": {
+    "purpose": "Guest execution on the Arc server may expose its system-assigned identity.",
+    "label": "SSH into an Arc-enabled server as administrator through Hybrid Connectivity",
+    "review_status": "source_reviewed"
+  },
+  "azure-guestconfiguration-assignment-write-arc": {
+    "purpose": "Guest execution on the Arc server may expose its system-assigned identity.",
+    "label": "Create a guest configuration assignment on an Arc-enabled server",
+    "review_status": "source_reviewed"
+  },
+  "azure-arc-machine-runcommands-write": {
+    "purpose": "Guest execution on the Arc server may expose its system-assigned identity.",
+    "label": "Create a Run Command on an Arc-enabled server",
+    "review_status": "source_reviewed"
+  },
+  "azure-arc-resource-bridge-credential-export": {
+    "purpose": "Exported resource-bridge cluster credentials may grant administrator access to that appliance.",
+    "label": "Export Arc resource bridge appliance kubeconfig and keys",
+    "review_status": "source_reviewed"
+  },
+  "azure-arm-deploymentscript-with-user-assigned-identity": {
+    "purpose": "A deployment script may run as a user-assigned identity the source may attach.",
+    "label": "Deployment script running as an assignable user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-authorization-elevateaccess-global-admin": {
+    "purpose": "A Global Administrator may elevate to Azure root-scope RBAC control.",
+    "label": "Global Administrator elevates to User Access Administrator at root scope",
+    "review_status": "source_reviewed"
+  },
+  "azure-managedidentity-federated-credential-write": {
+    "purpose": "Adding a controlled federation trust may issue tokens as the user-assigned identity.",
+    "label": "Add a federated identity credential to a user-assigned managed identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-policy-assignment-write-user-assigned-identity": {
+    "purpose": "A controlled policy remediation may use an assignable identity\u2019s Azure control-plane permissions.",
+    "label": "Create or update a deployIfNotExists/modify policy assignment running as an existing user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-automation-runbook-author-and-run": {
+    "purpose": "Runbook execution may expose the Automation account\u2019s attached managed identities.",
+    "label": "Create or modify a runbook and run it as the Automation account identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-automation-runbook-hybrid-worker": {
+    "purpose": "Hybrid Worker execution may expose the worker machine\u2019s managed identities.",
+    "label": "Run runbook code on a Hybrid Runbook Worker VM and use the VM's managed identities",
+    "review_status": "source_reviewed"
+  },
+  "azure-automation-assign-user-assigned-identity": {
+    "purpose": "An assignable identity attached to controlled Automation may expose that identity\u2019s tokens.",
+    "label": "Attach a user-assigned managed identity to an Automation account and run code as it",
+    "review_status": "source_reviewed"
+  },
+  "azure-avs-list-vcenter-cloudadmin-external-principal": {
+    "purpose": "Usable AVS credentials may grant new vCenter actions as the exact CloudAdmin subject.",
+    "label": "Reach the named AVS vCenter CloudAdmin with a verified returned credential",
+    "review_status": "source_reviewed"
+  },
+  "azure-avs-list-nsxt-admin-external-principal": {
+    "purpose": "Usable AVS credentials may grant new NSX-T actions as the exact administrator subject.",
+    "label": "Reach the named AVS NSX-T admin with a verified returned credential",
+    "review_status": "source_reviewed"
+  },
+  "azure-avs-run-command-vcenter-grant-external-principal": {
+    "purpose": "A successful AVS grant cmdlet may add vCenter permissions to the named account.",
+    "label": "Gain a named vCenter identity through a verified AVS Run Command grant",
+    "review_status": "source_reviewed"
+  },
+  "azure-batch-shared-key-task-submission": {
+    "purpose": "Controlling Batch tasks may expose the pool\u2019s attached user-assigned identities.",
+    "label": "Batch shared key allows task submission to pools with managed identities",
+    "review_status": "source_reviewed"
+  },
+  "azure-batch-job-task-submission": {
+    "purpose": "Controlling Batch tasks may expose the pool\u2019s attached user-assigned identities.",
+    "label": "Submit Batch jobs/tasks via data actions to pools with managed identities",
+    "review_status": "source_reviewed"
+  },
+  "azure-batch-pool-write-starttask": {
+    "purpose": "Controlling Batch tasks may expose the pool\u2019s attached user-assigned identities.",
+    "label": "Rewrite a pool start task to run code on nodes with the pool identities",
+    "review_status": "source_reviewed"
+  },
+  "azure-batch-pool-write-assign-user-assigned-identity": {
+    "purpose": "A controlled pool start task may expose an assignable user-assigned identity.",
+    "label": "Attach a user-assigned identity to a Batch pool and run code on its nodes",
+    "review_status": "source_reviewed"
+  },
+  "azure-confidentialledger-ledgers-write-principal": {
+    "purpose": "Changing the ledger principal list may grant Confidential Ledger data-plane administration.",
+    "label": "Add a principal as ledger Administrator through ledgers/write",
+    "review_status": "source_reviewed"
+  },
+  "azure-acr-task-write-existing-identity": {
+    "purpose": "Controlling ACR task execution may expose the task\u2019s attached managed identities.",
+    "label": "Create or update an ACR Task running with the task's managed identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-acr-task-assign-user-assigned-identity": {
+    "purpose": "A controlled ACR task may expose an assignable user-assigned identity.",
+    "label": "Create an ACR Task with a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-aci-container-exec": {
+    "purpose": "Container-group execution may expose the group\u2019s attached managed identities.",
+    "label": "Execute commands in a running Container Instances container",
+    "review_status": "source_reviewed"
+  },
+  "azure-aci-containergroup-write-existing": {
+    "purpose": "Container-group execution may expose the group\u2019s attached managed identities.",
+    "label": "Redeploy an existing container group with changed command, image or environment",
+    "review_status": "source_reviewed"
+  },
+  "azure-aci-assign-user-assigned-identity": {
+    "purpose": "A controlled container group may expose an assignable user-assigned identity.",
+    "label": "Create or update a container group with a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-containerapp-exec": {
+    "purpose": "Controlling Container App code may expose that app\u2019s managed identity.",
+    "label": "Open a console in a running Container App",
+    "review_status": "source_reviewed"
+  },
+  "azure-containerapp-write-existing": {
+    "purpose": "Controlling Container App code may expose that app\u2019s managed identity.",
+    "label": "Update an existing Container App's image, command or environment",
+    "review_status": "source_reviewed"
+  },
+  "azure-containerapp-sourcecontrols-write": {
+    "purpose": "Controlling Container App code may expose that app\u2019s managed identity.",
+    "label": "Repoint a Container App's GitHub Actions deployment to an attacker repository",
+    "review_status": "source_reviewed"
+  },
+  "azure-containerapp-assign-user-assigned-identity": {
+    "purpose": "A controlled Container App may expose an assignable user-assigned identity.",
+    "label": "Attach a user-assigned identity to an existing Container App",
+    "review_status": "source_reviewed"
+  },
+  "azure-containerapp-create-with-user-assigned-identity": {
+    "purpose": "A controlled Container App may expose an assignable user-assigned identity.",
+    "label": "Create a Container App with a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-containerapp-job-start-template-override": {
+    "purpose": "Overriding a job\u2019s execution template may expose the job\u2019s managed identities.",
+    "label": "Start a Container Apps Job execution with an overridden template",
+    "review_status": "source_reviewed"
+  },
+  "azure-containerapp-job-assign-user-assigned-identity": {
+    "purpose": "A controlled Container App job may expose an assignable user-assigned identity.",
+    "label": "Create or update a Container Apps Job with a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-cosmos-sql-role-assignment-write": {
+    "purpose": "Writing account data-plane role assignments may grant administrative Cosmos DB access.",
+    "label": "Grant a Cosmos DB native NoSQL data-plane role",
+    "review_status": "source_reviewed"
+  },
+  "azure-cosmos-mongodb-user-definition-write": {
+    "purpose": "Writing account data-plane role assignments may grant administrative Cosmos DB access.",
+    "label": "Create a Cosmos DB for MongoDB native RBAC user and role",
+    "review_status": "source_reviewed"
+  },
+  "azure-cosmos-other-api-role-assignment-write": {
+    "purpose": "Writing account data-plane role assignments may grant administrative Cosmos DB access.",
+    "label": "Grant a Cosmos DB native data-plane role on the Cassandra, Gremlin, Table or MongoDB API",
+    "review_status": "source_reviewed"
+  },
+  "azure-cosmos-mongocluster-admin-password": {
+    "purpose": "Changing MongoDB cluster users or credentials may grant data-plane administration.",
+    "label": "Change the MongoDB vCore cluster administrator password",
+    "review_status": "source_reviewed"
+  },
+  "azure-cosmos-mongocluster-user-write": {
+    "purpose": "Changing MongoDB cluster users or credentials may grant data-plane administration.",
+    "label": "Register an Entra principal as a MongoDB vCore cluster user",
+    "review_status": "source_reviewed"
+  },
+  "azure-kusto-database-principal-assignment-write": {
+    "purpose": "Changing Kusto database principals may grant database Admin access.",
+    "label": "Grant a Kusto database role through ARM principal assignments",
+    "review_status": "source_reviewed"
+  },
+  "azure-kusto-database-add-principals": {
+    "purpose": "Changing Kusto database principals may grant database Admin access.",
+    "label": "Add a Kusto database principal with the AddPrincipals action",
+    "review_status": "source_reviewed"
+  },
+  "azure-kusto-cluster-principal-assignment-write": {
+    "purpose": "Changing Kusto cluster principals may grant AllDatabasesAdmin access.",
+    "label": "Grant a Kusto cluster-wide role through ARM principal assignments",
+    "review_status": "source_reviewed"
+  },
+  "azure-datafactory-dataplane-access-token": {
+    "purpose": "A runnable factory activity may expose the exact factory managed identity\u2019s token.",
+    "label": "Use a factory data-plane token to execute as one exact managed identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-mysql-flexible-admin-password-reset": {
+    "purpose": "Resetting database administrator credentials may grant control of the named database service.",
+    "label": "Reset the MySQL Flexible Server administrator password",
+    "review_status": "source_reviewed"
+  },
+  "azure-postgresql-flexible-admin-password-reset": {
+    "purpose": "Resetting database administrator credentials may grant control of the named database service.",
+    "label": "Reset the PostgreSQL Flexible Server administrator password",
+    "review_status": "source_reviewed"
+  },
+  "azure-sql-server-admin-password-reset": {
+    "purpose": "Resetting database administrator credentials may grant control of the named database service.",
+    "label": "Reset the Azure SQL logical server administrator password",
+    "review_status": "source_reviewed"
+  },
+  "azure-sqlmi-admin-password-reset": {
+    "purpose": "Resetting database administrator credentials may grant control of the named database service.",
+    "label": "Reset the Azure SQL Managed Instance administrator password",
+    "review_status": "source_reviewed"
+  },
+  "azure-mysql-flexible-entra-admin-write": {
+    "purpose": "Changing the database\u2019s Entra administrator may grant administrative database access.",
+    "label": "Set the MySQL Flexible Server Entra administrator",
+    "review_status": "source_reviewed"
+  },
+  "azure-postgresql-flexible-entra-admin-write": {
+    "purpose": "Changing the database\u2019s Entra administrator may grant administrative database access.",
+    "label": "Set a PostgreSQL Flexible Server Entra administrator",
+    "review_status": "source_reviewed"
+  },
+  "azure-sql-server-entra-admin-write": {
+    "purpose": "Changing the database\u2019s Entra administrator may grant administrative database access.",
+    "label": "Set the Azure SQL logical server Entra administrator",
+    "review_status": "source_reviewed"
+  },
+  "azure-sqlmi-entra-admin-write": {
+    "purpose": "Changing the database\u2019s Entra administrator may grant administrative database access.",
+    "label": "Set the Azure SQL Managed Instance Entra administrator",
+    "review_status": "source_reviewed"
+  },
+  "azure-databricks-assign-workspace-admin": {
+    "purpose": "Changing the workspace administrator may grant Databricks administration.",
+    "label": "Self-assign Databricks workspace admin through Azure RBAC",
+    "review_status": "source_reviewed"
+  },
+  "azure-devtestlabs-apply-artifacts": {
+    "purpose": "Lab artifacts may run as root or SYSTEM and expose the backing VM\u2019s managed identities.",
+    "label": "Apply an artifact to a lab VM to run code in the guest",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-app-credentials-update": {
+    "purpose": "Changing app credentials or ownership may expose the application\u2019s service-principal privileges.",
+    "label": "Add credentials to any application registration",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-app-myorg-credentials-update": {
+    "purpose": "Changing app credentials or ownership may expose the application\u2019s service-principal privileges.",
+    "label": "Add credentials to single-tenant application registrations",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-app-owners-update": {
+    "purpose": "Changing app credentials or ownership may expose the application\u2019s service-principal privileges.",
+    "label": "Make yourself owner of any application registration",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-app-owner-credentials": {
+    "purpose": "Changing app credentials or ownership may expose the application\u2019s service-principal privileges.",
+    "label": "Application owner adds credentials to the owned app",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-sp-credentials-update": {
+    "purpose": "Changing service-principal credentials or ownership may expose that principal\u2019s privileges.",
+    "label": "Add credentials to any service principal",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-sp-owners-update": {
+    "purpose": "Changing service-principal credentials or ownership may expose that principal\u2019s privileges.",
+    "label": "Make yourself owner of any service principal",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-sp-owner-credentials": {
+    "purpose": "Changing service-principal credentials or ownership may expose that principal\u2019s privileges.",
+    "label": "Service principal owner adds credentials to the owned service principal",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-application-readwrite-all": {
+    "purpose": "Changing service-principal credentials or ownership may expose that principal\u2019s privileges.",
+    "label": "Graph Application.ReadWrite.All adds credentials to any app or service principal",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-approleassignment-readwrite-all": {
+    "purpose": "Application-permission assignment rights may lead to stronger Entra directory roles.",
+    "label": "Graph AppRoleAssignment.ReadWrite.All self-grants Graph application roles",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-agent-blueprint-credentials": {
+    "purpose": "Blueprint credential control may expose the blueprint principal and its child agent identities.",
+    "label": "Add credentials to an Entra Agent ID blueprint and act as its agents",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-entitlement-catalog-self-grant-group": {
+    "purpose": "A catalog package or assignment may grant membership or ownership of an already cataloged group.",
+    "label": "Catalog-scoped self-grant of a group packaged in a catalog the source manages",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-entitlement-catalog-self-grant-role": {
+    "purpose": "A no-approval access package may grant an Entra role already added to the catalog.",
+    "label": "Catalog-scoped self-grant of an Entra role packaged in a catalog the source manages",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-entitlement-auto-assignment-persistence": {
+    "purpose": "Controlled automatic-assignment attributes may repeatedly grant membership of cataloged groups.",
+    "label": "Create an auto-assignment policy that keeps re-granting catalog groups",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-group-members-update": {
+    "purpose": "Changing group membership or ownership may inherit that group\u2019s assigned permissions.",
+    "label": "Add yourself to non-role-assignable groups",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-group-readwrite-all": {
+    "purpose": "Changing group membership or ownership may inherit that group\u2019s assigned permissions.",
+    "label": "Graph Group.ReadWrite.All / GroupMember.ReadWrite.All adds members to groups",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-group-owners-update": {
+    "purpose": "Changing group membership or ownership may inherit that group\u2019s assigned permissions.",
+    "label": "Make yourself owner of non-role-assignable groups",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-group-owner-membership": {
+    "purpose": "Changing group membership or ownership may inherit that group\u2019s assigned permissions.",
+    "label": "Group owner adds itself to the owned group (incl. role-assignable groups)",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-group-dynamic-rule-update": {
+    "purpose": "A controlled dynamic-membership rule may add the source to a privileged group.",
+    "label": "Rewrite a dynamic group's membership rule",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-pim-groups-active-assignment": {
+    "purpose": "Creating an active PIM group assignment may inherit the assigned group\u2019s privileges.",
+    "label": "Graph PrivilegedAssignmentSchedule.ReadWrite.AzureADGroup grants active group membership",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-pim-groups-eligibility": {
+    "purpose": "Activating eligible PIM group access may inherit group privileges, subject to activation policy.",
+    "label": "Graph PrivilegedEligibilitySchedule.ReadWrite.AzureADGroup creates self-activatable group eligibility",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-pim-group-eligible-activation": {
+    "purpose": "Activating eligible PIM group access may inherit group privileges, subject to activation policy.",
+    "label": "Activate an eligible PIM for Groups membership or ownership",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-rolemanagement-readwrite-directory": {
+    "purpose": "Directory role-assignment control may grant stronger roles, including Global Administrator.",
+    "label": "Graph RoleManagement.ReadWrite.Directory assigns any directory role",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-role-assignment-manage": {
+    "purpose": "Directory role-assignment control may grant stronger roles, including Global Administrator.",
+    "label": "Manage directory role assignments (Privileged Role Administrator)",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-custom-role-definition-update": {
+    "purpose": "Expanding an assigned custom directory role may grant additional eligible directory permissions.",
+    "label": "Expand a custom directory role the source already holds",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-pim-eligible-role-activation": {
+    "purpose": "Activating an eligible PIM assignment may obtain that role\u2019s privileges, subject to its activation policy.",
+    "label": "Activate a PIM-eligible directory role",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-reset-password-password-admin": {
+    "purpose": "Resetting allowed users\u2019 passwords or authentication methods may expose those users\u2019 privileges.",
+    "label": "Password Administrator resets passwords of non-admins and limited roles",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-reset-password-helpdesk-admin": {
+    "purpose": "Resetting allowed users\u2019 passwords or authentication methods may expose those users\u2019 privileges.",
+    "label": "Helpdesk Administrator resets passwords of non-admins and limited roles",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-reset-credentials-authentication-admin": {
+    "purpose": "Resetting allowed users\u2019 passwords or authentication methods may expose those users\u2019 privileges.",
+    "label": "Authentication Administrator resets passwords and authentication methods of non-admins",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-reset-password-user-admin": {
+    "purpose": "Resetting allowed users\u2019 passwords or authentication methods may expose those users\u2019 privileges.",
+    "label": "User Administrator resets passwords of non-admins and limited admins",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-reset-credentials-privileged-auth-admin": {
+    "purpose": "Resetting allowed users\u2019 passwords or authentication methods may expose those users\u2019 privileges.",
+    "label": "Privileged Authentication Administrator resets credentials of any user",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-reset-password-partner-tier1": {
+    "purpose": "Resetting allowed users\u2019 passwords or authentication methods may expose those users\u2019 privileges.",
+    "label": "Non-admin-only password reset roles (Partner Tier1 Support, Security Operator, SOC Identity Responder)",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-graph-userauthenticationmethod-tap": {
+    "purpose": "A permitted Temporary Access Pass may authenticate as a user covered by the tenant policy.",
+    "label": "Graph UserAuthenticationMethod.ReadWrite.All issues a Temporary Access Pass for any user",
+    "review_status": "source_reviewed"
+  },
+  "azure-entraid-domain-federation-backdoor": {
+    "purpose": "Controlling a verified domain\u2019s federation may authenticate as users on that domain.",
+    "label": "Federate a verified domain with an attacker-trusted issuer",
+    "review_status": "source_reviewed"
+  },
+  "azure-functions-hostruntime-vfs-write": {
+    "purpose": "Controlling function code or debugging may expose the Function App\u2019s managed identities.",
+    "label": "Modify Function App files through the host runtime VFS",
+    "review_status": "source_reviewed"
+  },
+  "azure-functions-functions-write": {
+    "purpose": "Controlling function code or debugging may expose the Function App\u2019s managed identities.",
+    "label": "Create or update a function definition",
+    "review_status": "source_reviewed"
+  },
+  "azure-functions-sites-write-source-control": {
+    "purpose": "Controlling function code or debugging may expose the Function App\u2019s managed identities.",
+    "label": "Repoint a Function App's deployment source through a site write",
+    "review_status": "source_reviewed"
+  },
+  "azure-functions-remote-debugging": {
+    "purpose": "Controlling function code or debugging may expose the Function App\u2019s managed identities.",
+    "label": "Enable remote debugging and attach a debugger to the Function App worker",
+    "review_status": "source_reviewed"
+  },
+  "azure-imagebuilder-template-create-via-template-identity": {
+    "purpose": "An image-template identity may assign further identities to a controlled build VM.",
+    "label": "Create and run a new image template whose template identity attaches a build-VM identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-list-cluster-admin-credential": {
+    "purpose": "Usable local cluster-administrator credentials may grant Kubernetes administrative access.",
+    "label": "Retrieve the AKS clusterAdmin kubeconfig",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-list-cluster-user-credential": {
+    "purpose": "Usable local cluster-administrator credentials may grant Kubernetes administrative access.",
+    "label": "Retrieve the AKS clusterUser kubeconfig on a local-account cluster",
+    "review_status": "source_reviewed"
+  },
+  "azure-hybrid-k8s-list-cluster-admin-credential": {
+    "purpose": "Usable local cluster-administrator credentials may grant Kubernetes administrative access.",
+    "label": "Retrieve admin credentials of a hybrid (provisioned) Kubernetes cluster",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-access-profile-list-credential": {
+    "purpose": "Usable local cluster-administrator credentials may grant Kubernetes administrative access.",
+    "label": "Retrieve the clusterAdmin kubeconfig through the legacy access-profile API",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-managedclusters-write-enable-local-accounts": {
+    "purpose": "Usable local cluster-administrator credentials may grant Kubernetes administrative access.",
+    "label": "Re-enable AKS local accounts and retrieve the clusterAdmin kubeconfig",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-azure-rbac-k8s-rbac-write": {
+    "purpose": "Creating a cluster-admin binding may grant Kubernetes administrative permissions.",
+    "label": "Bind cluster-admin through a Kubernetes ClusterRoleBinding using Azure RBAC data actions",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-run-command": {
+    "purpose": "AKS Run Command may run with cluster-admin authority on the modeled local-account cluster.",
+    "label": "In-cluster execution through AKS Run Command",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-vmss-node-run-command": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Run Command on an AKS worker scale-set instance",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-extensions-write": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Deploy or update a VM extension to run code in the guest",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-runcommand-action": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Invoke Run Command on a VM",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-managed-runcommands-write": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Create a managed Run Command child resource on a VM",
+    "review_status": "source_reviewed"
+  },
+  "azure-vmss-vm-managed-runcommands-write": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Create a managed Run Command on a scale-set instance",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-gallery-application-install": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Add a malicious VM Application version to a VM",
+    "review_status": "source_reviewed"
+  },
+  "azure-vmss-vm-runcommand-action": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Invoke Run Command on a scale-set instance",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-os-disk-swap": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Swap a VM's OS disk for an attacker-prepared disk",
+    "review_status": "source_reviewed"
+  },
+  "azure-vmss-model-write": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Tamper with a scale-set model (extensions, custom data) to run code on instances",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-customdata-reimage": {
+    "purpose": "Root or SYSTEM execution on a VM may expose its attached managed identities.",
+    "label": "Re-execute poisoned customData by reimaging or redeploying a VM",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-azure-rbac-impersonate": {
+    "purpose": "Impersonating system:masters may bypass Kubernetes RBAC as a cluster administrator.",
+    "label": "Impersonate the Kubernetes system:masters group through an Azure RBAC data action",
+    "review_status": "source_reviewed"
+  },
+  "azure-aro-list-credentials": {
+    "purpose": "Usable kubeadmin credentials may grant OpenShift cluster-administrator access.",
+    "label": "Retrieve the ARO kubeadmin credentials",
+    "review_status": "source_reviewed"
+  },
+  "azure-aks-flux-configuration-write": {
+    "purpose": "A controlled Flux source may apply manifests with the reconciler\u2019s Kubernetes privileges.",
+    "label": "Point a Flux GitOps configuration at an attacker-controlled source",
+    "review_status": "source_reviewed"
+  },
+  "azure-loadtesting-test-engine-identity": {
+    "purpose": "Test-engine execution may expose the load-test resource\u2019s attached managed identities.",
+    "label": "Run a test plan on a load test resource that carries managed identities",
+    "review_status": "source_reviewed"
+  },
+  "azure-loadtesting-assign-user-assigned-identity": {
+    "purpose": "A controlled test engine may expose an assignable user-assigned identity.",
+    "label": "Attach a user-assigned identity to a load test resource and run code as it",
+    "review_status": "source_reviewed"
+  },
+  "azure-logicapp-workflow-write-existing-identity": {
+    "purpose": "Controlling workflow execution may expose the workflow\u2019s managed identities.",
+    "label": "Modify an existing Consumption workflow that runs with managed identities",
+    "review_status": "source_reviewed"
+  },
+  "azure-logicapp-assign-user-assigned-identity": {
+    "purpose": "A controlled workflow may expose an assignable user-assigned identity.",
+    "label": "Create or update a workflow with a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-ml-online-deployment-existing-endpoint": {
+    "purpose": "Controlling ML endpoint or compute code may expose the resource\u2019s managed identities.",
+    "label": "Deploy code to an existing Azure ML online endpoint",
+    "review_status": "source_reviewed"
+  },
+  "azure-ml-compute-application-access": {
+    "purpose": "Controlling ML endpoint or compute code may expose the resource\u2019s managed identities.",
+    "label": "Open Jupyter on a compute instance assigned to the source",
+    "review_status": "source_reviewed"
+  },
+  "azure-ml-online-endpoint-create-with-user-assigned-identity": {
+    "purpose": "A controlled ML resource may expose an assignable user-assigned identity.",
+    "label": "Create an Azure ML online endpoint with a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-ml-compute-create-with-user-assigned-identity": {
+    "purpose": "A controlled ML resource may expose an assignable user-assigned identity.",
+    "label": "Create an Azure ML compute instance with a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-managedapp-list-tokens": {
+    "purpose": "Returned managed-application bearer tokens may expose its managed identity\u2019s privileges.",
+    "label": "Export access tokens of a managed application's managed identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-grafana-act-as-admin": {
+    "purpose": "Grafana Admin may administer the workspace and use its configured data sources.",
+    "label": "Grafana Admin through the ActAsGrafanaAdmin data action",
+    "review_status": "source_reviewed"
+  },
+  "azure-purview-add-root-collection-admin": {
+    "purpose": "Root collection administration may grant top-level Purview data-plane access.",
+    "label": "Add a principal as Purview root collection administrator from the ARM control plane",
+    "review_status": "source_reviewed"
+  },
+  "azure-purview-policy-self-grant": {
+    "purpose": "A controlled Purview policy grant may add verified SQL or Storage permissions.",
+    "label": "Grant oneself governed SQL or Storage access through a Purview policy",
+    "review_status": "source_reviewed"
+  },
+  "azure-storage-adls-acl-self-grant": {
+    "purpose": "Changing the exact file-path ACL may add read, write or execute permissions previously absent.",
+    "label": "Give oneself new ADLS Gen2 path access by changing its ACL",
+    "review_status": "source_reviewed"
+  },
+  "azure-storage-files-acl-self-grant": {
+    "purpose": "Changing the exact file-path ACL may add read, write or execute permissions previously absent.",
+    "label": "Give oneself new Azure Files access by changing NTFS permissions",
+    "review_status": "source_reviewed"
+  },
+  "azure-servicefabric-application-user-assigned-identity": {
+    "purpose": "A controlled Service Fabric application may obtain tokens for its assigned identity.",
+    "label": "Deploy a Service Fabric application bound to a user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-springapps-deployment-write-app-identity": {
+    "purpose": "Controlling Spring app code may expose that app\u2019s attached managed identities.",
+    "label": "Change a Spring Apps deployment to run attacker code as the app's managed identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-springapps-app-write-user-assigned-identity": {
+    "purpose": "A controlled Spring app may expose an assignable user-assigned identity.",
+    "label": "Create or update a Spring app with a user-assigned identity and deploy code to it",
+    "review_status": "source_reviewed"
+  },
+  "azure-audit-microsoftstoragestorageaccountslocaluserswrite-microsoftstoragestorageac": {
+    "purpose": "Changed SFTP credentials may expose that local user\u2019s container permissions, not Entra or ARM rights.",
+    "label": "Replace an existing Storage SFTP local user credential",
+    "review_status": "source_reviewed"
+  },
+  "azure-audit-microsoftstoragestorageaccountslocalusersregeneratepasswordaction": {
+    "purpose": "Changed SFTP credentials may expose that local user\u2019s container permissions, not Entra or ARM rights.",
+    "label": "Regenerate an existing Storage SFTP local user password",
+    "review_status": "source_reviewed"
+  },
+  "azure-synapse-entra-admin-write": {
+    "purpose": "Changing the Synapse Entra administrator may grant SQL sysadmin on its dedicated endpoint.",
+    "label": "Replace the Synapse workspace Entra administrator",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-create-with-user-assigned-identity": {
+    "purpose": "Code on a controlled VM may obtain tokens for an assignable user-assigned identity.",
+    "label": "Create a VM with an attached user-assigned identity",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-assign-user-assigned-identity-existing": {
+    "purpose": "Code on a controlled VM may obtain tokens for an assignable user-assigned identity.",
+    "label": "Attach a user-assigned identity to an existing VM the source can execute code on",
+    "review_status": "source_reviewed"
+  },
+  "azure-vm-assign-user-assigned-identity-indirect-exec": {
+    "purpose": "Code on a controlled VM may obtain tokens for an assignable user-assigned identity.",
+    "label": "Attach a user-assigned identity to an existing VM and run code through an indirect guest route",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-eks-irsa": {
+    "purpose": "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+    "label": "ServiceAccount assumes an IAM role through IRSA (OIDC web identity)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-eks-irsa-create-matching-sa": {
+    "purpose": "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+    "label": "Create a ServiceAccount matching a wildcard IRSA trust",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-eks-irsa-wildcard-trust-existing-sa": {
+    "purpose": "A matching IRSA token and role trust may grant the linked IAM role\u2019s permissions.",
+    "label": "Use an existing ServiceAccount that matches a wildcard IRSA trust",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-eks-pod-identity": {
+    "purpose": "The matching EKS Pod Identity association may grant the linked IAM role\u2019s permissions.",
+    "label": "ServiceAccount receives an IAM role through EKS Pod Identity",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-gke-workload-identity": {
+    "purpose": "A permitted Workload Identity member may obtain the linked Google service account\u2019s permissions.",
+    "label": "ServiceAccount impersonates a Google service account via GKE Workload Identity",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-aks-workload-identity": {
+    "purpose": "A matching federated credential may grant the linked Azure workload identity\u2019s permissions.",
+    "label": "ServiceAccount obtains an Entra identity via AKS Workload ID federation",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-node-cloud-identity": {
+    "purpose": "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+    "label": "Node identity reaches the node's cloud identity",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-pod-imds-node-identity": {
+    "purpose": "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+    "label": "Ordinary pod reaches the node metadata service",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-hostnetwork-pod-node-identity": {
+    "purpose": "Accessible node metadata may expose the node\u2019s attached cloud identity.",
+    "label": "hostNetwork pod reaches the node metadata service (not node root)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-eks-node-role-to-node": {
+    "purpose": "The mapped EKS instance-role session may authenticate as the node\u2019s Kubernetes identity.",
+    "label": "EKS node IAM role authenticates to the cluster as a node",
+    "review_status": "source_reviewed"
+  },
+  "k8s-helm-values-rbac-privileged-reconciler": {
+    "purpose": "Changing the reviewed Helm values may add cross-namespace Secret-read permissions.",
+    "label": "Patch the KRTE values ConfigMap so its privileged applier grants the tenant ServiceAccount Secret reads",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-privileged-pod-create": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Create a host-privileged pod (privileged container or host-root hostPath)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-privileged-controller-create": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Create or modify a controller with a host-privileged pod template",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-privileged-ephemeral-container": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Add a privileged ephemeral container to an existing pod",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-exec-into-host-privileged-pod": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Exec into an existing pod with a privileged container or escape capability",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-exec-into-host-mount-pod": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Exec into an existing pod that mounts a runtime socket or sensitive host path",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-hostpath-persistentvolume": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Mount the node filesystem through a hostPath PersistentVolume",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-namespace-psa-relabel": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Relax a namespace's Pod Security labels and create host-privileged pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-namespace-create-privileged-pod": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Create a new namespace and host-privileged pods in it",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-nodes-proxy-node": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Use nodes/proxy to execute in privileged pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-nodes-proxy-host-mount-node": {
+    "purpose": "Admitted host-privileged execution may expose the selected node\u2019s files, credentials and authority.",
+    "label": "Use nodes/proxy to execute in pods mounting a runtime socket or sensitive host path",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-nodes-proxy-pod-sas": {
+    "purpose": "Kubelet proxy execution may expose the ServiceAccounts of Pods on covered nodes.",
+    "label": "Use the kubelet API through nodes/proxy",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-csr-kubelet-client-signer": {
+    "purpose": "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+    "label": "Issue and approve a node client certificate",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-csr-nodeclient-autoapprove": {
+    "purpose": "Issuing or obtaining an approved node-client certificate may authenticate as a Kubernetes node.",
+    "label": "Obtain an auto-approved node client certificate (bootstrap nodeclient)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-node-mint-pod-sa-tokens": {
+    "purpose": "A node identity may obtain tokens for ServiceAccounts used by Pods scheduled on that node.",
+    "label": "Node identity mints tokens for ServiceAccounts of its pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-control-plane-node": {
+    "purpose": "Control-plane host credentials may grant Kubernetes cluster-administrator authority.",
+    "label": "Control-plane node compromise",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-replacement-pod-to-controlled-node": {
+    "purpose": "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+    "label": "Force a controller-managed pod onto a controlled node",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-pods-binding-pending-pod-to-controlled-node": {
+    "purpose": "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+    "label": "Bind a pending pod to a controlled node with pods/binding",
+    "review_status": "source_reviewed"
+  },
+  "k8s-nodes-attract-pending-pod-to-controlled-node": {
+    "purpose": "Scheduling a Pod onto an already controlled node may expose that Pod\u2019s ServiceAccount credentials.",
+    "label": "Attract a pending pod to a controlled node through node labels or status, or pod nomination",
+    "review_status": "source_reviewed"
+  },
+  "k8s-openshift-scc-use-host-scc": {
+    "purpose": "An admitted host-access Pod may expose schedulable nodes; SCC or namespace controls still matter.",
+    "label": "Use a host-access SCC and create pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-openshift-scc-via-namespace-sa": {
+    "purpose": "An admitted host-access Pod may expose schedulable nodes; SCC or namespace controls still matter.",
+    "label": "Create pods as a ServiceAccount that may use a host-access SCC",
+    "review_status": "source_reviewed"
+  },
+  "k8s-openshift-privileged-default-projects": {
+    "purpose": "An admitted host-access Pod may expose schedulable nodes; SCC or namespace controls still matter.",
+    "label": "Create pods in OpenShift projects where SCC admission is not applied",
+    "review_status": "source_reviewed"
+  },
+  "k8s-openshift-run-level-label-existing-namespace": {
+    "purpose": "An admitted host-access Pod may expose schedulable nodes; SCC or namespace controls still matter.",
+    "label": "Add the openshift.io/run-level label to a namespace and create pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-openshift-run-level-label-new-namespace": {
+    "purpose": "An admitted host-access Pod may expose schedulable nodes; SCC or namespace controls still matter.",
+    "label": "Create a namespace with the openshift.io/run-level label and create pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-openshift-scc-users-missing-serviceaccount": {
+    "purpose": "Creating a missing ServiceAccount may inherit the SCC access already granted to that name.",
+    "label": "Create a missing ServiceAccount named in an SCC users list",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-secrets-read-legacy-sa-token": {
+    "purpose": "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+    "label": "Read Secrets containing legacy ServiceAccount tokens",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-secrets-create-sa-token-secret": {
+    "purpose": "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+    "label": "Create a ServiceAccount token Secret and read it back",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-serviceaccounts-token-create": {
+    "purpose": "A readable or issuable ServiceAccount token may authenticate as that exact ServiceAccount.",
+    "label": "Mint tokens with the TokenRequest API",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-impersonate-serviceaccounts": {
+    "purpose": "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+    "label": "Impersonate ServiceAccounts",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-impersonate-users": {
+    "purpose": "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+    "label": "Impersonate users",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-impersonate-groups": {
+    "purpose": "Impersonation may use the allowed identity\u2019s permissions under the modeled RBAC grants.",
+    "label": "Impersonate groups (with user impersonation)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-impersonate-system-masters": {
+    "purpose": "Impersonating system:masters may bypass RBAC as a cluster administrator.",
+    "label": "Impersonate the system:masters group",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-impersonate-node": {
+    "purpose": "Impersonating a node may obtain that node identity\u2019s Kubernetes authority.",
+    "label": "Impersonate a node identity",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-constrained-impersonation-user": {
+    "purpose": "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+    "label": "Constrained impersonation of a user (user-info mode)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-constrained-impersonation-serviceaccount": {
+    "purpose": "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+    "label": "Constrained impersonation of a ServiceAccount",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-constrained-impersonation-node": {
+    "purpose": "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+    "label": "Constrained impersonation of nodes (arbitrary-node mode)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-constrained-impersonation-associated-node": {
+    "purpose": "Constrained impersonation may obtain only the allowed subset of the target identity\u2019s permissions.",
+    "label": "Constrained impersonation of the node running the source's pod (associated-node mode)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-bind-clusterrolebinding-cluster-admin": {
+    "purpose": "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+    "label": "Bind cluster-admin through a ClusterRoleBinding",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-escalate-bound-clusterrole": {
+    "purpose": "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+    "label": "Escalate a ClusterRole already bound to the source",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-escalate-aggregating-clusterrole": {
+    "purpose": "Binding or expanding a cluster-wide role may grant Kubernetes cluster-administrator permissions.",
+    "label": "Create an aggregating ClusterRole that feeds a ClusterRole already bound to the source",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-bind-rolebinding-namespace": {
+    "purpose": "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+    "label": "Bind cluster-admin into a namespace through a RoleBinding",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-escalate-bound-role-namespace": {
+    "purpose": "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+    "label": "Escalate a Role already bound to the source in a namespace",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-escalate-rolebound-clusterrole-namespace": {
+    "purpose": "Changing a namespace-bound role may grant workload and token rights in that namespace.",
+    "label": "Escalate a ClusterRole bound in one namespace",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-csr-kube-apiserver-client-user": {
+    "purpose": "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+    "label": "Issue and approve a client certificate for an existing username",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-csr-kube-apiserver-client-group": {
+    "purpose": "Self-approved client certificates may authenticate as the selected RBAC-bound user or group.",
+    "label": "Issue and approve a client certificate carrying groups",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-dangling-serviceaccount-reference": {
+    "purpose": "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+    "label": "Create a ServiceAccount referenced by an existing binding but missing",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-serviceaccount-in-absent-namespace": {
+    "purpose": "Creating a missing ServiceAccount or namespace may inherit permissions already bound to that name.",
+    "label": "Create the missing namespace and ServiceAccount named by a binding or SCC",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-pods-mount-argocd-cluster-credential": {
+    "purpose": "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+    "label": "Mount an Argo CD managed-cluster credential in a Pod",
+    "review_status": "source_reviewed"
+  },
+  "k8s-rbac-secrets-read-argocd-cluster-credential": {
+    "purpose": "A usable Argo CD cluster credential may grant the verified remote-cluster subject\u2019s permissions.",
+    "label": "Read a verified Argo CD remote-cluster credential Secret",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-pivot-secret-static-gcp-sa-key": {
+    "purpose": "A verified active Google key in a Secret may grant new actions as its exact service account.",
+    "label": "Read a verified Google service-account key from a Secret",
+    "review_status": "source_reviewed"
+  },
+  "k8s-gke-authenticated-user-rolebinding-self-grant": {
+    "purpose": "A self-bound view role may add get-Pod permission for the verified Google-authenticated username.",
+    "label": "Bind a GKE authenticated user to new Kubernetes RBAC access",
+    "review_status": "source_reviewed"
+  },
+  "k8s-cloud-kiam-kube2iam-annotation": {
+    "purpose": "An admitted annotated Pod may receive the IAM role allowed by the namespace\u2019s identity proxy.",
+    "label": "Obtain an IAM role through a verified Kiam or Kube2IAM Pod",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-pods-create": {
+    "purpose": "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+    "label": "Create a pod that runs as any ServiceAccount of the namespace",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-controllers-create": {
+    "purpose": "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+    "label": "Create a workload controller whose pod template runs as any ServiceAccount",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-controllers-modify": {
+    "purpose": "Controlling workload creation may run Pods as permitted ServiceAccounts in that namespace.",
+    "label": "Modify an existing workload controller's pod template",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-pods-modify-running": {
+    "purpose": "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+    "label": "Change the container image of an existing pod",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-pods-exec": {
+    "purpose": "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+    "label": "Execute commands in existing pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-pods-exec-get-websocket": {
+    "purpose": "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+    "label": "Execute commands in pods with only get on pods/exec (WebSocket upgrade)",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-pods-attach": {
+    "purpose": "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+    "label": "Attach to the process streams of existing pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-pods-ephemeralcontainers": {
+    "purpose": "Controlling or entering an existing Pod may expose its mounted ServiceAccount credentials.",
+    "label": "Add an ephemeral container to existing pods",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-mutating-webhook-injection": {
+    "purpose": "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+    "label": "Register or modify a mutating admission webhook",
+    "review_status": "source_reviewed"
+  },
+  "k8s-workloads-mutating-admission-policy-injection": {
+    "purpose": "Controlled admission mutations may run new Pods with ServiceAccounts in the affected namespaces.",
+    "label": "Create or modify a MutatingAdmissionPolicy and its binding",
+    "review_status": "source_reviewed"
+  }
+}

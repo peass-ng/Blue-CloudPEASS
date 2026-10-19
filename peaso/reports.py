@@ -182,8 +182,23 @@ def render_markdown(report):
             "- Message: " + _text(finding.get("message", "")), ""])
         if anchor is not None:
             lines.extend([f"- Check guidance: [reviewed meaning and remediation](#{anchor})", ""])
-        lines.extend(["Evidence:", ""])
-        lines.extend(_json_block(finding.get("evidence", {})))
+        if finding.get("grouped"):
+            from peaso.finding_groups import placement
+            from peaso.finding_observation import evidence_summary
+            lines.extend(["Observed evidence:", "", _text(finding.get("evidence_summary", "")), "",
+                "| Asset | Account / project / subscription | Region | Result | Evidence |",
+                "| --- | --- | --- | --- | --- |"])
+            for member in finding.get("observations", []):
+                account, region = placement(member)
+                observation = member.get("evidence_summary") or evidence_summary(member) or f"Recorded result: {member.get('status', 'UNKNOWN')}."
+                asset = member.get("resource_name") or member.get("native_resource_id") or member.get("resource_id", "")
+                lines.append("| " + " | ".join(_text(value) for value in (asset, account, region or "Global / not regional", member.get("status"), observation)) + " |")
+            lines.extend(["", "<details><summary>Technical evidence for all observations</summary>", ""])
+            lines.extend(_json_block(finding.get("observations", [])))
+            lines.extend(["", "</details>", ""])
+        else:
+            lines.extend(["Evidence:", ""])
+            lines.extend(_json_block(finding.get("evidence", {})))
         lines.extend(_remediation_lines(finding, templates, shared=shared, _escape=remediation_text))
     aggregates = report.get("finding_aggregates") or []
     if aggregates:

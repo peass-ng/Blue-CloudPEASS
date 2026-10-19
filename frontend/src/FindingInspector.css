@@ -83,6 +83,48 @@
   border-left: 3px solid #9bf1d1;
 }
 
+.finding-group-statuses,
+.finding-group-member-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.finding-group-statuses {
+  margin-top: 12px;
+}
+
+.finding-group-statuses > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.finding-group-members {
+  padding: 0 !important;
+  list-style: none;
+}
+
+.finding-group-members > li {
+  padding: 12px 0;
+  border-top: 1px solid #35495c;
+}
+
+.finding-group-member-heading .text-button {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.finding-group-members p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.finding-group-member-scope {
+  color: #a6bbcd !important;
+}
+
 .finding-inspector .finding-detail-section > h3 {
   margin: 0 0 12px;
   font-size: 16px;

@@ -9,7 +9,10 @@ from .facts import Unavailable, guard, get
 
 def scope_subject(item):
     scope = get(item, "scope", str)
-    if not re.fullmatch(r"[0-9]{12}/[a-z]{2}(?:-[a-z]+)+-[0-9]", scope):
+    account_global = (item.get("evaluation_scope") == "aws_account"
+                      and item.get("Account") == scope.split("/", 1)[0]
+                      and re.fullmatch(r"[0-9]{12}/global", scope))
+    if not account_global and not re.fullmatch(r"[0-9]{12}/[a-z]{2}(?:-[a-z]+)+-[0-9]", scope):
         raise Unavailable("malformed AWS account/region scope")
     return scope
 
