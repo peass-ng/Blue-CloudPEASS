@@ -19,16 +19,17 @@ def _shared_metadata_strings(row):
     these values avoids retaining a second string for every mapping edge.
     This hook is only for static reviewed metadata, never user snapshots.
     """
-    result = {}
+    # object_hook owns this freshly decoded dictionary. JSON already shares
+    # keys within a decode; keep its independent container instead of allocating
+    # another dictionary for every metadata row. Only immutable values are shared.
     for key, value in row.items():
         if isinstance(value, str):
-            value = sys.intern(value)
+            row[key] = sys.intern(value)
         elif isinstance(value, list):
             for position, item in enumerate(value):
                 if isinstance(item, str):
                     value[position] = sys.intern(item)
-        result[sys.intern(key)] = value
-    return result
+    return row
 
 
 @lru_cache(maxsize=1)

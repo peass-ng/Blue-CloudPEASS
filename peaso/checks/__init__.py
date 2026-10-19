@@ -135,7 +135,10 @@ def register(id, provider, category, kind, title, severity, control, remediation
                 not set(empty_applicability_dependencies) <= set(dependencies))):
         raise ValueError("empty applicability must name declared scoped dependencies")
     def decorate(function):
-        if any(c.id == id for c in CHECKS) or id in CHECK_ALIASES:
+        for existing in CHECKS:
+            if existing.id == id:
+                raise ValueError("duplicate check id: " + id)
+        if id in CHECK_ALIASES:
             raise ValueError("duplicate check id: " + id)
         @wraps(function)
         def safe(item, index):
