@@ -78,3 +78,18 @@ test("settings clear data requires DELETE and describes its exact scope", async 
   await expect(page.getByText("Workspace scan data deleted.", { exact: true })).toBeVisible();
   expect(calls.map(call => call.path)).toEqual(["/api/workspace-data"]);
 });
+
+
+test("deleting the selected scan clears selection and does not leave dead report requests", async ({ page }) => {
+  await setup(page);
+  await page.goto("/#Dashboard");
+  const picker = page.getByRole("combobox", { name: "Selected assessment" });
+  await picker.selectOption("done");
+  await expect(picker).toHaveValue("done");
+  await page.getByRole("navigation").getByRole("button", { name: "Scans", exact: true }).click();
+  await page.getByRole("button", { name: "Delete scan Production · 19.10.26", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Delete scan", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("navigation").getByRole("button", { name: "Dashboard", exact: true }).click();
+  await expect(picker).toHaveValue("");
+});

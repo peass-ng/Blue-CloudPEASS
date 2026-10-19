@@ -126,7 +126,7 @@ export function App() {
   const available = items(scans.data);
   const names = scanNames(available, items(connectors.data));
   const scanId =
-    selected || available.find((s) => s.status === "completed")?.id || "";
+    (available.some((scan) => scan.id === selected) ? selected : "") || available.find((s) => s.status === "completed")?.id || "";
   const current = available.find((s) => s.id === scanId);
   const report = useApi<Report>(
     `/scans/${encodeURIComponent(scanId)}/summary`,
