@@ -61,7 +61,7 @@ def verify_api_archive() -> None:
         members = archive.infolist()
         if len(members) != len(set(row.filename for row in members)) or len(members) > deploy.CURRENT_API_MEMBER_LIMIT:
             raise ValueError('API archive member count is invalid')
-        if sum(row.file_size for row in members) > 230_000_000:
+        if sum(row.file_size for row in members) > deploy.CURRENT_API_UNCOMPRESSED_LIMIT:
             raise ValueError('API archive expands beyond reviewed size')
 
 
