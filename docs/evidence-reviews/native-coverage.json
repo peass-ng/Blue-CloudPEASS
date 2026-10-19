@@ -1,0 +1,76 @@
+{
+  "format": "One to three brief plain-language sentences: what was observed, the actual setting/value/principal/action, its meaning, and any evidence limit. Never infer usable access, successful exploitation or a disabled setting from missing evidence.",
+  "providers": {
+    "aws": {
+      "registered_checks": 1521,
+      "active_checks": 1371,
+      "historical_or_excluded_checks": 150,
+      "retired_aliases": 3,
+      "explicit_copy_entries": 1524,
+      "review_ledger_entries": 1524,
+      "missing_copy": [],
+      "missing_review": [],
+      "invalid_copy": [],
+      "stale_copy": [],
+      "mismatched_review": [],
+      "ledger": "docs/evidence-reviews/aws.json"
+    },
+    "gcp": {
+      "registered_checks": 491,
+      "active_checks": 389,
+      "historical_or_excluded_checks": 102,
+      "retired_aliases": 2,
+      "explicit_copy_entries": 493,
+      "review_ledger_entries": 493,
+      "missing_copy": [],
+      "missing_review": [],
+      "invalid_copy": [],
+      "stale_copy": [],
+      "mismatched_review": [],
+      "ledger": "docs/evidence-reviews/gcp.json"
+    },
+    "azure": {
+      "registered_checks": 969,
+      "active_checks": 706,
+      "historical_or_excluded_checks": 263,
+      "retired_aliases": 0,
+      "explicit_copy_entries": 969,
+      "review_ledger_entries": 969,
+      "missing_copy": [],
+      "missing_review": [],
+      "invalid_copy": [],
+      "stale_copy": [],
+      "mismatched_review": [],
+      "ledger": "docs/evidence-reviews/azure.json"
+    },
+    "k8s": {
+      "registered_checks": 1005,
+      "active_checks": 927,
+      "historical_or_excluded_checks": 78,
+      "retired_aliases": 0,
+      "explicit_copy_entries": 1005,
+      "review_ledger_entries": 1005,
+      "missing_copy": [],
+      "missing_review": [],
+      "invalid_copy": [],
+      "stale_copy": [],
+      "mismatched_review": [],
+      "ledger": "docs/evidence-reviews/k8s.json"
+    }
+  },
+  "errors": [],
+  "registered_check_count": 3986,
+  "alias_count": 5,
+  "shared_analysis": {
+    "check_count": 7,
+    "applicable_provider_pairs": 27,
+    "reviewed_pairs": 27
+  },
+  "privilege_paths": {
+    "catalog_techniques": 633,
+    "generated_checks": 1,
+    "missing_copy": [],
+    "missing_review": []
+  },
+  "complete": true
+}

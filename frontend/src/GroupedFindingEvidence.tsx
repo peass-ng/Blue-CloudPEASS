@@ -1,0 +1,55 @@
+import { useState } from "react";
+import { useApi } from "./api";
+import { Badge, State } from "./ui";
+import { BoundedPager } from "./BoundedPager";
+import type { Finding, FindingGroupDetail, FindingGroupMember } from "./types";
+
+const PAGE_SIZE = 50;
+
+export function findingGroupPath(scanId: string, finding: Finding, offset = 0): string {
+  const params = new URLSearchParams({ members_offset: String(offset), members_limit: String(PAGE_SIZE) });
+  for (const [key, value] of Object.entries(finding.member_filters || {}))
+    if (value !== "") params.set(key, Array.isArray(value) ? value.join(",") : value);
+  return `/scans/${encodeURIComponent(scanId)}/finding-groups/${encodeURIComponent(finding.id)}?${params}`;
+}
+
+/** One check, with its original per-asset observations kept distinct and paged. */
+export function GroupedFindingEvidence({ finding, scanId, demo, onInspectMember }: {
+  finding: Finding;
+  scanId: string;
+  demo: boolean;
+  onInspectMember: (member: FindingGroupMember) => void;
+}) {
+  const [offset, setOffset] = useState(0);
+  const query = useApi<FindingGroupDetail>(findingGroupPath(scanId, finding, offset), demo);
+  const detail = query.data;
+  const members = detail?.members || [];
+  const total = detail?.members_total ?? finding.member_count ?? 0;
+  const counts = detail?.status_counts || finding.status_counts || {};
+  const next = detail?.members_next_offset ?? detail?.next_offset;
+  const canNext = typeof next === "number" || offset + members.length < total;
+  return <State loading={query.isPending} error={query.error} onRetry={() => void query.refetch()}>
+    <p>{detail?.evidence_summary || finding.evidence_summary || `${total.toLocaleString()} observations are recorded for this check. Review each asset’s result below.`}</p>
+    {Object.keys(counts).length > 0 && <div className="finding-group-statuses" aria-label="Results by status">
+      {Object.entries(counts).filter(([, count]) => count > 0).map(([status, count]) =>
+        <span key={status}><Badge value={status} /> {count.toLocaleString()}</span>)}
+    </div>}
+    <h4>Affected assets and regions</h4>
+    <ol className="finding-group-members" aria-label="Individual evidence observations">
+      {members.map(member => <li key={member.id}>
+        <div className="finding-group-member-heading">
+          <button type="button" className="text-button" onClick={() => onInspectMember(member)}>{member.resource_name || member.native_resource_id || member.asset || member.resource_id || member.id}</button>
+          <Badge value={member.status} />
+        </div>
+        <p className="finding-group-member-scope">{member.account && member.region ? `${member.account} · ${member.region}` : member.scope}</p>
+        <p>{member.evidence_summary || "The saved observation has no concise evidence summary. Open the asset to review its recorded evidence."}</p>
+      </li>)}
+    </ol>
+    {total > PAGE_SIZE && <BoundedPager first={offset + 1} last={offset + members.length} total={total}
+      unit="Observations" pageSize={PAGE_SIZE} loading={query.isFetching}
+      canPrevious={offset > 0} canNext={canNext}
+      onPrevious={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+      onNext={() => setOffset(typeof next === "number" ? next : offset + PAGE_SIZE)}
+      onJump={setOffset} compact />}
+  </State>;
+}

@@ -708,6 +708,9 @@ def _scope_check_scopes(snapshot, check):
             tenant_anchor_kind = getattr(callback, "evaluation_scope_kind", check.kind)
             break
         callback = getattr(callback, "__wrapped__", None)
+    if snapshot.get("provider") == "aws" and not account_question:
+        from .check_scope import evaluation_scope
+        account_question = evaluation_scope(check) == "aws_account"
     if snapshot.get("provider") == "aws" and account_question:
         accounts = sorted({scope.split("/", 1)[0] for scope in selected
             if isinstance(scope, str) and re.fullmatch(r"[0-9]{12}/(?:global|[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+)", scope)})
@@ -838,6 +841,8 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
                 "snapshot_id": snapshot["snapshot_id"], "metadata": snapshot.get("metadata", {})}
             if account:
                 context["Account"] = account
+                if scope == account + "/global":
+                    context["evaluation_scope"] = "aws_account"
             # One read-only view per scope, shared by every scoped check (no per-check deep copy).
             context = freeze(context)
             scoped_indexes[scope]["context"] = context
@@ -894,7 +899,13 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         collections = index["collections"].get(check.kind, [])
         # Global inventories may use native account/global scope; their explicit envelope is authoritative.
         if not collections:
-            collections = [{"type": check.kind, "scope": scope, "service": check.kind, "status": "not_collected", "items": []} for scope in snapshot["scopes"] or ["unknown"]]
+            from .check_scope import evaluation_scope
+            missing_scopes = snapshot["scopes"] or ["unknown"]
+            if evaluation_scope(check) == "global_resource":
+                accounts = sorted({scope.split("/", 1)[0] for scope in missing_scopes
+                    if re.fullmatch(r"[0-9]{12}/(?:global|[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+)", scope)})
+                missing_scopes = [account + "/global" for account in accounts] or missing_scopes
+            collections = [{"type": check.kind, "scope": scope, "service": check.kind, "status": "not_collected", "items": []} for scope in missing_scopes]
         for collection in collections:
             scope, collection_status = collection["scope"], collection["status"]
             retirement = _retired_collection_evidence(provider, snapshot, collection)
@@ -1026,6 +1037,10 @@ def evaluate_snapshot(snapshot, categories=None, checks=None, frameworks=None, t
         tags = data.get("Tags", [])
         if not name and isinstance(tags, list):
             name = next((tag.get("Value") for tag in tags if isinstance(tag, dict) and tag.get("Key") == "Name" and isinstance(tag.get("Value"), str)), None)
+        from .finding_groups import placement
+        _, location = placement(finding, data)
+        if location:
+            finding["region"] = location
         finding["native_resource_id"] = resource["native_id"]
         finding["resource_name"] = name if isinstance(name, str) else resource["native_id"]
     selected_framework_versions = []
@@ -1478,6 +1493,11 @@ def diff_reports(before, after):
     if set(before.get("scopes", [])) != set(after.get("scopes", [])):
         raise ValueError("cannot diff reports across different scope selections")
     before, after = hydrate_frameworks(before), hydrate_frameworks(after)
+    def observations(report):
+        if report.get("finding_grouping") != "check-v1":
+            return report
+        return dict(report, findings=[member for group in report["findings"] for member in group.get("observations", [])])
+    before, after = observations(before), observations(after)
     def canonical(findings):
         # Findings stored under a retired duplicate check id are keyed as their surviving check; when the survivor's
         # finding for the same resource is also present, the retired duplicate is dropped.

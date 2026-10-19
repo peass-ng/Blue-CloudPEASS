@@ -42,6 +42,24 @@ def partition(index):
         scope = context.get("scope") if isinstance(context, dict) else None
         if not isinstance(scope, str) or not re.fullmatch(r"[0-9]{12}/global", scope):
             raise
+        # The collector always records native STS caller identities, including
+        # focused scans that do not request account contact/organization facts.
+        # Use only identities bound to this exact account; never guess a
+        # partition from another account or from the string "global".
+        identities = context.get("metadata", {}).get("caller_identities", []) if isinstance(context.get("metadata"), dict) else []
+        observed = set()
+        for identity in identities if isinstance(identities, list) else []:
+            if not isinstance(identity, dict) or identity.get("Account") != scope.split("/", 1)[0]:
+                continue
+            arn = identity.get("Arn")
+            match = re.fullmatch(r"arn:(aws|aws-cn|aws-us-gov):(?:iam|sts)::([0-9]{12}):.+", arn) if isinstance(arn, str) else None
+            if not match or match[2] != identity["Account"]:
+                raise Unavailable("caller partition identity mismatch")
+            observed.add(match[1])
+        if len(observed) > 1:
+            raise Unavailable("conflicting caller partitions for account")
+        if observed:
+            return observed.pop()
         values = {c.get("Partition") for c in items(index, "aws_account_configuration")}
         if len(values) != 1 or not values <= {"aws", "aws-cn", "aws-us-gov"}:
             raise Unavailable("account partition unavailable")

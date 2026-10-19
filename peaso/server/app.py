@@ -10,6 +10,7 @@ import logging
 import os
 from pathlib import Path
 import re
+from urllib.parse import quote
 import time
 from threading import Lock
 import unicodedata
@@ -827,11 +828,29 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def cancel(ident: str, user=Depends(identity)):
         return store.cancel(user.tenant_id, ident)
 
+    @lru_cache(maxsize=8)
+    def grouped_download_reference(tenant, scan_id, original_reference, report_format):
+        from peaso.finding_groups import group_report
+        original = artifacts.get(tenant, original_reference)
+        source = artifacts.get(tenant, original["report_json"]) if original.get("bundle_version") == 1 else original
+        presented = group_report(source)
+        if report_format == "markdown":
+            from peaso.reports import render_markdown
+            return artifacts.put_text(tenant, scan_id, "markdown", render_markdown(presented))
+        return artifacts.put(tenant, scan_id, "report", presented)
+
     @app.get("/api/scans/{ident}/report")
-    def report(ident: str, format: Literal["json", "markdown"] = "json", user=Depends(identity)):
+    def report(ident: str, format: Literal["json", "markdown"] = "json", aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         ext = "md" if format == "markdown" else "json"
         filename = f"hacktricks-cspm-{row['id']}.{ext}"
+        if aggregation == "check" and bundle.get("report_grouping") != "check-v1":
+            reference = grouped_download_reference(user.tenant_id, row["id"], row["report"], format)
+            if hasattr(artifacts, "presign"):
+                return signed_download(user.tenant_id, reference, format, filename)
+            content = artifacts.get_text(user.tenant_id, reference) if format == "markdown" else json.dumps(artifacts.get(user.tenant_id, reference))
+            return Response(content, media_type="text/markdown" if format == "markdown" else "application/json",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'})
         if bundle.get("bundle_version") == 1:
             reference = bundle["report_markdown" if format == "markdown" else "report_json"]
             if hasattr(artifacts, "presign"):
@@ -846,9 +865,9 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             content, media, ext = json.dumps(value, indent=2), "application/json", "json"
         return Response(content, media_type=media, headers={"Content-Disposition": f'attachment; filename="hacktricks-cspm-{store.job(user.tenant_id, ident)["id"]}.{ext}"'})
 
-    @app.get("/api/scans/{ident}/findings")
-    def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, group_by: Literal["service", "check_id", "resource_id"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), user=Depends(identity)):
-        row, bundle = owned_bundle(user.tenant_id, ident)
+    def finding_selection(tenant, ident, categories=None, framework=None, severity=None,
+                          service=None, status=None, search=None, group_by="service", sort_by=None):
+        row, bundle = owned_bundle(tenant, ident)
         summary = bundle.get("summary", bundle)
         metadata = summary.get("snapshot_metadata", {}) if isinstance(summary, dict) else {}
         cluster_id = metadata.get("cluster_id", "") if isinstance(metadata, dict) else ""
@@ -933,7 +952,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         selected_rows = []
         facets = {"services": set(), "statuses": set(), "frameworks": set()}
         facet_checks = set()
-        groups = [finding_index(user.tenant_id, row["report"], tuple(chunk["index_reference"] for chunk in bundle["finding_chunks"]))] if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
+        groups = [finding_index(tenant, row["report"], tuple(chunk["index_reference"] for chunk in bundle["finding_chunks"]))] if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
         for group in groups:
             for value in group:
                 category = field(value, "category")
@@ -950,6 +969,29 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 selected_rows.append((value, sort_card(value)))
         for check in facet_checks:
             facets["frameworks"].update(labels.get(check, []))
+        return row, bundle, selected_rows, facets, account_label, labels, meta, field
+
+    @app.get("/api/scans/{ident}/findings")
+    def findings(ident: str, categories: str | None = None, framework: str | None = None, severity: str | None = None, service: str | None = None, status: str | None = None, search: str | None = None, group_by: Literal["service", "check_id", "resource_id"] = "service", sort_by: Literal["severity", "title", "service", "account", "status", "resource_id"] | None = None, sort_order: Literal["asc", "desc"] = "asc", offset: int = Query(default=0, ge=0), limit: int = Query(default=500, ge=1, le=500), aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
+        row, bundle, selected_rows, facets, account_label, labels, meta, field = finding_selection(
+            user.tenant_id, ident, categories, framework, severity, service, status, search, group_by, sort_by)
+        if aggregation == "check":
+            from peaso.finding_groups import group_findings
+            provider = bundle.get("summary", bundle).get("provider", "")
+            def indexed_observations():
+                for value, _ in selected_rows:
+                    yield dict(value, provider=value.get("provider") or provider,
+                        severity=field(value, "severity") if isinstance(field(value, "severity"), str) else "info")
+            grouped = group_findings(indexed_observations())
+            member_filters = {key: value for key, value in {
+                "categories": categories, "framework": framework, "severity": severity,
+                "service": service, "status": status, "search": search}.items() if value}
+            selected_rows = []
+            for item in grouped:
+                item = with_labels(with_meta(item, meta, bundle), labels)
+                item["member_filters"] = member_filters
+                item["account"] = ", ".join(item["affected_accounts"])
+                selected_rows.append((item, item))
         if sort_by is None:
             selected_rows.sort(key=lambda pair: (str(pair[1].get(group_by, "")), pair[1]["id"]))
         else:
@@ -970,9 +1012,77 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         for value, _ in selected_rows[offset:offset + limit]:
             # Preserve the legacy list shape, including archived metadata added
             # after the bounded summary, while hydrating only the selected page.
-            item = with_labels(with_meta(finding_summary(with_meta(value, meta, bundle)), meta, bundle), labels)
-            output.append(dict(item, account=account_label(item)))
+            if value.get("grouped"):
+                output.append(value)
+            else:
+                item = with_labels(with_meta(finding_summary(with_meta(value, meta, bundle)), meta, bundle), labels)
+                output.append(dict(item, account=account_label(item)))
         return {"items": output, "offset": offset, "limit": limit, "total": count, "has_more": offset + len(output) < count, "next_offset": offset + len(output) if offset + len(output) < count else None, "facets": {key: sorted(value) for key, value in facets.items()}}
+
+    @app.get("/api/scans/{ident}/finding-groups/{group_ident}")
+    def finding_group(ident: str, group_ident: str, categories: str | None = None,
+                      framework: str | None = None, severity: str | None = None,
+                      service: str | None = None, status: str | None = None, search: str | None = None,
+                      members_offset: int = Query(default=0, ge=0), members_limit: int = Query(default=50, ge=1, le=100),
+                      user=Depends(identity)):
+        from peaso.finding_groups import group_id, group_findings, placement, member_scopes, STATUS_ORDER
+        row, bundle, selected, _, _, labels, meta, field = finding_selection(
+            user.tenant_id, ident, categories, framework, severity, service, status, search)
+        provider = bundle.get("summary", bundle).get("provider", "")
+        members = [dict(value, provider=value.get("provider") or provider,
+                   severity=field(value, "severity") if isinstance(field(value, "severity"), str) else "info")
+                   for value, _ in selected if group_id(value.get("provider") or provider, value.get("check_id", "")) == group_ident]
+        if not members:
+            raise HTTPException(404, "Finding group not found")
+        grouped = with_labels(with_meta(group_findings(members)[0], meta, bundle), labels)
+        members.sort(key=lambda value: (STATUS_ORDER.get(value.get("status"), 1), value.get("scope", ""), value.get("native_resource_id") or value.get("resource_id", ""), value["id"]))
+        wanted = {value["id"] for value in members[members_offset:members_offset + members_limit]}
+        raw = {}
+        if bundle.get("bundle_version") == 1:
+            for chunk in bundle["finding_chunks"]:
+                if not any(chunk["first_id"] <= key <= chunk["last_id"] for key in wanted):
+                    continue
+                for value in artifacts.get(user.tenant_id, chunk["reference"])["items"]:
+                    if value["id"] in wanted:
+                        raw[value["id"]] = artifacts.get(user.tenant_id, value["_detail_reference"]) if value.get("_detail_reference") else value
+        else:
+            raw = {value["id"]: value for value in bundle.get("findings", []) if value["id"] in wanted}
+        output = []
+        primary = None
+        for value in members[members_offset:members_offset + members_limit]:
+            observed = with_remediation(with_labels(with_meta(raw.get(value["id"], value), meta, bundle), labels), bundle)
+            if primary is None:
+                primary = observed
+            account, region = placement(observed)
+            locations = member_scopes(observed)
+            output.append({"id": observed["id"], "scope": locations[0] if len(locations) == 1 else observed.get("scope"), "observed_scopes": locations, "account": account, "region": region,
+                "asset": observed.get("resource_name") or observed.get("native_resource_id") or observed.get("resource_id"),
+                "native_resource_id": observed.get("native_resource_id"), "resource_id": observed.get("resource_id"),
+                "status": observed.get("status"), "severity": observed.get("severity"),
+                "evidence_summary": observed.get("evidence_summary") or f"Recorded result: {observed.get('status', 'UNKNOWN')}.",
+                "detail_path": f"/scans/{ident}/findings/{quote(observed['id'], safe='')}"})
+        if primary:
+            # Shared guidance can be refreshed without treating grouped evidence as native facts.
+            for key in ("title", "description", "rationale", "remediation", "remediation_details", "evaluated", "pass_when", "fail_when", "not_applicable_when", "guidance_refresh"):
+                if key in primary:
+                    grouped[key] = primary[key]
+            if isinstance(grouped.get("remediation_details"), dict):
+                grouped["remediation_details"] = {key: value for key, value in dict(grouped["remediation_details"], cli=[], console=[]).items() if key != "iac"}
+        if primary and len(members) == 1:
+            grouped["evidence"] = primary.get("evidence", {})
+            grouped["evidence_summary"] = output[0]["evidence_summary"]
+        elif members_offset == 0 and len(output) == len(members):
+            sentences = {item["evidence_summary"] for item in output}
+            if len(sentences) == 1 and len(grouped["status_counts"]) == 1:
+                grouped["evidence_summary"] = next(iter(sentences))
+                if grouped["affected_regions"]:
+                    grouped["evidence_summary"] += " Regions: " + ", ".join(grouped["affected_regions"]) + "."
+        grouped["member_filters"] = {key: value for key, value in {
+            "categories": categories, "framework": framework, "severity": severity,
+            "service": service, "status": status, "search": search}.items() if value}
+        grouped.update(members=output, members_total=len(members), members_offset=members_offset,
+            next_offset=members_offset + len(output) if members_offset + len(output) < len(members) else None)
+        return grouped
 
     # :path because finding ids embed ARNs/resource paths with "/" (raw or %2F-encoded both arrive decoded).
     @app.get("/api/scans/{ident}/findings/{finding_id:path}")
@@ -1003,10 +1113,25 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         raise HTTPException(404, "Finding not found")
 
     @app.get("/api/scans/{ident}/summary")
-    def summary(ident: str, user=Depends(identity)):
+    def summary(ident: str, aggregation: Literal["none", "check"] = "none", user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
         value = dict(bundle["summary"]) if bundle.get("bundle_version") == 1 else {key: value for key, value in bundle.items() if key not in {"findings", "resources", "coverage", "graphs", "snapshot", "check_frameworks", "check_meta"}}
         value.update(runtime=store.public_job(row)["runtime"], finding_count=bundle.get("finding_count", len(bundle.get("findings", []))), coverage_count=bundle.get("coverage_count", len(bundle.get("coverage", []))) + len(_credential_target_coverage(bundle)))
+        if aggregation == "check":
+            from peaso.finding_groups import group_findings
+            from collections import Counter
+            _, _, selected, _, _, _, _, field = finding_selection(user.tenant_id, ident)
+            provider = value.get("provider", "")
+            groups = group_findings(dict(item, provider=item.get("provider") or provider,
+                severity=field(item, "severity") if isinstance(field(item, "severity"), str) else "info",
+                category=field(item, "category") if isinstance(field(item, "category"), str) else "hardening") for item, _ in selected)
+            stats = value.get("stats", {})
+            value["stats"] = dict(stats, observation_count=len(selected), observation_by_status=stats.get("by_status", {}),
+                finding_count=len(groups), by_status=dict(Counter(item["status"] for item in groups)),
+                observation_by_severity=stats.get("by_severity", {}),
+                by_severity=dict(Counter(item["severity"] for item in groups if item["status"] == "FAIL")),
+                by_category=dict(Counter(item["category"] for item in groups)))
+            value.update(finding_count=len(groups), finding_grouping="check-v1")
         return value
 
     @app.get("/api/scans/{ident}/least-privilege")

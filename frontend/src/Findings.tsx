@@ -13,9 +13,12 @@ import { catalogFrameworksPath, items, request, useApi } from "./api";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { explainExposureAction, explainFindingEvidence, explainInternetExposure } from "./findingExplanation";
 import { explainAzureFindingEvidence } from "./azureFindingEvidence";
+import { explainAzureNativeEvidenceObservation } from "./azureNativeEvidenceObservation";
 import { explainGcpFindingEvidence } from "./gcpFindingEvidence";
 import { explainExposureCheck } from "./exposureCheckExplanation";
+import { explainObservedEvidence } from "./observedEvidenceExplanation";
 import { Remediation } from "./Remediation";
+import { GroupedFindingEvidence, findingGroupPath } from "./GroupedFindingEvidence";
 import "./FindingInspector.css";
 type FindingPage = {
   items: Finding[];
@@ -26,9 +29,12 @@ type FindingPage = {
 };
 const col = createColumnHelper<Finding>();
 const assetLabel = (finding: Finding) =>
-  finding.resource_name || finding.native_resource_id || finding.resource_id;
+  finding.grouped ? (finding.affected_asset_count ? `${finding.affected_asset_count.toLocaleString()} assets` : `${(finding.member_count || 0).toLocaleString()} observations`)
+    : finding.resource_name || finding.native_resource_id || finding.resource_id;
 type SortField = "severity" | "title" | "service" | "account" | "status" | "resource_id";
 function accountLabel(finding: Finding): string {
+  if (finding.grouped && finding.affected_accounts?.length)
+    return finding.affected_accounts.length === 1 ? finding.affected_accounts[0] : `${finding.affected_accounts.length} accounts`;
   if ("account" in finding && typeof finding.account === "string" && finding.account)
     return finding.account;
   const scope = finding.scope?.trim() || "";
@@ -77,7 +83,7 @@ export function Findings({
   const [sort, setSort] = useState<{ field: SortField; order: "asc" | "desc" }>();
   const catalog = useApi<Catalog>(catalogFrameworksPath, demo);
   const summary = useApi<Report>(
-    `/scans/${encodeURIComponent(scanId)}/summary`,
+    `/scans/${encodeURIComponent(scanId)}/summary?aggregation=check`,
     demo,
     !!scanId,
   );
@@ -113,6 +119,7 @@ export function Findings({
         limit: "200",
         offset: String(pageParam),
         group_by: group,
+        aggregation: "check",
       });
       for (const [key, value] of Object.entries({
         categories: category,
@@ -644,6 +651,7 @@ export function Findings({
           demo={demo}
           lazy={!demo}
           onClose={() => setInspect(undefined)}
+          onInspectMember={setInspect}
         />
       )}
     </>
@@ -664,15 +672,18 @@ function FindingInspector({
   demo,
   lazy,
   onClose,
+  onInspectMember,
 }: {
   finding: Finding;
   scanId: string;
   demo: boolean;
   lazy: boolean;
   onClose: () => void;
+  onInspectMember: (finding: Finding) => void;
 }) {
   const detail = useApi<Finding>(
-    `/scans/${encodeURIComponent(scanId)}/findings/${encodeURIComponent(finding.id)}`,
+    finding.grouped ? findingGroupPath(scanId, finding)
+      : `/scans/${encodeURIComponent(scanId)}/findings/${encodeURIComponent(finding.id)}`,
     demo,
     lazy && !demo,
   );
@@ -680,12 +691,14 @@ function FindingInspector({
   const internetExposure = observed.check_id === "analysis.internet_exposure";
   const allowCurrentSummary = observed.guidance_refresh?.allow_summary !== false;
   const exposure = internetExposure && allowCurrentSummary ? explainInternetExposure(observed.evidence, observed.status) : undefined;
-  const evidenceSummary = !allowCurrentSummary
+  const observation = !allowCurrentSummary
     ? observed.evidence_summary || `Recorded result: ${observed.status}. Review the original technical evidence below.`
     : observed.evidence_summary || (internetExposure ? exposure?.summary : undefined)
+      || explainAzureNativeEvidenceObservation(observed.check_id, observed.evidence, observed.status)
       || explainAzureFindingEvidence(observed.check_id, observed.evidence, observed.status)
       || explainGcpFindingEvidence(observed.check_id, observed.evidence, observed.status)
       || explainFindingEvidence(observed.evidence, observed.status, observed.check_id).replace(/^Observed evidence:\s*/i, "");
+  const evidenceSummary = explainObservedEvidence(observed, observation);
   const exposureAction = internetExposure && allowCurrentSummary ? explainExposureAction(observed.evidence, observed.status) : undefined;
   const remediationDetails = exposureAction && observed.remediation_details
     ? { ...observed.remediation_details, summary: exposureAction, steps: [exposureAction] }
@@ -721,14 +734,20 @@ function FindingInspector({
             <span className="badge service">{observed.service}</span>
           </div>
           <h3>{observed.title}</h3>
-          <p className="finding-detail-location">{observed.service} · {observed.scope}</p>
-          {!scopeAsset && <p className="finding-detail-asset"><span>Asset</span> <strong>{asset}</strong></p>}
+          <p className="finding-detail-location">{observed.service} · {observed.grouped ? [observed.affected_accounts?.join(", "), observed.affected_regions?.length
+            ? `${observed.affected_regions.length} ${observed.affected_regions.length === 1 ? "Region" : "Regions"}`
+            : observed.affected_scopes?.every(scope => scope.endsWith("/global")) ? "Global" : ""].filter(Boolean).join(" · ") || "Selected scopes" : observed.scope}</p>
+          {!observed.grouped && !scopeAsset && <p className="finding-detail-asset"><span>Asset</span> <strong>{asset}</strong></p>}
         </header>
         <State loading={lazy && !demo && detail.isPending}
           error={lazy && !demo ? detail.error : undefined} onRetry={() => void detail.refetch()}>
           <section className="finding-detail-section finding-detail-observation">
             <h3>Observed evidence</h3>
-            <p>{evidenceSummary}</p>
+            {observed.grouped ? <GroupedFindingEvidence key={observed.id + JSON.stringify(observed.member_filters)}
+              finding={observed} scanId={scanId} demo={demo} onInspectMember={member =>
+                onInspectMember({ ...observed, ...member, grouped: false, resource_id: member.resource_id || member.asset,
+                  resource_name: member.resource_name, native_resource_id: member.native_resource_id,
+                  evidence: undefined, evidence_summary: member.evidence_summary })} /> : <p>{evidenceSummary}</p>}
             {!allowCurrentSummary && observed.guidance_refresh?.message && <p className="muted">{observed.guidance_refresh.message}</p>}
             {internetExposure && observed.status === "UNKNOWN" && !!exposure?.reasons.length && <ul>{exposure.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
           </section>

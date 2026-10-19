@@ -144,7 +144,7 @@ export async function downloadReport(
     );
   } else {
     const response = await authenticatedFetch(
-      `/api/scans/${encodeURIComponent(id)}/report?format=${format}`,
+      `/api/scans/${encodeURIComponent(id)}/report?format=${format}&aggregation=check`,
       {
         headers: { Accept: "application/json, text/markdown" },
       },

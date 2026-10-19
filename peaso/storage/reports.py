@@ -20,7 +20,7 @@ def chunks(items):
 
 
 def finding_summary(finding):
-    fields = {"id", "category", "check_id", "title", "provider", "service", "resource_id", "native_resource_id", "resource_name", "scope", "severity", "status", "frameworks", "remediation", "automated"}
+    fields = {"id", "category", "check_id", "title", "provider", "service", "resource_id", "native_resource_id", "resource_name", "scope", "region", "severity", "status", "frameworks", "remediation", "automated"}
     value = {k: v for k, v in finding.items() if k in fields}
     for key, item in list(value.items()):
         maximum = {"title": 400, "resource_id": 1000, "scope": 500, "remediation": 1000, "service": 100, "check_id": 200, "category": 100, "provider": 30}.get(key, 2000)
@@ -81,15 +81,17 @@ def resource_chunks(artifacts, tenant, ident, report, snapshot):
 
 
 def publish_report(artifacts, tenant, ident, report, snapshot=None):
-    json_reference = artifacts.put(tenant, ident, "report", report)
+    from peaso.finding_groups import group_report
+    presented = group_report(report)
+    json_reference = artifacts.put(tenant, ident, "report", presented)
     from peaso.engine import REPORT_SCHEMA_VERSION, expand_report
     embeddable = snapshot is not None and report.get("schema_version") == REPORT_SCHEMA_VERSION and snapshot.get("snapshot_id") == report.get("snapshot_id")
     # The Markdown download keeps native configuration facts inline (schema 1.0 view).
-    markdown_reference = artifacts.put_text(tenant, ident, "markdown", render_markdown(expand_report(report, snapshot) if embeddable else report))
-    manifest = {"bundle_version": 1, "report_json": json_reference, "report_markdown": markdown_reference,
+    markdown_reference = artifacts.put_text(tenant, ident, "markdown", render_markdown(expand_report(presented, snapshot) if embeddable else presented))
+    manifest = {"bundle_version": 1, "report_grouping": "check-v1", "report_json": json_reference, "report_markdown": markdown_reference,
                 "summary": {k: v for k, v in report.items() if k not in {"resources", "findings", "coverage", "graphs", "snapshot", "check_frameworks", "check_meta", "check_meta_encoding", "remediation_templates"}},
                 "finding_chunks": [], "coverage_chunks": [], "coverage_chunk_counts": [],
-                "graphs": {}, "finding_count": len(report.get("findings", [])), "coverage_count": len(report.get("coverage", []))}
+                "graphs": {}, "finding_count": len(report.get("findings", [])), "finding_group_count": len(presented.get("findings", [])), "observation_count": len(report.get("findings", [])), "coverage_count": len(report.get("coverage", []))}
     # Bind future technique-card lookups to the exact report catalog and the
     # tenant-scoped artifact. Old manifests have no binding and use an explicit
     # legacy-unversioned lookup status instead of today's catalog semantics.
