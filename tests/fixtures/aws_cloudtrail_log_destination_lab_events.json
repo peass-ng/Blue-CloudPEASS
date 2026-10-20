@@ -1,0 +1,234 @@
+{
+  "events": [
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ctlog-1",
+      "eventName": "CreateTrail",
+      "eventSource": "cloudtrail.amazonaws.com",
+      "eventTime": "2026-01-02T03:01:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "name": "synthetic-cloudtrail-trail",
+        "s3BucketName": "synthetic-cloudtrail-log-bucket"
+      },
+      "responseElements": {
+        "name": "synthetic-cloudtrail-trail",
+        "s3BucketName": "synthetic-cloudtrail-log-bucket",
+        "trailARN": "arn:aws:cloudtrail:us-east-1:999999999999:trail/synthetic-cloudtrail-trail"
+      },
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ctlog-2",
+      "eventName": "PutBucketLifecycle",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:02:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "LifecycleConfiguration": {
+          "Rule": {
+            "Expiration": {
+              "Days": 1
+            },
+            "Filter": {
+              "Prefix": "AWSLogs/"
+            },
+            "ID": "expire-log-current-versions",
+            "Status": "Enabled"
+          },
+          "xmlns": "http://s3.amazonaws.com/doc/2006-03-01/"
+        },
+        "bucketName": "synthetic-cloudtrail-log-bucket"
+      },
+      "responseElements": null,
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ctlog-3",
+      "eventName": "PutBucketEncryption",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:03:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "ServerSideEncryptionConfiguration": {
+          "Rule": {
+            "ApplyServerSideEncryptionByDefault": {
+              "KMSMasterKeyID": "arn:aws:kms:us-east-1:999999999999:key/0169ed14-5d9a-4303-bebd-315e8c6472a2",
+              "SSEAlgorithm": "aws:kms"
+            }
+          },
+          "xmlns": "http://s3.amazonaws.com/doc/2006-03-01/"
+        },
+        "bucketName": "synthetic-cloudtrail-log-bucket"
+      },
+      "responseElements": null,
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ctlog-4",
+      "eventName": "UpdateTrail",
+      "eventSource": "cloudtrail.amazonaws.com",
+      "eventTime": "2026-01-02T03:04:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "kmsKeyId": "arn:aws:kms:us-east-1:999999999999:key/0169ed14-5d9a-4303-bebd-315e8c6472a2",
+        "name": "synthetic-cloudtrail-trail"
+      },
+      "responseElements": {
+        "kmsKeyId": "arn:aws:kms:us-east-1:999999999999:key/0169ed14-5d9a-4303-bebd-315e8c6472a2",
+        "name": "synthetic-cloudtrail-trail",
+        "s3BucketName": "synthetic-cloudtrail-log-bucket",
+        "trailARN": "arn:aws:cloudtrail:us-east-1:999999999999:trail/synthetic-cloudtrail-trail"
+      },
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ctlog-5",
+      "eventName": "PutBucketPolicy",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:05:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "bucketName": "synthetic-cloudtrail-log-bucket",
+        "bucketPolicy": {
+          "Statement": [
+            {
+              "Action": "s3:GetBucketAcl",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceArn": "arn:aws:cloudtrail:us-east-1:999999999999:trail/synthetic-cloudtrail-trail"
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+              },
+              "Resource": "arn:aws:s3:::synthetic-cloudtrail-log-bucket",
+              "Sid": "CloudTrailAcl"
+            },
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceArn": "arn:aws:cloudtrail:us-east-1:999999999999:trail/synthetic-cloudtrail-trail",
+                  "s3:x-amz-acl": "bucket-owner-full-control"
+                }
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+              },
+              "Resource": "arn:aws:s3:::synthetic-cloudtrail-log-bucket/AWSLogs/999999999999/*",
+              "Sid": "CloudTrailWrite"
+            },
+            {
+              "Action": "s3:PutObject",
+              "Condition": {
+                "StringEquals": {
+                  "aws:SourceArn": "arn:aws:cloudtrail:us-east-1:999999999999:trail/synthetic-cloudtrail-trail"
+                }
+              },
+              "Effect": "Deny",
+              "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+              },
+              "Resource": "arn:aws:s3:::synthetic-cloudtrail-log-bucket/AWSLogs/999999999999/*",
+              "Sid": "DenyCloudTrailDeliveryLab"
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "responseElements": null,
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ctlog-6",
+      "eventName": "DisableKey",
+      "eventSource": "kms.amazonaws.com",
+      "eventTime": "2026-01-02T03:06:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "keyId": "arn:aws:kms:us-east-1:999999999999:key/0169ed14-5d9a-4303-bebd-315e8c6472a2"
+      },
+      "responseElements": {
+        "keyId": "arn:aws:kms:us-east-1:999999999999:key/0169ed14-5d9a-4303-bebd-315e8c6472a2"
+      },
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ctlog-7",
+      "eventName": "ScheduleKeyDeletion",
+      "eventSource": "kms.amazonaws.com",
+      "eventTime": "2026-01-02T03:07:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "keyId": "arn:aws:kms:us-east-1:999999999999:key/0169ed14-5d9a-4303-bebd-315e8c6472a2",
+        "pendingWindowInDays": 7
+      },
+      "responseElements": {
+        "deletionDate": "2026-10-27T14:21:52Z",
+        "keyId": "arn:aws:kms:us-east-1:999999999999:key/0169ed14-5d9a-4303-bebd-315e8c6472a2",
+        "keyState": "PendingDeletion",
+        "pendingWindowInDays": 7
+      },
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    }
+  ],
+  "provenance": "Synthetic derivative of seven accepted management events from a disposable CloudTrail log-destination lab; timestamps, event IDs, account, actor, bucket, trail and CMK identifiers are synthetic. Original raw events and receipts remain private."
+}
