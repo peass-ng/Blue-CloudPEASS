@@ -61,6 +61,10 @@ def normalize_aws_apigateway_controls(record: Mapping[str, Any]) -> dict[str, An
     canary = (isinstance(canary_id, str) and bool(canary_id) and 0 < percent <= 100
               and isinstance(canary_result, Mapping) and canary_result.get("deploymentId") == canary_id
               and canary_result.get("percentTraffic") == percent)
+    deployment_id = next((p.get("value") for p in stage_patches
+                          if p.get("op") == "replace" and p.get("path") == "/deploymentId"), None)
+    deployment_changed = (isinstance(deployment_id, str) and bool(deployment_id)
+                          and response.get("deploymentId") == deployment_id)
     endpoint = any(p.get("op") == "replace" and p.get("path") == "/disableExecuteApiEndpoint"
                    and p.get("value") == "false" for p in api_patches)
     cors_req, cors_res = request.get("corsConfiguration"), response.get("corsConfiguration")
@@ -83,6 +87,9 @@ def normalize_aws_apigateway_controls(record: Mapping[str, Any]) -> dict[str, An
             not failed and stage_ok and tracing and response.get("tracingEnabled") is False
         ),
         "request.apigateway_canary_traffic_redirected": not failed and stage_ok and canary,
+        "request.apigateway_stage_deployment_changed": (
+            not failed and stage_ok and deployment_changed
+        ),
         "request.apigateway_default_endpoint_enabled": (
             not failed and name == "UpdateRestApi" and endpoint
             and response.get("id") == api_id and response.get("disableExecuteApiEndpoint") is False
