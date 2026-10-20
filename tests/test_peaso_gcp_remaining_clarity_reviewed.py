@@ -8,8 +8,12 @@ from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 from peaso.checks.gcp_remaining_clarity_reviewed import ROWS, _digest, description, remediation, severity_review
 from peaso.checks.gcp_remaining_finding_summary import evidence_summary
-from peaso.checks.gcp_remaining_clarity_reviewed import NATIVE_EXTENSION_REVIEWS
+from peaso.checks.gcp_remaining_clarity_reviewed import NATIVE_EXTENSION_REVIEWS as HISTORICAL_EXTENSION_REVIEWS
 from peaso.checks.facts import MemoIndex
+from tests.gcp_clarity_combined_successor_20261020 import (
+    cases_fingerprint, current_extension_reviews, extension_cases, historical_admission_row)
+
+NATIVE_EXTENSION_REVIEWS = current_extension_reviews(HISTORICAL_EXTENSION_REVIEWS)
 
 PACK=Path(__file__).resolve().parents[1]/'peaso/rulepacks'
 CHECK_BY_ID={c.id:c for c in CHECKS}
@@ -455,7 +459,7 @@ def test_reviewed_approved_guidance_has_precise_primary_references(cid,originals
 
 @pytest.mark.parametrize('case',NATIVE['cases'],ids=lambda row:row['id'])
 def test_current_native_overlay_preserves_status_evidence_and_summary(case):
-    before=_digest(CASES)
+    before=cases_fingerprint(CASES)
     status,evidence=CHECK_BY_ID[case['check_id']].evaluate(deepcopy(case['item']),MemoIndex(deepcopy(case['index'])))
     assert status==case['expected_status']
     assert json.loads(json.dumps(evidence))==case['expected_evidence']
@@ -463,7 +467,37 @@ def test_current_native_overlay_preserves_status_evidence_and_summary(case):
     assert bool(evidence_summary(finding))==(status=='FAIL')
     if status!='FAIL':
         assert evidence_summary({**finding,'status':'FAIL'}) is None
-    assert _digest(CASES)==before
+    assert cases_fingerprint(CASES)==before
+
+
+@pytest.mark.parametrize('field', ['snapshot', 'expected', 'scope'])
+def test_capability_fingerprint_preserves_all_bound_fields(field):
+    from peaso.azure_function_package_index_20261020 import _Admitted
+    marker = _Admitted({'metadata': {'scope': 'native-scope'}},
+                       {'credential_context': 'owner-context'}, 'native-scope')
+    captured = {'marker': marker, 'snapshot': marker.snapshot, 'expected': marker.expected}
+    before = cases_fingerprint(captured)
+    assert cases_fingerprint(deepcopy(captured)) == before
+    if field == 'scope':
+        marker.scope = 'foreign-scope'
+    elif field == 'snapshot':
+        marker.snapshot['metadata']['scope'] = 'foreign-scope'
+    else:
+        marker.expected['credential_context'] = 'foreign-context'
+    assert cases_fingerprint(captured) != before
+
+
+def test_capability_fingerprint_distinguishes_authority_and_alias_links():
+    from peaso.azure_function_package_index_20261020 import _Admitted, _Assertions
+    marker = _Admitted({'metadata': {'scope': 'native-scope'}}, {}, 'native-scope')
+    captured = {'marker': marker, 'snapshot': marker.snapshot}
+    before = cases_fingerprint(captured)
+    marker.snapshot = deepcopy(marker.snapshot)
+    assert cases_fingerprint(captured) != before
+    assertion = _Assertions(deepcopy(marker.snapshot), {}, marker.scope)
+    assert cases_fingerprint(marker) != cases_fingerprint(assertion)
+    with pytest.raises(TypeError, match='Unreviewed fixture object'):
+        cases_fingerprint({'unknown': object()})
 
 
 @pytest.mark.parametrize('cid',sorted(NATIVE_EXTENSION_REVIEWS))
@@ -474,11 +508,13 @@ def test_admitted_extension_owner_binds_source_fixtures_and_copy(cid):
     root=PACK.parents[1]
     admission_path = row.get('admission_path', 'docs/compliance-ledgers/native-extensions/gcp-20261019.json')
     admitted=json.loads((root/admission_path).read_text())['checks']
-    assert _digest(next(x for x in admitted if x['spec']['id']==cid))==row['admission_sha256']
+    admission = next(x for x in admitted if x['spec']['id']==cid)
+    assert _digest(historical_admission_row(cid, admission))==row['admission_sha256']
     assert hashlib.sha256((root/row['source']).read_bytes()).hexdigest()==row['source_sha256']
     for asset in row['fixture_sources']:
         assert hashlib.sha256((root/asset['path']).read_bytes()).hexdigest()==asset['sha256']
-    assert _digest(CASES[cid])==row['fixture_sha256']
+    spec=extension_cases(cid, CASES)
+    assert _digest(spec)==row['fixture_sha256']
     assert _digest(CATALOG[cid])==row['copy_catalog_sha256']
     check=CHECK_BY_ID[cid];f=inspect.unwrap(check.evaluate)
     binding=row['reviewed_binding']
@@ -488,8 +524,7 @@ def test_admitted_extension_owner_binds_source_fixtures_and_copy(cid):
     assert hashlib.sha256(inspect.getsource(f).encode()).hexdigest()==binding['predicate_source_sha256']
     assert _stable_binding(inspect.getclosurevars(f).nonlocals)==binding['predicate_bindings']
     for branch in ('pass','fail','unknown'):
-        if branch not in CASES[cid]:continue
-        spec=CASES[cid]
+        if branch not in spec:continue
         status,evidence=check.evaluate(deepcopy(spec[branch]),MemoIndex(deepcopy(spec.get(branch+'_index',spec.get('index',{})))))
         assert status==branch.upper()
         finding={'provider':'gcp','status':status,'check_id':cid,'evidence':evidence}

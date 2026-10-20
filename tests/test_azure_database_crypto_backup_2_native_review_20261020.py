@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import parse_qs,urlsplit
 import pytest
+from tests.azure_native_inventory_routes_20261020 import empty_inventory_versions,matches_empty_inventory_query
 from peaso.checks import CHECKS
 from peaso.collectors import azure,azure_sql_ltr_native
 # Retired Single Server witnesses remain explicitly replayable in tests;
@@ -222,6 +223,8 @@ class NativeHTTP:
                     if self.mode=='child_partial':value['nextLink']=azure.ARM+path+'?api-version='+expected+'&page=2'
             elif path==SCOPE+'/providers/Microsoft.Network/locations/westcentralus/serviceTags':
                 assert q['api-version']==['2025-09-01'];value={'value':[]}
+            elif path in empty_inventory_versions(SCOPE):
+                assert matches_empty_inventory_query(SCOPE,path,q);value={'value':[]}
             else:
                 endpoints={SCOPE+'/providers/'+ep:version for ep,version in azure.ENDPOINTS.values()};endpoints[SCOPE+'/resourcegroups']='2021-04-01'
                 assert path in endpoints,path;assert q['api-version']==[endpoints[path]]

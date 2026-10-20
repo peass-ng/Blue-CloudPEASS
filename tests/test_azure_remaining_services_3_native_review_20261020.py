@@ -4,6 +4,7 @@ import io,json,socket,base64
 from urllib.error import HTTPError
 from urllib.parse import urlsplit,parse_qs
 import pytest
+from tests.azure_native_inventory_routes_20261020 import empty_inventory_versions,matches_empty_inventory_query
 from peaso.collectors import azure
 from tests.archived_check_contract import collect_snapshot,evaluate_snapshot,plan_collection
 
@@ -267,6 +268,8 @@ class NativeHTTP:
     assert q['api-version']==['2025-09-01'];value={'value':[]}
    elif path in(SCOPE+'/providers/Microsoft.Authorization/locks',SCOPE+'/resourceGroups/review/providers/Microsoft.Authorization/locks',STORAGE+'/providers/Microsoft.Authorization/locks'):
     assert q['api-version']==['2016-09-01'];value={'value':[]}
+   elif path in empty_inventory_versions(SCOPE):
+    assert matches_empty_inventory_query(SCOPE,path,q);value={'value':[]}
    else:
     endpoints={SCOPE+'/providers/'+ep:v for ep,v in azure.ENDPOINTS.values()};endpoints[SCOPE+'/resourcegroups']='2021-04-01'
     assert path in endpoints,('UNDECLARED native fixture route',path);assert q['api-version']==[endpoints[path]]

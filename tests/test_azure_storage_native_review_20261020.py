@@ -12,6 +12,7 @@ from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
+from tests.azure_native_inventory_routes_20261020 import empty_inventory_versions,matches_empty_inventory_query
 from peaso.collectors import azure
 from peaso.engine import evaluate_snapshot, plan_collection
 
@@ -263,6 +264,9 @@ class NativeHTTP:
             value = {'id':SCOPE, 'subscriptionId':SUB, 'tenantId':'22222222-2222-2222-2222-222222222222', 'state':'Enabled'}
         elif path == SCOPE+'/resources':
             value={'value':[deepcopy(self.a),deepcopy(self.vm)]}
+        elif path in empty_inventory_versions(SCOPE):
+            assert matches_empty_inventory_query(SCOPE,path,q)
+            value={'value':[]}
         elif path in {SCOPE+s for s in ('/resourcegroups','/providers/Microsoft.ContainerService/managedClusters','/providers/Microsoft.Network/applicationGateways','/providers/Microsoft.Kubernetes/connectedClusters','/providers/Microsoft.Network/firewallPolicies','/providers/Microsoft.Network/natGateways','/providers/Microsoft.Network/networkInterfaces','/providers/Microsoft.Network/networkSecurityGroups','/providers/Microsoft.Network/publicIPAddresses','/providers/Microsoft.Network/routeTables','/providers/Microsoft.Network/virtualNetworks','/providers/Microsoft.Network/locations/westcentralus/serviceTags')}:
             value = {'value':[]}
         elif path == SCOPE + '/providers/Microsoft.Compute/virtualMachines':
@@ -297,7 +301,7 @@ class NativeHTTP:
             if self.mode == 'missing': deny()
             parent = path.rsplit('/providers/',1)[0]
             props = {'logs':[{'category':s,'enabled':self.mode!='negative'} for s in ('StorageRead','StorageWrite','StorageDelete')], 'storageAccountId':ACCOUNT}
-            value = {'value':[{'id':path+'/logs','name':'logs','properties':props}]}
+            value = {'value':[{'id':path+'/logs','name':'logs','type':'Microsoft.Insights/diagnosticSettings','properties':props}]}
         elif path.endswith('/providers/Microsoft.Insights/diagnosticSettingsCategories'):
             value = {'value':[]}
         else:
@@ -405,7 +409,8 @@ def test_account_exact_get_binding_and_case_alias(monkeypatch,cid,mutation):
                 row = deepcopy(api.a)
                 row['id'] = ACCOUNT.upper() if mutation=='case_alias' else ACCOUNT+'foreign'
                 api.calls.append({'method':'GET','host':'management.azure.com','path':ACCOUNT,'query':parse_qs(urlsplit(request.full_url).query)})
-                return io.BytesIO(json.dumps(row).encode())
+                response=io.BytesIO(json.dumps(row).encode());response.status=200
+                return response
             return original(request,timeout)
         api.open = opened
     fs,_,_ = capture(monkeypatch,cid,mutate=change)
@@ -466,7 +471,8 @@ def test_storage_child_scope_binding(monkeypatch,cid,mode):
                 if mode=='child_missing': row['properties']={}
                 if mode=='sibling_account': row['id']=row['id'].replace('/storageAccounts/account/','/storageAccounts/sibling/')
                 if mode=='foreign_subscription': row['id']=row['id'].replace(SUB,'99999999-9999-9999-9999-999999999999')
-                return io.BytesIO(json.dumps(row).encode())
+                response=io.BytesIO(json.dumps(row).encode());response.status=200
+                return response
             return response
         api.open=opened
     fs,_,_=capture(monkeypatch,cid,mutate=change)

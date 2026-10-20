@@ -56,6 +56,9 @@ REPRODUCTION_INPUT_PATTERNS = (
     "tests/fixtures/provider_combined_bridge_baseline_20261020.json.gz",
     "tests/test_provider_bridge_compiler_portability_20261020.py",
     "tests/test_provider_bridge_prepared_ast_portability_20261020.py",
+    "tests/gcp_clarity_combined_successor_20261020.py",
+    "tests/azure_native_inventory_routes_20261020.py",
+    "tests/fixtures/azure_archived_aks_scope_predecessor_20261020.json.gz",
     # Frozen provider/network review inputs and portable reproduction fixtures.
     'docs/aws-codebuild-buildspec-source-setup-20261020.md',
     'docs/aws-review/current-roster-reconciliation-20261020.json',

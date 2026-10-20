@@ -9,6 +9,7 @@ import socket
 from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 import pytest
+from tests.azure_native_inventory_routes_20261020 import empty_inventory_versions,matches_empty_inventory_query
 from peaso.collectors import azure
 # Explicit historical HSM replay remains test-only after root archived its
 # obsolete retention criterion; all active IDs use the unchanged public engine.
@@ -257,9 +258,12 @@ class NativeHTTP:
                 if self.mode=='foreign_child' and value['value']:
                     value['value'][0]['id']=value['value'][0]['id'].replace('/review/','/sibling/') if '/review/' in value['value'][0]['id'] else rid+'/sibling/child'
             else:
+                ancillary=empty_inventory_versions(SCOPE)
                 allowed={SCOPE+'/providers/'+endpoint for endpoint,version in azure.ENDPOINTS.values()}
                 allowed|={SCOPE+'/resourcegroups',SCOPE+'/providers/Microsoft.Network/locations/eastus/serviceTags',SCOPE+'/providers/Microsoft.Network/locations/westcentralus/serviceTags'}
+                allowed.update(ancillary)
                 assert path in allowed,path
+                if path in ancillary:assert matches_empty_inventory_query(SCOPE,path,q)
                 value={'value':[]}
         return io.BytesIO(json.dumps(value).encode())
 

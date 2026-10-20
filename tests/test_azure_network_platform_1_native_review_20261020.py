@@ -1,10 +1,13 @@
 """Independent finite native Azure HTTP fixtures, with live network/auth blocked."""
 import json
+import ast
+import gzip
 import hashlib
 import os
 import socket
 from pathlib import Path
 import pytest
+from tests.azure_native_inventory_routes_20261020 import empty_inventory_versions,matches_empty_inventory_query
 from peaso.collectors import azure
 from peaso.collectors import azure_identity_enforcement_review_20261020 as identity_native
 
@@ -175,6 +178,26 @@ def base_native(cid,opposite=False):
             SCOPE+'/providers/Microsoft.Network/privateEndpoints',SCOPE+'/providers/Microsoft.Network/routeTables',
             SCOPE+'/providers/Microsoft.Network/firewallPolicies',SCOPE+'/providers/Microsoft.Network/locations/eastus/serviceTags',SCOPE+'/providers/Microsoft.Network/locations/westcentralus/serviceTags']:
             data[path]=azure.AzureReadError('auxiliary_inventory_not_authorized',403)
+    for path in empty_inventory_versions(SCOPE):
+        data.setdefault(path,{'value':[]})
+    # No DiagnosticSettings_List rows on the four native storage services.
+    for service in ('blobServices','fileServices','queueServices','tableServices'):
+        data.setdefault(ACCOUNT+'/'+service+'/default/providers/Microsoft.Insights/diagnosticSettings',{'value':[]})
+    # The existing native container DTO is also returned by its parent LIST.
+    data.setdefault(ACCOUNT+'/blobServices/default/containers',{'value':[data[CONTAINER]]})
+    data.setdefault(ACCOUNT+'/fileServices/default/shares',{'value':[]})
+    # These native child LISTs carry no encryption scopes, local users or
+    # Event Grid subscriptions in the independent account fixture.
+    for suffix in ('encryptionScopes','localUsers','providers/Microsoft.EventGrid/eventSubscriptions'):
+        data.setdefault(ACCOUNT+'/'+suffix,{'value':[]})
+    # A denied/partial subscription index makes the collector enumerate its
+    # finite declared ARM parent LIST endpoints. Unconfigured services are
+    # explicitly denied; unknown paths and every detail URL still fail below.
+    for endpoint,version in azure.ENDPOINTS.values():
+        path=SCOPE+('/'if endpoint=='resourcegroups'else'/providers/')+endpoint
+        data.setdefault(path,azure.AzureReadError('auxiliary_parent_inventory_not_authorized',403))
+    for owner in (SCOPE,RG,ACCOUNT):
+        data.setdefault(owner+'/providers/Microsoft.Authorization/locks',azure.AzureReadError('auxiliary_lock_inventory_not_authorized',403))
     if opposite:opposite_native(cid,data)
     return data
 
@@ -235,6 +258,13 @@ class NativeWire:
             require(request.get_method()=='POST' and timeout==20)
             body=json.loads(request.data)
             require(set(body)=={'subscriptions','query','options'} and body['subscriptions']==[SUB])
+            # The storage ancestor query is a separate, read-only ARG contract.
+            # This fixture does not authorize management-group ancestry reads.
+            if q=={'api-version':['2024-04-01']}:
+                require(body['query']=="resourcecontainers | where type =~ 'microsoft.resources/subscriptions' | project id, properties | order by id asc")
+                require(body['options']=={'resultFormat':'objectArray','$top':1000})
+                self.calls.append({'method':'POST','host':parts.netloc,'path':parts.path,'query':q,'body':body})
+                raise azure.AzureReadError('optional_subscription_ancestry_not_authorized',403)
             require(body['query']=='Resources | project id, type, name, location, tags, identity, properties, subscriptionId, resourceGroup | order by id asc')
             require(body['options']=={'resultFormat':'objectArray','$top':1000} and q=={'api-version':['2022-10-01']})
             self.calls.append({'method':'POST','host':parts.netloc,'path':parts.path,'query':q,'body':body})
@@ -246,6 +276,21 @@ class NativeWire:
             raise azure.AzureReadError('auxiliary_read_only_query_not_authorized',403)
         require(request.get_method()=='GET' and request.data is None and timeout==20 and bool(q.get('api-version')))
         self.calls.append({'method':'GET','host':parts.netloc,'path':parts.path,'query':q,'body':None})
+        ancillary=empty_inventory_versions(SCOPE)
+        if parts.path in ancillary:require(matches_empty_inventory_query(SCOPE,parts.path,q))
+        if parts.path in {ACCOUNT+'/'+service+'/default/providers/Microsoft.Insights/diagnosticSettings' for service in ('blobServices','fileServices','queueServices','tableServices')}:
+            require(q in ({'api-version':['2021-05-01-preview']},{'api-version':['2021-05-01-preview'],'$skiptoken':['next']}))
+        parents={SCOPE+('/'if endpoint=='resourcegroups'else'/providers/')+endpoint:version for endpoint,version in azure.ENDPOINTS.values()}
+        if parts.path in parents and parts.path not in ancillary:require(q.get('api-version')==[parents[parts.path]])
+        if parts.path in {owner+'/providers/Microsoft.Authorization/locks' for owner in (SCOPE,RG,ACCOUNT)}:
+            require(q=={'api-version':['2016-09-01']})
+        if parts.path in {ACCOUNT+'/blobServices/default/containers',ACCOUNT+'/fileServices/default/shares'}:
+            require(q in ({'api-version':['2023-05-01']},{'api-version':['2023-05-01'],'$skiptoken':['next']}))
+        children={ACCOUNT+'/encryptionScopes':'2023-05-01',ACCOUNT+'/localUsers':'2023-05-01',
+                  ACCOUNT+'/providers/Microsoft.EventGrid/eventSubscriptions':'2022-06-15'}
+        if parts.path in children:
+            version=children[parts.path]
+            require(q in ({'api-version':[version]},{'api-version':[version],'$skiptoken':['next']}))
         if parts.path not in self.data:pytest.fail('Unexpected native HTTP path: '+parts.path)
         if self.mode=='denied':raise azure.AzureReadError('forbidden',403)
         if isinstance(self.data[parts.path],BaseException):raise self.data[parts.path]
@@ -294,9 +339,118 @@ def capture(monkeypatch,cid,branch='positive',data=None):
 
 UNPRODUCED={'azure_aks_cluster_10_2_1_1_17_885658f','azure_aks_cluster_7_2_1_6_93c4fab','azure_aks_cluster_aks_cluster_rbac_enabled_db12524'}
 
+ARCHIVED_AKS_SCOPE_ID='azure_aks_cluster_10_2_1_1_17_885658f'
+ARCHIVED_AKS_SCOPE_PREDECESSOR='tests/fixtures/azure_archived_aks_scope_predecessor_20261020.json.gz'
+ARCHIVED_AKS_SCOPE_PREDECESSOR_SHA256='969398a8c234647b5818f0d82285602dc921c953fda0ea70af78faf36628572d'
+
+
+def _archived_aks_scope_inputs():
+    root=Path(__file__).resolve().parents[1]
+    packed=(root/ARCHIVED_AKS_SCOPE_PREDECESSOR).read_bytes()
+    assert hashlib.sha256(packed).hexdigest()==ARCHIVED_AKS_SCOPE_PREDECESSOR_SHA256
+    retained=json.loads(gzip.decompress(packed))
+    assert retained['exact_check_id']==ARCHIVED_AKS_SCOPE_ID
+    previous=retained['predecessor_test']
+    assert previous['path']=='tests/test_azure_network_platform_1_native_review_20261020.py'
+    assert hashlib.sha256(previous['text'].encode()).hexdigest()==previous['sha256']=='8292c2eafd4278fbd8020d1650ffaa4d112b329f9967e57193663cc42e3baf23'
+    return root,retained
+
+
+def _assert_archived_aks_scope_rejection(monkeypatch,cid):
+    """Only this reviewed archived ID tests scope rejection instead of a verdict."""
+    if cid!=ARCHIVED_AKS_SCOPE_ID:
+        raise ValueError('archived AKS scope compatibility applies only to '+ARCHIVED_AKS_SCOPE_ID)
+    from peaso import collectors
+    from peaso.checks import native_only
+    from peaso.collectors import azure_nsg_ingress_native
+    root,retained=_archived_aks_scope_inputs()
+    expected=retained['exclusion']
+    assert native_only.exclusions()[cid]==expected
+    assert json.loads((root/'peaso/checks/native_only.json').read_bytes())['checks'][cid]==expected
+    assert expected['disposition']=='unsupported_exact_contract'
+    assert expected['source']==retained['review']['path']
+    reviewed=(root/expected['source']).read_bytes()
+    assert hashlib.sha256(reviewed).hexdigest()==retained['review']['sha256']
+    contract,=[row for row in json.loads(reviewed)['per_id']if row['id']==cid]
+    assert contract==retained['review']['contract']
+    assert 'Legacy usable destination boolean has no defined native metadata proof.' in contract['proof_limits']
+    source=(root/'peaso/checks/compliance_new_sw30.py').read_text()
+    node=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef)and n.name=='diagnostics')
+    body=''.join(source.splitlines(keepends=True)[node.lineno-1:node.end_lineno])
+    assert body==contract['before_function']['body']==contract['after_function']['body']
+    assert hashlib.sha256(body.encode()).hexdigest()==contract['after_function']['sha256']
+    assert cid in ROSTER and cid in REGISTRY
+    checks_before=tuple(map(id,CHECKS));exclusions_before=deepcopy(native_only.exclusions())
+    attempted=[]
+    def forbidden(*args,**kwargs):
+        attempted.append('transport/network/auth entrypoint')
+        pytest.fail('archived public selection must reject before transport/network/auth')
+    with monkeypatch.context() as guard:
+        for owner,names in ((collectors,('collect_live',)),(azure,('collect','AzureTransport','build_opener','credential_for','urlopen')),
+                            (azure_nsg_ingress_native,('build_opener',)),
+                            (socket,('create_connection','getaddrinfo','gethostbyname','gethostbyname_ex')),
+                            (socket.socket,('connect','connect_ex','sendto'))):
+            for name in names:guard.setattr(owner,name,forbidden)
+        active={check.id for check in engine._registry()}
+        assert cid not in active and expected['native_alternative'] in active
+        assert cid not in {row['id']for row in engine.get_catalog()['checks']}
+        catalog=json.loads((root/'peaso/rulepacks/native_catalog.json').read_bytes())
+        assert cid not in {row['id']for row in catalog['checks']}
+        assert cid in {row['id']for row in catalog['archived_checks']}
+        assert catalog['excluded_controls'][cid]==expected
+        request={'connector':{'provider':'azure','scopes':[SUB],'auth':{'tenant_id':TENANT}},'checks':[cid]}
+        message='check requires external policy or manual evidence and is not available for automated scans: '+cid
+        for select in (lambda:engine._selection('azure',None,[cid],None),
+                       lambda:engine.plan_collection(deepcopy(request)),
+                       lambda:engine.collect_snapshot(deepcopy(request))):
+            with pytest.raises(ValueError) as rejected:select()
+            assert str(rejected.value)==message
+        assert attempted==[]
+    assert tuple(map(id,CHECKS))==checks_before
+    assert native_only.exclusions()==exclusions_before
+
+
+def test_archived_aks_scope_preserves_exact_native_predecessor_assertions_and_roster():
+    root,retained=_archived_aks_scope_inputs()
+    before=ast.parse(retained['predecessor_test']['text'])
+    after=ast.parse((root/retained['predecessor_test']['path']).read_text())
+    old={n.name:n for n in before.body if isinstance(n,ast.FunctionDef)and n.name.startswith('test_')}
+    new={n.name:n for n in after.body if isinstance(n,ast.FunctionDef)and n.name.startswith('test_')}
+    assert set(old)<=set(new)
+    gate=ast.parse('if cid==ARCHIVED_AKS_SCOPE_ID:\n _assert_archived_aks_scope_rejection(monkeypatch,cid)\n return\n').body[0]
+    for name,node in old.items():
+        current=new[name]
+        assert ast.dump(node.args)==ast.dump(current.args)
+        assert [ast.dump(n)for n in node.decorator_list]==[ast.dump(n)for n in current.decorator_list]
+        assert [ast.dump(n)for n in ast.walk(node)if isinstance(n,ast.Assert)]==[ast.dump(n)for n in ast.walk(current)if isinstance(n,ast.Assert)]
+        restored=deepcopy(current)
+        if name in ('test_each_assigned_native_contract','test_wrong_native_resource_type_cannot_establish_configuration'):
+            assert sum(ast.dump(n)==ast.dump(gate)for n in restored.body)==1
+            restored.body=[n for n in restored.body if ast.dump(n)!=ast.dump(gate)]
+        assert ast.dump(restored)==ast.dump(node)
+    # All native fixture builders, transports, capture helpers and module-level
+    # rosters/expected inputs remain exact; only the two test entrypoints route
+    # this archived ID to its current exclusion contract.
+    for node in before.body:
+        if (isinstance(node,(ast.ClassDef,ast.Assign,ast.AnnAssign))
+                or isinstance(node,ast.FunctionDef)and not node.name.startswith('test_')):
+            assert any(ast.dump(node)==ast.dump(current)for current in after.body)
+
+
+@pytest.mark.parametrize('cid',[ARCHIVED_AKS_SCOPE_ID+'_unreviewed','azure_aks_cluster_10_2_1_1_17_885658f_extra'])
+def test_archived_aks_scope_successor_does_not_accept_other_ids(monkeypatch,cid):
+    with pytest.raises(ValueError,match='archived AKS scope compatibility applies only to '+ARCHIVED_AKS_SCOPE_ID):
+        _assert_archived_aks_scope_rejection(monkeypatch,cid)
+    with pytest.raises(ValueError,match='^unknown check ID for selected provider$'):
+        engine.plan_collection({'connector':{'provider':'azure','scopes':[SUB]},'checks':[cid]})
+
+
 @pytest.mark.parametrize('cid',ROSTER)
 @pytest.mark.parametrize('branch',['positive','opposite','omitted','empty','denied','partial','foreign','malformed'])
 def test_each_assigned_native_contract(monkeypatch,cid,branch):
+    if cid==ARCHIVED_AKS_SCOPE_ID:
+        _assert_archived_aks_scope_rejection(monkeypatch,cid)
+        return
     _,findings,_=capture(monkeypatch,cid,branch)
     states={f['status'] for f in findings}
     if cid in UNPRODUCED and branch in ('positive','opposite'):expected={'UNKNOWN'}
@@ -371,6 +525,9 @@ def test_wrong_native_resource_type_cannot_establish_configuration(monkeypatch,c
     for value in d.values():
         if isinstance(value,dict) and '/providers/' in value.get('id',''):
             value['type']='Microsoft.Unrelated/resources'
+    if cid==ARCHIVED_AKS_SCOPE_ID:
+        _assert_archived_aks_scope_rejection(monkeypatch,cid)
+        return
     _,f,_=capture(monkeypatch,cid,data=d)
     assert {r['status'] for r in f}<={'UNKNOWN','DENIED','EMPTY','NOT_APPLICABLE'},f
 

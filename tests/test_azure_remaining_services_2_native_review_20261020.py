@@ -10,6 +10,7 @@ from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.parse import urlsplit,parse_qs
 import pytest
+from tests.azure_native_inventory_routes_20261020 import empty_inventory_versions,matches_empty_inventory_query
 from peaso import engine
 from peaso.collectors import azure
 from peaso.checks import CHECKS
@@ -123,6 +124,8 @@ def native(cid,opposite=False):
         {'extensionType':'microsoft.azuredefender.kubernetes','provisioningState':'Succeeded','releaseTrain':'Stable','autoUpgradeMinorVersion':True})
     data[arc['id']+'/providers/Microsoft.KubernetesConfiguration/extensions']={'value':[extension]};data[extension['id']]=extension
     ml=parent('ml_workspace',{'publicNetworkAccess':'Disabled'})
+    # Exact workspace-scoped Machine Learning compute List; no compute children.
+    data[ml['id']+'/computes']={'value':[]}
     cluster=parent('log_analytics_cluster',{'isDoubleEncryptionEnabled':True,
         'keyVaultProperties':{'keyVaultUri':'https://reviewnative.vault.azure.net','keyName':'native','keyVersion':'abc'}},
         sku={'name':'CapacityReservation','capacity':100},identity={'type':'SystemAssigned','principalId':USER,'tenantId':TENANT})
@@ -201,6 +204,8 @@ def native(cid,opposite=False):
     data[SCOPE+'/resources']={'value':[row for k,row in rows.items() if k in selected]}
     for endpoint,version in azure.ENDPOINTS.values():
         data.setdefault(SCOPE+'/providers/'+endpoint,azure.AzureReadError('optional_parent_denied',403))
+    for path in empty_inventory_versions(SCOPE):
+        data.setdefault(path,{'value':[]})
     data[SCOPE+'/providers/Microsoft.Network/locations/westcentralus/serviceTags']=azure.AzureReadError('service_tags_not_required',403)
     data[RG+'/providers/Microsoft.Authorization/locks']=azure.AzureReadError('locks_not_required',403)
     data[SCOPE+'/providers/Microsoft.Authorization/locks']=azure.AzureReadError('locks_not_required',403)
@@ -280,6 +285,10 @@ class Wire:
         require(request.get_method()=='GET' and request.data is None)
         if u.netloc=='management.azure.com':require(bool(q.get('api-version')))
         self.calls.append({'method':'GET','host':u.netloc,'path':u.path,'query':q,'body':None})
+        ancillary=empty_inventory_versions(SCOPE)
+        if u.path in ancillary:require(matches_empty_inventory_query(SCOPE,u.path,q))
+        if u.path==RG+'/providers/Microsoft.MachineLearningServices/workspaces/native/computes':
+            require(q in ({'api-version':['2024-04-01']},{'api-version':['2024-04-01'],'$skiptoken':['next']}))
         if u.path not in self.data:pytest.fail('Unexpected native HTTP path: '+u.path)
         value=self.data[u.path]
         if isinstance(value,BaseException):raise value
