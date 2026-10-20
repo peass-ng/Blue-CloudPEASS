@@ -144,6 +144,7 @@ from .aws_iam_policy_removal_next import normalize as normalize_aws_iam_policy_r
 from .aws_iam_credential_boundary_next import normalize as normalize_aws_iam_credential_boundary
 from .aws_iam_identity_deletion_next import normalize as normalize_aws_iam_identity_deletion
 from .aws_iam_remaining_credential_deletion_next import normalize as normalize_aws_iam_credential_deletion
+from .aws_iam_cert_key_controls_next import normalize as normalize_aws_iam_cert_key_controls
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -165,8 +166,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "b8634b0fb5b83a2a86e98b2945727b5e45351a26"
-DEFAULT_RULE_PACK_SHA256 = "e0b6b7f591660ebbac70ac692a72c954729751d0ee6f200e9903e383e300715b"
+DEFAULT_RULE_REF = "6807e5431ada452f17947e632981a9488eeb2e78"
+DEFAULT_RULE_PACK_SHA256 = "965c9116ea02ad3d0555b7f40364f97b47782eeee78de80f98f359a242aba6bc"
 
 
 @dataclass(frozen=True)
@@ -401,6 +402,7 @@ def detect_aws_events(
         iam_credential_boundary = normalize_aws_iam_credential_boundary(record)
         iam_identity_deletion = normalize_aws_iam_identity_deletion(record)
         iam_credential_deletion = normalize_aws_iam_credential_deletion(record)
+        iam_cert_key_controls = normalize_aws_iam_cert_key_controls(record)
         return (([base] if base is not None else [])
                 + ([cloudtrail_selectors] if cloudtrail_selectors is not None else [])
                 + ([profile] if profile is not None else [])
@@ -526,7 +528,8 @@ def detect_aws_events(
                 + ([iam_policy_removal] if iam_policy_removal is not None else [])
                 + ([iam_credential_boundary] if iam_credential_boundary is not None else [])
                 + ([iam_identity_deletion] if iam_identity_deletion is not None else [])
-                + ([iam_credential_deletion] if iam_credential_deletion is not None else []))
+                + ([iam_credential_deletion] if iam_credential_deletion is not None else [])
+                + ([iam_cert_key_controls] if iam_cert_key_controls is not None else []))
 
     selected = rules if rules is not None else load_rules(product="aws")
     glue_correlation_records: list[Mapping[str, Any]] = []
