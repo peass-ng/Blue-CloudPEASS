@@ -29,6 +29,7 @@ from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
+from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -159,8 +160,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "ac01ec569befdaf6c3db32b350c5c6f46fdfa054"
-DEFAULT_RULE_PACK_SHA256 = "fa93232fccafae758b60696842650662fb7647ac72f2934328ceedd9cb2c230f"
+DEFAULT_RULE_REF = "653f68f24ffe37ea8bee60ddc6ef855548b04156"
+DEFAULT_RULE_PACK_SHA256 = "369b8ae37c27e0473a6df0710b4e95f0d84a58b4ab3670ff042d95aa4620c035"
 
 
 @dataclass(frozen=True)
@@ -280,6 +281,7 @@ def detect_aws_events(
         codebuild_change = normalize_aws_codebuild_change(record)
         codebuild_execution = normalize_codebuild_execution(record)
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
+        appsync_five = normalize_aws_appsync_five(record)
         sagemaker_control = normalize_aws_sagemaker_control(record)
         rolesanywhere = normalize_aws_rolesanywhere(record)
         customer_profiles = normalize_aws_customer_profiles(record)
@@ -401,6 +403,7 @@ def detect_aws_events(
                 + ([codebuild_change] if codebuild_change is not None else [])
                 + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
+                + ([appsync_five] if appsync_five is not None else [])
                 + ([sagemaker_control] if sagemaker_control is not None else [])
                 + ([rolesanywhere] if rolesanywhere is not None else [])
                 + ([customer_profiles] if customer_profiles is not None else [])
