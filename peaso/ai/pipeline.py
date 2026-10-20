@@ -108,6 +108,19 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
             kill_tree(process)
 
 
+def invoke_before_deadline(stage, platform, entries, token, findings, reviews, end, limit):
+    from .fargate import TaskStartupError
+    for attempt in range(2):
+        remaining = end - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError()
+        try:
+            return invoke(stage, platform, entries, token, findings, reviews, min(limit, remaining))
+        except TaskStartupError:
+            if attempt:
+                raise
+
+
 def inputs(report):
     from peaso.engine import hydrate_finding
     rows = [hydrate_finding(row, report.get('check_frameworks'), report.get('check_meta'),
@@ -264,14 +277,14 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
-            data = invoke(stage, network, access, token, [], [], min(600 if isolation.remote() else 150, remaining))
+            data = invoke_before_deadline(stage, network, access, token, [], [], end, 600 if isolation.remote() else 150)
             return validate_network(data, network)
         context = review_context(report, inventory_by_id, batch)
         access = review_credentials(entries, report['provider'], batch, context)
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise TimeoutError()
-        data = invoke(stage, context, access, token, batch, [], min(360 if isolation.remote() else 120, remaining))
+        data = invoke_before_deadline(stage, context, access, token, batch, [], end, 360 if isolation.remote() else 120)
         return validate_reviews(data, batch)['items']
 
     def record(task, future=None):
@@ -392,7 +405,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
-            data = invoke('priorities', platform, entries, token, hardening + exposure, reviewed, min(600 if isolation.remote() else 150, remaining))
+            data = invoke_before_deadline('priorities', platform, entries, token, hardening + exposure, reviewed, end, 600 if isolation.remote() else 150)
             recommendations = validate_actions(data, priorities_report, reviewed)
             result['actions'] = recommendations['actions']
             result['limitations'].extend(recommendations['limitations'])

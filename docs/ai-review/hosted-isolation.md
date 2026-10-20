@@ -9,7 +9,9 @@ the scan deadline; about 30% (at most 600 seconds) is reserved
 for priorities. The analyzer task shares the workflow’s one-hour ceiling; the
 collector retains its 30-minute stage limit. Absolute task deadlines leave time for result upload and shutdown. The remaining
 invocation budget also sets the inner agent wrapper’s runtime budget; the
-parent process and relay enforce the absolute deadline.
+parent process and relay enforce the absolute deadline. An ECS failure before
+the agent starts can retry once within the remaining phase budget. Each attempt
+cleans up its task and transport objects.
 
 ## Boundaries
 

@@ -269,3 +269,24 @@ def test_old_gcp_access_and_derived_cluster_tokens_are_not_exported():
     current = access.finish()
     assert access.eligible_entries(current, snapshot) == current
     assert access.eligible_entries(old, {'provider': 'aws'}) == old
+
+
+def test_infrastructure_startup_failure_is_retryable_and_still_cleans_transport(configured, tmp_path):
+    (tmp_path/'credentials.json').write_text('{"entries":[]}')
+    tasks, storage = Tasks(), Storage()
+    tasks.describe_tasks = lambda **kw: {'tasks': [{'lastStatus': 'STOPPED', 'stopCode': 'TaskFailedToStart',
+        'containers': [{'name': 'agent'}]}]}
+    with pytest.raises(fargate.TaskStartupError, match='ai_task_startup_failed'):
+        fargate.invoke('network', tmp_path, 'private', 30, ecs=tasks, s3=storage)
+    assert tasks.stops and len(storage.deleted) == 3
+
+
+def test_started_agent_failure_is_not_classified_as_an_infrastructure_retry(configured, tmp_path):
+    (tmp_path/'credentials.json').write_text('{"entries":[]}')
+    tasks, storage = Tasks(), Storage()
+    tasks.describe_tasks = lambda **kw: {'tasks': [{'lastStatus': 'STOPPED', 'stopCode': 'EssentialContainerExited',
+        'containers': [{'name': 'agent', 'exitCode': 1}]}]}
+    with pytest.raises(RuntimeError, match='agent_failed') as failed:
+        fargate.invoke('network', tmp_path, 'private', 30, ecs=tasks, s3=storage)
+    assert not isinstance(failed.value, fargate.TaskStartupError)
+    assert tasks.stops and len(storage.deleted) == 3

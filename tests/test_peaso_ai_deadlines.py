@@ -95,3 +95,37 @@ def test_task_failure_logs_only_a_fixed_deadline_code(monkeypatch, capsys, error
     with pytest.raises(SystemExit) as stopped: task_runtime.main()
     assert stopped.value.code == code
     assert capsys.readouterr() == ('', output)
+
+
+@pytest.mark.parametrize('stage', ['hardening', 'exposure', 'network', 'priorities'])
+def test_startup_retry_preserves_the_phase_deadline(monkeypatch, stage):
+    from peaso.ai import pipeline
+    clock, timeouts = [0], []
+    monkeypatch.setattr(pipeline, 'time', SimpleNamespace(monotonic=lambda: clock[0]))
+    def invoke(*args):
+        timeouts.append(args[-1])
+        if len(timeouts) == 1:
+            clock[0] = 2
+            raise fargate.TaskStartupError('ai_task_startup_failed')
+        return {'ok': True}
+    monkeypatch.setattr(pipeline, 'invoke', invoke)
+    assert pipeline.invoke_before_deadline(stage, {}, [], 'inert', [], [], 5, 4) == {'ok': True}
+    assert timeouts == [4, 3]
+
+
+@pytest.mark.parametrize('mode,expected_attempts,error', [
+    ('twice', 2, fargate.TaskStartupError), ('expired', 1, TimeoutError), ('invalid', 1, ValueError),
+])
+def test_startup_retry_is_bounded_and_preserves_real_errors(monkeypatch, mode, expected_attempts, error):
+    from peaso.ai import pipeline
+    clock, attempts = [0], []
+    monkeypatch.setattr(pipeline, 'time', SimpleNamespace(monotonic=lambda: clock[0]))
+    def invoke(*args):
+        attempts.append(args[-1])
+        if mode == 'invalid': raise ValueError('invalid_result')
+        if mode == 'expired': clock[0] = 6
+        raise fargate.TaskStartupError('ai_task_startup_failed')
+    monkeypatch.setattr(pipeline, 'invoke', invoke)
+    with pytest.raises(error):
+        pipeline.invoke_before_deadline('network', {}, [], 'inert', [], [], 5, 4)
+    assert len(attempts) == expected_attempts
