@@ -328,7 +328,8 @@ function=getattr(owner,{name!r})
 if {mode!r} == 'identity':
     setattr(owner,{name!r},lambda *args,**kwargs: None)
 else:
-    function.__code__=(lambda *args,**kwargs: None).__code__
+    # Use real file-backed code so 3.12 inspect reaches the admission guard.
+    function.__code__=bridge._reverse.__code__
 bridge.reviewed_inputs()
 """
     rejected(run(script))

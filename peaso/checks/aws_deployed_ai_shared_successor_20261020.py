@@ -4,21 +4,33 @@ Only the parent package aliases this bridge. Canonical historical modules,
 receipts, callable objects, grant identities and native witnesses stay intact.
 """
 from copy import deepcopy
+from contextvars import ContextVar
+import ast
+import gzip
 import hashlib
+import hmac
 import inspect
 import importlib
 import json
+import marshal
+import os
 from pathlib import Path
 import re
 import sys
+import textwrap
 import types
 from . import azure_function_package_shared_successor_20261020 as predecessor
 original = predecessor.original
 PREDECESSOR_REVIEWED_INPUTS = predecessor.PREDECESSOR_REVIEWED_INPUTS
 historical = importlib.import_module(__package__ + '.aws_workload_command_shared_successor_20261020')
 _HISTORICAL_FUNCTIONS = dict(historical._FUNCTIONS)
+_COMPILED_TRANSACTION = ContextVar('deployed_ai_compiled_transaction', default=None)
+_TRANSACTION_CONTEXT = _COMPILED_TRANSACTION
+_DATAFLOW_ADMISSION = importlib.import_module(__package__ + '.gcp_dataflow_batch_source_runtime_admission_20261020')
+_DATAFLOW_FUNCTIONS = dict(_DATAFLOW_ADMISSION._FUNCTIONS)
+_DATAFLOW_REVIEWED_INPUTS = _DATAFLOW_FUNCTIONS[_DATAFLOW_ADMISSION.__name__ + ':reviewed_inputs']
 RECEIPT = 'aws_deployed_ai_shared_successor_20261020.json'
-RECEIPT_SHA256 = '4ef13e1af7ac9ec64fbed9d2ced5783c8c78d5f64cbf4dd096846731e93d8b4a'
+RECEIPT_SHA256 = '6fff655f5bb8a22a0466e11a013ffbfd357f233b5fdfa71336b40eed9294f62f'
 
 
 def _self(raw):
@@ -42,8 +54,121 @@ def _reverse(text, row):
     return text
 
 
+def _compiled_source(raw, filename, optimize):
+    """Compile locally without computing the historical unused AST digest."""
+    text = raw.decode('utf-8')
+    lines = text.splitlines(keepends=True)
+    definitions = {}
+
+    def visit(node, prefix=''):
+        child_prefix = prefix
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            name = prefix + node.name
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+                key = (node.name, start)
+                if key in definitions:
+                    raise RuntimeError('Ambiguous annotation source definition')
+                definitions[key] = {
+                    'qualname': name,
+                    'source_sha256': hashlib.sha256(''.join(lines[start - 1:node.end_lineno]).encode()).hexdigest(),
+                }
+                child_prefix = name + '.<locals>.'
+            else:
+                child_prefix = name + '.'
+        for child in ast.iter_child_nodes(node):
+            # Definitions occur only in statement suites, exception handlers
+            # and match cases; expression subtrees cannot introduce one.
+            if isinstance(child, (ast.stmt, ast.excepthandler, ast.match_case)):
+                visit(child, child_prefix)
+
+    tree = ast.parse(text, filename=filename, type_comments=True)
+    visit(tree)
+    del visit
+    records = []
+
+    def walk(code):
+        definition = definitions.get((code.co_name, code.co_firstlineno))
+        if definition is not None:
+            records.append((definition, code))
+        for member in code.co_consts:
+            if isinstance(member, types.CodeType):
+                walk(member)
+
+    walk(compile(tree, filename, 'exec', dont_inherit=True, optimize=optimize))
+    del walk
+    return records
+
+
+def _transaction_compiler():
+    """Keep only signed immutable compiled artifacts for one install wave."""
+    cache = {}
+    secret = os.urandom(32)
+    source_bytes = 0
+
+    def lookup(key, raw, qualname):
+        nonlocal source_bytes
+        if key != (key[0], hashlib.sha256(raw).hexdigest(), sys.flags.optimize):
+            raise RuntimeError('Deployed AI compiled cache source binding changed')
+        if key not in cache:
+            rows = tuple((record['qualname'], record['source_sha256'], code)
+                         for record, code in _compiled_source(raw, key[0], key[2]))
+            # Version 2 has no reference-sharing flags, so holding another
+            # reference to an immutable code object cannot change its digest.
+            signed = tuple((record, hmac.digest(secret, marshal.dumps((key, record), 2), 'sha256'))
+                           for record in rows)
+            if len(cache) >= 128 or source_bytes + len(raw) > 16 * 1024 * 1024:
+                cache.clear()
+                source_bytes = 0
+            if len(raw) <= 16 * 1024 * 1024:
+                cache[key] = signed
+                source_bytes += len(raw)
+        else:
+            signed = cache[key]
+        matches = []
+        for record, signature in signed:
+            if record[0] == qualname:
+                if not hmac.compare_digest(signature, hmac.digest(secret, marshal.dumps((key, record), 2), 'sha256')):
+                    raise RuntimeError('Deployed AI compiled cache artifact changed')
+                matches.append(({'qualname': record[0], 'source_sha256': record[1]}, record[2]))
+        return matches
+
+    return lookup
+
+
+def _check_function(fn, row, root, compiled):
+    """Reuse compilation only within this admission; recheck every live input."""
+    native = inspect.unwrap(fn)
+    path = (root / row['path']).resolve()
+    if not path.is_relative_to(root):
+        raise RuntimeError('metadata runtime source escaped package')
+    raw = path.read_bytes()
+    key = (str(path), hashlib.sha256(raw).hexdigest(), sys.flags.optimize)
+    compiler = _COMPILED_TRANSACTION.get()
+    if compiler is None:
+        if key not in compiled:
+            compiled[key] = _compiled_source(raw, str(path), sys.flags.optimize)
+        matches = [(record, code) for record, code in compiled[key] if record['qualname'] == row['qualname']]
+    else:
+        expected = next(code for code in _transaction_compiler.__code__.co_consts
+                        if isinstance(code, types.CodeType) and code.co_name == 'lookup')
+        if (not isinstance(compiler, types.FunctionType) or compiler.__code__ is not expected
+                or compiler.__globals__ is not globals()):
+            raise RuntimeError('Deployed AI compiled cache callable changed')
+        matches = compiler(key, raw, row['qualname'])
+    if (len(matches) != 1 or matches[0][0]['source_sha256'] != row['sha256']
+            or original.prepared._hash(inspect.getsource(native).encode()) != row['sha256']
+            or json.dumps(original.proof._code(native.__code__), sort_keys=True) != json.dumps(original.proof._code(matches[0][1]), sort_keys=True)
+            or native.__globals__ is not vars(sys.modules[native.__module__])
+            or json.dumps(native.__defaults__, sort_keys=True) != json.dumps(row['defaults'], sort_keys=True)
+            or json.dumps(native.__kwdefaults__, sort_keys=True) != json.dumps(row['kwdefaults'], sort_keys=True)):
+        raise RuntimeError('metadata runtime executing callable changed')
+
+
 def _verify_bridge(root):
     """Attest this executing bridge independently of reviewed_delta dispatch."""
+    if _COMPILED_TRANSACTION is not _TRANSACTION_CONTEXT:
+        raise RuntimeError('Deployed AI compiled transaction carrier changed')
     raw = (root / 'peaso/checks' / RECEIPT).read_bytes()
     if hashlib.sha256(raw).hexdigest() != RECEIPT_SHA256:
         raise RuntimeError('Deployed AI bridge receipt changed')
@@ -104,7 +229,7 @@ def reviewed_delta(root=None):
                     or facts.ENRICHERS.get('eventbridge_rule') is not function
                     or facts.ENRICHERS.get('event_rule') is not function):
                 raise RuntimeError('Deployed AI event-rule wrapper/closure binding changed')
-            original._check_function(function, row['wrapper'], root, compiled)
+            _check_function(function, row['wrapper'], root, compiled)
             function = _EVENT_RULE_INNER
         try:
             restored = _reverse(inspect.getsource(inspect.unwrap(function)), row)
@@ -112,7 +237,7 @@ def reviewed_delta(root=None):
             raise RuntimeError('Deployed AI shared source changed: ' + qualified) from exc
         if hashlib.sha256(restored.encode()).hexdigest() != row['predecessor_sha256']:
             raise RuntimeError('Deployed AI shared callable historical reconstruction changed: ' + qualified)
-        original._check_function(function, row['current'], root, compiled)
+        _check_function(function, row['current'], root, compiled)
     for name, row in receipt['file_deltas'].items():
         restored = (root / name).read_text()
         for before, after in row.get('exact_replacements', []):
@@ -140,7 +265,6 @@ def reviewed_delta(root=None):
                 restored = restored.replace(addition, '', 1)
             if hashlib.sha256(restored.encode()).hexdigest() != prior['predecessor_sha256']:
                 raise RuntimeError('AWS command historical whole-file source changed')
-    compiled = {}
     for qualified, row in receipt['functions'].items():
         module_name, name = qualified.split(':')
         module = importlib.import_module(module_name)
@@ -164,7 +288,7 @@ def reviewed_delta(root=None):
         if qualified in _FUNCTIONS and function is not _FUNCTIONS[qualified]:
             raise RuntimeError('AWS command successor callable replaced')
         try:
-            original._check_function(function, row, root, compiled)
+            _check_function(function, row, root, compiled)
         except RuntimeError as exc:
             raise RuntimeError('AWS command executing callable changed: ' + qualified) from exc
     historical_receipt = json.loads((root / 'peaso/checks' / predecessor.RECEIPT).read_bytes())
@@ -192,11 +316,98 @@ def check_shared(fn, historical, name, root, compiled, receipt):
             raise RuntimeError('AWS command inherited source epoch changed')
     if hashlib.sha256(restored.encode()).hexdigest() != historical['sha256']:
         raise RuntimeError('AWS command original callable source changed')
-    original._check_function(fn, dict(historical, sha256=current['current_sha256']), root, compiled)
+    _check_function(fn, dict(historical, sha256=current['current_sha256']), root, compiled)
+
+
+def _prepared_ast(node):
+    """Emit the sealed 3.13 AST format without interpreter dump defaults.
+
+    Only empty list fields and optional None fields are omitted. Every node,
+    populated field, literal and ordering remains part of the comparison;
+    exact reconstructed source bytes are checked independently first.
+    """
+    if isinstance(node, ast.AST):
+        fields = []
+        for name, value in ast.iter_fields(node):
+            if (isinstance(value, list) and not value
+                    or value is None and getattr(type(node), name, ...) is None):
+                continue
+            fields.append(name + '=' + _prepared_ast(value))
+        return type(node).__name__ + '(' + ', '.join(fields) + ')'
+    if isinstance(node, list):
+        return '[' + ', '.join(_prepared_ast(value) for value in node) + ']'
+    return repr(node)
+
+
+def _check_prepared_shared(fn, historical, name, root, compiled, successor):
+    row = successor['prepared_functions'][name]
+    if row['predecessor'] != historical:
+        raise RuntimeError('Deployed AI prepared predecessor changed')
+    source = inspect.getsource(inspect.unwrap(fn))
+    if hashlib.sha256(source.encode()).hexdigest() != row['current_sha256']:
+        raise RuntimeError('Deployed AI prepared current source changed')
+    restored = source
+    for addition in row['exact_additions']:
+        if restored.count(addition) != 1:
+            raise RuntimeError('Deployed AI prepared exact addition changed')
+        restored = restored.replace(addition, '', 1)
+    if (hashlib.sha256(restored.encode()).hexdigest() != historical['sha256']
+            or _prepared_ast(ast.parse(textwrap.dedent(restored))) != row['predecessor_ast']):
+        raise RuntimeError('Deployed AI prepared historical source changed')
+    _check_function(fn, dict(historical, sha256=row['current_sha256']), root, compiled)
 
 
 def prepared_inputs(root, compiled, successor):
-    return predecessor.prepared_inputs(root, compiled, successor)
+    """Retain every sealed prepared guard with portable AST serialization."""
+    from . import gcp_workbench_shared_hook_successor_20261020 as workbench
+    successor = workbench.reviewed_delta(root)
+    prepared, proof = original.prepared, original.proof
+    raw = (root / 'peaso/checks' / prepared.RECEIPT).read_bytes()
+    if prepared._hash(raw) != prepared.RECEIPT_SHA256:
+        raise RuntimeError('metadata predecessor receipt changed')
+    receipt = json.loads(raw, object_pairs_hook=proof._pairs)
+    if json.dumps(receipt['schema'], sort_keys=True) != json.dumps(prepared._schema(), sort_keys=True):
+        raise RuntimeError('metadata predecessor schema changed')
+    for relative, expected in receipt['sources'].items():
+        path = (root / relative).resolve()
+        raw = path.read_bytes()
+        if relative == receipt['helper_path']:
+            raw = prepared._self(raw)
+        if not path.is_relative_to(root) or prepared._hash(raw) != expected:
+            raise RuntimeError('metadata predecessor source changed')
+    assets = json.loads(gzip.decompress((root / 'peaso/checks' / original.ASSETS).read_bytes()), object_pairs_hook=proof._pairs)
+    required = [row for row in receipt['fixtures'] if row['path'].startswith('peaso/checks/')
+                or row['path'].endswith('/k8s_selected_metadata_secret_native_20261020.json.gz')]
+    if set(assets) != {row['path'] for row in required}:
+        raise RuntimeError('metadata packaged predecessor assets changed')
+    for row in required:
+        entry = assets[row['path']]
+        if entry['sha256'] != row['sha256'] or prepared._hash(bytes.fromhex(entry['hex'])) != row['sha256']:
+            raise RuntimeError('metadata packaged predecessor fixture changed')
+    current = prepared._runtime()
+    if set(current) != set(prepared._ORIGINALS) or set(current) != set(receipt['functions']):
+        raise RuntimeError('metadata predecessor callable set changed')
+    for name, fn in current.items():
+        if fn is not prepared._ORIGINALS[name] or inspect.unwrap(fn) is not prepared._INNERS[name]:
+            raise RuntimeError('metadata predecessor callable replacement')
+        if name in successor['prepared_functions']:
+            _check_prepared_shared(fn, receipt['functions'][name], name, root, compiled, successor)
+        else:
+            _check_function(fn, receipt['functions'][name], root, compiled)
+        if isinstance(fn, types.FunctionType) and (fn.__code__ is not prepared._CODES[name] or fn.__closure__ != prepared._CLOSURES[name]):
+            raise RuntimeError('metadata predecessor wrapper replacement')
+    prepared._clone_bindings()
+    from peaso.collectors import k8s_network_extensions as network
+    if (json.dumps(network.RESOURCES, sort_keys=True) != json.dumps(successor['network_resources'], sort_keys=True)
+            or network.BY_ENDPOINT != {(group, plural): kind for kind, (groups, plural, ns) in network.RESOURCES.items() for group in groups}):
+        raise RuntimeError('metadata network router map changed')
+    _check_function(network.match, successor['network_matcher'], root, compiled)
+    for kind, (version, plural, _) in prepared.producer.NATIVE_KINDS.items():
+        prefix = '/api/v1' if version == 'v1' else '/apis/' + version
+        for path in (prefix + '/namespaces/review/' + plural,
+                     prefix + '/namespaces/review/' + plural + '/selected-name'):
+            if network.match(path) is not None:
+                raise RuntimeError('metadata selected routes overlap network router')
 
 
 def reviewed_inputs(root=None):
@@ -246,7 +457,7 @@ def reviewed_inputs(root=None):
         if name in successor['shared_functions']:
             check_shared(fn, receipt['functions'][name], name, root, compiled, successor)
         else:
-            original._check_function(fn, receipt['functions'][name], root, compiled)
+            _check_function(fn, receipt['functions'][name], root, compiled)
     cases = json.loads((root / 'peaso/checks' / original.CASES).read_bytes(), object_pairs_hook=original.proof._pairs)
     if set(cases) != {original.CHECK}:
         raise RuntimeError('metadata runtime CASES changed')
@@ -292,21 +503,126 @@ def install():
         raise
 
 
+def _dataflow_gcp_delta(root, receipt):
+    """Retain exact sealed GCP branches using explicit portable AST output."""
+    from peaso.collectors import gcp
+    archive = json.loads(gzip.decompress((root / receipt['hook_predecessor']).read_bytes()))
+    prior = archive['peaso/collectors/gcp.py']
+    if hashlib.sha256(prior['content'].encode()).hexdigest() != prior['sha256']:
+        raise RuntimeError('Selected job GCP predecessor changed')
+    source = (root / 'peaso/collectors/gcp.py').read_text()
+    for delta in receipt['gcp_global_additions']:
+        if source.count(delta) != 1:
+            raise RuntimeError('Selected job GCP global hook changed')
+    for name, row in receipt['gcp_function_deltas'].items():
+        function = getattr(gcp.GCPCollector, name)
+        restored = inspect.getsource(function)
+        for addition in row['exact_additions']:
+            if restored.count(addition) != 1:
+                raise RuntimeError('Selected job GCP exact branch changed')
+            restored = restored.replace(addition, '', 1)
+        if (hashlib.sha256(restored.encode()).hexdigest() != row['predecessor_sha256']
+                or _prepared_ast(ast.parse(textwrap.dedent(restored))) != row['predecessor_ast']):
+            raise RuntimeError('Selected job GCP non-selected-source branch changed')
+
+
+def dataflow_reviewed_inputs(root=None):
+    """Explicit portable entrypoint; all canonical Dataflow code stays sealed."""
+    root = Path(root or Path(__file__).resolve().parents[2]).resolve()
+    _verify_bridge(root)
+    admission = _DATAFLOW_ADMISSION
+    if (sys.modules.get(admission.__name__) is not admission
+            or admission.reviewed_inputs not in (_DATAFLOW_REVIEWED_INPUTS, dataflow_reviewed_inputs)
+            or admission._FUNCTIONS != _DATAFLOW_FUNCTIONS
+            or _DATAFLOW_REVIEWED_INPUTS is not _DATAFLOW_FUNCTIONS[admission.__name__ + ':reviewed_inputs']):
+        raise RuntimeError('Deployed AI Dataflow admission entrypoint changed')
+    if admission.shared not in (historical, predecessor.predecessor.predecessor, predecessor.predecessor, predecessor, sys.modules[__name__]):
+        raise RuntimeError('Deployed AI Dataflow shared alias replaced')
+    runtime, candidate = admission.runtime, admission.candidate
+    raw = (root / 'peaso/checks' / admission.RECEIPT).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != admission.RECEIPT_SHA256:
+        raise RuntimeError('Selected job admission receipt changed')
+    receipt = json.loads(raw)
+    if (receipt['schema_version'] != 1 or tuple(d['id'] for d in receipt['declarations']) != runtime.CHECKS
+            or receipt['declarations'] != candidate.DECLARATIONS
+            or runtime._Grant is not admission._GRANT or runtime._SEAL is not admission._SEAL
+            or candidate.runtime is not runtime or candidate.dataflow.predecessor.source is not runtime.dataflow
+            or candidate.batch.source is not runtime.batch):
+        raise RuntimeError('Selected job admission metadata/binding changed')
+    for name, digest in receipt['sources'].items():
+        path = (root / name).resolve()
+        if not path.is_relative_to(root / 'peaso'):
+            raise RuntimeError('Selected job admission dependency outside package')
+        raw = path.read_bytes()
+        if name == receipt['helper_path']:
+            raw = admission._self(raw)
+        if hashlib.sha256(raw).hexdigest() != digest:
+            raise RuntimeError('Selected job admission reviewed source changed')
+    if any(actual is not expected for actual, expected in admission._bindings()):
+        raise RuntimeError('Selected job admission imported binding changed')
+    public_profiles = {name: {k: p[k] for k in ('check', 'kind', 'marker')} for name, p in runtime.PROFILES.items()}
+    if public_profiles != receipt['profiles'] or any(p['source'] is not (runtime.dataflow if name == 'dataflow' else runtime.batch) for name, p in runtime.PROFILES.items()):
+        raise RuntimeError('Selected job admission profile changed')
+    _dataflow_gcp_delta(root, receipt)
+    reviewed_inputs(root)
+    compiled = {}
+    for qualified, row in receipt['runtime_functions'].items():
+        owner_name, attribute = qualified.split(':'); owner = importlib.import_module(owner_name)
+        function = owner
+        for part in attribute.split('.'):
+            function = getattr(function, part)
+        if qualified == admission.__name__ + ':reviewed_inputs':
+            if function not in (_DATAFLOW_REVIEWED_INPUTS, dataflow_reviewed_inputs):
+                raise RuntimeError('Deployed AI Dataflow admission entrypoint replaced')
+            function = _DATAFLOW_REVIEWED_INPUTS
+        if qualified in _DATAFLOW_FUNCTIONS and function is not _DATAFLOW_FUNCTIONS[qualified]:
+            raise RuntimeError('Selected job admission callable replaced')
+        _check_function(function, row, root, compiled)
+    path = (root / 'peaso/checks' / admission.CASES).resolve()
+    if not path.is_relative_to(root / 'peaso/checks') or hashlib.sha256(path.read_bytes()).hexdigest() != receipt['cases_sha256']:
+        raise RuntimeError('Selected job native cases changed')
+    cases = json.loads(path.read_bytes())
+    if set(cases) != set(runtime.CHECKS):
+        raise RuntimeError('Selected job native case identities changed')
+    declarations = []
+    for profile, declaration in zip(runtime.PROFILES, candidate.DECLARATIONS):
+        function = getattr(candidate, profile + '_source'); case = cases[declaration['id']]
+        for branch in ('pass', 'fail', 'unknown', 'partial', 'missing', 'malformed'):
+            status, details = function(deepcopy(case[branch]), deepcopy(case.get(branch + '_index', case['index'])))
+            expected = 'FAIL' if branch == 'partial' else branch.upper() if branch in ('pass', 'fail') else 'UNKNOWN'
+            if status != expected or branch == 'partial' and details.get('complete') is not False:
+                raise RuntimeError('Selected job native branch changed')
+        declarations.append((declaration, function))
+    return receipt, cases, declarations
+
+
 def install_dataflow(admission):
-    """Only reviewed shared admission alias changes; its 119 functions stay exact."""
-    receipt = reviewed_delta()
-    if admission.shared not in (historical, predecessor.predecessor.predecessor, predecessor.predecessor, predecessor, __import__(__name__, fromlist=[''])):
-        raise RuntimeError('CodeBuild Dataflow shared alias replaced')
-    old = admission.shared
-    admission.shared = __import__(__name__, fromlist=[''])
+    """Publish one checked entrypoint alias, retaining every original function."""
+    reviewed_delta()
+    if admission is not _DATAFLOW_ADMISSION:
+        raise RuntimeError('Deployed AI Dataflow admission module replaced')
+    dataflow_reviewed_inputs()
+    old_shared, old_reviewed = admission.shared, admission.reviewed_inputs
+    admission.shared = sys.modules[__name__]
+    admission.reviewed_inputs = dataflow_reviewed_inputs
     try:
         admission.install()
     except Exception:
-        admission.shared = old
+        admission.shared, admission.reviewed_inputs = old_shared, old_reviewed
         raise
 
 
 def install_bundle():
+    """Release this wave's compilation cache on success and every exception."""
+    _verify_bridge(Path(__file__).resolve().parents[2])
+    token = _COMPILED_TRANSACTION.set(_transaction_compiler())
+    try:
+        return _install_bundle()
+    finally:
+        _COMPILED_TRANSACTION.reset(token)
+
+
+def _install_bundle():
     """Preflight before registry/alias mutation, then roll back this whole wave."""
     _verify_bridge(Path(__file__).resolve().parents[2])
     from . import CHECKS
@@ -329,6 +645,7 @@ def install_bundle():
     before = tuple(CHECKS)
     old_cases = {ident: CASES[ident] for ident in ids if ident in CASES}
     old_reviewed, old_installed, old_shared = original.reviewed_inputs, original._INSTALLED, dataflow.shared
+    old_dataflow_reviewed = dataflow.reviewed_inputs
     old_package, old_tde = package._INSTALLED, dict(tde.original._INSTALLED)
     old_codebuild_reviewed = codebuild.reviewed_inputs
     old_command_reviewed = commands.runtime.source.reviewed_sources
@@ -349,6 +666,7 @@ def install_bundle():
             else:
                 CASES.pop(ident, None)
         original.reviewed_inputs, original._INSTALLED, dataflow.shared = old_reviewed, old_installed, old_shared
+        dataflow.reviewed_inputs = old_dataflow_reviewed
         package._INSTALLED = old_package
         codebuild.reviewed_inputs = old_codebuild_reviewed
         commands.runtime.source.reviewed_sources = old_command_reviewed

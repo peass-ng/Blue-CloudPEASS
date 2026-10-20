@@ -166,6 +166,48 @@
       "qualname": "reviewed_inputs",
       "sha256": "e9d6a0a4d1567a8e50383c94cd918fc3d2c9b820d48a6ecb53a623bb44a96540"
     },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:_check_function": {
+      "defaults": null,
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "_check_function",
+      "sha256": "86dcb3c1407ba6917655b616baeb3ec3aa5a20cf757d89b075503b20047c71ba"
+    },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:_check_prepared_shared": {
+      "defaults": null,
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "_check_prepared_shared",
+      "sha256": "8479e4f7a25d3ad475348fca8a55b958b99f2348c738d30274df5c6970dac1f5"
+    },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:_compiled_source": {
+      "defaults": null,
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "_compiled_source",
+      "sha256": "d9fc2c5d7820bada8718c48d62f09774a0c6a27c634336e0016b74fce7173ea0"
+    },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:_dataflow_gcp_delta": {
+      "defaults": null,
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "_dataflow_gcp_delta",
+      "sha256": "d4abb663219cf4c06ebfcd31f876a0e59d9f087d0bca6739bbec71438c71a80e"
+    },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:_install_bundle": {
+      "defaults": null,
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "_install_bundle",
+      "sha256": "a4f2c5decba1dd211fdaa1df9349c93449905c4056204684ba9ccf51a368f207"
+    },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:_prepared_ast": {
+      "defaults": null,
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "_prepared_ast",
+      "sha256": "a7e46d97b829562d64790fe6b442f232a21b821e1bbee46eda389c31a7bb21ea"
+    },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:_reverse": {
       "defaults": null,
       "kwdefaults": null,
@@ -180,12 +222,19 @@
       "qualname": "_self",
       "sha256": "005799245d41e375ae4b6d7d985541d305276ef2202a09f5877fa2a0014aa787"
     },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:_transaction_compiler": {
+      "defaults": null,
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "_transaction_compiler",
+      "sha256": "d3ec023e1c875559eb84e7f499213d9f2da8d9480a7e3b6e4ce58f8cb81ae764"
+    },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:_verify_bridge": {
       "defaults": null,
       "kwdefaults": null,
       "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
       "qualname": "_verify_bridge",
-      "sha256": "5a0bc0226485201d6082496614a13864a9753df2c6ade3b4e16f70fb2d4692de"
+      "sha256": "9a599ad572261c170d9deaec18938049a5eac6df7739391821987c3698873f46"
     },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:check_aws": {
       "defaults": null,
@@ -199,7 +248,16 @@
       "kwdefaults": null,
       "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
       "qualname": "check_shared",
-      "sha256": "5c949013f531a05dff13d551b148be73d04490247c77abbd4832be8b6a1aa4b0"
+      "sha256": "b699a458338fd44da0d7dc06984eeae47d12967499948aeb545b99686495f8eb"
+    },
+    "peaso.checks.aws_deployed_ai_shared_successor_20261020:dataflow_reviewed_inputs": {
+      "defaults": [
+        null
+      ],
+      "kwdefaults": null,
+      "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
+      "qualname": "dataflow_reviewed_inputs",
+      "sha256": "2ea6586d65f3b709208c076856d29bb5034dfb8c848715b264e735c7cc6da8c1"
     },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:install": {
       "defaults": null,
@@ -213,14 +271,14 @@
       "kwdefaults": null,
       "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
       "qualname": "install_bundle",
-      "sha256": "25669a80c2f69020c1387155328add3d1f39d05863bf3b1403418ad97bc9597f"
+      "sha256": "01ed92835896fc0ec79ded4cae7ccbf7ec08f29276ede6da3cd3ef523cff7739"
     },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:install_dataflow": {
       "defaults": null,
       "kwdefaults": null,
       "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
       "qualname": "install_dataflow",
-      "sha256": "6e607b98eff40064dd902392e1be70fb14ff6786e4cc0725dc7657d4afe83813"
+      "sha256": "88359ead322a6cd9058a9b63174fe4602fc10d775c5a516505c794dd8b93b357"
     },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:install_s3": {
       "defaults": null,
@@ -234,7 +292,7 @@
       "kwdefaults": null,
       "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
       "qualname": "prepared_inputs",
-      "sha256": "80f7e9f9519615ebdf793204c649900986827e204a399a6ce2a4ee55526b9d93"
+      "sha256": "4a5d088e66d5e4c845f662546f41493b39ab50b2ac85bbdfd515a5e869bf18eb"
     },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:reviewed_delta": {
       "defaults": [
@@ -243,7 +301,7 @@
       "kwdefaults": null,
       "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
       "qualname": "reviewed_delta",
-      "sha256": "29f57df32d7fa501cadd8cd1a969967e4f7c499cdbc4b5b6cd87a3976ab18a9d"
+      "sha256": "b28dbff626259b091e6ac0c7a72a035e6c90e86617d10dcf4ff3928bed8fd746"
     },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:reviewed_inputs": {
       "defaults": [
@@ -252,7 +310,7 @@
       "kwdefaults": null,
       "path": "peaso/checks/aws_deployed_ai_shared_successor_20261020.py",
       "qualname": "reviewed_inputs",
-      "sha256": "feaf1532e39f2c80712eb55800284242254d6aa79a6b7f0e8d0bdbfa61b3ca6a"
+      "sha256": "38e5c65e81ae3609dfa16865bd2813cbc2000719eb1fa67e0d33c6c46b676f94"
     },
     "peaso.checks.aws_deployed_ai_shared_successor_20261020:s3_reviewed_inputs": {
       "defaults": null,
@@ -908,7 +966,7 @@
     },
     "peaso/checks/aws_deployed_ai_shared_successor_20261020.py": {
       "normalization": "self",
-      "sha256": "7e2f05c4b1c5ba16a7731ab3fcf322a6584dc2f969e7ac76e41fd17db8f0696f"
+      "sha256": "bbc6dc101ef8554c8412bf4b71449d7afd86888eb7695f73808a125060845fef"
     },
     "peaso/checks/aws_workload_command_codebuild_successor_20261020.py": {
       "normalization": "none",
