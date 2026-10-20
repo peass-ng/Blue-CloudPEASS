@@ -60,6 +60,7 @@ from .aws_customer_profiles_export_next import normalize as normalize_aws_custom
 from .aws_servicecatalog_next import normalize as normalize_aws_servicecatalog, correlate as correlate_aws_servicecatalog
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_ssec_next import normalize as normalize_aws_s3_ssec, correlate as correlate_aws_s3_ssec
+from .aws_iot_core_batch_next import normalize as normalize_aws_iot_core_batch
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
 from .aws_s3_replication_next import normalize_aws_s3_replication
 from .aws_ecr_replication_next import normalize_aws_ecr_replication
@@ -192,8 +193,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "9d20ec10a0ed972d7d71f19d7a0f65c6a443295b"
-DEFAULT_RULE_PACK_SHA256 = "fb913af3e3865f418a0c04e51456d63b550d2b1c1cae090d1f5ec831519f57d6"
+DEFAULT_RULE_REF = "43e665a8885a90cea0d4ec4cf95a7e301d43ead2"
+DEFAULT_RULE_PACK_SHA256 = "20f460b64c8aec5809fc53c26b5bf1e9a52799edd061faf98f13c36f4c187e40"
 
 
 @dataclass(frozen=True)
@@ -339,6 +340,7 @@ def detect_aws_events(
         servicecatalog = normalize_aws_servicecatalog(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_ssec = normalize_aws_s3_ssec(record)
+        iot_core_batch = normalize_aws_iot_core_batch(record)
         s3_notification = normalize_aws_s3_template_notification(record)
         s3_replication = normalize_aws_s3_replication(record)
         ecr_replication = normalize_aws_ecr_replication(record)
@@ -485,6 +487,7 @@ def detect_aws_events(
                 + ([servicecatalog] if servicecatalog is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_ssec] if s3_ssec is not None else [])
+                + ([iot_core_batch] if iot_core_batch is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
                 + ([s3_replication] if s3_replication is not None else [])
                 + ([ecr_replication] if ecr_replication is not None else [])

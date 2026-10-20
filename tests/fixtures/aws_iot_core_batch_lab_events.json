@@ -1,0 +1,127 @@
+{
+  "derivation": "Synthetic account, roles, aliases, rule, tunnel and IDs; event field shapes from owned CloudTrail lab. No credentials or customer identifiers.",
+  "events": [
+    {
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:27:00Z",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventID": "synthetic-CreateRoleAlias",
+      "eventName": "CreateRoleAlias",
+      "eventSource": "iot.amazonaws.com",
+      "requestParameters": {
+        "roleAlias": "synthetic-iot-alias",
+        "roleArn": "arn:aws:iam::999999999999:role/SyntheticReadRole"
+      },
+      "responseElements": {
+        "roleAlias": "synthetic-iot-alias",
+        "roleAliasArn": "arn:aws:iot:us-east-1:999999999999:rolealias/synthetic-iot-alias"
+      }
+    },
+    {
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:27:00Z",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventID": "synthetic-UpdateRoleAlias",
+      "eventName": "UpdateRoleAlias",
+      "eventSource": "iot.amazonaws.com",
+      "requestParameters": {
+        "roleAlias": "synthetic-iot-alias",
+        "roleArn": "arn:aws:iam::999999999999:role/SyntheticCanaryRole"
+      },
+      "responseElements": {
+        "roleAlias": "synthetic-iot-alias",
+        "roleAliasArn": "arn:aws:iot:us-east-1:999999999999:rolealias/synthetic-iot-alias"
+      }
+    },
+    {
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:27:00Z",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventID": "synthetic-CreateTopicRule",
+      "eventName": "CreateTopicRule",
+      "eventSource": "iot.amazonaws.com",
+      "requestParameters": {
+        "ruleName": "synthetic_iot_rule"
+      },
+      "responseElements": null
+    },
+    {
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:27:00Z",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventID": "synthetic-OpenTunnel",
+      "eventName": "OpenTunnel",
+      "eventSource": "iotsecuredtunneling.amazonaws.com",
+      "requestParameters": {
+        "description": "synthetic owned lab",
+        "timeoutConfig": {
+          "maxLifetimeTimeoutMinutes": 5
+        }
+      },
+      "responseElements": {
+        "tunnelArn": "arn:aws:iot:us-east-1:999999999999:tunnel/synthetic-tunnel-id",
+        "tunnelId": "synthetic-tunnel-id"
+      }
+    },
+    {
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:27:00Z",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventID": "synthetic-RotateTunnelAccessToken",
+      "eventName": "RotateTunnelAccessToken",
+      "eventSource": "iotsecuredtunneling.amazonaws.com",
+      "requestParameters": {
+        "tunnelId": "synthetic-tunnel-id",
+        "clientMode": "SOURCE"
+      },
+      "responseElements": {
+        "tunnelArn": "arn:aws:iot:us-east-1:999999999999:tunnel/synthetic-tunnel-id"
+      }
+    }
+  ]
+}
