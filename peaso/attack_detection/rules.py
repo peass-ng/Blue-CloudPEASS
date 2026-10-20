@@ -59,6 +59,7 @@ from .aws_customer_profiles_segments_next import normalize as normalize_aws_cust
 from .aws_customer_profiles_export_next import normalize as normalize_aws_customer_profiles_export
 from .aws_servicecatalog_next import normalize as normalize_aws_servicecatalog, correlate as correlate_aws_servicecatalog
 from .aws_s3_retention_next import normalize_aws_s3_retention
+from .aws_s3_ssec_next import normalize as normalize_aws_s3_ssec, correlate as correlate_aws_s3_ssec
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
 from .aws_s3_replication_next import normalize_aws_s3_replication
 from .aws_ecr_replication_next import normalize_aws_ecr_replication
@@ -191,8 +192,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "568d9a6ce5708815fea1266dc10df1bd25b2fe5f"
-DEFAULT_RULE_PACK_SHA256 = "8350a351c07c52cd2dbe92afe9ea7ed871ec60c25d437c8bf20ac138dfb30a1e"
+DEFAULT_RULE_REF = "9d20ec10a0ed972d7d71f19d7a0f65c6a443295b"
+DEFAULT_RULE_PACK_SHA256 = "fb913af3e3865f418a0c04e51456d63b550d2b1c1cae090d1f5ec831519f57d6"
 
 
 @dataclass(frozen=True)
@@ -337,6 +338,7 @@ def detect_aws_events(
         customer_profiles_export = normalize_aws_customer_profiles_export(record)
         servicecatalog = normalize_aws_servicecatalog(record)
         s3_retention = normalize_aws_s3_retention(record)
+        s3_ssec = normalize_aws_s3_ssec(record)
         s3_notification = normalize_aws_s3_template_notification(record)
         s3_replication = normalize_aws_s3_replication(record)
         ecr_replication = normalize_aws_ecr_replication(record)
@@ -482,6 +484,7 @@ def detect_aws_events(
                 + ([customer_profiles_export] if customer_profiles_export is not None else [])
                 + ([servicecatalog] if servicecatalog is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
+                + ([s3_ssec] if s3_ssec is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
                 + ([s3_replication] if s3_replication is not None else [])
                 + ([ecr_replication] if ecr_replication is not None else [])
@@ -622,6 +625,7 @@ def detect_aws_events(
     appconfig_hosted_records: list[Mapping[str, Any]] = []
     cloudtrail_log_dest_records: list[Mapping[str, Any]] = []
     cloudtrail_log_object_records: list[Mapping[str, Any]] = []
+    s3_ssec_records: list[Mapping[str, Any]] = []
     ecr_image_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
@@ -697,6 +701,8 @@ def detect_aws_events(
                 or (record.get("eventSource") == "kms.amazonaws.com"
                     and record.get("eventName") == "DisableKey")):
                 cloudtrail_log_object_records.append(record)
+            if record.get("eventSource") == "s3.amazonaws.com" and record.get("eventName") in {"PutObject", "CopyObject"}:
+                s3_ssec_records.append(record)
             if record.get("eventSource") == "lambda.amazonaws.com" and record.get("eventName") in {
                     "CreateFunction20150331", "UpdateFunctionConfiguration20150331v2",
                     "UpdateFunctionCode20150331v2", "AddPermission20150331v2",
@@ -749,6 +755,7 @@ def detect_aws_events(
     correlated += correlate_aws_appconfig_hosted(appconfig_hosted_records)
     correlated += correlate_aws_cloudtrail_log_dest(cloudtrail_log_dest_records)
     correlated += correlate_aws_cloudtrail_log_objects(cloudtrail_log_object_records)
+    correlated += correlate_aws_s3_ssec(s3_ssec_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     if correlated:
