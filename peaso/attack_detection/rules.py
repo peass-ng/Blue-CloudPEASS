@@ -175,6 +175,7 @@ from .aws_ssm_session_next import normalize_aws_ssm_session_start
 from .aws_ssm_automation_window_next import normalize_aws_ssm_automation_window, correlate_aws_ssm_document_window
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
+from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
 from .aws_rds_controls_next import normalize_aws_rds_controls
 from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_aws_rds_public_clone_password_reset
 from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
@@ -473,6 +474,7 @@ def detect_aws_events(
         stepfunctions_activity_alias = normalize_aws_stepfunctions_activity_alias(record)
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
         sfn_role_routes = normalize_aws_sfn_role_routes(record)
+        sfn_reveal_secrets = normalize_aws_sfn_reveal_secrets(record)
         rds_controls = normalize_aws_rds_controls(record)
         rds_restore_controls = normalize_aws_rds_restore_controls(record)
         rds_parameters = normalize_aws_rds_parameters(record)
@@ -642,6 +644,7 @@ def detect_aws_events(
                 + ([stepfunctions_activity_alias] if stepfunctions_activity_alias is not None else [])
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
                 + ([sfn_role_routes] if sfn_role_routes is not None else [])
+                + ([sfn_reveal_secrets] if sfn_reveal_secrets is not None else [])
                 + ([rds_controls] if rds_controls is not None else [])
                 + ([rds_restore_controls] if rds_restore_controls is not None else [])
                 + ([rds_parameters] if rds_parameters is not None else [])
@@ -677,6 +680,7 @@ def detect_aws_events(
     sqs_tag_records: list[Mapping[str, Any]] = []
     sqs_fifo_records: list[Mapping[str, Any]] = []
     sfn_new_machine_records: list[Mapping[str, Any]] = []
+    sfn_http_credential_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
@@ -771,6 +775,10 @@ def detect_aws_events(
                 sqs_fifo_records.append(record)
             if record.get("eventSource") == "states.amazonaws.com" and record.get("eventName") in {"CreateStateMachine", "StartExecution"}:
                 sfn_new_machine_records.append(record)
+            if ((record.get("eventSource") == "states.amazonaws.com" and record.get("eventName") == "TestState")
+                    or (record.get("eventSource") == "secretsmanager.amazonaws.com"
+                        and record.get("eventName") == "GetSecretValue")):
+                sfn_http_credential_records.append(record)
             if ((record.get("eventSource") == "codepipeline.amazonaws.com" and record.get("eventName") in {
                     "CreatePipeline", "UpdatePipeline", "StartPipelineExecution", "AcknowledgeJob", "PutJobSuccessResult"})
                     or (record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") == "UpdateProject")
@@ -834,6 +842,7 @@ def detect_aws_events(
     correlated += correlate_aws_sqs_tagged_receive(sqs_tag_records)
     correlated += correlate_aws_sqs_fifo_dedup_collision(sqs_fifo_records)
     correlated += correlate_aws_sfn_new_machine_start(sfn_new_machine_records)
+    correlated += correlate_aws_sfn_connection_secret_read(sfn_http_credential_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
