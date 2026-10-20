@@ -41,22 +41,34 @@ class Recommendations(Strict):
 
 
 class NetworkEvidence(Strict):
-    summary: str = Field(min_length=1, max_length=1000)
-    resource_ids: list[str] = Field(min_length=1, max_length=50)
-    graph_refs: list[str] = Field(max_length=50)
-    observations: list[Annotated[str, Field(min_length=1, max_length=1000)]] = Field(min_length=1, max_length=10)
+    summary: str = Field(min_length=1, max_length=1000, description='One to three short, natural-language lines explaining the exact weak boundary, observed configuration and affected resources. Include concrete selectors, CIDRs and ports when available; no generic warnings.')
+    resource_ids: list[str] = Field(min_length=1, max_length=50, description='Existing original platform IDs for every affected control or workload, including the primary resource_id.')
+    graph_refs: list[str] = Field(max_length=50, description='Existing node or edge IDs supporting the configuration and relationships; never invented references.')
+    observations: list[Annotated[str, Field(min_length=1, max_length=1000)]] = Field(min_length=1, max_length=10, description='Specific observed rule values, native resource identifiers, selectors, protocols/ports and evidence paths supporting this finding.')
+
+    @model_validator(mode='after')
+    def meaningful_evidence(self):
+        if not self.summary.strip() or any(not item.strip() for item in self.observations):
+            raise ValueError('Network evidence must contain substantive text')
+        return self
 
 
 class NetworkFinding(Strict):
-    title: str = Field(min_length=1, max_length=300)
-    description: str = Field(min_length=1, max_length=1000)
-    rationale: str = Field(min_length=1, max_length=1000)
-    resource_id: str
-    severity: Literal['critical', 'high', 'medium', 'low', 'info']
-    status: Literal['FAIL', 'MANUAL', 'UNKNOWN']
+    title: str = Field(min_length=1, max_length=300, description='A concise actionable title naming the affected boundary or control and the needed change.')
+    description: str = Field(min_length=1, max_length=1000, description='What is misconfigured: identify the affected tier/boundary, native controls and exact observed rule or route. Do not claim live reachability from configuration alone.')
+    rationale: str = Field(min_length=1, max_length=1000, description='Why this configuration weakens segmentation, which workloads or tiers are affected, and any decision-changing dependency or intent assumption.')
+    resource_id: str = Field(min_length=1, description='Primary affected control’s original platform resource ID, not its graph ID or native ID. The platform derives its display identity and scope.')
+    severity: Literal['critical', 'high', 'medium', 'low', 'info'] = Field(description='Severity justified by the evidenced scope and impact of the boundary weakness; do not inflate based on unverified exploitation.')
+    status: Literal['FAIL', 'MANUAL', 'UNKNOWN'] = Field(description='FAIL for an evidenced configuration weakness; MANUAL when the recommendation depends on unconfirmed intent or dependencies; UNKNOWN when configuration is missing or denied.')
     evidence: NetworkEvidence
-    remediation: str = Field(min_length=1, max_length=2000)
-    verification: str = Field(min_length=1, max_length=1000)
+    remediation: str = Field(min_length=1, max_length=2000, description='Concrete change to the named enforcement control: allowed source/destination and protocols/ports where evidenced, prerequisites and staged rollout preserving required dependencies.')
+    verification: str = Field(min_length=1, max_length=1000, description='Specific read-only configuration checks and owner validation of required connectivity after the change, including expected allowed and restricted flows.')
+
+    @model_validator(mode='after')
+    def meaningful_finding(self):
+        if any(not getattr(self, name).strip() for name in ('title', 'description', 'rationale', 'resource_id', 'remediation', 'verification')):
+            raise ValueError('Network finding fields must contain substantive text')
+        return self
 
 
 class NetworkReview(Strict):
@@ -86,7 +98,8 @@ def validate_network(data, platform):
         ident = stable_id('ai.network', *key)
         row.update(id=ident, check_id='ai.network.' + ident.split(':')[1], category='network',
                    provider=resource['provider'], scope=resource['scope'], service=resource.get('service') or 'network',
-                   frameworks=[], finding_type='network', native_resource_id=resource.get('native_id', resource['id']))
+                   frameworks=[], finding_type='network', native_resource_id=resource.get('native_id') or resource['id'],
+                   resource_name=resource.get('name') or resource.get('native_id') or resource['id'])
         evidence['source'] = 'ai_network_review'
         row['evidence_summary'] = evidence['summary']
     return value

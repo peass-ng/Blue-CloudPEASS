@@ -28,3 +28,15 @@
 .network-architecture { max-width: 100ch; }
 .network-architecture p { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.7; }
 .network-architecture p + p { margin-top: 1.25rem; }
+
+.network-findings-table .network-finding-summary { color: var(--muted); margin: 8px 0 0; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.network-findings-table .finding-title { overflow-wrap: anywhere; }
+.network-findings-table td { vertical-align: middle; }
+.network-findings-table .network-finding-scope { overflow-wrap: anywhere; font-size: 11px; color: var(--muted); }
+.network-findings-panel .filters { align-items: center; }
+.network-findings-panel .actions-empty { text-align: center; color: var(--muted); height: 160px; }
+.network-finding-inspector h2, .network-finding-inspector p { overflow-wrap: anywhere; }
+.network-findings-table { min-width: 1100px; }
+.network-findings-table th:nth-child(2) { width: 32%; }
+.network-findings-table th:nth-child(3) { width: 100px; }
+.network-findings-table th:nth-child(4), .network-findings-table th:nth-child(5) { width: 180px; }

@@ -1425,3 +1425,30 @@ def test_network_purpose_hints_preserve_labels_without_application_settings(prov
     projected = native_network_resource({'id': 'r', 'provider': provider, 'type': kind, 'data': data})
     assert 'api' in json.dumps(projected['data'][purpose_key])
     assert 'never-give' not in json.dumps(projected)
+
+@pytest.mark.parametrize('field', ['title', 'description', 'rationale', 'resource_id', 'remediation', 'verification', 'summary', 'observation'])
+def test_network_findings_reject_blank_display_or_evidence_fields(field):
+    _, _, output = network_fixture()
+    row = output['findings'][0]
+    if field == 'summary':
+        row['evidence']['summary'] = '   '
+    elif field == 'observation':
+        row['evidence']['observations'] = ['\n\t']
+    else:
+        row[field] = '   '
+    with pytest.raises(ValueError, match='substantive text'):
+        NetworkReview.model_validate(output)
+
+
+def test_network_display_identity_is_bound_to_the_referenced_inventory():
+    from peaso.ai.network import prepare
+    data, inventory, output = network_fixture()
+    inventory[1].update(name='Backend database control', service='ec2')
+    row = validate_network(output, prepare(data, inventory, {}))['findings'][0]
+    assert row['resource_name'] == 'Backend database control'
+    assert row['native_resource_id'] == 'native-r2'
+    assert row['provider'] == 'aws' and row['scope'] == '123456789012/us-east-1' and row['service'] == 'ec2'
+    assert row['evidence_summary'] == output['findings'][0]['evidence']['summary']
+    for key in ('provider', 'scope', 'service', 'resource_name', 'native_resource_id'):
+        with pytest.raises(ValueError):
+            NetworkReview.model_validate(output | {'findings': [output['findings'][0] | {key: 'invented'}]})

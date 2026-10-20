@@ -93,10 +93,15 @@ test('network findings have a separate page below Network Map', async ({ page })
   await expect(page.getByRole('region', { name: 'Network architecture' }).locator('p')).toHaveCount(2);
   await expect(page.getByText('Required traffic must be confirmed.', { exact: true })).toHaveCount(0);
   await expect(page.getByText(/AI suggestions|Validate workload dependencies before changing connectivity/)).toHaveCount(0);
-  await page.locator('summary').filter({ hasText: 'Restrict backend security group sources' }).click();
+  const networkTable = page.getByRole('region', { name: 'Network findings table' });
+  await expect(networkTable.locator('tbody tr')).toHaveCount(1);
+  await expect(networkTable.getByText('10.0.0.0/8 is allowed.', { exact: true })).toBeVisible();
+  await networkTable.getByRole('button', { name: 'Restrict backend security group sources', exact: true }).click();
   await expect(page.getByText(network.findings[0].remediation, { exact: true })).toBeVisible();
   await expect(page.getByText(network.findings[0].verification, { exact: true })).toBeVisible();
   await expect(page.getByText('Legacy evidence disclaimer.', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close inspector' }).click();
+  await expect(networkTable.getByRole('button', { name: network.findings[0].title, exact: true })).toBeFocused();
   await nav.getByRole('button', { name: 'Top 15 Actions', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Top 15 Actions', exact: true }).first()).toBeVisible();
   await expect(page.getByText(explanation, { exact: true })).toHaveCount(0);
@@ -195,5 +200,63 @@ for (const width of [1280, 390]) {
     await page.getByRole('button', { name: 'Clear search', exact: true }).click();
     await expect(table.locator('tbody tr')).toHaveCount(15);
     await expect(table.getByRole('columnheader', { name: 'Order' })).toHaveCount(0);
+  });
+}
+
+for (const width of [1280, 390]) {
+  test(`network findings support complete-set filtering, sorting, paging and evidence drawers at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await setup(page);
+    await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', connector_id: 'account', status: 'completed' }] } }));
+    const findings = Array.from({ length: 60 }, (_, index) => ({
+      id: `network-${index}`, check_id: `ai.network.${index}`, category: 'network', provider: 'aws', service: 'ec2',
+      resource_id: `resource-${index}`, resource_name: `Database control ${index}`, native_resource_id: `sg-${index}`, scope: '123456789012/us-east-1',
+      title: `Restrict database tier access ${String(index).padStart(2, '0')}`, severity: index === 59 ? 'high' : 'medium', status: index === 59 ? 'MANUAL' : 'FAIL',
+      description: 'The database control accepts all application subnet sources on TCP 5432.',
+      rationale: 'Subnet-wide trust admits unrelated application workloads to the database tier.', frameworks: [],
+      evidence_summary: `Control sg-${index} accepts 10.0.1.0/24 on TCP 5432.`,
+      evidence: { summary: `Control sg-${index} accepts 10.0.1.0/24 on TCP 5432.`, source: 'ai_network_review', resource_ids: [`resource-${index}`], graph_refs: ['edge-db'], observations: ['IpPermissions[0] admits TCP 5432 from 10.0.1.0/24.'] },
+      remediation: 'Replace subnet-wide trust with the approved API security group on TCP 5432 after confirming client dependencies.',
+      verification: index === 59 ? 'Unique verification: approved API clients connect while unrelated workloads have no allowed database rule.' : 'Verify approved clients retain their database rule.',
+    }));
+    await page.route('**/api/scans/scan/ai?*', route => {
+      const url = new URL(route.request().url());
+      const offset = Number(url.searchParams.get('offset'));
+      const limit = Number(url.searchParams.get('limit'));
+      return route.fulfill({ json: { actions: [], network: { status: 'completed', explanation: 'Application VPC separates API and database subnet tiers.', total: findings.length, findings: findings.slice(offset, offset + limit) } } });
+    });
+    await page.goto('/#Network%20Findings');
+    const table = page.getByRole('region', { name: 'Network findings table' });
+    await expect(table.locator('table')).toHaveClass(/findings-table/);
+    await expect(table.locator('tbody tr')).toHaveCount(25);
+    await expect(table.getByRole('columnheader')).toHaveText(['Severity', 'Finding', 'Service', 'Asset', 'Scope', 'Status']);
+    await expect(table.locator('tbody tr').first()).toContainText(findings[59].title);
+    await page.getByRole('button', { name: 'Next page', exact: true }).click();
+    await expect(page.getByText('26–50 of 60 findings', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Next page', exact: true }).click();
+    await expect(table.locator('tbody tr')).toHaveCount(10);
+    await page.getByLabel('Search network findings').fill('Unique verification');
+    await expect(table.locator('tbody tr')).toHaveCount(1);
+    await expect(table.locator('tbody')).toContainText(findings[59].title);
+    await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
+    await page.getByLabel('Network finding status').selectOption('UNKNOWN,MANUAL');
+    await expect(table.locator('tbody tr')).toHaveCount(1);
+    await page.getByLabel('Network finding severity').selectOption('low');
+    await expect(table.getByText('No network findings match your filters.', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Reset filters', exact: true }).click();
+    await table.getByRole('columnheader', { name: 'Finding', exact: true }).getByRole('button').click();
+    await expect(table.locator('tbody tr').first()).toContainText(findings[0].title);
+    const title = table.getByRole('button', { name: findings[0].title, exact: true });
+    await title.click();
+    const drawer = page.getByRole('dialog');
+    for (const text of [findings[0].resource_name, findings[0].native_resource_id, findings[0].description, findings[0].rationale, findings[0].evidence.observations[0], findings[0].remediation, findings[0].verification])
+      await expect(drawer.getByText(text, { exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+    await expect(title).toBeFocused();
+    const geometry = await table.evaluate(element => ({ pageWidth: document.documentElement.scrollWidth, viewport: innerWidth, width: element.clientWidth, content: element.scrollWidth }));
+    expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
+    if (width === 390) expect(geometry.content).toBeGreaterThan(geometry.width);
+    await page.screenshot({ path: `/tmp/cspm-network-findings-table-${width}.png`, fullPage: true });
   });
 }
