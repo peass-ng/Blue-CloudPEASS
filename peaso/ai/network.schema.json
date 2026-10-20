@@ -139,7 +139,7 @@
   "additionalProperties": false,
   "properties": {
     "explanation": {
-      "description": "Short paragraphs organized by VPC/VNet/network and subnet tier. Explain each boundary\u2019s structure, workload purpose and the configuration supporting that purpose; group equivalent default networks.",
+      "description": "Readable outline with ### headings per VPC/VNet/network, #### headings per subnet tier/connectivity boundary, and short - bullet lists separated by blank lines. Introduce each network with region, address space and purpose. Explain tier placement, purpose and enforcement in one or two sentences per bullet; group equivalent default networks. No dense global paragraphs.",
       "maxLength": 12000,
       "minLength": 1,
       "title": "Explanation",

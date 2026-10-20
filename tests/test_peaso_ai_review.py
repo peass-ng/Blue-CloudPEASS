@@ -1411,7 +1411,9 @@ def test_network_prompt_requires_distinct_segmentation_issue_on_shared_exposure_
     assert 'distinct internal trust boundary' in prompt
     assert 'Do not return public buckets, public URLs/endpoints or world-source ports' in prompt
     assert 'names/tags, workload attachments, dependencies and routes as evidence' in prompt
-    assert 'one per distinct VPC/VNet/network' in prompt
+    assert '### heading for each distinct VPC/VNet/network' in prompt
+    assert '#### headings for its subnet tiers' in prompt
+    assert 'never put a whole VPC into one long paragraph' in prompt
 
 
 @pytest.mark.parametrize('provider,kind,data,purpose_key', [

@@ -53,12 +53,14 @@ test('Top 15 Actions shows prioritized plans without duplicate verification tabl
   await page.goto('/#AI%20Review');
   await expect(page.getByText('Require IMDSv2', { exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'Order', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('columnheader', { name: 'Plan', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /View plan|Review plan:/ })).toHaveCount(0);
   await expect(page.getByText(/failed findings reached a conclusion/)).toHaveCount(0);
   await expect(page.getByText('Review scope detail', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Hardening verification', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Exposure verification', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Next reviews', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Review plan: Require IMDSv2', exact: true }).click();
+  await page.getByRole('button', { name: 'Require IMDSv2', exact: true }).click();
   await expect(page.getByText('Check workload compatibility', { exact: true })).toBeVisible();
   await page.screenshot({ path: '/tmp/cspm-ai-review.png', fullPage: true });
 });
@@ -194,7 +196,7 @@ for (const width of [1280, 390]) {
     await page.getByRole('textbox', { name: 'Search actions' }).fill('resource-15');
     await expect(table.locator('tbody tr')).toHaveCount(1);
     await expect(page.getByText('1 / 15 actions', { exact: true })).toBeVisible();
-    await table.getByRole('button', { name: `Review plan: ${actions[14].title}`, exact: true }).click();
+    await table.getByRole('button', { name: actions[14].title, exact: true }).click();
     await expect(page.getByRole('dialog').getByRole('heading', { name: actions[14].title, exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Close inspector' }).click();
     await page.getByRole('textbox', { name: 'Search actions' }).fill('unmatched-search');
@@ -263,3 +265,33 @@ for (const width of [1280, 390]) {
     await page.screenshot({ path: `/tmp/cspm-network-findings-table-${width}.png`, fullPage: true });
   });
 }
+
+
+test('network architecture has clear network and tier sections below the findings table', async ({ page }) => {
+  await setup(page);
+  await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', status: 'completed' }] } }));
+  const explanation = '### Application VPC\n\nus-east-1 · 10.0.0.0/16. Hosts the API and its private database.\n\n#### Public edge\n\n- 10.0.101.0/24 hosts the NAT gateway; its route table sends internet traffic to the IGW.\n\n#### Private application tier\n\n- 10.0.1.0/24 hosts the API. Outbound traffic uses the NAT gateway.\n\n#### Database boundary\n\n- `10.0.21.0/24` hosts the **database**. Its SG permits TCP 5432 from the application SG.\n\n### Default networks\n\n- Regional default VPCs use 172.31.0.0/16 and IGW routes.\n- No attached workloads were collected.';
+  await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [], network: { status: 'completed', explanation, findings: [] } } }));
+  await page.goto('/#Network%20Findings');
+  const architecture = page.getByRole('region', { name: 'Network architecture', exact: true });
+  for (const name of ['Application VPC', 'Public edge', 'Private application tier', 'Database boundary', 'Default networks'])
+    await expect(architecture.getByRole('heading', { name, exact: true })).toBeVisible();
+  await expect(architecture.locator('li')).toHaveCount(5);
+  await expect(architecture.locator('code')).toHaveText('10.0.21.0/24');
+  await expect(architecture.locator('strong')).toHaveText('database');
+  const table = page.getByRole('region', { name: 'Network findings table' });
+  expect(await table.evaluate(element => Boolean(element.compareDocumentPosition(document.querySelector('section[aria-label="Network architecture"]')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+});
+
+test('older dense architecture paragraphs become readable blocks without losing content', async ({ page }) => {
+  await setup(page);
+  await page.route('**/api/scans', route => route.fulfill({ json: { items: [{ id: 'scan', status: 'completed' }] } }));
+  const sentences = ['The public edge tier hosts the NAT gateway.', 'Its route points to the internet gateway.', 'The private application tier hosts the API.', 'Outbound traffic uses NAT.', 'The database tier holds the database.', 'Only the approved API SG is allowed on TCP 5432.'];
+  await page.route('**/api/scans/scan/ai?*', route => route.fulfill({ json: { actions: [], network: { status: 'completed', explanation: 'Application VPC — ' + sentences.join(' '), findings: [] } } }));
+  await page.goto('/#Network%20Findings');
+  const architecture = page.getByRole('region', { name: 'Network architecture', exact: true });
+  await expect(architecture.getByRole('heading', { name: 'Application VPC', exact: true })).toBeVisible();
+  await expect(architecture.locator('p')).toHaveCount(3);
+  for (const name of ['Public edge tier', 'Private application tier', 'Database tier']) await expect(architecture.getByRole('heading', { name, exact: true })).toBeVisible();
+  expect((await architecture.locator('p').allTextContents()).join(' ')).toBe(sentences.join(' '));
+});

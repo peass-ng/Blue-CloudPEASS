@@ -1,9 +1,10 @@
 import "./AiReview.css";
 import { useRef, useState } from "react";
-import { ChevronRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useApi } from "./api";
 import { FindingStatusBadge, matchesFindingStatus } from "./findingStatus";
 import { Badge, Evidence, Inspector, Panel, State } from "./ui";
+import { NetworkArchitecture } from "./NetworkArchitecture";
 import { Remediation } from "./Remediation";
 import type { Finding } from "./types";
 type Action = { rank: number; title: string; resource_ids: string[]; finding_ids: string[]; rationale: string; steps: string[]; verification: string };
@@ -41,7 +42,6 @@ function NetworkReviewPanel({ data }: { data: NetworkResult }) {
   const columns = [{ field: "severity", label: "Severity" }, { field: "title", label: "Finding" }, { field: "service", label: "Service" },
     { field: "resource", label: "Asset" }, { field: "scope", label: "Scope" }, { field: "status", label: "Status" }] as const;
   return <div className="ai-review-view">
-    {data.explanation && <Panel title="Network architecture"><section className="network-architecture" aria-label="Network architecture">{data.explanation.split(/\n\s*\n/).filter(text => text.trim()).map((text, index) => <p key={index}>{text}</p>)}</section></Panel>}
     <Panel className="findings-panel network-findings-panel">
       {data.status === "unavailable" && <p>The network review could not be completed. Run a scan with AI enabled to retry it.</p>}
       <div className="filters">
@@ -67,6 +67,7 @@ function NetworkReviewPanel({ data }: { data: NetworkResult }) {
       </div>
       {rows.length > NETWORK_PAGE_SIZE && <div className="service-page-controls"><span>{offset + 1}–{Math.min(offset + NETWORK_PAGE_SIZE, rows.length)} of {rows.length} findings</span><button className="text-button" disabled={!currentPage} onClick={() => setPage(currentPage - 1)}>Previous page</button><button className="text-button" disabled={offset + NETWORK_PAGE_SIZE >= rows.length} onClick={() => setPage(currentPage + 1)}>Next page</button></div>}
     </Panel>
+    {data.explanation && <Panel title="Network architecture"><NetworkArchitecture text={data.explanation} /></Panel>}
     {selected && <Inspector title={selected.title} onClose={closeFinding} className="network-finding-inspector">
       <div className="button-row"><Badge value={selected.severity} /><FindingStatusBadge status={selected.status} /></div>
       <h3>Affected resource</h3><p>{networkAsset(selected)}</p>{selected.resource_name && selected.native_resource_id && selected.resource_name !== selected.native_resource_id && <p>{selected.native_resource_id}</p>}<p>{selected.provider.toUpperCase()} · {selected.service} · {selected.scope}</p>
@@ -120,13 +121,12 @@ export function AiReview({ scanId, demo }: { scanId: string; demo: boolean }) {
         <span className="count-pill" aria-live="polite">{term ? `${actions.length} / ${data.actions.length}` : data.actions.length} actions</span>
       </div>
       <div className="table-scroll" role="region" aria-label="Prioritized actions" tabIndex={0}>
-        <table className="findings-table actions-table"><thead><tr><th scope="col">Action</th><th scope="col">Reason & benefit</th><th scope="col">Plan</th></tr></thead>
+        <table className="findings-table actions-table"><thead><tr><th scope="col">Action</th><th scope="col">Reason & benefit</th></tr></thead>
           <tbody>{actions.map(action => <tr key={action.rank}>
             <td><button className="finding-title action-title" aria-haspopup="dialog" title={action.title} onClick={event => openPlan(action, event.currentTarget)}>{action.title}</button></td>
             <td><p className="action-summary">{action.rationale}</p></td>
-            <td><button className="text-button action-open" aria-label={`Review plan: ${action.title}`} aria-haspopup="dialog" onClick={event => openPlan(action, event.currentTarget)}>View plan <ChevronRight size={15} aria-hidden="true" /></button></td>
           </tr>)}
-          {!actions.length && <tr><td colSpan={3} className="actions-empty">{term ? "No actions match your search." : "No recommended actions are available for this scan."}</td></tr>}
+          {!actions.length && <tr><td colSpan={2} className="actions-empty">{term ? "No actions match your search." : "No recommended actions are available for this scan."}</td></tr>}
           </tbody>
         </table>
       </div>

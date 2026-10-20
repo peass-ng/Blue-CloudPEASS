@@ -72,7 +72,7 @@ class NetworkFinding(Strict):
 
 
 class NetworkReview(Strict):
-    explanation: str = Field(min_length=1, max_length=12000, description='Short paragraphs organized by VPC/VNet/network and subnet tier. Explain each boundary’s structure, workload purpose and the configuration supporting that purpose; group equivalent default networks.')
+    explanation: str = Field(min_length=1, max_length=12000, description='Readable outline with ### headings per VPC/VNet/network, #### headings per subnet tier/connectivity boundary, and short - bullet lists separated by blank lines. Introduce each network with region, address space and purpose. Explain tier placement, purpose and enforcement in one or two sentences per bullet; group equivalent default networks. No dense global paragraphs.')
     findings: list[NetworkFinding] = Field(max_length=100)
 
 
