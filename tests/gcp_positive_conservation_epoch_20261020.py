@@ -12,9 +12,39 @@ EDITS = (
 )
 
 
+RAWV2_INITIALIZER_SHA256 = '0fa143a274905e52dad14d6eecfb641fdc98ebbd17db90d54d9908594b458e08'
+RAWV2_EDITS = ((b'collector_noop_authorization_shared_successor_20261020 = aws_workload_command_shared_successor_20261020\n',
+  b''),
+ (b'_rawv2_source.install_admission("gcp_dataproc_source_runtime_admission_20261020")\n',
+  b'gcp_dataproc_source_runtime_admission_20261020.install()\n'),
+ (b'_rawv2_source.install_admission("azure_declaration_secrets_admission_20261020")\n',
+  b'azure_declaration_secrets_admission_20261020.install()\n'),
+ (b'from peaso import rawv2_public_source_successor_20261021 as _rawv2_source\n', b''),
+ (b'_rawv2_source.install_selected_aws()\n', b'aws_selected_configuration_admission_20261020.install()\n'),
+ (b'_rawv2_source.install_selected_azure()\n', b'azure_selected_secrets_admission_20261020.install()\n'),
+ (b'_rawv2_source.install_admission("azure_log_samples_admission_20261020")\n',
+  b'azure_log_samples_admission_20261020.install()\n'),
+ (b'_rawv2_source.install_admission("azure_ml_job_secrets_admission_20261020")\n',
+  b'azure_ml_job_secrets_admission_20261020.install()\n'),
+ (b'_rawv2_source.install_admission("azure_databricks_notebook_secrets_admission_20261020")\n',
+  b'azure_databricks_notebook_secrets_admission_20261020.install()\n'),
+ (b'_rawv2_source.install_admission("azure_ml_asset_secrets_admission_20261020")\n',
+  b'azure_ml_asset_secrets_admission_20261020.install()\n'),
+ (b'_rawv2_source.install_admission("azure_function_settings_runtime_admission_20261020")\n',
+  b'azure_function_settings_runtime_admission_20261020.install()\n'))
+
+
 def metadata_initializer_bytes(raw):
     """Accept either exact epoch; reverse only the reviewed three hunks."""
     digest = hashlib.sha256(raw).hexdigest()
+    if digest == RAWV2_INITIALIZER_SHA256:
+        for after, before in RAWV2_EDITS:
+            if raw.count(after) != 1:
+                raise RuntimeError("RawV2 initializer reversal ambiguous")
+            raw = raw.replace(after, before, 1)
+        digest = hashlib.sha256(raw).hexdigest()
+        if digest != CURRENT_INITIALIZER_SHA256:
+            raise RuntimeError("RawV2 initializer predecessor changed")
     if digest == METADATA_INITIALIZER_SHA256:
         return raw
     if digest != CURRENT_INITIALIZER_SHA256:

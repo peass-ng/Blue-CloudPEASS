@@ -374,6 +374,10 @@
   },
   "live_functions": {
     "peaso/checks/gcp_positive_conservation_shared_source_successor_20261020.py": {
+      "_admitted_scanner_bytes": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
       "_check_function": {
         "defaults": "null",
         "kwdefaults": "null"
@@ -528,11 +532,102 @@
         "defaults": "[null]",
         "kwdefaults": "null"
       }
+    },
+    "peaso/rawv2_public_source_successor_20261021.py": {
+      "_admitted_source_digest": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_aws_reviewed_inputs": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_azure_reviewed_inputs": {
+        "defaults": "[null]",
+        "kwdefaults": "null"
+      },
+      "_clone_install": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_codes": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_compiled": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_digest": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_function_sources": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_receipt": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_root": {
+        "defaults": "[null]",
+        "kwdefaults": "null"
+      },
+      "_same_code": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_scanner_function": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_selected_source": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_validate_dataproc_proposal": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "_verify_guard": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "install_admission": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "install_selected_aws": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "install_selected_azure": {
+        "defaults": "null",
+        "kwdefaults": "null"
+      },
+      "producer_row": {
+        "defaults": "[null]",
+        "kwdefaults": "null"
+      },
+      "source_bytes": {
+        "defaults": "[null]",
+        "kwdefaults": "null"
+      },
+      "verify_callable_proof": {
+        "defaults": "[null]",
+        "kwdefaults": "null"
+      },
+      "verify_scanner": {
+        "defaults": "[null]",
+        "kwdefaults": "null"
+      }
     }
   },
   "normalized_sources": {
-    "peaso/checks/gcp_positive_conservation_shared_source_successor_20261020.py": "903fe4cb45855383f6b5a9c309ae0ff19957630dbf9179aa672c39480227cceb",
-    "peaso/gcp_positive_conservation_source_admission_successor_20261020.py": "d892f77133672d83d2e009b670e36f4c9275e13a290d43bae887379c9d9add6f"
+    "peaso/checks/gcp_positive_conservation_shared_source_successor_20261020.py": "61c433e91097dacd778e58e1ccccf80bc8568e965991192438eff40952795377",
+    "peaso/gcp_positive_conservation_source_admission_successor_20261020.py": "fb4653a51b64d778732409341b8b4455165578a6cc83b3fc25189325d4c9a500",
+    "peaso/rawv2_public_source_successor_20261021.py": "92b237a0f0d0f2107584eae4a0b2ee4229b4b4728e798fa64a18150423d3d92e"
   },
   "schema": "gcp-positive-conservation-source-bridge-v1"
 }

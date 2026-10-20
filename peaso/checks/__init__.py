@@ -1537,14 +1537,15 @@ azure_edge_native_admission_20261020.install()
 from . import k8s_annotation_native_admission_20261020
 k8s_annotation_native_admission_20261020.install()
 
+from peaso import rawv2_public_source_successor_20261021 as _rawv2_source
 from . import aws_selected_configuration_admission_20261020
-aws_selected_configuration_admission_20261020.install()
+_rawv2_source.install_selected_aws()
 
 from . import azure_selected_secrets_admission_20261020
-azure_selected_secrets_admission_20261020.install()
+_rawv2_source.install_selected_azure()
 
 from . import azure_declaration_secrets_admission_20261020
-azure_declaration_secrets_admission_20261020.install()
+_rawv2_source.install_admission("azure_declaration_secrets_admission_20261020")
 
 from . import k8s_kubelet_configmap_admission_20261020
 k8s_kubelet_configmap_admission_20261020.install()
@@ -1559,19 +1560,19 @@ aws_workload_command_shared_successor_20261020 = _positive_shared_source
 aws_workload_command_shared_successor_20261020.install_s3()
 
 from . import azure_log_samples_admission_20261020
-azure_log_samples_admission_20261020.install()
+_rawv2_source.install_admission("azure_log_samples_admission_20261020")
 
 from . import azure_ml_job_secrets_admission_20261020
-azure_ml_job_secrets_admission_20261020.install()
+_rawv2_source.install_admission("azure_ml_job_secrets_admission_20261020")
 
 from . import azure_databricks_notebook_secrets_admission_20261020
-azure_databricks_notebook_secrets_admission_20261020.install()
+_rawv2_source.install_admission("azure_databricks_notebook_secrets_admission_20261020")
 
 from . import azure_ml_asset_secrets_admission_20261020
-azure_ml_asset_secrets_admission_20261020.install()
+_rawv2_source.install_admission("azure_ml_asset_secrets_admission_20261020")
 
 from . import azure_function_settings_runtime_admission_20261020
-azure_function_settings_runtime_admission_20261020.install()
+_rawv2_source.install_admission("azure_function_settings_runtime_admission_20261020")
 
 from . import k8s_selected_log_sample_admission_20261020
 k8s_selected_log_sample_admission_20261020.install()
@@ -1583,7 +1584,7 @@ from . import azure_nsp_query_cmk_production_tde_successor_20261020
 from . import azure_function_package_tde_successor_20261020
 
 from . import gcp_dataproc_source_runtime_admission_20261020
-gcp_dataproc_source_runtime_admission_20261020.install()
+_rawv2_source.install_admission("gcp_dataproc_source_runtime_admission_20261020")
 
 from . import k8s_selected_metadata_runtime_admission_20261020
 from . import gcp_workbench_shared_hook_successor_20261020
@@ -1601,6 +1602,7 @@ from peaso import gcp_function_secret_page_source_20261020 as _historical_functi
 _historical_function_page_source.reviewed_inputs = _job_function_source.reviewed_inputs
 from peaso import gcp_positive_conservation_source_admission_successor_20261020 as _positive_source
 gcp_function_secret_page_admission_20261020.source_inputs = _positive_source.reviewed_inputs
+collector_noop_authorization_shared_successor_20261020 = aws_workload_command_shared_successor_20261020
 azure_function_package_shared_successor_20261020.install_bundle()
 
 from . import gcp_workbench_head3_admission_20261020
