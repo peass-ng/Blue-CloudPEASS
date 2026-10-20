@@ -32,6 +32,7 @@ from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_code
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
 from .aws_appsync_signed_role_next import normalize as normalize_aws_appsync_signed_role
+from .aws_apigateway_rest_next import correlate as correlate_aws_apigateway_rest
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -169,8 +170,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "086c6bb9ebf248955398883dcc98c103088114f2"
-DEFAULT_RULE_PACK_SHA256 = "e51d31be5e41b4aecf71fb4023f96b0600c10893bb5ddd35c6c2de463aa0e562"
+DEFAULT_RULE_REF = "cefb4b99d74a89a0fbe0c5992a3145f7ccaebb65"
+DEFAULT_RULE_PACK_SHA256 = "d438659b3ec5bad0d83f92c527194f00f2ada357a351d87e39f1a9fe0e8dd5dc"
 
 
 @dataclass(frozen=True)
@@ -558,6 +559,7 @@ def detect_aws_events(
     athena_stored_records: list[Mapping[str, Any]] = []
     athena_history_records: list[Mapping[str, Any]] = []
     athena_spark_records: list[Mapping[str, Any]] = []
+    apigateway_rest_records: list[Mapping[str, Any]] = []
     codebuild_gap_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
@@ -567,6 +569,8 @@ def detect_aws_events(
                 athena_stored_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "CreateNotebook", "UpdateNotebook", "StartSession", "CreatePresignedNotebookUrl", "StartCalculationExecution", "GetSessionEndpoint"}:
                 athena_spark_records.append(record)
+            if record.get("eventSource") == "apigateway.amazonaws.com" and record.get("eventName") in ("CreateApiKey", "CreateUsagePlanKey", "GetApiKey", "PutMethodResponse", "PutIntegrationResponse", "UpdateGatewayResponse", "UpdateRestApi", "CreateDeployment"):
+                apigateway_rest_records.append(record)
             if ((record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") in {"StartBuild", "UpdateProject"})
                     or (record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") == "StartSession")
                     or (record.get("eventSource") == "secretsmanager.amazonaws.com" and record.get("eventName") == "GetSecretValue")):
@@ -632,6 +636,7 @@ def detect_aws_events(
     correlated += correlate_aws_athena_history_cross_actor(athena_history_records)
     correlated += correlate_aws_athena_spark_v3(athena_spark_records)
     correlated += correlate_aws_athena_spark35_endpoint(athena_spark_records)
+    correlated += correlate_aws_apigateway_rest(apigateway_rest_records)
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
