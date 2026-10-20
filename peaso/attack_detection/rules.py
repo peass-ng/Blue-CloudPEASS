@@ -120,6 +120,7 @@ from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_c
 from .aws_apigateway_controls_next import normalize_aws_apigateway_controls
 from .aws_apigateway_http_keys_next import normalize as normalize_aws_apigateway_http_keys
 from .aws_apigateway_portal_next import correlate as correlate_aws_apigateway_portal
+from .aws_apigateway_private_vpce_next import normalize as normalize_aws_apigateway_private_vpce
 from .aws_eventbridge_controls_next import normalize_aws_eventbridge_controls
 from .aws_eventbridge_connections_next import normalize_aws_eventbridge_connections
 from .aws_ssm_controls_next import normalize_aws_ssm_controls
@@ -172,8 +173,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "2eaad0a287fcce22da9f255f85db7b0c27db8acd"
-DEFAULT_RULE_PACK_SHA256 = "e7c97e1c6851258a29c3a022f20343e54bef7ede86e48b1d15cc383e9accc588"
+DEFAULT_RULE_REF = "e7773268fee422ab7628fdac23246e03ece0ecd9"
+DEFAULT_RULE_PACK_SHA256 = "1ff46d18f4e62d3b1ccf8debd21ee0acd91b8c602c16bc8c59c481dc1ae56db4"
 
 
 @dataclass(frozen=True)
@@ -378,6 +379,7 @@ def detect_aws_events(
         vpc_network = normalize_aws_vpc_network(record)
         apigateway_controls = normalize_aws_apigateway_controls(record)
         apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
+        apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
         eventbridge_controls = normalize_aws_eventbridge_controls(record)
         eventbridge_connections = normalize_aws_eventbridge_connections(record)
         ssm_controls = normalize_aws_ssm_controls(record)
@@ -508,6 +510,7 @@ def detect_aws_events(
                 + ([vpc_network] if vpc_network is not None else [])
                 + ([apigateway_controls] if apigateway_controls is not None else [])
                 + ([apigateway_http_keys] if apigateway_http_keys is not None else [])
+                + ([apigateway_private_vpce] if apigateway_private_vpce is not None else [])
                 + ([eventbridge_controls] if eventbridge_controls is not None else [])
                 + ([eventbridge_connections] if eventbridge_connections is not None else [])
                 + ([ssm_controls] if ssm_controls is not None else [])
