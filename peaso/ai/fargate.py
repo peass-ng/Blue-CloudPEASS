@@ -88,6 +88,9 @@ def pack_workspace(root):
 def invoke(stage, root, token, timeout, *, ecs=None, s3=None, clock=time.monotonic, sleep=time.sleep):
     if stage not in STAGES or not 0 < timeout <= 1800:
         raise ValueError('invalid_agent_invocation')
+    deadline = clock() + timeout
+    from .providers import validate_before_launch
+    token = validate_before_launch(token)
     config = configuration()
     import boto3
     from botocore.config import Config
@@ -96,7 +99,6 @@ def invoke(stage, root, token, timeout, *, ecs=None, s3=None, clock=time.monoton
     s3 = s3 or boto3.client('s3', config=sdk.merge(Config(signature_version='s3v4')))
     definition = ecs.describe_task_definition(taskDefinition=config['task_definition'])['taskDefinition']
     validate_task(definition)
-    deadline = clock() + timeout
     ident = uuid.uuid4().hex
     prefix = 'invocations/' + ident + '/'
     keys = {name: prefix + name for name in ('input.tgz', 'relay.json', 'result.json')}
@@ -107,7 +109,10 @@ def invoke(stage, root, token, timeout, *, ecs=None, s3=None, clock=time.monoton
         lifetime = min(3600, max(60, int(timeout) + 30))
         def url(operation, name):
             return s3.generate_presigned_url(operation, Params={'Bucket': config['bucket'], 'Key': keys[name]}, ExpiresIn=lifetime)
-        relay = {'version': 1, 'stage': stage, 'token': token, 'input_url': url('get_object', 'input.tgz'),
+        from .providers import auth_document
+        authentication = auth_document(token)
+        relay = {'version': 1, 'stage': stage, 'token': authentication.pop('access_token'),
+                 'ai_configuration': authentication, 'input_url': url('get_object', 'input.tgz'),
                  'output_url': url('put_object', 'result.json'), 'timeout': max(1, int(deadline - clock())),
                  'expires_at': time.time() + max(1, deadline - clock() - 15)}
         s3.put_object(Bucket=config['bucket'], Key=keys['relay.json'], Body=json.dumps(relay).encode(), ServerSideEncryption='AES256')
@@ -134,6 +139,9 @@ def invoke(stage, root, token, timeout, *, ecs=None, s3=None, clock=time.monoton
             if rows[0].get('lastStatus') == 'STOPPED' or agent_stopped:
                 if agent.get('exitCode') is None and rows[0].get('stopCode') == 'TaskFailedToStart':
                     raise TaskStartupError('ai_task_startup_failed')
+                if agent.get('exitCode') == 78:
+                    from .providers import launch_error
+                    raise launch_error(token)
                 if agent.get('exitCode') != 0:
                     raise RuntimeError('agent_failed')
                 body = s3.get_object(Bucket=config['bucket'], Key=keys['result.json'])['Body']

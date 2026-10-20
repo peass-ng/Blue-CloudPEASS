@@ -485,7 +485,7 @@ export function LaunchForm({
           <p className="form-error">Add a connector before launching a scan.</p>
         )}
         <label className="checkbox"><input type="checkbox" checked={aiAvailable && aiEnabled} disabled={!aiAvailable} onChange={event => setAiEnabled(event.target.checked)} />Use AI to verify failed findings and prioritize security actions</label>
-        {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking Codex access…" : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Connect Codex in Settings or configure a usable CODEX_ACCESS_TOKEN to enable AI checks."}</p>}
+        {!aiAvailable && <p className="muted small">{codex.isPending ? "Checking AI access…" : codex.data?.isolation_available === false ? "AI checks are unavailable until the platform administrator configures isolated agent execution." : "Configure an AI provider, model and thinking effort in Settings to enable AI checks."}</p>}
         <fieldset>
           <legend>Assessment categories <span className="category-count">{selected.length} / {categories.length} selected</span></legend>
           <div className="assessment-category-grid">

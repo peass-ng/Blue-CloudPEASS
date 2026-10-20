@@ -2,7 +2,7 @@ Hosted runtime: [role-free Fargate isolation, deployment wiring and live smoke](
 
 # Post-scan Chack review
 
-Shell-enabled hosted reviews use the role-free Fargate isolation backend. A configured Codex token and the deployed isolation runtime are required. See [hosted isolation and deployment acceptance](hosted-isolation.md) for the credential boundary and live verification steps.
+Shell-enabled hosted reviews use the role-free Fargate isolation backend. A usable AI configuration and the deployed isolation runtime are required. See [hosted isolation and deployment acceptance](hosted-isolation.md) for the credential boundary and live verification steps.
 
 ## What runs
 
@@ -95,19 +95,33 @@ agent:
 
 The runner uses Chack's `load_config()` and passes generated access guidance through `prompt_variables_override={"access_instructions": ...}` to `Chack.run()`. The instructions describe only the entries actually in that invocation's credential file: an AWS agent receives only AWS session guidance, and an Azure agent receives guidance only for the audiences present. No cloud credential values are interpolated into prompts. If no access is supplied, the agent receives an explicit evidence-only instruction instead of credential tutorials.
 
-Current Chack YAML uses a flat `agent` section; legacy top-level `model` and `session` sections are rejected. The Codex subscription token is injected into the loaded configuration by the runner from its private file; it is not a cloud credential and is not stored in YAML.
+Current Chack YAML uses a flat `agent` section; legacy top-level `model` and `session` sections are rejected. The selected AI credential, model and thinking effort are injected into the loaded configuration by the runner from its private file; AI credentials are not cloud credentials and are not stored in YAML. The runner serializes native OpenRouter SDK structured results as JSON before applying the same output and reference validation used for CLI backends.
+
+## Provider, model and thinking selection
+
+Settings supports OpenAI API keys, Codex sign-in, Anthropic API keys, Claude Code subscription tokens (`claude setup-token`), and OpenRouter API keys. The user enters an exact model ID and selects a thinking effort. CSPM validates the combination against the supplied credential before encrypting and saving it. Every provider sends a small test inference with tool support and the selected thinking effort; Codex and Claude also check authenticated model capabilities. Provider error bodies and credentials are never returned to the browser.
+
+`GET /api/ai/configuration` returns availability, the user's own nonsecret selection, and whether a credential is saved. `POST` accepts `provider`, `model`, `thinking` and optional `credential`; omitting the credential retains the same user's saved credential only when the provider is unchanged. Codex uses the encrypted personal sign-in instead. `POST /api/ai/configuration/validate` explicitly revalidates the saved selection after repair. `DELETE` removes the custom selection; hosted deployments validate HackTricks AI before accepting this explicit switch. These routes require a user account and operate on that user, including from a shared workspace. API keys remain read-only.
+
+All Hardening, Exposure, Network and Priorities agents, including retries and child roles, receive the same resolved selection. OpenAI keys and Codex sign-in use Chack's **codex** backend; Anthropic keys/tokens use **claude**; OpenRouter keys use **openrouter**. Explicit model and thinking choices override stage YAML defaults. Invalid efforts are rejected rather than clamped. Local Claude execution requires the Claude Code CLI; the container images pin version 2.1.304 alongside Codex 0.147.0.
+
+On the hosted service, **HackTricks AI** is used when no personal configuration is selected. The platform's credential, model and thinking are never included in the settings response. A failed personal or platform validation stops AI without switching credentials. Settings displays the sanitized error and its navigation entry shows a warning until an explicit successful save, revalidation or validated default switch. Validation runs before accepting AI-enabled scans/schedules, before hosted workflow dispatch, before every local or Fargate agent launch, and inside the runner before constructing Chack (including repair attempts). Queued work rechecks current saved settings; changed settings stop stale launches. A failure stops later launches in the same pool. Deterministic scan results remain available when an already-running scan cannot start AI. New local Codex sign-ins require explicit model and thinking choices before AI scans are enabled. Existing local Codex/YAML installations keep their previous behavior until a custom selection is saved.
+
+The trusted hosted relay supports fixed, provider-specific Responses or Messages endpoints; real credentials remain in the relay container. The agent receives a task-local capability and its selected model/effort. It cannot change provider, model or effort through the relay, follow provider redirects, or use the relay as a general proxy. OpenRouter requests require providers to support the selected parameters.
+
+Validation references: [OpenAI reasoning](https://developers.openai.com/api/docs/guides/reasoning), [Claude model capabilities](https://platform.claude.com/docs/en/api/http/models/retrieve), and [OpenRouter parameter requirements](https://openrouter.ai/docs/guides/routing/provider-selection#requiring-providers-to-support-all-parameters).
 
 ## Personal sign-in and platform default
 
 Settings starts a device-code login, displays the fixed OpenAI verification link and code, and polls until sign-in finishes. Login state and tokens are encrypted; neither access nor refresh tokens return to the browser. State is durable in SQLite or DynamoDB, so requests do not need the same API process. Conditional writes coordinate polling, disconnects and refresh-token rotation.
 
-A scan records its authenticated initiating user server-side. Personal Codex auth overrides the platform default for that user's scans and schedules. Shared-workspace schedules retain their initiating user; AI refuses to use that user's connection after their write/admin membership is removed. An expired or broken personal connection does not silently charge the platform account. Disconnecting restores platform-default selection.
+A scan records its authenticated initiating user server-side. A validated personal AI selection overrides the platform default for that user's scans and schedules. Shared-workspace schedules retain their initiating user; AI refuses to use that user's connection after their write/admin membership is removed. An expired or broken personal connection blocks AI in both hosted and local deployments until the user explicitly validates a working configuration. Disconnecting personal Codex auth makes any selection using that auth unavailable.
 
 The device flow mirrors `codex-rs/login/src/device_code_auth.rs` and the fixed Codex client ID in the local Codex source. OpenAI documents device sign-in and its prerequisite in [Codex authentication](https://learn.chatgpt.com/docs/auth#login-on-headless-devices). This protocol is version-sensitive; a real end-to-end sign-in remains a live acceptance check.
 
-Platform authentication uses `CODEX_ACCESS_TOKEN` or an explicitly configured `CODEX_TOKEN_SECRET_ARN`. A secret contains a plain access token or JSON with an `access_token` field. The runtime fetches it with `secretsmanager:GetSecretValue`; grant access to that ARN only, plus `kms:Decrypt` on its key if needed. Token refresh/publication belongs to the operator. CSPM has no built-in table, login, secret name or account lookup. Personal Settings sign-in remains available and takes precedence. Local installs never query AWS for a token without a configured secret ARN. Supply an AWS runtime identity separately when using a secret locally; Compose does not mount host AWS credentials automatically.
+Platform authentication uses `CODEX_ACCESS_TOKEN` or an explicitly configured `CODEX_TOKEN_SECRET_ARN`. A secret contains a plain access token or JSON with an `access_token` field. The runtime fetches it with `secretsmanager:GetSecretValue`; grant access to that ARN only, plus `kms:Decrypt` on its key if needed. Token refresh/publication belongs to the operator. CSPM has no built-in table, login, secret name or account lookup. A validated personal Settings selection remains available and takes precedence. Local installs never query AWS for a token without a configured secret ARN. Supply an AWS runtime identity separately when using a secret locally; Compose does not mount host AWS credentials automatically.
 
-Local AI launch requires usable Codex access. The launch/schedule checkbox is disabled and unchecked until `/api/ai/codex` reports access available. Local API requests with AI enabled (including the default when omitted) return HTTP 409 before enqueueing or saving an AI schedule if token resolution or personal refresh fails. Requests with `ai_enabled: false` remain available. Schedules recheck access before dispatching each occurrence. Compose passes the configured token to the API, scheduler/collector and analyzer so they use the same configuration.
+Local AI launch requires usable access to the selected provider. The launch/schedule checkbox is disabled and unchecked until `/api/ai/codex` reports access available. API requests in both deployment modes with AI enabled (including the default when omitted) return HTTP 409 before enqueueing or saving an AI schedule if AI configuration resolution or personal refresh fails. Requests with `ai_enabled: false` remain available. Schedules recheck access before dispatching each occurrence. Compose passes the configured token to the API, scheduler/collector and analyzer so they use the same configuration.
 
 ## Cloud credential handoff
 
@@ -132,7 +146,7 @@ Chack's pinned Codex backend invokes the CLI with sandbox bypass. A clean enviro
 
 ## Local setup and infrastructure
 
-Install `.[ai]` for native use and install the Codex CLI. Dockerfiles install pinned `@openai/codex@0.147.0` and the pinned Chack dependency. Sign in through Settings, launch an AI-enabled scan, and open Top 15 Actions or Network Findings. Both navigation entries appear only when personal Codex access or a platform token is configured.
+Install `.[ai]` for native use and install the Codex CLI. Dockerfiles install pinned `@openai/codex@0.147.0` and the pinned Chack dependency. Sign in through Settings, launch an AI-enabled scan, and open Top 15 Actions or Network Findings. Both navigation entries appear when personal AI access or HackTricks AI is available.
 
 Compose now gives the analyzer network access for Codex and cloud verification. It mounts only the separate AI-key volume, not the source connector-key volume. The API initializes the shared AI key before workers start. `PEASO_AI_TIMEOUT_SECONDS` defaults to 300. The scan's existing deadline remains authoritative.
 

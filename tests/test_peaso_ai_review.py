@@ -23,6 +23,8 @@ _default_token = auth.default_token
 
 @pytest.fixture(autouse=True)
 def mocked_agent_isolation(monkeypatch):
+    monkeypatch.setattr('peaso.ai.providers.validate_access', lambda access: access)
+    monkeypatch.setattr('peaso.ai.providers.validate_before_launch', lambda access: access)
     # These tests mock the agent subprocess. Production must supply an actual
     # deployment-owned isolation launcher; tests never launch unsandboxed AI.
     monkeypatch.setattr(pipeline.isolation, 'launcher', lambda: '/mock/isolation-launcher')
@@ -1069,7 +1071,7 @@ def test_local_launch_and_schedule_require_usable_codex_access(environment, monk
             for selection in ({}, {'ai_enabled': True}):
                 result = client.post(path, json={'connector_id': connector, **selection})
                 assert result.status_code == 409, result.text
-                assert 'Codex token' in result.json()['detail']
+                assert 'valid AI configuration' in result.json()['detail']
         schedule = client.post('/api/schedules', json={'connector_id': connector, 'ai_enabled': False})
         assert schedule.status_code == 201, schedule.text
         ident = schedule.json()['id']
@@ -1078,6 +1080,7 @@ def test_local_launch_and_schedule_require_usable_codex_access(environment, monk
         scan = client.post('/api/scans', json={'connector_id': connector, 'ai_enabled': False})
         assert scan.status_code == 201 and scan.json()['ai_enabled'] is False
         monkeypatch.setenv('CODEX_ACCESS_TOKEN', token())
+        assert client.post('/api/ai/configuration/validate').status_code == 200
         assert client.get('/api/ai/codex').json()['available'] is True
         assert client.patch(f'/api/schedules/{ident}', json={'ai_enabled': True}).status_code == 200
 

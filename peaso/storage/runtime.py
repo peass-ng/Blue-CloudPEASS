@@ -22,6 +22,17 @@ class WorkflowDispatcher:
     def dispatch(self, tenant, job):
         if not self.arn:
             return False
+        if job.get('ai_enabled', True):
+            # Gate the workflow before it can provision an analyzer, container,
+            # pod or build that will run AI. Queued retries recheck current state.
+            from peaso.server.config import Settings
+            from peaso.ai.auth import require_local_codex
+            settings = Settings()
+            store, _ = stores(settings)
+            try:
+                require_local_codex(settings, store, job.get('ai_user_id', tenant))
+            except Exception:
+                return False
         if self.client is None:
             import boto3
             self.client = boto3.client("stepfunctions")

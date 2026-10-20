@@ -32,6 +32,7 @@ def test_runner_does_not_discard_work_within_the_parent_deadline(tmp_path, monke
                 raise TimeoutError('inner wrapper ended before the admitted work completed')
             assert remaining <= self.config.agent.max_runtime_minutes * 60 < remaining + 60
             return SimpleNamespace(error='', output=json.dumps(payload))
+    monkeypatch.setattr(runner, 'validate_runtime', lambda *args: None)
     monkeypatch.setitem(sys.modules, 'chack_agent', SimpleNamespace(Chack=Chack, load_config=lambda _: config))
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(sys, 'argv', ['runner', stage])
