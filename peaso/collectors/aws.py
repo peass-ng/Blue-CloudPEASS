@@ -2617,5 +2617,7 @@ EXTENSION_MODULES += ("peaso.collectors.aws_bedrock_security_metadata",
                       "peaso.collectors.aws_alb_waf_association_metadata",
                       "peaso.collectors.aws_beanstalk_runtime_metadata")
 
+EXTENSION_MODULES += ("peaso.collectors.aws_ai_recheck_facts_20261020",)
+
 for _extension in EXTENSION_MODULES:
     _load_metadata_extension(_extension)

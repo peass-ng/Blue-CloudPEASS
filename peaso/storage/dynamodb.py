@@ -601,6 +601,13 @@ class DynamoStore:
             raise StoreError(404, "Scan not found")
         return value
 
+    def replace_completed_report(self, tenant, ident, expected_report, report):
+        """Operator-only compare-and-swap; keep original runtime and job history."""
+        values = {":report": report, ":expected": expected_report, ":completed": "completed", ":now": self.clock()}
+        if not self._update_job(tenant, ident, "SET #report=:report", {"#report": "report", "#status": "status"}, values,
+                                "#status=:completed AND #report=:expected AND (attribute_not_exists(expires_at) OR expires_at>:now)"):
+            raise StoreError(409, "Completed scan report changed")
+
     def jobs(self, tenant, transform=None):
         return [(transform or self.public_job)(value) for value in sorted(self._query(tenant, "job"), key=lambda x: x["created"], reverse=True) if value.get("expires_at", float("inf")) > self.clock()]
 

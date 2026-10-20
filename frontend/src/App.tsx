@@ -55,10 +55,10 @@ const pages = [
     icon: ScanLine,
     description: "Assess, monitor and revisit your cloud posture.",
   },
+  { label: "Top 15 Actions", icon: ShieldCheck, ai: true, group: "SECURITY INSIGHTS", description: "Review the security changes to prioritize." },
   {
     label: "Hardening Findings",
     icon: ShieldCheck,
-    group: "SECURITY INSIGHTS",
     description: "Review configuration controls across your cloud estate.",
   },
   {
@@ -66,7 +66,6 @@ const pages = [
     icon: Target,
     description: "Understand your observed external exposure.",
   },
-  { label: "Top 15 Recommended Actions", icon: ShieldCheck, ai: true, description: "Review the security changes to prioritize." },
   {
     label: "Least Privilege",
     icon: Shield,
@@ -110,7 +109,7 @@ const pages = [
 export function App() {
   const [page, setPage] = useState(() => {
     const raw = decodeURIComponent(location.hash.slice(1));
-    const p = raw === "AI Review" ? "Top 15 Recommended Actions" : raw;
+    const p = ["AI Review", "Top 15 Recommended Actions"].includes(raw) ? "Top 15 Actions" : raw;
     return pages.some((x) => x.label === p) ? p : "Dashboard";
   });
   const [demoRequested, setDemoRequested] = useState(true);
@@ -165,7 +164,7 @@ export function App() {
   useEffect(() => {
     const change = () => {
       const raw = decodeURIComponent(location.hash.slice(1));
-      const p = raw === "AI Review" ? "Top 15 Recommended Actions" : raw;
+      const p = ["AI Review", "Top 15 Recommended Actions"].includes(raw) ? "Top 15 Actions" : raw;
       setPage(pages.some((x) => x.label === p) ? p : "Dashboard");
     };
     window.addEventListener("hashchange", change);
@@ -193,7 +192,7 @@ export function App() {
   const insight = [
     "Hardening Findings",
     "Exposure",
-    "Top 15 Recommended Actions",
+    "Top 15 Actions",
     "Network Findings",
     "Least Privilege",
     "Privilege Escalation Map",
@@ -240,7 +239,7 @@ export function App() {
         <nav aria-label="Primary navigation">
           {pages.filter((p) => p.label !== "Help" && (!p.ai || aiAvailable)).map((p) => (
             <div key={p.label}>
-              {p.group && <div className="nav-group">{p.group}</div>}
+              {(p.group || (p.label === "Hardening Findings" && !aiAvailable)) && <div className="nav-group">{p.group || "SECURITY INSIGHTS"}</div>}
               <button
                 className={`nav-item ${page === p.label ? "active" : ""}`}
                 onClick={() => navigate(p.label)}
@@ -422,7 +421,7 @@ export function App() {
             </>
           )}
           {pageInfo.ai && codex.isPending && signedIn && <State loading />}
-          {aiAvailable && page === "Top 15 Recommended Actions" && <AiReview key={scanId} scanId={scanId} demo={demo} />}
+          {aiAvailable && page === "Top 15 Actions" && <AiReview key={scanId} scanId={scanId} demo={demo} />}
           {aiAvailable && page === "Network Findings" && <NetworkAiReview key={scanId} scanId={scanId} demo={demo} />}
           {page === "Least Privilege" && <LeastPrivilege scanId={scanId} demo={demo} />}
           {page === "Privilege Escalation Map" && (

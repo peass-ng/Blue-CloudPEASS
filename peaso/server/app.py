@@ -266,6 +266,20 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             data["gcp_onboarding"] = gcp_onboarding
         return data
 
+    @lru_cache(maxsize=4)
+    def finding_review_index(tenant, reference):
+        from peaso.ai.finding_reviews import review_index
+        return review_index(artifacts.get(tenant, reference))
+
+    def finding_review_context(tenant, ident, bundle):
+        from peaso.ai.finding_reviews import review_index
+        if bundle.get("ai_review"):
+            from peaso.storage.artifacts import job_prefix
+            if not bundle["ai_review"].startswith(job_prefix(tenant, ident)):
+                raise ValueError("AI review does not belong to this scan")
+        reviews = finding_review_index(tenant, bundle["ai_review"]) if bundle.get("ai_review") else review_index(bundle.get("ai", {}))
+        return dict(bundle, _finding_reviews=reviews)
+
     def owned_bundle(tenant, ident):
         row = store.job(tenant, ident)
         if row["status"] != "completed" or not row["report"]:
@@ -300,6 +314,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def with_meta(finding, meta, bundle=None):
         from peaso.finding_types import annotate
         from peaso.check_services import finding_service
+        from peaso.ai.finding_reviews import apply_review
+        finding = apply_review(finding, (bundle or {}).get("_finding_reviews", {}), meta)
         # Per-check fields are hydrated before any filter, facet or summary so every consumer sees full rows.
         if not meta or finding.get("check_id") not in meta:
             result = annotate(finding)
@@ -880,6 +896,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                           service=None, status=None, search=None, group_by="service", sort_by=None,
                           status_count_aggregation=None, finding_type=None):
         row, bundle = owned_bundle(tenant, ident)
+        bundle = finding_review_context(tenant, ident, bundle)
         summary = bundle.get("summary", bundle)
         metadata = summary.get("snapshot_metadata", {}) if isinstance(summary, dict) else {}
         cluster_id = metadata.get("cluster_id", "") if isinstance(metadata, dict) else ""
@@ -979,8 +996,10 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         facets = {"services": set(), "statuses": set(), "frameworks": set()}
         facet_checks = set()
         groups = [finding_index(tenant, row["report"], tuple(chunk["index_reference"] for chunk in bundle["finding_chunks"]))] if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
+        from peaso.ai.finding_reviews import apply_review
         for group in groups:
             for value in group:
+                value = apply_review(value, bundle["_finding_reviews"], meta)
                 category = field(value, "category")
                 if filters["category"] is None or str(category if category is not missing else "").lower() in filters["category"]:
                     service_value = field(value, "service")
@@ -1160,6 +1179,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     @app.get("/api/scans/{ident}/findings/{finding_id:path}")
     def finding_detail(ident: str, finding_id: str, user=Depends(identity)):
         row, bundle = owned_bundle(user.tenant_id, ident)
+        bundle = finding_review_context(user.tenant_id, ident, bundle)
         groups = (artifacts.get(user.tenant_id, chunk["reference"])["items"] for chunk in bundle["finding_chunks"] if chunk["first_id"] <= finding_id <= chunk["last_id"]) if bundle.get("bundle_version") == 1 else [bundle.get("findings", [])]
         for group in groups:
             for value in group:
@@ -1173,6 +1193,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                             presented = with_remediation(value, bundle)
                             from peaso.finding_presentation import PRESENTATION_FIELDS
                             presentation = {key: presented[key] for key in PRESENTATION_FIELDS if key in presented}
+                            if presented.get("ai_review"):
+                                presentation.update({key: presented[key] for key in ("status", "scanner_status", "ai_review") if key in presented})
                             if len(json.dumps(presentation).encode()) <= 64 * 1024:
                                 envelope["finding_presentation"] = presentation
                                 if isinstance(presentation.get("remediation_details"), dict):

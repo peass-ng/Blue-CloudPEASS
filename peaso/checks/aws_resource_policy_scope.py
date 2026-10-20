@@ -18,7 +18,7 @@ def strings(value):
     return values
 
 
-def boundary(condition):
+def boundary(condition, *, minimum_ipv6_prefix=32):
     """Only positive, required identity/network boundaries limit public grants.
 
     IfExists and ForAllValues require a matching Null:false existence guard.
@@ -64,7 +64,7 @@ def boundary(condition):
                 continue
             if not all(isinstance(v, str) and v for v in values):
                 continue
-            if key in {"aws:principalaccount", "aws:sourceaccount", "aws:sourceowner"}:
+            if key in {"aws:principalaccount", "aws:sourceaccount", "aws:sourceowner", "kms:calleraccount"}:
                 bounded |= all(_ACCOUNT.fullmatch(v) is not None for v in values)
             elif key in {"aws:principalorgid", "aws:sourceorgid"}:
                 bounded |= all(_ORG.fullmatch(v) is not None for v in values)
@@ -96,7 +96,7 @@ def boundary(condition):
                         raise Unavailable("malformed source IP boundary") from exc
                 # Very broad public ranges do not establish a trusted network.
                 collapsed = [n for version in (4, 6) for n in collapse_addresses([n for n in networks if n.version == version])]
-                bounded |= all(n.prefixlen >= (8 if n.version == 4 else 32) for n in collapsed)
+                bounded |= all(n.prefixlen >= (8 if n.version == 4 else minimum_ipv6_prefix) for n in collapsed)
     return bounded
 
 
@@ -119,7 +119,7 @@ def principal_values(value):
     return [entry for raw in value.values() for entry in strings(raw)]
 
 
-def review_document(document):
+def review_document(document, *, minimum_ipv6_prefix=32):
     if isinstance(document, str):
         try:
             document = json.loads(document)
@@ -147,7 +147,7 @@ def review_document(document):
         if ("Principal" in statement) == ("NotPrincipal" in statement):
             raise Unavailable("policy needs Principal or NotPrincipal")
         principal_values(statement.get("Principal", statement.get("NotPrincipal")))
-        bound = boundary(statement.get("Condition", {}))
+        bound = boundary(statement.get("Condition", {}), minimum_ipv6_prefix=minimum_ipv6_prefix)
         if statement["Effect"] == "Deny":
             denies.append(statement)
         elif public_principal(statement) and not bound:
@@ -184,7 +184,7 @@ def review_document(document):
                 "forallvalues:stringnotequalsignorecase": "ForAnyValue:StringEqualsIgnoreCase",
                 "forallvalues:stringnotlike": "ForAnyValue:StringLike",
             }.get(operator.casefold())
-            return bool(positive and boundary({positive: block}))
+            return bool(positive and boundary({positive: block}, minimum_ipv6_prefix=minimum_ipv6_prefix))
 
         if any(covers_scope(d) and (not d.get("Condition") or complementary_boundary(d["Condition"])) for d in denies):
             continue
@@ -214,7 +214,7 @@ def review_document(document):
             # inside a positive boundary, leaves the outside population public.
             if not public_principal(deny):
                 continue
-            if boundary(deny.get("Condition", {})):
+            if boundary(deny.get("Condition", {}), minimum_ipv6_prefix=minimum_ipv6_prefix):
                 continue
             if "Action" in deny and "Action" in allow:
                 actions = strings(deny["Action"])

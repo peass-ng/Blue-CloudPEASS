@@ -177,7 +177,7 @@ def _event_rule(requests, session, region, item):
         item["Targets"] = {"collection_status": "malformed", "items": [], "error": {"code": "missing_rule_identity"}}
         return item
     read = requests.pages(session, "events", region, "list_targets_by_rule", "Targets", _tokens=("NextToken", "NextToken"), Rule=name, EventBusName=bus)
-    item["Targets"] = _list(read, ["Id", "Arn"])
+    item["Targets"] = _list(read, ["Id", "Arn", "DeadLetterConfig"])
     return _provenance(item, "events:ListRules")
 
 

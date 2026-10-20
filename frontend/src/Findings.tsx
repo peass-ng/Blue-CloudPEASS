@@ -779,7 +779,7 @@ function FindingInspector({
       || explainAzureFindingEvidence(observed.check_id, observed.evidence, observed.status)
       || explainGcpFindingEvidence(observed.check_id, observed.evidence, observed.status)
       || explainFindingEvidence(observed.evidence, observed.status, observed.check_id).replace(/^Observed evidence:\s*/i, "");
-  const evidenceSummary = explainObservedEvidence(observed, observation);
+  const evidenceSummary = observed.ai_review?.reason || explainObservedEvidence(observed, observation);
   const exposureAction = internetExposure && allowCurrentSummary ? explainExposureAction(observed.evidence, observed.status) : undefined;
   const remediationDetails = exposureAction && observed.remediation_details
     ? { ...observed.remediation_details, summary: exposureAction, steps: [exposureAction] }

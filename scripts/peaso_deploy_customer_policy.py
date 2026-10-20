@@ -309,6 +309,12 @@ def iam_action(service, operation):
     return action
 
 
+# Source-reviewed, metadata-only reads for native recheck applicability.
+# https://docs.aws.amazon.com/service-authorization/latest/reference/list_scheduler.html
+# https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ListDeadLetterSourceQueues.html
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | {"scheduler:GetSchedule", "scheduler:ListSchedules", "sqs:ListDeadLetterSourceQueues"}
+
+
 def policy_size(policy):
     # IAM excludes whitespace; every generated permission token is ASCII.
     return len(json.dumps(policy, separators=(",", ":"), ensure_ascii=True))

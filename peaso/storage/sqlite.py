@@ -375,6 +375,14 @@ class SQLiteStore:
                 raise StoreError(404, "Scan not found")
             return dict(row)
 
+    def replace_completed_report(self, tenant, ident, expected_report, report):
+        """Operator-only compare-and-swap; keep original runtime and job history."""
+        with self.transaction() as db:
+            cursor = db.execute("UPDATE jobs SET report=? WHERE tenant=? AND id=? AND status='completed' AND report=?",
+                                (report, tenant, ident, expected_report))
+            if cursor.rowcount != 1:
+                raise StoreError(409, "Completed scan report changed")
+
     def jobs(self, tenant, transform=None):
         with self.connect() as db:
             return [(transform or self.public_job)(row) for row in db.execute("SELECT * FROM jobs WHERE tenant=? ORDER BY created DESC", (tenant,))]

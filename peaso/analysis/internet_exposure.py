@@ -697,7 +697,22 @@ def _aws_rest_api(snapshot, inventory, resource):
         return a
     a.addresses = [f"https://{native_id(resource)}.execute-api.{resource['scope'].split('/')[-1]}.amazonaws.com"]
     a.step("route", "allow", endpoint_types=types)
-    public, restricted = _public_policy(data.get("policy"))
+    policy = data.get("policy")
+    if policy:
+        from peaso.checks.aws_ip_policy_boundary import normalize
+        from peaso.checks.facts import Unavailable
+        try:
+            normalized, bounded = normalize(policy)
+        except (Unavailable, ValueError, TypeError):
+            bounded = False
+        if bounded:
+            from peaso.checks.aws_resource_policy_scope import review_document
+            violations, uncertain = review_document(normalized, minimum_ipv6_prefix=1)
+            if not violations and not uncertain:
+                a.step("policy", "block", reason="Unrestricted Internet sources are denied; allowlisted clients may still connect.")
+                a.ports = {}
+                return a
+    public, restricted = _public_policy(policy)
     if public is False and restricted:
         a.step("policy", "allow", restrictive_conditions=restricted)
         a.notes.append("resource policy restricts callers by condition")
