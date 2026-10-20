@@ -117,6 +117,7 @@ from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
 from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
 from .aws_glue_job_correlations_next import correlate_aws_glue_job_script_runs
 from .aws_cognito_controls_next import normalize_aws_cognito_controls
+from .aws_cognito_directory_next import normalize_aws_cognito_directory
 from .aws_cognito_identity_next import normalize_aws_cognito_identity
 from .aws_cognito_federation_next import normalize_aws_cognito_federation
 from .aws_cognito_mfa_next import normalize_aws_cognito_mfa
@@ -409,6 +410,7 @@ def detect_aws_events(
         glue_controls = normalize_aws_glue_controls(record)
         cloudfront_controls = normalize_aws_cloudfront_controls(record)
         cognito_controls = normalize_aws_cognito_controls(record)
+        cognito_directory = normalize_aws_cognito_directory(record)
         cognito_identity = normalize_aws_cognito_identity(record)
         cognito_federation = normalize_aws_cognito_federation(record)
         cognito_mfa = normalize_aws_cognito_mfa(record)
@@ -568,6 +570,7 @@ def detect_aws_events(
                 + ([glue_controls] if glue_controls is not None else [])
                 + ([cloudfront_controls] if cloudfront_controls is not None else [])
                 + ([cognito_controls] if cognito_controls is not None else [])
+                + ([cognito_directory] if cognito_directory is not None else [])
                 + ([cognito_identity] if cognito_identity is not None else [])
                 + ([cognito_federation] if cognito_federation is not None else [])
                 + ([cognito_mfa] if cognito_mfa is not None else [])
