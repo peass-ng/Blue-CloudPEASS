@@ -137,6 +137,7 @@ from .aws_kinesis_data_read_next import normalize as normalize_aws_kinesis_data_
 from .aws_kinesis_controls_extended_next import normalize_aws_kinesis_controls_extended
 from .aws_kinesis_channel_next import normalize_aws_kinesis_channel
 from .aws_kinesis_video_controls_next import normalize_aws_kinesis_video_controls
+from .aws_kinesis_video_endpoint_next import normalize_aws_kinesis_video_endpoint
 from .aws_ecs_controls_next import normalize_aws_ecs_controls
 from .aws_ecs_correlations_next import correlate_aws_ecs_dormant_sidecar
 from .aws_emr_serverless_next import normalize_aws_emr_serverless_runtime
@@ -425,6 +426,7 @@ def detect_aws_events(
         kinesis_controls_extended = normalize_aws_kinesis_controls_extended(record)
         kinesis_channel = normalize_aws_kinesis_channel(record)
         kinesis_video_controls = normalize_aws_kinesis_video_controls(record)
+        kinesis_video_endpoint = normalize_aws_kinesis_video_endpoint(record)
         ecs_controls = normalize_aws_ecs_controls(record)
         emr_runtime = normalize_aws_emr_serverless_runtime(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
@@ -582,6 +584,7 @@ def detect_aws_events(
                 + ([kinesis_controls_extended] if kinesis_controls_extended is not None else [])
                 + ([kinesis_channel] if kinesis_channel is not None else [])
                 + ([kinesis_video_controls] if kinesis_video_controls is not None else [])
+                + ([kinesis_video_endpoint] if kinesis_video_endpoint is not None else [])
                 + ([ecs_controls] if ecs_controls is not None else [])
                 + ([emr_runtime] if emr_runtime is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
