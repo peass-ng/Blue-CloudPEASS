@@ -30,7 +30,10 @@ def pipeline(monkeypatch, record_property):
     original_requests = aws.Requests
     def collect(kinds, responses, *, account_wide=False):
         calls, clients, errors = [], {}, []
-        requests = original_requests({'retry_attempts': 1, 'max_workers': 1, 'max_calls': 400}, sleep=lambda _: None)
+        requests = original_requests({'retry_attempts': 1, 'service_concurrency': 1, 'max_calls': 400}, sleep=lambda _: None)
+        # Stubber installs mutable handlers on each shared SDK client. Keep
+        # these contract fixtures serial using the collector's actual option.
+        assert requests.workers == 1
         requests.observed_at = NOW
         native = {('sts', 'get_caller_identity'): {'Account': ACCOUNT, 'Arn': f'arn:aws:iam::{ACCOUNT}:user/review', 'UserId': 'inert'}, **responses}
         class Client:
