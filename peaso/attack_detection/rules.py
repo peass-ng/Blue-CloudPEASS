@@ -28,6 +28,7 @@ from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
+from .aws_codepipeline_five_next import normalize as normalize_aws_codepipeline_five
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
@@ -176,8 +177,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "f3895f8d4dee391ab5e1cfb35d3b550c4353e8c8"
-DEFAULT_RULE_PACK_SHA256 = "e53ad0f86f05f98543d877363e2108b974276fa4840674e7af4291004b18f142"
+DEFAULT_RULE_REF = "091b648988532cb645a1844ec4106f09dc2c13d0"
+DEFAULT_RULE_PACK_SHA256 = "347fbdd521f11d3adb8a89ac5843fcf8927083950d355353ca82d18e45ff30d7"
 
 
 @dataclass(frozen=True)
@@ -297,6 +298,7 @@ def detect_aws_events(
         codebuild_change = normalize_aws_codebuild_change(record)
         codebuild_execution = normalize_codebuild_execution(record)
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
+        codepipeline_five = normalize_aws_codepipeline_five(record)
         appsync_five = normalize_aws_appsync_five(record)
         appsync_read_function = normalize_aws_appsync_read_function(record)
         appsync_signed_role = normalize_aws_appsync_signed_role(record)
@@ -431,6 +433,7 @@ def detect_aws_events(
                 + ([codebuild_change] if codebuild_change is not None else [])
                 + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
+                + ([codepipeline_five] if codepipeline_five is not None else [])
                 + ([appsync_five] if appsync_five is not None else [])
                 + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([appsync_signed_role] if appsync_signed_role is not None else [])
