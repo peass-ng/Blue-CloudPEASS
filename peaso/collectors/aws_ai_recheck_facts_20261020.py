@@ -15,14 +15,16 @@ def _database(service, operation, expression, engine):
         read = requests.pages(session, service, region, operation, expression, **args)
         # Apply the same engine constraint locally, including for API-compatible
         # endpoints that return resources of other database services.
-        if any(not isinstance(row, dict) or not isinstance(row.get('Engine'), str) for row in read.items):
+        if any(not isinstance(row, dict) or (engine and not isinstance(row.get('Engine'), str)) for row in read.items):
             return ReadResult(read.items, 'partial' if read.items else 'malformed', {'code': 'db_engine_identity_missing'})
-        items = [row for row in read.items if (row['Engine'] == engine if engine else row['Engine'] not in {'docdb', 'neptune'})]
+        items = [row for row in read.items if (row['Engine'] == engine if engine else row.get('Engine') not in {'docdb', 'neptune'})]
         return ReadResult(items, ('collected' if items else 'empty') if read.status in ('collected', 'empty') else read.status, read.error)
     return fetch
 
 
 def instances(requests, session, region, items):
+    if not getattr(requests, 'ebs_optimization_facts_requested', True):
+        return items
     output = []
     for native in items:
         row = deepcopy(native)
@@ -40,6 +42,8 @@ def instances(requests, session, region, items):
 
 
 def queues(requests, session, region, items):
+    if not getattr(requests, 'sqs_dead_letter_sources_requested', True):
+        return items
     output = []
     for native in items:
         row = deepcopy(native)

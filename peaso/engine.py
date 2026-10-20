@@ -373,6 +373,10 @@ def collect_snapshot(request):
             check.id == "aws.c2b.ecr.latest_image_no_medium_plus_findings" for check in selected)
         connector.setdefault('options', {})['_ec2_clock_metric_requested'] = any(
             check.id == 'aws_ec2_instance_time_offset_monitored' for check in selected)
+        connector.setdefault('options', {})['_ebs_optimization_facts_requested'] = any(
+            check.id == 'aws.claude_a.ec2.instance_ebs_optimized' for check in selected)
+        connector.setdefault('options', {})['_sqs_dead_letter_sources_requested'] = any(
+            check.id == 'aws.cb.sqs.dead_letter_queue' for check in selected)
         usage_report_checks = {
             'aws.claude_a.iam.user_long_lived_keys_only_iam_sts',
             'aws.claude_a.iam.user_bedrock_access_not_stale',

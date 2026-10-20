@@ -18,6 +18,7 @@ IDS = POLICY_USE | BOUNDARY_APPLICABILITY | {
     'aws.claude_a.iam.prowler_role_confused_deputy_prevented',
     'aws.claude_a.iam.prowler_role_service_trust_bound_to_account',
     'aws.pci.shield.protection_all_internet_resources',
+    'aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis',
 }
 
 
@@ -101,6 +102,18 @@ def _override(check, original, item, index):
         if changed and original(normalized, index)[0] == 'PASS':
             return result(False, service='firehose.amazonaws.com', enforced_external_id_account=account,
                           reason='Firehose supplies its account ID as ExternalId, as documented by AWS.')
+    if cid == 'aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis':
+        from inspect import unwrap
+        helpers = unwrap(original).__globals__
+        witnesses = []
+        for rule in helpers['sg_ingress'](item):
+            if not helpers['prowler_sg_open'](rule, '-1', any_address=True, all_ports=True):
+                continue
+            for field, key, world in (('IpRanges', 'CidrIp', '0.0.0.0/0'), ('Ipv6Ranges', 'CidrIpv6', '::/0')):
+                if any(row.get(key) == world for row in rule.get(field, []) if isinstance(row, dict)):
+                    witnesses.append({'protocol': rule.get('IpProtocol'), 'from_port': rule.get('FromPort'),
+                                      'to_port': rule.get('ToPort'), 'source': world})
+        return status, dict(evidence, internet_ingress=witnesses)
     if cid == 'aws.c2b.apigateway.rest_api_policy_not_public':
         from .aws_ip_policy_boundary import normalize
         from .aws_resource_policy_scope import review_document
@@ -130,17 +143,17 @@ def _override(check, original, item, index):
         count = item.get('PermissionsBoundaryUsageCount')
         if isinstance(count, int) and not isinstance(count, bool) and count > 0:
             if cid in BOUNDARY_APPLICABILITY and item.get('AttachmentCount') == 0:
-                return 'NOT_APPLICABLE', {'permissions_boundary_usage_count': count,
+                return 'NOT_APPLICABLE', {'permissions_boundary_usage_count': count, 'permissions_policy_attachment_count': 0,
                     'reason': 'Policy is used as a permissions boundary, not as a permissions-policy attachment; it is not unused.'}
             if cid in POLICY_USE:
                 return result(False, permissions_boundary_usage_count=count, policy_in_use=True)
     if cid == 'aws.cb.sns.failure_feedback_role':
         attrs = get(item, 'Attributes.Attributes', dict)
         if attrs.get('SubscriptionsConfirmed') == '0' and attrs.get('SubscriptionsPending') == '0':
-            return 'NOT_APPLICABLE', {'reason': 'No confirmed or pending subscription exists for delivery-status logging.'}
+            return 'NOT_APPLICABLE', {'subscriptions_confirmed': 0, 'subscriptions_pending': 0, 'reason': 'No confirmed or pending subscription exists for delivery-status logging.'}
     if cid == 'aws.cb.sqs.dead_letter_queue':
         if dead_letter_references(item, index):
-            return 'NOT_APPLICABLE', {'reason': 'The queue is an explicitly configured dead-letter destination; no chained DLQ is required.'}
+            return 'NOT_APPLICABLE', {'dead_letter_destination': True, 'queue_arn': get(item, 'Attributes.Attributes.QueueArn', str), 'reason': 'The queue is an explicitly configured dead-letter destination; no chained DLQ is required.'}
         inverse = item.get('DeadLetterSourceQueues')
         if isinstance(inverse, dict) and inverse.get('collection_status') not in ('collected', 'empty'):
             from . import unknown
@@ -190,7 +203,7 @@ def _shield_scope(item, index, original):
 def install():
     from . import CHECKS, unknown
     for position, check in enumerate(CHECKS):
-        if check.id not in IDS and check.kind not in {'docdb_cluster', 'docdb_instance', 'neptune_cluster', 'rds_cluster', 'rds_instance'}:
+        if check.id not in IDS and check.kind not in {'docdb_cluster', 'docdb_instance', 'neptune_cluster'}:
             continue
         def wrap(check):
             original = check.evaluate

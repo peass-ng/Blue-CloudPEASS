@@ -159,3 +159,77 @@ def test_empty_dead_letter_source_response_is_supported_and_denied_metadata_is_u
     assert run(cid,output[0])[0]=='FAIL'
     output[0]['DeadLetterSourceQueues']['collection_status']='denied'
     assert run(cid,output[0])[0]=='UNKNOWN'
+
+
+def test_single_public_port_is_a_failure_with_a_short_decisive_explanation():
+    from peaso.finding_observation import evidence_summary
+    from peaso.ai.pipeline import findings_document
+    cid = 'aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis'
+    native = deepcopy(CASES[cid]['fail'])
+    native['IpPermissions'][0].update(IpProtocol='tcp', FromPort=443, ToPort=443)
+    status, evidence = run(cid, native)
+    assert status == 'FAIL'
+    finding = dict(id='finding-sg', check_id=cid, provider='aws', category='exposure', status=status,
+                   evidence=evidence, fail_when='Any internet-open port reaches a customer-managed interface.',
+                   pass_when='No internet-open rule reaches a customer-managed interface.')
+    before = deepcopy(finding)
+    text = evidence_summary(finding)
+    assert 'TCP 443' in text and '0.0.0.0/0' in text
+    assert 'Any internet-open port' in text and 'all ports do not need' in text and len(text) < 360
+    record = findings_document({'provider': 'aws'}, [finding])['items'][0]
+    assert record['evidence_summary'] == text and record['fail_when'] == finding['fail_when']
+    assert record['evidence'] == evidence and finding == before
+    # Missing the witness must not invent a port, while retaining the exact control semantics.
+    finding['evidence'] = {k: v for k, v in evidence.items() if k != 'internet_ingress'}
+    assert 'TCP 443' not in evidence_summary(finding)
+
+
+def test_rds_optional_engine_does_not_erase_unrelated_metadata_and_fact_reads_are_selected():
+    reader = SimpleNamespace(pages=lambda *a, **k: ReadResult([{'DBInstanceIdentifier': 'database', 'MonitoringInterval': 60}]))
+    read = FETCHERS['rds_instance'](reader, None, 'us-east-1', '111111111111')
+    assert read.status == 'collected' and read.items[0]['MonitoringInterval'] == 60
+    reader = SimpleNamespace(ebs_optimization_facts_requested=False, sqs_dead_letter_sources_requested=False,
+                             pages=lambda *a, **k: pytest.fail('Unselected metadata must not consume API calls'))
+    assert instances(reader, None, 'us-east-1', [{'EbsOptimized': False}]) == [{'EbsOptimized': False}]
+    assert queues(reader, None, 'us-east-1', [{'QueueUrl': 'url'}]) == [{'QueueUrl': 'url'}]
+
+
+def test_corrected_boundary_evidence_explains_real_usage_without_claiming_attachments():
+    from peaso.finding_observation import evidence_summary
+    cid = 'aws.claude_a.iam.policy_in_use'
+    status, evidence = run(cid, dict(CASES[cid]['fail'], AttachmentCount=0, PermissionsBoundaryUsageCount=8))
+    text = evidence_summary(dict(provider='aws', check_id=cid, status=status, evidence=evidence))
+    assert '8 identities' in text and 'not unused' in text and len(text) < 300
+    assert evidence_summary(dict(provider='aws', check_id=cid, status='PASS', evidence={})) != text
+
+
+def test_global_shield_resource_is_assessed_once_without_hiding_regional_resources():
+    import gzip
+    from pathlib import Path
+    cid = 'aws.pci.shield.protection_all_internet_resources'
+    case = json.loads(gzip.decompress((Path(__file__).parent/'fixtures/aws_bulk_clarity_reviewed.json.gz').read_bytes()))[cid]['FAIL']
+    base = deepcopy(case['index'])
+    cloudfront = {'ARN': 'arn:aws:cloudfront::123456789012:distribution/D1'}
+    base['cloudfront_distribution'] = [{'data': cloudfront, 'scope': '123456789012/global', 'type': 'cloudfront_distribution'}]
+    base['collections']['cloudfront_distribution'][0].update(status='collected', items=[cloudfront])
+    base['load_balancer'] = []
+    base['collections']['load_balancer'][0].update(status='empty', items=[])
+    base['context']['metadata'] = {'selected_scopes': ['123456789012/us-west-2', '123456789012/us-east-1']}
+    def scoped(region):
+        index = deepcopy(base);scope = '123456789012/'+region
+        index['context']['scope'] = scope;index['context']['policy_inputs']['scope'] = scope
+        for rows in index['collections'].values():
+            for row in rows:
+                if not row['scope'].endswith('/global'):
+                    row['scope'] = scope
+        return index
+    status, evidence = REGISTRY[cid].evaluate({}, scoped('us-east-1'))
+    assert status == 'FAIL' and evidence['unprotected_resource_arns'] == [cloudfront['ARN']]
+    assert REGISTRY[cid].evaluate({}, scoped('us-west-2'))[0] == 'NOT_APPLICABLE'
+    west = scoped('us-west-2')
+    alb = {'LoadBalancerArn': 'arn:aws:elasticloadbalancing:us-west-2:123456789012:loadbalancer/app/a/b',
+           'Type': 'application', 'Scheme': 'internet-facing'}
+    west['load_balancer'] = [{'data': alb, 'scope': '123456789012/us-west-2', 'type': 'load_balancer'}]
+    west['collections']['load_balancer'][0].update(status='collected', items=[alb])
+    status, evidence = REGISTRY[cid].evaluate({}, west)
+    assert status == 'FAIL' and evidence['unprotected_resource_arns'] == [alb['LoadBalancerArn']]
