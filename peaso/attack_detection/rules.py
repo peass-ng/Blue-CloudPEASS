@@ -27,6 +27,7 @@ from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .aws_codebuild_next import normalize_aws_codebuild_change
 from .aws_codebuild_execution_next import normalize_codebuild_execution
+from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
@@ -146,8 +147,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "7da6e3133608a2c487d505e1edc3c1f918de95a1"
-DEFAULT_RULE_PACK_SHA256 = "c03da65ddab2281c39ee66d6c7a2127a9241eaf5bb3cdc705fae6813b9100570"
+DEFAULT_RULE_REF = "ee2c42a946d2029317cf88f0c76039508d1e1470"
+DEFAULT_RULE_PACK_SHA256 = "bab6aebf83f6fa1bac0f7617826c83e669ab3db52f097c12676818e26fd59d6c"
 
 
 @dataclass(frozen=True)
@@ -266,6 +267,7 @@ def detect_aws_events(
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
         codebuild_change = normalize_aws_codebuild_change(record)
         codebuild_execution = normalize_codebuild_execution(record)
+        codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
         sagemaker_control = normalize_aws_sagemaker_control(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_notification = normalize_aws_s3_template_notification(record)
@@ -375,6 +377,7 @@ def detect_aws_events(
                 + ([keyspaces_credential] if keyspaces_credential is not None else [])
                 + ([codebuild_change] if codebuild_change is not None else [])
                 + ([codebuild_execution] if codebuild_execution is not None else [])
+                + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
                 + ([sagemaker_control] if sagemaker_control is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
