@@ -101,6 +101,7 @@ from .aws_sqs_data_next import normalize_aws_sqs_data, correlate_aws_sqs_fifo_de
 from .aws_sqs_redrive_next import normalize_aws_sqs_redrive
 from .aws_sns_controls_next import normalize_aws_sns_topic_controls
 from .aws_chime_admin_next import normalize_aws_chime_admin
+from .aws_chime_attendee_messaging_next import normalize_aws_chime_attendee_messaging
 from .aws_glue_controls_next import normalize_aws_glue_controls
 from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
 from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
@@ -387,6 +388,7 @@ def detect_aws_events(
         sqs_redrive = normalize_aws_sqs_redrive(record)
         sns_topic_controls = normalize_aws_sns_topic_controls(record)
         chime_admin = normalize_aws_chime_admin(record)
+        chime_attendee_messaging = normalize_aws_chime_attendee_messaging(record)
         glue_controls = normalize_aws_glue_controls(record)
         cloudfront_controls = normalize_aws_cloudfront_controls(record)
         cognito_controls = normalize_aws_cognito_controls(record)
@@ -538,6 +540,7 @@ def detect_aws_events(
                 + ([sqs_redrive] if sqs_redrive is not None else [])
                 + ([sns_topic_controls] if sns_topic_controls is not None else [])
                 + ([chime_admin] if chime_admin is not None else [])
+                + ([chime_attendee_messaging] if chime_attendee_messaging is not None else [])
                 + ([glue_controls] if glue_controls is not None else [])
                 + ([cloudfront_controls] if cloudfront_controls is not None else [])
                 + ([cognito_controls] if cognito_controls is not None else [])

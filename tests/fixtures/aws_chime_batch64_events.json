@@ -1,0 +1,275 @@
+{
+  "derivation": "Synthetic derivative of 2026-10-20 disposable Chime SDK CloudTrail management events. All account, principal, resource, event, message, and attendee values are synthetic; no join tokens or real message bodies are included.",
+  "events": [
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "CreateAttendee",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-01",
+      "eventTime": "2026-10-20T12:00:01Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "meetingId": "11111111-1111-4111-8111-111111111111",
+        "externalUserId": "synthetic-attendee"
+      },
+      "responseElements": {
+        "attendee": {
+          "attendeeId": "22222222-2222-4222-8222-222222222222"
+        }
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "BatchCreateAttendee",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-02",
+      "eventTime": "2026-10-20T12:00:02Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "meetingId": "11111111-1111-4111-8111-111111111111",
+        "attendees": [
+          {
+            "externalUserId": "synthetic-b"
+          },
+          {
+            "externalUserId": "synthetic-c"
+          }
+        ]
+      },
+      "responseElements": {
+        "attendees": [
+          {
+            "attendeeId": "55555555-5555-4555-8555-555555555555"
+          },
+          {
+            "attendeeId": "66666666-6666-4666-8666-666666666666"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "GetAttendee",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-03",
+      "eventTime": "2026-10-20T12:00:03Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "meetingId": "11111111-1111-4111-8111-111111111111",
+        "attendeeId": "22222222-2222-4222-8222-222222222222"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "ListAttendees",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-04",
+      "eventTime": "2026-10-20T12:00:04Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "meetingId": "11111111-1111-4111-8111-111111111111"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "GetMeeting",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-05",
+      "eventTime": "2026-10-20T12:00:05Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "meetingId": "11111111-1111-4111-8111-111111111111"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "CreateAppInstanceUser",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-06",
+      "eventTime": "2026-10-20T12:00:06Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "appInstanceArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333",
+        "appInstanceUserId": "synthetic-requested-controller",
+        "name": "synthetic-controller"
+      },
+      "responseElements": {
+        "appInstanceUserArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/user/synthetic-controller"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "CreateAppInstanceUser",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-07",
+      "eventTime": "2026-10-20T12:00:07Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "appInstanceArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333",
+        "appInstanceUserId": "synthetic-requested-victim",
+        "name": "synthetic-victim"
+      },
+      "responseElements": {
+        "appInstanceUserArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/user/synthetic-victim"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "CreateAppInstanceAdmin",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-08",
+      "eventTime": "2026-10-20T12:00:08Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "appInstanceArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333",
+        "appInstanceAdminArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/user/synthetic-controller"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "CreateChannelMembership",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-09",
+      "eventTime": "2026-10-20T12:00:09Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "channelArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/channel/44444444-4444-4444-8444-444444444444",
+        "chimeBearer": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/user/synthetic-controller",
+        "memberArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/user/synthetic-victim",
+        "type": "DEFAULT"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "ListChannelMessages",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-10",
+      "eventTime": "2026-10-20T12:00:10Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "channelArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/channel/44444444-4444-4444-8444-444444444444",
+        "chimeBearer": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/user/synthetic-victim"
+      }
+    },
+    {
+      "eventSource": "chime.amazonaws.com",
+      "eventName": "SendChannelMessage",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-b64-11",
+      "eventTime": "2026-10-20T12:00:11Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "channelArn": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/channel/44444444-4444-4444-8444-444444444444",
+        "chimeBearer": "arn:aws:chime:us-east-1:999999999999:app-instance/33333333-3333-4333-8333-333333333333/user/synthetic-victim",
+        "type": "STANDARD",
+        "persistence": "PERSISTENT",
+        "content": "synthetic message"
+      },
+      "responseElements": {
+        "status": {
+          "value": "SENT"
+        }
+      }
+    }
+  ]
+}
