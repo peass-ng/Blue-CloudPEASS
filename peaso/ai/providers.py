@@ -64,7 +64,7 @@ def check_selection(provider, model, thinking, credential):
         raise ConfigurationError('A usable AI credential is required.')
     # Reject unsupported explicit efforts, including Chack's default-high
     # downgrade. A user's choice must never silently become a different level.
-    from chack_agent.thinking_effort import supported_thinking_efforts
+    from ._vendor.chack.thinking_effort import supported_thinking_efforts
     supported = supported_thinking_efforts(model)
     if supported is not None and thinking not in supported:
         raise ConfigurationError('The selected model does not support that thinking effort.')
@@ -162,7 +162,7 @@ def validate_access(access):
         if isinstance(effort, dict) and (not effort.get('supported') or not (effort.get(thinking) or {}).get('supported')):
             raise ConfigurationError('The selected Claude model does not support that thinking effort.')
         if effort is None:
-            from chack_agent.thinking_effort import supported_thinking_efforts
+            from ._vendor.chack.thinking_effort import supported_thinking_efforts
             if supported_thinking_efforts(model) is None:
                 raise ConfigurationError('Thinking support for that Claude model could not be verified.')
         headers['User-Agent'] = 'claude-cli/2.1.304 (external, cli)'
@@ -226,10 +226,14 @@ def clear_error(store, cipher, user):
 def model_access(access):
     if isinstance(access, ModelAccess):
         return access
-    from chack_agent import load_config
+    import yaml
+    from ._vendor.chack.model_aliases import resolve_model_alias
     from .prompting import agent_config_path
-    config = load_config(str(agent_config_path('hardening')))
-    return check_selection('codex', config.model.primary, config.agent.thinking_effort, str(access))
+    # Lambda intentionally has no Chack/model SDK. Read the same shipped stage
+    # YAML and resolve its alias with the exact worker pin's small pure helper.
+    config = yaml.safe_load(agent_config_path('hardening').read_text())['agent']
+    model = resolve_model_alias(config['primary'], provider='codex')
+    return check_selection('codex', model, config.get('thinking_effort', 'high'), str(access))
 
 
 class GuardedToken(str):
