@@ -126,7 +126,7 @@ RECOVERY_ACTIONS = {
 # requires reviewing that contract, not silently deferring additional values.
 RUNTIME_CONFIG_SHA256 = {
     "outputs.tf": "e83fb597d6cb6f4b42e57b44480a1bd7eb7acfce961102c4504640ab0ac8b54d",
-    "storage.tf": "40b53dbd1a592d35e5ca264e7d7f11171634a4e77e2e0e8ebbceca2d2cd08a9a",
+    "storage.tf": "40033ed25c5ac8bfae9a99016f959a25f5d431b6e202ffb602c2a78a0f223b22",
     "iam.tf": "119086927a14a48dc52f0180eb10a75f0d6355a848de200b8028a1325d268e39",
     "api.tf": "2aa21dd0eb8ac74da5aff471ddfb38074e26b25c62c866ee2ac266fc0be54898",
     "workflow.tf": "de9c466b4f91cf3490e21ba48bdf5d721527bd2d75a5fc48493f160e911514fe",

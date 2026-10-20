@@ -89,7 +89,8 @@ def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     assert 'cache_control       = "public,max-age=31536000,immutable"' in storage
     assert 'metadata            = { sha256 = each.key }' in storage
     assert 'key                 = "aws/customer-role.json"' in storage
-    assert 'Resource = [for object in aws_s3_object.customer_role_template : object.arn]' in storage
+    assert 'Resource = aws_s3_object.customer_role_template[local.customer_role_template_sha256].arn' in storage
+    assert 'Resource = [for object in aws_s3_object.customer_role_template' not in storage
     assert 'Action = "s3:GetObject"' in storage
     assert 'bucket              = aws_s3_bucket.frontend.id' in storage.split('resource "aws_s3_object" "customer_role_download"', 1)[1].split('resource ', 1)[0]
     assert 'bucket              = aws_s3_bucket.templates[0].id' in storage.split('resource "aws_s3_object" "customer_role_template"', 1)[1].split('resource ', 1)[0]

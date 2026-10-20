@@ -74,7 +74,7 @@ resource "aws_s3_bucket_policy" "templates" {
   bucket = aws_s3_bucket.templates[0].id
   policy = jsonencode({ Version = "2012-10-17", Statement = [
     { Sid = "PublicReadOnlyCustomerRoleTemplate", Effect = "Allow", Principal = "*", Action = "s3:GetObject",
-    Resource = [for object in aws_s3_object.customer_role_template : object.arn] },
+    Resource = aws_s3_object.customer_role_template[local.customer_role_template_sha256].arn },
     { Sid      = "RequireTLS", Effect = "Deny", Principal = "*", Action = "s3:*",
       Resource = [aws_s3_bucket.templates[0].arn, "${aws_s3_bucket.templates[0].arn}/*"],
     Condition = { Bool = { "aws:SecureTransport" = "false" } } }
