@@ -123,6 +123,7 @@ from .aws_apigateway_portal_next import correlate as correlate_aws_apigateway_po
 from .aws_apigateway_private_vpce_next import normalize as normalize_aws_apigateway_private_vpce
 from .aws_cloudformation_reads_next import normalize as normalize_aws_cloudformation_reads
 from .aws_cloudformation_triggers_next import normalize as normalize_aws_cloudformation_triggers, correlate as correlate_aws_cloudformation_triggers
+from .aws_cloudformation_inputs_stacksets_next import normalize_stackset as normalize_aws_cloudformation_stackset, correlate_inputs as correlate_aws_cloudformation_inputs
 from .aws_eventbridge_controls_next import normalize_aws_eventbridge_controls
 from .aws_eventbridge_connections_next import normalize_aws_eventbridge_connections
 from .aws_ssm_controls_next import normalize_aws_ssm_controls
@@ -175,8 +176,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "076ea462f7facc652a02437ad374dd632e72ac24"
-DEFAULT_RULE_PACK_SHA256 = "24abd606eaecb25ac8a727a672026f1c2f523ce2453356e207628487af72c7b8"
+DEFAULT_RULE_REF = "7a7f338626fa00011ffe26885ce553e24a9ec122"
+DEFAULT_RULE_PACK_SHA256 = "de865cfde6faec5400e985760a47c20141b703f8ab69b870f54592f159e3278a"
 
 
 @dataclass(frozen=True)
@@ -384,6 +385,7 @@ def detect_aws_events(
         apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
         cloudformation_reads = normalize_aws_cloudformation_reads(record)
         cloudformation_triggers = normalize_aws_cloudformation_triggers(record)
+        cloudformation_stackset = normalize_aws_cloudformation_stackset(record)
         eventbridge_controls = normalize_aws_eventbridge_controls(record)
         eventbridge_connections = normalize_aws_eventbridge_connections(record)
         ssm_controls = normalize_aws_ssm_controls(record)
@@ -517,6 +519,7 @@ def detect_aws_events(
                 + ([apigateway_private_vpce] if apigateway_private_vpce is not None else [])
                 + ([cloudformation_reads] if cloudformation_reads is not None else [])
                 + ([cloudformation_triggers] if cloudformation_triggers is not None else [])
+                + ([cloudformation_stackset] if cloudformation_stackset is not None else [])
                 + ([eventbridge_controls] if eventbridge_controls is not None else [])
                 + ([eventbridge_connections] if eventbridge_connections is not None else [])
                 + ([ssm_controls] if ssm_controls is not None else [])
@@ -575,6 +578,7 @@ def detect_aws_events(
     apigateway_rest_records: list[Mapping[str, Any]] = []
     apigateway_portal_records: list[Mapping[str, Any]] = []
     cloudformation_trigger_records: list[Mapping[str, Any]] = []
+    cloudformation_input_records: list[Mapping[str, Any]] = []
     codebuild_gap_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
@@ -590,6 +594,10 @@ def detect_aws_events(
                 apigateway_portal_records.append(record)
             if record.get("eventSource") == "cloudformation.amazonaws.com" and record.get("eventName") in {"CreateStack", "CreateChangeSet", "ExecuteChangeSet"}:
                 cloudformation_trigger_records.append(record)
+            if ((record.get("eventSource") == "cloudformation.amazonaws.com" and record.get("eventName") == "UpdateStack")
+                    or (record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") == "PutParameter")
+                    or (record.get("eventSource") == "s3.amazonaws.com" and record.get("eventName") == "PutObject")):
+                cloudformation_input_records.append(record)
             if ((record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") in {"StartBuild", "UpdateProject"})
                     or (record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") == "StartSession")
                     or (record.get("eventSource") == "secretsmanager.amazonaws.com" and record.get("eventName") == "GetSecretValue")):
@@ -658,6 +666,7 @@ def detect_aws_events(
     correlated += correlate_aws_apigateway_rest(apigateway_rest_records)
     correlated += correlate_aws_apigateway_portal(apigateway_portal_records)
     correlated += correlate_aws_cloudformation_triggers(cloudformation_trigger_records)
+    correlated += correlate_aws_cloudformation_inputs(cloudformation_input_records)
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
