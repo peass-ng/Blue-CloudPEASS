@@ -74,7 +74,7 @@ locals {
   run_tasks = { for stage in ["collector", "analyzer"] : stage => {
     Type           = "Task"
     Resource       = "arn:aws:states:::ecs:runTask.sync"
-    TimeoutSeconds = var.scan_runtime_limits.stage_seconds
+    TimeoutSeconds = stage == "analyzer" ? var.scan_runtime_limits.workflow_seconds : var.scan_runtime_limits.stage_seconds
     Parameters = {
       Cluster         = aws_ecs_cluster.cspm.arn
       TaskDefinition  = aws_ecs_task_definition.tasks[stage].arn

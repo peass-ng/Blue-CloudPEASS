@@ -6,7 +6,8 @@ still starts after all reviewers finish. The AWS deployment admits up to four
 concurrent tasks, subject to analyzer memory headroom. Each task uses 0.5 vCPU /
 2 GiB. The 3,000-second AI phase budget includes task startup and is bounded by
 the scan deadline; about 30% (at most 600 seconds) is reserved
-for priorities. Absolute task deadlines leave time for result upload and shutdown.
+for priorities. The analyzer task shares the workflow’s one-hour ceiling; the
+collector retains its 30-minute stage limit. Absolute task deadlines leave time for result upload and shutdown.
 
 ## Boundaries
 
