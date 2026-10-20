@@ -103,6 +103,7 @@ from .aws_sns_subscription_next import normalize_aws_sns_subscription
 from .aws_sqs_followup_next import normalize_aws_sqs_followup, correlate_aws_sqs_tagged_receive
 from .aws_sqs_data_next import normalize_aws_sqs_data, correlate_aws_sqs_fifo_dedup_collision
 from .aws_sqs_redrive_next import normalize_aws_sqs_redrive
+from .aws_sqs_public_policy_next import normalize_aws_sqs_public_policy
 from .aws_sns_controls_next import normalize_aws_sns_topic_controls
 from .aws_chime_admin_next import normalize_aws_chime_admin
 from .aws_chime_attendee_messaging_next import normalize_aws_chime_attendee_messaging
@@ -406,6 +407,7 @@ def detect_aws_events(
         sqs_followup = normalize_aws_sqs_followup(record)
         sqs_data = normalize_aws_sqs_data(record)
         sqs_redrive = normalize_aws_sqs_redrive(record)
+        sqs_public_policy = normalize_aws_sqs_public_policy(record)
         sns_topic_controls = normalize_aws_sns_topic_controls(record)
         chime_admin = normalize_aws_chime_admin(record)
         chime_attendee_messaging = normalize_aws_chime_attendee_messaging(record)
@@ -570,6 +572,7 @@ def detect_aws_events(
                 + ([sqs_followup] if sqs_followup is not None else [])
                 + ([sqs_data] if sqs_data is not None else [])
                 + ([sqs_redrive] if sqs_redrive is not None else [])
+                + ([sqs_public_policy] if sqs_public_policy is not None else [])
                 + ([sns_topic_controls] if sns_topic_controls is not None else [])
                 + ([chime_admin] if chime_admin is not None else [])
                 + ([chime_attendee_messaging] if chime_attendee_messaging is not None else [])
