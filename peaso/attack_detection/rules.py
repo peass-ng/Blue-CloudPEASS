@@ -36,6 +36,7 @@ from .aws_lightsail_snapshot_dns_next import normalize as normalize_aws_lightsai
 from .aws_lightsail_db_next import normalize as normalize_aws_lightsail_db
 from .aws_ecr_lightsail_batch_next import normalize as normalize_aws_ecr_lightsail_batch, correlate_tag_overwrite as correlate_aws_ecr_tag_overwrite
 from .aws_ecr_public_push_next import normalize_public as normalize_aws_ecr_public_push, correlate_new_layer_push as correlate_aws_ecr_new_layer_push
+from .aws_cloudwatch_logs_data_next import normalize as normalize_aws_cloudwatch_logs_data
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
@@ -184,8 +185,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "f19db05fbb418f7239356953688f2283a7e297b3"
-DEFAULT_RULE_PACK_SHA256 = "0bf501730e9bf2918bb604214b80961a786c2c138845369c49e8393ddec4c5b1"
+DEFAULT_RULE_REF = "cbdda3d0896b63707eed50e44fd5d2dbb9509bd0"
+DEFAULT_RULE_PACK_SHA256 = "afe845b73143092a0b7dedb4c34ee1bb61a6d6473e5e530094381a6748dab727"
 
 
 @dataclass(frozen=True)
@@ -313,6 +314,7 @@ def detect_aws_events(
         lightsail_db = normalize_aws_lightsail_db(record)
         ecr_lightsail_batch = normalize_aws_ecr_lightsail_batch(record)
         ecr_public_push = normalize_aws_ecr_public_push(record)
+        cloudwatch_logs_data = normalize_aws_cloudwatch_logs_data(record)
         appsync_five = normalize_aws_appsync_five(record)
         appsync_read_function = normalize_aws_appsync_read_function(record)
         appsync_signed_role = normalize_aws_appsync_signed_role(record)
@@ -455,6 +457,7 @@ def detect_aws_events(
                 + ([lightsail_db] if lightsail_db is not None else [])
                 + ([ecr_lightsail_batch] if ecr_lightsail_batch is not None else [])
                 + ([ecr_public_push] if ecr_public_push is not None else [])
+                + ([cloudwatch_logs_data] if cloudwatch_logs_data is not None else [])
                 + ([appsync_five] if appsync_five is not None else [])
                 + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([appsync_signed_role] if appsync_signed_role is not None else [])
