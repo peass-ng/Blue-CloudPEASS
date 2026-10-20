@@ -62,6 +62,7 @@ from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_ssec_next import normalize as normalize_aws_s3_ssec, correlate as correlate_aws_s3_ssec
 from .aws_iot_core_batch_next import normalize as normalize_aws_iot_core_batch
 from .aws_iot_provision_jobs_next import normalize as normalize_aws_iot_provision_jobs, correlate_external_cert_policy as correlate_aws_iot_external_cert_policy
+from .aws_lambda_access_mapping_next import normalize as normalize_aws_lambda_access_mapping, correlate_repoint as correlate_aws_lambda_mapping_repoint
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
 from .aws_s3_replication_next import normalize_aws_s3_replication
 from .aws_ecr_replication_next import normalize_aws_ecr_replication
@@ -194,8 +195,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "01c5cef95838c8290d523eb20ab39fe1dd731235"
-DEFAULT_RULE_PACK_SHA256 = "fdb6e431a6abd3c3c258dc9339e8a0245b3d392a07121f1e5c81315e2d634fea"
+DEFAULT_RULE_REF = "bc162e6afc4de8bb9813d9dc71b65d5d267d92cb"
+DEFAULT_RULE_PACK_SHA256 = "49a9ec84e44771a5a2399321c0523f0d0b93d4da6774aa2170b553e038046507"
 
 
 @dataclass(frozen=True)
@@ -343,6 +344,7 @@ def detect_aws_events(
         s3_ssec = normalize_aws_s3_ssec(record)
         iot_core_batch = normalize_aws_iot_core_batch(record)
         iot_provision_jobs = normalize_aws_iot_provision_jobs(record)
+        lambda_access_mapping = normalize_aws_lambda_access_mapping(record)
         s3_notification = normalize_aws_s3_template_notification(record)
         s3_replication = normalize_aws_s3_replication(record)
         ecr_replication = normalize_aws_ecr_replication(record)
@@ -491,6 +493,7 @@ def detect_aws_events(
                 + ([s3_ssec] if s3_ssec is not None else [])
                 + ([iot_core_batch] if iot_core_batch is not None else [])
                 + ([iot_provision_jobs] if iot_provision_jobs is not None else [])
+                + ([lambda_access_mapping] if lambda_access_mapping is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
                 + ([s3_replication] if s3_replication is not None else [])
                 + ([ecr_replication] if ecr_replication is not None else [])
@@ -633,6 +636,7 @@ def detect_aws_events(
     cloudtrail_log_object_records: list[Mapping[str, Any]] = []
     s3_ssec_records: list[Mapping[str, Any]] = []
     iot_external_cert_records: list[Mapping[str, Any]] = []
+    lambda_mapping_records: list[Mapping[str, Any]] = []
     ecr_image_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
@@ -640,6 +644,12 @@ def detect_aws_events(
                     and isinstance(record.get("eventName"), str)
                     and record["eventName"] in {"RegisterCertificateWithoutCA", "AttachPolicy"}):
                 iot_external_cert_records.append(record)
+            if (record.get("eventSource") == "lambda.amazonaws.com"
+                    and isinstance(record.get("eventName"), str)
+                    and record["eventName"] in {"CreateEventSourceMapping20150331",
+                                                "UpdateEventSourceMapping20150331",
+                                                "DeleteEventSourceMapping20150331"}):
+                lambda_mapping_records.append(record)
             if (isinstance(record.get("eventSource"), str)
                     and record["eventSource"] in {"ecr.amazonaws.com", "ecr-public.amazonaws.com"}
                     and isinstance(record.get("eventName"), str)
@@ -768,6 +778,7 @@ def detect_aws_events(
     correlated += correlate_aws_cloudtrail_log_objects(cloudtrail_log_object_records)
     correlated += correlate_aws_s3_ssec(s3_ssec_records)
     correlated += correlate_aws_iot_external_cert_policy(iot_external_cert_records)
+    correlated += correlate_aws_lambda_mapping_repoint(lambda_mapping_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     if correlated:

@@ -1,0 +1,199 @@
+{
+  "derivation": "Synthetic account, role, Lambda, layer, queues, mapping and event IDs; CloudTrail field shapes from an owned lab. No environment value, package URL, code or customer data.",
+  "events": [
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "ListFunctions20150331",
+      "eventTime": "2026-10-20T15:00:00Z",
+      "eventID": "synthetic-ListFunctions20150331",
+      "requestParameters": null,
+      "responseElements": null,
+      "readOnly": true
+    },
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "ListVersionsByFunction20150331",
+      "eventTime": "2026-10-20T15:01:00Z",
+      "eventID": "synthetic-ListVersionsByFunction20150331",
+      "requestParameters": {
+        "functionName": "synthetic-function-a"
+      },
+      "responseElements": null,
+      "readOnly": true
+    },
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "GetFunction20150331v2",
+      "eventTime": "2026-10-20T15:02:00Z",
+      "eventID": "synthetic-GetFunction20150331v2",
+      "requestParameters": {
+        "functionName": "synthetic-function-a"
+      },
+      "responseElements": null,
+      "readOnly": true
+    },
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "GetFunctionConfiguration20150331v2",
+      "eventTime": "2026-10-20T15:03:00Z",
+      "eventID": "synthetic-GetFunctionConfiguration20150331v2",
+      "requestParameters": {
+        "functionName": "synthetic-function-a"
+      },
+      "responseElements": null,
+      "readOnly": true
+    },
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "GetLayerVersion20181031",
+      "eventTime": "2026-10-20T15:04:00Z",
+      "eventID": "synthetic-GetLayerVersion20181031",
+      "requestParameters": {
+        "layerName": "synthetic-layer",
+        "versionNumber": 1
+      },
+      "responseElements": null,
+      "readOnly": true
+    },
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "UpdateFunctionConfiguration20150331v2",
+      "eventTime": "2026-10-20T15:05:00Z",
+      "eventID": "synthetic-UpdateFunctionConfiguration20150331v2",
+      "requestParameters": {
+        "functionName": "synthetic-function-a",
+        "environment": {},
+        "loggingConfig": {
+          "logGroup": "/peasso/synthetic-sink",
+          "logFormat": "JSON"
+        }
+      },
+      "responseElements": {
+        "functionArn": "arn:aws:lambda:us-east-1:999999999999:function:synthetic-function-a",
+        "loggingConfig": {
+          "logGroup": "/peasso/synthetic-sink"
+        },
+        "environment": {}
+      },
+      "readOnly": false
+    },
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "CreateEventSourceMapping20150331",
+      "eventTime": "2026-10-20T15:06:00Z",
+      "eventID": "synthetic-CreateEventSourceMapping20150331",
+      "requestParameters": {
+        "functionName": "synthetic-function-a",
+        "eventSourceArn": "arn:aws:sqs:us-east-1:999999999999:synthetic-source",
+        "batchSize": 1,
+        "enabled": true
+      },
+      "responseElements": {
+        "uUID": "11111111-2222-4333-8444-5555aaaa5555",
+        "eventSourceMappingArn": "arn:aws:lambda:us-east-1:999999999999:event-source-mapping:11111111-2222-4333-8444-5555aaaa5555",
+        "eventSourceArn": "arn:aws:sqs:us-east-1:999999999999:synthetic-source",
+        "functionArn": "arn:aws:lambda:us-east-1:999999999999:function:synthetic-function-a",
+        "state": "Enabled"
+      },
+      "readOnly": false
+    },
+    {
+      "eventSource": "lambda.amazonaws.com",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "eventName": "UpdateEventSourceMapping20150331",
+      "eventTime": "2026-10-20T15:07:00Z",
+      "eventID": "synthetic-UpdateEventSourceMapping20150331",
+      "requestParameters": {
+        "uUID": "11111111-2222-4333-8444-5555aaaa5555",
+        "functionName": "synthetic-function-b"
+      },
+      "responseElements": {
+        "uUID": "11111111-2222-4333-8444-5555aaaa5555",
+        "eventSourceMappingArn": "arn:aws:lambda:us-east-1:999999999999:event-source-mapping:11111111-2222-4333-8444-5555aaaa5555",
+        "eventSourceArn": "arn:aws:sqs:us-east-1:999999999999:synthetic-source",
+        "functionArn": "arn:aws:lambda:us-east-1:999999999999:function:synthetic-function-b",
+        "state": "Enabled"
+      },
+      "readOnly": false
+    }
+  ]
+}
