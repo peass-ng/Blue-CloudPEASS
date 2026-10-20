@@ -52,10 +52,16 @@ def active_shared():
         'peaso.checks.native_admission_cpu_shared_successor_20261020': '82c57ad2963785be4ddc5cbb4f029afe19a416800ea5beed748693aa6324fcc8',
         'peaso.checks.collector_noop_authorization_shared_successor_20261020': '7ed26b39498462397e5b02b74552d91336d53f07ea70636d8b0655164f90dafa',
         'peaso.checks.azure_metadata_only_shared_successor_20261020': '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',
+        'peaso.checks.gcp_positive_conservation_shared_source_successor_20261020': '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',
     }
     assert current.__name__ in known, 'Unknown shared admission source epoch'
     assert current is importlib.import_module(current.__name__), 'Shared admission alias pointer changed'
-    assert current.RECEIPT == current.__name__.rsplit('.', 1)[1] + '.json'
+    if current.__name__ == 'peaso.checks.gcp_positive_conservation_shared_source_successor_20261020':
+        historical = importlib.import_module('peaso.checks.azure_metadata_only_shared_successor_20261020')
+        assert current.historical_bridge is historical
+        assert current.RECEIPT == historical.RECEIPT == 'azure_metadata_only_shared_successor_20261020.json'
+    else:
+        assert current.RECEIPT == current.__name__.rsplit('.', 1)[1] + '.json'
     raw = (ROOT / 'peaso/checks' / current.RECEIPT).read_bytes()
     assert digest(raw) == known[current.__name__] == current.RECEIPT_SHA256
     if current.__name__.endswith('native_admission_cpu_shared_successor_20261020'):
@@ -66,7 +72,8 @@ def active_shared():
         # This verifies only which independently bound successor may be routed.
     if current.__name__.endswith('collector_noop_authorization_shared_successor_20261020'):
         _noop_native_parent(current, json.loads(raw))
-    if current.__name__.endswith('azure_metadata_only_shared_successor_20261020'):
+    if current.__name__.endswith(('azure_metadata_only_shared_successor_20261020',
+                                  'gcp_positive_conservation_shared_source_successor_20261020')):
         _metadata_noop_parent(current, json.loads(raw))
     return current
 
@@ -96,7 +103,11 @@ def _metadata_noop_parent(current, proof):
     assert set(proof['metadata_only_epoch_file_deltas']) == {
         'peaso/checks/__init__.py', 'peaso/collectors/azure.py'}
     for relative, row in proof['metadata_only_epoch_file_deltas'].items():
-        _reverse((ROOT / relative).read_text(), row)
+        content = (ROOT / relative).read_bytes()
+        if relative == 'peaso/checks/__init__.py':
+            from tests.gcp_positive_conservation_epoch_20261020 import metadata_initializer_bytes
+            content = metadata_initializer_bytes(content)
+        _reverse(content.decode(), row)
     assert proof['metadata_only_epoch_file_deltas']['peaso/collectors/azure.py']['predecessor_sha256'] == 'b69db967e65722174e847116620b63c7de4f0da835e3edde1a882456dc37afea'
     from peaso.collectors import azure
     restored = _reverse(inspect.getsource(azure.collect), proof['metadata_only_collect'])
@@ -220,7 +231,11 @@ def azure_predecessor_tree(destination):
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc', '.pytest_cache'))
     shutil.copyfile(ROOT / 'pyproject.toml', destination / 'pyproject.toml')
     active = active_shared()
-    if active.__name__ == 'peaso.checks.azure_metadata_only_shared_successor_20261020':
+    if active.__name__ == 'peaso.checks.gcp_positive_conservation_shared_source_successor_20261020':
+        from tests.gcp_positive_conservation_epoch_20261020 import restore_content_predecessors
+        restore_content_predecessors(destination)
+    if active.__name__ in {'peaso.checks.azure_metadata_only_shared_successor_20261020',
+                           'peaso.checks.gcp_positive_conservation_shared_source_successor_20261020'}:
         # Canonical no-op ancestry is already checked; restore the same three
         # producers before the pinned archive restores the older Azure file.
         active = active.accepted_noop

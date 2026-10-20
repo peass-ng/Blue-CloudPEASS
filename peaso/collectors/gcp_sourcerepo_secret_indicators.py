@@ -264,18 +264,31 @@ def collect_sources(collector, scope):
                 path_hash = path_identity(selected_file.path)
                 outcome = scan_content(payload, 'sourcerepo.selected_file.' + path_hash,
                     timeout=min(10, _remaining(transport, deadline) / 2))
-                _remaining(transport, deadline)
                 marker['files'].append({'path_sha256': path_hash, 'blob_sha1': selected_file.object_sha,
                     'identity': blob_identity(selected, path_hash, selected_file.object_sha, len(payload)),
                     'bytes': len(payload), 'complete': outcome['complete'], 'engines': outcome['engines']})
-                outcomes.extend(outcome['leaks'])
-                if outcome['complete'] is not True:
-                    raise Incomplete('detector_unavailable')
+                # Retain only redacted observations after this blob's native
+                # commit/path binding and content validation have succeeded.
+                combined = merge_leaks(outcomes + outcome['leaks'])
+                kept, remaining_locations = [], MAX_LOCATIONS
+                for leak in combined[:MAX_LEAKS]:
+                    if not remaining_locations:
+                        break
+                    locations = leak['locations'][:remaining_locations]
+                    kept.append(dict(leak, locations=locations))
+                    remaining_locations -= len(locations)
+                marker['leaks'] = kept
+                outcomes = kept
+                if combined != kept:
+                    raise Incomplete('finding_limit')
+                _remaining(transport, deadline)
             leaks = merge_leaks(outcomes)
             if len(leaks) > MAX_LEAKS or sum(len(x['locations']) for x in leaks) > MAX_LOCATIONS:
                 raise Incomplete('finding_limit')
             _remaining(transport, deadline)
-            marker.update(complete=True, reason='complete', leaks=leaks)
+            complete = all(file['complete'] is True for file in marker['files'])
+            marker.update(complete=complete,
+                          reason='complete' if complete else 'detectors_incomplete', leaks=leaks)
         except (Incomplete, content.GitContentError) as exc:
             marker['reason'] = str(exc)
         except Exception:

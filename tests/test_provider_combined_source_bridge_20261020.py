@@ -81,6 +81,9 @@ def cpu_epoch_bytes(relative, raw):
     """Two finite signed layers, followed by the original CPU source assertions."""
     if relative not in {'peaso/checks/__init__.py', 'peaso/collectors/azure.py'}:
         return raw
+    if relative == 'peaso/checks/__init__.py':
+        from tests.gcp_positive_conservation_epoch_20261020 import metadata_initializer_bytes
+        raw = metadata_initializer_bytes(raw)
     layers = (
         ('azure_metadata_only_shared_successor_20261020',
          '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',

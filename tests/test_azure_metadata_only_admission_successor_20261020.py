@@ -13,7 +13,8 @@ import sys
 import types
 import pytest
 from peaso.collectors import azure
-from peaso.checks import azure_metadata_only_shared_successor_20261020 as bridge
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared
+bridge = active_shared()
 from tests.test_peaso_azure_tls_owner_policy import options, owner, SCOPE, FOREIGN
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -183,7 +184,8 @@ import pathlib,socket,sys
 def blocked(*a,**k):raise AssertionError('No network in disk tamper proof')
 for owner,names in ((socket,('create_connection','getaddrinfo')),(socket.socket,('connect','connect_ex','sendto'))):
  for name in names:setattr(owner,name,blocked)
-from peaso.checks import azure_metadata_only_shared_successor_20261020 as bridge
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared
+bridge = active_shared()
 root=pathlib.Path.cwd();path=root/sys.argv[1];raw=path.read_bytes()
 try:
  bridge.reviewed_delta(root);bridge.verify_metadata_only(root)

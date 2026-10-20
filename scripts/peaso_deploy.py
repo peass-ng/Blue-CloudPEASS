@@ -50,6 +50,8 @@ RUNTIME_ADMISSION_INPUTS = {
 # Exact public inputs needed to reproduce the shipped compiler, provenance and
 # tests. Explicit paths/globs only: no .work drafts, caches or private files.
 REPRODUCTION_INPUT_PATTERNS = (
+    'tests/gcp_positive_conservation_epoch_20261020.py',
+    'tests/fixtures/gcp_positive_conservation_predecessors_20261020.json.gz',
     'tests/fixtures/aws_chime_batch64_events.json',
     'tests/fixtures/aws_chime_batch65_events.json',
     'tests/fixtures/aws_chime_insights_batch69_events.json',
