@@ -2,12 +2,22 @@
 
 The supported hosted backend is `PEASO_AI_RUNTIME=fargate`. It runs each Hardening,
 Exposure, Network or Priorities invocation in a separate Fargate task. Priorities
-still starts after all reviewers finish. The AWS deployment admits up to four
+still starts after all reviewers finish. The AWS deployment admits up to six
 concurrent tasks, subject to analyzer memory headroom. Each task uses 0.5 vCPU /
 2 GiB. The 3,000-second AI phase budget includes task startup and is bounded by
 the scan deadline; about 30% (at most 600 seconds) is reserved
 for priorities. The analyzer task shares the workflow’s one-hour ceiling; the
-collector retains its 30-minute stage limit. Absolute task deadlines leave time for result upload and shutdown.
+collector retains its 30-minute stage limit. Absolute task deadlines leave time for result upload and shutdown. The remaining
+invocation budget also sets the inner agent wrapper’s runtime budget; the
+parent process and relay enforce the absolute deadline. An ECS failure before
+the agent starts can retry once within the remaining phase budget. Each attempt
+cleans up its task and transport objects. Completed agent output is collected as
+soon as its container stops successfully, with task cleanup requested before
+returning. Each agent validates output against its original local references
+and can make one corrective pass within the same invocation deadline. The
+backend independently validates the final output. Manual/unknown network and
+privilege-escalation evidence can support an explicitly qualified review action;
+Hardening/Exposure recommendations still require confirmed FAIL reviews.
 
 ## Boundaries
 

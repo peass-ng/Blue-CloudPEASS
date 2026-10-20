@@ -62,6 +62,8 @@ def unpack(data, root):
 def run_agent(config):
     if config.get('stage') not in STAGES:
         raise ValueError('invalid_task_stage')
+    from .deadline import ENVIRONMENT_KEY, timeout_seconds
+    remaining = timeout_seconds(config.get('timeout'))
     with tempfile.TemporaryDirectory(prefix='ai-', dir='/tmp') as directory:
         root = Path(directory)
         unpack(relay_request('GET', '/input', config['relay_token']), root)
@@ -72,11 +74,16 @@ def run_agent(config):
         env = {'PATH': os.defpath + ':/usr/local/bin', 'HOME': directory, 'TMPDIR': directory,
                'PYTHONPATH': '/app', 'CODEX_HOME': directory + '/.codex', 'LANG': 'C.UTF-8',
                'AWS_EC2_METADATA_DISABLED': 'true', 'PEASO_AI_MODEL_RELAY': 'http://127.0.0.1:8765',
-               'CHACK_CODEX_DIRECT_CACHE_TRANSPORT': 'off'}
+               'CHACK_CODEX_DIRECT_CACHE_TRANSPORT': 'off', ENVIRONMENT_KEY: str(remaining)}
         process = subprocess.Popen([sys.executable, '-m', 'peaso.ai.runner', config['stage']],
             cwd=directory, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         try:
-            process.wait(timeout=max(1, min(1800, config['timeout'])))
+            process.wait(timeout=remaining)
+            if process.returncode == 65:
+                from .output_validation import InvalidAgentOutput
+                raise InvalidAgentOutput('invalid_agent_result')
+            if process.returncode == 124:
+                raise TimeoutError('agent_runtime_limit')
             if process.returncode:
                 raise RuntimeError('agent_failed')
             # Never follow an agent-created symlink in the trusted uploader.
@@ -120,6 +127,7 @@ def relay_request(method, path, capability, *, body=None, limit=MAX_INPUT):
 
 
 def main():
+    from .output_validation import InvalidAgentOutput
     os.umask(0o077)
     try:
         if sys.argv[1] == 'relay':
@@ -143,6 +151,12 @@ def main():
             run_agent(config)
         else:
             raise ValueError('invalid_task_mode')
+    except (TimeoutError, subprocess.TimeoutExpired):
+        print('ai_agent_failure=deadline', file=sys.stderr, flush=True)
+        sys.exit(124)
+    except InvalidAgentOutput:
+        print('ai_agent_failure=invalid_output', file=sys.stderr, flush=True)
+        sys.exit(65)
     except BaseException:
         # Credentials, signed URLs, provider bodies and exception text stay private.
         sys.exit(1)

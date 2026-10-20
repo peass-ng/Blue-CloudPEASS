@@ -15,6 +15,10 @@ MAX_OUTPUT = 8_000_000
 STAGES = {'hardening', 'exposure', 'network', 'priorities'}
 
 
+class TaskStartupError(RuntimeError):
+    """ECS stopped the task before its agent process started."""
+
+
 def configuration():
     names = ('CLUSTER', 'TASK_DEFINITION', 'SUBNETS', 'SECURITY_GROUPS', 'BUCKET')
     values = {name.lower(): os.environ.get('PEASO_AI_FARGATE_' + name, '').strip() for name in names}
@@ -125,8 +129,11 @@ def invoke(stage, root, token, timeout, *, ecs=None, s3=None, clock=time.monoton
             rows = response.get('tasks', [])
             if len(rows) != 1 or response.get('failures'):
                 raise RuntimeError('ai_task_status_unavailable')
-            if rows[0].get('lastStatus') == 'STOPPED':
-                agent = next((c for c in rows[0].get('containers', []) if c.get('name') == 'agent'), {})
+            agent = next((c for c in rows[0].get('containers', []) if c.get('name') == 'agent'), {})
+            agent_stopped = agent.get('lastStatus') == 'STOPPED' and agent.get('exitCode') is not None
+            if rows[0].get('lastStatus') == 'STOPPED' or agent_stopped:
+                if agent.get('exitCode') is None and rows[0].get('stopCode') == 'TaskFailedToStart':
+                    raise TaskStartupError('ai_task_startup_failed')
                 if agent.get('exitCode') != 0:
                     raise RuntimeError('agent_failed')
                 body = s3.get_object(Bucket=config['bucket'], Key=keys['result.json'])['Body']

@@ -108,8 +108,11 @@ def validate_actions(data, report, reviews):
     actions = value['actions']
     if [a['rank'] for a in actions] != list(range(1, len(actions) + 1)):
         raise ValueError('action_rank_mismatch')
+    meta = report.get('check_meta') or {}
+    def category(row):
+        return row.get('category', (meta.get(row.get('check_id')) or {}).get('category'))
     findings = {row['id'] for row in report['findings'] if row.get('status') == 'FAIL'
-                or (row.get('category') == 'network' and row.get('status') in ('MANUAL', 'UNKNOWN'))}
+                or (category(row) in ('network', 'privesc') and row.get('status') in ('MANUAL', 'UNKNOWN'))}
     resources = {row['id'] for row in report.get('resources', [])}
     rejected = {r['finding_id'] for r in reviews if r['verdict'] != 'FAIL'}
     titles = set()

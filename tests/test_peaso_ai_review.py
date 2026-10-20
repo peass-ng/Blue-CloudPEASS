@@ -492,6 +492,7 @@ def test_runner_receives_only_file_credentials_and_clean_environment(tmp_path, m
     monkeypatch.setattr(pipeline, 'kill_tree', lambda _: None)
     assert pipeline.invoke('hardening', {'report': {'unrelated': 'must-not-be-written'}, 'inventory': ['unrelated'], 'least_privilege': {}}, [{'token': 'cloud-token'}], 'codex-token', [], [], 10) == {'items': []}
     assert 'AWS_SECRET_ACCESS_KEY' not in observed['env'] and 'PEASO_CREDENTIAL_SECRET_ARN' not in observed['env']
+    assert 0 < int(observed['env']['PEASO_AI_AGENT_TIMEOUT_SECONDS']) <= 10
     assert not Path(observed['env']['HOME']).exists()
 
 
@@ -1192,7 +1193,7 @@ def test_priorities_waits_for_last_reviewer_and_receives_final_verdicts(environm
     assert received == [review('h1', 'PASS'), review('e1', 'MANUAL'), review('duplicate', 'PASS')]
 
 
-@pytest.mark.parametrize('available_mib,requested,expected', [(4096, 2, 2), (4096, 4, 4), (700, 4, 1), (600, 2, 0)])
+@pytest.mark.parametrize('available_mib,requested,expected', [(4096, 2, 2), (4096, 4, 4), (4096, 6, 6), (2800, 6, 5), (700, 4, 1), (600, 2, 0)])
 def test_review_admission_respects_memory_headroom(available_mib, requested, expected, monkeypatch):
     monkeypatch.setenv('PEASO_AI_MAX_CONCURRENCY', str(requested))
     monkeypatch.setattr(pipeline, 'available_memory', lambda: available_mib * 1024**2)
@@ -1313,3 +1314,57 @@ def test_file_preparation_cannot_launch_an_agent_past_its_deadline(monkeypatch):
     monkeypatch.setattr(pipeline.subprocess, 'Popen', lambda *a, **kw: pytest.fail('Expired work must not launch'))
     with pytest.raises(TimeoutError):
         pipeline.invoke('hardening', {}, [], 'private', [], [], 1)
+
+
+def test_review_queue_admits_six_workers_and_keeps_the_priorities_barrier(environment, monkeypatch):
+    import threading
+    monkeypatch.setenv('PEASO_AI_MAX_CONCURRENCY', '6')
+    monkeypatch.setattr(pipeline, 'available_memory', lambda: 4 * 1024**3)
+    rows = [finding(f'h{i}') for i in range(241)]
+    barrier, lock = threading.Barrier(6), threading.Lock()
+    active = peak = calls = completed = 0
+    def invoke(stage, platform, entries, selected_token, findings, reviews, timeout):
+        nonlocal active, peak, calls, completed
+        if stage == 'priorities':
+            assert active == 0 and completed == 7
+            return {'actions': [], 'limitations': []}
+        with lock:
+            active += 1; calls += 1
+            current = calls
+            peak = max(peak, active)
+        try:
+            if current <= 6: barrier.wait(timeout=3)
+            return {'items': [review(row['id']) for row in findings]}
+        finally:
+            with lock: active -= 1; completed += 1
+    monkeypatch.setattr(pipeline, 'invoke', invoke)
+    value = pipeline.review_scan(report() | {'findings': rows}, {}, {}, tenant='alice', artifacts=environment[2])
+    assert value['status'] == 'completed' and peak == 6
+    assert value['coverage']['total'] == 241
+
+
+def test_review_queue_rejects_unbounded_concurrency(monkeypatch):
+    monkeypatch.setenv('PEASO_AI_MAX_CONCURRENCY', '7')
+    with pytest.raises(ValueError, match='invalid_ai_concurrency'):
+        pipeline.review_concurrency()
+
+
+@pytest.mark.parametrize('category,status', [('network','MANUAL'),('network','UNKNOWN'),('privesc','MANUAL'),('privesc','UNKNOWN')])
+def test_qualified_actions_can_reference_compact_contextual_findings(category, status):
+    data = report()
+    data['findings'] = [{'id':'h1','check_id':'contextual','status':status,'resource_id':'r1'}]
+    data['check_meta'] = {'contextual': {'category': category}}
+    before = copy.deepcopy(data)
+    proposed = action() | {'title': 'Review conditional access',
+        'rationale': 'The declared control warrants review; required access and effective reachability need owner validation.'}
+    assert validate_actions({'actions':[proposed],'limitations':[]}, data, [])['actions'] == [proposed]
+    assert data == before
+
+
+@pytest.mark.parametrize('category,status', [('hardening','MANUAL'),('exposure','UNKNOWN'),('privesc','PASS'),('network','DENIED')])
+def test_contextual_reference_support_preserves_rejected_finding_boundaries(category, status):
+    data = report()
+    data['findings'] = [{'id':'h1','check_id':'contextual','status':status,'resource_id':'r1'}]
+    data['check_meta'] = {'contextual': {'category': category}}
+    with pytest.raises(ValueError, match='unknown_action_reference'):
+        validate_actions({'actions':[action()],'limitations':[]}, data, [])
