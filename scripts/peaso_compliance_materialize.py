@@ -206,12 +206,13 @@ def render_documents() -> dict[Path, bytes]:
         raise ValueError("API summary/full check order differs")
     sources = {relative: hashlib.sha256(outputs.get(ROOT / relative, (ROOT / relative).read_bytes())).hexdigest()
                for relative in sorted(SOURCE_PATHS)}
-    from peaso.checks import CHECK_ALIASES
+    from peaso.checks import CHECK_ALIASES, CHECKS
     from peaso.checks.catalog import description_for, framework_selector_index, framework_display_names
     description_ids = native_ids | analysis_ids | set(CHECK_ALIASES)
     reviewed_descriptions = {cid: description_for(cid) for cid in sorted(description_ids)}
     document = encoded({"schema_version": 1, "sources": sources, "full": full,
                         "descriptions": reviewed_descriptions,
+                        "native_kinds": {check.id: [check.provider, check.kind] for check in CHECKS},
                         "framework_expansion": {key: sorted(values) for key, values in sorted(framework_selector_index().items())},
                         "framework_display": framework_display_names(), "framework_aliases": FRAMEWORK_ALIASES,
                         "summary": compact_summary, "frameworks": frameworks, "selectors": selectors}, compact=True)

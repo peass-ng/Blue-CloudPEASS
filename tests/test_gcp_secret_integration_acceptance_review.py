@@ -25,7 +25,7 @@ from peaso.collectors import gcp_configuration_secret_indicators as configuratio
 from peaso.collectors import gcp_log_secret_indicators as logs
 from peaso.collectors import gcp_selected_object_secret_indicators as objects
 from peaso.collectors import gcp_selected_archive_secret_indicators as archives
-from peaso.checks import gcp_function_secret_review_20261019 as function_check
+from peaso.checks import gcp_function_secret_partial_page_20261020 as function_check
 from peaso.checks import gcp_configuration_secret_review_20261019 as configuration_checks
 from peaso.checks import gcp_log_secret_review_20261019 as log_check
 from peaso.checks import gcp_selected_object_secret_review_20261019 as object_check

@@ -1,5 +1,6 @@
 """Finite native HTTP through real engine/collector and both pinned offline scanners."""
 from copy import deepcopy
+from tests.shared_admission_epoch_compatibility_20261020 import snapshot_cases, active_shared, source_at_epoch, sealed_ast
 from dataclasses import replace
 import hashlib
 import http.client
@@ -348,15 +349,16 @@ def test_guards_package_only(monkeypatch):
     def read(path,*args,**kw):bound(path);return original_read(path,*args,**kw)
     def text(path,*args,**kw):bound(path);return original_text(path,*args,**kw)
     monkeypatch.setattr(Path,'read_bytes',read);monkeypatch.setattr(Path,'read_text',text)
-    admission.reviewed_inputs();shared.reviewed_inputs()
+    admission.reviewed_inputs();active_shared().reviewed_inputs()
 
 
 def test_exact_combined_shared_delta():
-    shared.reviewed_inputs();receipt=shared.reviewed_delta()
+    active_shared().reviewed_inputs();receipt=shared.reviewed_delta()
+    with pytest.raises(RuntimeError,match="^Workbench shared successor changed non-Workbench source$"):shared.reviewed_inputs()
     with pytest.raises(RuntimeError):shared.predecessor.reviewed_inputs()
     for name,row in receipt['shared_functions'].items():
         module=engine if name.startswith('engine.') else __import__('peaso.server.validation',fromlist=['validate_connector'])
-        source=inspect.getsource(getattr(module,name.split('.')[1]))
+        source=source_at_epoch(getattr(module,name.split('.')[1]),name,row['current_sha256'])
         for addition in row['exact_additions']:
             assert 'selected_job' in addition or 'gcp.review.dataflow' in addition
             source=source.replace(addition,'',1)
@@ -375,7 +377,7 @@ def test_actual_k8s_opaque_grant_compatibility(monkeypatch,branch):
     from tests import test_k8s_selected_metadata_production_20261020 as native
     (status,evidence),trace,_,_=native.capture(monkeypatch,positive=branch=='fail',status=403 if branch=='unknown' else 200)
     assert status==branch.upper() and {r['status'] for r in trace.findings}=={status}
-    assert shared.original.reviewed_inputs is shared.reviewed_inputs
+    assert shared.original.reviewed_inputs is active_shared().reviewed_inputs
 
 
 @pytest.mark.parametrize('hit',[False,True])
@@ -420,12 +422,12 @@ def test_import_binding_guard_rejects_drift(monkeypatch,tamper):
 
 @pytest.mark.parametrize('collision',['metadata','evaluator','fixture'])
 def test_atomic_collision_keeps_both_controls(monkeypatch,collision):
-    monkeypatch.setattr(checks,'CHECKS',list(checks.CHECKS));monkeypatch.setattr(fixtures,'CASES',deepcopy(fixtures.CASES))
+    monkeypatch.setattr(checks,'CHECKS',list(checks.CHECKS));monkeypatch.setattr(fixtures,'CASES',snapshot_cases(fixtures.CASES))
     ident=runtime.CHECKS[1];position=next(i for i,c in enumerate(checks.CHECKS) if c.id==ident)
     if collision=='metadata':checks.CHECKS[position]=replace(checks.CHECKS[position],severity='low')
     if collision=='evaluator':checks.CHECKS[position]=replace(checks.CHECKS[position],evaluate=lambda *a:('PASS',{}))
     if collision=='fixture':fixtures.CASES[ident]={'changed':True}
-    before=tuple(checks.CHECKS);previous=deepcopy(fixtures.CASES)
+    before=tuple(checks.CHECKS);previous=snapshot_cases(fixtures.CASES)
     with pytest.raises(RuntimeError,match='collision'):admission.install()
     assert tuple(checks.CHECKS)==before and fixtures.CASES==previous
 
@@ -433,7 +435,7 @@ def test_atomic_collision_keeps_both_controls(monkeypatch,collision):
 def test_atomic_second_registration_rolls_back_first(monkeypatch):
     monkeypatch.setattr(checks,'CHECKS',[c for c in checks.CHECKS if c.id not in runtime.CHECKS])
     monkeypatch.setattr(fixtures,'CASES',{k:v for k,v in fixtures.CASES.items() if k not in runtime.CHECKS})
-    before=tuple(checks.CHECKS);previous=deepcopy(fixtures.CASES);original=checks.register
+    before=tuple(checks.CHECKS);previous=snapshot_cases(fixtures.CASES);original=checks.register
     def register(ident,*args,**kwargs):
         if ident==runtime.CHECKS[1]:raise RuntimeError('injected registration failure')
         return original(ident,*args,**kwargs)

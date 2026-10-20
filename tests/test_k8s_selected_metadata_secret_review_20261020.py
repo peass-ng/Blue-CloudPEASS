@@ -184,11 +184,12 @@ def test_missing_capture_facts_cannot_supply_decisive_metadata_result(monkeypatc
 def test_native_sdk_to_public_proposed_check(monkeypatch,branch):
     result,_,item,index=capture(monkeypatch,real=True,positive=branch=='fail',status=403 if branch=='unknown' else 200)
     d=consumer.DECLARATION
-    addition=checks.Check(d['id'],d['provider'],d['category'],d['kind'],d['title'],d['severity'],
-        'security_configuration',d['remediation'],consumer.evaluate,declared_dependencies=d['dependencies'],
-        allow_incomplete_failure=True)
-    assert not any(c.id==d['id']for c in checks.CHECKS)
-    monkeypatch.setattr(checks,'CHECKS',[*checks.CHECKS,addition])
+    # The proposal stays immutable; execute its now-admitted production check.
+    registered,=[c for c in checks.CHECKS if c.id==d['id']]
+    import inspect
+    assert inspect.unwrap(registered.evaluate) is consumer.evaluate
+    assert registered.kind==source.KIND and registered.dependencies==d['dependencies']
+    assert registered.allow_incomplete_failure
     snapshot=make_snapshot('k8s',[NS],index['collections'][source.KIND],metadata=index['context']['metadata'])
     report=engine.evaluate_snapshot(snapshot,checks=[d['id']])
     findings=[f for f in report['findings']if f['check_id']==d['id']]

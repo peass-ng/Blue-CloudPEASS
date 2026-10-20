@@ -1817,6 +1817,10 @@ TYPES += (package_source.KIND,)
 TYPES += (azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS
 
 
+class _MetadataOnlyCollection(Exception):
+    """Skip native IO for an empty selection, retaining normal metadata output."""
+
+
 def collect(connector, requirements=None, *, transport=None):
     """Return native facts with separate directory, inheritance and usage coverage."""
     options, auth = connector.get("options", {}), connector.get("auth", {})
@@ -1858,10 +1862,10 @@ def collect(connector, requirements=None, *, transport=None):
     azure_databricks_native.validate_auth(auth)
     azure_databricks_native.normalize(options)
     wanted = _selected(options, requirements)
+    metadata_only_selection = False
     if package_grant is None:
         wanted.discard(package_source.KIND)
-        if not wanted or requirements and set(requirements) == {package_source.KIND}:
-            return make_snapshot('azure', connector.get('scopes', []), [], metadata={'omitted_inventories': sorted(set(TYPES) - wanted)})
+        metadata_only_selection = not wanted or bool(requirements and set(requirements) == {package_source.KIND})
     if "databricks_account_workspace" in wanted:
         wanted.add("databricks_workspace")
     from . import azure_disclosure_native
@@ -1871,6 +1875,8 @@ def collect(connector, requirements=None, *, transport=None):
     wanted |= azure_access_reviews_native.required_types(wanted)
     from . import azure_frontdoor_native
     wanted |= azure_frontdoor_native.required_parents(wanted)
+    if metadata_only_selection:
+        wanted.clear()  # An ungranted package cannot trigger dependency reads.
     functions_native_only = ("function_app_runtime_native" in wanted and wanted <=
         {"app_service", "app_service_plan", "subscription", "function_app_runtime_native", "function_app_configuration"})
     from .azure_guest_policy import normalize as normalize_guest_policy
@@ -1924,6 +1930,8 @@ def collect(connector, requirements=None, *, transport=None):
     start, end = (now - timedelta(days=days)).isoformat(), now.isoformat()
     request = None  # Bound only after explicit authentication validation succeeds.
     try:
+        if metadata_only_selection:
+            raise _MetadataOnlyCollection
         if options.get("hosted"):
             if any(auth.get(key) for key in ("certificate_path", "token_file")):
                 raise ValueError("hosted Azure credentials require inline material")
@@ -3046,6 +3054,8 @@ def collect(connector, requirements=None, *, transport=None):
         azure_wave_network_controls.collect(reader, scopes, wanted)
         from .azure_service_tags_native import collect as collect_service_tags
         collect_service_tags(reader, request, scopes, wanted, options)
+    except _MetadataOnlyCollection:
+        pass  # Continue the same metadata assembly after scope/owner preflight.
     except Exception as exc:
         existing = {(c["type"], c["scope"]) for c in reader.collections}
         for scope in scopes or [tenant_scope]:

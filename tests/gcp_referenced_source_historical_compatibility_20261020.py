@@ -135,21 +135,52 @@ def admitted(profile):
 
 
 def proposal_boundary(profile):
-    """Explicit reimport and validation must preserve every existing registration."""
-    from peaso import checks, engine
+    """Reimport the sealed proposal without reinstalling unrelated admissions."""
+    from peaso import checks
     from peaso.checks import fixtures
-    check, function = admitted(profile)
-    before = tuple(engine._registry())
-    aliases = deepcopy(checks.CHECK_ALIASES)
-    cases = deepcopy(fixtures.CASES)
-    name = 'gcp_' + profile + '_referenced_source_20261020_proposal'
-    proposal = _module(name)
+    from peaso.azure_function_package_index_20261020 import _Admitted, _Assertions
+    from tests.gcp_clarity_combined_successor_20261020 import cases_fingerprint
+    # _registry() performs global admission installation. Calling it while
+    # measuring proposal import effects can regenerate unrelated CASES.
+    # Inspect the already installed registry and validate this exact admission.
+    name = ('gcp_workbench_source_runtime_admission_20261020' if profile == 'workbench'
+            else 'gcp_dataflow_batch_source_runtime_admission_20261020')
+    _, _, declarations = _module(name).reviewed_inputs()
+    metadata, function = next((m, f) for m, f in declarations if profile in m['id'])
+    check, = [c for c in checks.CHECKS if c.id == metadata['id']]
+    assert inspect.unwrap(check.evaluate) is function
+    registry, case_map, alias_map = checks.CHECKS, fixtures.CASES, checks.CHECK_ALIASES
+    before = tuple(registry)
+    aliases = deepcopy(alias_map)
+    # Capability objects use identity equality; deepcopy creates different grants.
+    # The graph fingerprint checks every mutable slot and graph link, while the
+    # explicit references below additionally forbid replacing admission objects.
+    def capabilities(value, seen=None):
+        seen = set() if seen is None else seen
+        if id(value) in seen:
+            return []
+        seen.add(id(value))
+        if type(value) is dict:
+            return [obj for key in sorted(value) for obj in capabilities(value[key], seen)]
+        if type(value) in (list, tuple):
+            return [obj for part in value for obj in capabilities(part, seen)]
+        if type(value) in (_Admitted, _Assertions):
+            return [value, *[obj for field in ('snapshot', 'expected', 'scope')
+                            for obj in capabilities(getattr(value, field), seen)]]
+        return []
+    cases = cases_fingerprint(case_map)
+    grants = capabilities(case_map)
+    proposal = _module('gcp_' + profile + '_referenced_source_20261020_proposal')
     proposal = importlib.reload(proposal)
     receipt = proposal.validate_proposal()
     assert receipt['registration'] == 'unregistered_proposal_only'
-    assert tuple(engine._registry()) == before and all(a is b for a, b in zip(engine._registry(), before))
-    assert checks.CHECK_ALIASES == aliases and fixtures.CASES == cases
-    assert admitted(profile) == (check, function)
+    assert checks.CHECKS is registry and fixtures.CASES is case_map and checks.CHECK_ALIASES is alias_map
+    assert tuple(registry) == before and all(a is b for a, b in zip(registry, before))
+    assert alias_map == aliases and cases_fingerprint(case_map) == cases
+    current_grants = capabilities(case_map)
+    assert len(current_grants) == len(grants) and all(a is b for a, b in zip(current_grants, grants))
+    installed, = [c for c in registry if c.id == check.id]
+    assert installed is check and inspect.unwrap(installed.evaluate) is function
     if profile == 'batch':
         predecessor = _module('gcp_batch_referenced_source_20261020')
         assert predecessor.DECLARATION['requirements'] == []

@@ -1,5 +1,6 @@
 """Actual Function declaration production hooks, additive provenance and privacy."""
 from copy import deepcopy
+from tests.case_state_contract_20261020 import case_copy, case_state
 import gzip
 import hashlib
 import inspect
@@ -43,8 +44,8 @@ def test_actual_registered_successor_identity_cases_and_idempotent_install():
         assert inspect.unwrap(current.evaluate)is function and function.__module__==consumer.__name__
         assert CASES[d['id']]==cases[d['id']]
         assert cases[d['id']]['pass']['_provenance']['credential_context_id']==cases[d['id']]['pass_index']['context']['metadata']['credential_context_id']
-    before=tuple(checks.CHECKS);saved=deepcopy(CASES);admission.install()
-    assert tuple(checks.CHECKS)==before and CASES==saved
+    before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES);admission.install()
+    assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
 @pytest.mark.parametrize('branch',['pass','fail','unknown'])

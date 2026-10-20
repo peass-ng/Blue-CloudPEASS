@@ -21,7 +21,7 @@ from peaso.engine import evaluate_snapshot
 from peaso.snapshot import validate
 from tests.test_peaso_collectors_gcp import FixtureTransport, connector
 
-ROOT = Path('/tmp/peasso-gcp-review-20261020/final-services/fixes/review')
+ROOT = Path(__file__).resolve().parents[1] / '.wave2-receipts/final-services-review'
 P = 'projects/native-one'
 C = 'https://compute.googleapis.com/compute/v1/' + P
 CRM = 'https://cloudresourcemanager.googleapis.com/v3/' + P
@@ -228,6 +228,10 @@ def plan(case, branch='good'):
     if kind=='security_policy': compute('backend_service',[{'name':'review','securityPolicy':ARMOR,'loadBalancingScheme':'EXTERNAL_MANAGED'}])
     if 'server_tls_policy' in deps and row.get('serverTlsPolicy'):
         add('https://networksecurity.googleapis.com/v1/'+TLS,{'name':TLS,'mtlsPolicy':{'clientValidationMode':'REJECT_INVALID'}})
+    if 'server_tls_policy' in deps:
+        add('https://networksecurity.googleapis.com/v1/'+P+'/locations/global/serverTlsPolicies',
+            {'serverTlsPolicies':[routes['https://networksecurity.googleapis.com/v1/'+TLS]['data']]
+             if 'https://networksecurity.googleapis.com/v1/'+TLS in routes else []})
     if 'alert_policy' in deps:
         add('https://monitoring.googleapis.com/v3/'+P+'/alertPolicies',{'alertPolicies':[{'name':P+'/alertPolicies/review','enabled':not bad,
              'notificationChannels':[P+'/notificationChannels/review'],'combiner':'OR','conditions':[{'name':P+'/alertPolicies/review/conditions/review',
@@ -272,7 +276,7 @@ def capture(case, branch='good', mutate=None, deny=None):
     tr=NativeTransport(resolve)
     snap=gcp.GCPCollector(connector(kinds,[scope],metrics_scopes=False,compute_resource_iam=False,resource_iam=False,
              dataproc_regions=['us-central1'],certificate_locations=['global'],autoscaler_regions=['us-central1'],
-             security_policy_regions=[],cloudbuild_locations=['global'],include_inherited='iam_policy' in check.dependencies),transport=tr).collect()
+             security_policy_regions=[],networksecurity_network_locations=['global'],cloudbuild_locations=['global'],include_inherited='iam_policy' in check.dependencies),transport=tr).collect()
     assert not unexpected,unexpected
     assert validate(snap)==snap
     tr.native=native
@@ -472,7 +476,7 @@ def test_mtls_native_policy_join(variant,expected):
     def mutate(row,routes):
         if variant=='allow_invalid':routes['https://networksecurity.googleapis.com/v1/'+TLS]['data']['mtlsPolicy']['clientValidationMode']='ALLOW_INVALID_OR_MISSING_CLIENT_CERT'
         if variant=='foreign_policy':row['serverTlsPolicy']=TLS.replace('native-one','p-other')
-    snap,tr=capture(case,mutate=mutate,deny='https://networksecurity.googleapis.com/v1/'+TLS if variant=='policy_denied' else None)
+    snap,tr=capture(case,mutate=mutate,deny='https://networksecurity.googleapis.com/v1/'+P+'/locations/global/serverTlsPolicies' if variant=='policy_denied' else None)
     verdict(case,'mtls_join:'+variant,snap,tr,expected)
 
 @pytest.mark.parametrize('suffix,variant,expected',[

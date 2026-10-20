@@ -1,5 +1,6 @@
 """Focused real registry/normal-engine Workbench admission and fault proof."""
 from copy import deepcopy
+from tests.shared_admission_epoch_compatibility_20261020 import copy_workbench_inputs, workbench_file_at_epoch
 import gzip
 import hashlib
 import inspect
@@ -218,10 +219,7 @@ def test_actual_engine_source_substitution_is_unknown_and_restored_is_pass(monke
 
 def test_disk_source_negative_current_baseline_and_restored_in_isolated_copy(tmp_path):
     receipt, _ = admission.reviewed_inputs()
-    for relative in set(receipt['sources']) | {'peaso/checks/' + admission.RECEIPT}:
-        target = tmp_path / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(Path(relative).read_bytes())
+    copy_workbench_inputs(tmp_path, receipt)
     admission.reviewed_inputs(tmp_path)
     path = tmp_path / 'peaso/checks/gcp_workbench_head3_proposal_20261020.py'
     original = path.read_bytes()
@@ -236,9 +234,15 @@ def test_preserved_accepted_proposal_bytes_and_exact_legacy_registry_predicates(
     archived = json.loads(gzip.decompress(Path(
         'peaso/checks/gcp_workbench_head3_admission_predecessor_20261020.json.gz').read_bytes()))
     for path, digest in archived['accepted_proposal_files_sha256'].items():
-        assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == digest
+        assert hashlib.sha256(workbench_file_at_epoch(path, digest)).hexdigest() == digest
     current = {check.id: check for check in registry.CHECKS}
-    assert current.keys() - {check['id'] for check in archived['checks']} == set(IDS)
+    from tests.shared_admission_epoch_compatibility_20261020 import active_shared
+    from peaso.checks import aws_workload_command_observed_20261020 as workload
+    from peaso.checks import gcp_cloudrun_job_image_secret_review_20261020 as job_image
+    active_shared().reviewed_delta()
+    job_image.install()
+    later = {workload.CHECK, job_image.CHECK_ID}
+    assert current.keys() - {check['id'] for check in archived['checks']} == set(IDS) | later
     for prior in archived['checks']:
         check = current[prior['id']]
         function = inspect.unwrap(check.evaluate)

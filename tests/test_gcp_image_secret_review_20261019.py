@@ -258,7 +258,7 @@ def test_actual_collector_metadata_to_selected_stream_enrichment_pipeline(real,m
     calls=[]
     class Response:
         status_code=200
-        def __init__(self,data):self.data=data
+        def __init__(self,data):self.data=data; self.content = json.dumps(data).encode()
         def json(self):return deepcopy(self.data)
     def request(method,url,**kwargs):
         assert method=='GET';calls.append(url)

@@ -80,6 +80,11 @@ def _credential_target_coverage(bundle):
 
 
 def create_app(settings=None, *, store=None, authenticator=None, artifacts=None):
+    # Intake needs the signed ID roster, never the native evaluator registry.
+    from .native_policy_validation_static_20261020 import install as install_static_review_validation
+    install_static_review_validation()
+    from peaso.presentation_metadata_20261020 import install as install_static_finding_types
+    install_static_finding_types()
     settings = settings or Settings()
     if store is None or artifacts is None:
         runtime_store, runtime_artifacts = stores(settings)
@@ -304,7 +309,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def with_labels(finding, labels):
         if "frameworks" in finding or not labels:
             return finding
-        from peaso.engine import finding_frameworks
+        from .report_projection_static_20261020 import finding_frameworks
         return dict(finding, frameworks=finding_frameworks(finding, labels))
 
     def check_fields(bundle):
@@ -319,19 +324,19 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         # Per-check fields are hydrated before any filter, facet or summary so every consumer sees full rows.
         if not meta or finding.get("check_id") not in meta:
             result = annotate(finding)
-            from peaso.check_services import finding_service
+            from .materialized_catalog import finding_service
             service = finding_service(result)
             return dict(result, service=service) if service else result
-        from peaso.engine import hydrate_finding
+        from .report_projection_static_20261020 import hydrate_finding
         bundle = bundle or {}
         result = annotate(hydrate_finding(finding, None, meta, bundle.get("check_meta_encoding"),
                                bundle.get("remediation_templates")))
-        from peaso.check_services import finding_service
+        from .materialized_catalog import finding_service
         service = finding_service(result)
         return dict(result, service=service) if service else result
 
     def with_remediation(finding, bundle):
-        from peaso.checks.catalog import description_for
+        from .materialized_catalog import description_for
         from peaso.finding_presentation import refresh_finding_presentation, evaluator_contract_fingerprint
         from peaso.remediation import bind_command, exposure_details, template as current_template
         finding = with_meta(finding, check_fields(bundle), bundle)
@@ -925,8 +930,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return scope
 
         requested_frameworks = {item.strip().lower() for item in framework.split(",")} if framework else set()
-        from peaso.engine import FRAMEWORK_ALIASES
-        from peaso.checks.catalog import expand_framework_selectors
+        from .materialized_catalog import framework_aliases, expand_framework_selectors
+        FRAMEWORK_ALIASES = framework_aliases()
         requested_frameworks.update(FRAMEWORK_ALIASES.get(item, item).lower() for item in tuple(requested_frameworks))
         # Family labels and canonical names also select their checklist versions (ids) and vice versa.
         requested_frameworks = {str(item).lower() for item in expand_framework_selectors(requested_frameworks)}
@@ -942,7 +947,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
         def field(value, name):
             if name == "service":
-                from peaso.check_services import finding_service
+                from .materialized_catalog import finding_service
                 corrected = finding_service(value)
                 if corrected:
                     return corrected
@@ -1549,7 +1554,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         for key in ("outgoing", "incoming", "findings"):
             card[key + "_total"] = len(card.get(key, []))
             card[key] = card.get(key, [])[:500]
-        from peaso.engine import privesc_technique_details
+        from .report_projection_static_20261020 import privesc_technique_details
         from peaso.privesc.versioned_catalog import card_technique_ids, lookup_entries
         binding = bundle.get("privesc_catalog")
         if binding is None and isinstance(bundle.get("summary"), dict) and "privesc_catalog" in bundle["summary"]:

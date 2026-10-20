@@ -91,7 +91,7 @@ def native_fixture(mp, raw=None, selected=None, case=None, options=None, native=
     class Meta:
         status_code = 200
         headers = {}
-        def __init__(self, data): self.data = data
+        def __init__(self, data): self.data = data; self.content = json.dumps(data).encode()
         def json(self): return deepcopy(self.data)
     def ordinary(method, url, **kw):
         assert method == 'GET'

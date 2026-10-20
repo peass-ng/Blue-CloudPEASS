@@ -159,14 +159,29 @@ def test_each_aws_content_kind_requires_exact_named_check(monkeypatch, cid, kind
 
 
 @pytest.mark.parametrize('provider', ['azure', 'k8s'])
-def test_no_functional_content_gate_is_installed_for_azure_or_kubernetes(provider):
-    # A metadata check or merely sharing the engine cannot add a content reader.
-    from peaso.checks import CHECKS
-    active = [c.id for c in CHECKS if c.provider == provider]
-    assert active
-    family = list(Path('peaso/collectors').glob(provider + '*.py'))
-    assert family
-    assert not any('scan_content(' in p.read_text() or 'from peaso.secret_scanning' in p.read_text() for p in family)
+def test_no_functional_content_gate_is_installed_for_azure_or_kubernetes(provider, monkeypatch):
+    # Content adapters are now admitted; broad scans still cannot authorize them.
+    from tests.aws_k8s_current_native_inputs_20261020 import selected_content_pairs
+    pairs = selected_content_pairs(provider)
+    assert pairs and all(cid.startswith(provider + '.review.') for cid, _ in pairs)
+    observed = []
+    def no_content_collect(connector, requirements):
+        from peaso.snapshot import make_snapshot
+        observed.append((deepcopy(connector), list(requirements)))
+        return make_snapshot(provider, connector['scopes'], [])
+    monkeypatch.setattr(collectors, 'collect_live', no_content_collect)
+    scope = '/subscriptions/11111111-1111-1111-1111-111111111111' if provider == 'azure' else 'team-a'
+    for enabled in (False, True):
+        req = {'connector': {'provider': provider, 'scopes': [scope],
+               'options': {'content_secret_scans': enabled, '_content_secret_scan_kinds': [kind for _, kind in pairs]}}}
+        before = deepcopy(req)
+        engine.collect_snapshot(req)
+        connector, requirements = observed.pop()
+        assert connector['options']['_content_secret_scan_kinds'] == []
+        assert not set(requirements) & {kind for _, kind in pairs}
+        assert not any('grant' in key for key in connector['options'])
+        assert req == before
+
 
 
 @pytest.mark.parametrize('surface', ['lambda_environment', 'cloudformation_outputs'])

@@ -15,7 +15,8 @@ from peaso.collectors import gcp
 from peaso.engine import evaluate_snapshot, get_catalog
 from tests import test_gcp_final_services_review_20261020 as native
 
-ROOT=Path('/tmp/peasso-gcp-review-20261020/final-services/fixes')
+ROOT=Path(__file__).resolve().parents[1] / '.wave2-receipts/final-services-fixes'
+HISTORY = Path(__file__).parent / 'fixtures/gcp-wave2-final-services-history-20261020'
 RECEIPTS=[]
 ARCHIVED=('gcp_certificate_renewal_30_days','gcp_certificate_rotation_180_days',
           'gcp_certificate_rotation_90_days','gcp_lb_server_header_rewrite')
@@ -88,7 +89,7 @@ def test_waf_declared_configuration(variant,expected):
         if variant=='internal_backend':backend['loadBalancingScheme']='INTERNAL_MANAGED'
         if variant=='no_attachment':backend.pop('securityPolicy')
         if variant=='missing_scheme':backend.pop('loadBalancingScheme')
-        if variant=='foreign_attachment':backend['securityPolicy']=native.ARMOR.replace('p-one','p-other')
+        if variant=='foreign_attachment':backend['securityPolicy']=native.ARMOR.replace(native.P, 'projects/p-other')
         if variant=='foreign_authority':backend['securityPolicy']=native.ARMOR.replace('compute.googleapis.com','attacker.example')
         if variant=='duplicate_priority':rules.append(deepcopy(waf))
         if variant=='missing_default':rules.pop()
@@ -117,14 +118,14 @@ def test_gke_independent_native_identity_and_groups(variant,expected):
         pool=row['nodePools'][0]
         managers=next(iter(routes[native.C+'/aggregated/instanceGroupManagers']['data']['items'].values()))['instanceGroupManagers']
         if variant=='legacy_zones_link':row['selfLink']=row['selfLink'].replace('/locations/','/zones/')
-        if variant=='foreign_project':row['selfLink']=row['selfLink'].replace('p-one','p-other')
+        if variant=='foreign_project':row['selfLink']=row['selfLink'].replace(native.P, 'projects/p-other')
         if variant=='foreign_host':row['selfLink']=row['selfLink'].replace('container.googleapis.com','attacker.example')
         if variant=='name_conflict':row['name']='other'
         if variant=='location_conflict':row['location']='us-east1-a'
         if variant=='group_www_alias':pool['instanceGroupUrls'][0]=native.GROUP.replace('compute.googleapis.com','www.googleapis.com')
         if variant=='group_partial':pool['instanceGroupUrls'][0]=native.GROUP.split('/compute/v1/')[1]
         if variant=='group_foreign_host':pool['instanceGroupUrls'][0]=native.GROUP.replace('compute.googleapis.com','attacker.example')
-        if variant=='group_foreign_project':pool['instanceGroupUrls'][0]=native.GROUP.replace('p-one','p-other')
+        if variant=='group_foreign_project':pool['instanceGroupUrls'][0]=native.GROUP.replace(native.P, 'projects/p-other')
         if variant=='group_other_region':pool['instanceGroupUrls'][0]=native.GROUP.replace('us-central1-a','us-east1-a')
         if variant=='duplicate_group':row['nodePools'].append({**deepcopy(pool),'name':'other-pool'})
         if variant=='duplicate_manager_alias':
@@ -148,7 +149,7 @@ def test_cdn_full_native_provenance_and_exact_joins(variant,expected):
             mapping['defaultService']='global/backendServices/review';proxy['urlMap']=native.P+'/global/urlMaps/review';proxy['sslPolicy']='global/sslPolicies/review'
         if variant=='www_refs':
             mapping['defaultService']=native.BACK.replace('compute.googleapis.com','www.googleapis.com');proxy['urlMap']=native.MAP.replace('compute.googleapis.com','www.googleapis.com');proxy['sslPolicy']=native.SSL.replace('compute.googleapis.com','www.googleapis.com')
-        if variant=='foreign_backend_ref':mapping['defaultService']=native.BACK.replace('p-one','p-other')
+        if variant=='foreign_backend_ref':mapping['defaultService']=native.BACK.replace(native.P, 'projects/p-other')
         if variant=='foreign_map_host':proxy['urlMap']=native.MAP.replace('compute.googleapis.com','attacker.example')
         if variant=='duplicate_map_alias':
             other=deepcopy(mapping);other['selfLink']=native.MAP.replace('compute.googleapis.com','www.googleapis.com');routes[native.C+'/aggregated/urlMaps']['data']['items']['global']['urlMaps'].append(other)
@@ -193,7 +194,7 @@ def test_http_redirect_complete_native_routes(variant,expected):
                 if variant=='route_backend':rule.pop('urlRedirect');rule['service']=native.BACK
                 if variant=='missing_route_match':rule['matchRules']=[{}]
                 if variant=='duplicate_priority':matcher['routeRules'].append(deepcopy(rule))
-        if variant=='foreign_proxy':proxy['urlMap']=native.MAP.replace('p-one','p-other')
+        if variant=='foreign_proxy':proxy['urlMap']=native.MAP.replace(native.P, 'projects/p-other')
         if variant=='kind_conflict':proxy['kind']='compute#targetHttpsProxy'
         if variant=='unresolved_frontend':front[0]['target']=front[0]['target']+'-missing'
         if variant=='no_frontend':front.clear()
@@ -258,15 +259,22 @@ def test_exact_unsupported_exclusions_preserve_registration(cid):
                      'expected':['ARCHIVED'],'statuses':['ARCHIVED'],'exclusion':exclusions()[cid]})
 
 def test_only_four_exclusions_added_and_prior_records_unchanged():
-    before=json.loads((ROOT/'before-native_only.json').read_text());after=json.loads(Path('peaso/checks/native_only.json').read_text())
-    assert set(after['checks'])-set(before['checks'])==set(ARCHIVED)
-    assert {k:v for k,v in after['checks'].items() if k not in ARCHIVED}==before['checks']
-    assert {k:v for k,v in after.items() if k!='checks'}=={k:v for k,v in before.items() if k!='checks'}
+    before_raw=(HISTORY/'before-native_only.json').read_bytes()
+    assert hashlib.sha256(before_raw).hexdigest()=='6a6f70a1d1162d9962c485a2c01659e15eb8bda36b194388e9b312b2ae6b49da'
+    before=json.loads(before_raw)
+    current=json.loads(Path('peaso/checks/native_only.json').read_text())
+    # Retain the exact historical baseline while allowing independently reviewed
+    # Azure additions; this GCP review contributes exactly these four IDs.
+    assert {k:current['checks'][k] for k in before['checks']} == before['checks']
+    assert {k for k in current['checks'] if k.startswith('gcp')}-set(before['checks']) == set(ARCHIVED)
+    assert {k:v for k,v in current.items() if k!='checks'}=={k:v for k,v in before.items() if k!='checks'}
+    review=json.loads(Path('docs/gcp-review/recheck-20261020/final-services-fixes.json').read_text())
+    assert set(review['summary']['new_exclusion_ids']) == set(ARCHIVED)
     assert 'gcp_cloud_armor_waf_enabled' not in exclusions()
 
 
 def test_original_review_and_source_predecessors_are_immutable():
-    before=json.loads((ROOT/'predecessor-hashes.json').read_text())
+    before=json.loads((HISTORY/'predecessor-hashes.json').read_text())
     path=Path('docs/gcp-review/recheck-20261020/final-services-review.json')
     assert hashlib.sha256(path.read_bytes()).hexdigest()==before[str(path)]
     manifest=json.loads(Path('peaso/checks/bulk_pending.json').read_text())
@@ -275,7 +283,7 @@ def test_original_review_and_source_predecessors_are_immutable():
 
 def test_bulk_source_successor_is_exact_and_reversible():
     from peaso.checks.bulk_pending import _reviewed_source_admitted
-    original=(ROOT/'before-compliance_new_sw52.py').read_bytes()
+    original=(HISTORY/'before-compliance_new_sw52.py').read_bytes()
     current=Path('peaso/checks/compliance_new_sw52.py').read_bytes()
     pin=hashlib.sha256(original).hexdigest()
     assert _reviewed_source_admitted('compliance_new_sw52',original,pin)

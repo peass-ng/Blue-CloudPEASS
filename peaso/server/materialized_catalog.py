@@ -147,6 +147,15 @@ def _load():
                 or not isinstance(value['framework_display'], dict)
                 or not isinstance(value['framework_aliases'], dict)):
             raise ValueError('reviewed presentation lookup schema')
+        kinds = value['native_kinds']
+        if (not isinstance(kinds, dict) or not 0 < len(kinds) <= 20000
+                or any(not isinstance(cid, str) or cid not in value['descriptions']
+                       or not isinstance(pair, list) or len(pair) != 2
+                       or pair[0] not in providers
+                       or not isinstance(pair[1], str) or not 0 < len(pair[1]) <= 256
+                       for cid, pair in kinds.items())):
+            raise ValueError('native service kind schema')
+        value['_native_kinds'] = {cid: tuple(pair) for cid, pair in kinds.items()}
         value['_by_id'] = dict(zip(ids, checks))
         value['_selector_sets'] = {provider: {key: frozenset(entries) for key, entries in index.items()}
                                    for provider, index in value['selectors'].items()}
@@ -243,3 +252,23 @@ def expand_framework_selectors(values):
             expanded.add(framework_id)
             expanded.add(value['framework_display'][framework_id])
     return expanded
+
+
+def native_kinds():
+    """Exact build-time registrar kinds, including archived native checks."""
+    return dict(_load()['_native_kinds'])
+
+
+def install_service_kinds():
+    from peaso import check_services
+    check_services._check_kinds = native_kinds
+
+
+def finding_service(finding):
+    # Complete the provider/analysis import chain before importing check_services.
+    # Its network label import and Azure collector otherwise form a cycle.
+    # Taxonomy/checklist lookup at this API boundary is already registry-free.
+    from peaso import collectors
+    install_service_kinds()
+    from peaso.check_services import finding_service as service_for_finding
+    return service_for_finding(finding)

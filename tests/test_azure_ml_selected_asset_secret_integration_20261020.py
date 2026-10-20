@@ -1,5 +1,6 @@
 """Exact atomic two-control admission and actual Azure ML asset production hooks."""
 from copy import deepcopy
+from tests.case_state_contract_20261020 import case_copy, case_state
 import gzip
 import hashlib
 import inspect
@@ -43,8 +44,8 @@ def test_atomic_exact_typed_two_control_identity_native_cases_and_idempotence():
         assert CASES[metadata['id']]==cases[metadata['id']]
         for branch in('pass','fail','unknown'):
             assert registered.evaluate(cases[metadata['id']][branch],cases[metadata['id']][branch+'_index'])[0]==branch.upper()
-    before=tuple(checks.CHECKS);saved=deepcopy(CASES);admission.install()
-    assert tuple(checks.CHECKS)==before and CASES==saved
+    before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES);admission.install()
+    assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
 @pytest.mark.parametrize('profile',source.PROFILES)
@@ -107,9 +108,9 @@ def test_mutated_reviewed_source_or_cases_cannot_be_admitted(tmp_path,kind):
     receipt=copy_reviewed_inputs(tmp_path)
     target={'receipt':RECEIPT,'producer':'peaso/collectors/azure_ml_selected_asset_secret_indicators.py','consumer':'peaso/checks/azure_ml_selected_asset_secret_review_20261020.py','fixture':receipt['fixture']['path'],'proposal':'peaso/checks/azure_ml_selected_asset_secret_review_20261020_proposal.json','descriptions':'peaso/checks/azure_ml_selected_asset_secret_review_20261020_descriptions.json'}[kind]
     with(tmp_path/target).open('ab')as f:f.write(b'\n')
-    before=tuple(checks.CHECKS);saved=deepcopy(CASES)
+    before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES)
     with pytest.raises(RuntimeError):admission.reviewed_inputs(tmp_path)
-    assert tuple(checks.CHECKS)==before and CASES==saved
+    assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
 def test_later_unrelated_shared_integration_additions_are_not_frozen(tmp_path):
@@ -123,17 +124,17 @@ def test_later_unrelated_shared_integration_additions_are_not_frozen(tmp_path):
 
 @pytest.mark.parametrize('target',['environment','code','_evaluate'])
 def test_typed_wrappers_and_reachable_helper_identity_guards(monkeypatch,target):
-    before=tuple(checks.CHECKS);saved=deepcopy(CASES)
+    before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES)
     monkeypatch.setattr(consumer,target,lambda *a:('PASS',{}))
     with pytest.raises(RuntimeError):admission.install()
-    assert tuple(checks.CHECKS)==before and CASES==saved
+    assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
 def test_second_registration_failure_rolls_back_both_controls_and_new_cases(monkeypatch):
-    original=list(checks.CHECKS);saved=deepcopy(CASES)
+    original=list(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES)
     checks.CHECKS[:]=[c for c in checks.CHECKS if c.id not in IDS]
     for ident in IDS:CASES.pop(ident,None)
-    before=tuple(checks.CHECKS);cases=deepcopy(CASES);register=checks.register;calls=[]
+    before=tuple(checks.CHECKS);cases=case_copy(CASES);cases_state=case_state(CASES);register=checks.register;calls=[]
     def inject(*a,**kw):
         decorator=register(*a,**kw)
         def changed(function):
@@ -143,17 +144,17 @@ def test_second_registration_failure_rolls_back_both_controls_and_new_cases(monk
     monkeypatch.setattr(checks,'register',inject)
     try:
         with pytest.raises(RuntimeError,match='second-control'):admission.install()
-        assert calls==list(IDS)and tuple(checks.CHECKS)==before and CASES==cases
+        assert calls==list(IDS)and tuple(checks.CHECKS)==before and case_state(CASES)==cases_state
     finally:checks.CHECKS[:]=original;CASES.clear();CASES.update(saved)
 
 
 def test_second_fixture_collision_is_checked_before_any_mutation():
-    original=list(checks.CHECKS);saved=deepcopy(CASES)
+    original=list(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES)
     checks.CHECKS[:]=[c for c in checks.CHECKS if c.id not in IDS];CASES.pop(IDS[0],None);CASES[IDS[1]]={'collision':True}
-    before=tuple(checks.CHECKS);cases=deepcopy(CASES)
+    before=tuple(checks.CHECKS);cases=case_copy(CASES);cases_state=case_state(CASES)
     try:
         with pytest.raises(RuntimeError,match='collision'):admission.install()
-        assert tuple(checks.CHECKS)==before and CASES==cases
+        assert tuple(checks.CHECKS)==before and case_state(CASES)==cases_state
     finally:checks.CHECKS[:]=original;CASES.clear();CASES.update(saved)
 
 

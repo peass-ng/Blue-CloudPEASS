@@ -69,6 +69,21 @@ def assert_description_preserves_contract(check_id):
         assert {key: value for key, value in ROWS[check_id]['description_fields'].items()
                 if key != 'description'} == expected
         changed_fields.update(expected)
+    if check_id == 'azure.claude.storage_access_keys_rotated_90':
+        # The native storage successor requires both dated keys; the original
+        # signed guidance row and its incomplete-time criterion stay retained.
+        from peaso.checks.azure_native_review_copy_20261020 import SUCCESSORS
+        predecessor, fields = SUCCESSORS[(check_id, 'description')]
+        assert predecessor == 'a0827ceecb2174fb121e97cedb5570bb10382ba6103add0d351dd8abef0e9c17'
+        expected = {
+            'description': 'Checks both native storage-key creation times against the captured scan time. Either key older than 90 days fails; incomplete, future or malformed times remain unresolved.',
+            'pass_when': 'Both key1 and key2 have valid creation times no more than 90 days before the captured scan time.',
+            'fail_when': 'At least one of the two valid native key creation times is more than 90 days before the captured scan time.',
+            'not_applicable_when': 'No automatic exclusion; absent, incomplete, future or malformed key creation times remain UNKNOWN.',
+        }
+        assert fields == expected
+        assert {key: current[key] for key in expected} == expected
+        changed_fields.update(expected)
     assert {key:value for key,value in current.items() if key not in changed_fields}=={
         key:value for key,value in original.items() if key not in changed_fields}
     assert 0<len(current['description'].split())<=45

@@ -6,6 +6,7 @@ import sys
 import types
 
 import pytest
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,8 +49,8 @@ def branches(value):
 
 @pytest.fixture(scope='module')
 def bridge():
-    from peaso.checks import azure_jit_parent_type_shared_successor_20261020
-    return azure_jit_parent_type_shared_successor_20261020
+    from peaso.checks import native_admission_cpu_shared_successor_20261020
+    return native_admission_cpu_shared_successor_20261020
 
 
 def consumed(rows):
@@ -70,7 +71,7 @@ def test_compiler_preserves_decorated_nested_async_class_and_defaults(bridge):
 
 
 @pytest.mark.parametrize('relative', [
-    'peaso/checks/azure_jit_parent_type_shared_successor_20261020.py',
+    'peaso/checks/native_admission_cpu_shared_successor_20261020.py',
     'peaso/engine.py', 'peaso/collectors/aws.py',
 ])
 def test_current_real_source_consumed_records_match_historical_compiler(bridge, relative):
@@ -172,9 +173,10 @@ def test_transaction_integrity_is_independent_of_external_code_references(bridge
 
 @pytest.mark.parametrize('mutation', ['alias', 'live_code', 'receipt_binding'])
 def test_warm_real_bridge_still_rechecks_live_and_receipt_bindings(bridge, monkeypatch, mutation):
-    token = bridge._COMPILED_TRANSACTION.set(bridge._transaction_compiler())
+    current = active_shared()
+    token = current._COMPILED_TRANSACTION.set(current._transaction_compiler())
     try:
-        bridge.reviewed_delta(ROOT)
+        current.reviewed_delta(ROOT)
         from peaso.collectors import aws
         if mutation == 'alias':
             monkeypatch.setattr(aws, 'collect', lambda *args, **kwargs: None)
@@ -183,21 +185,22 @@ def test_warm_real_bridge_still_rechecks_live_and_receipt_bindings(bridge, monke
         else:
             monkeypatch.setattr(bridge, 'RECEIPT_SHA256', '0' * 64)
         with pytest.raises(RuntimeError):
-            bridge.reviewed_delta(ROOT)
+            current.reviewed_delta(ROOT)
     finally:
-        bridge._COMPILED_TRANSACTION.reset(token)
+        current._COMPILED_TRANSACTION.reset(token)
 
 
 def test_bundle_compilation_context_is_released_on_success_and_failure(bridge, monkeypatch):
     # The genuine cold import has already completed a successful install wave.
-    assert bridge._COMPILED_TRANSACTION.get() is None
-    from peaso.checks import aws_workload_command_runtime_admission_20261020 as commands
+    current = active_shared()
+    assert current._COMPILED_TRANSACTION.get() is None
+    commands = current._COMMAND_SUCCESSOR
 
     def refuse():
-        assert bridge._COMPILED_TRANSACTION.get() is not None
+        assert current._COMPILED_TRANSACTION.get() is not None
         raise RuntimeError('deliberate preflight refusal')
 
     monkeypatch.setattr(commands, 'reviewed_inputs', refuse)
     with pytest.raises(RuntimeError, match='deliberate preflight refusal'):
-        bridge.install_bundle()
-    assert bridge._COMPILED_TRANSACTION.get() is None
+        current.install_bundle()
+    assert current._COMPILED_TRANSACTION.get() is None

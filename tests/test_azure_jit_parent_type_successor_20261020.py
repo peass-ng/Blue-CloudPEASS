@@ -10,7 +10,9 @@ import socket
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
-from peaso.checks import azure_jit_parent_type_shared_successor_20261020 as bridge
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared
+from tests.test_provider_combined_source_bridge_20261020 import cpu_epoch_bytes, cpu_receipt
+from peaso.checks import native_admission_cpu_shared_successor_20261020 as bridge
 from peaso.collectors import azure
 from peaso.engine import evaluate_snapshot
 from peaso.snapshot import validate
@@ -123,13 +125,14 @@ def test_ready_bridge_and_original_1818_file_baseline_remain_immutable():
     assert bridge.accepted is old
     for qualified, function in bridge._ACCEPTED_FUNCTIONS.items():
         assert getattr(old, qualified.split(':')[1]) is function
-    bridge.reviewed_delta(ROOT)
+    active_shared().reviewed_delta(ROOT)
 
 
 def test_azure_full_file_and_helper_reconstruct_ready_then_azure_package_ancestor():
-    receipt = bridge.reviewed_delta(ROOT)
+    active_shared().reviewed_delta(ROOT)
+    receipt = cpu_receipt()
     name = 'peaso/collectors/azure.py'
-    current = (ROOT / name).read_text()
+    current = cpu_epoch_bytes(name, (ROOT / name).read_bytes()).decode()
     restored = bridge._reverse(current, receipt['integration_file_deltas'][name])
     assert hashlib.sha256(restored.encode()).hexdigest() == '22aa297159aeec7ab4a0645877bf69de4c8c8c645098ffe1d0dd05a56f0f8aac'
     old = json.loads((ROOT / 'peaso/checks/azure_function_package_shared_successor_20261020.json').read_bytes())
@@ -143,10 +146,11 @@ def test_azure_full_file_and_helper_reconstruct_ready_then_azure_package_ancesto
 
 @pytest.mark.parametrize('variant', ['identity', 'code'])
 def test_jit_executing_helper_tamper_fails_after_warm_admission(monkeypatch, variant):
-    bridge.reviewed_delta(ROOT)
+    current = active_shared()
+    current.reviewed_delta(ROOT)
     if variant == 'identity':
         monkeypatch.setattr(azure, '_arm_parent_native_type', lambda *args: None)
     else:
         monkeypatch.setattr(azure._arm_parent_native_type, '__code__', bridge.accepted._reverse.__code__)
     with pytest.raises(RuntimeError):
-        bridge.reviewed_delta(ROOT)
+        current.reviewed_delta(ROOT)

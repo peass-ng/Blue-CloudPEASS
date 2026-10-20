@@ -1,5 +1,6 @@
 """Actual native Workbench HTTP through engine, GCPCollector and package admission."""
 from copy import deepcopy
+from tests.shared_admission_epoch_compatibility_20261020 import snapshot_cases, active_shared, source_at_epoch, sealed_ast
 from dataclasses import replace
 import ast
 import gzip
@@ -341,7 +342,7 @@ def test_atomic_admission_collision_retains_registry(monkeypatch,collision):
     if collision=='metadata':checks.CHECKS[pos]=replace(checks.CHECKS[pos],severity='low')
     elif collision=='evaluator':checks.CHECKS[pos]=replace(checks.CHECKS[pos],evaluate=lambda *args:('PASS',{}))
     else:fixtures.CASES[CHECK]={'changed':True}
-    before=list(checks.CHECKS);prior=deepcopy(fixtures.CASES)
+    before=list(checks.CHECKS);prior=snapshot_cases(fixtures.CASES)
     with pytest.raises(RuntimeError,match='collision'):admission.install()
     assert checks.CHECKS==before and fixtures.CASES==prior
 
@@ -362,8 +363,8 @@ def test_runtime_guards_never_load_tests_or_docs(monkeypatch):
     def read_bytes(path,*args,**kwargs):check(path);return original_bytes(path,*args,**kwargs)
     def read_text(path,*args,**kwargs):check(path);return original_text(path,*args,**kwargs)
     monkeypatch.setattr(Path,'read_bytes',read_bytes);monkeypatch.setattr(Path,'read_text',read_text)
-    admission.reviewed_inputs();combined_shared.reviewed_inputs()
-    assert shared.original.reviewed_inputs is combined_shared.reviewed_inputs
+    admission.reviewed_inputs();active_shared().reviewed_inputs()
+    assert shared.original.reviewed_inputs is active_shared().reviewed_inputs
 
 
 def test_exact_shared_source_successor_preserves_original_red():
@@ -377,45 +378,47 @@ def test_exact_shared_source_successor_preserves_original_red():
     assert history['baseline_gate']['passed']==601 and history['baseline_gate']['failed']==6
     assert len(history['baseline_gate']['failed_nodes'])==6
     with pytest.raises(RuntimeError):shared.PREDECESSOR_REVIEWED_INPUTS()
-    with pytest.raises(RuntimeError,match='successor alias replaced'):shared.reviewed_inputs()
-    combined_shared.reviewed_inputs()
+    with pytest.raises(RuntimeError,match='^Workbench shared successor changed non-Workbench source$'):shared.reviewed_inputs()
+    with pytest.raises(RuntimeError, match="^Workbench shared successor changed non-Workbench source$"):
+        combined_shared.reviewed_inputs()
+    active_shared().reviewed_inputs()
     receipt=combined_shared.reviewed_delta();accepted=shared.reviewed_delta()
     assert set(receipt['shared_functions'])=={'engine._request','engine.collect_snapshot','validation.validate_connector'}
     for name,row in receipt['shared_functions'].items():
         owner,attribute=name.split('.')
         module=engine if owner=='engine' else __import__('peaso.server.validation',fromlist=['validate_connector'])
-        restored=inspect.getsource(getattr(module,attribute))
+        restored=source_at_epoch(getattr(module,attribute),name,row['current_sha256'])
         assert hashlib.sha256(restored.encode()).hexdigest()==row['current_sha256']
         for addition in row['exact_additions']:
             assert ('dataflow' in addition.lower() or 'batch' in addition.lower()) and 'k8s' not in addition.lower()
             assert restored.count(addition)==1
             restored=restored.replace(addition,'',1)
         assert hashlib.sha256(restored.encode()).hexdigest()==row['predecessor']['sha256']==accepted['shared_functions'][name]['current_sha256']
-        assert ast.dump(ast.parse(restored),include_attributes=False)==row['predecessor_ast']
+        assert sealed_ast(ast.parse(restored))==row['predecessor_ast']
         prior=accepted['shared_functions'][name]
         for addition in prior['exact_additions']:
             assert 'workbench' in addition.lower() and 'k8s' not in addition.lower()
             assert restored.count(addition)==1
             restored=restored.replace(addition,'',1)
         assert hashlib.sha256(restored.encode()).hexdigest()==prior['predecessor']['sha256']
-        assert ast.dump(ast.parse(restored),include_attributes=False)==prior['predecessor_ast']
+        assert sealed_ast(ast.parse(restored))==prior['predecessor_ast']
 
 
 @pytest.mark.parametrize('name',['engine._request','engine.collect_snapshot','validation.validate_connector'])
 def test_shared_successor_rejects_extra_non_workbench_source(monkeypatch,name):
-    receipt=combined_shared.reviewed_delta();historical=shared.reviewed_delta()['shared_functions'][name]['predecessor']
+    receipt=active_shared().reviewed_delta();historical=shared.reviewed_delta()['shared_functions'][name]['predecessor']
     module=engine if name.startswith('engine.') else __import__('peaso.server.validation',fromlist=['validate_connector'])
     fn=getattr(module,name.split('.')[1]);original=inspect.getsource
     root=Path(__file__).resolve().parents[1]
-    combined_shared.check_shared(fn,historical,name,root,{},receipt)
+    active_shared().check_shared(fn,historical,name,root,{},receipt)
     def source_text(function):
         text=original(function)
         return text+'\n# unreviewed K8s or other change\n' if function is fn else text
     with monkeypatch.context() as patch:
         patch.setattr(inspect,'getsource',source_text)
-        with pytest.raises(RuntimeError,match='changed non-Dataflow/Batch source'):
-            combined_shared.check_shared(fn,historical,name,root,{},receipt)
-    combined_shared.check_shared(fn,historical,name,root,{},receipt)
+        with pytest.raises(RuntimeError,match='source changed'):
+            active_shared().check_shared(fn,historical,name,root,{},receipt)
+    active_shared().check_shared(fn,historical,name,root,{},receipt)
 
 
 def test_sealed_proposal_bytes_remain_unchanged():
@@ -438,7 +441,9 @@ def test_all_selected_k8s_metadata_paths_disjoint_from_network_router(kind):
 @pytest.mark.parametrize('tamper',['matcher','map','reader_call'])
 def test_disjoint_network_bridge_rejects_hostile_runtime_change(monkeypatch,tamper):
     from peaso.collectors import k8s_network_extensions as network
-    combined_shared.reviewed_inputs()
+    with pytest.raises(RuntimeError, match="^Workbench shared successor changed non-Workbench source$"):
+        combined_shared.reviewed_inputs()
+    active_shared().reviewed_inputs()
     reasons={'matcher':'metadata runtime executing callable changed',
              'map':'metadata network router map changed',
              'reader_call':'metadata predecessor callable replacement'}
@@ -446,15 +451,17 @@ def test_disjoint_network_bridge_rejects_hostile_runtime_change(monkeypatch,tamp
         if tamper=='matcher':patch.setattr(network,'match',lambda path:'forged-reader')
         elif tamper=='map':patch.setattr(network,'RESOURCES',{})
         else:patch.setattr(shared.original.k8s.K8sReader,'call',lambda *args,**kwargs:{})
-        with pytest.raises(RuntimeError,match=reasons[tamper]):combined_shared.reviewed_inputs()
-    combined_shared.reviewed_inputs()
+        with pytest.raises(RuntimeError,match=reasons[tamper]):active_shared().reviewed_inputs()
+    with pytest.raises(RuntimeError, match="^Workbench shared successor changed non-Workbench source$"):
+        combined_shared.reviewed_inputs()
+    active_shared().reviewed_inputs()
 
 
 def test_verified_successor_entrypoint_routes_immutable_k8s_grants():
-    assert shared.original.reviewed_inputs is combined_shared.reviewed_inputs
+    assert shared.original.reviewed_inputs is active_shared().reviewed_inputs
     assert combined_shared.predecessor is shared and combined_shared.original is shared.original
     shared.original.reviewed_inputs()
-    with pytest.raises(RuntimeError,match='successor alias replaced'):shared.reviewed_inputs()
+    with pytest.raises(RuntimeError,match='^Workbench shared successor changed non-Workbench source$'):shared.reviewed_inputs()
     assert inspect.getsource(shared.original.runtime.authorize).count('k8s_selected_metadata_runtime_admission_20261020')==1
     assert inspect.getsource(shared.original.runtime.collect).count('k8s_selected_metadata_runtime_admission_20261020')==1
 
@@ -467,16 +474,20 @@ def test_existing_k8s_engine_native_capture_through_verified_successor(monkeypat
     assert {finding['status'] for finding in trace.findings}=={status}
     assert all(response.closed and response.released for response in trace.responses)
     assert k8s_native.TOKEN not in json.dumps([trace.snapshot,trace.findings])
-    assert shared.original.reviewed_inputs is combined_shared.reviewed_inputs
+    assert shared.original.reviewed_inputs is active_shared().reviewed_inputs
 
 
 def test_successor_alias_substitution_is_rejected(monkeypatch):
-    combined_shared.reviewed_inputs()
+    with pytest.raises(RuntimeError, match="^Workbench shared successor changed non-Workbench source$"):
+        combined_shared.reviewed_inputs()
+    active_shared().reviewed_inputs()
     with monkeypatch.context() as patch:
         patch.setattr(shared.original,'reviewed_inputs',lambda:None)
-        with pytest.raises(RuntimeError,match='metadata runtime successor alias replaced'):combined_shared.reviewed_inputs()
-    assert shared.original.reviewed_inputs is combined_shared.reviewed_inputs
-    combined_shared.reviewed_inputs()
+        with pytest.raises(RuntimeError,match='metadata runtime successor alias replaced'):active_shared().reviewed_inputs()
+    assert shared.original.reviewed_inputs is active_shared().reviewed_inputs
+    with pytest.raises(RuntimeError, match="^Workbench shared successor changed non-Workbench source$"):
+        combined_shared.reviewed_inputs()
+    active_shared().reviewed_inputs()
 
 
 @pytest.mark.parametrize('helper',['check_shared','prepared_inputs','reviewed_inputs'])

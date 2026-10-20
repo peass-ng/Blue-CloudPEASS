@@ -5,6 +5,7 @@ directed adapter suites; these cases add no manufactured clean scan markers.
 """
 from copy import deepcopy
 import json
+import hashlib
 from pathlib import Path
 import socket
 import threading
@@ -26,13 +27,23 @@ SURFACES = json.loads((ROOT / 'docs/gcp-review/secret-surfaces.json').read_text(
 BASELINE_IDS = {cid for surface in SURFACES for cid in surface.get('implementation', {}).get('check_ids', [])}
 NEW_SELECTED_IDS = {'gcp.review.cloudtasks.selected_payload_secret_indicators',
                     'gcp.review.bigquery.selected_routine_secret_indicators'}
-IDS = sorted(BASELINE_IDS | NEW_SELECTED_IDS)
+ADMITTED_SOURCE_IDS = {
+    'gcp.review.batch.selected_mounted_script_source_secret_indicators',
+    'gcp.review.cloudrun_job.declared_image_secret_indicators',
+    'gcp.review.dataflow.selected_package_referenced_source_secret_indicators',
+    'gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators',
+    'gcp.review.dataproc.selected_job_referenced_source_secret_indicators',
+    'gcp.review.workbench.selected_referenced_source_secret_indicators_20261020',
+}
+IDS = sorted(BASELINE_IDS | NEW_SELECTED_IDS | ADMITTED_SOURCE_IDS)
 REGISTRY = {c.id: c for c in CHECKS if c.id in IDS and c.id not in exclusions()}
 SCOPE = 'projects/review'
 
 
 def selected_options():
-    return {**prior_selected_options(),
+    raw = (ROOT / 'tests/fixtures/gcp-wave2-admitted-selectors-20261020.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == 'b81fdc34a17ab2f5fa56cc2f75225beb7020bf92639124b65f8e16bbb32809a1'
+    return {**prior_selected_options(), **json.loads(raw),
             'selected_cloudtasks_tasks': [SCOPE + '/locations/us-central1/queues/review/tasks/review'],
             'selected_bigquery_routines': [SCOPE + '/datasets/review/routines/review']}
 
@@ -49,7 +60,7 @@ def forbid_live_reads(monkeypatch):
 
 
 def test_exact_optional_secret_inventory_is_active_and_complete():
-    assert len(BASELINE_IDS) == 31 and len(IDS) == 33 and set(IDS) == set(REGISTRY)
+    assert len(BASELINE_IDS) == 31 and len(IDS) == 39 and set(IDS) == set(REGISTRY)
     actual = {c.id for c in CHECKS if c.provider == 'gcp' and c.id not in exclusions()
               and c.public().get('finding_type') == 'secrets' and 'secret_indicators' in c.id}
     assert actual == set(IDS)

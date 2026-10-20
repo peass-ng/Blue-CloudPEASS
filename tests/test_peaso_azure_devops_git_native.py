@@ -62,8 +62,18 @@ def capture(monkeypatch,mode='good',via='direct',url=URL):
   else:snapshot=collect_snapshot({'provider':'azure','connector':connector,'checks':[CHECK]})
  return snapshot,calls
 
+def planner_rejects_manual_control(monkeypatch,via,**kwargs):
+ if via!='planner':return False
+ from peaso.checks.native_only import exclusions
+ from peaso.checks.catalog import manual_requirement_ids
+ assert CHECK in set(exclusions())|set(manual_requirement_ids('azure'))
+ with pytest.raises(ValueError,match='requires external policy or manual evidence'):
+  capture(monkeypatch,via=via,**kwargs)
+ return True
+
 @pytest.mark.parametrize('via',['direct','dispatcher','planner'])
 def test_public_native_git_pipeline(monkeypatch,via):
+ if planner_rejects_manual_control(monkeypatch,via):return
  s,c=capture(monkeypatch,via=via);assert verdict(s,CHECK)=='UNKNOWN';assert len(c)==4
  assert all('api-version=7.1'in u for u in c)
  assert TOKEN not in json.dumps(s)and URL not in json.dumps(s)
@@ -185,6 +195,7 @@ def test_endpoint_auth_origin_literal_dots_required():
 
 @pytest.mark.parametrize('via',['direct','dispatcher','planner'])
 def test_native_verified_userinfo_counterexample_public_pipeline(monkeypatch,via):
+ if planner_rejects_manual_control(monkeypatch,via,url='https://owned-user:guessable@example.org/repo'):return
  s,_=capture(monkeypatch,via=via,url='https://owned-user:guessable@example.org/repo')
  assert verdict(s,CHECK)=='FAIL'
  p=next(c for c in s['collections']if c['type']=='devops_project')['items'][0]
@@ -211,6 +222,7 @@ def test_sw32_git_union_normative_options_survive_public_native_pipeline(monkeyp
  for mode in ['local','cognito']:
   validate_connector('azure',credentials,combined,SimpleNamespace(auth_mode=mode))
  monkeypatch.setattr(sys.modules[__name__],'options',lambda:copy.deepcopy(combined))
+ if planner_rejects_manual_control(monkeypatch,via,url='https://explicit-user:private-password@example.org/repo'):return
  snapshot,_=capture(monkeypatch,via=via,url='https://explicit-user:private-password@example.org/repo')
  assert verdict(snapshot,CHECK)=='FAIL'
  assert snapshot['metadata']['compliance_policy']['sw32']==criteria

@@ -67,7 +67,8 @@ def authorize(options, scopes):
              and grant.targets == source.preflight(options, scopes, [CHECK], shared_service_account=_SHARED.get())
              and options.get('content_secret_scans') is True)
     # Private kind selectors and serialized grant-like data never authorize.
-    options['_content_secret_scan_kinds'] = [k for k in options.get('_content_secret_scan_kinds', []) if k != KIND]
+    if '_content_secret_scan_kinds' in options or valid:
+        options['_content_secret_scan_kinds'] = [k for k in options.get('_content_secret_scan_kinds', []) if k != KIND]
     if valid:
         options['_content_secret_scan_kinds'].append(KIND)
         grant.token = None

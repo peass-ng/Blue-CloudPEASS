@@ -8,8 +8,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared
 from peaso import checks
-from peaso.checks import azure_jit_parent_type_shared_successor_20261020 as bridge
+from peaso.checks import native_admission_cpu_shared_successor_20261020 as bridge
 from peaso.collectors.k8s import K8sReader
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,12 +25,13 @@ def test_sealed_ast_format_is_independent_of_interpreter_empty_field_defaults():
 
 
 def test_canonical_runtime_entrypoint_preserves_historical_objects_without_transport():
-    assert ADMISSION.reviewed_inputs is bridge.dataflow_reviewed_inputs
+    current = active_shared()
+    assert ADMISSION.reviewed_inputs is current.dataflow_reviewed_inputs
     assert ADMISSION._FUNCTIONS == bridge._DATAFLOW_FUNCTIONS
     assert bridge._DATAFLOW_REVIEWED_INPUTS is ADMISSION._FUNCTIONS[ADMISSION.__name__ + ':reviewed_inputs']
     assert ADMISSION._gcp_delta is bridge._DATAFLOW_FUNCTIONS[ADMISSION.__name__ + ':_gcp_delta']
     ADMISSION.reviewed_inputs()
-    bridge.prepared_inputs(ROOT, {}, {})
+    current.prepared_inputs(ROOT, {}, {})
     assert list(ADMISSION.runtime.collection_pages(SimpleNamespace(options={}, scopes=[]), 'projects/example', 'dataflow')) == []
 
 
@@ -57,12 +59,14 @@ def test_dataflow_guard_rejects_each_changed_source_or_ast_contract(field):
 
 @pytest.mark.parametrize('attribute', ('reviewed_inputs', 'shared'))
 def test_dataflow_admission_rejects_unreviewed_entrypoint_alias(monkeypatch, attribute):
+    current = active_shared()
     monkeypatch.setattr(ADMISSION, attribute, object())
     with pytest.raises(RuntimeError, match='alias|entrypoint'):
-        bridge.dataflow_reviewed_inputs()
+        current.dataflow_reviewed_inputs()
 
 
 def test_late_install_collision_restores_both_canonical_aliases():
+    current = active_shared()
     old_shared, old_reviewed = ADMISSION.shared, ADMISSION.reviewed_inputs
     before = tuple(checks.CHECKS)
     try:
@@ -71,7 +75,7 @@ def test_late_install_collision_restores_both_canonical_aliases():
         selected = next(i for i, check in enumerate(checks.CHECKS) if check.id in ADMISSION.runtime.CHECKS)
         checks.CHECKS[selected] = replace(checks.CHECKS[selected], title='collision proof')
         with pytest.raises(RuntimeError, match='collision'):
-            bridge.install_dataflow(ADMISSION)
+            current.install_dataflow(ADMISSION)
         assert ADMISSION.shared is bridge.predecessor.predecessor.predecessor
         assert ADMISSION.reviewed_inputs is bridge._DATAFLOW_REVIEWED_INPUTS
     finally:

@@ -258,7 +258,7 @@ def test_full_native_collector_pipeline_with_installed_marker_retention(real, mo
     calls = []
     class Response:
         status_code = 200
-        def __init__(self, data): self.data = data
+        def __init__(self, data): self.data = data; self.content = json.dumps(data).encode()
         def json(self): return deepcopy(self.data)
     def request(method, requested_url, **kwargs):
         assert method == 'GET'

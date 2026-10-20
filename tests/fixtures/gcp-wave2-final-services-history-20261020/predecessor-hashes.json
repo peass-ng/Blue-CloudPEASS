@@ -1,0 +1,8 @@
+{
+  "peaso/checks/batch_remaining_gcp.py": "d49543908d8564810fc93cd748cda49e6eef632047aaec977975aa31811f9df2",
+  "peaso/checks/compliance_new_sw52.py": "283625d80b768b1e4f96ebd0669ae0044787f8e56c47bac3b416b1e4b5f092bc",
+  "peaso/collectors/gcp_compliance_wave.py": "bf5fece444751e27a691f1fc7b9415c66e67d8bdbb4c9c190b38f9d62d2f9e0c",
+  "peaso/checks/native_only.json": "6a6f70a1d1162d9962c485a2c01659e15eb8bda36b194388e9b312b2ae6b49da",
+  "tests/test_gcp_final_services_review_20261020.py": "107707435f2ae5ef7f15ac5a0750b2b4a6d865ce8263de54766e58d464ce8ff9",
+  "docs/gcp-review/recheck-20261020/final-services-review.json": "68587d9f932c0cb49c964755d393e425596631fe510eb5e355800e8fb0cbc701"
+}

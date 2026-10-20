@@ -14,6 +14,8 @@ import subprocess
 import sys
 
 import pytest
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared, _reverse
+from tests.retained_upstream_manifest_20261020 import ORIGINAL as RETAINED_UPSTREAM_PATH, original_bytes as retained_upstream_bytes
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,29 +28,75 @@ GENERATED_CATALOGS = frozenset({
 # Release owner may pin the final reviewed network correction here. Retain its
 # original baseline hash as before_sha256; after_sha256/after_size bind all new
 # bytes. This explicit file allowlist cannot admit unrelated package changes.
-REVIEWED_CURRENT_CHANGES = {
-    "peaso/server/app.py": {'before_sha256': '5f2b3dc9bb6f54c56502b22263973c6d1c6f0932af703317d46008dd11732707', 'after_sha256': '3cd6d5053c9522ce2842ac59778f087115a1e076b8ea14dbdf03c5e6e1d5ff9e', 'after_size': 124165},
-    "peaso/collectors/azure.py": {'before_sha256': '22aa297159aeec7ab4a0645877bf69de4c8c8c645098ffe1d0dd05a56f0f8aac', 'after_sha256': 'b69db967e65722174e847116620b63c7de4f0da835e3edde1a882456dc37afea', 'after_size': 243248},
-    "peaso/ai/network.py": {
-        "before_sha256": "c7e43d252261d26b2ee9d6fa2a3cee79a344dd052bee2f959a98b2a624d8d024",
-        "after_sha256": "f8da3a90c6fbc0e2c2bb8fa40f2007bf45abdfa149b37c92d8b7b693f5ebd6fd",
-        "after_size": 14438,
-    },
-}
-REVIEWABLE_CURRENT_PATHS = frozenset({"peaso/ai/network.py", "peaso/collectors/azure.py", "peaso/server/app.py"})
+REVIEWED_CURRENT_CHANGES = {'peaso/ai/network.py': {'after_sha256': 'f8da3a90c6fbc0e2c2bb8fa40f2007bf45abdfa149b37c92d8b7b693f5ebd6fd',
+                         'after_size': 14438,
+                         'before_sha256': 'c7e43d252261d26b2ee9d6fa2a3cee79a344dd052bee2f959a98b2a624d8d024'},
+ 'peaso/analysis/common.py': {'after_sha256': '43f5f66f4ab5d99ea96fe122108ff04e2e8fe857c964bf755cdfe6d5772054d9',
+                              'after_size': 13921,
+                              'before_sha256': '3895ba27f4a153bfa6ed88dfef7d3628dfa1ec4786e4d319d29a0ca42981a656'},
+ 'peaso/collectors/aws_codebuild_buildspec_runtime_20261020.py': {'after_sha256': '70e9d13e572bc77bae366e7bbcadee51c5a2e32dcba9c87043385c7013a9081d',
+                                                                  'after_size': 11526,
+                                                                  'before_sha256': '50be001febf5a568b2b2ffbe7c295edafeb3f34a5e395a4bf29a6bc94f58b01f'},
+ 'peaso/collectors/aws_workload_command_runtime_20261020.py': {'after_sha256': '22252144a2f21c517684ec0f25f362abaa145196dd59f23c4606674b3d1acc5c',
+                                                               'after_size': 6719,
+                                                               'before_sha256': '9dc132a81388ee3b228b8b1de0820aefe9bfb741be37ea4c082920254e5c96b5'},
+ 'peaso/collectors/azure.py': {'after_sha256': 'd27a5f2b861fef622c20bff80bf5e8f559d7f5d70604606643eb9267254101e5',
+                               'after_size': 243608,
+                               'before_sha256': '22aa297159aeec7ab4a0645877bf69de4c8c8c645098ffe1d0dd05a56f0f8aac'},
+ 'peaso/collectors/azure_function_package_integration_20261020.py': {'after_sha256': '9eb8c15ad1052795777ae95960f7c65a8062d5555e2456a9c34a9f2aa6d1e58c',
+                                                                     'after_size': 12770,
+                                                                     'before_sha256': '678fc74f19156541992b9ce3536cf642253842b34583e6408005a4e38858c0e0'},
+ 'peaso/server/app.py': {'after_sha256': '1c99c60b5b3dbca22d19095c6bbff577f27c7a980ecc8c42354d4823a57512ce',
+                         'after_size': 124599,
+                         'before_sha256': '5f2b3dc9bb6f54c56502b22263973c6d1c6f0932af703317d46008dd11732707'}}
+REVIEWABLE_CURRENT_PATHS = frozenset(['peaso/ai/network.py', 'peaso/analysis/common.py', 'peaso/collectors/aws_codebuild_buildspec_runtime_20261020.py', 'peaso/collectors/aws_workload_command_runtime_20261020.py', 'peaso/collectors/azure.py', 'peaso/collectors/azure_function_package_integration_20261020.py', 'peaso/server/app.py'])
 INITIALIZER_ADDITION = (
-    b"from . import azure_jit_parent_type_shared_successor_20261020 as _deployed_ai_shared_source\n"
+    b"from . import native_admission_cpu_shared_successor_20261020 as _deployed_ai_shared_source\n"
     b"_historical_aws_workload_command_shared_successor_20261020 = aws_workload_command_shared_successor_20261020\n"
     b"aws_workload_command_shared_successor_20261020 = _deployed_ai_shared_source\n"
 )
-HELPER = "peaso/checks/azure_jit_parent_type_shared_successor_20261020.py"
+HELPER = "peaso/checks/native_admission_cpu_shared_successor_20261020.py"
 RECEIPT = HELPER.removesuffix(".py") + ".json"
-BRIDGE_IMPORT = "from peaso.checks import azure_jit_parent_type_shared_successor_20261020 as bridge\n"
+BRIDGE_IMPORT = "from tests.shared_admission_epoch_compatibility_20261020 import active_shared\nbridge = active_shared()\n"
 NATIVE_IDS = {
     "aws.review.workload.selected_command_literal_secret_indicators",
     "gcp.review.cloudrun_job.declared_image_secret_indicators",
 }
 
+
+
+def _pinned_proof(name, expected):
+    raw = (ROOT / 'peaso/checks' / (name + '.json')).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == expected, 'Source-proof receipt changed: ' + name
+    return json.loads(raw)
+
+
+def cpu_receipt():
+    """The unchanged canonical CPU proof remains independently testable."""
+    return _pinned_proof('native_admission_cpu_shared_successor_20261020',
+                         '82c57ad2963785be4ddc5cbb4f029afe19a416800ea5beed748693aa6324fcc8')
+
+
+def cpu_epoch_bytes(relative, raw):
+    """Two finite signed layers, followed by the original CPU source assertions."""
+    if relative not in {'peaso/checks/__init__.py', 'peaso/collectors/azure.py'}:
+        return raw
+    layers = (
+        ('azure_metadata_only_shared_successor_20261020',
+         '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',
+         'metadata_only_epoch_file_deltas'),
+        ('collector_noop_authorization_shared_successor_20261020',
+         '7ed26b39498462397e5b02b74552d91336d53f07ea70636d8b0655164f90dafa',
+         'native_epoch_file_deltas'))
+    for name, expected, section in layers:
+        proof = _pinned_proof(name, expected)
+        if relative in proof[section]:
+            row = proof[section][relative]
+            if hashlib.sha256(raw).hexdigest() == row['current_sha256']:
+                raw = _reverse(raw.decode(), row).encode()
+    expected = cpu_receipt()['integration_file_deltas'][relative]['current_sha256']
+    assert hashlib.sha256(raw).hexdigest() == expected, relative
+    return raw
 
 def run(code, root=ROOT):
     environment = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHONPATH=str(root),
@@ -80,7 +128,19 @@ def isolated(tmp_path_factory):
               and "__pycache__" not in path.parts and path.suffix != ".pyc"])
     allowed = {"peaso", "tests", "docs", "scripts", "risk_rules", "bluepeass"}
     paths = [p for p in paths if p and p.split("/", 1)[0] in allowed]
-    paths = sorted(set(paths) | {HELPER, RECEIPT, BASELINE, "peaso/checks/aws_deployed_ai_shared_successor_20261020.py", "peaso/checks/aws_deployed_ai_shared_successor_20261020.json"})
+    # Git does not list the separately admitted current overlay. Copy its
+    # exact receipt-attested source closure alongside the historical package.
+    current = _pinned_proof('azure_metadata_only_shared_successor_20261020',
+                            '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed')
+    closure = set(current['sources']) | {row['path'] for row in current['functions'].values()}
+    closure |= {'peaso/checks/azure_metadata_only_shared_successor_20261020.json',
+                'peaso/checks/collector_noop_authorization_shared_successor_20261020.json',
+                'tests/shared_admission_epoch_compatibility_20261020.py'}
+    for name in tuple(closure):
+        companion = name.removesuffix('.py') + '.json'
+        if name.startswith('peaso/checks/') and name.endswith('.py') and (ROOT / companion).exists():
+            closure.add(companion)
+    paths = sorted(set(paths) | closure | {HELPER, RECEIPT, BASELINE, "peaso/checks/aws_deployed_ai_shared_successor_20261020.py", "peaso/checks/aws_deployed_ai_shared_successor_20261020.json"})
     assert len(paths) < 6000
     assert sum((ROOT / p).stat().st_size for p in paths) < 600 * 1024 * 1024
     for name in paths:
@@ -121,7 +181,10 @@ import importlib, inspect, json
 from peaso.engine import get_catalog
 catalog=get_catalog()
 from peaso import checks
-from peaso.checks import azure_jit_parent_type_shared_successor_20261020 as bridge
+from peaso.checks import native_admission_cpu_shared_successor_20261020 as canonical_cpu
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared
+bridge = active_shared()
+assert bridge.accepted_native is canonical_cpu
 from peaso.checks import aws_ai_recheck_corrections_20261020 as ai
 from peaso.checks import aws_workload_command_runtime_consumer_20261020 as command
 from peaso.checks import gcp_cloudrun_job_image_secret_review_20261020 as job
@@ -169,14 +232,14 @@ def verify_historical_bytes(root=ROOT, baseline=None):
     for name, row in baseline["files"].items():
         if name in GENERATED_CATALOGS or name == "peaso/checks/__init__.py":
             continue
-        raw = (root / name).read_bytes()
+        raw = retained_upstream_bytes(root) if name == RETAINED_UPSTREAM_PATH else (root / name).read_bytes()
         if name in REVIEWED_CURRENT_CHANGES:
             change = REVIEWED_CURRENT_CHANGES[name]
             assert len(raw) == change["after_size"] and hashlib.sha256(raw).hexdigest() == change["after_sha256"], name
             continue
         assert len(raw) == row["size"] and hashlib.sha256(raw).hexdigest() == row["sha256"], name
     # Only the exact three-line alias may differ from the pinned initializer.
-    initializer = (root / "peaso/checks/__init__.py").read_bytes()
+    initializer = cpu_epoch_bytes("peaso/checks/__init__.py", (root / "peaso/checks/__init__.py").read_bytes())
     assert initializer.count(INITIALIZER_ADDITION) == 1
     assert initializer.replace(INITIALIZER_ADDITION, b"", 1) == baseline["initializer"].encode()
 
@@ -270,11 +333,12 @@ def test_generated_catalog_exceptions_require_exact_materialization(isolated, na
 
 
 def test_exact_additions_and_replacements_reconstruct_the_whole_historical_epoch():
-    receipt = json.loads((ROOT / RECEIPT).read_bytes())
+    active_shared().reviewed_delta(ROOT)
+    receipt = cpu_receipt()
     assert set(receipt["integration_file_deltas"]) == {
         "peaso/checks/__init__.py", "peaso/collectors/aws.py", "peaso/engine.py", "peaso/collectors/aws_facts_swc.py", "peaso/collectors/azure.py"}
     for name, row in receipt["integration_file_deltas"].items():
-        current = (ROOT / name).read_text()
+        current = cpu_epoch_bytes(name, (ROOT / name).read_bytes()).decode()
         assert hashlib.sha256(current.encode()).hexdigest() == row["current_sha256"]
         for before, after in row.get("exact_replacements", []):
             assert current.count(after) == 1
@@ -325,7 +389,7 @@ def test_missing_or_changed_deployed_flags_extensions_and_replacements_fail(isol
     ("peaso.collectors.aws", "_safe", "identity"),
     ("peaso.collectors.aws", "_safe", "code"),
     ("peaso.checks.aws_workload_command_shared_successor_20261020", "reviewed_delta", "identity"),
-    ("peaso.checks.azure_jit_parent_type_shared_successor_20261020", "reviewed_delta", "code"),
+    ("peaso.checks.native_admission_cpu_shared_successor_20261020", "reviewed_delta", "code"),
 ])
 def test_executing_callable_identity_and_code_replacements_fail(owner, name, mode):
     # The positive import is real. Only the negative attempt changes runtime
@@ -353,3 +417,12 @@ def test_bridge_alias_must_precede_first_shared_installer(isolated):
     changed = value.replace(alias, "# delayed bridge alias", 1).replace(first, first + "\n" + alias, 1)
     with atomic_change(isolated, name, changed.encode()):
         rejected(run("from peaso.engine import get_catalog\nget_catalog()", isolated))
+
+
+@pytest.mark.parametrize('relative', [
+    'peaso/checks/__init__.py', 'peaso/collectors/azure.py'])
+def test_finite_cpu_epoch_reversals_reject_unknown_current_source_bytes(relative):
+    raw = (ROOT / relative).read_bytes()
+    cpu_epoch_bytes(relative, raw)
+    with pytest.raises(AssertionError, match=relative):
+        cpu_epoch_bytes(relative, raw + b'\n# unreviewed source proof bytes\n')

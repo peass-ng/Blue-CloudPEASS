@@ -1,0 +1,29 @@
+{
+  "body": {
+    "auth": {
+      "arm_token": "fixture-arm",
+      "logs_token": "fixture-logs",
+      "method": "token"
+    },
+    "name": "Synthetic capacity native-policy review",
+    "options": {
+      "compliance_policy": {
+        "sw16": {
+          "azure.cis.intune_logs_captured_sent_log_analytics": {
+            "resources": [],
+            "scope": "/tenants/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            "status": "collected"
+          }
+        }
+      }
+    },
+    "provider": "azure",
+    "scopes": []
+  },
+  "capacity_probe_sha256": "65372ae8ea6c4b59e54047f9785f04fb2a1b16cc1f19d04180fdc715512903d1",
+  "parameter_ast_sha256": "0e394791bbb3e6b109d6d43e512bdc6d271c2023d719c57074984b3fe2f605d7",
+  "provenance": "Exact AUTH.azure and sw16 options literals from accepted current hosted intake test; synthetic ConnectorCreate name/default empty scopes envelope, validated by actual POST/PATCH in probe. No invented normative policy or cloud observations.",
+  "source_path": "test_peaso_native_review_hosted.py",
+  "source_sha256": "96c36cc0b24b8a32c65ac050db5fe56c9bf727e76c9caeb50a3d846e360388b4",
+  "test": "test_scoped_native_operator_inputs_reach_hosted_connector"
+}

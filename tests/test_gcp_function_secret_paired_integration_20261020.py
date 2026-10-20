@@ -9,13 +9,13 @@ from pathlib import Path
 import pytest
 
 from peaso.checks import CHECKS, evaluate_check
-from peaso.checks import gcp_function_secret_paired_admission_20261020 as admission
+from peaso.checks import gcp_function_secret_page_admission_20261020 as admission
 from peaso.checks import gcp_function_secret_paired_review_20261020 as consumer
 from peaso.checks import gcp_function_secret_review_20261019 as original
 from peaso.collectors import gcp_function_secret_pairs_20261020 as producer
 from peaso.engine import evaluate_snapshot
-from peaso.gcp_function_secret_pair_persistence_20261020 import retain_function_secret_pairs, FIELD
-from peaso.gcp_function_secret_pair_source_20261020 import reviewed_inputs
+from peaso.gcp_function_secret_page_persistence_20261020 import retain_function_secret_pairs, FIELD
+from peaso.gcp_function_secret_page_source_20261020 import reviewed_inputs
 from peaso.secret_findings import deduplicate_secret_findings
 from tests.gcp_function_secret_paired_native_20261020 import collect, OTHER
 from tests.gcp_function_partial_positive_native_20261020 import TOKEN, index_for
@@ -26,7 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def check_adopted():
     check, = [row for row in CHECKS if row.id == original.CHECK_ID]
-    assert inspect.unwrap(check.evaluate) is consumer.evaluate
+    from peaso.checks import gcp_function_secret_partial_page_20261020 as current
+    assert inspect.unwrap(check.evaluate) is current.evaluate
     return check
 
 
@@ -324,25 +325,28 @@ def test_source_substitution_rejected_then_restored(native_partial, monkeypatch)
         with pytest.raises(RuntimeError): admission.install()
     assert evaluate_check(original.CHECK_ID, row, index_for(row))[0] == 'FAIL'
     path = Path(consumer.__file__)
-    source = path.read_bytes()
-    try:
-        path.write_bytes(source + b'\n# substituted source\n')
+    read_bytes = Path.read_bytes
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, 'read_bytes', lambda self: read_bytes(self) + b'\n# substituted source\n'
+                      if self.resolve() == path.resolve() else read_bytes(self))
         assert evaluate_check(original.CHECK_ID, row, index_for(row))[0] == 'UNKNOWN'
         with pytest.raises(RuntimeError): admission.install()
-    finally:
-        path.write_bytes(source)
     assert evaluate_check(original.CHECK_ID, row, index_for(row))[0] == 'FAIL'
     admission.install()
 
 
 def test_exact_predecessors_and_native_case_replacement_are_preserved():
-    receipt = reviewed_inputs()
+    reviewed_inputs()  # Validate the installed additive source epoch first.
+    receipt = json.loads((ROOT / 'peaso/checks/gcp_function_secret_paired_admission_20261020.json').read_bytes())
     archive = json.loads(gzip.decompress((ROOT / receipt['predecessors']['path']).read_bytes()))
     for name, row in archive['files'].items():
         old = bytes.fromhex(row['hex'])
         assert hashlib.sha256(old).hexdigest() == row['sha256']
-        if name not in ('peaso/collectors/gcp.py', 'peaso/checks/__init__.py'):
+        if name.startswith('peaso/') and name not in ('peaso/collectors/gcp.py', 'peaso/checks/__init__.py'):
             assert (ROOT / name).read_bytes() == old, name
+        else:
+            from tests.gcp_wave2_historical_native_20261020 import historical_bytes
+            assert historical_bytes(name, row['sha256']) == old
     impossible = archive['legacy_cases'][original.CHECK_ID]['fail']
     assert original.evaluate(impossible, index_for(impossible))[0] == 'FAIL'
     assert consumer._evaluate(impossible, index_for(impossible))[0] == 'UNKNOWN'

@@ -1,0 +1,65 @@
+{
+  "selected_batch_referenced_sources": [
+    {
+      "bucket": "review-source",
+      "generation": "12345",
+      "object": "code/scripts/main.sh",
+      "resource": "projects/review/locations/us-central1/jobs/review-job",
+      "runnable": 0,
+      "task_group": 0,
+      "volume": 0
+    }
+  ],
+  "selected_cloudrun_job_declared_images": [
+    {
+      "api_version": "run.googleapis.com/v2",
+      "container_name": "worker",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "immutable_reference": "us-central1-docker.pkg.dev/review/images/app@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "kind": "Job",
+      "project_id": "review",
+      "repository": "projects/review/locations/us-central1/repositories/images",
+      "resource_name": "projects/review/locations/us-central1/jobs/batch-job",
+      "resource_uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+    }
+  ],
+  "selected_dataflow_referenced_sources": [
+    {
+      "bucket": "review-source",
+      "format": "text",
+      "generation": "12345",
+      "name": "workflow.py",
+      "object": "staged/workflow.py",
+      "package": 0,
+      "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+      "worker_pool": 0
+    }
+  ],
+  "selected_dataproc_referenced_sources": [
+    {
+      "bucket": "review-source",
+      "field": "pysparkJob.mainPythonFileUri",
+      "generation": "12345",
+      "object": "scripts/source.py",
+      "profile": "job",
+      "resource": "projects/review/regions/us-central1/jobs/review_job"
+    },
+    {
+      "bucket": "review-source",
+      "field": "config.initializationActions[0].executableFile",
+      "generation": "12345",
+      "object": "scripts/source.py",
+      "profile": "cluster",
+      "resource": "projects/review/regions/us-central1/clusters/review-cluster"
+    }
+  ],
+  "selected_workbench_referenced_sources": [
+    {
+      "bucket": "review-source",
+      "field": "gceSetup.metadata.post-startup-script",
+      "generation": "12345",
+      "object": "scripts/source.sh",
+      "resource": "projects/review/locations/us-central1-a/instances/review-instance"
+    }
+  ]
+}

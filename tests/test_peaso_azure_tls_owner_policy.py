@@ -3,6 +3,7 @@
 import copy
 from datetime import timedelta
 from types import SimpleNamespace
+from urllib.parse import urlsplit
 import pytest
 from fastapi import HTTPException
 from peaso import azure_tls_owner_policy as policy
@@ -23,6 +24,14 @@ def owner():
 
 def options(raw=None):
     return {'compliance_parameters':{policy.NAMESPACE:owner() if raw is None else raw}}
+
+class SubscriptionFixture:
+    tenant=verified_tenant='aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+    def __init__(self):self.calls=[]
+    def request(self,url,*,body=None,audience=azure.ARM):
+        assert body is None and audience==azure.ARM and urlsplit(url).path==SCOPE
+        self.calls.append(url)
+        return {'id':SCOPE,'subscriptionId':SCOPE.rsplit('/',1)[-1],'tenantId':self.tenant}
 
 @pytest.mark.parametrize('auth_mode',['local','cognito'])
 def test_valid_intake_preserves_approval_and_deepcopy(auth_mode):
@@ -137,6 +146,13 @@ def test_real_collect_empty_requirements_exact_criteria_zero_requests():
     assert not {'vault_certificate','certificate_issuance'}&{c['type']for c in snapshot['collections']}
     ids=[fixtures.sw.ROTATE90,fixtures.sw.ROTATE180];report=evaluate_snapshot(snapshot,checks=ids)
     assert {f['check_id']:f['status']for f in report['findings']if f['check_id']in ids}==dict.fromkeys(ids,'UNKNOWN')
+
+def test_selected_subscription_preserves_exact_owner_criteria():
+    transport=SubscriptionFixture();supplied=options()
+    snapshot=azure.collect({'auth':{},'scopes':[SCOPE],'options':supplied},requirements=['subscription'],transport=transport)
+    assert len(transport.calls)==snapshot['metadata']['calls']==1
+    assert snapshot['metadata']['compliance_policy']==owner()
+    assert supplied==options()
 
 @pytest.mark.parametrize('check_id',[fixtures.sw.ROTATE90,fixtures.sw.ROTATE180])
 @pytest.mark.parametrize('bad,expected',[(False,'PASS'),(True,'FAIL')])

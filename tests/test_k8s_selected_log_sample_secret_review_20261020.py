@@ -188,17 +188,19 @@ def capture(monkeypatch, *, targets=None, value='service ready', real=False, mis
             configure(api)
         return api
     monkeypatch.setattr(k8s, '_new_api', new_api)
-    original_finalize = source.finalize
-    def observed_finalize(scopes, collections, metadata, log_matches, literal_matches=None):
+    from peaso.collectors import k8s_selected_metadata_runtime_20261020 as metadata_runtime
+    original_finalize = metadata_runtime.finalize
+    def observed_finalize(scopes, collections, metadata, *ledgers):
         # Observation/privacy canaries only: the production collector performs
         # every read and creates every marker, receipt and scope binding.
-        trace.ledgers = (log_matches, literal_matches)
+        assert len(ledgers) == 3
+        trace.ledgers = ledgers
         if combined:
             metadata['other_projection'] = {'name': TOKEN, TOKEN: 'safe',
                 'encoded': __import__('base64').b64encode(TOKEN.encode()).decode()}
         metadata.update(extra_metadata or {})
-        return original_finalize(scopes, collections, metadata, log_matches, literal_matches)
-    monkeypatch.setattr(source, 'finalize', observed_finalize)
+        return original_finalize(scopes, collections, metadata, *ledgers)
+    monkeypatch.setattr(metadata_runtime, 'finalize', observed_finalize)
     opts = {'content_secret_scans': True, source.OPTION: targets, 'retries': 0, **(options or {})}
     if combined:
         opts[literals.OPTION] = [{'cluster_id': t['cluster_id'], 'namespace': t['namespace'], 'kind': 'Pod', 'name': t['pod']} for t in targets]
@@ -244,7 +246,7 @@ def test_native_sample_public_engine_and_privacy(monkeypatch, hit, real):
     assert trace.api.api_client.last_response is None
     assert trace.api.api_client.rest_client.pool_manager.literal_paths == frozenset()
     assert trace.api.api_client.rest_client.pool_manager.selected_log_requests == frozenset()
-    assert trace.ledgers == (set(), set())
+    assert trace.ledgers == (set(), set(), set())
     if hit:
         leak, = evidence['secret_leaks']
         assert {d['engine'] for d in leak['detectors']} == {'kingfisher', 'trufflehog'}
@@ -442,7 +444,7 @@ def test_literal_log_same_value_hmac_and_union_redaction(monkeypatch):
     assert len(leaks) == 1 and len(leaks[0]['locations']) == 2
     assert set(all_rows[0]['linked_check_ids']) == {source.CHECK, literals.CHECK}
     assert TOKEN not in json.dumps([snapshot, all_rows, list(scanning._RESULTS.values())])
-    assert len(trace.calls) == 5 and trace.ledgers == (set(), set())
+    assert len(trace.calls) == 5 and trace.ledgers == (set(), set(), set())
 
 
 def test_identity_text_hits_are_redacted_and_exact_dedup(monkeypatch):

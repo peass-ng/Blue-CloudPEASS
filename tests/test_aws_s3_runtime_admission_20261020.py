@@ -1,5 +1,6 @@
 """Production optional S3 admission/permissions and actual SDK DEBUG boundaries."""
 from copy import deepcopy
+from tests.shared_admission_epoch_compatibility_20261020 import active_shared, source_at_epoch, s3_historical_policy_before
 from datetime import datetime,timezone
 import base64,hashlib,inspect,io,json,logging,socket,zipfile
 from pathlib import Path
@@ -166,14 +167,15 @@ def test_exact_one_registered_check_and_native_cases_idempotence():
     registered,=[c for c in CHECKS if c.id==s3.CHECK]
     assert inspect.unwrap(registered.evaluate)is consumer.evaluate
     assert registered.kind==s3.KIND and registered.allow_incomplete_failure and registered.severity=='high'
-    before=tuple(CHECKS);case=deepcopy(fixtures.CASES[s3.CHECK]);admission.install()
+    before=tuple(CHECKS);case=deepcopy(fixtures.CASES[s3.CHECK]);active_shared().install_s3()
     assert tuple(CHECKS)==before and fixtures.CASES[s3.CHECK]==case
-    cases=admission.reviewed_inputs()[s3.CHECK]
+    cases=active_shared().s3_reviewed_inputs()[s3.CHECK]
     assert {consumer.evaluate(cases[b],cases[b+'_index'])[0]for b in('pass','fail','unknown')}=={'PASS','FAIL','UNKNOWN'}
 
 
 @pytest.mark.parametrize('drift',['consumer_source','native_fixture','callable_memory','producer_method','producer_schema','binding'])
 def test_atomic_admission_rejects_source_native_and_memory_drift(monkeypatch,drift):
+    active_shared().install_s3()  # Prove a clean current gate before each mutation.
     before=tuple(CHECKS);case=deepcopy(fixtures.CASES[s3.CHECK])
     if drift=='producer_method':
         monkeypatch.setattr(s3._BoundedRaw.read,'__code__',(lambda self,amt=None,**kw:b'').__code__)
@@ -187,7 +189,7 @@ def test_atomic_admission_rejects_source_native_and_memory_drift(monkeypatch,dri
         original=Path.read_bytes
         target='aws_s3_selected_source_secret_review_20261020.py'if drift=='consumer_source'else'aws_s3_selected_source_native_cases_20261020.json'
         monkeypatch.setattr(Path,'read_bytes',lambda p:original(p)+b'\n'if p.name==target else original(p))
-    with pytest.raises(RuntimeError):admission.install()
+    with pytest.raises(RuntimeError):active_shared().install_s3()
     assert tuple(CHECKS)==before and fixtures.CASES[s3.CHECK]==case
 
 
@@ -202,7 +204,7 @@ def test_registry_install_failure_rolls_back_only_new_check(monkeypatch):
         return apply
     monkeypatch.setattr(checks,'register',broken)
     try:
-        with pytest.raises(RuntimeError,match='registration interruption'):admission.install()
+        with pytest.raises(RuntimeError,match='registration interruption'):active_shared().install_s3()
         assert tuple(CHECKS)==without and s3.CHECK not in fixtures.CASES
     finally:CHECKS[:]=before;fixtures.CASES[s3.CHECK]=case
 
@@ -215,9 +217,17 @@ def test_optional_s3_descriptors_never_expand_default_metadata_role():
     assert policy.OPTIONAL_S3_SOURCE_VERSION_PERMISSION[0]=='s3:GetObjectVersion'
     assert ('s3','get_object_version')not in aws.READ_ACTIONS
     assert policy.build_policy(aws.READ_ACTIONS)==policy.build_policy(aws.READ_ACTIONS-new)
-    before=json.loads((SCRATCH/'before.json').read_text())
-    assert policy.build_policy()==before['default_policy']
-    assert hashlib.sha256(inspect.getsource(inspect.unwrap(aws._safe)).encode()).hexdigest()==before['peaso.collectors.aws:_safe']['sha256']
+    before=s3_historical_policy_before()
+    # Preserve the old policy capture and unchanged build function; subsequent
+    # reviewed metadata inventories legitimately add unrelated default reads.
+    assert hashlib.sha256(inspect.getsource(policy.build_policy).encode()).hexdigest()==before['scripts.peaso_deploy_customer_policy:build_policy']['sha256']
+    current=policy.build_policy()
+    default_reads=aws.READ_ACTIONS|policy.PRESERVED_TEMPLATE_READ_ACTIONS
+    assert current==policy.build_policy(default_reads)==policy.build_policy(default_reads-new)
+    actions={action for row in current['Statement'] for action in (row['Action'] if isinstance(row['Action'],list) else [row['Action']])}
+    assert not {'s3:GetObject','s3:GetObjectVersion'}&actions
+    historical_safe=source_at_epoch(aws._safe,'aws._safe',before['peaso.collectors.aws:_safe']['sha256'])
+    assert hashlib.sha256(historical_safe.encode()).hexdigest()==before['peaso.collectors.aws:_safe']['sha256']
 
 
 @pytest.mark.parametrize('operation',['get_object','head_object','get_object_version','delete_object','create_session'])

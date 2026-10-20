@@ -163,9 +163,16 @@ def test_predecessor_receipt_helper_and_report_exact_bytes_retained():
         stored = ROOT / row['retained_gzip']
         assert hashlib.sha256(stored.read_bytes()).hexdigest() == row['gzip_sha256']
         retained = gzip.decompress(stored.read_bytes())
-        assert hashlib.sha256(retained).hexdigest() == row['sha256'] and len(retained) == row['bytes']
-        if not row['source'].endswith('.py'):
-            assert (ROOT / row['source']).read_bytes() == retained
+        if 'source' in row:
+            assert set(row) == {'source', 'retained_gzip', 'gzip_sha256', 'sha256', 'bytes'}
+            assert hashlib.sha256(retained).hexdigest() == row['sha256'] and len(retained) == row['bytes']
+            if not row['source'].endswith('.py'):
+                assert (ROOT / row['source']).read_bytes() == retained
+        else:
+            # Later log/literal admissions retain an exact compressed predecessor
+            # with a before_sha256 schema rather than the portable source schema.
+            assert set(row) == {'path', 'retained_gzip', 'gzip_sha256', 'before_sha256'}
+            assert hashlib.sha256(retained).hexdigest() == row['before_sha256']
 
 
 @pytest.mark.parametrize('cid', guard.IDS)

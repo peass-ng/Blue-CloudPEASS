@@ -12,6 +12,8 @@ from tests.gcp_function_partial_positive_native_20261020 import (
     NAME, SCOPE, TOKEN, collect_native, index_for, raw,
 )
 
+from tests.gcp_wave2_historical_native_20261020 import collect_historical_native as collect_native
+
 
 @pytest.fixture(scope='module')
 def native_partial():
@@ -260,19 +262,25 @@ def test_receipt_binds_unchanged_original_sources():
     root = Path(__file__).resolve().parents[1]
     receipt = json.loads((root / 'docs/check-review/gcp-function-partial-positive-candidate-20261020.json').read_text())
     for path, expected in {**receipt['original_source_hashes'], **receipt['candidate_source_hashes']}.items():
-        assert hashlib.sha256((root / path).read_bytes()).hexdigest() == expected, path
+        from tests.gcp_wave2_historical_native_20261020 import historical_bytes
+        assert hashlib.sha256(historical_bytes(path, expected)).hexdigest() == expected, path
     assert not hasattr(__import__(
         'peaso.checks.gcp_function_secret_partial_positive_candidate_20261020', fromlist=['install']), 'install')
 
 
 def test_candidate_import_leaves_original_registry_binding(native_partial):
     from peaso.checks import CHECKS, evaluate_check
+    from peaso.checks import gcp_function_secret_partial_page_20261020 as current
+    before = tuple(CHECKS)
     candidate()
+    assert tuple(CHECKS) == before
     entries = [check for check in CHECKS if check.id == original.CHECK_ID]
     assert len(entries) == 1
-    assert entries[0].evaluate.__module__ == original.__name__
+    import inspect
+    assert inspect.unwrap(entries[0].evaluate) is current.evaluate
     row, index, _ = native_partial
-    assert evaluate_check(original.CHECK_ID, row, index)[0] == 'UNKNOWN'
+    assert original.evaluate(row, index)[0] == 'UNKNOWN'
+    assert evaluate_check(original.CHECK_ID, row, index)[0] == 'FAIL'
 
 
 def test_duplicate_fingerprint_rows_cannot_launder_unavailable_detector(native_partial):

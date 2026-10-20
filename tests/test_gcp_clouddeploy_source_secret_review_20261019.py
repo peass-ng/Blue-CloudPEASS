@@ -23,6 +23,7 @@ TOKEN = 'ghp_' + '7mQ2zR9wL4cV8nK1sF6aH3jP5uD0xB2yE9rT'
 class Response:
     def __init__(self, value=None, *, raw=None, status=200, headers=None):
         self.payload = json.dumps(value).encode() if raw is None else raw
+        self.content = self.payload  # Real CRM transport parses the HTTP body.
         self.raw = self
         self.stream = io.BytesIO(self.payload)
         self.status_code = status

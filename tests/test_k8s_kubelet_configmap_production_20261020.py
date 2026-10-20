@@ -12,6 +12,7 @@ from kubernetes import client,config
 from peaso import engine
 import peaso.checks as registry
 from peaso.checks import fixtures
+from tests.aws_k8s_current_native_inputs_20261020 import case_state
 from peaso.checks import k8s_kubelet_configmap_admission_20261020 as admission
 from peaso.checks import k8s_kubelet_configmap_review_20261020 as candidate
 from peaso.collectors import k8s
@@ -104,10 +105,10 @@ def test_production_reader_call_budget_stops_detail():
 
 
 def test_registered_eight_metadata_cases_idempotence_and_no_old_case_mutation():
-    before=tuple(registry.CHECKS);old_cases={k:deepcopy(v)for k,v in fixtures.CASES.items()if k not in candidate.IDS}
+    before=tuple(registry.CHECKS);old_cases=case_state({k:v for k,v in fixtures.CASES.items()if k not in candidate.IDS})
     admission.install();admission.install()
     assert all(a is b for a,b in zip(before,registry.CHECKS))
-    assert {k:v for k,v in fixtures.CASES.items()if k not in candidate.IDS}==old_cases
+    assert case_state({k:v for k,v in fixtures.CASES.items()if k not in candidate.IDS})==old_cases
     receipt,cases,_=admission.reviewed_inputs()
     for cid in candidate.IDS:
         check,=[c for c in registry.CHECKS if c.id==cid]
@@ -161,7 +162,7 @@ def absent(monkeypatch):
 
 
 def test_transaction_rolls_back_register_failure_after_three_additions(monkeypatch):
-    absent(monkeypatch);before=tuple(registry.CHECKS);cases=deepcopy(fixtures.CASES);register=registry.register
+    absent(monkeypatch);before=tuple(registry.CHECKS);cases=case_state(fixtures.CASES);register=registry.register
     def failing(*a,**k):
         install=register(*a,**k)
         def decorate(function):
@@ -171,18 +172,18 @@ def test_transaction_rolls_back_register_failure_after_three_additions(monkeypat
         return decorate
     monkeypatch.setattr(registry,'register',failing)
     with pytest.raises(RuntimeError,match='injected registration failure'):admission.install()
-    assert tuple(registry.CHECKS)==before and fixtures.CASES==cases
+    assert tuple(registry.CHECKS)==before and case_state(fixtures.CASES)==cases
 
 
 def test_transaction_rolls_back_cases_write_failure(monkeypatch):
-    absent(monkeypatch);before=tuple(registry.CHECKS);cases=deepcopy(fixtures.CASES)
+    absent(monkeypatch);before=tuple(registry.CHECKS);cases=case_state(fixtures.CASES)
     class Broken(dict):
         def __setitem__(self,key,value):
             if key==candidate.IDS[2]:raise RuntimeError('injected fixture write failure')
             return super().__setitem__(key,value)
     monkeypatch.setattr(fixtures,'CASES',Broken(fixtures.CASES))
     with pytest.raises(RuntimeError,match='injected fixture write failure'):admission.install()
-    assert tuple(registry.CHECKS)==before and fixtures.CASES==cases
+    assert tuple(registry.CHECKS)==before and case_state(fixtures.CASES)==cases
 
 
 def test_partial_registration_collision_preserves_state(monkeypatch):

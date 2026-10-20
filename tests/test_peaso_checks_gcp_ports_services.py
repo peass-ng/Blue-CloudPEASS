@@ -13,6 +13,8 @@ REGISTRY = {check.id: check for check in CHECKS if check.id in ports.IDS}
 @pytest.mark.parametrize("case,wanted", [("pass", "PASS"), ("fail", "FAIL"), ("missing", "UNKNOWN"), ("malformed", "UNKNOWN"), ("denied", "UNKNOWN")])
 def test_each_service_predicate_available_and_unavailable_truth(cid, case, wanted):
     item = {"collection_status": "denied"} if case == "denied" else copy.deepcopy(CASES[cid][case])
+    if cid == "gcp.ports.sql_instance_mysql_binary_log_enabled" and case in ("pass", "fail"):
+        item["databaseVersion"] = "MYSQL_8_0"  # Required native engine applicability.
     original = copy.deepcopy(item)
     actual, evidence = REGISTRY[cid].evaluate(item, {})
     assert actual == wanted, evidence

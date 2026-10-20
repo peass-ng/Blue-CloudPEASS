@@ -1,5 +1,6 @@
 """Uninstalled two-control admission: native branches, tamper and rollback."""
 from copy import deepcopy
+from tests.shared_admission_epoch_compatibility_20261020 import snapshot_cases, active_shared, source_at_epoch, sealed_ast
 from dataclasses import replace
 import hashlib
 import json
@@ -197,7 +198,7 @@ def test_registration_namespace_collision_rejected_without_changes(monkeypatch, 
 
 @pytest.mark.parametrize('stage', ['second_registration', 'second_fixture_write'])
 def test_second_control_failure_rolls_back_both_checks_and_cases(monkeypatch, stage):
-    before = tuple(checks.CHECKS);old = deepcopy(fixtures.CASES)
+    before = tuple(checks.CHECKS);old = snapshot_cases(fixtures.CASES)
     if stage == 'second_registration':
         class FailSecondAppend(list):
             def append(self, item):

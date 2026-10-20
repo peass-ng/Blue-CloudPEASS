@@ -59,7 +59,7 @@ def issue_engine_grant(options, scopes, named=()):
 def authorize_collector(options, scopes):
     token = options.pop(GRANT, None)
     rows = targets(options, scopes)
-    incoming = options.get('_content_secret_scan_kinds', [])
+    incoming = options.get('_content_secret_scan_kinds')
     permitted = (type(token) is _Grant and token.token is _TOKEN and token.scopes == tuple(scopes)
         and token.targets == rows and options.get('content_secret_scans') is True
         and isinstance(incoming, list) and KIND in incoming)

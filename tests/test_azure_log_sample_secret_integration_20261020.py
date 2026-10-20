@@ -1,5 +1,6 @@
 """Exact atomic log-sample admission and actual production public-engine hooks."""
 from copy import deepcopy
+from tests.case_state_contract_20261020 import case_copy, case_state
 import inspect
 import json
 from pathlib import Path
@@ -37,8 +38,8 @@ def test_exact_typed_registered_identity_case_branches_and_idempotence():
         assert registered.kind==metadata['kind']and CASES[registered.id]==cases[registered.id]
         assert function.__globals__['_evaluate']is consumer._evaluate
         for branch in ('pass','fail','unknown'):assert registered.evaluate(cases[registered.id][branch],cases[registered.id][branch+'_index'])[0]==branch.upper()
-    before=tuple(checks.CHECKS);saved=deepcopy(CASES);admission.install()
-    assert tuple(checks.CHECKS)==before and CASES==saved
+    before=tuple(checks.CHECKS);saved=case_copy(CASES);saved_state=case_state(CASES);admission.install()
+    assert tuple(checks.CHECKS)==before and case_state(CASES)==saved_state
 
 
 @pytest.mark.parametrize('surface',['AppTraces','FunctionAppLogs','traces'])
@@ -76,16 +77,16 @@ def test_changed_exact_reviewed_bytes_rejected_before_any_mutation(tmp_path,kind
         destination=tmp_path/name;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(name,destination)
     target={'receipt':'peaso/checks/azure_log_samples_admission_20261020.json','source':'peaso/checks/azure_selected_log_sample_secret_review_20261020.py','fixture':receipt['fixture']['path'],'proposal':'peaso/checks/azure_selected_log_sample_secret_review_20261020_proposal.json'}[kind]
     with (tmp_path/target).open('ab')as handle:handle.write(b'\n')
-    before=tuple(checks.CHECKS);cases=deepcopy(CASES)
+    before=tuple(checks.CHECKS);cases=case_copy(CASES);cases_state=case_state(CASES)
     with pytest.raises(RuntimeError):admission.reviewed_inputs(tmp_path)
-    assert tuple(checks.CHECKS)==before and CASES==cases
+    assert tuple(checks.CHECKS)==before and case_state(CASES)==cases_state
 
 
 def test_atomic_mid_install_failure_rolls_back_both(monkeypatch):
-    ids={p['check']for p in source.PROFILES.values()};original_checks=list(checks.CHECKS);original_cases=deepcopy(CASES)
+    ids={p['check']for p in source.PROFILES.values()};original_checks=list(checks.CHECKS);original_cases=case_copy(CASES);cases_state=case_state(CASES)
     checks.CHECKS[:]=[c for c in checks.CHECKS if c.id not in ids]
     for ident in ids:CASES.pop(ident,None)
-    before=tuple(checks.CHECKS);cases=deepcopy(CASES);register=checks.register;count=0
+    before=tuple(checks.CHECKS);cases=case_copy(CASES);cases_state=case_state(CASES);register=checks.register;count=0
     def fail_second(*args,**kwargs):
         nonlocal count
         count+=1
@@ -94,7 +95,7 @@ def test_atomic_mid_install_failure_rolls_back_both(monkeypatch):
     monkeypatch.setattr(checks,'register',fail_second)
     try:
         with pytest.raises(RuntimeError,match='transaction'):admission.install()
-        assert tuple(checks.CHECKS)==before and CASES==cases
+        assert tuple(checks.CHECKS)==before and case_state(CASES)==cases_state
     finally:
         checks.CHECKS[:]=original_checks;CASES.clear();CASES.update(original_cases)
 
@@ -144,12 +145,12 @@ def test_combined_selector_limit_enforced_by_public_and_hosted_validation():
 
 @pytest.mark.parametrize('target',['function','helper'])
 def test_typed_function_and_reachable_helper_tampering_rejected(monkeypatch,target):
-    before=tuple(checks.CHECKS);cases=deepcopy(CASES)
+    before=tuple(checks.CHECKS);cases=case_copy(CASES);cases_state=case_state(CASES)
     def changed(item,index):return 'PASS',{}
     if target=='function':monkeypatch.setitem(consumer.EVALUATORS,'workspace',changed)
     else:monkeypatch.setattr(consumer,'_evaluate',lambda profile,item,index:('PASS',{}))
     with pytest.raises(RuntimeError):admission.install()
-    assert tuple(checks.CHECKS)==before and CASES==cases
+    assert tuple(checks.CHECKS)==before and case_state(CASES)==cases_state
 
 
 def test_existing_fixture_collision_cannot_partially_readmit():

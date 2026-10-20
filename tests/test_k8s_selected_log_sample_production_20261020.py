@@ -15,6 +15,7 @@ import pytest
 from fastapi import HTTPException
 from peaso import checks, engine, secret_scanning as scanning
 from peaso.checks import fixtures
+from tests.aws_k8s_current_native_inputs_20261020 import case_state
 from peaso.checks import k8s_selected_log_sample_admission_20261020 as admission
 from peaso.checks import k8s_annotation_native_admission_20261020 as annotation
 from peaso.checks import k8s_kubelet_configmap_admission_20261020 as configmaps
@@ -47,9 +48,9 @@ def base_request(**options):
 
 
 def test_atomic_admission_idempotence_and_prior13_preserved():
-    original = current(); prior_cases = deepcopy(fixtures.CASES)
+    original = current(); prior_cases = case_state(fixtures.CASES)
     admission.install(); admission.install(); annotation.install(); configmaps.install()
-    assert current() is original and fixtures.CASES == prior_cases
+    assert current() is original and case_state(fixtures.CASES) == prior_cases
     assert inspect.unwrap(original.evaluate) is candidate.evaluate
     assert original.dependencies == [source.KIND] and original.allow_incomplete_failure
     assert getattr(original.evaluate, admission.MARK) == source.CHECK

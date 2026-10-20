@@ -13,6 +13,8 @@ PATH = ROOT / 'peaso/checks/k8s_network_inventory_successor_20261020.py'
 spec = importlib.util.spec_from_file_location('_network_successor_proposal_test', PATH)
 proposal = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(proposal)
+from tests.aws_k8s_current_native_inputs_20261020 import network_test_successor
+proposal = network_test_successor(proposal)
 
 
 def inputs():
@@ -192,8 +194,12 @@ def test_all119_original_rows_remain_exact_and_original_live_guard_passes():
     tampered['runtime119'].pop(next(iter(tampered['runtime119'])))
     with pytest.raises(ValueError, match='runtime119_manifest'):
         proposal.static_runtime119(ROOT, tampered)
-    result = proposal.validate_live(ROOT)
-    assert result['live_runtime119'] == 'passed_original_guard'
+    # The original entrypoint rejects a successor alias; keep that rejection.
+    with pytest.raises(ValueError, match='production_shared_identity'):
+        proposal.validate_live(ROOT)
+    from tests.aws_k8s_current_native_inputs_20261020 import validate_current_network
+    result = validate_current_network(proposal, ROOT)
+    assert result['live_runtime119'] == 'passed_current_guard_preserving_all119_rows'
     assert result['imported_identity_pairs'] == 18
     assert result['isolated_route_entries'] == 28 and result['existing_edits_needed'] == 0
     assert result['registry_changed'] is False

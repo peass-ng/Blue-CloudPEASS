@@ -67,7 +67,7 @@ def authorize_collector(options, scopes):
     granted = (type(token) is _Grant and token.token is _TOKEN and token.scopes == tuple(scopes)
         and token.selection == _fingerprint(json.dumps(rows, sort_keys=True))
         and options.get('content_secret_scans') is True)
-    incoming = options.get('_content_secret_scan_kinds', [])
+    incoming = options.get('_content_secret_scan_kinds')
     if isinstance(incoming, list):
         options['_content_secret_scan_kinds'] = [k for k in incoming if k != KIND or granted]
     return granted and KIND in options.get('_content_secret_scan_kinds', [])

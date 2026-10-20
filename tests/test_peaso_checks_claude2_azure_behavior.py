@@ -185,7 +185,8 @@ def test_nsg_log_analytics_accepts_vnet_traffic_analytics():
 
 def test_vnet_without_app_gateway_is_not_applicable():
     data = case("vnet_with_app_gateway_ddos_protection")
-    other = dict(data["fail"], id=data["fail"]["id"].replace("vnet1", "vnet2"))
+    other = dict(data["fail"], id=data["fail"]["id"].rsplit("/", 1)[0] + "/vnet-without-gateway")
+    assert other["id"] != data["fail"]["id"]
     assert run(cid("vnet_with_app_gateway_ddos_protection"), other, data["fail_index"]) == "NOT_APPLICABLE"
 
 

@@ -14,6 +14,8 @@ from tests.gcp_function_partial_positive_native_20261020 import (
 )
 from tests.test_gcp_function_secret_partial_positive_20261020 import MALFORMED, corrupt
 
+from tests.gcp_wave2_historical_native_20261020 import collect_historical_native as collect_native
+
 
 @pytest.fixture(scope='module')
 def native_asymmetric():

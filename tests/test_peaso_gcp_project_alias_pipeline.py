@@ -6,6 +6,7 @@ its annotations, snapshot construction, and registered checks all run unchanged.
 """
 
 import copy
+import json
 from dataclasses import dataclass, field
 
 import pytest
@@ -48,6 +49,7 @@ class InertTransport(gcp.Transport):
 class Response:
     def __init__(self, data, status=200):
         self.data, self.status_code, self.headers = copy.deepcopy(data), status, {}
+        self.content = json.dumps(data).encode()
 
     def json(self):
         return copy.deepcopy(self.data)
