@@ -1,0 +1,133 @@
+[
+  {
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T19:20:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-reader/session"
+    },
+    "responseElements": null,
+    "eventID": "synthetic-kvs-data-endpoint-1",
+    "eventName": "GetDataEndpoint",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:999999999999:stream/synthetic-kvs-stream/1234567890123",
+      "aPIName": "GET_IMAGES"
+    }
+  },
+  {
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T19:20:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-reader/session"
+    },
+    "responseElements": null,
+    "eventID": "synthetic-kvs-data-endpoint-2",
+    "eventName": "GetDataEndpoint",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:999999999999:stream/synthetic-kvs-stream/1234567890123",
+      "aPIName": "GET_CLIP"
+    }
+  },
+  {
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T19:20:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-reader/session"
+    },
+    "responseElements": null,
+    "eventID": "synthetic-kvs-data-endpoint-3",
+    "eventName": "GetDataEndpoint",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:999999999999:stream/synthetic-kvs-stream/1234567890123",
+      "aPIName": "GET_HLS_STREAMING_SESSION_URL"
+    }
+  },
+  {
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T19:20:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-reader/session"
+    },
+    "responseElements": null,
+    "eventID": "synthetic-kvs-data-endpoint-4",
+    "eventName": "GetDataEndpoint",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:999999999999:stream/synthetic-kvs-stream/1234567890123",
+      "aPIName": "GET_DASH_STREAMING_SESSION_URL"
+    }
+  },
+  {
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T19:20:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-reader/session"
+    },
+    "responseElements": null,
+    "eventID": "synthetic-kvs-data-endpoint-5",
+    "eventName": "GetDataEndpoint",
+    "requestParameters": {
+      "streamARN": "arn:aws:kinesisvideo:us-east-1:999999999999:stream/synthetic-kvs-stream/1234567890123",
+      "aPIName": "PUT_MEDIA"
+    }
+  },
+  {
+    "eventSource": "kinesisvideo.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T19:20:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-reader/session"
+    },
+    "responseElements": null,
+    "eventID": "synthetic-kvs-master-endpoint",
+    "eventName": "GetSignalingChannelEndpoint",
+    "requestParameters": {
+      "channelARN": "arn:aws:kinesisvideo:us-east-1:999999999999:channel/synthetic-kvs-channel/1234567890123",
+      "singleMasterChannelEndpointConfiguration": {
+        "protocols": [
+          "HTTPS"
+        ],
+        "role": "MASTER"
+      }
+    }
+  }
+]

@@ -13,6 +13,11 @@ _RESOURCE = re.compile(r"[A-Za-z0-9_.-]+/[0-9]+\Z")
 _MEDIA_APIS = {
     "GET_MEDIA": "request.kvs_get_media_endpoint_discovered",
     "LIST_FRAGMENTS": "request.kvs_list_fragments_endpoint_discovered",
+    "GET_IMAGES": "request.kvs_get_images_endpoint_discovered",
+    "GET_CLIP": "request.kvs_get_clip_endpoint_discovered",
+    "GET_HLS_STREAMING_SESSION_URL": "request.kvs_hls_endpoint_discovered",
+    "GET_DASH_STREAMING_SESSION_URL": "request.kvs_dash_endpoint_discovered",
+    "PUT_MEDIA": "request.kvs_put_media_endpoint_discovered",
 }
 
 
@@ -38,7 +43,9 @@ def normalize_aws_kinesis_video_endpoint(record: Mapping[str, Any]) -> dict[str,
     request = record.get("requestParameters")
     if not isinstance(request, Mapping):
         return None
-    flags = dict.fromkeys([*_MEDIA_APIS.values(), "request.kvs_signaling_viewer_endpoint_discovered"], False)
+    flags = dict.fromkeys([*_MEDIA_APIS.values(),
+                           "request.kvs_signaling_viewer_endpoint_discovered",
+                           "request.kvs_signaling_master_endpoint_discovered"], False)
     if name == "GetDataEndpoint":
         target = request.get("streamARN")
         api = request.get("aPIName")
@@ -51,11 +58,14 @@ def normalize_aws_kinesis_video_endpoint(record: Mapping[str, Any]) -> dict[str,
         config = request.get("singleMasterChannelEndpointConfiguration")
         if (not _arn(target, "channel", region, account)
                 or not isinstance(config, Mapping)
-                or config.get("role") != "VIEWER"
+                or not isinstance(config.get("role"), str)
+                or config["role"] not in {"VIEWER", "MASTER"}
                 or not isinstance(config.get("protocols"), list)
                 or "HTTPS" not in config["protocols"]):
             return None
-        flag = "request.kvs_signaling_viewer_endpoint_discovered"
+        flag = ("request.kvs_signaling_viewer_endpoint_discovered"
+                if config["role"] == "VIEWER" else
+                "request.kvs_signaling_master_endpoint_discovered")
     success = not (record.get("errorCode") or record.get("errorMessage"))
     flags[flag] = success
     actor = record.get("userIdentity")
