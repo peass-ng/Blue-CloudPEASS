@@ -19,6 +19,13 @@ IDS = {
     "ea4229b9-d6a2-4d7b-8af9-12948c08321a",
     "0b477796-dc77-4d58-b687-7722c8fac51c",
 }
+OBS_IDS = {
+    "8334fa28-186f-41bb-a81a-12012d2bedbe",
+    "71aba2a7-b7b3-4b5e-b1ee-8fa056deda12",
+    "90b3449d-8b78-4238-9b8d-a167f0e17956",
+    "2d3841c5-3fb2-4b18-a504-c45165dfb92b",
+    "4d35f98d-e3a9-443a-88ce-7958ef58db4c",
+}
 
 
 def event(name, patches, response, minute):
@@ -66,6 +73,31 @@ def stage_rules():
     return [rule for rule in rules if rule.id in IDS]
 
 
+def observability_rules():
+    return [rule for rule in load_rules(product="aws") if rule.id in OBS_IDS]
+
+
+def observability_fixtures():
+    return [
+        event("UpdateRestApi", [{"op": "replace", "path": "/apiKeySource",
+                                 "value": "AUTHORIZER"}], {"apiKeySource": "AUTHORIZER"}, 10),
+        event("UpdateStage", [{"op": "replace",
+                               "path": "/canarySettings/stageVariableOverrides/backend",
+                               "value": "*"}],
+              {"canarySettings": {"deploymentId": FIRST, "percentTraffic": 100.0,
+                                  "stageVariableOverrides": {"backend": "*"}}}, 11),
+        event("UpdateStage", [{"op": "replace", "path": "/*/*/logging/loglevel",
+                               "value": "OFF"}],
+              {"methodSettings": {"*/*": {"loggingLevel": "OFF"}}}, 12),
+        event("UpdateStage", [{"op": "replace", "path": "/*/*/logging/dataTrace",
+                               "value": "false"}],
+              {"methodSettings": {"*/*": {"dataTraceEnabled": False}}}, 13),
+        event("UpdateStage", [{"op": "replace", "path": "/*/*/metrics/enabled",
+                               "value": "false"}],
+              {"methodSettings": {"*/*": {"metricsEnabled": False}}}, 14),
+    ]
+
+
 def test_five_stage_routes_match_without_stage_values_or_real_identity():
     found = detect_aws_events(fixtures(), stage_rules())
     assert len(found) == 5
@@ -87,3 +119,24 @@ def test_failed_or_mismatched_rollback_does_not_match():
         record = deepcopy(source)
         record.update(altered)
         assert not detect_aws_events([record], rule)
+
+
+def test_five_observability_and_canary_routes_match_redacted_derivatives():
+    found = detect_aws_events(observability_fixtures(), observability_rules())
+    assert len(found) == 5
+    assert {item.rule_id for item in found} == OBS_IDS
+
+
+def test_observability_routes_reject_failed_or_unconfirmed_changes():
+    fixtures = observability_fixtures()
+    rules = observability_rules()
+    for index, record in enumerate(fixtures):
+        failed = deepcopy(record)
+        failed["errorCode"] = "BadRequestException"
+        assert len(detect_aws_events(fixtures[:index] + [failed] + fixtures[index + 1:], rules)) == 4
+    no_override = deepcopy(fixtures[1])
+    no_override["responseElements"]["canarySettings"]["stageVariableOverrides"] = None
+    assert not detect_aws_events([no_override], rules)
+    no_prior_logging = deepcopy(fixtures[2])
+    no_prior_logging["responseElements"]["methodSettings"]["*/*"]["loggingLevel"] = "ERROR"
+    assert not detect_aws_events([no_prior_logging], rules)

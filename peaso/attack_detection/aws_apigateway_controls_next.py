@@ -43,6 +43,20 @@ def normalize_aws_apigateway_controls(record: Mapping[str, Any]) -> dict[str, An
                 and response.get("stageName") == stage)
     stage_patches = _patches(request.get("updateStageInput"))
     api_patches = _patches(request.get("updateRestApiInput"))
+    method_settings = response.get("methodSettings")
+    wildcard_settings = (method_settings.get("*/*", {})
+                         if isinstance(method_settings, Mapping) else {})
+    if not isinstance(wildcard_settings, Mapping):
+        wildcard_settings = {}
+    execution_log_off = any(
+        p.get("op") == "replace" and p.get("path") == "/*/*/logging/loglevel"
+        and p.get("value") == "OFF" for p in stage_patches)
+    data_trace_off = any(
+        p.get("op") == "replace" and p.get("path") == "/*/*/logging/dataTrace"
+        and p.get("value") == "false" for p in stage_patches)
+    detailed_metrics_off = any(
+        p.get("op") == "replace" and p.get("path") == "/*/*/metrics/enabled"
+        and p.get("value") == "false" for p in stage_patches)
     variable = any(p.get("op") in {"add", "replace"} and isinstance(p.get("path"), str)
                    and p["path"].startswith("/variables/") and p["path"] != "/variables/"
                    and isinstance(p.get("value"), str)
@@ -54,6 +68,11 @@ def normalize_aws_apigateway_controls(record: Mapping[str, Any]) -> dict[str, An
     canary_pct = next((p.get("value") for p in stage_patches
                        if p.get("op") == "replace" and p.get("path") == "/canarySettings/percentTraffic"), None)
     canary_result = response.get("canarySettings")
+    canary_override = any(
+        p.get("op") == "replace" and isinstance(p.get("path"), str)
+        and p["path"].startswith("/canarySettings/stageVariableOverrides/")
+        and p["path"] != "/canarySettings/stageVariableOverrides/"
+        for p in stage_patches)
     try:
         percent = float(canary_pct)
     except (TypeError, ValueError):
@@ -67,6 +86,8 @@ def normalize_aws_apigateway_controls(record: Mapping[str, Any]) -> dict[str, An
                           and response.get("deploymentId") == deployment_id)
     endpoint = any(p.get("op") == "replace" and p.get("path") == "/disableExecuteApiEndpoint"
                    and p.get("value") == "false" for p in api_patches)
+    key_source = any(p.get("op") == "replace" and p.get("path") == "/apiKeySource"
+                     and p.get("value") == "AUTHORIZER" for p in api_patches)
     cors_req, cors_res = request.get("corsConfiguration"), response.get("corsConfiguration")
     cors = (isinstance(cors_req, Mapping) and isinstance(cors_res, Mapping)
             and cors_req.get("allowCredentials") is True and cors_res.get("allowCredentials") is True
@@ -87,12 +108,32 @@ def normalize_aws_apigateway_controls(record: Mapping[str, Any]) -> dict[str, An
             not failed and stage_ok and tracing and response.get("tracingEnabled") is False
         ),
         "request.apigateway_canary_traffic_redirected": not failed and stage_ok and canary,
+        "request.apigateway_canary_stage_variable_override_changed": (
+            not failed and stage_ok and canary_override and isinstance(canary_result, Mapping)
+            and isinstance(canary_result.get("stageVariableOverrides"), Mapping)
+        ),
+        "request.apigateway_execution_logging_off": (
+            not failed and stage_ok and execution_log_off
+            and wildcard_settings.get("loggingLevel") == "OFF"
+        ),
+        "request.apigateway_data_trace_disabled": (
+            not failed and stage_ok and data_trace_off
+            and wildcard_settings.get("dataTraceEnabled") is False
+        ),
+        "request.apigateway_detailed_metrics_disabled": (
+            not failed and stage_ok and detailed_metrics_off
+            and wildcard_settings.get("metricsEnabled") is False
+        ),
         "request.apigateway_stage_deployment_changed": (
             not failed and stage_ok and deployment_changed
         ),
         "request.apigateway_default_endpoint_enabled": (
             not failed and name == "UpdateRestApi" and endpoint
             and response.get("id") == api_id and response.get("disableExecuteApiEndpoint") is False
+        ),
+        "request.apigateway_api_key_source_authorizer": (
+            not failed and name == "UpdateRestApi" and key_source
+            and response.get("id") == api_id and response.get("apiKeySource") == "AUTHORIZER"
         ),
         "request.apigateway_credentialed_cors_explicit_origin": not failed and name == "UpdateApi" and cors,
     }
