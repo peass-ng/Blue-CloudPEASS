@@ -21,6 +21,7 @@ def capture(sdk, monkeypatch, mode='good'):
  sts.add_response('get_caller_identity',{'Account':ACCOUNT,'Arn':f'arn:aws:iam::{ACCOUNT}:user/reviewer','UserId':'reviewer'}, {})
  ec2.add_response('describe_instances',{'Reservations':[{'Instances':[{'InstanceId':INSTANCE}]}]}, {})
  tags={}if mode=='untagged'else TAGS
+ if mode=='environment_tag':tags={**tags,'Environment':'production'}
  described=[{'ResourceId':INSTANCE,'ResourceType':'instance','Key':k,'Value':v}for k,v in tags.items()]
  if mode=='foreign_instance_tag':described[0]['ResourceId']='i-11111111111111111'
  if mode=='duplicate_instance_tag':described.append(copy.deepcopy(described[0]))
@@ -94,13 +95,23 @@ def capture(sdk, monkeypatch, mode='good'):
  return findings,snap
 
 
-@pytest.mark.parametrize('mode,status,count', [('good','PASS',4),('two_pages','PASS',4),('untagged','FAIL',4),('other_home','PASS',3),('eu_alias','PASS',3),('no_policy','UNKNOWN',4),('foreign_policy','UNKNOWN',4),('empty_policy','UNKNOWN',4),('duplicate_policy','UNKNOWN',4)])
+@pytest.mark.parametrize('mode,status,count', [('good','PASS',4),('environment_tag','PASS',4),('two_pages','PASS',4),('untagged','FAIL',4),('other_home','PASS',3),('eu_alias','PASS',3),('no_policy','UNKNOWN',4),('foreign_policy','UNKNOWN',4),('empty_policy','UNKNOWN',4),('duplicate_policy','UNKNOWN',4)])
 def test_real_four_source_inventory_to_frozen_engine(sdk,monkeypatch,mode,status,count):
  findings,snap=capture(sdk,monkeypatch,mode)
  assert len(findings)==count and {f['status']for f in findings}=={status},findings
  envelope=next(c for c in snap['collections']if c['type']=='aws_tagged_resource')
  assert set(envelope['covered_source_kinds'])==set(native.SOURCE_KINDS)
  if mode=='untagged':assert all(row['Tags']=={}for row in envelope['items'])
+ if mode=='environment_tag':assert all(row['Tags']['Environment']=='production'for row in envelope['items'])
+
+
+def test_environment_tag_exception_keeps_runtime_and_credential_redaction():
+ projected=aws._safe({'Environment':{'Variables':{'DB_PASSWORD':'DO_NOT_RETAIN'}},
+                      'Tags':{'Environment':'production','ClientSecret':'DO_NOT_RETAIN'}})
+ assert 'Environment'not in projected
+ assert projected['Tags']['Environment']=='production'
+ assert 'ClientSecret'not in projected['Tags']
+ assert 'DO_NOT_RETAIN'not in str(projected)
 
 
 @pytest.mark.parametrize('mode',['foreign_instance_tag','duplicate_instance_tag','ec2_tag_denied','partial_ec2_tags','foreign_database','missing_database_tags','duplicate_database_tag','foreign_function','qualified_function','lambda_denied','missing_lambda_tags','location_denied','missing_location','bucket_tag_denied','duplicate_bucket_tag','missing_bucket_tags'])

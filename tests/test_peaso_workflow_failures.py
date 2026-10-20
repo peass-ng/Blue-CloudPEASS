@@ -32,7 +32,10 @@ def terraform():
 def workflow(terraform):
     definition, bounds = validator.compile_definition(ROOT, terraform)
     assert bounds == {"workflow_seconds": 3600, "stage_seconds": 1800, "lease_seconds": 3900}
-    return json.loads(definition)
+    compiled = json.loads(definition)
+    assert compiled["States"]["Collect"]["TimeoutSeconds"] == bounds["stage_seconds"]
+    assert compiled["States"]["Analyze"]["TimeoutSeconds"] == bounds["workflow_seconds"]
+    return compiled
 
 
 def test_actual_terraform_sizing_defaults_and_validation(terraform, tmp_path, monkeypatch):

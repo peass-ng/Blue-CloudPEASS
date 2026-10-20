@@ -1237,6 +1237,29 @@ def test_memory_pressure_skips_agents_without_losing_review_coverage(environment
     assert all(row['verdict'] == 'UNKNOWN' for rows in value['reviews'].values() for row in rows)
 
 
+def test_hosted_priorities_keep_startup_time_when_reviewers_use_their_budget(environment, monkeypatch):
+    clock = [0.0]
+    monkeypatch.setattr(pipeline, 'time', SimpleNamespace(monotonic=lambda: clock[0], time=time.time))
+    monkeypatch.setattr(pipeline.isolation, 'remote', lambda: True)
+    monkeypatch.setenv('PEASO_AI_TIMEOUT_SECONDS', '3000')
+
+    def finish_at_review_deadline(*args, network=None):
+        clock[0] = args[-1]
+        return {'hardening': [review('h1')], 'exposure': [review('e1')]}, False
+
+    def priorities(stage, platform, entries, token, findings, reviews, timeout):
+        assert stage == 'priorities'
+        # A large decision brief taking eight minutes including startup fits.
+        if timeout < 480:
+            raise TimeoutError('task startup and model completion exceeded admission')
+        return {'actions': [], 'limitations': []}
+
+    monkeypatch.setattr(pipeline, 'review_batches', finish_at_review_deadline)
+    monkeypatch.setattr(pipeline, 'invoke', priorities)
+    value = pipeline.review_scan(report(), {}, {}, tenant='alice', artifacts=environment[2])
+    assert value['status'] == 'completed'
+
+
 def test_one_parallel_batch_failure_does_not_discard_other_results(environment, monkeypatch):
     monkeypatch.setenv('PEASO_AI_MAX_CONCURRENCY', '2')
     rows = [finding(f'h{i}') for i in range(81)]

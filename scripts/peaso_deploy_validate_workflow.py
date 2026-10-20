@@ -110,8 +110,8 @@ def compile_definition(root: Path, terraform: str):
     lease_match = re.search(r"\+\s*([0-9]+)", lease_expression)
     if not lease_match or not 0 < stage_seconds <= workflow_seconds < int(lease_match[1]):
         raise ValueError("Workflow stage/deadline/lease invariant violated")
-    if compiled["States"]["Analyze"]["TimeoutSeconds"] != stage_seconds:
-        raise ValueError("Expected matching bounded collector/analyzer stage limits")
+    if compiled["States"]["Analyze"]["TimeoutSeconds"] != workflow_seconds:
+        raise ValueError("Analyzer must fit the workflow deadline while collection retains its stage limit")
     lock = compiled["States"]["ReleaseSucceeded"]["Parameters"]
     if lock.get("ConditionExpression") != "#owner = :owner":
         raise ValueError("Workflow lock release must remain owner-conditional")
