@@ -40,6 +40,7 @@ from .aws_cloudwatch_logs_data_next import normalize as normalize_aws_cloudwatch
 from .aws_cloudwatch_dashboard_insight_next import normalize as normalize_aws_cloudwatch_dashboard_insight
 from .aws_codecommit_source_next import normalize as normalize_aws_codecommit_source
 from .aws_codecommit_consumer_next import correlate as correlate_aws_codecommit_consumers
+from .aws_appconfig_hosted_next import correlate as correlate_aws_appconfig_hosted
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
@@ -188,8 +189,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "6399e91beaea46091a2dc33019dacc6db303c654"
-DEFAULT_RULE_PACK_SHA256 = "c09f00058aaceb03b15cedc49492dae5f94288e1f35c584774dde21250378ec9"
+DEFAULT_RULE_REF = "d477087c5bd8656a5036ec5eddf3d7a07e689161"
+DEFAULT_RULE_PACK_SHA256 = "7088847311bc493ac70581fc5060ed65e0416e45c679035787baf34b8f22b7f9"
 
 
 @dataclass(frozen=True)
@@ -616,6 +617,7 @@ def detect_aws_events(
     codebuild_gap_records: list[Mapping[str, Any]] = []
     codepipeline_remaining_records: list[Mapping[str, Any]] = []
     codecommit_consumer_records: list[Mapping[str, Any]] = []
+    appconfig_hosted_records: list[Mapping[str, Any]] = []
     ecr_image_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
@@ -673,6 +675,10 @@ def detect_aws_events(
                         "CreatePipeline", "UpdatePipeline", "StartPipelineExecution"})
                     or (record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") == "StartBuild")):
                 codecommit_consumer_records.append(record)
+            if (record.get("eventSource") == "appconfig.amazonaws.com" and record.get("eventName") in {
+                    "CreateHostedConfigurationVersion", "StartDeployment", "GetHostedConfigurationVersion",
+                    "StartConfigurationSession", "GetLatestConfiguration"}):
+                appconfig_hosted_records.append(record)
             if record.get("eventSource") == "lambda.amazonaws.com" and record.get("eventName") in {
                     "CreateFunction20150331", "UpdateFunctionConfiguration20150331v2",
                     "UpdateFunctionCode20150331v2", "AddPermission20150331v2",
@@ -722,6 +728,7 @@ def detect_aws_events(
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     correlated += correlate_aws_codepipeline_remaining(codepipeline_remaining_records)
     correlated += correlate_aws_codecommit_consumers(codecommit_consumer_records)
+    correlated += correlate_aws_appconfig_hosted(appconfig_hosted_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     if correlated:
