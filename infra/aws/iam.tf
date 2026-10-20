@@ -33,6 +33,8 @@ resource "aws_iam_role_policy" "api" {
     { Effect = "Allow", Action = ["states:DescribeExecution"], Resource = "arn:aws:states:${var.region}:${local.account_id}:execution:${local.name}:*" }
     ], var.gcp_platform_sa_secret_arn == "" ? [] : [
     { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.gcp_platform_sa_secret_arn }
+    ], var.codex_token_secret_arn == "" ? [] : [
+    { Effect = "Allow", Action = ["secretsmanager:GetSecretValue"], Resource = var.codex_token_secret_arn }
   ]) })
   depends_on = [aws_iam_role.customer_trust]
 }
