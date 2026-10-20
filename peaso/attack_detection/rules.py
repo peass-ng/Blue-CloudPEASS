@@ -32,6 +32,7 @@ from .aws_codepipeline_five_next import normalize as normalize_aws_codepipeline_
 from .aws_codepipeline_remaining_next import normalize as normalize_aws_codepipeline_remaining, correlate as correlate_aws_codepipeline_remaining
 from .aws_codepipeline_reads_next import normalize as normalize_aws_codepipeline_reads
 from .aws_lightsail_six_next import normalize as normalize_aws_lightsail_six
+from .aws_lightsail_snapshot_dns_next import normalize as normalize_aws_lightsail_snapshot_dns
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
 from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
@@ -180,8 +181,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "aa948bbe964ced5aff3eb48c3755171c8d5afb88"
-DEFAULT_RULE_PACK_SHA256 = "8f68a2a4d0ace0786ce6b31e4bf5faf34a953c5e21b93771342953c02ef356c3"
+DEFAULT_RULE_REF = "c894e62f9aafb76481874701f192dd835767b8f1"
+DEFAULT_RULE_PACK_SHA256 = "c30466e1061901ac0c22577b23903eda14d52f22963b999589ffb7e9093e5953"
 
 
 @dataclass(frozen=True)
@@ -305,6 +306,7 @@ def detect_aws_events(
         codepipeline_remaining = normalize_aws_codepipeline_remaining(record)
         codepipeline_reads = normalize_aws_codepipeline_reads(record)
         lightsail_six = normalize_aws_lightsail_six(record)
+        lightsail_snapshot_dns = normalize_aws_lightsail_snapshot_dns(record)
         appsync_five = normalize_aws_appsync_five(record)
         appsync_read_function = normalize_aws_appsync_read_function(record)
         appsync_signed_role = normalize_aws_appsync_signed_role(record)
@@ -443,6 +445,7 @@ def detect_aws_events(
                 + ([codepipeline_remaining] if codepipeline_remaining is not None else [])
                 + ([codepipeline_reads] if codepipeline_reads is not None else [])
                 + ([lightsail_six] if lightsail_six is not None else [])
+                + ([lightsail_snapshot_dns] if lightsail_snapshot_dns is not None else [])
                 + ([appsync_five] if appsync_five is not None else [])
                 + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([appsync_signed_role] if appsync_signed_role is not None else [])
