@@ -1,0 +1,224 @@
+{
+  "note": "Synthetic derivative of six verified CloudTrail event shapes; no real account, principal, resource, or credential values.",
+  "events": [
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventTime": "2026-10-20T12:00:00Z",
+      "responseElements": null,
+      "eventName": "PutObjectAcl",
+      "eventID": "synthetic-s3-batch62-1",
+      "eventCategory": "Data",
+      "managementEvent": false,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-batch62",
+        "key": "synthetic/canary.txt",
+        "acl": "",
+        "x-amz-acl": "public-read"
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-batch62",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS::S3::Object",
+          "ARN": "arn:aws:s3:::synthetic-s3-batch62/synthetic/canary.txt"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventTime": "2026-10-20T12:00:00Z",
+      "responseElements": null,
+      "eventName": "PutObjectAcl",
+      "eventID": "synthetic-s3-batch62-2",
+      "eventCategory": "Data",
+      "managementEvent": false,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-batch62",
+        "key": "synthetic/canary.txt",
+        "acl": "",
+        "versionId": "synthetic-version-old",
+        "x-amz-acl": "public-read"
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-batch62",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS::S3::Object",
+          "ARN": "arn:aws:s3:::synthetic-s3-batch62/synthetic/canary.txt"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventTime": "2026-10-20T12:00:00Z",
+      "responseElements": null,
+      "eventName": "PutBucketCors",
+      "eventID": "synthetic-s3-batch62-3",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-batch62",
+        "CORSConfiguration": {
+          "CORSRule": {
+            "AllowedOrigin": "*",
+            "AllowedMethod": [
+              "GET",
+              "PUT"
+            ],
+            "AllowedHeader": "*",
+            "MaxAgeSeconds": 300
+          }
+        }
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-batch62",
+          "accountId": "999999999999"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventTime": "2026-10-20T12:00:00Z",
+      "responseElements": null,
+      "eventName": "CreateAccessGrantsLocation",
+      "eventID": "synthetic-s3-batch62-4",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "CreateAccessGrantsLocationRequest": {
+          "IAMRoleArn": "arn:aws:iam::999999999999:role/synthetic-access-grants-role",
+          "LocationScope": "s3://synthetic-s3-batch62/"
+        }
+      },
+      "resources": [
+        {
+          "type": "AWS:S3::AccessGrantsInstance",
+          "ARN": "arn:aws:s3:us-east-1:999999999999:access-grants/default",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS:S3::AccessGrantsLocation",
+          "ARN": "arn:aws:s3:us-east-1:999999999999:access-grants/default/location/synthetic-location-00000000",
+          "accountId": "999999999999"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventTime": "2026-10-20T12:00:00Z",
+      "responseElements": null,
+      "eventName": "CreateAccessGrant",
+      "eventID": "synthetic-s3-batch62-5",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "CreateAccessGrantRequest": {
+          "AccessGrantsLocationId": "synthetic-location-00000000",
+          "AccessGrantsLocationConfiguration": {
+            "S3SubPrefix": "*"
+          },
+          "Grantee": {
+            "GranteeType": "IAM",
+            "GranteeIdentifier": "arn:aws:iam::999999999999:user/synthetic-operator"
+          },
+          "Permission": "READ"
+        }
+      },
+      "resources": [
+        {
+          "type": "AWS:S3::AccessGrantsInstance",
+          "ARN": "arn:aws:s3:us-east-1:999999999999:access-grants/default",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS:S3::AccessGrant",
+          "ARN": "arn:aws:s3:us-east-1:999999999999:access-grants/default/grant/synthetic-grant-00000000",
+          "accountId": "999999999999"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventTime": "2026-10-20T12:00:00Z",
+      "responseElements": null,
+      "eventName": "GetDataAccess",
+      "eventID": "synthetic-s3-batch62-6",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": true,
+      "requestParameters": {
+        "target": "s3://synthetic-s3-batch62/synthetic/canary.txt",
+        "permission": "READ",
+        "durationSeconds": "900"
+      },
+      "resources": [
+        {
+          "type": "AWS:S3::AccessGrantsInstance",
+          "ARN": "arn:aws:s3:us-east-1:999999999999:access-grants/default",
+          "accountId": "999999999999"
+        }
+      ]
+    }
+  ]
+}

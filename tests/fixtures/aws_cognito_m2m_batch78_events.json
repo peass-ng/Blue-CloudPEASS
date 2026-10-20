@@ -1,0 +1,97 @@
+[
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:00Z",
+    "eventID": "synthetic-cognito-b78-create",
+    "eventName": "CreateUserPoolClient",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "clientName": "synthetic-m2m",
+      "generateSecret": true,
+      "explicitAuthFlows": [
+        "ALLOW_CLIENT_TOKEN_AUTH"
+      ],
+      "allowedOAuthScopes": [
+        "synthetic-api/read"
+      ]
+    },
+    "responseElements": {
+      "userPoolClient": {
+        "userPoolId": "us-east-1_SYNTH123",
+        "clientId": "syntheticclient123",
+        "clientSecret": "[REDACTED]",
+        "explicitAuthFlows": [
+          "ALLOW_CLIENT_TOKEN_AUTH"
+        ],
+        "allowedOAuthScopes": [
+          "synthetic-api/read"
+        ]
+      }
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:00Z",
+    "eventID": "synthetic-cognito-b78-add",
+    "eventName": "AddUserPoolClientSecret",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+    },
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "clientId": "syntheticclient123"
+    },
+    "responseElements": {
+      "clientSecretDescriptor": {
+        "clientSecretId": "synthetic-id",
+        "clientSecretValue": "[REDACTED]"
+      }
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:00Z",
+    "eventID": "synthetic-cognito-b78-token",
+    "eventName": "GetClientToken",
+    "userIdentity": {
+      "type": "Unknown"
+    },
+    "requestParameters": {
+      "clientId": "syntheticclient123",
+      "secret": "[REDACTED]",
+      "scopes": [
+        "synthetic-api/read"
+      ]
+    },
+    "responseElements": {
+      "clientAuthenticationResult": {
+        "accessToken": "[REDACTED]",
+        "tokenType": "Bearer",
+        "expiresIn": 3600
+      }
+    }
+  }
+]

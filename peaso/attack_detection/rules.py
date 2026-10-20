@@ -60,6 +60,8 @@ from .aws_customer_profiles_export_next import normalize as normalize_aws_custom
 from .aws_servicecatalog_next import normalize as normalize_aws_servicecatalog, correlate as correlate_aws_servicecatalog
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_ssec_next import normalize as normalize_aws_s3_ssec, correlate as correlate_aws_s3_ssec
+from .aws_s3_acl_grants_next import normalize as normalize_aws_s3_acl_grants
+from .aws_s3_access_point_lock_next import normalize as normalize_aws_s3_access_point_lock, correlate as correlate_aws_s3_access_point_lock
 from .aws_iot_core_batch_next import normalize as normalize_aws_iot_core_batch
 from .aws_iot_provision_jobs_next import normalize as normalize_aws_iot_provision_jobs, correlate_external_cert_policy as correlate_aws_iot_external_cert_policy
 from .aws_lambda_access_mapping_next import normalize as normalize_aws_lambda_access_mapping, correlate_repoint as correlate_aws_lambda_mapping_repoint
@@ -71,6 +73,7 @@ from .aws_efs_access_next import normalize_aws_efs_access, normalize_aws_efs_del
 from .aws_waf_logging_next import normalize_aws_waf_logging, normalize_aws_waf_deletion, normalize_aws_waf_disassociation
 from .aws_waf_web_acl_next import normalize_aws_waf_web_acl
 from .aws_codeartifact_policy_next import normalize_aws_codeartifact_policy
+from .aws_codeartifact_routes_next import normalize_aws_codeartifact_routes
 from .aws_appconfig_extension_next import normalize_aws_appconfig_extension
 from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
 from .aws_athena_stored_query_next import normalize as normalize_aws_athena_stored_query, correlate as correlate_aws_athena_stored_query
@@ -93,17 +96,30 @@ from .aws_secretsmanager_followup_next import normalize_aws_secretsmanager_follo
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
+from .aws_dynamodb_backup_stream_next import normalize_aws_dynamodb_backup_stream
 from .aws_sns_sqs_controls_next import normalize_aws_sns_sqs_controls
 from .aws_sqs_followup_next import normalize_aws_sqs_followup, correlate_aws_sqs_tagged_receive
 from .aws_sqs_data_next import normalize_aws_sqs_data, correlate_aws_sqs_fifo_dedup_collision
 from .aws_sqs_redrive_next import normalize_aws_sqs_redrive
 from .aws_sns_controls_next import normalize_aws_sns_topic_controls
 from .aws_chime_admin_next import normalize_aws_chime_admin
+from .aws_chime_attendee_messaging_next import normalize_aws_chime_attendee_messaging
+from .aws_chime_capability_flow_next import normalize_aws_chime_capability_flow
+from .aws_chime_voice_connector_next import normalize_aws_chime_voice_connector
+from .aws_chime_voice_sip_next import normalize_aws_chime_voice_sip
+from .aws_chime_media_pipelines_next import (
+    normalize_aws_chime_media_pipeline, correlate_aws_chime_live_pipeline_read,
+)
+from .aws_chime_media_insights_next import (
+    normalize_aws_chime_media_insights, correlate_aws_chime_media_insights,
+)
 from .aws_glue_controls_next import normalize_aws_glue_controls
 from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
 from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
 from .aws_glue_job_correlations_next import correlate_aws_glue_job_script_runs
 from .aws_cognito_controls_next import normalize_aws_cognito_controls
+from .aws_cognito_directory_next import normalize_aws_cognito_directory
+from .aws_cognito_m2m_next import normalize_aws_cognito_m2m
 from .aws_cognito_identity_next import normalize_aws_cognito_identity
 from .aws_cognito_federation_next import normalize_aws_cognito_federation
 from .aws_cognito_mfa_next import normalize_aws_cognito_mfa
@@ -125,6 +141,7 @@ from .aws_kinesis_data_read_next import normalize as normalize_aws_kinesis_data_
 from .aws_kinesis_controls_extended_next import normalize_aws_kinesis_controls_extended
 from .aws_kinesis_channel_next import normalize_aws_kinesis_channel
 from .aws_kinesis_video_controls_next import normalize_aws_kinesis_video_controls
+from .aws_kinesis_video_endpoint_next import normalize_aws_kinesis_video_endpoint
 from .aws_ecs_controls_next import normalize_aws_ecs_controls
 from .aws_ecs_correlations_next import correlate_aws_ecs_dormant_sidecar
 from .aws_emr_serverless_next import normalize_aws_emr_serverless_runtime
@@ -195,8 +212,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "7cf6ab29ea89a39f9b74961c201ffdea6eee609e"
-DEFAULT_RULE_PACK_SHA256 = "157f388dfb0d85bdbcbd3824560e58eb84d93fdf277a3f2191bf21a67f7d1f5d"
+DEFAULT_RULE_REF = "08725c62951dc198b13e03d98879bbf2dd2cf167"
+DEFAULT_RULE_PACK_SHA256 = "2a9a4f001f5f1ed8c35e88205b6c92e735267f99f3f7215773103626d5609bce"
 
 
 @dataclass(frozen=True)
@@ -342,6 +359,8 @@ def detect_aws_events(
         servicecatalog = normalize_aws_servicecatalog(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_ssec = normalize_aws_s3_ssec(record)
+        s3_acl_grants = normalize_aws_s3_acl_grants(record)
+        s3_access_point_lock = normalize_aws_s3_access_point_lock(record)
         iot_core_batch = normalize_aws_iot_core_batch(record)
         iot_provision_jobs = normalize_aws_iot_provision_jobs(record)
         lambda_access_mapping = normalize_aws_lambda_access_mapping(record)
@@ -356,6 +375,7 @@ def detect_aws_events(
         waf_disassociation = normalize_aws_waf_disassociation(record)
         waf_web_acl = normalize_aws_waf_web_acl(record)
         codeartifact_policy = normalize_aws_codeartifact_policy(record)
+        codeartifact_routes = normalize_aws_codeartifact_routes(record)
         appconfig_extension = normalize_aws_appconfig_extension(record)
         athena_workgroup = normalize_aws_athena_workgroup(record)
         athena_stored_query = normalize_aws_athena_stored_query(record)
@@ -377,15 +397,24 @@ def detect_aws_events(
         guardduty_controls = normalize_aws_guardduty_controls(record)
         ecr_retention = normalize_aws_ecr_retention(record)
         dynamodb_controls = normalize_aws_dynamodb_controls(record)
+        dynamodb_backup_stream = normalize_aws_dynamodb_backup_stream(record)
         sns_sqs_controls = normalize_aws_sns_sqs_controls(record)
         sqs_followup = normalize_aws_sqs_followup(record)
         sqs_data = normalize_aws_sqs_data(record)
         sqs_redrive = normalize_aws_sqs_redrive(record)
         sns_topic_controls = normalize_aws_sns_topic_controls(record)
         chime_admin = normalize_aws_chime_admin(record)
+        chime_attendee_messaging = normalize_aws_chime_attendee_messaging(record)
+        chime_capability_flow = normalize_aws_chime_capability_flow(record)
+        chime_voice_connector = normalize_aws_chime_voice_connector(record)
+        chime_voice_sip = normalize_aws_chime_voice_sip(record)
+        chime_media_pipeline = normalize_aws_chime_media_pipeline(record)
+        chime_media_insights = normalize_aws_chime_media_insights(record)
         glue_controls = normalize_aws_glue_controls(record)
         cloudfront_controls = normalize_aws_cloudfront_controls(record)
         cognito_controls = normalize_aws_cognito_controls(record)
+        cognito_directory = normalize_aws_cognito_directory(record)
+        cognito_m2m = normalize_aws_cognito_m2m(record)
         cognito_identity = normalize_aws_cognito_identity(record)
         cognito_federation = normalize_aws_cognito_federation(record)
         cognito_mfa = normalize_aws_cognito_mfa(record)
@@ -405,6 +434,7 @@ def detect_aws_events(
         kinesis_controls_extended = normalize_aws_kinesis_controls_extended(record)
         kinesis_channel = normalize_aws_kinesis_channel(record)
         kinesis_video_controls = normalize_aws_kinesis_video_controls(record)
+        kinesis_video_endpoint = normalize_aws_kinesis_video_endpoint(record)
         ecs_controls = normalize_aws_ecs_controls(record)
         emr_runtime = normalize_aws_emr_serverless_runtime(record)
         cloudwatch_controls = normalize_aws_cloudwatch_controls(record)
@@ -491,6 +521,8 @@ def detect_aws_events(
                 + ([servicecatalog] if servicecatalog is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_ssec] if s3_ssec is not None else [])
+                + ([s3_acl_grants] if s3_acl_grants is not None else [])
+                + ([s3_access_point_lock] if s3_access_point_lock is not None else [])
                 + ([iot_core_batch] if iot_core_batch is not None else [])
                 + ([iot_provision_jobs] if iot_provision_jobs is not None else [])
                 + ([lambda_access_mapping] if lambda_access_mapping is not None else [])
@@ -505,6 +537,7 @@ def detect_aws_events(
                 + ([waf_disassociation] if waf_disassociation is not None else [])
                 + ([waf_web_acl] if waf_web_acl is not None else [])
                 + ([codeartifact_policy] if codeartifact_policy is not None else [])
+                + ([codeartifact_routes] if codeartifact_routes is not None else [])
                 + ([appconfig_extension] if appconfig_extension is not None else [])
                 + ([athena_workgroup] if athena_workgroup is not None else [])
                 + ([athena_stored_query] if athena_stored_query is not None else [])
@@ -526,15 +559,24 @@ def detect_aws_events(
                 + ([guardduty_controls] if guardduty_controls is not None else [])
                 + ([ecr_retention] if ecr_retention is not None else [])
                 + ([dynamodb_controls] if dynamodb_controls is not None else [])
+                + ([dynamodb_backup_stream] if dynamodb_backup_stream is not None else [])
                 + ([sns_sqs_controls] if sns_sqs_controls is not None else [])
                 + ([sqs_followup] if sqs_followup is not None else [])
                 + ([sqs_data] if sqs_data is not None else [])
                 + ([sqs_redrive] if sqs_redrive is not None else [])
                 + ([sns_topic_controls] if sns_topic_controls is not None else [])
                 + ([chime_admin] if chime_admin is not None else [])
+                + ([chime_attendee_messaging] if chime_attendee_messaging is not None else [])
+                + ([chime_capability_flow] if chime_capability_flow is not None else [])
+                + ([chime_voice_connector] if chime_voice_connector is not None else [])
+                + ([chime_voice_sip] if chime_voice_sip is not None else [])
+                + ([chime_media_pipeline] if chime_media_pipeline is not None else [])
+                + ([chime_media_insights] if chime_media_insights is not None else [])
                 + ([glue_controls] if glue_controls is not None else [])
                 + ([cloudfront_controls] if cloudfront_controls is not None else [])
                 + ([cognito_controls] if cognito_controls is not None else [])
+                + ([cognito_directory] if cognito_directory is not None else [])
+                + ([cognito_m2m] if cognito_m2m is not None else [])
                 + ([cognito_identity] if cognito_identity is not None else [])
                 + ([cognito_federation] if cognito_federation is not None else [])
                 + ([cognito_mfa] if cognito_mfa is not None else [])
@@ -554,6 +596,7 @@ def detect_aws_events(
                 + ([kinesis_controls_extended] if kinesis_controls_extended is not None else [])
                 + ([kinesis_channel] if kinesis_channel is not None else [])
                 + ([kinesis_video_controls] if kinesis_video_controls is not None else [])
+                + ([kinesis_video_endpoint] if kinesis_video_endpoint is not None else [])
                 + ([ecs_controls] if ecs_controls is not None else [])
                 + ([emr_runtime] if emr_runtime is not None else [])
                 + ([cloudwatch_controls] if cloudwatch_controls is not None else [])
@@ -635,11 +678,22 @@ def detect_aws_events(
     cloudtrail_log_dest_records: list[Mapping[str, Any]] = []
     cloudtrail_log_object_records: list[Mapping[str, Any]] = []
     s3_ssec_records: list[Mapping[str, Any]] = []
+    s3_access_point_read_records: list[Mapping[str, Any]] = []
     iot_external_cert_records: list[Mapping[str, Any]] = []
     lambda_mapping_records: list[Mapping[str, Any]] = []
     ecr_image_records: list[Mapping[str, Any]] = []
+    chime_media_pipeline_records: list[Mapping[str, Any]] = []
+    chime_media_insights_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if (record.get("eventSource") == "chime-sdk-media-pipelines.amazonaws.com"
+                    and record.get("eventName") in {"CreateMediaInsightsPipelineConfiguration",
+                                                    "UpdateMediaInsightsPipelineConfiguration",
+                                                    "CreateMediaInsightsPipeline"}):
+                chime_media_insights_records.append(record)
+            if (record.get("eventSource") == "chime-sdk-media-pipelines.amazonaws.com"
+                    and record.get("eventName") in {"CreateMediaLiveConnectorPipeline", "GetMediaPipeline"}):
+                chime_media_pipeline_records.append(record)
             if (record.get("eventSource") == "iot.amazonaws.com"
                     and isinstance(record.get("eventName"), str)
                     and record["eventName"] in {"RegisterCertificateWithoutCA", "AttachPolicy"}):
@@ -724,6 +778,8 @@ def detect_aws_events(
                 cloudtrail_log_object_records.append(record)
             if record.get("eventSource") == "s3.amazonaws.com" and record.get("eventName") in {"PutObject", "CopyObject"}:
                 s3_ssec_records.append(record)
+            if record.get("eventSource") == "s3.amazonaws.com" and record.get("eventName") == "GetObject":
+                s3_access_point_read_records.append(record)
             if record.get("eventSource") == "lambda.amazonaws.com" and record.get("eventName") in {
                     "CreateFunction20150331", "UpdateFunctionConfiguration20150331v2",
                     "UpdateFunctionCode20150331v2", "AddPermission20150331v2",
@@ -777,10 +833,13 @@ def detect_aws_events(
     correlated += correlate_aws_cloudtrail_log_dest(cloudtrail_log_dest_records)
     correlated += correlate_aws_cloudtrail_log_objects(cloudtrail_log_object_records)
     correlated += correlate_aws_s3_ssec(s3_ssec_records)
+    correlated += correlate_aws_s3_access_point_lock(s3_access_point_read_records)
     correlated += correlate_aws_iot_external_cert_policy(iot_external_cert_records)
     correlated += correlate_aws_lambda_mapping_repoint(lambda_mapping_records)
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
+    correlated += correlate_aws_chime_live_pipeline_read(chime_media_pipeline_records)
+    correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches

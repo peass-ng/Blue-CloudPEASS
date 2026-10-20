@@ -1,0 +1,211 @@
+{
+  "derivation": "Synthetic derivative of 2026-10-20 disposable Chime Voice Connector CloudTrail events. All account, actor, connector, event and SIP credential values are synthetic; no phone numbers or calls were used.",
+  "events": [
+    {
+      "eventSource": "chime-sdk-voice.amazonaws.com",
+      "eventName": "PutVoiceConnectorTermination",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-voice-b66-01",
+      "eventTime": "2026-10-20T14:00:01Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "voiceConnectorId": "syntheticconnector00001",
+        "termination": {
+          "disabled": false,
+          "cidrAllowedList": [
+            "192.0.2.0/27"
+          ],
+          "callingRegions": [
+            "US"
+          ],
+          "cpsLimit": 1
+        }
+      },
+      "responseElements": {
+        "termination": {
+          "disabled": false,
+          "cidrAllowedList": [
+            "192.0.2.0/27"
+          ],
+          "callingRegions": [
+            "US"
+          ],
+          "cpsLimit": 1
+        }
+      }
+    },
+    {
+      "eventSource": "chime-sdk-voice.amazonaws.com",
+      "eventName": "PutVoiceConnectorTerminationCredentials",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-voice-b66-02",
+      "eventTime": "2026-10-20T14:00:02Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "voiceConnectorId": "syntheticconnector00001",
+        "credentials": [
+          {
+            "username": "synthetic-user",
+            "password": "<redacted>"
+          }
+        ]
+      },
+      "responseElements": null
+    },
+    {
+      "eventSource": "chime-sdk-voice.amazonaws.com",
+      "eventName": "PutVoiceConnectorOrigination",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-voice-b66-03",
+      "eventTime": "2026-10-20T14:00:03Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "voiceConnectorId": "syntheticconnector00001",
+        "origination": {
+          "disabled": false,
+          "routes": [
+            {
+              "host": "sip.example.invalid",
+              "port": 5061,
+              "protocol": "TCP",
+              "priority": 1,
+              "weight": 1
+            }
+          ]
+        }
+      },
+      "responseElements": {
+        "origination": {
+          "disabled": false,
+          "routes": [
+            {
+              "host": "sip.example.invalid",
+              "port": 5061,
+              "protocol": "TCP",
+              "priority": 1,
+              "weight": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "eventSource": "chime-sdk-voice.amazonaws.com",
+      "eventName": "PutVoiceConnectorStreamingConfiguration",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-voice-b66-04",
+      "eventTime": "2026-10-20T14:00:04Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "voiceConnectorId": "syntheticconnector00001",
+        "streamingConfiguration": {
+          "disabled": false,
+          "dataRetentionInHours": 0
+        }
+      },
+      "responseElements": {
+        "streamingConfiguration": {
+          "disabled": false,
+          "dataRetentionInHours": 0,
+          "streamingNotificationTargets": []
+        }
+      }
+    },
+    {
+      "eventSource": "chime-sdk-voice.amazonaws.com",
+      "eventName": "PutVoiceConnectorLoggingConfiguration",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-voice-b66-05",
+      "eventTime": "2026-10-20T14:00:05Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "voiceConnectorId": "syntheticconnector00001",
+        "loggingConfiguration": {
+          "enableSIPLogs": true,
+          "enableMediaMetricLogs": true
+        }
+      },
+      "responseElements": {
+        "loggingConfiguration": {
+          "enableSIPLogs": true,
+          "enableMediaMetricLogs": true
+        }
+      }
+    },
+    {
+      "eventSource": "chime-sdk-voice.amazonaws.com",
+      "eventName": "PutVoiceConnectorLoggingConfiguration",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventID": "synthetic-chime-voice-b66-06",
+      "eventTime": "2026-10-20T14:00:06Z",
+      "userIdentity": {
+        "type": "IAMUser",
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "requestParameters": {
+        "voiceConnectorId": "syntheticconnector00001",
+        "loggingConfiguration": {
+          "enableSIPLogs": false,
+          "enableMediaMetricLogs": false
+        }
+      },
+      "responseElements": {
+        "loggingConfiguration": {
+          "enableSIPLogs": false,
+          "enableMediaMetricLogs": false
+        }
+      }
+    }
+  ]
+}

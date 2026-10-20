@@ -1,0 +1,195 @@
+{
+  "derivation": "Synthetic derivatives of disposable Chime media pipeline CloudTrail events. All account, meeting, pipeline, bucket and actor identifiers are synthetic; RTMP URL redaction is preserved.",
+  "events": [
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "CreateMediaCapturePipeline",
+      "eventID": "synthetic-media-1",
+      "readOnly": false,
+      "requestParameters": {
+        "sourceType": "ChimeSdkMeeting",
+        "sourceArn": "arn:aws:chime:us-east-1:999999999999:meeting/33333333-3333-4333-8333-333333333333",
+        "sinkType": "S3Bucket",
+        "sinkArn": "arn:aws:s3:::synthetic-capture-bucket",
+        "clientRequestToken": "synthetic-capture"
+      },
+      "responseElements": {
+        "mediaCapturePipeline": {
+          "mediaPipelineId": "11111111-1111-4111-8111-111111111111",
+          "mediaPipelineArn": "arn:aws:chime:us-east-1:999999999999:media-pipeline/11111111-1111-4111-8111-111111111111",
+          "sourceType": "ChimeSdkMeeting",
+          "sinkType": "S3Bucket"
+        }
+      },
+      "eventTime": "2026-10-20T20:00:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "CreateMediaLiveConnectorPipeline",
+      "eventID": "synthetic-media-2",
+      "readOnly": false,
+      "requestParameters": {
+        "sources": [
+          {
+            "sourceType": "ChimeSdkMeeting",
+            "chimeSdkMeetingLiveConnectorConfiguration": {
+              "arn": "HIDDEN_DUE_TO_SECURITY_REASONS",
+              "muxType": "AudioWithActiveSpeakerVideo"
+            }
+          }
+        ],
+        "sinks": [
+          {
+            "sinkType": "RTMP",
+            "rTMPConfiguration": {
+              "url": "HIDDEN_DUE_TO_SECURITY_REASONS"
+            }
+          }
+        ],
+        "clientRequestToken": "synthetic-live"
+      },
+      "responseElements": {
+        "mediaLiveConnectorPipeline": {
+          "mediaPipelineId": "22222222-2222-4222-8222-222222222222",
+          "mediaPipelineArn": "arn:aws:chime:us-east-1:999999999999:media-pipeline/22222222-2222-4222-8222-222222222222",
+          "sources": [
+            {
+              "sourceType": "ChimeSdkMeeting",
+              "chimeSdkMeetingLiveConnectorConfiguration": {
+                "arn": "HIDDEN_DUE_TO_SECURITY_REASONS",
+                "muxType": "AudioWithActiveSpeakerVideo"
+              }
+            }
+          ],
+          "sinks": [
+            {
+              "sinkType": "RTMP",
+              "rTMPConfiguration": {
+                "url": "HIDDEN_DUE_TO_SECURITY_REASONS"
+              }
+            }
+          ]
+        }
+      },
+      "eventTime": "2026-10-20T20:01:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "GetMediaPipeline",
+      "eventID": "synthetic-media-3",
+      "readOnly": true,
+      "requestParameters": {
+        "mediaPipelineId": "11111111-1111-4111-8111-111111111111"
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:02:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "GetMediaPipeline",
+      "eventID": "synthetic-media-4",
+      "readOnly": true,
+      "requestParameters": {
+        "mediaPipelineId": "22222222-2222-4222-8222-222222222222"
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:03:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "ListMediaPipelines",
+      "eventID": "synthetic-media-5",
+      "readOnly": true,
+      "requestParameters": {
+        "maxResults": 100
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:04:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "DeleteMediaCapturePipeline",
+      "eventID": "synthetic-media-6",
+      "readOnly": false,
+      "requestParameters": {
+        "mediaPipelineId": "11111111-1111-4111-8111-111111111111"
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:05:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "DeleteMediaPipeline",
+      "eventID": "synthetic-media-7",
+      "readOnly": false,
+      "requestParameters": {
+        "mediaPipelineId": "22222222-2222-4222-8222-222222222222"
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:06:00Z"
+    }
+  ]
+}
