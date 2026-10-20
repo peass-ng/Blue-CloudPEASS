@@ -262,14 +262,14 @@ def review_batches(report, inventory_by_id, entries, token, hardening, exposure,
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
-            data = invoke(stage, network, access, token, [], [], min(300 if isolation.remote() else 150, remaining))
+            data = invoke(stage, network, access, token, [], [], min(600 if isolation.remote() else 150, remaining))
             return validate_network(data, network)
         context = review_context(report, inventory_by_id, batch)
         access = review_credentials(entries, report['provider'], batch, context)
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise TimeoutError()
-        data = invoke(stage, context, access, token, batch, [], min(240 if isolation.remote() else 120, remaining))
+        data = invoke(stage, context, access, token, batch, [], min(360 if isolation.remote() else 120, remaining))
         return validate_reviews(data, batch)['items']
 
     def record(task, future=None):
@@ -357,8 +357,9 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
         inventory_by_id = {row['id']: row for row in inventory}
         end = min(time.monotonic() + int(os.getenv('PEASO_AI_TIMEOUT_SECONDS', '600' if isolation.remote() else '300')),
                   time.monotonic() + max(0, deadline - time.time() - 10) if deadline else float('inf'))
-        # Reserve a fifth of the remaining phase (up to 60s) for priorities.
-        review_end = end - min(180 if isolation.remote() else 60,
+        # Hosted priorities need their task startup and model budget after the
+        # reviewer barrier, while both phases remain inside the scan deadline.
+        review_end = end - min(600 if isolation.remote() else 60,
                               max(0, end - time.monotonic()) * (.3 if isolation.remote() else .2))
         from .network import prepare, with_findings
         network = prepare(report, inventory, snapshot)
@@ -389,7 +390,7 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
             remaining = end - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError()
-            data = invoke('priorities', platform, entries, token, hardening + exposure, reviewed, min(300 if isolation.remote() else 150, remaining))
+            data = invoke('priorities', platform, entries, token, hardening + exposure, reviewed, min(600 if isolation.remote() else 150, remaining))
             recommendations = validate_actions(data, priorities_report, reviewed)
             result['actions'] = recommendations['actions']
             result['limitations'].extend(recommendations['limitations'])

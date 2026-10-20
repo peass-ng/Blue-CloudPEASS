@@ -155,7 +155,11 @@ def _safe(value, *, _labels=False, _environment=False, _status=False):
                 # Count-only projection (no names/values); its absence would read as "no variables".
                 result[key] = dict(val)
                 continue
-            if key in _SECRET_FIELDS and not (key == "Code" and _status and isinstance(val, str)):
+            # A scalar Environment tag is classification metadata, unlike a
+            # service's Environment block containing runtime variables.
+            ordinary_environment_tag = key == "Environment" and _labels and isinstance(val, str)
+            if key in _SECRET_FIELDS and not (ordinary_environment_tag or
+                    key == "Code" and _status and isinstance(val, str)):
                 continue
             typed_value = key in {"Value", "value", "HeaderValue", "headerValue"} and sensitive_record
             sensitive_map_value = _labels and _credential_label(key)

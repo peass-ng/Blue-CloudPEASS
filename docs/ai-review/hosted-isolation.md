@@ -2,9 +2,10 @@
 
 The supported hosted backend is `PEASO_AI_RUNTIME=fargate`. It runs each Hardening,
 Exposure, Network or Priorities invocation in a separate Fargate task. Priorities
-still starts after all reviewers finish. The analyzer admits at most the existing
-configured concurrency (two by default). Each task uses 0.5 vCPU / 2 GiB. A 600-second
-AI phase budget includes task startup; about 30% (at most 180 seconds) is reserved
+still starts after all reviewers finish. The AWS deployment admits up to four
+concurrent tasks, subject to analyzer memory headroom. Each task uses 0.5 vCPU /
+2 GiB. The 3,000-second AI phase budget includes task startup and is bounded by
+the scan deadline; about 30% (at most 600 seconds) is reserved
 for priorities. Absolute task deadlines leave time for result upload and shutdown.
 
 ## Boundaries
