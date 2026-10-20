@@ -176,6 +176,7 @@ from .aws_ssm_automation_window_next import normalize_aws_ssm_automation_window,
 from .aws_stepfunctions_controls_next import normalize_aws_stepfunctions_controls, normalize_aws_stepfunctions_activity_alias, normalize_aws_stepfunctions_redrive
 from .aws_sfn_role_routes_next import normalize_aws_sfn_role_routes, correlate_aws_sfn_new_machine_start
 from .aws_sfn_http_credentials_next import normalize_aws_sfn_reveal_secrets, correlate_aws_sfn_connection_secret_read
+from .aws_sfn_map_run_next import normalize_aws_sfn_map_run
 from .aws_rds_controls_next import normalize_aws_rds_controls
 from .aws_rds_restore_next import normalize_aws_rds_restore_controls, correlate_aws_rds_public_clone_password_reset
 from .aws_rds_parameters_next import normalize_aws_rds_parameters, correlate_aws_rds_sql_log_capture_path
@@ -475,6 +476,7 @@ def detect_aws_events(
         stepfunctions_redrive = normalize_aws_stepfunctions_redrive(record)
         sfn_role_routes = normalize_aws_sfn_role_routes(record)
         sfn_reveal_secrets = normalize_aws_sfn_reveal_secrets(record)
+        sfn_map_run = normalize_aws_sfn_map_run(record)
         rds_controls = normalize_aws_rds_controls(record)
         rds_restore_controls = normalize_aws_rds_restore_controls(record)
         rds_parameters = normalize_aws_rds_parameters(record)
@@ -645,6 +647,7 @@ def detect_aws_events(
                 + ([stepfunctions_redrive] if stepfunctions_redrive is not None else [])
                 + ([sfn_role_routes] if sfn_role_routes is not None else [])
                 + ([sfn_reveal_secrets] if sfn_reveal_secrets is not None else [])
+                + ([sfn_map_run] if sfn_map_run is not None else [])
                 + ([rds_controls] if rds_controls is not None else [])
                 + ([rds_restore_controls] if rds_restore_controls is not None else [])
                 + ([rds_parameters] if rds_parameters is not None else [])
