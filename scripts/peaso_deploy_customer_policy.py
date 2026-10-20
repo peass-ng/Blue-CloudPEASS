@@ -5,11 +5,14 @@ aliases and IAM namespace mappings are validated against a pinned AWS-published
 action reference. New operations fail closed until their mapping is reviewed.
 """
 from __future__ import annotations
-from peaso import deployment
 import hashlib
 import json
 from functools import lru_cache
 from pathlib import Path
+import sys
+if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from peaso import deployment
 
 REFERENCE_URL = "https://awspolicygen.s3.amazonaws.com/js/policies.js"
 REFERENCE_DATE = "2026-10-10"
@@ -307,6 +310,17 @@ def iam_action(service, operation):
     if action not in VERIFIED_ACTIONS:
         raise ValueError("IAM mapping requires reference review: " + service + "/" + operation + " -> " + action)
     return action
+
+
+# Source-reviewed, metadata-only reads for native recheck applicability.
+# https://docs.aws.amazon.com/service-authorization/latest/reference/list_scheduler.html
+# https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ListDeadLetterSourceQueues.html
+RECHECK_METADATA_READ_REFERENCES = {
+    'scheduler:GetSchedule': 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_scheduler.html',
+    'scheduler:ListSchedules': 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_scheduler.html',
+    'sqs:ListDeadLetterSourceQueues': 'https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_ListDeadLetterSourceQueues.html',
+}
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | set(RECHECK_METADATA_READ_REFERENCES)
 
 
 def policy_size(policy):
@@ -797,6 +811,11 @@ def refresh(root: Path, *, read_actions=None, include_credential_report_generati
         "Actions": sorted(set(RESOURCE_POLICY_REFERENCE["mappings"].values()) | {
             action for actions in RESOURCE_POLICY_REFERENCE["additional_actions"].values() for action in actions}),
         "Boundary": "Explicit policy and resource inventory reads only; no resource writes or secret values.",
+    }
+    template['Metadata']['PeasoNativeRecheckMetadataReference'] = {
+        'Actions': sorted(RECHECK_METADATA_READ_REFERENCES),
+        'References': RECHECK_METADATA_READ_REFERENCES,
+        'Boundary': 'Selection-gated metadata reads only; no schedule payloads, messages or writes',
     }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.

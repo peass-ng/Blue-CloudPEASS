@@ -1495,3 +1495,6 @@ gcp_clouddeploy_source_secret_review_20261019.install()
 
 from . import gcp_sourcerepo_secret_review_20261019
 gcp_sourcerepo_secret_review_20261019.install()
+
+from . import aws_ai_recheck_corrections_20261020
+aws_ai_recheck_corrections_20261020.install()

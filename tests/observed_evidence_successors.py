@@ -1,5 +1,7 @@
 """Explicit additive evidence contracts; original signed fixture facts stay exact."""
 AWS_FIELDS = {
+    'aws.pci.shield.protection_all_internet_resources': {'global_cloudfront_scope'},
+    'aws.claude_a.ebs.volume_in_backup_selection': {'backup_selection_match', 'backup_selections_evaluated'},
     'aws_cis_lambda_execution_role_no_admin': {'unconditional_admin'},
     'aws.claude_a.ebs.volume_has_snapshot': {'snapshot_found'},
     'aws.claude_a.ebs.volume_protected_by_backup': {'protected_resource'},

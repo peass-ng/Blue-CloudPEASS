@@ -160,7 +160,12 @@ def findings_document(scan, findings, resources=()):
     items = []
     for finding in findings:
         references = set(referenced_strings(finding)) & inventory_by_id.keys()
-        items.append(dict(finding, supporting_resources=[inventory_by_id[ident] for ident in sorted(references)]))
+        from peaso.finding_observation import evidence_summary
+        observation = evidence_summary(finding)
+        item = dict(finding, supporting_resources=[inventory_by_id[ident] for ident in sorted(references)])
+        if observation:
+            item['evidence_summary'] = observation
+        items.append(item)
     return {'scan': {key: scan[key] for key in ('provider', 'snapshot_id', 'created_at') if key in scan},
             'items': items}
 

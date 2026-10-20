@@ -246,6 +246,8 @@ def test_customer_role_expansion_preserves_grants_and_adds_only_reviewed_reads(t
     assert not old - new
     receipt = json.loads(Path('peaso/collectors/aws_resource_policy_permissions.json').read_text())
     reviewed = set(receipt['mappings'].values()) | {a for actions in receipt['additional_actions'].values() for a in actions} | {'apigateway:GET'} | set(IAM_REPORT_READ_REFERENCES)
+    from scripts.peaso_deploy_customer_policy import RECHECK_METADATA_READ_REFERENCES
+    reviewed |= set(RECHECK_METADATA_READ_REFERENCES)
     added = new - old
     assert added and {action for effect, action, resource in added} <= reviewed
     assert all(effect == 'Allow' and '*' not in action for effect, action, resource in added)

@@ -30,7 +30,10 @@ def pipeline(monkeypatch, record_property):
     original_requests = aws.Requests
     def collect(kinds, responses):
         calls, clients, errors = [], {}, []
-        requests = original_requests({'retry_attempts': 1, 'max_workers': 1, 'max_calls': 400}, sleep=lambda _: None)
+        # Botocore Stubber mutates the shared SDK client's event handlers.
+        # Use the collector's actual concurrency option to serialize this
+        # deterministic harness; max_workers is not a supported option.
+        requests = original_requests({'retry_attempts': 1, 'service_concurrency': 1, 'max_calls': 400}, sleep=lambda _: None)
         requests.observed_at = NOW
         native = {('sts', 'get_caller_identity'): {'Account': ACCOUNT, 'Arn': f'arn:aws:iam::{ACCOUNT}:user/review', 'UserId': 'inert'}, **responses}
         class Client:

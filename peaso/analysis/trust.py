@@ -451,7 +451,12 @@ def aws_federated_trust(snapshot, resource):
                                      **({} if not claim("aud") else {"severity": "review"})})
             else:
                 subjects = claim("sub")
-                if not subjects:
+                if (not subjects and re.fullmatch(r"cognito-idp\.[a-z0-9-]+\.amazonaws\.com(?:\.cn)?/[A-Za-z0-9_-]+", prefix)
+                        and any(values and all(isinstance(v, str) and v and not any(c in v for c in "*?${}") for v in values)
+                                for op, values in claim("aud") if op.lower() == "stringequals")):
+                    problems.append({"code": "cognito_user_pool_audience_scope", "severity": "review",
+                                     "message": "The user-pool audience is pinned; validate intended users and supported claim enforcement before assessing role assumption."})
+                elif not subjects:
                     problems.append({"code": "no_sub_condition", "message": "No positive sub condition: every identity of this issuer can assume the role"
                                      + (" (issuer is multi-tenant)" if prefix.startswith(MULTI_TENANT_ISSUERS) else " (issuer-wide)")})
                 else:

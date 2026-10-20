@@ -1798,6 +1798,11 @@ def collect(connector, requirements=None):
     requests.ec2_clock_metric_requested = options.get('_ec2_clock_metric_requested', requirements is None)
     if type(requests.ec2_clock_metric_requested) is not bool:
         raise ValueError('invalid internal EC2 clock metric selection')
+    for flag in ('ebs_optimization_facts_requested', 'sqs_dead_letter_sources_requested'):
+        selected = options.get('_'+flag, requirements is None)
+        if type(selected) is not bool:
+            raise ValueError('invalid internal metadata fact selection')
+        setattr(requests, flag, selected)
     requests.lightsail_iam_policy = lightsail_metadata(lightsail_owner, requests.observed_at)
     requests.environment_boundaries_policy = environment_boundaries_owner
     requests.eks_admission_policy = eks_admission_owner
@@ -2616,6 +2621,8 @@ EXTENSION_MODULES += ("peaso.collectors.aws_bedrock_security_metadata",
                       "peaso.collectors.aws_cloudtrail_s3_delivery_metadata",
                       "peaso.collectors.aws_alb_waf_association_metadata",
                       "peaso.collectors.aws_beanstalk_runtime_metadata")
+
+EXTENSION_MODULES += ("peaso.collectors.aws_ai_recheck_facts_20261020",)
 
 for _extension in EXTENSION_MODULES:
     _load_metadata_extension(_extension)

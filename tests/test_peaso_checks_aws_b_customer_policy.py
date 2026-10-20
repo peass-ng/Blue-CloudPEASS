@@ -175,6 +175,7 @@ def test_current_role_adds_only_reviewed_cloudtrail_delivery_policy_reads():
 # These SDK reads were introduced after all four archived templates below.
 # Keep their captured input universe fixed; current-role grants are tested separately.
 _POST_HISTORICAL_METADATA_READS = {
+    ('scheduler', 'get_schedule'), ('scheduler', 'list_schedules'), ('sqs', 'list_dead_letter_source_queues'),
     ('elasticbeanstalk', 'describe_environment_resources'),
     ('ec2', 'get_launch_template_data'), ('ec2', 'describe_spot_instance_requests'),
     ('ec2', 'describe_instance_credit_specifications'), ('cloudwatch', 'get_metric_statistics'),

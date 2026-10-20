@@ -1092,11 +1092,11 @@ ROWS=json.loads(r'''
       "kind": "aws_resource_policy",
       "module": "peaso.checks.aws_resource_policy_scope",
       "predicate_sources": {
-        "peaso.checks.aws_resource_policy_scope.boundary:21": "1f334d5aa13894d2de4be038ab7cd37065da834a7effac41e955b10cc4228702",
+        "peaso.checks.aws_resource_policy_scope.boundary:21": "943b6378296017248a5280ff979532deb375da89709c111cf5fdef4f68d6b434",
         "peaso.checks.aws_resource_policy_scope.evaluate:242": "6245ad771e3d648a1490c7689a84253272ce7b147429beea63ae1668de7ce47f",
         "peaso.checks.aws_resource_policy_scope.principal_values:112": "d595ee47d9abacb7c622dd625cf5b42fb58ad9c5d94bbdbc0b9e5aa4fe86b4c7",
         "peaso.checks.aws_resource_policy_scope.public_principal:103": "28636f5d545145ef276774b629e59996ceb47bd0a7a0bd87b1a6683839a7ed61",
-        "peaso.checks.aws_resource_policy_scope.review_document:122": "a2097da86433b353f6f4139ddb5899af15c3b3e9503b3f172e005a7e7128bad0",
+        "peaso.checks.aws_resource_policy_scope.review_document:122": "8a18550fe06208a0683cdd4c424d9e22d7f88ac7d5dcff43bb438676eed2fb9e",
         "peaso.checks.aws_resource_policy_scope.strings:14": "2c45d9d20c0a590ec34c3f99d287ee597b7ee4772ef376f56d1895d8a647fbef"
       },
       "source_qualname": "evaluate"
@@ -3789,6 +3789,8 @@ ROWS=json.loads(r'''
   }
 }
 ''')
+RECHECK_SOURCE_SUCCESSOR_20261020 = {'check_id': 'aws_cis_aws_resource_policy_unrestricted_principal', 'functions': {'peaso.checks.aws_resource_policy_scope.boundary:21': {'previous': '1f334d5aa13894d2de4be038ab7cd37065da834a7effac41e955b10cc4228702', 'current': '943b6378296017248a5280ff979532deb375da89709c111cf5fdef4f68d6b434'}, 'peaso.checks.aws_resource_policy_scope.review_document:122': {'previous': 'a2097da86433b353f6f4139ddb5899af15c3b3e9503b3f172e005a7e7128bad0', 'current': '8a18550fe06208a0683cdd4c424d9e22d7f88ac7d5dcff43bb438676eed2fb9e'}}, 'scope': 'Recognize enforced kms:CallerAccount; retain default IPv6 /32 trust threshold and allow an explicit API-specific threshold.', 'historical_bindings_retained': True}
+
 def _digest(value):
     return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 def _apply(check_id,original,kind):

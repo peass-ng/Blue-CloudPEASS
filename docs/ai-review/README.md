@@ -16,7 +16,7 @@ Reviews run in batches of 40, alternating Hardening and Exposure so both progres
 
 Exposure is deduplicated only when its check ID, resource ID and scope exactly match a Hardening observation. Sharing an account or resource alone is not enough. A duplicate reuses the original review under its own finding ID. Distinct controls continue through the Exposure reviewer.
 
-Original FAILs stay intact. Each AI review contains only `finding_id`, `verdict` and `reason`. Verdict uses the existing finding statuses: `PASS`, `FAIL`, `UNKNOWN`, `DENIED`, `MANUAL`, `NOT_APPLICABLE` or `EMPTY`. Reason must be exactly empty for confirmed FAILs. Every assigned failed check must still appear exactly once, including confirmed FAILs. Other verdicts require a nonempty reason of at most 500 characters explaining the decisive facts and any likely check defect. A check that was correct at collection time but now passes is distinguished from a check defect in the reason. Top 15 Recommended Actions displays both verification results and the action table, with concise rationale, resource/finding references, implementation steps and verification. Reviews paginate in groups of 50. Complete results remain in the downloadable report; routine summaries carry only compact AI status and counts.
+Validated AI verdicts are applied to the existing Hardening and Exposure finding views before filtering, grouping and counting. Native evidence is preserved, with the original scanner status retained as `scanner_status` and the AI explanation attached to the finding. Failed or unavailable review attempts keep the scanner result. Existing reports receive the same projection when read. Each review retains its exact finding reference; unsupported or foreign references cannot change another finding.
 
 ## Local review files
 
@@ -132,7 +132,7 @@ Chack's pinned Codex backend invokes the CLI with sandbox bypass. A clean enviro
 
 ## Local setup and infrastructure
 
-Install `.[ai]` for native use and install the Codex CLI. Dockerfiles install pinned `@openai/codex@0.147.0` and the pinned Chack dependency. Sign in through Settings, launch an AI-enabled scan, and open Top 15 Recommended Actions or Network Findings. Both navigation entries appear only when personal Codex access or a platform token is configured.
+Install `.[ai]` for native use and install the Codex CLI. Dockerfiles install pinned `@openai/codex@0.147.0` and the pinned Chack dependency. Sign in through Settings, launch an AI-enabled scan, and open Top 15 Actions or Network Findings. Both navigation entries appear only when personal Codex access or a platform token is configured.
 
 Compose now gives the analyzer network access for Codex and cloud verification. It mounts only the separate AI-key volume, not the source connector-key volume. The API initializes the shared AI key before workers start. `PEASO_AI_TIMEOUT_SECONDS` defaults to 300. The scan's existing deadline remains authoritative.
 
@@ -151,3 +151,12 @@ Hosted Terraform adds an independent KMS key and Secrets Manager secret for AI e
 - Pinned Chack dependency installation and typed configuration constructor checks passed without invoking an agent.
 
 Live acceptance still needs a real personal device login, the hosted shared-token read under the deployed analyzer role, a Docker image build (the local daemon is not running), and one AI-enabled scan per provider including multi-account AWS and Kubernetes certificate auth. The UI screenshot and JSON example use mocked evidence; they are not live security conclusions.
+
+
+## Reviewing AI/engine disagreements
+
+Top 15 Actions contains only the prioritized actions and their plans. AI verification belongs in Hardening and Exposure. AI output alone is not proof that an evaluator is wrong: confirm the native facts and intended control semantics, add positive and negative regression cases, and preserve genuine failures.
+
+An operator can re-evaluate an existing completed scan from its retained snapshot with `scripts/peaso_reconcile_scan.py`. It uses the normal `PEASO_STORAGE` settings and defaults to a dry-run. Specify the tenant, scan ID, exact expected report reference and source version. Optional adjudications are explicit reviewed decisions bound to existing category/finding IDs. `--apply` publishes a new report and changes the report pointer only if the completed scan still references the expected report. The prior artifacts and original snapshot remain intact; no target-account collection or AI calls are made. Hosted storage still uses its configured AWS APIs.
+
+Reviewers receive the same concise natural-language observation shown with a finding, its exact stored pass/fail criteria, and its original native evidence. Their prompts require affirmative proof for PASS, preserve any-versus-all semantics, separate configuration checks from exploitation, and identify live state changes without inventing engine defects. Explanations use 1–3 short sentences. Hosted release acceptance includes a real-model counterexample: a single TCP 443 rule open to everyone on a customer-managed interface must remain FAIL.

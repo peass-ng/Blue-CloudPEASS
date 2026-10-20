@@ -330,6 +330,7 @@
         "sagemaker_processing_job",
         "sagemaker_training_job",
         "sagemaker_user_profile",
+        "scheduler_schedule",
         "scp_policy",
         "secret",
         "security_group",

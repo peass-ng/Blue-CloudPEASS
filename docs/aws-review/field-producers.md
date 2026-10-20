@@ -1877,3 +1877,5 @@ The strict-read column enumerates exact attributed paths without an emission rec
 | aws_vpn_tunnel_encryption_configuration | witness-only | — | 0 / 9 |
 | aws_wafv2_rate_rule_alarm | witness-only | wafv2_web_acl.WebACL.Rules[].Name<br>wafv2_web_acl.WebACL.Rules[].Statement<br>wafv2_web_acl.WebACL.Rules[].Statement.RateBasedStatement<br>wafv2_web_acl.WebACL.Rules[].VisibilityConfig<br>wafv2_web_acl.WebACL.Rules[].VisibilityConfig.CloudWatchMetricsEnabled<br>wafv2_web_acl.WebACL.Rules[].VisibilityConfig.MetricName | 0 / 8 |
 | aws_wafv2_request_validation_rules | witness-only | load_balancer_v2.WAFWebACLArn<br>wafv2_web_acl.WebACL.Rules[].OverrideAction<br>wafv2_web_acl.WebACL.Rules[].Statement<br>wafv2_web_acl.WebACL.Rules[].Statement.ManagedRuleGroupStatement<br>wafv2_web_acl.WebACL.Rules[].Statement.ManagedRuleGroupStatement.Name | 1 / 4 |
+
+Native recheck follow-up: `scheduler_schedule` now has separate SDK-modeled callback and public collection probes in the JSON ledger. The 368 supported kinds remain explicitly accounted for; this addition does not establish complete semantics or live availability. Original accepted field contracts remain retained.

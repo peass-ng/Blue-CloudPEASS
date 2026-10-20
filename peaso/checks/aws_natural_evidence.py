@@ -18,6 +18,26 @@ def _flag(value):
 
 def complete_explanation(finding):
     cid, e = finding['check_id'], finding['evidence']
+    if cid == 'aws.claude_a.vpc.sg_no_world_any_port_on_customer_enis':
+        enis = e.get('customer_enis')
+        if e.get('world_ingress_rule_found') is True and isinstance(enis, list) and enis and all(
+                isinstance(v, str) and re.fullmatch(r'eni-[a-zA-Z0-9]+', v) for v in enis):
+            observed = f"This group allows ingress from everyone and is attached to {len(enis)} customer-managed network interface{'s' if len(enis) != 1 else ''}."
+            for rule in e.get('internet_ingress', []):
+                if not isinstance(rule, dict) or rule.get('source') not in ('0.0.0.0/0', '::/0'):
+                    continue
+                protocol, low, high = str(rule.get('protocol')), rule.get('from_port'), rule.get('to_port')
+                traffic = None
+                if protocol in ('tcp', '6', 'udp', '17') and type(low) is int and type(high) is int and 0 <= low <= high <= 65535:
+                    traffic = ('TCP' if protocol in ('tcp', '6') else 'UDP') + ' ' + (str(low) if low == high else f'{low}–{high}')
+                elif protocol == '-1':
+                    traffic = 'all protocols and ports'
+                elif protocol in ('icmp', '1', 'icmpv6', '58'):
+                    traffic = 'ICMP traffic'
+                if traffic:
+                    observed = f'An ingress rule allows {traffic} from {rule["source"]}; the group is attached to customer-managed interface {enis[0]}.'
+                    break
+            return observed + ' Any internet-open port fails this control; all ports do not need to be open.'
     if cid == 'aws.a.iam.root_hardware_mfa':
         mfa, virtual = _flag(e.get('account_mfa_enabled')), _flag(e.get('virtual_root_mfa_present'))
         if mfa is False:

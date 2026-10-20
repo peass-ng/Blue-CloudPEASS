@@ -219,6 +219,10 @@ _MANAGED_VERSION_SUCCESSOR_SHA256 = '8815ab5071a819f27ff1d00fd57dde6dd9c416dd5c9
 def _reviewed_priority_source(source):
     text = (PACK.parents[1] / source["file"]).read_bytes()
     if source["file"] == "peaso/checks/__init__.py":
+        admission = b'\nfrom . import aws_ai_recheck_corrections_20261020\naws_ai_recheck_corrections_20261020.install()\n'
+        assert hashlib.sha256(admission).hexdigest() == 'e4587748dcdaad138267aa3d69603bf665b6f26e3132bc782504c33bb908dc3f'
+        assert text.endswith(admission) and text.count(admission) == 1
+        text = text[:-len(admission)]
         successor = _MANAGED_VERSION_SUCCESSOR.encode()
         assert hashlib.sha256(successor).hexdigest() == _MANAGED_VERSION_SUCCESSOR_SHA256
         assert text.count(successor) == 1

@@ -4,6 +4,10 @@
 def evidence_summary(finding):
     if not isinstance(finding, dict):
         return None
+    from peaso.checks.aws_ai_recheck_evidence_20261020 import evidence_summary as rechecked
+    correction = rechecked(finding)
+    if correction:
+        return correction
     provider = finding.get('provider')
     from peaso.checks.aws_evidence_explanations import evidence_summary as aws
     from peaso.checks.gcp_evidence_explanations import evidence_summary as gcp

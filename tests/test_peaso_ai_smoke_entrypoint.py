@@ -31,7 +31,12 @@ def test_live_acceptance_requires_the_complete_pipeline(monkeypatch):
     monkeypatch.setattr(auth, 'default_token', lambda: 'private-test-token')
     def invoke(stage, root, token, timeout):
         fixture = json.loads((root / 'smoke.json').read_text())
-        assert stage == 'hardening' and token == 'private-test-token'
+        assert token == 'private-test-token'
+        if stage == 'exposure':
+            findings = json.loads((root/'findings.json').read_text())['items']
+            assert findings[0]['evidence']['internet_ingress'][0]['from_port'] == 443
+            return {'items': [{'finding_id': 'public-port-smoke', 'verdict': 'FAIL', 'reason': ''}]}
+        assert stage == 'hardening'
         return {'items': [{'finding_id': 'isolation-smoke', 'verdict': 'PASS', 'reason': fixture['marker']}]}
     monkeypatch.setattr(fargate, 'invoke', invoke)
     completed = {'status': 'completed', 'network': {'status': 'completed'},

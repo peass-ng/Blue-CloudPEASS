@@ -45,6 +45,8 @@ export type Connector = {
   created_at?: string;
 };
 export type Finding = {
+  scanner_status?: string;
+  ai_review?: { verdict: string; reason: string };
   finding_type?: string;
   secret_fingerprint?: string;
   linked_check_ids?: string[];

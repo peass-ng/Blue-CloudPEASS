@@ -16,7 +16,7 @@ BASE=HISTORY['baseline']
 ROLE=HISTORY['regional']
 BASE_BYTES=(json.dumps(BASE,indent=2)+'\n').encode()
 HISTORICAL_ROLE_BYTES=(json.dumps(ROLE,indent=2)+'\n').encode()
-ACTIVE_ROLE_SHA='d43535005ba3ccf7c3179253d2dadb4ff6c521eb26884c571bc1f01c780995b8'
+ACTIVE_ROLE_SHA='10a5639d3ea01edadca945e6dbbaa02515e3746570328ca48dd4fc326fb0046e'
 ACTIVE_ROLE_BYTES=(ROOT/'infra/aws/customer-role.json').read_bytes()
 ACTIVE_ROLE=json.loads(ACTIVE_ROLE_BYTES)
 OPS={('outposts','list_outposts'):'outposts:ListOutposts',('s3control','list_regional_buckets'):'s3-outposts:ListRegionalBuckets',('s3tables','list_table_buckets'):'s3tables:ListTableBuckets',('s3vectors','list_vector_buckets'):'s3vectors:ListVectorBuckets',('dynamodb','list_backups'):'dynamodb:ListBackups',('rds','describe_db_instance_automated_backups'):'rds:DescribeDBInstanceAutomatedBackups',('rds','describe_db_cluster_automated_backups'):'rds:DescribeDBClusterAutomatedBackups',('redshift-serverless','list_snapshots'):'redshift-serverless:ListSnapshots',('redshift-serverless','list_recovery_points'):'redshift-serverless:ListRecoveryPoints'}
@@ -123,3 +123,29 @@ def test_current_active_template_retains_exact_historical_metadata_and_transit_g
  assert set(generated['Statement'][0]['Action'])==transit_actions
  assert generated['Statement'][0]['Effect']=='Allow' and generated['Statement'][0]['Resource']=='*'
  assert all(a.startswith(('ec2:Describe','ec2:Get','ec2:Search')) for a in transit_actions)
+
+
+def test_current_role_adds_only_reviewed_scheduler_and_dead_letter_metadata_reads():
+ previous_sha = 'd43535005ba3ccf7c3179253d2dadb4ff6c521eb26884c571bc1f01c780995b8'
+ previous_bytes = (ROOT/'infra/aws'/('customer-role-'+previous_sha+'.json')).read_bytes()
+ assert hashlib.sha256(previous_bytes).hexdigest() == previous_sha
+ previous = json.loads(previous_bytes)
+ def grants(template):
+  result = set()
+  for resource in template['Resources'].values():
+   if resource['Type'] != 'AWS::IAM::ManagedPolicy': continue
+   for statement in resource['Properties']['PolicyDocument']['Statement']:
+    assert statement['Effect'] == 'Allow' and 'NotAction' not in statement
+    actions = statement['Action'] if isinstance(statement['Action'], list) else [statement['Action']]
+    scope = json.dumps({k:v for k,v in statement.items() if k not in {'Sid','Action'}}, sort_keys=True)
+    result.update((action, scope) for action in actions)
+  return result
+ before, after = grants(previous), grants(ACTIVE_ROLE)
+ assert not before - after
+ additions = after - before
+ assert {action for action, _ in additions} == {'scheduler:GetSchedule', 'scheduler:ListSchedules', 'sqs:ListDeadLetterSourceQueues'}
+ assert len(additions) == 3
+ assert all(json.loads(scope) == {'Effect':'Allow', 'Resource':'*'} for _,scope in additions)
+ for key in ('Parameters','Outputs'):
+  assert previous[key] == ACTIVE_ROLE[key]
+ assert previous['Resources']['AuditRole'] == ACTIVE_ROLE['Resources']['AuditRole']

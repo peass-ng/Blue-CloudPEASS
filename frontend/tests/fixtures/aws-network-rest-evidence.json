@@ -1089,7 +1089,15 @@
       "customer_enis": [
         "eni-1"
       ],
-      "world_ingress_rule_found": true
+      "world_ingress_rule_found": true,
+      "internet_ingress": [
+        {
+          "protocol": "tcp",
+          "from_port": 8000,
+          "to_port": 8000,
+          "source": "0.0.0.0/0"
+        }
+      ]
     }
   },
   {

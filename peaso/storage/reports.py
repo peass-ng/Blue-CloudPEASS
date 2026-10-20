@@ -20,7 +20,7 @@ def chunks(items):
 
 
 def finding_summary(finding):
-    fields = {"id", "category", "check_id", "title", "provider", "service", "resource_id", "native_resource_id", "resource_name", "scope", "region", "severity", "status", "frameworks", "remediation", "automated", "secret_fingerprint", "linked_check_ids"}
+    fields = {"id", "category", "check_id", "title", "provider", "service", "resource_id", "native_resource_id", "resource_name", "scope", "region", "severity", "status", "frameworks", "remediation", "automated", "secret_fingerprint", "linked_check_ids", "scanner_status", "ai_review"}
     if finding.get("secret_fingerprint"):
         fields.add("evidence_summary")
     value = {k: v for k, v in finding.items() if k in fields}
@@ -86,6 +86,8 @@ def resource_chunks(artifacts, tenant, ident, report, snapshot):
 
 def publish_report(artifacts, tenant, ident, report, snapshot=None):
     from peaso.finding_groups import group_report
+    from peaso.ai.finding_reviews import apply_report_reviews
+    report = apply_report_reviews(report)
     presented = group_report(report)
     json_reference = artifacts.put(tenant, ident, "report", presented)
     from peaso.engine import REPORT_SCHEMA_VERSION, expand_report
