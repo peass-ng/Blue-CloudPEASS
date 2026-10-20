@@ -31,6 +31,7 @@ from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sa
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
+from .aws_customer_profiles_read_next import normalize as normalize_aws_customer_profiles_read
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
 from .aws_s3_replication_next import normalize_aws_s3_replication
@@ -151,8 +152,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "4523f652d3bd4cf45eb362e4980e1163fec9bcdd"
-DEFAULT_RULE_PACK_SHA256 = "6c187b1f1ec89292ecd9caec2cc7fd0f94c5fcc87d0eac9c1bb77c900db05141"
+DEFAULT_RULE_REF = "9810acb7f45808e9bf9cedfc03324ec8608819ee"
+DEFAULT_RULE_PACK_SHA256 = "1d560c9f92c36f277816ff45cc7c6fed2b1ace12b402f6ab760e388c33743c30"
 
 
 @dataclass(frozen=True)
@@ -275,6 +276,7 @@ def detect_aws_events(
         sagemaker_control = normalize_aws_sagemaker_control(record)
         rolesanywhere = normalize_aws_rolesanywhere(record)
         customer_profiles = normalize_aws_customer_profiles(record)
+        customer_profiles_read = normalize_aws_customer_profiles_read(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_notification = normalize_aws_s3_template_notification(record)
         s3_replication = normalize_aws_s3_replication(record)
@@ -389,6 +391,7 @@ def detect_aws_events(
                 + ([sagemaker_control] if sagemaker_control is not None else [])
                 + ([rolesanywhere] if rolesanywhere is not None else [])
                 + ([customer_profiles] if customer_profiles is not None else [])
+                + ([customer_profiles_read] if customer_profiles_read is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
                 + ([s3_replication] if s3_replication is not None else [])
