@@ -73,6 +73,7 @@ from .aws_efs_access_next import normalize_aws_efs_access, normalize_aws_efs_del
 from .aws_waf_logging_next import normalize_aws_waf_logging, normalize_aws_waf_deletion, normalize_aws_waf_disassociation
 from .aws_waf_web_acl_next import normalize_aws_waf_web_acl
 from .aws_codeartifact_policy_next import normalize_aws_codeartifact_policy
+from .aws_codeartifact_routes_next import normalize_aws_codeartifact_routes
 from .aws_appconfig_extension_next import normalize_aws_appconfig_extension
 from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
 from .aws_athena_stored_query_next import normalize as normalize_aws_athena_stored_query, correlate as correlate_aws_athena_stored_query
@@ -374,6 +375,7 @@ def detect_aws_events(
         waf_disassociation = normalize_aws_waf_disassociation(record)
         waf_web_acl = normalize_aws_waf_web_acl(record)
         codeartifact_policy = normalize_aws_codeartifact_policy(record)
+        codeartifact_routes = normalize_aws_codeartifact_routes(record)
         appconfig_extension = normalize_aws_appconfig_extension(record)
         athena_workgroup = normalize_aws_athena_workgroup(record)
         athena_stored_query = normalize_aws_athena_stored_query(record)
@@ -535,6 +537,7 @@ def detect_aws_events(
                 + ([waf_disassociation] if waf_disassociation is not None else [])
                 + ([waf_web_acl] if waf_web_acl is not None else [])
                 + ([codeartifact_policy] if codeartifact_policy is not None else [])
+                + ([codeartifact_routes] if codeartifact_routes is not None else [])
                 + ([appconfig_extension] if appconfig_extension is not None else [])
                 + ([athena_workgroup] if athena_workgroup is not None else [])
                 + ([athena_stored_query] if athena_stored_query is not None else [])

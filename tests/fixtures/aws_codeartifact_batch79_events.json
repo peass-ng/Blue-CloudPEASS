@@ -1,0 +1,29 @@
+[
+  {
+    "eventSource": "codeartifact.amazonaws.com", "eventName": "GetAuthorizationToken",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": true, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:00Z", "eventID": "synthetic-b79-token",
+    "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {"domain": "synthetic-domain", "durationSeconds": 900},
+    "responseElements": {}
+  },
+  {
+    "eventSource": "codeartifact.amazonaws.com", "eventName": "PublishPackageVersion",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": false, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:01Z", "eventID": "synthetic-b79-publish",
+    "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {"domain": "synthetic-domain", "repository": "synthetic-repo", "format": "generic", "namespace": "synthetic", "packageName": "synthetic-package", "packageVersion": "1.1.0", "assetName": "canary.txt", "assetSHA256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    "responseElements": {"format": "generic", "namespace": "synthetic", "packageName": "synthetic-package", "version": "1.1.0", "versionRevision": "synthetic-revision", "status": "Published", "asset": {"name": "canary.txt"}}
+  },
+  {
+    "eventSource": "codeartifact.amazonaws.com", "eventName": "GetPackageVersionAsset",
+    "eventCategory": "Management", "eventType": "AwsApiCall", "managementEvent": true,
+    "readOnly": true, "recipientAccountId": "999999999999", "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T21:00:02Z", "eventID": "synthetic-b79-read",
+    "userIdentity": {"type": "AssumedRole", "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"},
+    "requestParameters": {"domain": "synthetic-domain", "repository": "synthetic-repo", "format": "generic", "namespace": "synthetic", "packageName": "synthetic-package", "packageVersion": "1.1.0", "asset": "canary.txt"},
+    "responseElements": {}
+  }
+]
