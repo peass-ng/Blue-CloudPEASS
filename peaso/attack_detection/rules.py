@@ -104,6 +104,7 @@ from .aws_chime_admin_next import normalize_aws_chime_admin
 from .aws_chime_attendee_messaging_next import normalize_aws_chime_attendee_messaging
 from .aws_chime_capability_flow_next import normalize_aws_chime_capability_flow
 from .aws_chime_voice_connector_next import normalize_aws_chime_voice_connector
+from .aws_chime_voice_sip_next import normalize_aws_chime_voice_sip
 from .aws_glue_controls_next import normalize_aws_glue_controls
 from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
 from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
@@ -393,6 +394,7 @@ def detect_aws_events(
         chime_attendee_messaging = normalize_aws_chime_attendee_messaging(record)
         chime_capability_flow = normalize_aws_chime_capability_flow(record)
         chime_voice_connector = normalize_aws_chime_voice_connector(record)
+        chime_voice_sip = normalize_aws_chime_voice_sip(record)
         glue_controls = normalize_aws_glue_controls(record)
         cloudfront_controls = normalize_aws_cloudfront_controls(record)
         cognito_controls = normalize_aws_cognito_controls(record)
@@ -547,6 +549,7 @@ def detect_aws_events(
                 + ([chime_attendee_messaging] if chime_attendee_messaging is not None else [])
                 + ([chime_capability_flow] if chime_capability_flow is not None else [])
                 + ([chime_voice_connector] if chime_voice_connector is not None else [])
+                + ([chime_voice_sip] if chime_voice_sip is not None else [])
                 + ([glue_controls] if glue_controls is not None else [])
                 + ([cloudfront_controls] if cloudfront_controls is not None else [])
                 + ([cognito_controls] if cognito_controls is not None else [])
