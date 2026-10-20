@@ -176,6 +176,9 @@ def test_current_role_adds_only_reviewed_cloudtrail_delivery_policy_reads():
 # Keep their captured input universe fixed; current-role grants are tested separately.
 _POST_HISTORICAL_METADATA_READS = {
     ('scheduler', 'get_schedule'), ('scheduler', 'list_schedules'), ('sqs', 'list_dead_letter_source_queues'),
+    ('cloudfront', 'list_vpc_origins'), ('cloudfront', 'get_vpc_origin'),
+    ('efs', 'describe_mount_target_security_groups'),
+    ('memorydb', 'describe_subnet_groups'),
     ('elasticbeanstalk', 'describe_environment_resources'),
     ('ec2', 'get_launch_template_data'), ('ec2', 'describe_spot_instance_requests'),
     ('ec2', 'describe_instance_credit_specifications'), ('cloudwatch', 'get_metric_statistics'),
@@ -235,6 +238,22 @@ _POST_HISTORICAL_METADATA_READS = {
 # transition tests continue to reproduce the SDK operations available then.
 _POST_HISTORICAL_METADATA_READS.update(tuple(pair.split("/", 1)) for pair in
     policy_module.RESOURCE_POLICY_REFERENCE["added_operations"])
+from peaso.collectors.aws_network_catalog import SPECS as _NETWORK_SPECS, READ_ACTIONS as _NETWORK_READS
+_POST_HISTORICAL_METADATA_READS.update((_NETWORK_READS | {(s, o) for s, o, _ in _NETWORK_SPECS.values()}) - {
+    ('emr', 'describe_cluster'), ('eks', 'list_clusters'), ('globalaccelerator', 'list_accelerators'),
+    ('apigateway', 'get_resources'),
+    ('elasticbeanstalk', 'describe_configuration_settings'),
+    ('route53resolver', 'list_resolver_rules'), ('sagemaker', 'describe_cluster'), ('sagemaker', 'describe_endpoint')})
+
+
+from peaso.collectors.aws_network_inventory import READ_ACTIONS as _NATIVE_NETWORK_READS
+_NETWORK_HISTORY = historical_role_template('e2b8788e174bba78779421bb13b2c5d12ae1dd2599715653e7ea62f4463bcc0d')
+_NETWORK_HISTORY_ACTIONS = {action for resource in _NETWORK_HISTORY['Resources'].values()
+    if resource.get('Type') == 'AWS::IAM::ManagedPolicy'
+    for statement in resource['Properties']['PolicyDocument']['Statement']
+    for action in ([statement['Action']] if isinstance(statement['Action'], str) else statement['Action'])}
+_POST_HISTORICAL_METADATA_READS.update(pair for pair in _NATIVE_NETWORK_READS
+    if iam_action(*pair) not in _NETWORK_HISTORY_ACTIONS)
 
 
 def _build_historical_policy(*args, **kwargs):

@@ -189,7 +189,7 @@ def _config(item,index,kind,name,good,bad,missing_fail=False,numeric=False):
         if not re.fullmatch(r'[0-9]+',value):return unknown('configuration value not a decimal integer')
         number=int(value)
         return result(number<4,resource_id=identity,configuration=name,value=number)
-    normalized=value.upper() if name in ('log_connections','log_disconnections') else value
+    normalized=value.upper() if good == 'ON' and bad == 'OFF' else value
     if normalized not in (good,bad):return unknown('unrecognized configuration value',resource_id=identity,configuration=name)
     return result(normalized==bad,resource_id=identity,configuration=name,value=value)
 

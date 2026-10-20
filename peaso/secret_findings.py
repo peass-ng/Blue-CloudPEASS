@@ -33,8 +33,15 @@ def deduplicate_secret_findings(findings):
                 row['evidence'] = {'secret_leaks': [], 'credential_validation': 'not_attempted'}
                 grouped[key] = row
             row['evidence']['secret_leaks'] = merge_leaks(row['evidence']['secret_leaks'] + [safe])
+            if evidence.get('complete') is False:
+                # A trusted positive is still decisive when another detector
+                # could not finish. Grouping must preserve that coverage limit.
+                row['evidence']['complete'] = False
+                row['evidence']['coverage'] = 'incomplete'
             row['frameworks'] = sorted(set(row.get('frameworks', [])) | set(finding.get('frameworks', [])))
             row['linked_check_ids'] = sorted(set(row['linked_check_ids']) | {finding['check_id']})
             row['evidence']['observed'] = 'The same secret was detected in %d scanned location(s). Its value is hidden.' % len(row['evidence']['secret_leaks'][0]['locations'])
+            if row['evidence'].get('complete') is False:
+                row['evidence']['observed'] += ' Coverage is incomplete.'
             row['evidence_summary'] = row['evidence']['observed']
     return output + [grouped[key] for key in sorted(grouped)]

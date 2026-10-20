@@ -5,7 +5,7 @@ from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 
 @pytest.mark.parametrize('slug', ['entra_ca_mfa_admin_portals','entra_ca_mfa_management_api'])
-@pytest.mark.parametrize('control,status', [('notmfa','UNKNOWN'),('MFA','UNKNOWN'),('unknownFutureValue','UNKNOWN'),('mfa','PASS'),('compliantDevice','FAIL'),('block','FAIL'),('domainJoinedDevice','FAIL'),('approvedApplication','FAIL'),('compliantApplication','FAIL'),('passwordChange','FAIL'),('riskRemediation','FAIL')])
+@pytest.mark.parametrize('control,status', [('notmfa','UNKNOWN'),('MFA','UNKNOWN'),('unknownFutureValue','UNKNOWN'),('mfa','PASS'),('compliantDevice','FAIL'),('block','FAIL'),('domainJoinedDevice','FAIL'),('approvedApplication','FAIL'),('compliantApplication','FAIL'),('passwordChange','UNKNOWN'),('riskRemediation','UNKNOWN')])
 def test_declared_mfa_control_matches_only_documented_exact_member(slug,control,status):
     cid='azure.claude.'+slug
     c=next(c for c in CHECKS if c.id==cid)
@@ -33,11 +33,13 @@ def test_container_insights_requires_a_real_workspace_declaration(value,status):
     item=deepcopy(CASES[cid]['pass']);item['properties']['addonProfiles']['omsagent']['config']=value
     assert c.evaluate(item,{})[0]==status
 
-@pytest.mark.parametrize('days,status',[(-1,'UNKNOWN'),('365','UNKNOWN'),(True,'UNKNOWN'),(0,'PASS'),(365,'PASS')])
-def test_audit_archive_retention_rejects_malformed_counts(days,status):
+@pytest.mark.parametrize('days',[-1,'365',True,0,365])
+def test_retired_diagnostic_retention_field_cannot_prove_current_hsm_retention(days):
     cid='azure.claude.managed_hsm_audit_logging';c=next(c for c in CHECKS if c.id==cid)
     item=deepcopy(CASES[cid]['pass']);item['diagnosticSettings'][0]['properties']['logs'][0]['retentionPolicy']['days']=days
-    assert c.evaluate(item,{})[0]==status
+    status,evidence=c.evaluate(item,{})
+    assert status=='UNKNOWN'
+    assert evidence['diagnostic_retention_retired_on']=='2025-09-30'
 
 @pytest.mark.parametrize('slug,key',[('eventhub_namespace_logging','diagnostic_logging_enabled'),('iot_hub_logging','diagnostic_logging_enabled'),('keyvault_key_rotation_policy','rotate_action_present')])
 @pytest.mark.parametrize('state,expected',[('pass',True),('fail',False)])
@@ -47,8 +49,8 @@ def test_evidence_retains_decisive_boolean_not_ambiguous_item_count(slug,key,sta
     assert status==state.upper()
     assert evidence[key] is expected
 
-@pytest.mark.parametrize('ranges,status',[([''],'UNKNOWN'),(['garbage'],'UNKNOWN'),([' 203.0.113.0/24'],'UNKNOWN'),(['999.0.0.0/24'],'UNKNOWN'),(['203.0.113.0/24'],'PASS'),(['0.0.0.0/0'],'PASS'),([],'FAIL')])
-def test_authorized_sources_reject_malformed_ranges_without_inventing_a_narrowness_criterion(ranges,status):
+@pytest.mark.parametrize('ranges,status',[([''],'UNKNOWN'),(['garbage'],'UNKNOWN'),([' 203.0.113.0/24'],'UNKNOWN'),(['999.0.0.0/24'],'UNKNOWN'),(['203.0.113.0/24'],'PASS'),(['0.0.0.0/0'],'FAIL'),([],'FAIL')])
+def test_authorized_sources_reject_malformed_and_unrestricted_ranges(ranges,status):
     cid='azure.claude.aks_authorized_ip_ranges';c=next(c for c in CHECKS if c.id==cid)
     item=deepcopy(CASES[cid]['pass']);item['properties']['apiServerAccessProfile']['authorizedIPRanges']=ranges
     assert c.evaluate(item,{})[0]==status
@@ -81,12 +83,19 @@ def test_vulnerability_scan_counts_cannot_be_negative(value,status):
     item=deepcopy(CASES[cid]['pass'])
     for scan in item['vulnerabilityAssessmentScans']:
         scan['properties']['numberOfFailedSecurityChecks']=value
+        # Count alone cannot prove that the scan ran. Keep this regression
+        # about negative counts within an explicitly completed native state.
+        scan['properties']['state']='Failed' if value>0 else 'Passed'
     assert c.evaluate(item,{})[0]==status
 
 @pytest.mark.parametrize('source,status',[('garbage','UNKNOWN'),('Microsoft.Storage','FAIL'),('Microsoft.KeyVault','PASS')])
 def test_legacy_vhd_key_source_requires_recognized_native_metadata(source,status):
-    cid='azure.claude.storage_vhd_accounts_cmk';c=next(c for c in CHECKS if c.id==cid);case=CASES[cid]
+    from tests.azure_native_successor_inputs_20261020 import current_cases
+    cid='azure.claude.storage_vhd_accounts_cmk';c=next(c for c in CHECKS if c.id==cid);case=current_cases(cid, CASES[cid])
     index=deepcopy(case['pass_index']);index['storage_account'][0]['data']['properties']['encryption']['keySource']=source
+    for envelope in index['collections']['storage_account']:
+        for row in envelope['items']:
+            row['properties']['encryption']['keySource']=source
     result,evidence=c.evaluate(deepcopy(case['pass']),index)
     assert result==status
     if status=='PASS':assert evidence['platform_key_vhd_accounts']==[]

@@ -1,0 +1,462 @@
+{
+  "azure.review.function.selected_package_source_secret_indicators": [
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "PASS",
+      "evidence": {
+        "complete": true,
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected captured package text files.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "secret_leaks": [],
+        "parts": [
+          {
+            "bytes": 17,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-1"
+          },
+          {
+            "bytes": 10,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+          }
+        ],
+        "selection_mode": "versioned",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "clean"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "FAIL",
+      "evidence": {
+        "complete": true,
+        "observed": "A likely secret was detected; its value is hidden.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "ff5542d8bde69f287229f08f3dda023b6a316ee9b7a33e66e4579c4993f967bf",
+            "locations": [
+              {
+                "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+              }
+            ]
+          }
+        ],
+        "parts": [
+          {
+            "bytes": 17,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-1"
+          },
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [
+              {
+                "detectors": [
+                  {
+                    "engine": "kingfisher",
+                    "rule": "betterleaks.github-pat"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "rule": "Github"
+                  }
+                ],
+                "fingerprint": "ff5542d8bde69f287229f08f3dda023b6a316ee9b7a33e66e4579c4993f967bf",
+                "locations": [
+                  {
+                    "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+                  }
+                ]
+              }
+            ],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+          }
+        ],
+        "selection_mode": "versioned",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "positive"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "FAIL",
+      "evidence": {
+        "complete": true,
+        "observed": "A likely secret was detected; its value is hidden.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "ff5542d8bde69f287229f08f3dda023b6a316ee9b7a33e66e4579c4993f967bf",
+            "locations": [
+              {
+                "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+              }
+            ]
+          }
+        ],
+        "parts": [
+          {
+            "bytes": 17,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-1"
+          },
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [
+              {
+                "detectors": [
+                  {
+                    "engine": "kingfisher",
+                    "rule": "betterleaks.github-pat"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "rule": "Github"
+                  }
+                ],
+                "fingerprint": "ff5542d8bde69f287229f08f3dda023b6a316ee9b7a33e66e4579c4993f967bf",
+                "locations": [
+                  {
+                    "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+                  }
+                ]
+              }
+            ],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+          }
+        ],
+        "selection_mode": "versioned",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "app_service_positive"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "PASS",
+      "evidence": {
+        "complete": true,
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected captured package text files.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "secret_leaks": [],
+        "parts": [
+          {
+            "bytes": 17,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [],
+            "path": "azure_storage_selected_source:f20db6dd17c7f841c92b7bf362a423becc106f01c707ef389613dd165b9d9650.file-1"
+          },
+          {
+            "bytes": 10,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [],
+            "path": "azure_storage_selected_source:f20db6dd17c7f841c92b7bf362a423becc106f01c707ef389613dd165b9d9650.file-2"
+          }
+        ],
+        "selection_mode": "current",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "current_clean"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected stored package evidence is unavailable, unbound or incomplete.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "partial_clean"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "FAIL",
+      "evidence": {
+        "complete": false,
+        "observed": "A likely secret was detected; its value is hidden.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "ff5542d8bde69f287229f08f3dda023b6a316ee9b7a33e66e4579c4993f967bf",
+            "locations": [
+              {
+                "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+              }
+            ]
+          }
+        ],
+        "parts": [
+          {
+            "bytes": 17,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-1"
+          },
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "leaks": [
+              {
+                "detectors": [
+                  {
+                    "engine": "kingfisher",
+                    "rule": "betterleaks.github-pat"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "rule": "Github"
+                  }
+                ],
+                "fingerprint": "ff5542d8bde69f287229f08f3dda023b6a316ee9b7a33e66e4579c4993f967bf",
+                "locations": [
+                  {
+                    "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+                  }
+                ]
+              }
+            ],
+            "path": "azure_storage_selected_source:bb43fc0a47a1eb71d435d53469391dbdcfbcfafde6c6561afd27a8b74e9dc208.file-2"
+          }
+        ],
+        "selection_mode": "versioned",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "partial_positive"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected stored package evidence is unavailable, unbound or incomplete.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "denied"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected stored package evidence is unavailable, unbound or incomplete.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "reference"
+    },
+    {
+      "provider": "azure",
+      "check_id": "azure.review.function.selected_package_source_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected stored package evidence is unavailable, unbound or incomplete.",
+        "coverage": "selected_configured_stored_package_only",
+        "credential_validation": "not_attempted",
+        "runtime_bytes": "unknown",
+        "continuous_immutability": "unknown",
+        "snapshot_trust": "collector_assertions_content_digest_not_cloud_authentication",
+        "cloud_authenticity": "not_established"
+      },
+      "capture_branch": "changed_source"
+    }
+  ]
+}

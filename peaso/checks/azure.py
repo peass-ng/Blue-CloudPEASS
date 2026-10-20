@@ -1,7 +1,18 @@
 """Azure ARM checks retain property casing and make configuration claims only."""
 from . import register, result, unknown
-from .facts import field_check, get
+from .facts import field_check, get, Unavailable
 from .fixtures import CASES
+
+
+def sql_minimum_tls(item, index):
+    try:
+        value = get(item, "properties.minimalTlsVersion", str)
+    except Unavailable:
+        return unknown("SQL minimum TLS declaration unavailable")
+    if value not in ("1.0", "1.1", "1.2"):
+        return unknown("unrecognized explicit SQL minimum TLS version", configured=value)
+    return result(value in ("1.0", "1.1"), field="properties.minimalTlsVersion", configured=value,
+                  semantics="Explicit declared minimum only; provider default and negotiated TLS are separate")
 
 for args in [
     ("azure.storage.no_shared_key", "storage_account", "properties.allowSharedKeyAccess", False, True, "Storage account disables Shared Key authorization"),
@@ -25,6 +36,12 @@ for args in [
     cid, kind, path, good, bad, title = args
     # TLS 1.1 is a recognized insecure variant too.
     field_check(cid, "azure", kind, path, good, bad, title, expected=type(good))
+    if cid == "azure.sql.minimum_tls":
+        # Retain the original declaration/fixtures while recognizing every
+        # reviewed explicit native TLS enum in this one control.
+        from dataclasses import replace
+        from . import CHECKS
+        CHECKS[-1] = replace(CHECKS[-1], evaluate=sql_minimum_tls)
 
 
 @register("azure.sql.restrict_firewall", "azure", "hardening", "sql_firewall_rule", "Azure SQL firewall avoids a global address range", "high", "SC-7", "Replace broad firewall ranges and review the separate Allow Azure services setting.")

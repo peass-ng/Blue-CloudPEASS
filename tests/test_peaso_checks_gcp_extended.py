@@ -18,7 +18,13 @@ CHECKS_BY_ID = {check.id: check for check in CHECKS if check.id in gcp_extended.
 def test_all_reviewed_predicates_strict_and_immutable(cid, case, status):
     item = {"collection_status": "denied"} if case == "denied" else copy.deepcopy(CASES[cid][case])
     original = copy.deepcopy(item)
-    result, evidence = CHECKS_BY_ID[cid].evaluate(item, {})
+    index = {}
+    if cid == "gcp.reviewed.network.flow_logs" and case == "fail":
+        item.update(selfLink="projects/p/regions/r/subnetworks/s", network="projects/p/global/networks/n")
+        original = copy.deepcopy(item)
+        index = {"collections": {"vpc_flow_logs_config": [{"scope": "projects/p", "status": "empty"}]},
+                 "vpc_flow_logs_config": []}
+    result, evidence = CHECKS_BY_ID[cid].evaluate(item, index)
     assert result == status, (cid, case, evidence)
     assert isinstance(evidence, dict)
     assert item == original
@@ -129,8 +135,10 @@ def nm_index(status="collected", configs=(), reason=None):
 
 def test_flow_logs_absence_is_fail_only_on_full_subnet_representation():
     status, evidence = evaluate("network.flow_logs", {**SUBNET, **FULL})
-    assert status == "FAIL" and evidence["network"] == NETWORK and evidence["source"].startswith("omitted")
+    assert status == "UNKNOWN" and evidence["network"] == NETWORK
     assert evidence["network_management_configs"] == "not_collected"
+    check = CHECKS_BY_ID[gcp_extended.PREFIX + "network.flow_logs"]
+    assert check.evaluate({**SUBNET, **FULL}, nm_index(status="empty"))[0] == "FAIL"
     # Provenance completeness: the same omission from a partial/unmarked read stays UNKNOWN.
     assert evaluate("network.flow_logs", {**SUBNET, **PARTIAL})[0] == "UNKNOWN"
     assert evaluate("network.flow_logs", dict(SUBNET))[0] == "UNKNOWN"
@@ -151,7 +159,7 @@ def test_flow_logs_network_management_configs_can_satisfy_and_are_reported():
         "configLevel": "organization"}]))[0] == "PASS"
     assert check.evaluate(item, nm_index(configs=[{**network_config, "filterExpr": "x"}]))[0] == "MANUAL"
     status, evidence = check.evaluate(item, nm_index("unknown", reason="SERVICE_DISABLED"))
-    assert status == "FAIL" and evidence["network_management_configs"] == "unverified"
+    assert status == "UNKNOWN" and evidence["network_management_configs"] == "unverified"
     assert evidence["network_management_status"] == [{"status": "unknown", "error": "SERVICE_DISABLED"}]
 
 

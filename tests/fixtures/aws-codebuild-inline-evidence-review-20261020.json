@@ -1,0 +1,131 @@
+{
+  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": [
+    {
+      "provider": "aws",
+      "check_id": "aws.review.codebuild.selected_inline_buildspec_secret_indicators",
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected inline CodeBuild buildspec. Coverage is limited to the returned inline bytes.",
+        "secret_leaks": [],
+        "engines": [
+          {
+            "engine": "kingfisher",
+            "status": "complete",
+            "version": "1.4.0"
+          },
+          {
+            "engine": "trufflehog",
+            "status": "complete",
+            "version": "3.92.5"
+          }
+        ],
+        "complete": true,
+        "credential_validation": "not_attempted",
+        "coverage": "selected_returned_inline_buildspec_only",
+        "field": "projects[0].source.buildspec"
+      }
+    },
+    {
+      "provider": "aws",
+      "check_id": "aws.review.codebuild.selected_inline_buildspec_secret_indicators",
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected inline CodeBuild buildspec. Its value is hidden; offline detection did not validate the credential.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "8cdc798fd408d733c33355008ca71e4158871a4aafa336137f8b3c6083902a50",
+            "locations": [
+              {
+                "line": 8,
+                "path": "codebuild_selected_inline_buildspec:23589fd9a8488982a731d38260425c30e59104618e3ad683f3828b0cfab0d91f.source.buildspec"
+              }
+            ]
+          }
+        ],
+        "engines": [
+          {
+            "engine": "kingfisher",
+            "status": "complete",
+            "version": "1.4.0"
+          },
+          {
+            "engine": "trufflehog",
+            "status": "complete",
+            "version": "3.92.5"
+          }
+        ],
+        "complete": true,
+        "credential_validation": "not_attempted",
+        "coverage": "selected_returned_inline_buildspec_only",
+        "field": "projects[0].source.buildspec"
+      }
+    },
+    {
+      "provider": "aws",
+      "check_id": "aws.review.codebuild.selected_inline_buildspec_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The selected inline CodeBuild buildspec was unavailable, a reference, incomplete or unbound. Secret absence could not be assessed."
+      }
+    },
+    {
+      "provider": "aws",
+      "check_id": "aws.review.codebuild.selected_inline_buildspec_secret_indicators",
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected inline CodeBuild buildspec. Its value is hidden; offline detection did not validate the credential.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              }
+            ],
+            "fingerprint": "8cdc798fd408d733c33355008ca71e4158871a4aafa336137f8b3c6083902a50",
+            "locations": [
+              {
+                "line": 8,
+                "path": "codebuild_selected_inline_buildspec:23589fd9a8488982a731d38260425c30e59104618e3ad683f3828b0cfab0d91f.source.buildspec"
+              }
+            ]
+          }
+        ],
+        "engines": [
+          {
+            "engine": "kingfisher",
+            "status": "complete",
+            "version": "1.4.0"
+          },
+          {
+            "engine": "trufflehog",
+            "status": "unavailable",
+            "version": "3.92.5"
+          }
+        ],
+        "complete": false,
+        "credential_validation": "not_attempted",
+        "coverage": "selected_returned_inline_buildspec_only",
+        "field": "projects[0].source.buildspec"
+      }
+    },
+    {
+      "provider": "aws",
+      "check_id": "aws.review.codebuild.selected_inline_buildspec_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The selected inline CodeBuild buildspec was unavailable, a reference, incomplete or unbound. Secret absence could not be assessed."
+      }
+    }
+  ]
+}

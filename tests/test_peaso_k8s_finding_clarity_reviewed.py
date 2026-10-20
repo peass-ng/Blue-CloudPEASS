@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from peaso.checks import CHECKS
+from peaso.checks.k8s_native_review_copy_20261020 import reviewed_fields
 from peaso.checks.k8s_finding_clarity_reviewed import ROWS, _digest, description, remediation
 
 PACK = Path(__file__).resolve().parents[1] / "peaso/rulepacks"
@@ -37,7 +38,7 @@ def test_description_preserves_actual_evaluation_contract(check_id, source_rows)
     before = deepcopy(original)
     actual = description(check_id, original)
     assert original == before
-    assert actual["description"] == ROWS[check_id]["description_fields"]["description"]
+    assert actual["description"] == reviewed_fields(check_id, "description", ROWS[check_id]["description_fields"])["description"]
     assert len(actual["description"].split()) <= 40
     assert {k: v for k, v in actual.items() if k != "description"} == {
         k: v for k, v in original.items() if k != "description"}
@@ -99,16 +100,24 @@ def test_exact_kind_component_comparison_and_declaration_scope(check_id):
     assert binding == {"kind": check.kind, "pod_spec_path": KIND_PATHS[check.kind],
                        "component": normalize(component), "fields": fields,
                        "operation": operation, "expected": normalize(expected)}
-    for branch, expected_status in [("pass", "PASS"), ("fail", "FAIL")]:
+    def current_input(branch):
         item = deepcopy(CASES[check_id][branch])
+        if branch == "pass" and check_id.endswith(".container_argument_kubelet_authorization_mode_no_always_allow"):
+            pod = get(item, binding["pod_spec_path"], dict)
+            flags = pod["containers"][0]["_component_config"]["flags"]
+            assert flags["authorization-mode"] == "RBAC"  # Immutable historical input.
+            flags["authorization-mode"] = "Webhook"  # Actual supported kubelet mode.
+        return item
+    for branch, expected_status in [("pass", "PASS"), ("fail", "FAIL")]:
+        item = current_input(branch)
         assert check.evaluate(item, {})[0] == expected_status
-    item = deepcopy(CASES[check_id]["pass"])
+    item = current_input("pass")
     pod = get(item, binding["pod_spec_path"], dict)
     flags = pod["containers"][0]["_component_config"]["flags"]
     for field in fields:
         flags.pop(field, None)
     assert check.evaluate(item, {})[0] == ("PASS" if operation == "absent" else "UNKNOWN")
-    item = deepcopy(CASES[check_id]["pass"])
+    item = current_input("pass")
     pod = get(item, binding["pod_spec_path"], dict)
     pod["containers"][0]["_component_config"]["component"] = "etcd" if "kube-scheduler" in ((component,) if isinstance(component, str) else component) else "kube-scheduler"
     assert check.evaluate(item, {})[0] == "NOT_APPLICABLE"

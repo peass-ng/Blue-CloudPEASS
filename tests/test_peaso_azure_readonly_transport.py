@@ -19,7 +19,9 @@ def inert(monkeypatch):
     class Opener:
         def open(self, request, timeout):
             events.append(('http', request.get_method(), request.full_url, request.data))
-            return io.BytesIO(b'{"value": []}')
+            response = io.BytesIO(b'{"value": []}')
+            response.status = 200
+            return response
     monkeypatch.setattr(transport, 'token', token)
     monkeypatch.setattr(azure, 'build_opener', lambda *args: Opener())
     return transport, events

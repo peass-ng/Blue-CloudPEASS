@@ -1,0 +1,484 @@
+{
+  "native_receipt": "docs/gcp-review/recheck-20261020/gcp_cloudrun_job_image_runtime_20261020_receipt.json",
+  "native_receipt_sha256": "dc63589448228096c334e087e84dd299cc49ac18a53941660a7a3ba8686eb8bc",
+  "records": [
+    {
+      "finding": {
+        "check_id": "gcp.review.cloudrun_job.declared_image_secret_indicators",
+        "evidence": {
+          "association_kind": "desired_digest_declaration",
+          "complete": true,
+          "config_engines": [
+            {
+              "engine": "kingfisher",
+              "status": "complete",
+              "version": "1.4.0"
+            },
+            {
+              "engine": "trufflehog",
+              "status": "complete",
+              "version": "3.92.5"
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "deployed_bytes_proven": false,
+          "image_uri": "us-central1-docker.pkg.dev/review/images/app@sha256:762d7e8eed1d6dbc446acdd53c5ec78143574f824514d52177115a60a86e6c4f",
+          "job_declaration": {
+            "api_version": "run.googleapis.com/v2",
+            "container_name": "worker",
+            "etag": "native-job-etag",
+            "generation": "8",
+            "image_json_pointer": "/template/template/containers/0/image",
+            "kind": "Job",
+            "name": "projects/review/locations/us-central1/jobs/batch-job",
+            "project_id": "review",
+            "uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+          },
+          "layer_coverage": [
+            {
+              "digest": "sha256:dc06c2171cea3feab17e93ef16a753aefc608c1dc4db20094db6cee00f272aea",
+              "reason": null,
+              "status": "complete"
+            },
+            {
+              "digest": "sha256:d40beec21defac83baeecb38bbc08b63d22f5b68f8454893267183c581e866ef",
+              "reason": null,
+              "status": "complete"
+            }
+          ],
+          "observed": "Both offline detectors completed on the selected Job declared image without detecting a supported secret.",
+          "observed_runtime_digest": null,
+          "runtime_association_status": "UNKNOWN",
+          "secret_leaks": [],
+          "source_requests": [
+            "request-1",
+            "request-2",
+            "request-3",
+            "request-4",
+            "request-9",
+            "request-10",
+            "request-11",
+            "request-12",
+            "request-5",
+            "request-6",
+            "request-7",
+            "request-8"
+          ]
+        },
+        "id": "sha256:3ea91746983755259764ee3c74b44cdabcda9d3157cfba85132178113278fcbf",
+        "native_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+        "provider": "gcp",
+        "region": "us-central1",
+        "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+        "resource_name": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+        "scope": "projects/review",
+        "status": "PASS"
+      },
+      "name": "native_pass",
+      "origin": "Pure consumer replay of actual recorded native_runtime_witnesses snapshot"
+    },
+    {
+      "finding": {
+        "check_id": "gcp.review.cloudrun_job.declared_image_secret_indicators",
+        "evidence": {
+          "association_kind": "desired_digest_declaration",
+          "complete": true,
+          "config_engines": [
+            {
+              "engine": "kingfisher",
+              "status": "complete",
+              "version": "1.4.0"
+            },
+            {
+              "engine": "trufflehog",
+              "status": "complete",
+              "version": "3.92.5"
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "deployed_bytes_proven": false,
+          "image_uri": "us-central1-docker.pkg.dev/review/images/app@sha256:04e26e1e06f5a901c001412f7ccaf3c6e76f486e69180246c40391ee3275c64a",
+          "job_declaration": {
+            "api_version": "run.googleapis.com/v2",
+            "container_name": "worker",
+            "etag": "native-job-etag",
+            "generation": "8",
+            "image_json_pointer": "/template/template/containers/0/image",
+            "kind": "Job",
+            "name": "projects/review/locations/us-central1/jobs/batch-job",
+            "project_id": "review",
+            "uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+          },
+          "layer_coverage": [
+            {
+              "digest": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+              "reason": null,
+              "status": "complete"
+            },
+            {
+              "digest": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+              "reason": null,
+              "status": "complete"
+            }
+          ],
+          "observed": "A likely secret was detected in the selected Job declared image bytes.",
+          "observed_runtime_digest": null,
+          "runtime_association_status": "UNKNOWN",
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+              "locations": [
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 1,
+                  "path": "member-1"
+                },
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 2,
+                  "path": "member-1"
+                },
+                {
+                  "layer": "sha256:43c641fbfb09dc5ac4c4a35430c53b82bb7a1e44cecbdd01a4a2eee960a84396",
+                  "line": 1,
+                  "path": "image-config.json"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 1,
+                  "path": "member-1"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 2,
+                  "path": "member-1"
+                }
+              ]
+            }
+          ],
+          "source_requests": [
+            "request-1",
+            "request-2",
+            "request-3",
+            "request-4",
+            "request-9",
+            "request-10",
+            "request-11",
+            "request-12",
+            "request-5",
+            "request-6",
+            "request-7",
+            "request-8"
+          ]
+        },
+        "evidence_summary": "The same secret was detected in 5 scanned location(s). Its value is hidden.",
+        "id": "secret-14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "native_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+        "provider": "gcp",
+        "region": "us-central1",
+        "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+        "resource_name": "Exposed secret",
+        "scope": "projects/review",
+        "status": "FAIL"
+      },
+      "name": "native_fail",
+      "origin": "Pure consumer replay of actual recorded native_runtime_witnesses snapshot"
+    },
+    {
+      "finding": {
+        "check_id": "gcp.review.cloudrun_job.declared_image_secret_indicators",
+        "evidence": {
+          "credential_validation": "not_attempted",
+          "observed": "The same secret was detected in 5 scanned location(s). Its value is hidden.",
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+              "locations": [
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 1,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 2,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:43c641fbfb09dc5ac4c4a35430c53b82bb7a1e44cecbdd01a4a2eee960a84396",
+                  "line": 1,
+                  "path": "image-config.json",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 1,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 2,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                }
+              ]
+            }
+          ]
+        },
+        "evidence_summary": "The same secret was detected in 5 scanned location(s). Its value is hidden.",
+        "id": "secret-14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "linked_check_ids": [
+          "gcp.review.cloudrun_job.declared_image_secret_indicators"
+        ],
+        "provider": "gcp",
+        "region": "us-central1",
+        "resource_id": "secret:14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "resource_name": "Exposed secret",
+        "scope": "projects/review",
+        "secret_fingerprint": "14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "status": "FAIL"
+      },
+      "name": "public_fail",
+      "origin": "Actual recorded native_runtime_witnesses public finding"
+    },
+    {
+      "finding": {
+        "check_id": "gcp.review.cloudrun_job.declared_image_secret_indicators",
+        "evidence": {
+          "association_kind": "desired_digest_declaration",
+          "complete": false,
+          "config_engines": [
+            {
+              "engine": "kingfisher",
+              "status": "complete",
+              "version": "1.4.0"
+            },
+            {
+              "engine": "trufflehog",
+              "status": "complete",
+              "version": "3.92.5"
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "deployed_bytes_proven": false,
+          "image_uri": "us-central1-docker.pkg.dev/review/images/app@sha256:04e26e1e06f5a901c001412f7ccaf3c6e76f486e69180246c40391ee3275c64a",
+          "job_declaration": {
+            "api_version": "run.googleapis.com/v2",
+            "container_name": "worker",
+            "etag": "native-job-etag",
+            "generation": "8",
+            "image_json_pointer": "/template/template/containers/0/image",
+            "kind": "Job",
+            "name": "projects/review/locations/us-central1/jobs/batch-job",
+            "project_id": "review",
+            "uid": "4c03895a-b5b4-4d6c-b8dd-f1979d8f044c"
+          },
+          "layer_coverage": [
+            {
+              "digest": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+              "reason": null,
+              "status": "complete"
+            },
+            {
+              "digest": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+              "reason": null,
+              "status": "complete"
+            }
+          ],
+          "observed": "A likely secret was detected in the selected Job declared image bytes.",
+          "observed_runtime_digest": null,
+          "runtime_association_status": "UNKNOWN",
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+              "locations": [
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 1,
+                  "path": "member-1"
+                },
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 2,
+                  "path": "member-1"
+                },
+                {
+                  "layer": "sha256:43c641fbfb09dc5ac4c4a35430c53b82bb7a1e44cecbdd01a4a2eee960a84396",
+                  "line": 1,
+                  "path": "image-config.json"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 1,
+                  "path": "member-1"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 2,
+                  "path": "member-1"
+                }
+              ]
+            }
+          ],
+          "source_requests": [
+            "request-1",
+            "request-2",
+            "request-3",
+            "request-4",
+            "request-9",
+            "request-10",
+            "request-11",
+            "request-12",
+            "request-5",
+            "request-6",
+            "request-7",
+            "request-8"
+          ]
+        },
+        "evidence_summary": "The same secret was detected in 5 scanned location(s). Its value is hidden.",
+        "frameworks": [],
+        "id": "secret-14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "native_resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+        "provider": "gcp",
+        "region": "us-central1",
+        "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+        "resource_name": "Exposed secret",
+        "scope": "projects/review",
+        "status": "FAIL"
+      },
+      "name": "native_partial_fail",
+      "origin": "Derived cleanup-incomplete branch of recorded native positive; no detector/path/image data added"
+    },
+    {
+      "finding": {
+        "check_id": "gcp.review.cloudrun_job.declared_image_secret_indicators",
+        "evidence": {
+          "complete": false,
+          "coverage": "incomplete",
+          "credential_validation": "not_attempted",
+          "observed": "The same secret was detected in 5 scanned location(s). Its value is hidden. Coverage is incomplete.",
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+              "locations": [
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 1,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:3931e236a9b2b8716c968a8546afc23a16f082d71d9bf131b74a362f0e7143cb",
+                  "line": 2,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:43c641fbfb09dc5ac4c4a35430c53b82bb7a1e44cecbdd01a4a2eee960a84396",
+                  "line": 1,
+                  "path": "image-config.json",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 1,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                },
+                {
+                  "layer": "sha256:a7d2c301e926c57e5d2b6b363be75bf857cbc890dd0060df1ed08f302adf18dd",
+                  "line": 2,
+                  "path": "member-1",
+                  "resource_id": "projects/review/locations/us-central1/jobs/batch-job#container=worker",
+                  "scope": "projects/review"
+                }
+              ]
+            }
+          ]
+        },
+        "evidence_summary": "The same secret was detected in 5 scanned location(s). Its value is hidden. Coverage is incomplete.",
+        "frameworks": [],
+        "id": "secret-14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "linked_check_ids": [
+          "gcp.review.cloudrun_job.declared_image_secret_indicators"
+        ],
+        "provider": "gcp",
+        "region": "us-central1",
+        "resource_id": "secret:14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "resource_name": "Exposed secret",
+        "scope": "projects/review",
+        "secret_fingerprint": "14b26c93e715bad4d78606548dd022446455e1bcde235f718279a82ec05b059b",
+        "status": "FAIL",
+        "title": "Exposed secret in scanned content"
+      },
+      "name": "public_partial_fail",
+      "origin": "Existing public dedup projection of derived cleanup-incomplete native positive"
+    },
+    {
+      "finding": {
+        "check_id": "gcp.review.cloudrun_job.declared_image_secret_indicators",
+        "evidence": {
+          "observed": "Selected Job declared image evidence is incomplete, unsupported or unbound."
+        },
+        "provider": "gcp",
+        "scope": "projects/review",
+        "status": "UNKNOWN"
+      },
+      "name": "unknown",
+      "origin": "Existing pure consumer missing-native-evidence branch"
+    }
+  ],
+  "schema": "gcp-job-image-typed-observation-fixtures-v1"
+}

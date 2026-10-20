@@ -1,0 +1,44 @@
+{
+  "healthcare_dicom_service": {
+    "api_version": "2024-03-31",
+    "parent": "healthcare_workspace",
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.healthcareapis/workspaces/dicomservices",
+    "segment": "dicomservices",
+    "status": 200
+  },
+  "healthcare_fhir_service_v2": {
+    "api_version": "2024-03-31",
+    "parent": "healthcare_workspace",
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.healthcareapis/workspaces/fhirservices",
+    "segment": "fhirservices",
+    "status": 200
+  },
+  "healthcare_iot_connector": {
+    "api_version": "2024-03-31",
+    "parent": "healthcare_workspace",
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.healthcareapis/workspaces/iotconnectors",
+    "segment": "iotconnectors",
+    "status": 200
+  },
+  "kusto_managed_private_endpoint": {
+    "api_version": "2025-02-14",
+    "parent": "kusto_cluster",
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.kusto/clusters/managedprivateendpoints",
+    "segment": "managedPrivateEndpoints",
+    "status": 200
+  },
+  "traffic_controller_association": {
+    "api_version": "2026-03-01",
+    "parent": "traffic_controller",
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.servicenetworking/trafficcontrollers/associations",
+    "segment": "associations",
+    "status": 200
+  },
+  "traffic_controller_frontend": {
+    "api_version": "2026-03-01",
+    "parent": "traffic_controller",
+    "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.servicenetworking/trafficcontrollers/frontends",
+    "segment": "frontends",
+    "status": 200
+  }
+}

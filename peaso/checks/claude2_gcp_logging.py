@@ -173,6 +173,26 @@ def metric_type(metric):
     return "logging.googleapis.com/user/" + metric_id
 
 
+def coverage_events(name, project_id):
+    """Examples retain only invariants of the whole required event family.
+
+    An example actor, severity, audit category or binding member is not a
+    universal property. Removing it makes restrictions on it undecidable rather
+    than letting one fabricated matching actor prove complete event coverage.
+    """
+    events = EVENTS[name](project_id)
+    for event in events:
+        event.pop("severity", None)
+        payload = event["protoPayload"]
+        payload.pop("authenticationInfo", None)
+        delta = payload.get("serviceData", {}).get("policyDelta", {})
+        if "auditConfigDeltas" in delta:
+            delta["auditConfigDeltas"] = [{}]
+        for binding in delta.get("bindingDeltas", []):
+            binding.pop("member", None)
+    return events
+
+
 def threshold_link(text, mtype):
     """'exact' for a metric.type restriction on ``mtype``, 'uncertain' for another reference, else None."""
     if re.search(r'metric\.type\s*=\s*"?' + re.escape(mtype) + r'(?=["\s)]|$)', text):
@@ -181,23 +201,13 @@ def threshold_link(text, mtype):
     return "uncertain" if short and (mtype in text or "user/" + short in text or "user_" + short in text) else None
 
 
-def alert_links(alert, mtype):
-    links = []
-    conditions = list_of_objects(get(alert, "conditions", list))
-    for condition in conditions:
-        threshold = optional(condition, "conditionThreshold", None, dict)
-        if threshold is not None:
-            link = threshold_link(get(threshold, "filter", str), mtype)
-            if link:
-                links.append(link)
-        for key in ("conditionMonitoringQueryLanguage", "conditionPrometheusQueryLanguage", "conditionSql"):
-            body = optional(condition, key, None, dict)
-            if body is not None and threshold_link(str(body.get("query", body)), mtype):
-                links.append("uncertain")
-    combiner = optional(alert, "combiner", "OR", str)
-    if "exact" in links and len(conditions) > 1 and combiner != "OR":
-        links = ["uncertain"]
-    return "exact" if "exact" in links else "uncertain" if links else None
+def alert_links(alert, mtype, metric, projects, project_id, resource_type):
+    from .gcp_metric_alert_native import _alert_matches
+    try:
+        return "exact" if _alert_matches(alert, mtype, projects, project_id,
+            metric=metric, event_threshold=True, resource_type=resource_type) else None
+    except Unavailable:
+        return "uncertain"
 
 
 def matched_log_conditions(alert, events):
@@ -215,7 +225,12 @@ def channel_state(alert, index):
     if not names:
         return "none", {"notification_channels": []}
     try:
-        inventory = {get(c, "name", str): c for c in complete_items(index, CHANNEL_KIND)}
+        inventory = {}
+        for channel in complete_items(index, CHANNEL_KIND):
+            name = get(channel, "name", str)
+            if name in inventory:
+                raise Unavailable("duplicate notification channel identity")
+            inventory[name] = channel
     except Unavailable:
         return "pending", {"notification_channels": names, "channel_inventory": "not collected"}
     enabled, unresolved = [], []
@@ -226,7 +241,10 @@ def channel_state(alert, index):
         # NotificationChannel.enabled is an optional BoolValue. The list read
         # uses a fields projection, and absence does not attest enabled=true.
         try:
-            if get(channel, "enabled", bool):
+            verified = optional(channel, "verificationStatus", "VERIFICATION_STATUS_UNSPECIFIED", str)
+            if verified not in ("VERIFIED", "UNVERIFIED", "VERIFICATION_STATUS_UNSPECIFIED"):
+                raise Unavailable("unrecognized notification channel verification state")
+            if get(channel, "enabled", bool) and verified != "UNVERIFIED":
                 enabled.append(name)
         except Unavailable:
             # A sibling's unreadable field cannot erase an independently
@@ -250,13 +268,23 @@ def metric_alert(name):
         if inactive:
             return inactive
         ids = project_ids(project)
-        events = EVENTS[name](get(project, "projectId", str))
+        events = coverage_events(name, get(project, "projectId", str))
+        resource_type = get(events[0], "resource.type", str)
         metrics = [m for m in complete_items(index, "logging_metric") if in_project(get(m, "name", str), ids)]
         alerts = [a for a in complete_items(index, "monitoring_alert_policy") if in_project(get(a, "name", str), ids)]
         candidates = []
+        metric_by_name = {}
         for metric in metrics:
+            metric_name = get(metric, "name", str)
+            identity = re.fullmatch(r"projects/([^/]+)/metrics/(.+)", metric_name)
+            if not identity or identity[1] not in ids or metric_name in metric_by_name:
+                raise Unavailable("malformed or duplicate log metric identity")
+            metric_by_name[metric_name] = metric
             if optional(metric, "disabled", False, bool):
                 continue
+            identifier = optional(metric, "metricId", identity[2], str)
+            if identifier != identity[2] or get(metric, "metricDescriptor.type", str) != "logging.googleapis.com/user/" + identifier:
+                raise Unavailable("metric descriptor does not identify the native log metric")
             match, _ = verdict(get(metric, "filter", str), events)
             if optional(metric, "bucketName", "", str) and match == "full":
                 match = "partial"  # bucket-scoped metrics only count entries routed to that bucket
@@ -265,7 +293,7 @@ def metric_alert(name):
         chains, pending, uncertain, unnotified = [], [], [], []
         for metric_name, mtype, match in candidates:
             for alert in alerts:
-                link = alert_links(alert, mtype)
+                link = alert_links(alert, mtype, metric_by_name[metric_name], ids, get(project, "projectId", str), resource_type)
                 if link is None:
                     continue
                 enabled = optional(alert, "enabled", None, bool)
@@ -320,11 +348,13 @@ def metric_alert(name):
 
 def _fixtures(check_id, name):
     project = {"name": "projects/123", "projectId": "p", "state": "ACTIVE", "_ancestry": [{"resourceId": {"type": "project", "id": "p"}}]}
+    resource_type = get(EVENTS[name]("p")[0], "resource.type", str)
     metric = {"name": "projects/p/metrics/m", "metricId": "m", "filter": CIS_FILTERS[name],
-              "metricDescriptor": {"type": "logging.googleapis.com/user/m"}}
+              "metricDescriptor": {"type": "logging.googleapis.com/user/m", "metricKind": "DELTA", "valueType": "INT64"}}
     alert = {"name": "projects/p/alertPolicies/a", "enabled": True, "combiner": "OR",
              "notificationChannels": ["projects/p/notificationChannels/1"],
-             "conditions": [{"conditionThreshold": {"filter": 'resource.type="global" AND metric.type="logging.googleapis.com/user/m"'}}]}
+             "conditions": [{"conditionThreshold": {"filter": 'resource.type="' + resource_type + '" AND metric.type="logging.googleapis.com/user/m"',
+                 "comparison": "COMPARISON_GT", "thresholdValue": 0, "duration": "0s"}}]}
     channel = {"name": "projects/p/notificationChannels/1", "type": "email", "enabled": True}
     sink = {"name": "projects/p/sinks/_Required", "destination": "logging.googleapis.com/projects/p/locations/global/buckets/_Required"}
     base = {"logging_metric": [metric], "monitoring_alert_policy": [alert], CHANNEL_KIND: [channel], "log_sink": [sink]}

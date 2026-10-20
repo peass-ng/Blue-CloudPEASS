@@ -1,5 +1,6 @@
 """Installed optional Cloud Run -> immutable images -> dual detector path."""
 from copy import deepcopy
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -61,7 +62,7 @@ def observed(monkeypatch, mode='complete', *, value='production', enabled=True, 
             data = {'bindings': []}
         else:
             raise AssertionError('Unexpected native API: ' + url)
-        return SimpleNamespace(status_code=status, headers={}, json=lambda: data)
+        return SimpleNamespace(status_code=status, headers={}, content=json.dumps(data).encode(), json=lambda: data)
 
     options = {'content_secret_scans': enabled, '_content_secret_scan_kinds': ['artifact_image'] if kinds is None else kinds,
                'selected_cloudrun_services': [SERVICE],

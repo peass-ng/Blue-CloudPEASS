@@ -72,8 +72,8 @@ def _run_env(kind, path):
     cid = "gcp.htbp.cloudrun." + noun + "_secret_env_from_secret_manager"
 
     @ht_register(cid, "gcp", "hardening", kind, "Cloud Run " + noun + " sources credential-named environment variables from Secret Manager",
-                 "medium", "IA-5", "Store credentials in Secret Manager and reference them with valueFrom.secretKeyRef (or a "
-                 "secret volume) instead of literal environment values readable by anyone with run.*.get.",
+                 "medium", "IA-5", "Store credentials in Secret Manager and reference them with valueSource.secretKeyRef (v2), valueFrom.secretKeyRef (v1), or a "
+                 "secret volume instead of literal environment values readable by anyone with run.*.get.",
                  pages=[GCP + "gcp-services/gcp-cloud-run-enum.md", GCP + "gcp-post-exploitation/gcp-cloud-run-post-exploitation.md"])
     def evaluate(item, index):
         template = get(item, path, dict)
@@ -81,7 +81,34 @@ def _run_env(kind, path):
         for container in list_of_objects(get(template, "containers", list)):
             for entry in list_of_objects(optional(container, "env", [], list)):
                 name = get(entry, "name", str)
-                if "valueFrom" in entry or NON_SECRET_SUFFIX.search(name) or not SECRET_NAME.search(name):
+                references = [field for field in ("valueSource", "valueFrom")
+                              if field in entry or field in entry.get("_coverage", {})]
+                if len(references) > 1:
+                    raise Unavailable("conflicting Cloud Run environment value sources")
+                if references:
+                    source = references[0]
+                    present = "value" in entry or optional(entry, "_literal_value_present", False, bool)
+                    empty = (get(entry, "value", str) == "" if "value" in entry
+                             else optional(entry, "_literal_value_empty", False, bool))
+                    # v1 permits an explicit empty value beside valueFrom;
+                    # v2 value/valueSource are a oneof even when value is empty.
+                    if present and (source == "valueSource" or not empty):
+                        raise Unavailable("conflicting literal and secret-backed environment value")
+                    selector = get(entry, source + ".secretKeyRef", dict)
+                    fields = ("secret", "version") if source == "valueSource" else ("name", "key")
+                    for field in fields:
+                        value = get(selector, field, str)
+                        if not value or value != value.strip():
+                            raise Unavailable("empty or malformed secret reference " + field)
+                    secret = get(selector, fields[0], str)
+                    pattern = (r"(?:projects/[A-Za-z0-9_-]+/secrets/)?[A-Za-z0-9_-]+"
+                               if source == "valueSource" else r"[A-Za-z0-9_-]+")
+                    if not re.fullmatch(pattern, secret):
+                        raise Unavailable("malformed Cloud Run secret resource")
+                    if not re.fullmatch(r"[A-Za-z0-9_-]+", get(selector, fields[1], str)):
+                        raise Unavailable("malformed Cloud Run secret version")
+                    continue
+                if NON_SECRET_SUFFIX.search(name) or not SECRET_NAME.search(name):
                     continue
                 literal.append({"container": container.get("name"), "variable": name})
         return result(bool(literal), literal_credential_variables=literal,
@@ -90,7 +117,7 @@ def _run_env(kind, path):
     def nest(env):
         template = {"containers": [{"name": "app", "image": "gcr.io/p/app", "env": env}]}
         return {**base, "template": template} if kind == "cloudrun_service" else {**base, "template": {"template": template}}
-    CASES[cid] = {"pass": nest([{"name": "DB_PASSWORD", "valueFrom": {"secretKeyRef": {"secret": "db", "version": "latest"}}},
+    CASES[cid] = {"pass": nest([{"name": "DB_PASSWORD", "valueSource": {"secretKeyRef": {"secret": "db", "version": "latest"}}},
                                 {"name": "TOKEN_URL"}, {"name": "LOG_LEVEL"}]),
                   "fail": nest([{"name": "DB_PASSWORD"}]),
                   "missing": base, "malformed": nest([{"name": 3}])}
@@ -179,24 +206,27 @@ CASES["gcp.htbp.instance_template.no_default_sa_full_scope"] = {
 def kubelet_readonly(item, index):
     get(item, "name", str)
     def flag(config, key):
-        if not isinstance(config, dict):
-            raise Unavailable("malformed kubelet config")
-        value = config.get(key, {}).get("insecureKubeletReadonlyPortEnabled") if isinstance(config.get(key, {}), dict) else None
-        if value is not None and type(value) is not bool:
-            raise Unavailable("malformed insecureKubeletReadonlyPortEnabled")
-        return value
+        kubelet = optional(config, key, {}, dict)
+        return optional(kubelet, "insecureKubeletReadonlyPortEnabled", None, bool)
     defaults = [flag(optional(optional(item, "nodePoolDefaults", {}, dict), "nodeConfigDefaults", {}, dict), "nodeKubeletConfig"),
                 flag(optional(item, "nodePoolAutoConfig", {}, dict), "nodeKubeletConfig")]
-    default = next((value for value in defaults if value is not None), None)
+    default, auto_default = defaults
+    autopilot = optional(optional(item, "autopilot", {}, dict), "enabled", False, bool)
     pools = list_of_objects(optional(item, "nodePools", [], list))
     resolved = {}
     for pool in pools:
         value = flag(optional(pool, "config", {}, dict), "kubeletConfig")
-        resolved[get(pool, "name", str)] = value if value is not None else default
-    enabled = sorted(name for name, value in resolved.items() if value is True) + (["cluster defaults"] if default is True else [])
+        name = get(pool, "name", str)
+        if not name or name in resolved:
+            raise Unavailable("node pool identity absent or duplicated")
+        automatic = optional(optional(pool, "autoscaling", {}, dict), "autoprovisioned", False, bool)
+        inherited = auto_default if (autopilot or automatic) and auto_default is not None else default
+        resolved[name] = value if value is not None else inherited
+    enabled = sorted(name for name, value in resolved.items() if value is True)
+    enabled += [label for label, value in zip(("cluster defaults", "auto-provisioned defaults"), defaults) if value is True]
     if enabled:
         return result(True, enabled_on=enabled)
-    if all(value is False for value in resolved.values()) and (resolved or default is False):
+    if all(value is False for value in resolved.values()) and (resolved or default is False or auto_default is False):
         return result(False, node_pools=sorted(resolved), cluster_default=default)
     return "MANUAL", {"reason": "insecureKubeletReadonlyPortEnabled is not declared; the effective default depends on the GKE "
                                 "version at creation (disabled by default for new 1.32+ clusters)", "undeclared_pools": sorted(n for n, v in resolved.items() if v is None)}
@@ -325,7 +355,10 @@ CASES["gcp.htbp.pubsub.push_endpoint_not_tunnel"] = {
              pages=[GCP + "gcp-persistence/gcp-artifact-registry-persistence.md"], dependencies=["artifact_repository"])
 def virtual_precedence(item, index):
     get(item, "name", str)
-    if get(item, "mode", str) != "VIRTUAL_REPOSITORY":
+    mode = get(item, "mode", str)
+    if mode not in ("STANDARD_REPOSITORY", "REMOTE_REPOSITORY", "VIRTUAL_REPOSITORY"):
+        raise Unavailable("unrecognized Artifact Registry repository mode")
+    if mode != "VIRTUAL_REPOSITORY":
         return "NOT_APPLICABLE", {"reason": "not a virtual repository"}
     policies = list_of_objects(get(item, "virtualRepositoryConfig.upstreamPolicies", list))
     modes = {get(repo, "name", str): get(repo, "mode", str) for repo in complete_items(index, "artifact_repository")}
@@ -334,13 +367,15 @@ def virtual_precedence(item, index):
         upstream = get(policy, "repository", str)
         if upstream not in modes:
             raise Unavailable("upstream repository not in the collected inventory: " + upstream)
+        if modes[upstream] not in ("STANDARD_REPOSITORY", "REMOTE_REPOSITORY"):
+            raise Unavailable("nested or unrecognized upstream mode needs independent resolution")
         priority = optional(policy, "priority", 0, int)
-        priorities.setdefault(modes[upstream], []).append(priority)
+        priorities[modes[upstream]].append(priority)
     private, remote = priorities["STANDARD_REPOSITORY"], priorities["REMOTE_REPOSITORY"]
     if not private or not remote:
         return result(False, standard_priorities=private, remote_priorities=remote,
                       semantics="No mix of private and remote upstreams")
-    return result(max(remote) >= max(private), standard_priorities=private, remote_priorities=remote,
+    return result(max(remote) >= min(private), standard_priorities=private, remote_priorities=remote,
                   semantics="Higher priority wins; equal priorities are not deterministic")
 
 
@@ -402,11 +437,12 @@ def _trigger_enabled(item):
 
 
 def _pull_request(item):
-    sources = [source for source in (optional(item, "github", None), optional(item, "repositoryEventConfig", None)) if source is not None]
-    if any(not isinstance(source, dict) for source in sources):
-        raise Unavailable("malformed trigger source")
+    sources = [source for source in (optional(item, field, None, dict)
+               for field in ("github", "repositoryEventConfig", "developerConnectEventConfig")) if source is not None]
+    if len(sources) > 1:
+        raise Unavailable("conflicting trigger source declarations")
     for source in sources:
-        if "pullRequest" in source:
+        if "pullRequest" in source or "pullRequest" in source.get("_coverage", {}):
             return get(source, "pullRequest", dict)
     return None
 
@@ -425,7 +461,7 @@ def cloudbuild_pr(item, index):
         return "NOT_APPLICABLE", {"reason": "not a pull-request trigger"}
     approval = optional(omitted(item, "approvalConfig", {}, dict), "approvalRequired", False, bool)
     # proto3 JSON omits the zero enum COMMENTS_DISABLED ("Not required").
-    control = pull_request.get("commentControl", "COMMENTS_DISABLED") if full_representation(item) else get(pull_request, "commentControl", str)
+    control = optional(pull_request, "commentControl", "COMMENTS_DISABLED", str) if full_representation(item) else get(pull_request, "commentControl", str)
     if control not in ("COMMENTS_DISABLED", "COMMENTS_ENABLED", "COMMENTS_ENABLED_FOR_EXTERNAL_CONTRIBUTORS_ONLY"):
         raise Unavailable("unrecognized commentControl")
     return result(control == "COMMENTS_DISABLED" and not approval, comment_control=control, approval_required=approval,

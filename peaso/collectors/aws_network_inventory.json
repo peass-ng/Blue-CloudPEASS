@@ -1,0 +1,3371 @@
+{
+  "agentcore_agent_runtime": {
+    "detail": {
+      "arguments": {
+        "agentRuntimeId": "agentRuntimeId"
+      },
+      "key": null,
+      "operation": "get_agent_runtime"
+    },
+    "identity": "agentRuntimeArn",
+    "key": "agentRuntimes",
+    "operation": "list_agent_runtimes",
+    "service": "bedrock-agentcore-control",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "agentcore_browser": {
+    "detail": {
+      "arguments": {
+        "browserId": "browserId"
+      },
+      "key": null,
+      "operation": "get_browser"
+    },
+    "identity": "browserArn",
+    "key": "browserSummaries",
+    "operation": "list_browsers",
+    "service": "bedrock-agentcore-control",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "agentcore_code_interpreter": {
+    "detail": {
+      "arguments": {
+        "codeInterpreterId": "codeInterpreterId"
+      },
+      "key": null,
+      "operation": "get_code_interpreter"
+    },
+    "identity": "codeInterpreterArn",
+    "key": "codeInterpreterSummaries",
+    "operation": "list_code_interpreters",
+    "service": "bedrock-agentcore-control",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "aoss_network_policy": {
+    "constants": {
+      "type": "network"
+    },
+    "detail": {
+      "arguments": {
+        "name": "name"
+      },
+      "constants": {
+        "type": "network"
+      },
+      "key": "securityPolicyDetail",
+      "operation": "get_security_policy"
+    },
+    "identity": "name",
+    "key": "securityPolicySummaries",
+    "operation": "list_security_policies",
+    "service": "opensearchserverless",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "app_runner_custom_domain": {
+    "detail": {
+      "arguments": {
+        "ServiceArn": "ServiceArn"
+      },
+      "key": null,
+      "operation": "describe_custom_domains",
+      "tokens": [
+        "NextToken",
+        "NextToken"
+      ]
+    },
+    "identity": "ServiceArn",
+    "key": "ServiceSummaryList",
+    "operation": "list_services",
+    "service": "apprunner",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "appflow_connector_profile": {
+    "identity": "connectorProfileArn",
+    "key": "connectorProfileDetails",
+    "operation": "describe_connector_profiles",
+    "service": "appflow",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "appstream_app_block_builder": {
+    "identity": "Arn",
+    "key": "AppBlockBuilders",
+    "operation": "describe_app_block_builders",
+    "service": "appstream",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "appstream_image_builder": {
+    "identity": "Arn",
+    "key": "ImageBuilders",
+    "operation": "describe_image_builders",
+    "service": "appstream",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "appstream_stack": {
+    "identity": "Arn",
+    "key": "Stacks",
+    "operation": "describe_stacks",
+    "service": "appstream",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "backup_gateway": {
+    "detail": {
+      "arguments": {
+        "GatewayArn": "GatewayArn"
+      },
+      "key": "Gateway",
+      "operation": "get_gateway"
+    },
+    "identity": "GatewayArn",
+    "key": "Gateways",
+    "operation": "list_gateways",
+    "service": "backup-gateway",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "bedrock_marketplace_endpoint": {
+    "detail": {
+      "arguments": {
+        "endpointArn": "endpointArn"
+      },
+      "key": "marketplaceModelEndpoint",
+      "operation": "get_marketplace_model_endpoint"
+    },
+    "identity": "endpointArn",
+    "key": "marketplaceModelEndpoints",
+    "operation": "list_marketplace_model_endpoints",
+    "service": "bedrock",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "bedrock_model_customization_job": {
+    "detail": {
+      "arguments": {
+        "jobIdentifier": "jobArn"
+      },
+      "key": null,
+      "operation": "get_model_customization_job"
+    },
+    "identity": "jobArn",
+    "key": "modelCustomizationJobSummaries",
+    "operation": "list_model_customization_jobs",
+    "service": "bedrock",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "bedrock_model_import_job": {
+    "detail": {
+      "arguments": {
+        "jobIdentifier": "jobArn"
+      },
+      "key": null,
+      "operation": "get_model_import_job"
+    },
+    "identity": "jobArn",
+    "key": "modelImportJobSummaries",
+    "operation": "list_model_import_jobs",
+    "service": "bedrock",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "bedrock_model_invocation_job": {
+    "detail": {
+      "arguments": {
+        "jobIdentifier": "jobArn"
+      },
+      "key": null,
+      "operation": "get_model_invocation_job"
+    },
+    "identity": "jobArn",
+    "key": "invocationJobSummaries",
+    "operation": "list_model_invocation_jobs",
+    "service": "bedrock",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "blockchain_network": {
+    "detail": {
+      "arguments": {
+        "NetworkId": "Id"
+      },
+      "key": "Network",
+      "operation": "get_network"
+    },
+    "identity": "Arn",
+    "key": "Networks",
+    "operation": "list_networks",
+    "service": "managedblockchain",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "carrier_gateway": {
+    "identity": "CarrierGatewayId",
+    "key": "CarrierGateways",
+    "operation": "describe_carrier_gateways",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "client_vpn_route": {
+    "arguments": {
+      "ClientVpnEndpointId": "ClientVpnEndpointId"
+    },
+    "identity": "DestinationCidr",
+    "identity_fields": [
+      "DestinationCidr",
+      "TargetSubnet"
+    ],
+    "key": "Routes",
+    "operation": "describe_client_vpn_routes",
+    "parents": [
+      {
+        "exports": {
+          "ClientVpnEndpointId": "ClientVpnEndpointId"
+        },
+        "key": "ClientVpnEndpoints",
+        "operation": "describe_client_vpn_endpoints",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "client_vpn_target_network": {
+    "arguments": {
+      "ClientVpnEndpointId": "ClientVpnEndpointId"
+    },
+    "identity": "AssociationId",
+    "key": "ClientVpnTargetNetworks",
+    "operation": "describe_client_vpn_target_networks",
+    "parents": [
+      {
+        "exports": {
+          "ClientVpnEndpointId": "ClientVpnEndpointId"
+        },
+        "key": "ClientVpnEndpoints",
+        "operation": "describe_client_vpn_endpoints",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "cloudwan_connect_peer": {
+    "detail": {
+      "arguments": {
+        "ConnectPeerId": "ConnectPeerId"
+      },
+      "key": "ConnectPeer",
+      "operation": "get_connect_peer"
+    },
+    "identity": "ConnectPeerId",
+    "key": "ConnectPeers",
+    "operation": "list_connect_peers",
+    "service": "networkmanager",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "cloudwan_device": {
+    "arguments": {
+      "GlobalNetworkId": "GlobalNetworkId"
+    },
+    "identity": "DeviceArn",
+    "key": "Devices",
+    "operation": "get_devices",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "GlobalNetworkId": "GlobalNetworkId"
+        },
+        "key": "GlobalNetworks",
+        "operation": "describe_global_networks",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "networkmanager",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "cloudwan_vpc_attachment": {
+    "constants": {
+      "AttachmentType": "VPC"
+    },
+    "detail": {
+      "arguments": {
+        "AttachmentId": "AttachmentId"
+      },
+      "key": "VpcAttachment",
+      "operation": "get_vpc_attachment"
+    },
+    "identity": "AttachmentId",
+    "key": "Attachments",
+    "operation": "list_attachments",
+    "service": "networkmanager",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "codebuild_fleet": {
+    "detail": {
+      "arguments": {
+        "names[]": "Item"
+      },
+      "key": "fleets",
+      "operation": "batch_get_fleets"
+    },
+    "identity": "arn",
+    "key": "fleets",
+    "operation": "list_fleets",
+    "service": "codebuild",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "codebuild_network_build": {
+    "detail": {
+      "arguments": {
+        "ids[]": "Item"
+      },
+      "key": "builds",
+      "operation": "batch_get_builds"
+    },
+    "identity": "arn",
+    "key": "ids",
+    "operation": "list_builds",
+    "service": "codebuild",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "codebuild_network_build_batch": {
+    "detail": {
+      "arguments": {
+        "ids[]": "Item"
+      },
+      "key": "buildBatches",
+      "operation": "batch_get_build_batches"
+    },
+    "identity": "arn",
+    "key": "ids",
+    "operation": "list_build_batches",
+    "service": "codebuild",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "codebuild_network_sandbox": {
+    "detail": {
+      "arguments": {
+        "ids[]": "Item"
+      },
+      "key": "sandboxes",
+      "operation": "batch_get_sandboxes"
+    },
+    "identity": "arn",
+    "key": "ids",
+    "operation": "list_sandboxes",
+    "service": "codebuild",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "codeconnections_host": {
+    "detail": {
+      "arguments": {
+        "HostArn": "HostArn"
+      },
+      "key": null,
+      "operation": "get_host"
+    },
+    "identity": "HostArn",
+    "key": "Hosts",
+    "operation": "list_hosts",
+    "service": "codeconnections",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_document_classification_job": {
+    "identity": "JobArn",
+    "key": "DocumentClassificationJobPropertiesList",
+    "operation": "list_document_classification_jobs",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_document_classifier": {
+    "identity": "DocumentClassifierArn",
+    "key": "DocumentClassifierPropertiesList",
+    "operation": "list_document_classifiers",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_dominant_language_detection_job": {
+    "identity": "JobArn",
+    "key": "DominantLanguageDetectionJobPropertiesList",
+    "operation": "list_dominant_language_detection_jobs",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_entities_detection_job": {
+    "identity": "JobArn",
+    "key": "EntitiesDetectionJobPropertiesList",
+    "operation": "list_entities_detection_jobs",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_entity_recognizer": {
+    "identity": "EntityRecognizerArn",
+    "key": "EntityRecognizerPropertiesList",
+    "operation": "list_entity_recognizers",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_flywheel": {
+    "detail": {
+      "arguments": {
+        "FlywheelArn": "FlywheelArn"
+      },
+      "key": "FlywheelProperties",
+      "operation": "describe_flywheel"
+    },
+    "identity": "FlywheelArn",
+    "key": "FlywheelSummaryList",
+    "operation": "list_flywheels",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_key_phrases_detection_job": {
+    "identity": "JobArn",
+    "key": "KeyPhrasesDetectionJobPropertiesList",
+    "operation": "list_key_phrases_detection_jobs",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_sentiment_detection_job": {
+    "identity": "JobArn",
+    "key": "SentimentDetectionJobPropertiesList",
+    "operation": "list_sentiment_detection_jobs",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_targeted_sentiment_detection_job": {
+    "identity": "JobArn",
+    "key": "TargetedSentimentDetectionJobPropertiesList",
+    "operation": "list_targeted_sentiment_detection_jobs",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "comprehend_topics_detection_job": {
+    "identity": "JobArn",
+    "key": "TopicsDetectionJobPropertiesList",
+    "operation": "list_topics_detection_jobs",
+    "service": "comprehend",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_efs_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "EFS"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_efs"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_fsx_lustre_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "FSX_LUSTRE"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_fsx_lustre"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_fsx_ontap_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "FSX_ONTAP"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_fsx_ontap"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_fsx_openzfs_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "FSX_OPENZFS"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_fsx_open_zfs"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_fsx_windows_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "FSX_WINDOWS"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_fsx_windows"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_hdfs_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "HDFS"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_hdfs"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_nfs_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "NFS"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_nfs"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_object_storage_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "OBJECT_STORAGE"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_object_storage"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datasync_smb_location": {
+    "constants": {
+      "Filters": [
+        {
+          "Name": "LocationType",
+          "Operator": "Equals",
+          "Values": [
+            "SMB"
+          ]
+        }
+      ]
+    },
+    "detail": {
+      "arguments": {
+        "LocationArn": "LocationArn"
+      },
+      "key": null,
+      "operation": "describe_location_smb"
+    },
+    "identity": "LocationArn",
+    "key": "Locations",
+    "operation": "list_locations",
+    "service": "datasync",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "datazone_connection": {
+    "arguments": {
+      "domainIdentifier": "domainIdentifier"
+    },
+    "detail": {
+      "arguments": {
+        "domainIdentifier": "domainIdentifier",
+        "identifier": "connectionId"
+      },
+      "key": null,
+      "operation": "get_connection"
+    },
+    "identity": "connectionId",
+    "key": "items",
+    "operation": "list_connections",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "domainIdentifier": "id"
+        },
+        "key": "items",
+        "operation": "list_domains",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "datazone",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "deadline_fleet": {
+    "arguments": {
+      "farmId": "farmId"
+    },
+    "detail": {
+      "arguments": {
+        "farmId": "farmId",
+        "fleetId": "fleetId"
+      },
+      "key": null,
+      "operation": "get_fleet"
+    },
+    "identity": "fleetId",
+    "key": "fleets",
+    "operation": "list_fleets",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "farmId": "farmId"
+        },
+        "key": "farms",
+        "operation": "list_farms",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "deadline",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "deadline_license_endpoint": {
+    "detail": {
+      "arguments": {
+        "licenseEndpointId": "licenseEndpointId"
+      },
+      "key": null,
+      "operation": "get_license_endpoint"
+    },
+    "identity": "licenseEndpointId",
+    "key": "licenseEndpoints",
+    "operation": "list_license_endpoints",
+    "service": "deadline",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "devicefarm_project": {
+    "detail": {
+      "arguments": {
+        "arn": "arn"
+      },
+      "key": "project",
+      "operation": "get_project"
+    },
+    "identity": "arn",
+    "key": "projects",
+    "operation": "list_projects",
+    "service": "devicefarm",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "devicefarm_remote_access_session": {
+    "arguments": {
+      "arn": "projectArn"
+    },
+    "detail": {
+      "arguments": {
+        "arn": "arn"
+      },
+      "key": "remoteAccessSession",
+      "operation": "get_remote_access_session"
+    },
+    "identity": "arn",
+    "key": "remoteAccessSessions",
+    "operation": "list_remote_access_sessions",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "projectArn": "arn"
+        },
+        "key": "projects",
+        "operation": "list_projects",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "devicefarm",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "devicefarm_run": {
+    "arguments": {
+      "arn": "projectArn"
+    },
+    "detail": {
+      "arguments": {
+        "arn": "arn"
+      },
+      "key": "run",
+      "operation": "get_run"
+    },
+    "identity": "arn",
+    "key": "runs",
+    "operation": "list_runs",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "projectArn": "arn"
+        },
+        "key": "projects",
+        "operation": "list_projects",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "devicefarm",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "devicefarm_testgrid_project": {
+    "detail": {
+      "arguments": {
+        "projectArn": "arn"
+      },
+      "key": "testGridProject",
+      "operation": "get_test_grid_project"
+    },
+    "identity": "arn",
+    "key": "testGridProjects",
+    "operation": "list_test_grid_projects",
+    "service": "devicefarm",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "devicefarm_vpc_endpoint": {
+    "detail": {
+      "arguments": {
+        "arn": "arn"
+      },
+      "key": "vpceConfiguration",
+      "operation": "get_vpce_configuration"
+    },
+    "identity": "arn",
+    "key": "vpceConfigurations",
+    "operation": "list_vpce_configurations",
+    "service": "devicefarm",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "directory_domain_controller": {
+    "arguments": {
+      "DirectoryId": "DirectoryId"
+    },
+    "identity": "DomainControllerId",
+    "key": "DomainControllers",
+    "operation": "describe_domain_controllers",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "DirectoryId": "DirectoryId"
+        },
+        "key": "DirectoryDescriptions",
+        "operation": "describe_directories",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "ds",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "directory_region": {
+    "arguments": {
+      "DirectoryId": "DirectoryId"
+    },
+    "identity": "RegionName",
+    "key": "RegionsDescription",
+    "operation": "describe_regions",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "DirectoryId": "DirectoryId"
+        },
+        "key": "DirectoryDescriptions",
+        "operation": "describe_directories",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "ds",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "dms_instance_profile": {
+    "identity": "InstanceProfileArn",
+    "key": "InstanceProfiles",
+    "operation": "describe_instance_profiles",
+    "service": "dms",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "dms_replication_subnet_group": {
+    "identity": "ReplicationSubnetGroupIdentifier",
+    "key": "ReplicationSubnetGroups",
+    "operation": "describe_replication_subnet_groups",
+    "service": "dms",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "dms_serverless_replication": {
+    "identity": "ReplicationConfigArn",
+    "key": "ReplicationConfigs",
+    "operation": "describe_replication_configs",
+    "service": "dms",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "documentdb_elastic_cluster": {
+    "detail": {
+      "arguments": {
+        "clusterArn": "clusterArn"
+      },
+      "key": "cluster",
+      "operation": "get_cluster"
+    },
+    "identity": "clusterArn",
+    "key": "clusters",
+    "operation": "list_clusters",
+    "service": "docdb-elastic",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "drs_network_source_server": {
+    "detail": {
+      "arguments": {
+        "sourceServerID": "sourceServerID"
+      },
+      "key": null,
+      "operation": "get_replication_configuration"
+    },
+    "identity": "arn",
+    "key": "items",
+    "operation": "describe_source_servers",
+    "service": "drs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "drs_recovery_instance": {
+    "identity": "arn",
+    "key": "items",
+    "operation": "describe_recovery_instances",
+    "service": "drs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "drs_replication_template": {
+    "identity": "arn",
+    "key": "items",
+    "operation": "describe_replication_configuration_templates",
+    "service": "drs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "drs_source_network": {
+    "identity": "arn",
+    "key": "items",
+    "operation": "describe_source_networks",
+    "service": "drs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "dsql_cluster": {
+    "detail": {
+      "arguments": {
+        "identifier": "identifier"
+      },
+      "key": null,
+      "operation": "get_vpc_endpoint_service_name"
+    },
+    "identity": "arn",
+    "key": "clusters",
+    "operation": "list_clusters",
+    "service": "dsql",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "ec2_fleet": {
+    "identity": "FleetId",
+    "key": "Fleets",
+    "operation": "describe_fleets",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "ecs_capacity_provider": {
+    "arguments": {
+      "cluster": "cluster"
+    },
+    "identity": "capacityProviderArn",
+    "key": "capacityProviders",
+    "operation": "describe_capacity_providers",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "cluster": "Item"
+        },
+        "key": "clusterArns",
+        "operation": "list_clusters",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "ecs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "ecs_express_gateway_service": {
+    "arguments": {
+      "cluster": "cluster"
+    },
+    "constants": {
+      "resourceManagementType": "ECS"
+    },
+    "detail": {
+      "arguments": {
+        "serviceArn": "Item"
+      },
+      "key": "service",
+      "operation": "describe_express_gateway_service"
+    },
+    "identity": "serviceArn",
+    "key": "serviceArns",
+    "operation": "list_services",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "cluster": "Item"
+        },
+        "key": "clusterArns",
+        "operation": "list_clusters",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "ecs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "egress_only_internet_gateway": {
+    "identity": "EgressOnlyInternetGatewayId",
+    "key": "EgressOnlyInternetGateways",
+    "operation": "describe_egress_only_internet_gateways",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "eks_capability": {
+    "arguments": {
+      "clusterName": "clusterName"
+    },
+    "detail": {
+      "arguments": {
+        "capabilityName": "capabilityName",
+        "clusterName": "clusterName"
+      },
+      "key": "capability",
+      "operation": "describe_capability"
+    },
+    "identity": "arn",
+    "key": "capabilities",
+    "operation": "list_capabilities",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "clusterName": "Item"
+        },
+        "key": "clusters",
+        "operation": "list_clusters",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "eks",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "emr_container_endpoint": {
+    "arguments": {
+      "virtualClusterId": "virtualClusterId"
+    },
+    "detail": {
+      "arguments": {
+        "id": "id",
+        "virtualClusterId": "virtualClusterId"
+      },
+      "key": "endpoint",
+      "operation": "describe_managed_endpoint"
+    },
+    "identity": "arn",
+    "key": "endpoints",
+    "operation": "list_managed_endpoints",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "virtualClusterId": "id"
+        },
+        "key": "virtualClusters",
+        "operation": "list_virtual_clusters",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "emr-containers",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "emr_serverless_job": {
+    "arguments": {
+      "applicationId": "applicationId"
+    },
+    "detail": {
+      "arguments": {
+        "applicationId": "applicationId",
+        "jobRunId": "id"
+      },
+      "key": "jobRun",
+      "operation": "get_job_run"
+    },
+    "identity": "arn",
+    "key": "jobRuns",
+    "operation": "list_job_runs",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "applicationId": "id"
+        },
+        "key": "applications",
+        "operation": "list_applications",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "emr-serverless",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "emr_studio": {
+    "detail": {
+      "arguments": {
+        "StudioId": "StudioId"
+      },
+      "key": "Studio",
+      "operation": "describe_studio"
+    },
+    "identity": "StudioId",
+    "key": "Studios",
+    "operation": "list_studios",
+    "service": "emr",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "eventbridge_pipe": {
+    "detail": {
+      "arguments": {
+        "Name": "Name"
+      },
+      "key": null,
+      "operation": "describe_pipe"
+    },
+    "identity": "Arn",
+    "key": "Pipes",
+    "operation": "list_pipes",
+    "service": "pipes",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "events_api_destination": {
+    "identity": "ApiDestinationArn",
+    "key": "ApiDestinations",
+    "operation": "list_api_destinations",
+    "service": "events",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "events_network_target": {
+    "arguments": {
+      "EventBusName": "EventBusName",
+      "Rule": "Rule"
+    },
+    "identity": "Id",
+    "key": "Targets",
+    "operation": "list_targets_by_rule",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "EventBusName": "Name"
+        },
+        "key": "EventBuses",
+        "operation": "list_event_buses",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      },
+      {
+        "arguments": {
+          "EventBusName": "EventBusName"
+        },
+        "exports": {
+          "Rule": "Name"
+        },
+        "key": "Rules",
+        "operation": "list_rules",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "events",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "events_private_connection": {
+    "detail": {
+      "arguments": {
+        "Name": "Name"
+      },
+      "key": null,
+      "operation": "describe_connection"
+    },
+    "identity": "ConnectionArn",
+    "key": "Connections",
+    "operation": "list_connections",
+    "service": "events",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "evs_environment": {
+    "detail": {
+      "arguments": {
+        "environmentId": "environmentId"
+      },
+      "key": "environment",
+      "operation": "get_environment"
+    },
+    "identity": "environmentArn",
+    "key": "environmentSummaries",
+    "operation": "list_environments",
+    "service": "evs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "evs_environment_host": {
+    "arguments": {
+      "environmentId": "environmentId"
+    },
+    "identity": "hostName",
+    "key": "environmentHosts",
+    "operation": "list_environment_hosts",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "environmentId": "environmentId"
+        },
+        "key": "environmentSummaries",
+        "operation": "list_environments",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "evs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "evs_environment_vlan": {
+    "arguments": {
+      "environmentId": "environmentId"
+    },
+    "identity": "vlanId",
+    "key": "environmentVlans",
+    "operation": "list_environment_vlans",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "environmentId": "environmentId"
+        },
+        "key": "environmentSummaries",
+        "operation": "list_environments",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "evs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "finspace_kx_cluster": {
+    "arguments": {
+      "environmentId": "environmentId"
+    },
+    "detail": {
+      "arguments": {
+        "clusterName": "clusterName",
+        "environmentId": "environmentId"
+      },
+      "key": null,
+      "operation": "get_kx_cluster"
+    },
+    "identity": "clusterName",
+    "key": "kxClusterSummaries",
+    "operation": "list_kx_clusters",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "environmentId": "environmentId"
+        },
+        "key": "environments",
+        "operation": "list_kx_environments",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "finspace",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "flink_application": {
+    "detail": {
+      "arguments": {
+        "ApplicationName": "ApplicationName"
+      },
+      "key": "ApplicationDetail",
+      "operation": "describe_application"
+    },
+    "identity": "ApplicationARN",
+    "key": "ApplicationSummaries",
+    "operation": "list_applications",
+    "service": "kinesisanalyticsv2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "fsx_access_point_attachment": {
+    "identity": "Name",
+    "key": "S3AccessPointAttachments",
+    "operation": "describe_s3_access_point_attachments",
+    "service": "fsx",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "fsx_file_cache": {
+    "identity": "FileCacheId",
+    "key": "FileCaches",
+    "operation": "describe_file_caches",
+    "service": "fsx",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "fsx_volume": {
+    "identity": "VolumeId",
+    "key": "Volumes",
+    "operation": "describe_volumes",
+    "service": "fsx",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "gamelift_vpc_peering": {
+    "identity": "VpcPeeringConnectionId",
+    "key": "VpcPeeringConnections",
+    "operation": "describe_vpc_peering_connections",
+    "service": "gamelift"
+  },
+  "global_dns_resolver": {
+    "identity": "arn",
+    "key": "globalResolvers",
+    "operation": "list_global_resolvers",
+    "service": "route53globalresolver",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "global_dns_view": {
+    "arguments": {
+      "globalResolverId": "globalResolverId"
+    },
+    "detail": {
+      "arguments": {
+        "dnsViewId": "id"
+      },
+      "key": null,
+      "operation": "get_dns_view"
+    },
+    "identity": "arn",
+    "key": "dnsViews",
+    "operation": "list_dns_views",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "globalResolverId": "id"
+        },
+        "key": "globalResolvers",
+        "operation": "list_global_resolvers",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "route53globalresolver",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "groundstation_endpoint_group": {
+    "detail": {
+      "arguments": {
+        "dataflowEndpointGroupId": "dataflowEndpointGroupId"
+      },
+      "key": null,
+      "operation": "get_dataflow_endpoint_group"
+    },
+    "identity": "dataflowEndpointGroupArn",
+    "key": "dataflowEndpointGroupList",
+    "operation": "list_dataflow_endpoint_groups",
+    "service": "groundstation",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "imagebuilder_infrastructure": {
+    "detail": {
+      "arguments": {
+        "infrastructureConfigurationArn": "arn"
+      },
+      "key": "infrastructureConfiguration",
+      "operation": "get_infrastructure_configuration"
+    },
+    "identity": "arn",
+    "key": "infrastructureConfigurationSummaryList",
+    "operation": "list_infrastructure_configurations",
+    "service": "imagebuilder",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "influxdb_cluster": {
+    "detail": {
+      "arguments": {
+        "dbClusterId": "id"
+      },
+      "key": null,
+      "operation": "get_db_cluster"
+    },
+    "identity": "arn",
+    "key": "items",
+    "operation": "list_db_clusters",
+    "service": "timestream-influxdb",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "iot_rule_destination": {
+    "detail": {
+      "arguments": {
+        "arn": "arn"
+      },
+      "key": "topicRuleDestination",
+      "operation": "get_topic_rule_destination"
+    },
+    "identity": "arn",
+    "key": "destinationSummaries",
+    "operation": "list_topic_rule_destinations",
+    "service": "iot",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "kendra_data_source": {
+    "arguments": {
+      "IndexId": "IndexId"
+    },
+    "detail": {
+      "arguments": {
+        "Id": "Id",
+        "IndexId": "IndexId"
+      },
+      "key": null,
+      "operation": "describe_data_source"
+    },
+    "identity": "Id",
+    "key": "SummaryItems",
+    "operation": "list_data_sources",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "IndexId": "Id"
+        },
+        "key": "IndexConfigurationSummaryItems",
+        "operation": "list_indices",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "kendra",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "lambda_capacity_provider": {
+    "identity": "CapacityProviderArn",
+    "key": "CapacityProviders",
+    "operation": "list_capacity_providers",
+    "service": "lambda"
+  },
+  "lattice_resource_endpoint_association": {
+    "arguments": {
+      "resourceConfigurationIdentifier": "resourceConfigurationIdentifier"
+    },
+    "identity": "arn",
+    "key": "items",
+    "operation": "list_resource_endpoint_associations",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "resourceConfigurationIdentifier": "id"
+        },
+        "key": "items",
+        "operation": "list_resource_configurations",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "vpc-lattice",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "lattice_service_network_endpoint_association": {
+    "arguments": {
+      "serviceNetworkIdentifier": "serviceNetworkIdentifier"
+    },
+    "identity": "id",
+    "key": "items",
+    "operation": "list_service_network_vpc_endpoint_associations",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "serviceNetworkIdentifier": "id"
+        },
+        "key": "items",
+        "operation": "list_service_networks",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "vpc-lattice",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "license_identity_provider": {
+    "identity": "IdentityProviderArn",
+    "key": "IdentityProviderSummaries",
+    "operation": "list_identity_providers",
+    "service": "license-manager-user-subscriptions",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "local_gateway_vpc_association": {
+    "identity": "LocalGatewayRouteTableVpcAssociationId",
+    "key": "LocalGatewayRouteTableVpcAssociations",
+    "operation": "describe_local_gateway_route_table_vpc_associations",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mailmanager_ingress_point": {
+    "detail": {
+      "arguments": {
+        "IngressPointId": "IngressPointId"
+      },
+      "key": null,
+      "operation": "get_ingress_point"
+    },
+    "identity": "IngressPointId",
+    "key": "IngressPoints",
+    "operation": "list_ingress_points",
+    "service": "mailmanager",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mainframe_environment": {
+    "detail": {
+      "arguments": {
+        "environmentId": "environmentId"
+      },
+      "key": null,
+      "operation": "get_environment"
+    },
+    "identity": "environmentArn",
+    "key": "environments",
+    "operation": "list_environments",
+    "service": "m2",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "mediaconnect_bridge": {
+    "detail": {
+      "arguments": {
+        "BridgeArn": "BridgeArn"
+      },
+      "key": "Bridge",
+      "operation": "describe_bridge"
+    },
+    "identity": "BridgeArn",
+    "key": "Bridges",
+    "operation": "list_bridges",
+    "service": "mediaconnect",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mediaconnect_flow": {
+    "detail": {
+      "arguments": {
+        "FlowArn": "FlowArn"
+      },
+      "key": "Flow",
+      "operation": "describe_flow"
+    },
+    "identity": "FlowArn",
+    "key": "Flows",
+    "operation": "list_flows",
+    "service": "mediaconnect",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mediaconnect_router_input": {
+    "detail": {
+      "arguments": {
+        "Arn": "Arn"
+      },
+      "key": "RouterInput",
+      "operation": "get_router_input"
+    },
+    "identity": "Arn",
+    "key": "RouterInputs",
+    "operation": "list_router_inputs",
+    "service": "mediaconnect",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mediaconnect_router_interface": {
+    "detail": {
+      "arguments": {
+        "Arn": "Arn"
+      },
+      "key": "RouterNetworkInterface",
+      "operation": "get_router_network_interface"
+    },
+    "identity": "Arn",
+    "key": "RouterNetworkInterfaces",
+    "operation": "list_router_network_interfaces",
+    "service": "mediaconnect",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mediaconnect_router_output": {
+    "detail": {
+      "arguments": {
+        "Arn": "Arn"
+      },
+      "key": "RouterOutput",
+      "operation": "get_router_output"
+    },
+    "identity": "Arn",
+    "key": "RouterOutputs",
+    "operation": "list_router_outputs",
+    "service": "mediaconnect",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "medialive_channel": {
+    "detail": {
+      "arguments": {
+        "ChannelId": "Id"
+      },
+      "key": null,
+      "operation": "describe_channel"
+    },
+    "identity": "Arn",
+    "key": "Channels",
+    "operation": "list_channels",
+    "service": "medialive",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "medialive_cluster_node": {
+    "arguments": {
+      "ClusterId": "ClusterId"
+    },
+    "detail": {
+      "arguments": {
+        "ClusterId": "ClusterId",
+        "NodeId": "Id"
+      },
+      "key": null,
+      "operation": "describe_node"
+    },
+    "identity": "Arn",
+    "key": "Nodes",
+    "operation": "list_nodes",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "ClusterId": "Id"
+        },
+        "key": "Clusters",
+        "operation": "list_clusters",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "medialive",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "medialive_input": {
+    "detail": {
+      "arguments": {
+        "InputId": "Id"
+      },
+      "key": null,
+      "operation": "describe_input"
+    },
+    "identity": "Arn",
+    "key": "Inputs",
+    "operation": "list_inputs",
+    "service": "medialive",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "medialive_input_device": {
+    "identity": "Arn",
+    "key": "InputDevices",
+    "operation": "list_input_devices",
+    "service": "medialive",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "medialive_input_security_group": {
+    "identity": "Arn",
+    "key": "InputSecurityGroups",
+    "operation": "list_input_security_groups",
+    "service": "medialive",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mgn_replication_template": {
+    "identity": "arn",
+    "key": "items",
+    "operation": "describe_replication_configuration_templates",
+    "service": "mgn",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "mgn_source_server": {
+    "detail": {
+      "arguments": {
+        "sourceServerID": "sourceServerID"
+      },
+      "key": null,
+      "operation": "get_replication_configuration"
+    },
+    "identity": "arn",
+    "key": "items",
+    "operation": "describe_source_servers",
+    "service": "mgn",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "msk_client_vpc_connection": {
+    "arguments": {
+      "ClusterArn": "ClusterArn"
+    },
+    "identity": "VpcConnectionArn",
+    "key": "ClientVpcConnections",
+    "operation": "list_client_vpc_connections",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "ClusterArn": "ClusterArn"
+        },
+        "key": "ClusterInfoList",
+        "operation": "list_clusters_v2",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "kafka",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "msk_replicator": {
+    "detail": {
+      "arguments": {
+        "ReplicatorArn": "ReplicatorArn"
+      },
+      "key": null,
+      "operation": "describe_replicator"
+    },
+    "identity": "ReplicatorArn",
+    "key": "Replicators",
+    "operation": "list_replicators",
+    "service": "kafka",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "msk_vpc_connection": {
+    "detail": {
+      "arguments": {
+        "Arn": "VpcConnectionArn"
+      },
+      "key": null,
+      "operation": "describe_vpc_connection"
+    },
+    "identity": "VpcConnectionArn",
+    "key": "VpcConnections",
+    "operation": "list_vpc_connections",
+    "service": "kafka",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mwaa_environment": {
+    "detail": {
+      "arguments": {
+        "Name": "Item"
+      },
+      "key": "Environment",
+      "operation": "get_environment"
+    },
+    "identity": "Arn",
+    "key": "Environments",
+    "operation": "list_environments",
+    "service": "mwaa",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "mwaa_serverless_workflow": {
+    "detail": {
+      "arguments": {
+        "WorkflowArn": "WorkflowArn"
+      },
+      "key": null,
+      "operation": "get_workflow"
+    },
+    "identity": "WorkflowArn",
+    "key": "Workflows",
+    "operation": "list_workflows",
+    "service": "mwaa-serverless",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "neptune_instance": {
+    "identity": "DBInstanceArn",
+    "key": "DBInstances",
+    "operation": "describe_db_instances",
+    "service": "neptune",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "neptune_private_graph_endpoint": {
+    "arguments": {
+      "graphIdentifier": "graphIdentifier"
+    },
+    "detail": {
+      "arguments": {
+        "graphIdentifier": "graphIdentifier",
+        "vpcId": "vpcId"
+      },
+      "key": null,
+      "operation": "get_private_graph_endpoint"
+    },
+    "identity": "vpcEndpointId",
+    "key": "privateGraphEndpoints",
+    "operation": "list_private_graph_endpoints",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "graphIdentifier": "id"
+        },
+        "key": "graphs",
+        "operation": "list_graphs",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "neptune-graph",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "neptune_subnet_group": {
+    "identity": "DBSubnetGroupArn",
+    "key": "DBSubnetGroups",
+    "operation": "describe_db_subnet_groups",
+    "service": "neptune",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "network_firewall_endpoint_association": {
+    "detail": {
+      "arguments": {
+        "VpcEndpointAssociationArn": "VpcEndpointAssociationArn"
+      },
+      "key": null,
+      "operation": "describe_vpc_endpoint_association"
+    },
+    "identity": "VpcEndpointAssociationArn",
+    "key": "VpcEndpointAssociations",
+    "operation": "list_vpc_endpoint_associations",
+    "service": "network-firewall",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "network_firewall_proxy": {
+    "detail": {
+      "arguments": {
+        "ProxyArn": "Arn"
+      },
+      "key": "Proxy",
+      "operation": "describe_proxy"
+    },
+    "identity": "Arn",
+    "key": "Proxies",
+    "operation": "list_proxies",
+    "service": "network-firewall",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "network_flow_monitor": {
+    "detail": {
+      "arguments": {
+        "monitorName": "monitorName"
+      },
+      "key": null,
+      "operation": "get_monitor"
+    },
+    "identity": "monitorArn",
+    "key": "monitors",
+    "operation": "list_monitors",
+    "service": "networkflowmonitor",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "network_interface_permission": {
+    "identity": "NetworkInterfacePermissionId",
+    "key": "NetworkInterfacePermissions",
+    "operation": "describe_network_interface_permissions",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "network_monitor": {
+    "detail": {
+      "arguments": {
+        "monitorName": "monitorName"
+      },
+      "key": null,
+      "operation": "get_monitor"
+    },
+    "identity": "monitorArn",
+    "key": "monitors",
+    "operation": "list_monitors",
+    "service": "networkmonitor",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "odb_autonomous_vm_cluster": {
+    "identity": "cloudAutonomousVmClusterArn",
+    "key": "cloudAutonomousVmClusters",
+    "operation": "list_cloud_autonomous_vm_clusters",
+    "service": "odb",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "odb_network": {
+    "identity": "odbNetworkArn",
+    "key": "odbNetworks",
+    "operation": "list_odb_networks",
+    "service": "odb",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "odb_peering": {
+    "identity": "odbPeeringConnectionArn",
+    "key": "odbPeeringConnections",
+    "operation": "list_odb_peering_connections",
+    "service": "odb",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "odb_vm_cluster": {
+    "identity": "cloudVmClusterArn",
+    "key": "cloudVmClusters",
+    "operation": "list_cloud_vm_clusters",
+    "service": "odb",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "opensearch_vpc_endpoint": {
+    "detail": {
+      "arguments": {
+        "VpcEndpointIds[]": "VpcEndpointId"
+      },
+      "key": "VpcEndpoints",
+      "operation": "describe_vpc_endpoints"
+    },
+    "identity": "VpcEndpointId",
+    "key": "VpcEndpointSummaryList",
+    "operation": "list_vpc_endpoints",
+    "service": "opensearch",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "osis_endpoint_connection": {
+    "identity": "EndpointId",
+    "key": "PipelineEndpointConnections",
+    "operation": "list_pipeline_endpoint_connections",
+    "service": "osis",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "osis_pipeline_endpoint": {
+    "identity": "EndpointId",
+    "key": "PipelineEndpoints",
+    "operation": "list_pipeline_endpoints",
+    "service": "osis",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "pca_ad_connector": {
+    "identity": "Arn",
+    "key": "Connectors",
+    "operation": "list_connectors",
+    "service": "pca-connector-ad",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "pcs_cluster": {
+    "detail": {
+      "arguments": {
+        "clusterIdentifier": "id"
+      },
+      "key": "cluster",
+      "operation": "get_cluster"
+    },
+    "identity": "arn",
+    "key": "clusters",
+    "operation": "list_clusters",
+    "service": "pcs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "pcs_compute_node_group": {
+    "arguments": {
+      "clusterIdentifier": "clusterIdentifier"
+    },
+    "detail": {
+      "arguments": {
+        "clusterIdentifier": "clusterIdentifier",
+        "computeNodeGroupIdentifier": "id"
+      },
+      "key": "computeNodeGroup",
+      "operation": "get_compute_node_group"
+    },
+    "identity": "arn",
+    "key": "computeNodeGroups",
+    "operation": "list_compute_node_groups",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "clusterIdentifier": "id"
+        },
+        "key": "clusters",
+        "operation": "list_clusters",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "pcs",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "prometheus_scraper": {
+    "identity": "arn",
+    "key": "scrapers",
+    "operation": "list_scrapers",
+    "service": "amp",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "qbusiness_data_source": {
+    "arguments": {
+      "applicationId": "applicationId",
+      "indexId": "indexId"
+    },
+    "detail": {
+      "arguments": {
+        "applicationId": "applicationId",
+        "dataSourceId": "dataSourceId",
+        "indexId": "indexId"
+      },
+      "key": null,
+      "operation": "get_data_source"
+    },
+    "identity": "dataSourceId",
+    "key": "dataSources",
+    "operation": "list_data_sources",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "applicationId": "applicationId"
+        },
+        "key": "applications",
+        "operation": "list_applications",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      },
+      {
+        "arguments": {
+          "applicationId": "applicationId"
+        },
+        "exports": {
+          "indexId": "indexId"
+        },
+        "key": "indices",
+        "operation": "list_indices",
+        "tokens": [
+          "nextToken",
+          "nextToken"
+        ]
+      }
+    ],
+    "service": "qbusiness",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "quicksight_action_connector": {
+    "arguments": {
+      "AwsAccountId": "NetworkAccountId"
+    },
+    "detail": {
+      "arguments": {
+        "ActionConnectorId": "ActionConnectorId",
+        "AwsAccountId": "NetworkAccountId"
+      },
+      "key": "ActionConnector",
+      "operation": "describe_action_connector"
+    },
+    "identity": "Arn",
+    "key": "ActionConnectorSummaries",
+    "operation": "list_action_connectors",
+    "service": "quicksight",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "quicksight_data_source": {
+    "arguments": {
+      "AwsAccountId": "NetworkAccountId"
+    },
+    "identity": "Arn",
+    "key": "DataSources",
+    "operation": "list_data_sources",
+    "service": "quicksight",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "quicksight_network_restrictions": {
+    "arguments": {
+      "AwsAccountId": "NetworkAccountId"
+    },
+    "identity": "AwsAccountId",
+    "key": null,
+    "operation": "describe_ip_restriction",
+    "service": "quicksight",
+    "single": true
+  },
+  "rds_proxy_endpoint": {
+    "identity": "DBProxyEndpointArn",
+    "key": "DBProxyEndpoints",
+    "operation": "describe_db_proxy_endpoints",
+    "service": "rds",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "redshift_endpoint": {
+    "identity": "EndpointName",
+    "key": "EndpointAccessList",
+    "operation": "describe_endpoint_access",
+    "service": "redshift",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "redshift_serverless_endpoint": {
+    "identity": "endpointArn",
+    "key": "endpoints",
+    "operation": "list_endpoint_access",
+    "service": "redshift-serverless",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "refactor_application": {
+    "arguments": {
+      "EnvironmentIdentifier": "EnvironmentIdentifier"
+    },
+    "detail": {
+      "arguments": {
+        "ApplicationIdentifier": "ApplicationId",
+        "EnvironmentIdentifier": "EnvironmentIdentifier"
+      },
+      "key": null,
+      "operation": "get_application"
+    },
+    "identity": "Arn",
+    "key": "ApplicationSummaryList",
+    "operation": "list_applications",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "EnvironmentIdentifier": "EnvironmentId"
+        },
+        "key": "EnvironmentSummaryList",
+        "operation": "list_environments",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "migration-hub-refactor-spaces",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "refactor_environment_vpc": {
+    "arguments": {
+      "EnvironmentIdentifier": "EnvironmentIdentifier"
+    },
+    "identity": "VpcId",
+    "key": "EnvironmentVpcList",
+    "operation": "list_environment_vpcs",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "EnvironmentIdentifier": "EnvironmentId"
+        },
+        "key": "EnvironmentSummaryList",
+        "operation": "list_environments",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "migration-hub-refactor-spaces",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "refactor_service": {
+    "arguments": {
+      "ApplicationIdentifier": "ApplicationIdentifier",
+      "EnvironmentIdentifier": "EnvironmentIdentifier"
+    },
+    "detail": {
+      "arguments": {
+        "ApplicationIdentifier": "ApplicationIdentifier",
+        "EnvironmentIdentifier": "EnvironmentIdentifier",
+        "ServiceIdentifier": "ServiceId"
+      },
+      "key": null,
+      "operation": "get_service"
+    },
+    "identity": "Arn",
+    "key": "ServiceSummaryList",
+    "operation": "list_services",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "EnvironmentIdentifier": "EnvironmentId"
+        },
+        "key": "EnvironmentSummaryList",
+        "operation": "list_environments",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      },
+      {
+        "arguments": {
+          "EnvironmentIdentifier": "EnvironmentIdentifier"
+        },
+        "exports": {
+          "ApplicationIdentifier": "ApplicationId"
+        },
+        "key": "ApplicationSummaryList",
+        "operation": "list_applications",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "migration-hub-refactor-spaces",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "route_server": {
+    "identity": "RouteServerId",
+    "key": "RouteServers",
+    "operation": "describe_route_servers",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "route_server_association": {
+    "arguments": {
+      "RouteServerId": "RouteServerId"
+    },
+    "identity": "VpcId",
+    "key": "RouteServerAssociations",
+    "operation": "get_route_server_associations",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "RouteServerId": "RouteServerId"
+        },
+        "key": "RouteServers",
+        "operation": "describe_route_servers",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "ec2"
+  },
+  "route_server_endpoint": {
+    "identity": "RouteServerEndpointId",
+    "key": "RouteServerEndpoints",
+    "operation": "describe_route_server_endpoints",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "route_server_peer": {
+    "identity": "RouteServerPeerId",
+    "key": "RouteServerPeers",
+    "operation": "describe_route_server_peers",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "rtb_requester_gateway": {
+    "detail": {
+      "arguments": {
+        "gatewayId": "Item"
+      },
+      "key": null,
+      "operation": "get_requester_gateway"
+    },
+    "identity": "gatewayId",
+    "key": "gatewayIds",
+    "operation": "list_requester_gateways",
+    "service": "rtbfabric",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "rtb_responder_gateway": {
+    "detail": {
+      "arguments": {
+        "gatewayId": "Item"
+      },
+      "key": null,
+      "operation": "get_responder_gateway"
+    },
+    "identity": "gatewayId",
+    "key": "gatewayIds",
+    "operation": "list_responder_gateways",
+    "service": "rtbfabric",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "s3_outposts_endpoint": {
+    "identity": "EndpointArn",
+    "key": "Endpoints",
+    "operation": "list_endpoints",
+    "service": "s3outposts",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "s3_outposts_shared_endpoint": {
+    "arguments": {
+      "OutpostId": "OutpostId"
+    },
+    "identity": "EndpointArn",
+    "key": "Endpoints",
+    "operation": "list_shared_endpoints",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "OutpostId": "OutpostId"
+        },
+        "key": "Outposts",
+        "operation": "list_outposts_with_s3",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "s3outposts",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_automl_job": {
+    "detail": {
+      "arguments": {
+        "AutoMLJobName": "AutoMLJobName"
+      },
+      "key": null,
+      "operation": "describe_auto_ml_job"
+    },
+    "identity": "AutoMLJobName",
+    "key": "AutoMLJobSummaries",
+    "operation": "list_auto_ml_jobs",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_compilation_job": {
+    "detail": {
+      "arguments": {
+        "CompilationJobName": "CompilationJobName"
+      },
+      "key": null,
+      "operation": "describe_compilation_job"
+    },
+    "identity": "CompilationJobName",
+    "key": "CompilationJobSummaries",
+    "operation": "list_compilation_jobs",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_data_quality_job_definition": {
+    "detail": {
+      "arguments": {
+        "JobDefinitionName": "MonitoringJobDefinitionName"
+      },
+      "key": null,
+      "operation": "describe_data_quality_job_definition"
+    },
+    "identity": "MonitoringJobDefinitionArn",
+    "key": "JobDefinitionSummaries",
+    "operation": "list_data_quality_job_definitions",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_hyperparameter_tuning_job": {
+    "detail": {
+      "arguments": {
+        "HyperParameterTuningJobName": "HyperParameterTuningJobName"
+      },
+      "key": null,
+      "operation": "describe_hyper_parameter_tuning_job"
+    },
+    "identity": "HyperParameterTuningJobName",
+    "key": "HyperParameterTuningJobSummaries",
+    "operation": "list_hyper_parameter_tuning_jobs",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_inference_recommendation_job": {
+    "detail": {
+      "arguments": {
+        "JobName": "JobName"
+      },
+      "key": null,
+      "operation": "describe_inference_recommendations_job"
+    },
+    "identity": "JobName",
+    "key": "InferenceRecommendationsJobs",
+    "operation": "list_inference_recommendations_jobs",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_labeling_job": {
+    "detail": {
+      "arguments": {
+        "LabelingJobName": "LabelingJobName"
+      },
+      "key": null,
+      "operation": "describe_labeling_job"
+    },
+    "identity": "LabelingJobName",
+    "key": "LabelingJobSummaryList",
+    "operation": "list_labeling_jobs",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_model_bias_job_definition": {
+    "detail": {
+      "arguments": {
+        "JobDefinitionName": "MonitoringJobDefinitionName"
+      },
+      "key": null,
+      "operation": "describe_model_bias_job_definition"
+    },
+    "identity": "MonitoringJobDefinitionArn",
+    "key": "JobDefinitionSummaries",
+    "operation": "list_model_bias_job_definitions",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_model_explainability_job_definition": {
+    "detail": {
+      "arguments": {
+        "JobDefinitionName": "MonitoringJobDefinitionName"
+      },
+      "key": null,
+      "operation": "describe_model_explainability_job_definition"
+    },
+    "identity": "MonitoringJobDefinitionArn",
+    "key": "JobDefinitionSummaries",
+    "operation": "list_model_explainability_job_definitions",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_model_quality_job_definition": {
+    "detail": {
+      "arguments": {
+        "JobDefinitionName": "MonitoringJobDefinitionName"
+      },
+      "key": null,
+      "operation": "describe_model_quality_job_definition"
+    },
+    "identity": "MonitoringJobDefinitionArn",
+    "key": "JobDefinitionSummaries",
+    "operation": "list_model_quality_job_definitions",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_monitoring_schedule": {
+    "detail": {
+      "arguments": {
+        "MonitoringScheduleName": "MonitoringScheduleName"
+      },
+      "key": null,
+      "operation": "describe_monitoring_schedule"
+    },
+    "identity": "MonitoringScheduleName",
+    "key": "MonitoringScheduleSummaries",
+    "operation": "list_monitoring_schedules",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_optimization_job": {
+    "detail": {
+      "arguments": {
+        "OptimizationJobName": "OptimizationJobName"
+      },
+      "key": null,
+      "operation": "describe_optimization_job"
+    },
+    "identity": "OptimizationJobName",
+    "key": "OptimizationJobSummaries",
+    "operation": "list_optimization_jobs",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_workforce": {
+    "detail": {
+      "arguments": {
+        "WorkforceName": "WorkforceName"
+      },
+      "key": "Workforce",
+      "operation": "describe_workforce"
+    },
+    "identity": "WorkforceArn",
+    "key": "Workforces",
+    "operation": "list_workforces",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "sagemaker_workteam": {
+    "identity": "WorkteamArn",
+    "key": "Workteams",
+    "operation": "list_workteams",
+    "service": "sagemaker",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "scheduler_network_schedule": {
+    "detail": {
+      "arguments": {
+        "GroupName": "GroupName",
+        "Name": "Name"
+      },
+      "key": null,
+      "operation": "get_schedule"
+    },
+    "identity": "Arn",
+    "key": "Schedules",
+    "operation": "list_schedules",
+    "service": "scheduler",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "security_group_rule": {
+    "identity": "SecurityGroupRuleId",
+    "key": "SecurityGroupRules",
+    "operation": "describe_security_group_rules",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "security_group_vpc_association": {
+    "identity": "GroupId",
+    "identity_fields": [
+      "GroupId",
+      "VpcId"
+    ],
+    "key": "SecurityGroupVpcAssociations",
+    "operation": "describe_security_group_vpc_associations",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "spot_instance_request": {
+    "identity": "SpotInstanceRequestId",
+    "key": "SpotInstanceRequests",
+    "operation": "describe_spot_instance_requests",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "storagegateway_cached_iscsi_volume": {
+    "detail": {
+      "arguments": {
+        "VolumeARNs[]": "VolumeARN"
+      },
+      "key": "CachediSCSIVolumes",
+      "operation": "describe_cached_iscsi_volumes"
+    },
+    "identity": "VolumeARN",
+    "key": "VolumeInfos",
+    "match": {
+      "VolumeType": "CACHED"
+    },
+    "operation": "list_volumes",
+    "service": "storagegateway",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "storagegateway_filesystem_association": {
+    "detail": {
+      "arguments": {
+        "FileSystemAssociationARNList[]": "FileSystemAssociationARN"
+      },
+      "key": "FileSystemAssociationInfoList",
+      "operation": "describe_file_system_associations"
+    },
+    "identity": "FileSystemAssociationARN",
+    "key": "FileSystemAssociationSummaryList",
+    "operation": "list_file_system_associations",
+    "service": "storagegateway",
+    "tokens": [
+      "Marker",
+      "NextMarker"
+    ]
+  },
+  "storagegateway_stored_iscsi_volume": {
+    "detail": {
+      "arguments": {
+        "VolumeARNs[]": "VolumeARN"
+      },
+      "key": "StorediSCSIVolumes",
+      "operation": "describe_stored_iscsi_volumes"
+    },
+    "identity": "VolumeARN",
+    "key": "VolumeInfos",
+    "match": {
+      "VolumeType": "STORED"
+    },
+    "operation": "list_volumes",
+    "service": "storagegateway",
+    "tokens": [
+      "Marker",
+      "Marker"
+    ]
+  },
+  "subnet_cidr_reservations": {
+    "detail": {
+      "arguments": {
+        "SubnetId": "SubnetId"
+      },
+      "key": null,
+      "operation": "get_subnet_cidr_reservations",
+      "tokens": [
+        "NextToken",
+        "NextToken"
+      ]
+    },
+    "identity": "SubnetId",
+    "key": "Subnets",
+    "operation": "describe_subnets",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "synthetics_canary": {
+    "identity": "Id",
+    "key": "Canaries",
+    "operation": "describe_canaries",
+    "service": "synthetics",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "traffic_mirror_session": {
+    "identity": "TrafficMirrorSessionId",
+    "key": "TrafficMirrorSessions",
+    "operation": "describe_traffic_mirror_sessions",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "traffic_mirror_target": {
+    "identity": "TrafficMirrorTargetId",
+    "key": "TrafficMirrorTargets",
+    "operation": "describe_traffic_mirror_targets",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "transfer_web_app": {
+    "detail": {
+      "arguments": {
+        "WebAppId": "WebAppId"
+      },
+      "key": "WebApp",
+      "operation": "describe_web_app"
+    },
+    "identity": "Arn",
+    "key": "WebApps",
+    "operation": "list_web_apps",
+    "service": "transfer",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "vpc_encryption_control": {
+    "identity": "VpcEncryptionControlId",
+    "key": "VpcEncryptionControls",
+    "operation": "describe_vpc_encryption_controls",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "vpc_endpoint_association": {
+    "identity": "Id",
+    "key": "VpcEndpointAssociations",
+    "operation": "describe_vpc_endpoint_associations",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "vpc_endpoint_connection": {
+    "identity": "VpcEndpointConnectionId",
+    "key": "VpcEndpointConnections",
+    "operation": "describe_vpc_endpoint_connections",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "vpc_flow_log_rule": {
+    "detail": {
+      "arguments": {
+        "RuleIdentifier": "RuleArn"
+      },
+      "key": null,
+      "operation": "get_telemetry_rule"
+    },
+    "identity": "RuleArn",
+    "key": "TelemetryRuleSummaries",
+    "match": {
+      "ResourceType": "AWS::EC2::VPC"
+    },
+    "operation": "list_telemetry_rules",
+    "service": "observabilityadmin",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "vpc_flow_log_rule_organization": {
+    "detail": {
+      "arguments": {
+        "RuleIdentifier": "RuleArn"
+      },
+      "key": null,
+      "operation": "get_telemetry_rule_for_organization"
+    },
+    "identity": "RuleArn",
+    "key": "TelemetryRuleSummaries",
+    "match": {
+      "ResourceType": "AWS::EC2::VPC"
+    },
+    "operation": "list_telemetry_rules_for_organization",
+    "service": "observabilityadmin",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "vpc_public_access_exclusion": {
+    "identity": "ExclusionId",
+    "key": "VpcBlockPublicAccessExclusions",
+    "operation": "describe_vpc_block_public_access_exclusions",
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "vpc_security_group_membership": {
+    "arguments": {
+      "VpcId": "VpcId"
+    },
+    "identity": "GroupId",
+    "key": "SecurityGroupForVpcs",
+    "operation": "get_security_groups_for_vpc",
+    "parents": [
+      {
+        "arguments": {},
+        "exports": {
+          "VpcId": "VpcId"
+        },
+        "key": "Vpcs",
+        "operation": "describe_vpcs",
+        "tokens": [
+          "NextToken",
+          "NextToken"
+        ]
+      }
+    ],
+    "service": "ec2",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "workspace_directory": {
+    "identity": "DirectoryId",
+    "key": "Directories",
+    "operation": "describe_workspace_directories",
+    "service": "workspaces",
+    "tokens": [
+      "NextToken",
+      "NextToken"
+    ]
+  },
+  "workspace_web_network_settings": {
+    "detail": {
+      "arguments": {
+        "networkSettingsArn": "networkSettingsArn"
+      },
+      "key": "networkSettings",
+      "operation": "get_network_settings"
+    },
+    "identity": "networkSettingsArn",
+    "key": "networkSettings",
+    "operation": "list_network_settings",
+    "service": "workspaces-web",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  },
+  "workspace_web_portal": {
+    "identity": "portalArn",
+    "key": "portals",
+    "operation": "list_portals",
+    "service": "workspaces-web",
+    "tokens": [
+      "nextToken",
+      "nextToken"
+    ]
+  }
+}

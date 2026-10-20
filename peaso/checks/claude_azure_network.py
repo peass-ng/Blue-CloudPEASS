@@ -679,7 +679,7 @@ CASES[cid("mssql_managed_instance_tde_cmk")] = {
         remediation="Enable Microsoft Defender for SQL and configure vulnerability assessment with recurring scans on the managed instance.")
 def claude_mssql_managed_instance_vulnerability_assessment(item, index):
     for assessment in list_of_objects(get(item, "vulnerabilityAssessments", list)):
-        if get(assessment, "name", str) == "Default" and get(assessment, "properties.recurringScans.isEnabled", bool):
+        if get(assessment, "name", str).casefold() == "default" and get(assessment, "properties.recurringScans.isEnabled", bool):
             return result(False, recurring_scans_enabled=True)
     return result(True, recurring_scans_enabled=False, reason="no Default vulnerability assessment with recurring scans enabled")
 
@@ -1150,22 +1150,32 @@ def claude_recovery_vault_backup_retention_30_days(item, index):
     policies = list_of_objects(get(item, "backupPolicies", list))
     if not policies:
         return result(True, reason="no backup policies configured")
-    evaluated, short = 0, []
+    evaluated, short, unresolved = 0, [], []
     for policy in policies:
         retention = optional(get(policy, "properties", dict), "retentionPolicy", None)
         daily = retention.get("dailySchedule") if isinstance(retention, dict) else None
         if daily is None:
             continue
-        count = get(daily, "retentionDuration.count", int)
+        duration = get(daily, "retentionDuration", dict)
+        count = get(duration, "count", int)
+        unit = get(duration, "durationType", str)
+        if count <= 0 or unit not in ("Days", "Weeks", "Months", "Years"):
+            return unknown("malformed or unrecognized native backup retention duration", policy=policy.get("name"))
+        # Months are calendar durations: one month can be shorter than 30 days.
+        if unit == "Months" and count == 1:
+            unresolved.append(policy.get("name"))
+            continue
+        minimum_days = count * {"Days": 1, "Weeks": 7, "Months": 28, "Years": 365}[unit]
         evaluated += 1
-        if count < 30:
-            short.append({"policy": policy.get("name"), "days": count})
+        if minimum_days < 30:
+            short.append({"policy": policy.get("name"), "count": count, "duration_type": unit})
     if short:
         return result(True, short_policies=short)
+    if unresolved:
+        return unknown("calendar month retention cannot establish the 30-day threshold", policies=unresolved)
     if not evaluated:
         return "NOT_APPLICABLE", {"reason": "no daily-schedule retention policies"}
-    return result(False, evaluated_policies=evaluated)
-
+    return result(False, evaluated_policies=evaluated, semantics="declared backup policy retention only; restore and delivery are separate")
 
 def _policy(days):
     return {"name": "DefaultPolicy", "properties": {"retentionPolicy": {"dailySchedule": {"retentionDuration": {"count": days}}}}}

@@ -82,7 +82,9 @@ def collect_native_pipeline(monkeypatch, payload=None, *, format_name='zip', med
     class MetadataResponse:
         status_code = 200
         headers = {}
-        def __init__(self, data): self.data = data
+        def __init__(self, data):
+            self.data = data
+            self.content = json.dumps(data).encode("utf-8")
         def json(self): return deepcopy(self.data)
     def request(method, url, **kwargs):
         calls.append((method, url, kwargs))

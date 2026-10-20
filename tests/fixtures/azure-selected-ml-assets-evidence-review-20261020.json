@@ -1,0 +1,182 @@
+{
+  "azure.review.machine_learning.selected_environment_conda_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected inline Conda text. Only captured text was inspected.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_captured_ml_asset_text_only",
+        "immutable_source_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 65,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected inline Conda text."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected inline Conda text. Its value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "b0bc0ada5a7f87186da2e2094ea8d97520bc488c39112d40efd131279485dde5",
+            "locations": [
+              {
+                "line": 5,
+                "path": "azure_ml_selected_environment_conda:ff5039c138b4b24343d5891f309c58e07ed7eb4d8d3120d69facba2d0a1688a2.environment"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_captured_ml_asset_text_only",
+        "immutable_source_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 95,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected inline Conda text. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected ML asset text was unavailable, unbound or incompletely inspected. A clean source result cannot be established."
+      },
+      "summary": "Selected ML asset text was unavailable, unbound or incompletely inspected. A clean source result cannot be established."
+    }
+  ],
+  "azure.review.machine_learning.selected_code_file_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected associated code source file. Only captured text was inspected.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_captured_ml_asset_text_only",
+        "immutable_source_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 16,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected associated code file."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected associated code source file. Its value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "b0bc0ada5a7f87186da2e2094ea8d97520bc488c39112d40efd131279485dde5",
+            "locations": [
+              {
+                "line": 1,
+                "path": "azure_ml_selected_code_file:c6f19e097a53cca93d62b1a6fc882878c65bab10cf3caaf4da767edce5ef4b68.code"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_captured_ml_asset_text_only",
+        "immutable_source_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected associated code file. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected ML asset text was unavailable, unbound or incompletely inspected. A clean source result cannot be established."
+      },
+      "summary": "Selected ML asset text was unavailable, unbound or incompletely inspected. A clean source result cannot be established."
+    }
+  ]
+}

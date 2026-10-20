@@ -1,0 +1,199 @@
+{
+  "provenance": "normal engine, boto3 Stubber, real offline detectors, synthetic contents, all network blocked",
+  "records": [
+    {
+      "case": "clean",
+      "findings": [
+        {
+          "id": "sha256:3a742951d7b3c460b7bd20144b20c19e8923f50c713bf37a30a5de1cf5d85595",
+          "check_id": "aws.review.workload.selected_command_literal_secret_indicators",
+          "provider": "aws",
+          "resource_id": "sha256:20b0c85bc7f7aad546d5ce0a51e723e9eb0098e65d04e56f2a80b2e0cf8f48aa",
+          "scope": "123456789012/us-east-1",
+          "status": "PASS",
+          "evidence": {
+            "observed": "Both offline detectors completed without detecting supported secrets in every selected returned command array. Coverage is limited to the selected active definition revisions.",
+            "secret_leaks": [],
+            "complete": true,
+            "credential_validation": "not_attempted",
+            "coverage": "selected_definition_command_literals_only"
+          },
+          "native_resource_id": "aws_selected_workload_command_literals:summary",
+          "region": "us-east-1",
+          "resource_name": "aws_selected_workload_command_literals:summary"
+        }
+      ]
+    },
+    {
+      "case": "positive",
+      "findings": [
+        {
+          "id": "secret-9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+          "check_id": "aws.review.workload.selected_command_literal_secret_indicators",
+          "provider": "aws",
+          "resource_id": "secret:9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+          "scope": "123456789012/us-east-1",
+          "status": "FAIL",
+          "evidence": {
+            "secret_leaks": [
+              {
+                "fingerprint": "9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+                "detectors": [
+                  {
+                    "engine": "kingfisher",
+                    "rule": "betterleaks.github-pat"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "rule": "Github"
+                  }
+                ],
+                "locations": [
+                  {
+                    "path": "aws_selected_workload_command_literals:ddd30e060cfab971ae3093030d1ed9f3709c383d47627691dddba115c2f68ba2:f6224c53974c1c95a61be23b72dc5497007f68ca7da08e0b87b96c7cb6458191",
+                    "line": 1,
+                    "resource_id": "aws_selected_workload_command_literals:leak:9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+                    "scope": "123456789012/us-east-1"
+                  }
+                ]
+              }
+            ],
+            "credential_validation": "not_attempted",
+            "observed": "The same secret was detected in 1 scanned location(s). Its value is hidden."
+          },
+          "region": "us-east-1",
+          "resource_name": "Exposed secret",
+          "secret_fingerprint": "9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+          "linked_check_ids": [
+            "aws.review.workload.selected_command_literal_secret_indicators"
+          ],
+          "evidence_summary": "The same secret was detected in 1 scanned location(s). Its value is hidden."
+        }
+      ]
+    },
+    {
+      "case": "partial_positive",
+      "findings": [
+        {
+          "id": "sha256:eb35533eff8e7d7eeb5c344ea487fa5a5a6d0ce6ae5918acf32f34cadda11aee",
+          "check_id": "aws.review.workload.selected_command_literal_secret_indicators",
+          "title": "Selected ECS and Batch command literals have no detected secrets",
+          "provider": "aws",
+          "resource_id": "inventory:aws_selected_workload_command_literals",
+          "scope": "123456789012/us-east-1",
+          "status": "UNKNOWN",
+          "evidence": {
+            "collection_status": "partial",
+            "reason": "no collected resources",
+            "semantics": "Inventory coverage, not a resource security pass."
+          }
+        },
+        {
+          "id": "secret-9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+          "check_id": "aws.review.workload.selected_command_literal_secret_indicators",
+          "provider": "aws",
+          "resource_id": "secret:9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+          "scope": "123456789012/us-east-1",
+          "status": "FAIL",
+          "evidence": {
+            "secret_leaks": [
+              {
+                "fingerprint": "9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+                "detectors": [
+                  {
+                    "engine": "kingfisher",
+                    "rule": "betterleaks.github-pat"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "rule": "Github"
+                  }
+                ],
+                "locations": [
+                  {
+                    "path": "aws_selected_workload_command_literals:ddd30e060cfab971ae3093030d1ed9f3709c383d47627691dddba115c2f68ba2:f6224c53974c1c95a61be23b72dc5497007f68ca7da08e0b87b96c7cb6458191",
+                    "line": 1,
+                    "resource_id": "aws_selected_workload_command_literals:leak:9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+                    "scope": "123456789012/us-east-1"
+                  }
+                ]
+              }
+            ],
+            "credential_validation": "not_attempted",
+            "complete": false,
+            "coverage": "incomplete",
+            "observed": "The same secret was detected in 1 scanned location(s). Its value is hidden. Coverage is incomplete."
+          },
+          "region": "us-east-1",
+          "resource_name": "Exposed secret",
+          "secret_fingerprint": "9ddece08da13cfed16eaaf878421c100ff19f40ddb965c1e41c0ad8fd92aaccc",
+          "linked_check_ids": [
+            "aws.review.workload.selected_command_literal_secret_indicators"
+          ],
+          "evidence_summary": "The same secret was detected in 1 scanned location(s). Its value is hidden. Coverage is incomplete."
+        }
+      ]
+    },
+    {
+      "case": "missing",
+      "findings": [
+        {
+          "id": "sha256:eb35533eff8e7d7eeb5c344ea487fa5a5a6d0ce6ae5918acf32f34cadda11aee",
+          "check_id": "aws.review.workload.selected_command_literal_secret_indicators",
+          "provider": "aws",
+          "resource_id": "inventory:aws_selected_workload_command_literals",
+          "scope": "123456789012/us-east-1",
+          "status": "UNKNOWN",
+          "evidence": {
+            "collection_status": "partial",
+            "reason": "no collected resources",
+            "semantics": "Inventory coverage, not a resource security pass."
+          }
+        },
+        {
+          "id": "sha256:3a742951d7b3c460b7bd20144b20c19e8923f50c713bf37a30a5de1cf5d85595",
+          "check_id": "aws.review.workload.selected_command_literal_secret_indicators",
+          "provider": "aws",
+          "resource_id": "sha256:20b0c85bc7f7aad546d5ce0a51e723e9eb0098e65d04e56f2a80b2e0cf8f48aa",
+          "scope": "123456789012/us-east-1",
+          "status": "UNKNOWN",
+          "evidence": {
+            "observed": "Selected command literal coverage was incomplete. Secret absence could not be assessed.",
+            "reason": "unknown_reason_not_supplied"
+          },
+          "native_resource_id": "aws_selected_workload_command_literals:summary",
+          "region": "us-east-1",
+          "resource_name": "aws_selected_workload_command_literals:summary"
+        }
+      ]
+    }
+  ],
+  "browser_summaries": {
+    "aws.review.workload.selected_command_literal_secret_indicators": [
+      {
+        "status": "PASS",
+        "summary": "Both offline detectors found no supported secret in the selected ECS or Batch command literals. Only selected definition command literals are covered; image defaults and runtime overrides are not assessed."
+      },
+      {
+        "status": "FAIL",
+        "summary": "A likely secret was detected in selected ECS or Batch command literals. Its value is hidden and was not validated. Only selected definition command literals are covered; image defaults and runtime overrides are not assessed."
+      },
+      {
+        "status": "UNKNOWN",
+        "summary": "Required evidence is unavailable; this check is undetermined. Only selected definition command literals are covered; image defaults and runtime overrides are not assessed."
+      },
+      {
+        "status": "FAIL",
+        "summary": "A likely secret was detected in selected ECS or Batch command literals. Its value is hidden and was not validated; inspection is incomplete. Only selected definition command literals are covered; image defaults and runtime overrides are not assessed."
+      },
+      {
+        "status": "UNKNOWN",
+        "summary": "Required evidence is unavailable; this check is undetermined. Only selected definition command literals are covered; image defaults and runtime overrides are not assessed."
+      },
+      {
+        "status": "UNKNOWN",
+        "summary": "The selected ECS or Batch command literals could not be completely inspected. The check remains undetermined. Only selected definition command literals are covered; image defaults and runtime overrides are not assessed."
+      }
+    ]
+  }
+}

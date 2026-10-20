@@ -5,8 +5,9 @@ needs both stays UNKNOWN until the engine exposes the tenant directory inventory
 """
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
-from ipaddress import ip_network
+from ipaddress import collapse_addresses, ip_network
 import re
+from fnmatch import fnmatchcase
 from .claude_azure_common import *  # noqa: F401,F403
 from .facts import unique_join
 from .azure_policy_periods import rotation_interval_supported
@@ -102,7 +103,7 @@ def _assignable_scopes(definition):
 def _users(index):
     users = {}
     for user in scoped(index, "directory_user"):
-        users[get(user, "id", str)] = user
+        users[get(user, "id", str).casefold()] = user
     return users
 
 
@@ -121,7 +122,7 @@ def _user_assignments(index, roles=None):
     for assignment in scoped(index, "role_assignment"):
         if _principal_type(assignment) != "User" or (roles is not None and _role_guid(assignment) not in roles):
             continue
-        user = users.get(_principal(assignment))
+        user = users.get(_principal(assignment).casefold())
         if user is None:
             raise Unavailable("role assignment user principal not present in the directory inventory")
         pairs.append((assignment, user))
@@ -129,6 +130,49 @@ def _user_assignments(index, roles=None):
 
 
 def _mfa_capable(index, user_id):
+    """Registration joins require one complete authenticated Graph capture."""
+    from .azure_graph_credential_age import _guid
+    context = get(index, "context", dict)
+    metadata = get(context, "metadata", dict)
+    if get(context, "provider", str) != "azure" or get(metadata, "tenant_verified", bool) is not True:
+        raise Unavailable("registration tenant authority unavailable")
+    tenant = _guid(get(metadata, "tenant_id", str))
+    scope = get(context, "scope", str)
+    if scope.casefold().startswith("/subscriptions/"):
+        bindings = get(metadata, "subscription_tenants", dict)
+        if str(bindings.get(scope, "")).casefold() != tenant:
+            raise Unavailable("registration subscription tenant binding unavailable")
+    elif scope.casefold() != "/tenants/" + tenant:
+        raise Unavailable("registration scope differs from authenticated tenant")
+    envelopes = get(index, "collections", dict).get("user_registration_detail")
+    if not isinstance(envelopes, list) or len(envelopes) != 1:
+        raise Unavailable("registration ledger missing or ambiguous")
+    envelope = envelopes[0]
+    if (get(envelope, "service", str) != "Microsoft.Graph"
+            or get(envelope, "scope", str).casefold() != "/tenants/" + tenant):
+        raise Unavailable("registration inventory belongs to another tenant")
+    def captured(proof, *, row=False):
+        if (get(proof, "tenant_verified", bool) is not True
+                or _guid(get(proof, "tenant_id", str)) != tenant):
+            raise Unavailable("registration tenant provenance differs")
+        for key in ("credential_context_id", "customer_context_id"):
+            expected = get(metadata, key, str)
+            if not expected or get(proof, key, str) != expected:
+                raise Unavailable("registration capture or customer differs")
+        if row and (get(proof, "read_only", bool) is not True
+                    or get(proof, "endpoint", str) != "/v1.0/reports/authenticationMethods/userRegistrationDetails"):
+            raise Unavailable("registration native source endpoint unavailable")
+    captured(get(envelope, "_provenance", dict))
+    rows = scoped(index, "user_registration_detail")
+    if get(envelope, "items", list) != rows:
+        raise Unavailable("registration ledger differs from projected rows")
+    seen = set()
+    for row in rows:
+        rid = _guid(get(row, "id", str))
+        if rid in seen:
+            raise Unavailable("duplicate registration subject")
+        seen.add(rid)
+        captured(get(row, "_provenance", dict), row=True)
     detail = unique_join(index, "user_registration_detail", "id", user_id)
     return get(detail, "isMfaCapable", bool)
 
@@ -403,19 +447,66 @@ CASES[cid("entra_auth_methods_strong_registration")] = {
 
 # --- Entra ID: tenant aggregates anchored on the ARM tenant item ------------------------------------------
 
+def _ca_mfa_requirement(policy):
+    """Prove a declared MFA mandate without treating OR alternatives as MFA."""
+    controls = _ca_controls(policy)
+    grant = get(policy, "grantControls")
+    if grant is None:
+        return False  # A session-only policy declares no grant requirement.
+    if not isinstance(grant, dict):
+        raise Unavailable("malformed grant controls")
+    factors = optional(grant, "customAuthenticationFactors", [], list)
+    terms = optional(grant, "termsOfUse", [], list)
+    if any(not isinstance(value, str) or not value for value in factors + terms):
+        raise Unavailable("malformed custom grant alternatives")
+    strength = optional(grant, "authenticationStrength", None)
+    if strength is not None and not isinstance(strength, dict):
+        raise Unavailable("malformed authentication strength reference")
+    if "block" in controls:
+        return None if len(controls) != 1 or factors or terms or strength else False
+    if any(control in ("passwordChange", "riskRemediation") for control in controls):
+        return None  # These controls have additional mandatory assignment prerequisites.
+    count = len(controls) + len(factors) + len(terms) + int(strength is not None)
+    operator = optional(grant, "operator", None)
+    if operator is None and count == 1:
+        operator = "AND"  # One alternative has the same meaning under AND and OR.
+    if operator not in ("AND", "OR"):
+        return None
+    if "mfa" not in controls:
+        return None if factors or strength is not None else False
+    if operator == "AND":
+        return True
+    if any(control != "mfa" for control in controls) or terms:
+        return False
+    return None if factors or strength is not None else True
+
+
 def _ca_mfa_for(slug, target, title):
     @claude(slug, "tenant", title, severity="high", control="IA-2", dependencies=["tenant", "conditional_access_policy"],
             remediation="Create an enabled Conditional Access policy for all users that targets this resource and grants access only with MFA.")
     def evaluate(item, index):
         if not _tenant_matches(item, index):
             return _foreign_tenant()
-        matching = []
+        matching, unresolved = [], False
         for policy in _ca_policies(index):
-            users = optional(get(policy, "conditions.users", dict), "includeUsers", [], list)
-            apps = optional(get(policy, "conditions.applications", dict), "includeApplications", [], list)
-            if _ca_state(policy) == "enabled" and "All" in users and target in apps and "mfa" in _ca_controls(policy):
+            if _ca_state(policy) != "enabled":
+                continue
+            users = _strings(policy, "conditions.users.includeUsers")
+            applications = get(policy, "conditions.applications", dict)
+            apps = _strings(applications, "includeApplications")
+            excluded = optional(applications, "excludeApplications", [], list)
+            if any(not isinstance(value, str) or not value for value in excluded):
+                raise Unavailable("malformed excluded application identifiers")
+            if "All" not in users or not (target in apps or "All" in apps) or target.casefold() in {value.casefold() for value in excluded}:
+                continue
+            required = _ca_mfa_requirement(policy)
+            if required is True:
                 matching.append(optional(policy, "id", None))
-        return result(not matching, matching_policies=matching, semantics="Declared policy targeting; exclusions and authentication strengths are not evaluated")
+            elif required is None:
+                unresolved = True
+        if not matching and unresolved:
+            return unknown("targeted policy grant does not establish an MFA mandate")
+        return result(not matching, matching_policies=matching, semantics="Declared target and grant relationship only; explicit target-application exclusions are rejected. User/group exclusions and effective sign-in coverage require separate review")
     evaluate.__name__ = "claude_" + slug
     policy = {"id": "p", "state": "enabled", "conditions": {"users": {"includeUsers": ["All"]}, "applications": {"includeApplications": [target]}},
               "grantControls": {"builtInControls": ["mfa"]}}
@@ -720,13 +811,42 @@ CASES[cid("iam_no_custom_role")] = {"pass": SCOPE, "pass_index": scope_index({"r
                                     "fail": SCOPE, "fail_index": scope_index({"role_definition": [_definition()]})}
 
 
+def _lock_administration_declared(definition):
+    """Union each native permission block's Actions minus its own NotActions."""
+    targets = {'microsoft.authorization/locks/write', 'microsoft.authorization/locks/delete'}
+    allowed = set()
+    for block in list_of_objects(get(definition, "properties.permissions", list)):
+        actions, excluded = get(block, "actions", list), get(block, "notActions", list)
+        for operation in actions + excluded:
+            if (not isinstance(operation, str) or not operation
+                    or re.fullmatch(r"[A-Za-z0-9_.*/-]+", operation) is None
+                    or operation != "*" and "/" not in operation):
+                raise Unavailable("unsupported or malformed ARM operation pattern")
+        patterns = [operation.casefold() for operation in actions]
+        omissions = [operation.casefold() for operation in excluded]
+        allowed.update(target for target in targets
+                       if any(fnmatchcase(target, pattern) for pattern in patterns)
+                       and not any(fnmatchcase(target, pattern) for pattern in omissions))
+    return targets <= allowed
+
+
 @claude("iam_custom_role_administers_locks", "subscription", "Subscription has a custom role for administering resource locks",
         severity="low", control="CM-5", category="least_privilege", target="scope", dependencies=["role_definition"],
         remediation="Create a dedicated custom role limited to Microsoft.Authorization/locks/* for lock administrators.")
 def lock_admin_role(item, index):
-    roles = [optional(row, "name", None) for row in scoped(index, "role_definition")
-             if _role_type(row) == "CustomRole" and any(re.match(r"^Microsoft\.Authorization/locks/.*", action) for action in _actions(row))]
-    return result(not roles, lock_administrator_roles=roles)
+    roles, unresolved = [], False
+    for row in scoped(index, "role_definition"):
+        try:
+            if _role_type(row) == "CustomRole" and _lock_administration_declared(row):
+                roles.append(get(row, "id", str) if "id" in row else optional(row, "name", None))
+        except Unavailable:
+            unresolved = True
+    if not roles and unresolved:
+        return unknown("Custom role lock-administration declaration is unresolved")
+    return result(not roles, lock_administrator_roles=roles,
+                  required_declared_operations=["Microsoft.Authorization/locks/write", "Microsoft.Authorization/locks/delete"],
+                  semantics="Declared custom-role capability only; no role assignment, principal access or effective authorization is assessed")
+
 CASES[cid("iam_custom_role_administers_locks")] = {
     "pass": SCOPE, "pass_index": scope_index({"role_definition": [_definition(actions=("Microsoft.Authorization/locks/*",))]}),
     "fail": SCOPE, "fail_index": scope_index({"role_definition": [_definition()]})}
@@ -739,7 +859,7 @@ def _owners(item, index):
         scope = get(assignment, "properties.scope", str).lower()
         covers = scope in (subscription, "/") or scope.startswith("/providers/microsoft.management/managementgroups/")
         if covers and _role_guid(assignment) == OWNER:
-            owners.add(_principal(assignment))
+            owners.add(_principal(assignment).casefold())
     return len(owners)
 
 
@@ -1063,12 +1183,10 @@ def hsm_logging(item, index):
         if not storage:
             continue
         for log in diagnostic_logs(setting_item):
-            retention = optional(log, "retentionPolicy", None)
-            if get(log, "enabled", bool) and optional(log, "category", None) == "AuditEvent" and isinstance(retention, dict) and "days" in retention:
-                days = retention["days"]
-                if type(days) is not int or days < 0:
-                    raise Unavailable("malformed diagnostic retention days")
-                return result(False, audit_archive=True, retention_days=days)
+            if get(log, "enabled", bool) and optional(log, "category", None) == "AuditEvent":
+                return unknown("AuditEvent storage destination is declared; effective retention is unresolved after diagnostic-settings retention retirement",
+                               audit_archive_declared=True, diagnostic_retention_retired_on="2025-09-30",
+                               semantics="Storage lifecycle retention and log delivery are not established by this declaration")
     return result(True, audit_archive=False)
 CASES[cid("managed_hsm_audit_logging")] = {
     "pass": diag_case(diag_log("AuditEvent", retention={"enabled": True, "days": 365}), storageAccountId="/subscriptions/s/sa"),
@@ -1227,13 +1345,16 @@ def aks_ranges(item, index):
     if any(not isinstance(value, str) for value in ranges):
         return unknown("malformed authorized IP ranges")
     try:
+        networks = []
         for value in ranges:
             if not value or value != value.strip():
                 raise ValueError("empty or padded address")
-            ip_network(value, strict=False)
+            networks.append(ip_network(value, strict=False))
     except ValueError:
         return unknown("malformed authorized IP ranges")
-    return result(not ranges, authorized_ip_ranges=ranges)
+    universal = any(network.prefixlen == 0 for version in (4, 6)
+                    for network in collapse_addresses(n for n in networks if n.version == version))
+    return result(not ranges or universal, authorized_ip_ranges=ranges)
 CASES[cid("aks_authorized_ip_ranges")] = {"pass": {"properties": {"apiServerAccessProfile": {"authorizedIPRanges": ["203.0.113.0/24"]}}},
                                           "fail": {"properties": {"apiServerAccessProfile": {"enablePrivateCluster": False}}}}
 

@@ -19,7 +19,7 @@ WORKLOADS = {
     'aks_job': ('/apis/batch/v1/jobs', 'Job', 'batch/v1', 'spec.template.spec'),
     'aks_cronjob': ('/apis/batch/v1/cronjobs', 'CronJob', 'batch/v1', 'spec.jobTemplate.spec.template.spec'),
 }
-NATIVE_TYPES = ('kubernetes_scope', 'pod', 'service', 'limit_range', 'pod_runtime', *WORKLOADS)
+NATIVE_TYPES = ('kubernetes_scope', 'pod', 'service', 'limit_range', 'pod_runtime', 'aks_legacy_pod_inventory', *WORKLOADS)
 _UUID = r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
 _SCOPE = re.compile(r'/subscriptions/' + _UUID, re.I)
 _ARM = re.compile(r'(/subscriptions/' + _UUID + r')/resourceGroups/[A-Za-z0-9_.()-]{1,90}/providers/Microsoft.ContainerService/managedClusters/[A-Za-z0-9_-]{1,63}', re.I)
@@ -190,6 +190,7 @@ def bind_scopes(options, auth, scopes):
 def required_types(wanted):
     needed = {'aks_cluster', 'arc_kubernetes_cluster', 'subscription'} if set(wanted).intersection(NATIVE_TYPES) else set()
     if 'pod_runtime' in wanted:needed.add('pod')
+    if 'aks_legacy_pod_inventory' in wanted:needed.update(('pod','kubernetes_scope'))
     return needed
 
 
@@ -277,6 +278,8 @@ def _cluster(reader, transport, request, listed, scope, context, wanted, hosted)
             return meta['uid']
         before = uid()
         observed = True
+        legacy_pages = {}
+        capture_legacy_pages = True
         class Lists:
             def get_json(self,path,params):
                 payload=api.get_json(path,params)
@@ -297,6 +300,9 @@ def _cluster(reader, transport, request, listed, scope, context, wanted, hosted)
                 items = payload.get('items')
                 if not isinstance(items,list) or any(not isinstance(item,dict) for item in items):
                     raise ValueError('AKS native list items malformed')
+                if 'aks_legacy_pod_inventory' in wanted and capture_legacy_pages:
+                    from .azure_aks_legacy_projection_review_20261020 import record_page
+                    record_page(legacy_pages,path,params,payload)
                 payload = {**payload, 'items': [
                     {'apiVersion':schema[0], 'kind':schema[1][:-4], **item}
                     for item in items]}
@@ -320,6 +326,7 @@ def _cluster(reader, transport, request, listed, scope, context, wanted, hosted)
         endpoints.extend((kind,path,native,version) for kind,(path,native,version,_) in WORKLOADS.items())
         for kind, path, native_kind, api_version in endpoints:
             if kind not in wanted:continue
+            capture_legacy_pages = kind == 'pod'
             output = []; seen = set()
             for page in k8s._pages(reader, lists, path, 'limitrange' if kind=='limit_range' else kind, rid, '*', True):
                 for row in page:
@@ -343,12 +350,20 @@ def _cluster(reader, transport, request, listed, scope, context, wanted, hosted)
             rows['pod_runtime'] = [project(pod, rid, before) for pod in rows.get('pod', [])]
             if reader.budget.max_items is not None and reader.total + sum(map(len, rows.values())) > reader.budget.max_items:
                 raise AzureReadError('resource_limit')
-        if uid() != before:
+        after = uid()
+        if after != before:
             raise AzureReadError('aks_cluster_uid_changed')
         proof = {'id':rid, 'kind':'AKS', 'namespaces':sorted(names), '_coverage':{
             'namespaces':{'status':'collected'},'pods':{'status':'collected' if 'pod' in rows else 'not_collected'}},
             '_provenance':{'cluster_uid':before,'ARM_api_version':'2024-05-01','server':context['server'],
                 'ca_sha256':hashlib.sha256(context['ca_cert_data'].encode()).hexdigest(),'read_only':True}}
+        if 'aks_legacy_pod_inventory' in wanted:
+            from .azure_aks_legacy_projection_review_20261020 import KIND,project
+            proof['native_namespace_uids']={row['metadata']['name']:row['metadata']['uid'] for row in namespaces}
+            proof['native_ARM_get']={key:current[key] for key in ('id','name','type')}
+            proof['native_ARM_get']['properties']={key:props[key] for key in ('fqdn','privateFQDN','provisioningState') if key in props}
+            proof['_provenance'].update(native_list_pages=legacy_pages,cluster_uid_before=before,cluster_uid_after=after)
+            rows[KIND]=[project(rid,rows['pod'],proof)]
         return rows, proof
     except Exception as exc:
         if observed:exc.aks_capture_partial = True

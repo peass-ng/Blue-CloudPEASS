@@ -53,6 +53,38 @@ rule("compute_disk_encrypted_with_csk", "disk", csek,
 WEAK = {"TLS_RSA_WITH_AES_128_GCM_SHA256", "TLS_RSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_CBC_SHA", "TLS_RSA_WITH_AES_256_CBC_SHA", "TLS_RSA_WITH_3DES_EDE_CBC_SHA"}
 
 
+def compute_reference(reference, scope, kinds):
+    """Canonicalize documented Compute URL forms within one explicit project."""
+    from urllib.parse import urlsplit
+    if not isinstance(scope, str) or not re.fullmatch(r"projects/[A-Za-z0-9_-]+", scope):
+        raise Unavailable("Compute project scope unavailable")
+    if not isinstance(reference, str) or not reference:
+        raise Unavailable("Compute resource reference unavailable")
+    parsed = urlsplit(reference)
+    if parsed.query or parsed.fragment:
+        raise Unavailable("Compute reference query or fragment unsupported")
+    if parsed.scheme or parsed.netloc:
+        if parsed.scheme != "https" or parsed.netloc not in ("www.googleapis.com", "compute.googleapis.com"):
+            raise Unavailable("foreign Compute reference authority")
+        value = parsed.path
+        if not value.startswith("/compute/v1/projects/"):
+            raise Unavailable("unsupported Compute API resource path")
+    else:
+        value = reference
+    value = value.removeprefix("/")
+    if value.startswith("compute/v1/"):
+        value = value.removeprefix("compute/v1/")
+    if value.startswith(("global/", "regions/")):
+        value = scope + "/" + value
+    match = re.fullmatch(r"(projects/[A-Za-z0-9_-]+)/(global|regions/[a-z][a-z0-9-]*)/"
+                         r"(sslPolicies|backendServices|backendBuckets|urlMaps|targetHttpsProxies|targetSslProxies)/"
+                         r"([a-z](?:[-a-z0-9]*[a-z0-9])?)", value)
+    if (not match or match[1] != scope or match[3] not in kinds
+            or match[3] == "backendBuckets" and match[2] != "global"):
+        raise Unavailable("Compute reference outside the exact project/resource scope")
+    return value
+
+
 def ssl_policy(item, index):
     kind = get(item, "kind", str)
     if kind not in ("compute#targetHttpsProxy", "compute#targetSslProxy"):
@@ -60,10 +92,24 @@ def ssl_policy(item, index):
     reference = optional(item, "sslPolicy", "", str)
     if not reference:
         return result(True, reason="No explicit SSL policy; default compatibility does not establish the strict cipher/TLS policy")
-    policy = unique_join(index, "ssl_policy", "selfLink", reference)
+    context = get(index, "context", dict)
+    if get(context, "provider", str) != "gcp":
+        raise Unavailable("GCP Compute context unavailable")
+    scope = get(context, "scope", str)
+    own_link = optional(item, "selfLink", None, str)
+    if own_link is not None:
+        compute_reference(own_link, scope, ("targetHttpsProxies" if kind == "compute#targetHttpsProxy" else "targetSslProxies",))
+    canonical = compute_reference(reference, scope, ("sslPolicies",))
+    policies = [row for row in complete_items(index, "ssl_policy")
+                if compute_reference(get(row, "selfLink", str), scope, ("sslPolicies",)) == canonical]
+    if len(policies) != 1:
+        raise Unavailable("SSL policy relation missing or ambiguous")
+    policy = policies[0]
     profile, minimum = get(policy, "profile", str), get(policy, "minTlsVersion", str)
-    if profile not in ("COMPATIBLE", "MODERN", "RESTRICTED", "CUSTOM", "FIPS_202205") or minimum not in ("TLS_1_0", "TLS_1_1", "TLS_1_2"):
+    if profile not in ("COMPATIBLE", "MODERN", "RESTRICTED", "CUSTOM", "FIPS_202205") or minimum not in ("TLS_1_0", "TLS_1_1", "TLS_1_2", "TLS_1_3"):
         return unknown("unrecognized SSL profile/minimum TLS version")
+    if minimum == "TLS_1_3" and profile != "RESTRICTED":
+        return unknown("TLS 1.3 requires the RESTRICTED SSL profile")
     if profile == "CUSTOM":
         features = get(policy, "enabledFeatures", list)
         if not features or any(not isinstance(value, str) for value in features):
@@ -78,7 +124,7 @@ def ssl_policy(item, index):
 cid = rule("compute_ssl_policy_strict_declaration", "target_proxy", ssl_policy,
     {"kind": "compute#targetHttpsProxy", "sslPolicy": "projects/p/global/sslPolicies/strong"},
     {"kind": "compute#targetHttpsProxy"}, ["target_proxy", "ssl_policy"])
-CASES[cid]["index"] = {"collections": {"ssl_policy": [{"status": "collected"}]}, "ssl_policy": [{"data": {"selfLink": "projects/p/global/sslPolicies/strong", "profile": "MODERN", "minTlsVersion": "TLS_1_2"}}]}
+CASES[cid]["index"] = {"context": {"provider": "gcp", "scope": "projects/p"}, "collections": {"ssl_policy": [{"status": "collected"}]}, "ssl_policy": [{"data": {"selfLink": "projects/p/global/sslPolicies/strong", "profile": "MODERN", "minTlsVersion": "TLS_1_2"}}]}
 
 
 def backend_references(item):
@@ -111,10 +157,20 @@ def map_logging(item, index):
         return unknown("no route/backend declaration")
     services = complete_items(index, "backend_service")
     buckets = complete_items(index, "backend_bucket")
+    context = get(index, "context", dict)
+    if get(context, "provider", str) != "gcp":
+        raise Unavailable("GCP Compute context unavailable")
+    scope = get(context, "scope", str)
+    own_link = optional(item, "selfLink", None, str)
+    if own_link is not None:
+        compute_reference(own_link, scope, ("urlMaps",))
     failed, configured, bucket_refs = [], [], []
     for reference in sorted(references):
-        service_rows = [row for row in services if get(row, "selfLink", str) == reference]
-        bucket_rows = [row for row in buckets if get(row, "selfLink", str) == reference]
+        canonical = compute_reference(reference, scope, ("backendServices", "backendBuckets"))
+        service_rows = [row for row in services
+                        if compute_reference(get(row, "selfLink", str), scope, ("backendServices",)) == canonical]
+        bucket_rows = [row for row in buckets
+                       if compute_reference(get(row, "selfLink", str), scope, ("backendBuckets",)) == canonical]
         if len(service_rows) + len(bucket_rows) != 1:
             return unknown("backend relation missing or ambiguous", reference=reference)
         if bucket_rows:
@@ -134,7 +190,7 @@ cid = rule("compute_url_map_backend_logging", "url_map", map_logging,
     {"name": "map", "defaultService": "projects/p/global/backendServices/good"},
     {"name": "map", "defaultService": "projects/p/global/backendServices/good", "pathMatchers": [{"pathRules": [{"service": "projects/p/global/backendServices/bad"}]}]},
     ["url_map", "backend_service", "backend_bucket"])
-CASES[cid]["index"] = {"collections": {kind: [{"status": "collected"}] for kind in ("backend_service", "backend_bucket")}, "backend_bucket": [],
+CASES[cid]["index"] = {"context": {"provider": "gcp", "scope": "projects/p"}, "collections": {kind: [{"status": "collected"}] for kind in ("backend_service", "backend_bucket")}, "backend_bucket": [],
     "backend_service": [{"data": {"selfLink": "projects/p/global/backendServices/good", "logConfig": {"enable": True}}}, {"data": {"selfLink": "projects/p/global/backendServices/bad", "logConfig": {"enable": False}}}]}
 
 
@@ -159,9 +215,21 @@ CASES[cid]["index"] = {"collections": {"essential_contact": [{"status": "collect
 
 
 def approval(item, index):
-    get(item, "name", str)
+    name = get(item, "name", str)
+    if not re.fullmatch(r"(?:projects|folders|organizations)/[^/]+/accessApprovalSettings", name):
+        raise Unavailable("Access Approval settings identity unavailable")
     enrollments = list_of_objects(optional(item, "enrolledServices", [], list))
-    blocking = [get(row, "cloudProduct", str) for row in enrollments if get(row, "enrollmentLevel", str) == "BLOCK_ALL"]
+    blocking = []
+    for row in enrollments:
+        product = get(row, "cloudProduct", str)
+        if not product or product != product.strip():
+            raise Unavailable("malformed Access Approval product")
+        # REST defaults this optional zero enum to BLOCK_ALL, including its
+        # ProtoJSON omission. optional() still rejects explicit unreadability.
+        level = optional(row, "enrollmentLevel", "ENROLLMENT_LEVEL_UNSPECIFIED", str)
+        if level not in ("BLOCK_ALL", "ENROLLMENT_LEVEL_UNSPECIFIED"):
+            raise Unavailable("unrecognized Access Approval enrollment level")
+        blocking.append(product)
     if not blocking and optional(item, "enrolledAncestor", False, bool):
         return unknown("ancestor enrollment requires parent settings metadata; notification emails alone are not enrollment")
     return result(not blocking, enrolled_products=blocking, semantics="Explicit Access Approval enrollment; notifications are separate")

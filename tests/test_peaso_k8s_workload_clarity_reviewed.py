@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from peaso.checks import CHECKS
+from peaso.checks.k8s_native_review_copy_20261020 import reviewed_fields
 from peaso.checks.k8s_workload_clarity_reviewed import ROWS, _digest, description, remediation
 
 PACK = Path(__file__).resolve().parents[1] / "peaso/rulepacks"
@@ -40,10 +41,12 @@ def test_description_preserves_actual_evaluation_contract(check_id, source_rows)
     before = deepcopy(original)
     actual = description(check_id, original)
     assert original == before
-    assert actual["description"] == ROWS[check_id]["description_fields"]["description"]
+    assert actual["description"] == reviewed_fields(check_id, "description", ROWS[check_id]["description_fields"])["description"]
     assert len(actual["description"].split()) <= 40
-    assert {k: v for k, v in actual.items() if k != "description"} == {
-        k: v for k, v in original.items() if k != "description"}
+    updated_fields = reviewed_fields(check_id, "description", ROWS[check_id]["description_fields"])
+    assert all(actual[key] == value for key, value in updated_fields.items())
+    assert {k: v for k, v in actual.items() if k not in updated_fields} == {
+        k: v for k, v in original.items() if k not in updated_fields}
 
 
 @pytest.mark.parametrize("check_id", sorted(ROWS))
@@ -109,6 +112,12 @@ def test_every_reviewed_actual_predicate_and_failure_evidence(check_id):
     if "source_qualname" in binding:
         assert binding["source_qualname"] == inspect.unwrap(check.evaluate).__qualname__
     cases = CASES.get(check_id)
+    # Current native annotation indicators replace caller annotations_complete
+    # attestations only for these five admitted IDs; historical CASES stay intact.
+    from peaso.checks.k8s_annotation_native_admission_20261020 import IDS as ANNOTATION_IDS, _reviewed_inputs as annotation_inputs
+    if check_id in ANNOTATION_IDS:
+        _, native_annotation_cases = annotation_inputs()
+        cases = native_annotation_cases[check_id]
     if cases is None:
         if check_id in ("k8s.rbac.no_wildcards", "k8s.rbac.role_no_wildcards"):
             cases = {"pass": {"rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["get"]}]},
@@ -180,9 +189,10 @@ def _pod_status(predicate, fields, **pod_fields):
 @pytest.mark.parametrize("predicate", ["always_pull", "content_digest_or_always_pull"])
 def test_digest_and_kubernetes_pull_defaults_are_not_literal_always_only(predicate):
     digest = "app@sha256:" + "a" * 64
-    assert _pod_status(predicate, {"image": digest, "imagePullPolicy": "IfNotPresent"}) == "PASS"
+    expected = "FAIL" if predicate == "always_pull" else "PASS"
+    assert _pod_status(predicate, {"image": digest, "imagePullPolicy": "IfNotPresent"}) == expected
     assert _pod_status(predicate, {"image": digest, "imagePullPolicy": "Never"}) == "FAIL"
-    assert _pod_status(predicate, {"image": "app:latest"}) == "PASS"
+    assert _pod_status(predicate, {"image": "app:latest"}) == expected
     assert _pod_status(predicate, {"image": "app:v2"}) == "FAIL"
     assert _pod_status(predicate, {"image": "app@not-a-valid-digest", "imagePullPolicy": "Always"}) == "UNKNOWN"
 
@@ -203,7 +213,8 @@ def test_resource_presence_does_not_establish_sufficient_or_positive_capacity(re
 
 @pytest.mark.parametrize("predicate,key", [("readiness_probe", "readinessProbe"), ("liveness_probe", "livenessProbe")])
 def test_probe_presence_does_not_establish_working_health_check(predicate, key):
-    assert _pod_status(predicate, {key: {}}) == "PASS"
+    assert _pod_status(predicate, {key: {}}) == "UNKNOWN"
+    assert _pod_status(predicate, {key: {"httpGet": {"path": "/health", "port": 8080}}}) == "PASS"
     assert _pod_status(predicate, {key: "not-a-probe"}) == "UNKNOWN"
     assert _pod_status(predicate, {}) == "FAIL"
 

@@ -425,16 +425,113 @@ MULTI_TENANT_ISSUERS = {"token.actions.githubusercontent.com", "gitlab.com", "ac
      remediation="Add an attributeCondition (for example on repository/owner/namespace claims) to providers that trust shared issuers.")
 def wif_condition(item, index):
     state = get(item, "state", str)
-    if optional(item, "disabled", False, bool) or state != "ACTIVE":
+    if state not in ("ACTIVE", "DELETED"):
+        return unknown("unrecognized workload identity provider state")
+    if optional(item, "disabled", False, bool) or state == "DELETED":
         return "NOT_APPLICABLE", {"reason": "Provider disabled or not active", "state": state}
-    if optional(item, "attributeCondition", "", str):
-        return result(False, attribute_condition=True)
+    condition = optional(item, "attributeCondition", "", str)
     oidc = optional(item, "oidc", None, dict)
     if oidc is None:
-        return "NOT_APPLICABLE", {"reason": "Not an OIDC provider"}
+        if any(optional(item, field, None, dict) is not None for field in ("aws", "saml", "x509")):
+            return "NOT_APPLICABLE", {"reason": "Not an OIDC provider"}
+        return unknown("provider configuration unavailable")
     issuer = get(oidc, "issuerUri", str)
-    host = urlparse(issuer).hostname or issuer.lower()
-    return result(host in MULTI_TENANT_ISSUERS, issuer_host=host, attribute_condition=False)
+    parsed = urlparse(issuer)
+    host = parsed.hostname
+    if (parsed.scheme != "https" or not host or parsed.username is not None
+            or parsed.password is not None or parsed.query or parsed.fragment or parsed.port not in (None, 443)):
+        return unknown("malformed OIDC issuer URL")
+    if host not in MULTI_TENANT_ISSUERS:
+        return result(False, issuer_host=host, attribute_condition=bool(condition),
+                      semantics="Issuer is outside this shared-issuer criterion")
+    if not condition.strip():
+        return result(True, issuer_host=host, attribute_condition=False)
+
+    # A small, closed CEL subset, not a substring test or general CEL evaluator.
+    # Bounded atoms identify a tenant; other exact claim equalities can only
+    # narrow an AND, and cannot qualify an OR branch without a tenant bound.
+    tenant_claims = {
+        "token.actions.githubusercontent.com": {"repository_owner", "repository_owner_id", "repository", "repository_id"},
+        "gitlab.com": {"namespace_id", "project_id"},
+        "accounts.google.com": {"hd"},
+        "app.terraform.io": {"terraform_organization_id", "terraform_workspace_id"},
+    }[host]
+    atom = r'''assertion\.([a-z_][a-z0-9_]*)\s*==\s*(['"])([A-Za-z0-9][A-Za-z0-9_./:@-]{0,255})\2'''
+    token = re.compile(r"(?:" + atom + r"|true\b|false\b|&&|\|\||[()])")
+    tokens = []
+    cursor = 0
+    if len(condition) > 4096:
+        return unknown("attribute condition exceeds supported bounds")
+    while cursor < len(condition):
+        if condition[cursor].isspace():
+            cursor += 1
+            continue
+        match = token.match(condition, cursor)
+        if match is None or len(tokens) >= 128:
+            return unknown("unsupported attribute condition grammar")
+        tokens.append(match.group())
+        cursor = match.end()
+    position = 0
+
+    def expression(depth=0):
+        nonlocal position
+        if depth > 16:
+            raise Unavailable("attribute condition nesting exceeds supported bounds")
+
+        def primary():
+            nonlocal position
+            if position >= len(tokens):
+                raise Unavailable("incomplete attribute condition")
+            value = tokens[position]
+            position += 1
+            if value == "(":
+                value = expression(depth + 1)
+                if position >= len(tokens) or tokens[position] != ")":
+                    raise Unavailable("unbalanced attribute condition")
+                position += 1
+                return value
+            if value in ("true", "false"):
+                return value
+            match = re.fullmatch(atom, value)
+            if match is None:
+                raise Unavailable("unsupported attribute condition atom")
+            return "bounded" if match.group(1) in tenant_claims else "other"
+
+        def conjunction():
+            nonlocal position
+            value = primary()
+            while position < len(tokens) and tokens[position] == "&&":
+                position += 1
+                right = primary()
+                if "false" in (value, right):
+                    value = "false"
+                elif value == "true":
+                    value = right
+                elif right != "true":
+                    value = "bounded" if "bounded" in (value, right) else "other"
+            return value
+
+        value = conjunction()
+        while position < len(tokens) and tokens[position] == "||":
+            position += 1
+            right = conjunction()
+            if "true" in (value, right):
+                value = "true"
+            elif value == "false":
+                value = right
+            elif right != "false":
+                value = "bounded" if value == right == "bounded" else "other"
+        return value
+
+    qualification = expression()
+    if position != len(tokens):
+        return unknown("unsupported attribute condition grammar")
+    if qualification == "true":
+        return result(True, issuer_host=host, attribute_condition=True, semantics="Condition accepts every credential")
+    if qualification != "bounded":
+        return unknown("attribute condition does not prove a supported tenant bound", qualification=qualification)
+    return result(False, issuer_host=host, attribute_condition=True,
+                  semantics="Every supported condition branch requires an exact tenant claim; declared restriction only")
 
 
 cases(track(gid("workload_identity_provider.multi_tenant_condition")),
@@ -752,9 +849,12 @@ def kms_rotation_100(item, index):
     if period is None:
         return result(True, rotation_period=None, semantics="No automatic rotation declared")
     seconds = duration_seconds(period)
-    if seconds <= 0:
-        raise Unavailable("automatic rotation period must be positive")
-    return result(seconds > 8640000, rotation_seconds=seconds)
+    if seconds < 1:
+        raise Unavailable("automatic rotation period must be at least one second")
+    # Preserve integer evidence, but never round fractional seconds at the
+    # policy boundary or leak Decimal into the JSON finding.
+    encoded = int(seconds) if seconds == int(seconds) else format(seconds, "f").rstrip("0").rstrip(".")
+    return result(seconds > 8640000, rotation_seconds=encoded, rotation_period=period)
 
 
 _sym = {"purpose": "ENCRYPT_DECRYPT"}
@@ -876,7 +976,10 @@ cases(track(gid("secret.rotation_90_days")),
 
 def addresses(item):
     rows = list_of_objects(optional(item, "ipAddresses", [], list))
-    return [get(row, "type", str) for row in rows]
+    types = [get(row, "type", str) for row in rows]
+    if any(value not in ("PRIMARY", "PRIVATE", "OUTGOING", "MIGRATED_1ST_GEN") for value in types):
+        raise Unavailable("unrecognized Cloud SQL IP address type")
+    return types
 
 
 @gcp("sql_instance.second_gen_no_public_ip", "sql_instance", "Second-generation Cloud SQL instance has no public (PRIMARY) IP address",
@@ -884,9 +987,13 @@ def addresses(item):
      remediation="Disable public IPv4 (ipv4Enabled=false) and connect over private IP or the Cloud SQL Auth Proxy.")
 def sql_public_ip(item, index):
     backend = get(item, "backendType", str)
+    if backend not in ("SECOND_GEN", "EXTERNAL", "FIRST_GEN"):
+        raise Unavailable("unrecognized Cloud SQL backend type")
     if backend != "SECOND_GEN":
         return "NOT_APPLICABLE", {"reason": "Criterion covers second-generation instances", "backend_type": backend}
     types = addresses(item)
+    if "MIGRATED_1ST_GEN" in types:
+        raise Unavailable("legacy migrated IP is outside the second-generation address criterion")
     return result("PRIMARY" in types, ip_address_types=types)
 
 
@@ -900,6 +1007,8 @@ cases(track(gid("sql_instance.second_gen_no_public_ip")), {"backendType": "SECON
      remediation="Attach the instance to a private VPC network (private IP) and disable public IPv4.")
 def sql_private_only(item, index):
     types = addresses(item)
+    if "MIGRATED_1ST_GEN" in types:
+        raise Unavailable("current private-only semantics of a legacy migrated IP are unresolved")
     network = optional(get(item, "settings.ipConfiguration", dict), "privateNetwork", None, str)
     good = "PRIVATE" in types and bool(network) and "PRIMARY" not in types
     return result(not good, ip_address_types=types, private_network=network)
@@ -917,9 +1026,21 @@ def dataset_domain(slug, suffix, label):
     def evaluate(item, index):
         hits = []
         for entry in list_of_objects(omitted(item, "access", [], list)):  # empty ACL omitted on full reads
-            email = optional(entry, "userByEmail", None, str)
-            if email is not None and email.lower().endswith(suffix):
-                hits.append({"userByEmail": email, "role": entry.get("role")})
+            emails = {field: email for field in ("userByEmail", "groupByEmail")
+                      if (email := optional(entry, field, None, str)) is not None}
+            if len(emails) > 1:
+                raise Unavailable("conflicting dataset access email principal variants")
+            for field, email in emails.items():
+                role = get(entry, "role", str)
+                if not role:
+                    raise Unavailable("missing dataset access role")
+                parts = email.split("@")
+                if (len(parts) != 2 or not parts[0] or re.search(r"[\s<>]", parts[0])
+                        or not all(re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?", label)
+                                   for label in parts[1].split("."))):
+                    raise Unavailable("malformed dataset access email")
+                if parts[1].lower() == suffix:
+                    hits.append({field: email, "role": role})
         return result(bool(hits), matching_entries=hits)
     cid = track(gid(slug))
     cases(cid, {"access": [{"role": "READER", "userByEmail": "a@corp.example"}]},
@@ -1040,10 +1161,15 @@ def gke_default_sa(item, index):
     # NodeConfig.serviceAccount: "if no Service Account is specified, the
     # "default" service account is used." Every node pool is evaluated.
     if pools:
-        accounts = {get(p, "name", str): optional(get(p, "config", dict), "serviceAccount", "default", str) for p in pools}
+        accounts = {}
+        for pool in pools:
+            name = get(pool, "name", str)
+            if not name.strip() or name in accounts:
+                raise Unavailable("missing or duplicate node pool identity")
+            accounts[name] = optional(get(pool, "config", dict), "serviceAccount", "default", str)
     else:
         accounts = {"nodeConfig": optional(get(item, "nodeConfig", dict), "serviceAccount", "default", str)}
-    default = sorted(name for name, account in accounts.items() if account == "default" or account.endswith("-compute@developer.gserviceaccount.com"))
+    default = sorted(name for name, account in accounts.items() if not account or account == "default" or account.endswith("-compute@developer.gserviceaccount.com"))
     return result(bool(default), default_service_account_pools=default)
 
 
@@ -1182,8 +1308,25 @@ cases(track(gid("gke.master_authorized_networks_restricted")),
 @gke("gke.private_nodes", "GKE cluster nodes have private IP addresses only", severity="high", control="SC-7", category="network",
      remediation="Enable private nodes (privateClusterConfig.enablePrivateNodes or networkConfig.defaultEnablePrivateNodes).")
 def gke_private_nodes(item, index):
-    private = optional(optional(item, "privateClusterConfig", {}, dict), "enablePrivateNodes", False, bool) or \
-        optional(optional(item, "networkConfig", {}, dict), "defaultEnablePrivateNodes", False, bool)
+    legacy = optional(optional(item, "privateClusterConfig", {}, dict), "enablePrivateNodes", None, bool)
+    current = optional(optional(item, "networkConfig", {}, dict), "defaultEnablePrivateNodes", None, bool)
+    if legacy is not None and current is not None and legacy != current:
+        raise Unavailable("conflicting legacy and current private-node defaults")
+    default = current if current is not None else legacy if legacy is not None else False
+    pools = list_of_objects(optional(item, "nodePools", [], list))
+    declared, public = {}, []
+    for pool in pools:
+        name = get(pool, "name", str)
+        if not name.strip() or name in declared:
+            raise Unavailable("missing or duplicate node pool identity")
+        enabled = optional(optional(pool, "networkConfig", {}, dict), "enablePrivateNodes", default, bool)
+        declared[name] = enabled
+        if not enabled:
+            public.append(name)
+    private = all(declared.values()) if declared else default
+    if pools:
+        return result(not private, private_nodes=private, public_node_pools=sorted(public),
+                      semantics="Declared node-pool configuration; omitted overrides inherit the cluster default")
     return result(not private, private_nodes=private)
 
 

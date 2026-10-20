@@ -1,0 +1,103 @@
+{
+  "k8s.review.selected_container_logs.secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected current-container sample and bound identity text. Coverage is limited to the returned sample of at most 100 lines within the fixed preceding hour.",
+        "secret_leaks": [],
+        "complete": true,
+        "credential_validation": "not_attempted",
+        "coverage": "selected_current_container_sample_only",
+        "parts": [
+          {
+            "bytes": 218,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "log_sample"
+          }
+        ],
+        "source_requests": [
+          "k8s-log-read-1",
+          "k8s-log-read-2",
+          "k8s-log-read-3"
+        ],
+        "sample_lines": 1
+      },
+      "summary": "Both offline detectors found no supported secret in selected current-container log samples and resource names."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in a selected current-container log sample or its bound identity text; the value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "github-pat"
+              }
+            ],
+            "fingerprint": "b93fc80e43eb4f0cf5a7fe0810baeb0abfa3d2b9fc7c6053620e2c7ed8929895",
+            "locations": [
+              {
+                "line": 1,
+                "path": "k8s_selected_log_samples:968d3a37186b3a1376e7f2edc5d90578df7b50875c81d4cb292a5aee81dc90f2.log_sample"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "credential_validation": "not_attempted",
+        "coverage": "selected_current_container_sample_only",
+        "parts": [
+          {
+            "bytes": 245,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "log_sample"
+          }
+        ],
+        "source_requests": [
+          "k8s-log-read-1",
+          "k8s-log-read-2",
+          "k8s-log-read-3"
+        ],
+        "sample_lines": 1
+      },
+      "summary": "A likely secret was detected in selected current-container log samples and resource names. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The selected current-container log sample was disabled, unavailable, incomplete or unbound. Secret absence could not be assessed."
+      },
+      "summary": "The selected current-container log sample was disabled, unavailable, incomplete or unbound. Secret absence could not be assessed."
+    }
+  ]
+}

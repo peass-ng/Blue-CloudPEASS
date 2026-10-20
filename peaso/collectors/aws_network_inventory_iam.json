@@ -1,0 +1,1951 @@
+{
+  "actions": {
+    "airflow-serverless:GetWorkflow": {
+      "access": "Read",
+      "operation": "get_workflow",
+      "service": "mwaa-serverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mwaa-serverless.html"
+    },
+    "airflow-serverless:ListWorkflows": {
+      "access": "List",
+      "operation": "list_workflows",
+      "service": "mwaa-serverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mwaa-serverless.html"
+    },
+    "airflow:GetEnvironment": {
+      "access": "Read",
+      "operation": "get_environment",
+      "service": "mwaa",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mwaa.html"
+    },
+    "airflow:ListEnvironments": {
+      "access": "List",
+      "operation": "list_environments",
+      "service": "mwaa",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mwaa.html"
+    },
+    "aoss:GetSecurityPolicy": {
+      "access": "Read",
+      "operation": "get_security_policy",
+      "service": "opensearchserverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_opensearchserverless.html"
+    },
+    "aoss:ListSecurityPolicies": {
+      "access": "List",
+      "operation": "list_security_policies",
+      "service": "opensearchserverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_opensearchserverless.html"
+    },
+    "appflow:DescribeConnectorProfiles": {
+      "access": "Read",
+      "operation": "describe_connector_profiles",
+      "service": "appflow",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_appflow.html"
+    },
+    "apprunner:DescribeCustomDomains": {
+      "access": "Read",
+      "operation": "describe_custom_domains",
+      "service": "apprunner",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_apprunner.html"
+    },
+    "apprunner:ListServices": {
+      "access": "List",
+      "operation": "list_services",
+      "service": "apprunner",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_apprunner.html"
+    },
+    "appstream:DescribeAppBlockBuilders": {
+      "access": "List",
+      "operation": "describe_app_block_builders",
+      "service": "appstream",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_appstream.html"
+    },
+    "appstream:DescribeImageBuilders": {
+      "access": "List",
+      "operation": "describe_image_builders",
+      "service": "appstream",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_appstream.html"
+    },
+    "appstream:DescribeStacks": {
+      "access": "List",
+      "operation": "describe_stacks",
+      "service": "appstream",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_appstream.html"
+    },
+    "aps:ListScrapers": {
+      "access": "List",
+      "operation": "list_scrapers",
+      "service": "amp",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_amp.html"
+    },
+    "backup-gateway:GetGateway": {
+      "access": "Read",
+      "operation": "get_gateway",
+      "service": "backup-gateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_backup-gateway.html"
+    },
+    "backup-gateway:ListGateways": {
+      "access": "Read",
+      "operation": "list_gateways",
+      "service": "backup-gateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_backup-gateway.html"
+    },
+    "bedrock-agentcore:GetAgentRuntime": {
+      "access": "Read",
+      "operation": "get_agent_runtime",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
+    "bedrock-agentcore:GetBrowser": {
+      "access": "Read",
+      "operation": "get_browser",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
+    "bedrock-agentcore:GetCodeInterpreter": {
+      "access": "Read",
+      "operation": "get_code_interpreter",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
+    "bedrock-agentcore:ListAgentRuntimes": {
+      "access": "List",
+      "operation": "list_agent_runtimes",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
+    "bedrock-agentcore:ListBrowsers": {
+      "access": "List",
+      "operation": "list_browsers",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
+    "bedrock-agentcore:ListCodeInterpreters": {
+      "access": "List",
+      "operation": "list_code_interpreters",
+      "service": "bedrock-agentcore-control",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock-agentcore.html"
+    },
+    "bedrock:GetMarketplaceModelEndpoint": {
+      "access": "Read",
+      "operation": "get_marketplace_model_endpoint",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "bedrock:GetModelCustomizationJob": {
+      "access": "Read",
+      "operation": "get_model_customization_job",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "bedrock:GetModelImportJob": {
+      "access": "Read",
+      "operation": "get_model_import_job",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "bedrock:GetModelInvocationJob": {
+      "access": "Read",
+      "operation": "get_model_invocation_job",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "bedrock:ListMarketplaceModelEndpoints": {
+      "access": "Read",
+      "operation": "list_marketplace_model_endpoints",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "bedrock:ListModelCustomizationJobs": {
+      "access": "List",
+      "operation": "list_model_customization_jobs",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "bedrock:ListModelImportJobs": {
+      "access": "List",
+      "operation": "list_model_import_jobs",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "bedrock:ListModelInvocationJobs": {
+      "access": "List",
+      "operation": "list_model_invocation_jobs",
+      "service": "bedrock",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_bedrock.html"
+    },
+    "codebuild:BatchGetBuildBatches": {
+      "access": "Read",
+      "operation": "batch_get_build_batches",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codebuild:BatchGetBuilds": {
+      "access": "Read",
+      "operation": "batch_get_builds",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codebuild:BatchGetFleets": {
+      "access": "Read",
+      "operation": "batch_get_fleets",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codebuild:BatchGetSandboxes": {
+      "access": "Read",
+      "operation": "batch_get_sandboxes",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codebuild:ListBuildBatches": {
+      "access": "List",
+      "operation": "list_build_batches",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codebuild:ListBuilds": {
+      "access": "List",
+      "operation": "list_builds",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codebuild:ListFleets": {
+      "access": "List",
+      "operation": "list_fleets",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codebuild:ListSandboxes": {
+      "access": "List",
+      "operation": "list_sandboxes",
+      "service": "codebuild",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codebuild.html"
+    },
+    "codeconnections:GetHost": {
+      "access": "Read",
+      "operation": "get_host",
+      "service": "codeconnections",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codeconnections.html"
+    },
+    "codeconnections:ListHosts": {
+      "access": "List",
+      "operation": "list_hosts",
+      "service": "codeconnections",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_codeconnections.html"
+    },
+    "comprehend:DescribeFlywheel": {
+      "access": "Read",
+      "operation": "describe_flywheel",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListDocumentClassificationJobs": {
+      "access": "Read",
+      "operation": "list_document_classification_jobs",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListDocumentClassifiers": {
+      "access": "Read",
+      "operation": "list_document_classifiers",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListDominantLanguageDetectionJobs": {
+      "access": "Read",
+      "operation": "list_dominant_language_detection_jobs",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListEntitiesDetectionJobs": {
+      "access": "Read",
+      "operation": "list_entities_detection_jobs",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListEntityRecognizers": {
+      "access": "Read",
+      "operation": "list_entity_recognizers",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListFlywheels": {
+      "access": "Read",
+      "operation": "list_flywheels",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListKeyPhrasesDetectionJobs": {
+      "access": "Read",
+      "operation": "list_key_phrases_detection_jobs",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListSentimentDetectionJobs": {
+      "access": "Read",
+      "operation": "list_sentiment_detection_jobs",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListTargetedSentimentDetectionJobs": {
+      "access": "Read",
+      "operation": "list_targeted_sentiment_detection_jobs",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "comprehend:ListTopicsDetectionJobs": {
+      "access": "Read",
+      "operation": "list_topics_detection_jobs",
+      "service": "comprehend",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_comprehend.html"
+    },
+    "datasync:DescribeLocationEfs": {
+      "access": "Read",
+      "operation": "describe_location_efs",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationFsxLustre": {
+      "access": "Read",
+      "operation": "describe_location_fsx_lustre",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationFsxOntap": {
+      "access": "Read",
+      "operation": "describe_location_fsx_ontap",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationFsxOpenZfs": {
+      "access": "Read",
+      "operation": "describe_location_fsx_open_zfs",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationFsxWindows": {
+      "access": "Read",
+      "operation": "describe_location_fsx_windows",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationHdfs": {
+      "access": "Read",
+      "operation": "describe_location_hdfs",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationNfs": {
+      "access": "Read",
+      "operation": "describe_location_nfs",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationObjectStorage": {
+      "access": "Read",
+      "operation": "describe_location_object_storage",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:DescribeLocationSmb": {
+      "access": "Read",
+      "operation": "describe_location_smb",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datasync:ListLocations": {
+      "access": "List",
+      "operation": "list_locations",
+      "service": "datasync",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datasync.html"
+    },
+    "datazone:GetConnection": {
+      "access": "Read",
+      "operation": "get_connection",
+      "service": "datazone",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datazone.html"
+    },
+    "datazone:ListConnections": {
+      "access": "List",
+      "operation": "list_connections",
+      "service": "datazone",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datazone.html"
+    },
+    "datazone:ListDomains": {
+      "access": "List",
+      "operation": "list_domains",
+      "service": "datazone",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_datazone.html"
+    },
+    "deadline:GetFleet": {
+      "access": "Read",
+      "operation": "get_fleet",
+      "service": "deadline",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html"
+    },
+    "deadline:GetLicenseEndpoint": {
+      "access": "Read",
+      "operation": "get_license_endpoint",
+      "service": "deadline",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html"
+    },
+    "deadline:ListFarms": {
+      "access": "List",
+      "operation": "list_farms",
+      "service": "deadline",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html"
+    },
+    "deadline:ListFleets": {
+      "access": "List",
+      "operation": "list_fleets",
+      "service": "deadline",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html"
+    },
+    "deadline:ListLicenseEndpoints": {
+      "access": "List",
+      "operation": "list_license_endpoints",
+      "service": "deadline",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_deadline.html"
+    },
+    "devicefarm:GetProject": {
+      "access": "Read",
+      "operation": "get_project",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:GetRemoteAccessSession": {
+      "access": "Read",
+      "operation": "get_remote_access_session",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:GetRun": {
+      "access": "Read",
+      "operation": "get_run",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:GetTestGridProject": {
+      "access": "Read",
+      "operation": "get_test_grid_project",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:GetVPCEConfiguration": {
+      "access": "Read",
+      "operation": "get_vpce_configuration",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:ListProjects": {
+      "access": "List",
+      "operation": "list_projects",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:ListRemoteAccessSessions": {
+      "access": "List",
+      "operation": "list_remote_access_sessions",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:ListRuns": {
+      "access": "List",
+      "operation": "list_runs",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:ListTestGridProjects": {
+      "access": "List",
+      "operation": "list_test_grid_projects",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "devicefarm:ListVPCEConfigurations": {
+      "access": "List",
+      "operation": "list_vpce_configurations",
+      "service": "devicefarm",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_devicefarm.html"
+    },
+    "dms:DescribeInstanceProfiles": {
+      "access": "Read",
+      "operation": "describe_instance_profiles",
+      "service": "dms",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_dms.html"
+    },
+    "dms:DescribeReplicationConfigs": {
+      "access": "Read",
+      "operation": "describe_replication_configs",
+      "service": "dms",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_dms.html"
+    },
+    "dms:DescribeReplicationSubnetGroups": {
+      "access": "Read",
+      "operation": "describe_replication_subnet_groups",
+      "service": "dms",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_dms.html"
+    },
+    "docdb-elastic:GetCluster": {
+      "access": "Read",
+      "operation": "get_cluster",
+      "service": "docdb-elastic",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_docdb-elastic.html"
+    },
+    "docdb-elastic:ListClusters": {
+      "access": "List",
+      "operation": "list_clusters",
+      "service": "docdb-elastic",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_docdb-elastic.html"
+    },
+    "drs:DescribeRecoveryInstances": {
+      "access": "Read",
+      "operation": "describe_recovery_instances",
+      "service": "drs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_drs.html"
+    },
+    "drs:DescribeReplicationConfigurationTemplates": {
+      "access": "Read",
+      "operation": "describe_replication_configuration_templates",
+      "service": "drs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_drs.html"
+    },
+    "drs:DescribeSourceNetworks": {
+      "access": "Read",
+      "operation": "describe_source_networks",
+      "service": "drs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_drs.html"
+    },
+    "drs:DescribeSourceServers": {
+      "access": "Read",
+      "operation": "describe_source_servers",
+      "service": "drs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_drs.html"
+    },
+    "drs:GetReplicationConfiguration": {
+      "access": "Read",
+      "operation": "get_replication_configuration",
+      "service": "drs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_drs.html"
+    },
+    "ds:DescribeDirectories": {
+      "access": "List",
+      "operation": "describe_directories",
+      "service": "ds",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ds.html"
+    },
+    "ds:DescribeDomainControllers": {
+      "access": "Read",
+      "operation": "describe_domain_controllers",
+      "service": "ds",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ds.html"
+    },
+    "ds:DescribeRegions": {
+      "access": "Read",
+      "operation": "describe_regions",
+      "service": "ds",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ds.html"
+    },
+    "dsql:GetVpcEndpointServiceName": {
+      "access": "Read",
+      "operation": "get_vpc_endpoint_service_name",
+      "service": "dsql",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_dsql.html"
+    },
+    "dsql:ListClusters": {
+      "access": "List",
+      "operation": "list_clusters",
+      "service": "dsql",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_dsql.html"
+    },
+    "ec2:DescribeCarrierGateways": {
+      "access": "List",
+      "operation": "describe_carrier_gateways",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeClientVpnEndpoints": {
+      "access": "List",
+      "operation": "describe_client_vpn_endpoints",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeClientVpnRoutes": {
+      "access": "List",
+      "operation": "describe_client_vpn_routes",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeClientVpnTargetNetworks": {
+      "access": "List",
+      "operation": "describe_client_vpn_target_networks",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeEgressOnlyInternetGateways": {
+      "access": "List",
+      "operation": "describe_egress_only_internet_gateways",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeFleets": {
+      "access": "List",
+      "operation": "describe_fleets",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeLocalGatewayRouteTableVpcAssociations": {
+      "access": "List",
+      "operation": "describe_local_gateway_route_table_vpc_associations",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeNetworkInterfacePermissions": {
+      "access": "List",
+      "operation": "describe_network_interface_permissions",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeRouteServerEndpoints": {
+      "access": "List",
+      "operation": "describe_route_server_endpoints",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeRouteServerPeers": {
+      "access": "List",
+      "operation": "describe_route_server_peers",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeRouteServers": {
+      "access": "List",
+      "operation": "describe_route_servers",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeSecurityGroupRules": {
+      "access": "List",
+      "operation": "describe_security_group_rules",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeSecurityGroupVpcAssociations": {
+      "access": "List",
+      "operation": "describe_security_group_vpc_associations",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeSpotInstanceRequests": {
+      "access": "List",
+      "operation": "describe_spot_instance_requests",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeSubnets": {
+      "access": "List",
+      "operation": "describe_subnets",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeTrafficMirrorSessions": {
+      "access": "List",
+      "operation": "describe_traffic_mirror_sessions",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeTrafficMirrorTargets": {
+      "access": "List",
+      "operation": "describe_traffic_mirror_targets",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeVpcAttribute": {
+      "access": "List",
+      "operation": "describe_vpc_attribute",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeVpcBlockPublicAccessExclusions": {
+      "access": "List",
+      "operation": "describe_vpc_block_public_access_exclusions",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeVpcEncryptionControls": {
+      "access": "List",
+      "operation": "describe_vpc_encryption_controls",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeVpcEndpointAssociations": {
+      "access": "List",
+      "operation": "describe_vpc_endpoint_associations",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeVpcEndpointConnections": {
+      "access": "List",
+      "operation": "describe_vpc_endpoint_connections",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:DescribeVpcs": {
+      "access": "List",
+      "operation": "describe_vpcs",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:GetRouteServerAssociations": {
+      "access": "Read",
+      "operation": "get_route_server_associations",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:GetSecurityGroupsForVpc": {
+      "access": "Read",
+      "operation": "get_security_groups_for_vpc",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ec2:GetSubnetCidrReservations": {
+      "access": "Read",
+      "operation": "get_subnet_cidr_reservations",
+      "service": "ec2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    },
+    "ecs:DescribeCapacityProviders": {
+      "access": "Read",
+      "operation": "describe_capacity_providers",
+      "service": "ecs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ecs.html"
+    },
+    "ecs:DescribeExpressGatewayService": {
+      "access": "Read",
+      "operation": "describe_express_gateway_service",
+      "service": "ecs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ecs.html"
+    },
+    "ecs:ListClusters": {
+      "access": "List",
+      "operation": "list_clusters",
+      "service": "ecs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ecs.html"
+    },
+    "ecs:ListServices": {
+      "access": "List",
+      "operation": "list_services",
+      "service": "ecs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ecs.html"
+    },
+    "eks:DescribeCapability": {
+      "access": "Read",
+      "operation": "describe_capability",
+      "service": "eks",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eks.html"
+    },
+    "eks:ListCapabilities": {
+      "access": "List",
+      "operation": "list_capabilities",
+      "service": "eks",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eks.html"
+    },
+    "eks:ListClusters": {
+      "access": "List",
+      "operation": "list_clusters",
+      "service": "eks",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eks.html"
+    },
+    "elasticmapreduce:DescribeStudio": {
+      "access": "Read",
+      "operation": "describe_studio",
+      "service": "emr",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr.html"
+    },
+    "elasticmapreduce:ListStudios": {
+      "access": "List",
+      "operation": "list_studios",
+      "service": "emr",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr.html"
+    },
+    "emr-containers:DescribeManagedEndpoint": {
+      "access": "Read",
+      "operation": "describe_managed_endpoint",
+      "service": "emr-containers",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr-containers.html"
+    },
+    "emr-containers:ListManagedEndpoints": {
+      "access": "List",
+      "operation": "list_managed_endpoints",
+      "service": "emr-containers",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr-containers.html"
+    },
+    "emr-containers:ListVirtualClusters": {
+      "access": "List",
+      "operation": "list_virtual_clusters",
+      "service": "emr-containers",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr-containers.html"
+    },
+    "emr-serverless:GetJobRun": {
+      "access": "Read",
+      "operation": "get_job_run",
+      "service": "emr-serverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr-serverless.html"
+    },
+    "emr-serverless:ListApplications": {
+      "access": "List",
+      "operation": "list_applications",
+      "service": "emr-serverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr-serverless.html"
+    },
+    "emr-serverless:ListJobRuns": {
+      "access": "List",
+      "operation": "list_job_runs",
+      "service": "emr-serverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr-serverless.html"
+    },
+    "es:DescribeVpcEndpoints": {
+      "access": "List",
+      "operation": "describe_vpc_endpoints",
+      "service": "opensearch",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_es.html"
+    },
+    "es:ListVpcEndpoints": {
+      "access": "List",
+      "operation": "list_vpc_endpoints",
+      "service": "opensearch",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_es.html"
+    },
+    "events:DescribeConnection": {
+      "access": "Read",
+      "operation": "describe_connection",
+      "service": "events",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eventbridge.html"
+    },
+    "events:ListApiDestinations": {
+      "access": "List",
+      "operation": "list_api_destinations",
+      "service": "events",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eventbridge.html"
+    },
+    "events:ListConnections": {
+      "access": "List",
+      "operation": "list_connections",
+      "service": "events",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eventbridge.html"
+    },
+    "events:ListEventBuses": {
+      "access": "List",
+      "operation": "list_event_buses",
+      "service": "events",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eventbridge.html"
+    },
+    "events:ListRules": {
+      "access": "List",
+      "operation": "list_rules",
+      "service": "events",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eventbridge.html"
+    },
+    "events:ListTargetsByRule": {
+      "access": "List",
+      "operation": "list_targets_by_rule",
+      "service": "events",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_eventbridge.html"
+    },
+    "evs:GetEnvironment": {
+      "access": "Read",
+      "operation": "get_environment",
+      "service": "evs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_evs.html"
+    },
+    "evs:ListEnvironmentHosts": {
+      "access": "List",
+      "operation": "list_environment_hosts",
+      "service": "evs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_evs.html"
+    },
+    "evs:ListEnvironmentVlans": {
+      "access": "List",
+      "operation": "list_environment_vlans",
+      "service": "evs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_evs.html"
+    },
+    "evs:ListEnvironments": {
+      "access": "List",
+      "operation": "list_environments",
+      "service": "evs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_evs.html"
+    },
+    "finspace:GetKxCluster": {
+      "access": "Read",
+      "operation": "get_kx_cluster",
+      "service": "finspace",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_finspace.html"
+    },
+    "finspace:ListKxClusters": {
+      "access": "List",
+      "operation": "list_kx_clusters",
+      "service": "finspace",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_finspace.html"
+    },
+    "finspace:ListKxEnvironments": {
+      "access": "List",
+      "operation": "list_kx_environments",
+      "service": "finspace",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_finspace.html"
+    },
+    "fsx:DescribeFileCaches": {
+      "access": "Read",
+      "operation": "describe_file_caches",
+      "service": "fsx",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_fsx.html"
+    },
+    "fsx:DescribeS3AccessPointAttachments": {
+      "access": "Read",
+      "operation": "describe_s3_access_point_attachments",
+      "service": "fsx",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_fsx.html"
+    },
+    "fsx:DescribeVolumes": {
+      "access": "Read",
+      "operation": "describe_volumes",
+      "service": "fsx",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_fsx.html"
+    },
+    "gamelift:DescribeVpcPeeringConnections": {
+      "access": "Read",
+      "operation": "describe_vpc_peering_connections",
+      "service": "gamelift",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_gamelift.html"
+    },
+    "groundstation:GetDataflowEndpointGroup": {
+      "access": "Read",
+      "operation": "get_dataflow_endpoint_group",
+      "service": "groundstation",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_groundstation.html"
+    },
+    "groundstation:ListDataflowEndpointGroups": {
+      "access": "List",
+      "operation": "list_dataflow_endpoint_groups",
+      "service": "groundstation",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_groundstation.html"
+    },
+    "imagebuilder:GetInfrastructureConfiguration": {
+      "access": "Read",
+      "operation": "get_infrastructure_configuration",
+      "service": "imagebuilder",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_imagebuilder.html"
+    },
+    "imagebuilder:ListInfrastructureConfigurations": {
+      "access": "List",
+      "operation": "list_infrastructure_configurations",
+      "service": "imagebuilder",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_imagebuilder.html"
+    },
+    "iot:GetTopicRuleDestination": {
+      "access": "Read",
+      "operation": "get_topic_rule_destination",
+      "service": "iot",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_iot.html"
+    },
+    "iot:ListTopicRuleDestinations": {
+      "access": "List",
+      "operation": "list_topic_rule_destinations",
+      "service": "iot",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_iot.html"
+    },
+    "kafka:DescribeReplicator": {
+      "access": "Read",
+      "operation": "describe_replicator",
+      "service": "kafka",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kafka.html"
+    },
+    "kafka:DescribeVpcConnection": {
+      "access": "Read",
+      "operation": "describe_vpc_connection",
+      "service": "kafka",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kafka.html"
+    },
+    "kafka:ListClientVpcConnections": {
+      "access": "List",
+      "operation": "list_client_vpc_connections",
+      "service": "kafka",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kafka.html"
+    },
+    "kafka:ListClustersV2": {
+      "access": "List",
+      "operation": "list_clusters_v2",
+      "service": "kafka",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kafka.html"
+    },
+    "kafka:ListReplicators": {
+      "access": "List",
+      "operation": "list_replicators",
+      "service": "kafka",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kafka.html"
+    },
+    "kafka:ListVpcConnections": {
+      "access": "List",
+      "operation": "list_vpc_connections",
+      "service": "kafka",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kafka.html"
+    },
+    "kafkaconnect:DescribeConnector": {
+      "access": "Read",
+      "operation": "describe_connector",
+      "service": "kafkaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kafkaconnect.html"
+    },
+    "kendra:DescribeDataSource": {
+      "access": "Read",
+      "operation": "describe_data_source",
+      "service": "kendra",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kendra.html"
+    },
+    "kendra:ListDataSources": {
+      "access": "List",
+      "operation": "list_data_sources",
+      "service": "kendra",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kendra.html"
+    },
+    "kendra:ListIndices": {
+      "access": "List",
+      "operation": "list_indices",
+      "service": "kendra",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kendra.html"
+    },
+    "kinesisanalytics:DescribeApplication": {
+      "access": "Read",
+      "operation": "describe_application",
+      "service": "kinesisanalyticsv2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kinesisanalyticsv2.html"
+    },
+    "kinesisanalytics:ListApplications": {
+      "access": "List",
+      "operation": "list_applications",
+      "service": "kinesisanalyticsv2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_kinesisanalyticsv2.html"
+    },
+    "lambda:ListCapacityProviders": {
+      "access": "List",
+      "operation": "list_capacity_providers",
+      "service": "lambda",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_lambda.html"
+    },
+    "license-manager-user-subscriptions:ListIdentityProviders": {
+      "access": "List",
+      "operation": "list_identity_providers",
+      "service": "license-manager-user-subscriptions",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_license-manager-user-subscriptions.html"
+    },
+    "m2:GetEnvironment": {
+      "access": "Read",
+      "operation": "get_environment",
+      "service": "m2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_m2.html"
+    },
+    "m2:ListEnvironments": {
+      "access": "List",
+      "operation": "list_environments",
+      "service": "m2",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_m2.html"
+    },
+    "managedblockchain:GetNetwork": {
+      "access": "Read",
+      "operation": "get_network",
+      "service": "managedblockchain",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_managedblockchain.html"
+    },
+    "managedblockchain:ListNetworks": {
+      "access": "List",
+      "operation": "list_networks",
+      "service": "managedblockchain",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_managedblockchain.html"
+    },
+    "mediaconnect:DescribeBridge": {
+      "access": "Read",
+      "operation": "describe_bridge",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:DescribeFlow": {
+      "access": "Read",
+      "operation": "describe_flow",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:GetRouterInput": {
+      "access": "Read",
+      "operation": "get_router_input",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:GetRouterNetworkInterface": {
+      "access": "Read",
+      "operation": "get_router_network_interface",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:GetRouterOutput": {
+      "access": "Read",
+      "operation": "get_router_output",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:ListBridges": {
+      "access": "List",
+      "operation": "list_bridges",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:ListFlows": {
+      "access": "List",
+      "operation": "list_flows",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:ListRouterInputs": {
+      "access": "List",
+      "operation": "list_router_inputs",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:ListRouterNetworkInterfaces": {
+      "access": "List",
+      "operation": "list_router_network_interfaces",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "mediaconnect:ListRouterOutputs": {
+      "access": "List",
+      "operation": "list_router_outputs",
+      "service": "mediaconnect",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mediaconnect.html"
+    },
+    "medialive:DescribeChannel": {
+      "access": "Read",
+      "operation": "describe_channel",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:DescribeInput": {
+      "access": "Read",
+      "operation": "describe_input",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:DescribeNode": {
+      "access": "Read",
+      "operation": "describe_node",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:ListChannels": {
+      "access": "List",
+      "operation": "list_channels",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:ListClusters": {
+      "access": "List",
+      "operation": "list_clusters",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:ListInputDevices": {
+      "access": "List",
+      "operation": "list_input_devices",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:ListInputSecurityGroups": {
+      "access": "List",
+      "operation": "list_input_security_groups",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:ListInputs": {
+      "access": "List",
+      "operation": "list_inputs",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "medialive:ListNodes": {
+      "access": "List",
+      "operation": "list_nodes",
+      "service": "medialive",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_medialive.html"
+    },
+    "mgn:DescribeReplicationConfigurationTemplates": {
+      "access": "List",
+      "operation": "describe_replication_configuration_templates",
+      "service": "mgn",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mgn.html"
+    },
+    "mgn:DescribeSourceServers": {
+      "access": "List",
+      "operation": "describe_source_servers",
+      "service": "mgn",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mgn.html"
+    },
+    "mgn:GetReplicationConfiguration": {
+      "access": "Read",
+      "operation": "get_replication_configuration",
+      "service": "mgn",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mgn.html"
+    },
+    "neptune-graph:GetPrivateGraphEndpoint": {
+      "access": "Read",
+      "operation": "get_private_graph_endpoint",
+      "service": "neptune-graph",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_neptune-graph.html"
+    },
+    "neptune-graph:ListGraphs": {
+      "access": "Read",
+      "operation": "list_graphs",
+      "service": "neptune-graph",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_neptune-graph.html"
+    },
+    "neptune-graph:ListPrivateGraphEndpoints": {
+      "access": "Read",
+      "operation": "list_private_graph_endpoints",
+      "service": "neptune-graph",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_neptune-graph.html"
+    },
+    "network-firewall:DescribeProxy": {
+      "access": "Read",
+      "operation": "describe_proxy",
+      "service": "network-firewall",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_network-firewall.html"
+    },
+    "network-firewall:DescribeVpcEndpointAssociation": {
+      "access": "Read",
+      "operation": "describe_vpc_endpoint_association",
+      "service": "network-firewall",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_network-firewall.html"
+    },
+    "network-firewall:ListProxies": {
+      "access": "List",
+      "operation": "list_proxies",
+      "service": "network-firewall",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_network-firewall.html"
+    },
+    "network-firewall:ListVpcEndpointAssociations": {
+      "access": "List",
+      "operation": "list_vpc_endpoint_associations",
+      "service": "network-firewall",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_network-firewall.html"
+    },
+    "networkflowmonitor:GetMonitor": {
+      "access": "Read",
+      "operation": "get_monitor",
+      "service": "networkflowmonitor",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkflowmonitor.html"
+    },
+    "networkflowmonitor:ListMonitors": {
+      "access": "List",
+      "operation": "list_monitors",
+      "service": "networkflowmonitor",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkflowmonitor.html"
+    },
+    "networkmanager:DescribeGlobalNetworks": {
+      "access": "List",
+      "operation": "describe_global_networks",
+      "service": "networkmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmanager.html"
+    },
+    "networkmanager:GetConnectPeer": {
+      "access": "Read",
+      "operation": "get_connect_peer",
+      "service": "networkmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmanager.html"
+    },
+    "networkmanager:GetDevices": {
+      "access": "List",
+      "operation": "get_devices",
+      "service": "networkmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmanager.html"
+    },
+    "networkmanager:GetVpcAttachment": {
+      "access": "Read",
+      "operation": "get_vpc_attachment",
+      "service": "networkmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmanager.html"
+    },
+    "networkmanager:ListAttachments": {
+      "access": "List",
+      "operation": "list_attachments",
+      "service": "networkmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmanager.html"
+    },
+    "networkmanager:ListConnectPeers": {
+      "access": "List",
+      "operation": "list_connect_peers",
+      "service": "networkmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmanager.html"
+    },
+    "networkmonitor:GetMonitor": {
+      "access": "Read",
+      "operation": "get_monitor",
+      "service": "networkmonitor",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmonitor.html"
+    },
+    "networkmonitor:ListMonitors": {
+      "access": "List",
+      "operation": "list_monitors",
+      "service": "networkmonitor",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_networkmonitor.html"
+    },
+    "observabilityadmin:GetTelemetryRule": {
+      "access": "Read",
+      "operation": "get_telemetry_rule",
+      "service": "observabilityadmin",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_observabilityadmin.html"
+    },
+    "observabilityadmin:GetTelemetryRuleForOrganization": {
+      "access": "Read",
+      "operation": "get_telemetry_rule_for_organization",
+      "service": "observabilityadmin",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_observabilityadmin.html"
+    },
+    "observabilityadmin:ListTelemetryRules": {
+      "access": "List",
+      "operation": "list_telemetry_rules",
+      "service": "observabilityadmin",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_observabilityadmin.html"
+    },
+    "observabilityadmin:ListTelemetryRulesForOrganization": {
+      "access": "List",
+      "operation": "list_telemetry_rules_for_organization",
+      "service": "observabilityadmin",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_observabilityadmin.html"
+    },
+    "odb:ListCloudAutonomousVmClusters": {
+      "access": "List",
+      "operation": "list_cloud_autonomous_vm_clusters",
+      "service": "odb",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_odb.html"
+    },
+    "odb:ListCloudVmClusters": {
+      "access": "List",
+      "operation": "list_cloud_vm_clusters",
+      "service": "odb",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_odb.html"
+    },
+    "odb:ListOdbNetworks": {
+      "access": "List",
+      "operation": "list_odb_networks",
+      "service": "odb",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_odb.html"
+    },
+    "odb:ListOdbPeeringConnections": {
+      "access": "List",
+      "operation": "list_odb_peering_connections",
+      "service": "odb",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_odb.html"
+    },
+    "osis:ListPipelineEndpointConnections": {
+      "access": "List",
+      "operation": "list_pipeline_endpoint_connections",
+      "service": "osis",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_osis.html"
+    },
+    "osis:ListPipelineEndpoints": {
+      "access": "List",
+      "operation": "list_pipeline_endpoints",
+      "service": "osis",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_osis.html"
+    },
+    "pca-connector-ad:ListConnectors": {
+      "access": "List",
+      "operation": "list_connectors",
+      "service": "pca-connector-ad",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_pca-connector-ad.html"
+    },
+    "pcs:GetCluster": {
+      "access": "Read",
+      "operation": "get_cluster",
+      "service": "pcs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_pcs.html"
+    },
+    "pcs:GetComputeNodeGroup": {
+      "access": "Read",
+      "operation": "get_compute_node_group",
+      "service": "pcs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_pcs.html"
+    },
+    "pcs:ListClusters": {
+      "access": "List",
+      "operation": "list_clusters",
+      "service": "pcs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_pcs.html"
+    },
+    "pcs:ListComputeNodeGroups": {
+      "access": "List",
+      "operation": "list_compute_node_groups",
+      "service": "pcs",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_pcs.html"
+    },
+    "pipes:DescribePipe": {
+      "access": "Read",
+      "operation": "describe_pipe",
+      "service": "pipes",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_pipes.html"
+    },
+    "pipes:ListPipes": {
+      "access": "List",
+      "operation": "list_pipes",
+      "service": "pipes",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_pipes.html"
+    },
+    "qbusiness:GetDataSource": {
+      "access": "Read",
+      "operation": "get_data_source",
+      "service": "qbusiness",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_qbusiness.html"
+    },
+    "qbusiness:ListApplications": {
+      "access": "List",
+      "operation": "list_applications",
+      "service": "qbusiness",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_qbusiness.html"
+    },
+    "qbusiness:ListDataSources": {
+      "access": "List",
+      "operation": "list_data_sources",
+      "service": "qbusiness",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_qbusiness.html"
+    },
+    "qbusiness:ListIndices": {
+      "access": "List",
+      "operation": "list_indices",
+      "service": "qbusiness",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_qbusiness.html"
+    },
+    "quicksight:DescribeActionConnector": {
+      "access": "Read",
+      "operation": "describe_action_connector",
+      "service": "quicksight",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_quicksight.html"
+    },
+    "quicksight:DescribeIpRestriction": {
+      "access": "Read",
+      "operation": "describe_ip_restriction",
+      "service": "quicksight",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_quicksight.html"
+    },
+    "quicksight:DescribeVPCConnection": {
+      "access": "Read",
+      "operation": "describe_vpc_connection",
+      "service": "quicksight",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_quicksight.html"
+    },
+    "quicksight:ListActionConnectors": {
+      "access": "List",
+      "operation": "list_action_connectors",
+      "service": "quicksight",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_quicksight.html"
+    },
+    "quicksight:ListDataSources": {
+      "access": "List",
+      "operation": "list_data_sources",
+      "service": "quicksight",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_quicksight.html"
+    },
+    "rds:DescribeDBInstances": {
+      "access": "List",
+      "operation": "describe_db_instances",
+      "service": "neptune",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_rds.html"
+    },
+    "rds:DescribeDBProxyEndpoints": {
+      "access": "List",
+      "operation": "describe_db_proxy_endpoints",
+      "service": "rds",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_rds.html"
+    },
+    "rds:DescribeDBSubnetGroups": {
+      "access": "List",
+      "operation": "describe_db_subnet_groups",
+      "service": "neptune",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_rds.html"
+    },
+    "redshift-serverless:ListEndpointAccess": {
+      "access": "List",
+      "operation": "list_endpoint_access",
+      "service": "redshift-serverless",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_redshift-serverless.html"
+    },
+    "redshift:DescribeEndpointAccess": {
+      "access": "Read",
+      "operation": "describe_endpoint_access",
+      "service": "redshift",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_redshift.html"
+    },
+    "refactor-spaces:GetApplication": {
+      "access": "Read",
+      "operation": "get_application",
+      "service": "migration-hub-refactor-spaces",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_migration-hub-refactor-spaces.html"
+    },
+    "refactor-spaces:GetService": {
+      "access": "Read",
+      "operation": "get_service",
+      "service": "migration-hub-refactor-spaces",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_migration-hub-refactor-spaces.html"
+    },
+    "refactor-spaces:ListApplications": {
+      "access": "Read",
+      "operation": "list_applications",
+      "service": "migration-hub-refactor-spaces",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_migration-hub-refactor-spaces.html"
+    },
+    "refactor-spaces:ListEnvironmentVpcs": {
+      "access": "Read",
+      "operation": "list_environment_vpcs",
+      "service": "migration-hub-refactor-spaces",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_migration-hub-refactor-spaces.html"
+    },
+    "refactor-spaces:ListEnvironments": {
+      "access": "Read",
+      "operation": "list_environments",
+      "service": "migration-hub-refactor-spaces",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_migration-hub-refactor-spaces.html"
+    },
+    "refactor-spaces:ListServices": {
+      "access": "Read",
+      "operation": "list_services",
+      "service": "migration-hub-refactor-spaces",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_migration-hub-refactor-spaces.html"
+    },
+    "route53globalresolver:GetDNSView": {
+      "access": "Read",
+      "operation": "get_dns_view",
+      "service": "route53globalresolver",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_route53globalresolver.html"
+    },
+    "route53globalresolver:ListDNSViews": {
+      "access": "List",
+      "operation": "list_dns_views",
+      "service": "route53globalresolver",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_route53globalresolver.html"
+    },
+    "route53globalresolver:ListGlobalResolvers": {
+      "access": "List",
+      "operation": "list_global_resolvers",
+      "service": "route53globalresolver",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_route53globalresolver.html"
+    },
+    "rtbfabric:GetRequesterGateway": {
+      "access": "Read",
+      "operation": "get_requester_gateway",
+      "service": "rtbfabric",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_rtbfabric.html"
+    },
+    "rtbfabric:GetResponderGateway": {
+      "access": "Read",
+      "operation": "get_responder_gateway",
+      "service": "rtbfabric",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_rtbfabric.html"
+    },
+    "rtbfabric:ListRequesterGateways": {
+      "access": "List",
+      "operation": "list_requester_gateways",
+      "service": "rtbfabric",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_rtbfabric.html"
+    },
+    "rtbfabric:ListResponderGateways": {
+      "access": "List",
+      "operation": "list_responder_gateways",
+      "service": "rtbfabric",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_rtbfabric.html"
+    },
+    "s3-outposts:ListEndpoints": {
+      "access": "List",
+      "operation": "list_endpoints",
+      "service": "s3outposts",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_s3outposts.html"
+    },
+    "s3-outposts:ListOutpostsWithS3": {
+      "access": "List",
+      "operation": "list_outposts_with_s3",
+      "service": "s3outposts",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_s3outposts.html"
+    },
+    "s3-outposts:ListSharedEndpoints": {
+      "access": "List",
+      "operation": "list_shared_endpoints",
+      "service": "s3outposts",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_s3outposts.html"
+    },
+    "sagemaker:DescribeAutoMLJob": {
+      "access": "Read",
+      "operation": "describe_auto_ml_job",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeCompilationJob": {
+      "access": "Read",
+      "operation": "describe_compilation_job",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeDataQualityJobDefinition": {
+      "access": "Read",
+      "operation": "describe_data_quality_job_definition",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeHyperParameterTuningJob": {
+      "access": "Read",
+      "operation": "describe_hyper_parameter_tuning_job",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeInferenceRecommendationsJob": {
+      "access": "Read",
+      "operation": "describe_inference_recommendations_job",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeLabelingJob": {
+      "access": "Read",
+      "operation": "describe_labeling_job",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeModelBiasJobDefinition": {
+      "access": "Read",
+      "operation": "describe_model_bias_job_definition",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeModelExplainabilityJobDefinition": {
+      "access": "Read",
+      "operation": "describe_model_explainability_job_definition",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeModelQualityJobDefinition": {
+      "access": "Read",
+      "operation": "describe_model_quality_job_definition",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeMonitoringSchedule": {
+      "access": "Read",
+      "operation": "describe_monitoring_schedule",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeOptimizationJob": {
+      "access": "Read",
+      "operation": "describe_optimization_job",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:DescribeWorkforce": {
+      "access": "Read",
+      "operation": "describe_workforce",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListAutoMLJobs": {
+      "access": "List",
+      "operation": "list_auto_ml_jobs",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListCompilationJobs": {
+      "access": "List",
+      "operation": "list_compilation_jobs",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListDataQualityJobDefinitions": {
+      "access": "List",
+      "operation": "list_data_quality_job_definitions",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListHyperParameterTuningJobs": {
+      "access": "List",
+      "operation": "list_hyper_parameter_tuning_jobs",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListInferenceRecommendationsJobs": {
+      "access": "List",
+      "operation": "list_inference_recommendations_jobs",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListLabelingJobs": {
+      "access": "List",
+      "operation": "list_labeling_jobs",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListModelBiasJobDefinitions": {
+      "access": "List",
+      "operation": "list_model_bias_job_definitions",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListModelExplainabilityJobDefinitions": {
+      "access": "List",
+      "operation": "list_model_explainability_job_definitions",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListModelQualityJobDefinitions": {
+      "access": "List",
+      "operation": "list_model_quality_job_definitions",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListMonitoringSchedules": {
+      "access": "List",
+      "operation": "list_monitoring_schedules",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListOptimizationJobs": {
+      "access": "List",
+      "operation": "list_optimization_jobs",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListWorkforces": {
+      "access": "List",
+      "operation": "list_workforces",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "sagemaker:ListWorkteams": {
+      "access": "List",
+      "operation": "list_workteams",
+      "service": "sagemaker",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_sagemaker.html"
+    },
+    "scheduler:GetSchedule": {
+      "access": "Read",
+      "operation": "get_schedule",
+      "service": "scheduler",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_scheduler.html"
+    },
+    "scheduler:ListSchedules": {
+      "access": "List",
+      "operation": "list_schedules",
+      "service": "scheduler",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_scheduler.html"
+    },
+    "ses:GetIngressPoint": {
+      "access": "Read",
+      "operation": "get_ingress_point",
+      "service": "mailmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mailmanager.html"
+    },
+    "ses:ListIngressPoints": {
+      "access": "List",
+      "operation": "list_ingress_points",
+      "service": "mailmanager",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_mailmanager.html"
+    },
+    "storagegateway:DescribeCachediSCSIVolumes": {
+      "access": "Read",
+      "operation": "describe_cached_iscsi_volumes",
+      "service": "storagegateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_storagegateway.html"
+    },
+    "storagegateway:DescribeFileSystemAssociations": {
+      "access": "Read",
+      "operation": "describe_file_system_associations",
+      "service": "storagegateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_storagegateway.html"
+    },
+    "storagegateway:DescribeStorediSCSIVolumes": {
+      "access": "Read",
+      "operation": "describe_stored_iscsi_volumes",
+      "service": "storagegateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_storagegateway.html"
+    },
+    "storagegateway:DescribeVTLDevices": {
+      "access": "Read",
+      "operation": "describe_vtl_devices",
+      "service": "storagegateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_storagegateway.html"
+    },
+    "storagegateway:ListFileSystemAssociations": {
+      "access": "List",
+      "operation": "list_file_system_associations",
+      "service": "storagegateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_storagegateway.html"
+    },
+    "storagegateway:ListVolumes": {
+      "access": "List",
+      "operation": "list_volumes",
+      "service": "storagegateway",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_storagegateway.html"
+    },
+    "synthetics:DescribeCanaries": {
+      "access": "Read",
+      "operation": "describe_canaries",
+      "service": "synthetics",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_synthetics.html"
+    },
+    "timestream-influxdb:GetDbCluster": {
+      "access": "Read",
+      "operation": "get_db_cluster",
+      "service": "timestream-influxdb",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_timestream-influxdb.html"
+    },
+    "timestream-influxdb:ListDbClusters": {
+      "access": "List",
+      "operation": "list_db_clusters",
+      "service": "timestream-influxdb",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_timestream-influxdb.html"
+    },
+    "transfer:DescribeWebApp": {
+      "access": "Read",
+      "operation": "describe_web_app",
+      "service": "transfer",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_transfer.html"
+    },
+    "transfer:ListWebApps": {
+      "access": "List",
+      "operation": "list_web_apps",
+      "service": "transfer",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_transfer.html"
+    },
+    "vpc-lattice:ListResourceConfigurations": {
+      "access": "List",
+      "operation": "list_resource_configurations",
+      "service": "vpc-lattice",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_vpc-lattice.html"
+    },
+    "vpc-lattice:ListResourceEndpointAssociations": {
+      "access": "List",
+      "operation": "list_resource_endpoint_associations",
+      "service": "vpc-lattice",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_vpc-lattice.html"
+    },
+    "vpc-lattice:ListServiceNetworkVpcEndpointAssociations": {
+      "access": "List",
+      "operation": "list_service_network_vpc_endpoint_associations",
+      "service": "vpc-lattice",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_vpc-lattice.html"
+    },
+    "vpc-lattice:ListServiceNetworks": {
+      "access": "List",
+      "operation": "list_service_networks",
+      "service": "vpc-lattice",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_vpc-lattice.html"
+    },
+    "workspaces-web:GetNetworkSettings": {
+      "access": "Read",
+      "operation": "get_network_settings",
+      "service": "workspaces-web",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_workspaces-web.html"
+    },
+    "workspaces-web:ListNetworkSettings": {
+      "access": "Read",
+      "operation": "list_network_settings",
+      "service": "workspaces-web",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_workspaces-web.html"
+    },
+    "workspaces-web:ListPortals": {
+      "access": "Read",
+      "operation": "list_portals",
+      "service": "workspaces-web",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_workspaces-web.html"
+    },
+    "workspaces:DescribeWorkspaceDirectories": {
+      "access": "Read",
+      "operation": "describe_workspace_directories",
+      "service": "workspaces",
+      "source": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_workspaces.html"
+    }
+  },
+  "prefixes": {
+    "amp": "aps",
+    "appflow": "appflow",
+    "apprunner": "apprunner",
+    "appstream": "appstream",
+    "backup-gateway": "backup-gateway",
+    "bedrock": "bedrock",
+    "bedrock-agentcore-control": "bedrock-agentcore",
+    "codebuild": "codebuild",
+    "codeconnections": "codeconnections",
+    "comprehend": "comprehend",
+    "datasync": "datasync",
+    "datazone": "datazone",
+    "deadline": "deadline",
+    "devicefarm": "devicefarm",
+    "dms": "dms",
+    "docdb-elastic": "docdb-elastic",
+    "drs": "drs",
+    "ds": "ds",
+    "dsql": "dsql",
+    "ec2": "ec2",
+    "ecs": "ecs",
+    "eks": "eks",
+    "emr": "elasticmapreduce",
+    "emr-containers": "emr-containers",
+    "emr-serverless": "emr-serverless",
+    "events": "events",
+    "evs": "evs",
+    "finspace": "finspace",
+    "fsx": "fsx",
+    "gamelift": "gamelift",
+    "groundstation": "groundstation",
+    "imagebuilder": "imagebuilder",
+    "iot": "iot",
+    "kafka": "kafka",
+    "kafkaconnect": "kafkaconnect",
+    "kendra": "kendra",
+    "kinesisanalyticsv2": "kinesisanalytics",
+    "lambda": "lambda",
+    "license-manager-user-subscriptions": "license-manager-user-subscriptions",
+    "m2": "m2",
+    "mailmanager": "ses",
+    "managedblockchain": "managedblockchain",
+    "mediaconnect": "mediaconnect",
+    "medialive": "medialive",
+    "mgn": "mgn",
+    "migration-hub-refactor-spaces": "refactor-spaces",
+    "mwaa": "airflow",
+    "mwaa-serverless": "airflow-serverless",
+    "neptune": "rds",
+    "neptune-graph": "neptune-graph",
+    "network-firewall": "network-firewall",
+    "networkflowmonitor": "networkflowmonitor",
+    "networkmanager": "networkmanager",
+    "networkmonitor": "networkmonitor",
+    "observabilityadmin": "observabilityadmin",
+    "odb": "odb",
+    "opensearch": "es",
+    "opensearchserverless": "aoss",
+    "osis": "osis",
+    "pca-connector-ad": "pca-connector-ad",
+    "pcs": "pcs",
+    "pipes": "pipes",
+    "qbusiness": "qbusiness",
+    "quicksight": "quicksight",
+    "rds": "rds",
+    "redshift": "redshift",
+    "redshift-serverless": "redshift-serverless",
+    "route53globalresolver": "route53globalresolver",
+    "rtbfabric": "rtbfabric",
+    "s3outposts": "s3-outposts",
+    "sagemaker": "sagemaker",
+    "scheduler": "scheduler",
+    "storagegateway": "storagegateway",
+    "synthetics": "synthetics",
+    "timestream-influxdb": "timestream-influxdb",
+    "transfer": "transfer",
+    "vpc-lattice": "vpc-lattice",
+    "workspaces": "workspaces",
+    "workspaces-web": "workspaces-web"
+  }
+}

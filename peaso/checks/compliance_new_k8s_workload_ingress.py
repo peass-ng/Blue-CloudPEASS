@@ -105,8 +105,14 @@ def ingress_backend_protocol(item, index):
         if key in services:
             return unknown("duplicate Service identity in complete inventory", namespace=key[0], name=key[1])
         services[key] = service
-    rules = list_of_objects(get(spec, "rules", list))
+    native = item.get("provenance", {}).get("evidence") == "read-only list"
+    rules = list_of_objects(optional(spec, "rules", [], list) if native else get(spec, "rules", list))
     targets = []
+    if "defaultBackend" in spec:
+        backend = get(spec, "defaultBackend", dict)
+        if "resource" in backend:
+            return unknown("Ingress default resource backend is outside reviewed Service configuration")
+        targets.append(get(backend, "service.name", str))
     for rule in rules:
         paths = list_of_objects(get(rule, "http.paths", list))
         for path in paths:

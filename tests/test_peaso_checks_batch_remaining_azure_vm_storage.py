@@ -7,6 +7,7 @@ import pytest
 from peaso.checks import CHECKS
 from peaso.checks import batch_remaining_azure_vm_storage  # noqa: F401
 from peaso.checks.facts import MemoIndex
+from tests.azure_native_successor_inputs_20261020 import current_cases
 
 FIXTURE = Path(__file__).parent / 'fixtures' / 'batch_remaining_azure_vm_storage' / 'central-fixture-fragment.json'
 CASES = json.loads(FIXTURE.read_text())
@@ -25,7 +26,7 @@ def test_exact_batch_membership_and_native_categories():
 @pytest.mark.parametrize('check_id', sorted(CASES))
 @pytest.mark.parametrize('status', ('PASS', 'FAIL', 'UNKNOWN'))
 def test_source_observed_verdicts(check_id, status):
-    case = CASES[check_id]
+    case = current_cases(check_id, CASES[check_id])
     observed, evidence = BATCH[check_id].evaluate(case[status.lower()], case[status.lower()+'_index'])
     assert observed == status, (check_id, status, observed, evidence)
 

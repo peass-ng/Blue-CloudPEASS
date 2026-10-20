@@ -1,0 +1,184 @@
+"""Exact single-control atomic admission and real public ML production hooks."""
+from copy import deepcopy
+import gzip
+import hashlib
+import inspect
+import json
+from pathlib import Path
+import shutil
+import socket
+from types import SimpleNamespace
+import pytest
+from fastapi import HTTPException
+from peaso import checks,engine,secret_scanning as scanning
+from peaso.checks.fixtures import CASES
+from peaso.checks import azure_ml_job_secrets_admission_20261020 as admission
+from peaso.checks import azure_ml_selected_job_secret_review_20261020 as consumer
+from peaso.collectors import azure
+from peaso.collectors import azure_ml_selected_job_secret_indicators as source
+from peaso.server.validation import OPTIONS,validate_connector
+from peaso.snapshot import make_snapshot
+from tests import test_azure_ml_selected_job_secret_review_20261020 as native
+
+
+@pytest.fixture(autouse=True)
+def offline(monkeypatch):
+    def blocked(*a,**kw):pytest.fail('Live network/auth or generic cached content request forbidden')
+    for n in('connect','connect_ex','sendto'):monkeypatch.setattr(socket.socket,n,blocked)
+    for n in('getaddrinfo','gethostbyname','gethostbyname_ex','create_connection'):monkeypatch.setattr(socket,n,blocked)
+    monkeypatch.setattr(azure,'credential_for',blocked);monkeypatch.setattr(azure.AzureTransport,'request',blocked)
+    scanning._RESULTS.clear();yield;scanning._RESULTS.clear()
+
+
+def test_exact_typed_admission_cases_and_idempotence():
+    receipt,cases,ds=admission.reviewed_inputs();metadata,function=ds[0]
+    registered,=[c for c in checks.CHECKS if c.id==source.CHECK]
+    assert inspect.unwrap(registered.evaluate)is function is consumer.evaluate
+    assert function.__globals__['_evaluate']is consumer._evaluate
+    assert registered.kind==source.KIND and registered.allow_incomplete_failure
+    assert CASES[source.CHECK]==cases[source.CHECK]
+    for branch in('pass','fail','unknown'):
+        assert registered.evaluate(cases[source.CHECK][branch],cases[source.CHECK][branch+'_index'])[0]==branch.upper()
+    before=tuple(checks.CHECKS);saved=deepcopy(CASES);admission.install()
+    assert tuple(checks.CHECKS)==before and CASES==saved
+
+
+@pytest.mark.parametrize('branch',['pass','fail','unknown'])
+def test_native_public_production_three_branches_both_real_pinned_engines(monkeypatch,branch):
+    def fault(op,response,rid):return native.Response({'error':native.TOKEN},403)if branch=='unknown'and op=='job'else response
+    snapshot,rows,trace=native.collect(monkeypatch,native.TOKEN if branch=='fail'else'mode=ready',real=True,fault=fault)
+    assert {r['status']for r in rows}=={branch.upper()}
+    assert len(trace.calls)==3 and all(r.closed for r in trace.responses)
+    assert native.TOKEN not in json.dumps([snapshot,rows])and native.AUTH not in json.dumps(snapshot)
+    native.capture(branch,snapshot,rows,trace,real=branch!='unknown')
+
+
+@pytest.mark.parametrize('auth_mode',['local','cognito'])
+def test_hosted_exact_validator_and_help_default_exclusion(auth_mode):
+    options={'content_secret_scans':True,source.OPTION:[native.target()]}
+    auth={'method':'token','tenant_id':native.TENANT,'arm_token':'offline-validator'}
+    validate_connector('azure',auth,options,SimpleNamespace(auth_mode=auth_mode),scopes=[native.SCOPE])
+    with pytest.raises(HTTPException)as error:validate_connector('aws',{},options,SimpleNamespace(auth_mode=auth_mode),scopes=[native.SCOPE])
+    assert error.value.status_code==422
+    assert source.OPTION in OPTIONS and source.OPTION+':'in Path('frontend/src/ConnectorFieldHelp.tsx').read_text()
+    assert source.KIND in engine.BULK_STREAM_TYPES['azure']and source.KIND not in azure._selected({},None)
+
+
+@pytest.mark.parametrize('failure',['missing','empty','foreign','extra','too_many','scope_missing','malformed','wrong_provider'])
+def test_public_invalid_selectors_stop_before_any_credentials(monkeypatch,failure):
+    t=native.target();options={'content_secret_scans':True,source.OPTION:[t]};scopes=[native.SCOPE]
+    if failure=='missing':options.pop(source.OPTION)
+    if failure=='empty':options[source.OPTION]=[]
+    if failure=='foreign':t['resource_id']=native.JOB.replace(native.SCOPE,native.FOREIGN)
+    if failure=='extra':t['codeUri']='https://evil.invalid/'+native.TOKEN
+    if failure=='too_many':options[source.OPTION]=[native.target(native.JOB+str(i))for i in range(5)]
+    if failure=='scope_missing':scopes=[]
+    if failure=='malformed':t['resource_id']=native.TOKEN
+    provider='aws'if failure=='wrong_provider'else'azure'
+    req={'connector':{'provider':provider,'scopes':scopes,'auth':{},'options':options},'checks':[]if failure=='wrong_provider'else[source.CHECK]}
+    with pytest.raises(ValueError):engine.collect_snapshot(req)
+
+
+@pytest.mark.parametrize('failure',['empty','duplicate','foreign','extra','count','malformed'])
+def test_hosted_invalid_selection_has_fixed_nonsensitive_error(failure):
+    t=native.target();options={source.OPTION:[t]}
+    if failure=='empty':options[source.OPTION]=[]
+    if failure=='duplicate':options[source.OPTION].append(deepcopy(t))
+    if failure=='foreign':t['resource_id']=native.JOB.replace(native.SCOPE,native.FOREIGN)
+    if failure=='extra':t['endpoint']=native.TOKEN
+    if failure=='count':options[source.OPTION]=[native.target(native.JOB+str(i))for i in range(5)]
+    if failure=='malformed':t['resource_id']=native.TOKEN
+    with pytest.raises(HTTPException)as error:validate_connector('azure',{},options,SimpleNamespace(auth_mode='local'),scopes=[native.SCOPE])
+    assert error.value.status_code==422 and native.TOKEN not in str(error.value.detail)
+
+
+@pytest.mark.parametrize('kind',['receipt','producer','consumer','fixture','proposal'])
+def test_reviewed_bytes_cannot_change_before_admission(tmp_path,kind):
+    receipt_path='peaso/checks/azure_ml_job_secrets_admission_20261020.json'
+    receipt=json.loads(Path(receipt_path).read_text());paths=set(receipt['sources'])|{receipt_path,receipt['fixture']['path']}
+    for p in paths:
+        out=tmp_path/p;out.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,out)
+    target={'receipt':receipt_path,'producer':'peaso/collectors/azure_ml_selected_job_secret_indicators.py','consumer':'peaso/checks/azure_ml_selected_job_secret_review_20261020.py','fixture':receipt['fixture']['path'],'proposal':'peaso/checks/azure_ml_selected_job_secret_review_20261020_proposal.json'}[kind]
+    with (tmp_path/target).open('ab')as f:f.write(b'\n')
+    before=tuple(checks.CHECKS);cases=deepcopy(CASES)
+    with pytest.raises(RuntimeError):admission.reviewed_inputs(tmp_path)
+    assert tuple(checks.CHECKS)==before and CASES==cases
+
+
+@pytest.mark.parametrize('target',['function','helper'])
+def test_typed_consumer_and_reachable_helper_identity_guard(monkeypatch,target):
+    before=tuple(checks.CHECKS);cases=deepcopy(CASES)
+    if target=='function':monkeypatch.setattr(consumer,'evaluate',lambda item,index:('PASS',{}))
+    else:monkeypatch.setattr(consumer,'_evaluate',lambda item,index:('PASS',{}))
+    with pytest.raises(RuntimeError):admission.install()
+    assert tuple(checks.CHECKS)==before and CASES==cases
+
+
+def test_partial_registration_mutation_is_rolled_back_atomically(monkeypatch):
+    original=list(checks.CHECKS);saved=deepcopy(CASES)
+    checks.CHECKS[:]=[c for c in checks.CHECKS if c.id!=source.CHECK];CASES.pop(source.CHECK,None)
+    before=tuple(checks.CHECKS);cases=deepcopy(CASES);register=checks.register
+    def fail_after_install(*a,**kw):
+        decorator=register(*a,**kw)
+        def changed(function):decorator(function);raise RuntimeError('injected post-registration failure')
+        return changed
+    monkeypatch.setattr(checks,'register',fail_after_install)
+    try:
+        with pytest.raises(RuntimeError,match='post-registration'):admission.install()
+        assert tuple(checks.CHECKS)==before and CASES==cases
+    finally:checks.CHECKS[:]=original;CASES.clear();CASES.update(saved)
+
+
+def test_existing_fixture_collision_cannot_be_silently_replaced():
+    saved=deepcopy(CASES[source.CHECK]);before=tuple(checks.CHECKS);CASES[source.CHECK]={'collision':True}
+    try:
+        with pytest.raises(RuntimeError,match='collision'):admission.install()
+        assert tuple(checks.CHECKS)==before and CASES[source.CHECK]=={'collision':True}
+    finally:CASES[source.CHECK]=saved
+
+
+@pytest.mark.parametrize('mode',['default','category','spoof','inventories'])
+def test_bulk_category_and_internal_spoof_do_not_authorize_content(monkeypatch,mode):
+    import peaso.collectors as collectors
+    options={'content_secret_scans':True,source.OPTION:[native.target()]}
+    if mode in('spoof','inventories'):options['_content_secret_scan_kinds']=[source.KIND]
+    if mode=='inventories':options['inventories']=[source.KIND]
+    request={'connector':{'provider':'azure','scopes':[native.SCOPE],'auth':{},'options':options}}
+    if mode=='category':request['categories']=['exposure']
+    def observe(connector,requirements=None):
+        if mode in('default','spoof'):assert source.KIND not in requirements
+        assert source.KIND not in connector['options']['_content_secret_scan_kinds']
+        return make_snapshot('azure',[native.SCOPE],[],metadata={})
+    monkeypatch.setattr(collectors,'collect_live',observe)
+    assert engine.collect_snapshot(request)['collections']==[]
+
+
+def test_actual_explicit_inventory_with_spoofed_private_kind_never_reads_unnamed_content(monkeypatch):
+    class Credential:
+        def get_token(self,*a,**kw):pytest.fail('Unnamed content attempted token acquisition')
+        def close(self):pass
+    monkeypatch.setattr(azure,'credential_for',lambda auth:Credential())
+    options={'content_secret_scans':True,source.OPTION:[native.target()],'inventories':[source.KIND],'_content_secret_scan_kinds':[source.KIND],'retries':0}
+    snapshot=engine.collect_snapshot({'connector':{'provider':'azure','scopes':[native.SCOPE],
+        'auth':{'method':'client-secret','tenant_id':native.TENANT,'client_id':native.TENANT,'client_secret':'offline'},'options':options}})
+    assert snapshot['collections']==[]and snapshot['metadata'][source.KIND+'_authorized']is False
+    assert {r['status']for r in engine.evaluate_snapshot(snapshot,checks=[source.CHECK])['findings']}=={'UNKNOWN'}
+
+
+def test_new_hit_scrubs_all_old_ledgers_and_late_metadata_before_cleanup(monkeypatch):
+    def late(reader,snapshot):
+        snapshot['metadata']['late']=native.TOKEN
+        for attr in('log_sample_secret_metadata','declaration_secret_metadata','configuration_secret_metadata','storage_source_secret_metadata','devops_selected_metadata','app_setting_secret_metadata','acr_image_secret_metadata'):
+            setattr(reader,attr,{attr+'_late':native.TOKEN})
+    snapshot,rows,trace=native.collect(monkeypatch,native.TOKEN,late=late,real=True)
+    assert {r['status']for r in rows}=={'FAIL'}
+    assert native.TOKEN not in json.dumps([snapshot,rows])and not trace.readers[0].configuration_secret_redactions
+
+
+def test_original_proposed_test_bytes_preserved_without_duplicate_collection():
+    archive=Path('docs/check-review/azure-ml-command-job-proposed-tests-20261020.py.gz')
+    report=json.loads(Path('docs/check-review/azure-ml-databricks-secret-surface-audit-20261020.json').read_text())
+    original,=[r for r in report['new_files']if r['path']=='tests/test_azure_ml_selected_job_secret_review_20261020.py']
+    assert hashlib.sha256(gzip.decompress(archive.read_bytes())).hexdigest()==original['sha256']
+    proposal=json.loads(Path('peaso/checks/azure_ml_selected_job_secret_review_20261020_proposal.json').read_text())
+    assert proposal['registration']=='unregistered_proposal_only' # Historical proposal retained; admission is distinct.

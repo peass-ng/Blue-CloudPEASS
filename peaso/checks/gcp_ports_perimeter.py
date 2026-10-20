@@ -4,6 +4,7 @@ from . import register, result, unknown
 from .facts import get, optional, list_of_objects, Unavailable, principal_trust_lists, PUBLIC_PRINCIPALS
 from .fixtures import CASES
 from .gcp_ports_keys import caller_restrictions
+from .gcp_api_key_service_names_native import canonical_target
 
 IDS, REFERENCE_SPECS = [], {}
 
@@ -118,11 +119,19 @@ rule("reference_sql_ssl_connections", "sql_instance", sql_ssl,
 def meaningful_restrictions(item, index):
     restrictions = get(item, "restrictions", dict)
     targets = list_of_objects(optional(restrictions, "apiTargets", [], list))
-    names = [get(target, "service", str) for target in targets]
+    names = [canonical_target(get(target, "service", str)) for target in targets]
     api_restricted = bool(names) and "cloudapis.googleapis.com" not in names and all(names)
     status, caller_evidence = caller_restrictions(item, index)
     if status == "UNKNOWN":
         return status, caller_evidence
+    if "serverKeyRestrictions" in restrictions:
+        body = get(restrictions, "serverKeyRestrictions", dict)
+        allowed = get(body, "allowedIps", list)
+        # Preserve native restrictions and their evidence; parse only the IP
+        # identity needed to recognize all equivalent universal CIDRs.
+        networks = [ip_network(value, strict=False) for value in allowed]
+        if any(network.prefixlen == 0 for network in networks):
+            status = "FAIL"
     return result(not api_restricted and status != "PASS", restricted_services=names, caller_declaration=caller_evidence,
         semantics="Meaningful API target or caller restriction; object nonemptiness alone is not a security restriction")
 

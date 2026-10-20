@@ -67,12 +67,17 @@ SERVICE_ALIASES = {
 # inventory kinds directly as their service labels.
 ANALYSIS_KIND_SERVICES = {
     "aws": {
+        "cloudfront_vpc_origin": "cloudfront", "memorydb_subnet_group": "memorydb",
+        "redshift_subnet_group": "redshift", "elasticache_subnet_group": "elasticache", "ecs_task": "ecs",
+        "rds_db_subnet_group": "rds",
         "ec2_instance_connect_endpoint": "ec2", "managed_prefix_list": "ec2",
         "nat_gateway": "ec2", "target_group": "elasticloadbalancing",
         "transit_gateway_attachment": "ec2", "transit_gateway_route_table": "ec2",
         "transit_gateway_vpc_attachment": "ec2", "vpn_gateway": "ec2",
     },
     "gcp": {
+        "service_attachment": "compute", "network_endpoint_group": "compute", "network_attachment": "compute",
+        "vpc_access_connector": "vpcaccess", "filestore_instance": "file", "redis_instance": "redis",
         "address": "compute", "effective_firewall": "compute",
         "firewall_policy": "compute", "firewall_policy_association": "compute",
         "health_check": "compute", "hierarchical_firewall_policy": "compute",
@@ -82,11 +87,18 @@ ANALYSIS_KIND_SERVICES = {
         "vpn_tunnel": "compute",
     },
     "azure": {
+        "private_link_service": "Microsoft.Network",
+        "mongo_cluster": "Microsoft.DocumentDB",
         "effective_route": "Microsoft.Network", "nat_gateway": "Microsoft.Network",
         "private_endpoint": "Microsoft.Network", "security_admin_rule": "Microsoft.Network",
         "service_tag": "Microsoft.Network", "vnet_peering": "Microsoft.Network",
     },
 }
+
+
+from peaso.analysis.network_catalog import NETWORK_SERVICE_LABELS
+for _provider, _labels in NETWORK_SERVICE_LABELS.items():
+    ANALYSIS_KIND_SERVICES[_provider].update(_labels)
 
 
 @lru_cache(maxsize=1)

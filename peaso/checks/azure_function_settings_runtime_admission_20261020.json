@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "checks": [
+    {
+      "id": "azure.review.function.application_insights_setting_declared",
+      "provider": "azure",
+      "category": "hardening",
+      "kind": "azure_selected_function_settings_declaration",
+      "severity": "medium",
+      "finding_type": "monitoring",
+      "group": "Monitoring & alerts",
+      "requirements": [],
+      "title": "Selected Function declares an Application Insights setting",
+      "dependencies": [
+        "azure_selected_function_settings_declaration"
+      ],
+      "description": "Checks the declared presence of at least one literal Application Insights connection setting on explicitly selected Functions. Telemetry delivery and destination validity are not tested.",
+      "remediation": [
+        "Configure APPLICATIONINSIGHTS_CONNECTION_STRING for the selected Function.",
+        "Review telemetry ingestion and authentication separately."
+      ]
+    },
+    {
+      "id": "azure.review.function.runtime_major4_update_channel_declared",
+      "provider": "azure",
+      "category": "hardening",
+      "kind": "azure_selected_function_settings_declaration",
+      "severity": "medium",
+      "finding_type": "patching",
+      "group": "Patching & versions",
+      "requirements": [],
+      "title": "Selected classic Function declares the automatic major4 runtime update channel",
+      "dependencies": [
+        "azure_selected_function_settings_declaration"
+      ],
+      "description": "Checks the classic Function FUNCTIONS_EXTENSION_VERSION declaration for the automatic major4 update channel. Flex Consumption and custom container host versions use separate mechanisms; the resolved build is not tested.",
+      "remediation": [
+        "Review compatibility and select ~4 on supported classic Function hosting.",
+        "Review deliberate support-directed build pins before changing them."
+      ]
+    }
+  ],
+  "sources": {
+    "peaso/checks/azure_function_settings_review_20261020.py": "1d4fd3f8e729a058ca94699ea38a879263287dc1dc09d9719fb07d6c206d3659",
+    "peaso/checks/azure_function_settings_admission_20261020.py": "24b7dd28da17888fbdbafabd5ab1347bcff88b0d1a01b48a2813dededa636704",
+    "peaso/checks/azure_function_settings_admission_20261020.json": "740ade22ca008fc00b4faf062110d4ab6081c6bdd7dde0537e208d6dbf97dda1",
+    "peaso/checks/azure_function_settings_descriptions_20261020.json": "386aa50eca911b4d12671fabc54a983332bd683c55cfa5b410adeacb310364e7",
+    "peaso/collectors/azure_function_settings_declarations_20261020.py": "fba106883b1fce7b517dfea87f60f6e84509da0378caddd126ef625b01c46863",
+    "peaso/checks/azure_function_settings_native_cases_20261020.json.gz": "4a9337b0aab54eef315e31ecf28167b3be45ce97f066234479ed2f21a7dac209",
+    "peaso/checks/azure_function_settings_runtime_consumer_20261020.py": "411689c7e89c3f70baa29eb3a235b1ee0ecffbdb6d8fbc6b2543be269c23451c",
+    "peaso/collectors/azure_function_settings_runtime_hooks_20261020.py": "c611246645b722b67f5bb24047d720b3e993579ee694abc6906c5f6cdd376348",
+    "peaso/checks/azure_ml_selected_asset_secret_review_20261020.py": "4c66fc194c7c94537581f240ee6999ee87e6677c6deeb5e65b510c4eddf6f472",
+    "peaso/checks/azure_ml_selected_asset_secret_review_20261020_descriptions.json": "0a5b75091e82ca159ab894858b117b6f5a8c247915aaa5dea7fb31f83432bf78",
+    "peaso/checks/azure_ml_selected_asset_secret_review_20261020_native_fixtures.json": "1a5db7bcdf17cce5c8f41c593a6e66c3db7d982b2feaadd5cb468c56285ba53e",
+    "peaso/checks/azure_ml_selected_asset_secret_review_20261020_proposal.json": "9697c97904f2d9f488f2b8e34264d16ba33c95f58ba6875a64552eafa835cf0b",
+    "peaso/collectors/azure_databricks_notebook_secret_indicators.py": "6eed83bf1d6b6e8055dabb1c0cee052f1b7c636121c742e74b8727bc23b4b222",
+    "peaso/collectors/azure_ml_selected_asset_secret_indicators.py": "e5d98f9692035b60342526497ca70076a06cdafd3dbf8bfc0aa706ea70f2486f",
+    "peaso/collectors/azure_ml_selected_job_secret_indicators.py": "a0644628612d680fea88a9dcedca7541f1560278fc5d4ea116710739035143c3",
+    "peaso/collectors/azure_selected_declaration_secret_indicators.py": "31b9a452cc530f4ceee89b1ca5b6892217eeea82d1699b9c86126e3fd9bdc6f2",
+    "peaso/collectors/azure_selected_log_sample_secret_indicators.py": "fd07ef51f86ef4ed6889c62c532de732f69f7c76e568c08db6d39271094718f8",
+    "peaso/collectors/azure_selected_secret_integration_20261020.py": "0046da76a6a83b45abfe53041472ed21b60c298130aeb7154a7da1cc0b13344c",
+    "peaso/collectors/azure_selected_storage_secret_indicators.py": "59db1280c49909db57368b7e4e61e846f5f2c8ee1b323c6b2204f2110646beda",
+    "peaso/secret_findings.py": "5ca5fa75a345863b6c266f7b1055c4423c7d8a99f190542dbef4ce542919e470",
+    "peaso/secret_scanning.py": "72aaf391e3b168d9b8f7a10603a5763c04137b5e7807fef320b4fc22fa1a9d19"
+  },
+  "fixture": {
+    "path": "peaso/checks/azure_function_settings_runtime_cases_20261020.json",
+    "sha256": "581eb4d108d819e389658ed72d13884ff870b54f04d52b76cfffbfab857a99d7"
+  },
+  "functions": {
+    "azure.review.function.application_insights_setting_declared": "telemetry",
+    "azure.review.function.runtime_major4_update_channel_declared": "runtime"
+  },
+  "native_origin": {
+    "path": "docs/check-review/azure-function-settings-current-native-captures-20261020.json.gz",
+    "sha256": "748c499fef3a8387b60e26e8cb5e302bd44150381df4d582907f409c5a95ddc7",
+    "meaning": "Independent native HTTP through real Azure.collect and actual parent credential/customer stamping; no native field/value invented. Original provider responses retained by source roster, old runtime CASES retained in predecessor gzip."
+  },
+  "predecessor_runtime": {
+    "archive": "docs/check-review/azure-function-settings-pre-integration-20261020.json.gz",
+    "archive_sha256": "79c02077770fba3e222464062f98e3798f594d39ec5d56143e62cfd16f710cfb",
+    "original_files": {
+      "tests/test_azure_function_settings_declarations_20261020.py": "743dad6689792d040fce48d0756b964b45810aab982c2a1131000ecc65a63073",
+      "tests/test_azure_function_settings_runtime_admission_20261020.py": "9e89a7074a5e2610c0f6fc4c8180d6a8113471a60f6f6a92e3dd78b3074c2bf4",
+      "peaso/checks/azure_function_settings_runtime_admission_20261020.py": "e101833d2bbf1c8461a04a78177167518f1c930cb11142d345a46200c284a365",
+      "peaso/checks/azure_function_settings_runtime_admission_20261020.json": "26a06aa34e8bac61c35d7b798965d0960fb67b1d6ef901fac76278480a0b5967",
+      "peaso/checks/azure_function_settings_runtime_cases_20261020.json": "4aba28ef08df8a12647fd3cdc8b0853326e9fbf9cde653761b9ebc3fecae8426"
+    },
+    "reason": "Explicit consumer successor validates additive real scan provenance before copying original predicate inputs; original sources/admission/nativegzip unchanged."
+  },
+  "runtime_callables": {
+    "_bound": "0e693cb13b1aeffdc09835726e1803b2814161b84e37772a96d670af3365d0c9",
+    "_evaluate": "c34952b025195b87532b607e8500e6870bed331ecf1ae8ba2cc5dec7f4412c75",
+    "telemetry": "a624b52792064cae0f5be8aec78449ab413b711acf78a96ed765dbd4b53d7507",
+    "runtime": "b8b02ff29e3bfb5a5c63965c24e9a8939e8682c3fba4ba40d8323153bf4a4341"
+  },
+  "runtime_finalizer_sha256": "15745f29ef0ee2f07687f95a44113a70fd1a340f2377e35c5ad48f0f928460ee"
+}

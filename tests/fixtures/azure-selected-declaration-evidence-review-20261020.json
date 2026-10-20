@@ -1,0 +1,275 @@
+{
+  "azure.review.app_configuration.selected_value_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected public literals. Coverage is limited to these declarations.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_public_literals_only",
+        "credential_validation": "not_attempted",
+        "profile": "app_configuration",
+        "parts": [
+          {
+            "bytes": 10,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected App Configuration value."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected public literals. The value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "0fb20e10ef481e46190b209186cab0ec010b9e168a531178e34463ddbe5bacae",
+            "locations": [
+              {
+                "line": 1,
+                "path": "azure_app_configuration_selected_values:a56f2e77254ba021bd587693587847c60dca942f918e7190ab2f35a85e3bfb28.inline_literals"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_public_literals_only",
+        "credential_validation": "not_attempted",
+        "profile": "app_configuration",
+        "parts": [
+          {
+            "bytes": 40,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected App Configuration value. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete_selected_public_literals",
+        "observed": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established."
+      },
+      "summary": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established."
+    }
+  ],
+  "azure.review.data_factory.selected_declaration_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected public literals. Coverage is limited to these declarations.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_public_literals_only",
+        "credential_validation": "not_attempted",
+        "profile": "data_factory",
+        "parts": [
+          {
+            "bytes": 23,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in selected Data Factory declarations."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected public literals. The value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "0fb20e10ef481e46190b209186cab0ec010b9e168a531178e34463ddbe5bacae",
+            "locations": [
+              {
+                "line": 3,
+                "path": "azure_data_factory_selected_declarations:d98b8aa00024403a420034653e48fa775a93a704c61ae265b4bba4012ab861d0.inline_literals"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_public_literals_only",
+        "credential_validation": "not_attempted",
+        "profile": "data_factory",
+        "parts": [
+          {
+            "bytes": 53,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in selected Data Factory declarations. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete_selected_public_literals",
+        "observed": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established."
+      },
+      "summary": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established."
+    }
+  ],
+  "azure.review.synapse.selected_pipeline_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected public literals. Coverage is limited to these declarations.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_public_literals_only",
+        "credential_validation": "not_attempted",
+        "profile": "synapse",
+        "parts": [
+          {
+            "bytes": 23,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected Synapse pipeline."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the selected public literals. The value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "0fb20e10ef481e46190b209186cab0ec010b9e168a531178e34463ddbe5bacae",
+            "locations": [
+              {
+                "line": 3,
+                "path": "azure_synapse_selected_pipelines:a99c8f0aa73164aa064b3fba669e7e976d01cf05d9a8b0c6a73c0b576c502ebb.inline_literals"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_public_literals_only",
+        "credential_validation": "not_attempted",
+        "profile": "synapse",
+        "parts": [
+          {
+            "bytes": 53,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected Synapse pipeline. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete_selected_public_literals",
+        "observed": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established."
+      },
+      "summary": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established."
+    }
+  ]
+}

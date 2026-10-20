@@ -128,7 +128,8 @@ def firewall_default_rules(item, index):
     if skip:
         return skip
     ranges = set(source_ranges(item))
-    return result(name in DEFAULT_OPEN_RULES and bool(ranges & {"0.0.0.0/0", "::/0"}), name=name, source_ranges=sorted(ranges),
+    entries = allowed_entries(item)
+    return result(name in DEFAULT_OPEN_RULES and bool(entries) and bool(ranges & {"0.0.0.0/0", "::/0"}), name=name, source_ranges=sorted(ranges),
                   semantics="default-allow-http/https are the documented exceptions")
 
 
@@ -225,22 +226,25 @@ CUSTOM_ROLE = re.compile(r"(projects|organizations)/[^/]+/roles/[^/]+")
 
 
 def instance_accounts(item):
-    return [get(account, "email", str) for account in list_of_objects(optional(item, "serviceAccounts", [], list))]
+    accounts = [get(account, "email", str) for account in list_of_objects(optional(item, "serviceAccounts", [], list))]
+    if any(not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", account) for account in accounts):
+        raise Unavailable("attached service account identity unavailable or malformed")
+    return accounts
 
 
 def role_grants(role, permissions, predefined, index):
-    """True when a role is a listed predefined role or a custom role including a listed permission."""
-    if role in predefined:
-        return True
-    if not permissions or not CUSTOM_ROLE.fullmatch(role):
-        return False
-    matches = [r for r in complete_items(index, "iam_role") if r.get("name") == role]
+    """Match literal basic-role declarations or permissions from a native role definition."""
+    if not permissions:
+        return role in predefined
+    if not (CUSTOM_ROLE.fullmatch(role) or re.fullmatch(r"roles/[\w.]+", role)):
+        raise Unavailable("malformed role reference")
+    matches = [r for r in complete_items(index, "iam_role") if get(r, "name", str) == role]
     if len(matches) != 1:
-        raise Unavailable("custom role definition not in the scoped role inventory: " + role)
+        raise Unavailable("role definition absent or ambiguous in the scoped role inventory: " + role)
     definition = matches[0]
-    if optional(definition, "deleted", False, bool):
+    if optional(definition, "deleted", False, bool) or optional(definition, "stage", "ALPHA", str) == "DISABLED":
         return False
-    included = strings(optional(definition, "includedPermissions", [], list), "custom role permissions")
+    included = strings(get(definition, "includedPermissions", list), "native role permissions")
     return bool(set(included) & set(permissions))
 
 
@@ -266,7 +270,7 @@ def instance_grant(slug, title, permissions, predefined, *, skip_gke=False, seve
         return result(bool(hits), service_accounts=accounts, matching_bindings=hits,
                       semantics="Project root policy declarations; inherited, resource-level and deny policies are not evaluated")
     cid = track(gid(slug))
-    role = predefined[0] if predefined else "projects/p/roles/custom"
+    role = "projects/p/roles/custom" if permissions else predefined[0]
     roles = [{"name": "projects/p/roles/custom", "includedPermissions": permissions[:1]},
              {"name": "projects/p/roles/viewerish", "includedPermissions": ["compute.instances.get"]}]
     vm = {"name": "vm", "serviceAccounts": [{"email": "app@p.iam.gserviceaccount.com"}]}
@@ -621,7 +625,9 @@ cases(track(gid("network.dns_logging")), {"selfLink": _net}, {"selfLink": _net},
 
 def public_zone_dnssec(item):
     visibility = optional(item, "visibility", "public", str)
-    if visibility != "public":
+    if visibility not in ("public", "private"):
+        raise Unavailable("unrecognized DNS zone visibility")
+    if visibility == "private":
         return None
     config = optional(item, "dnssecConfig", {}, dict)
     state = optional(config, "state", "off", str)
@@ -652,7 +658,20 @@ def rsasha1(slug, key_type, label):
         if zone is None or zone[0] == "off":
             return "NOT_APPLICABLE", {"reason": "Private zone or DNSSEC disabled"}
         specs = list_of_objects(get(zone[1], "defaultKeySpecs", list))
-        weak = [s for s in specs if get(s, "keyType", str) == key_type and get(s, "algorithm", str).lower() == "rsasha1"]
+        selected, weak = [], []
+        for spec in specs:
+            selected_type = get(spec, "keyType", str)
+            algorithm = get(spec, "algorithm", str).lower()
+            if selected_type not in ("keySigning", "zoneSigning"):
+                raise Unavailable("unrecognized DNSSEC key type")
+            if algorithm not in ("rsasha1", "rsasha256", "rsasha512", "ecdsap256sha256", "ecdsap384sha384"):
+                raise Unavailable("unrecognized DNSSEC key algorithm")
+            if selected_type == key_type:
+                selected.append(spec)
+                if algorithm == "rsasha1":
+                    weak.append(spec)
+        if not selected:
+            raise Unavailable("DNSSEC default key specification unavailable for selected key type")
         return result(bool(weak), key_type=key_type, rsasha1_specs=len(weak))
     cid = track(gid(slug))
     spec = lambda algorithm: {"visibility": "public", "dnssecConfig": {"state": "on", "defaultKeySpecs": [

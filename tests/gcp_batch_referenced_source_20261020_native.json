@@ -1,0 +1,15 @@
+{
+  "name": "projects/10001/locations/us-central1/jobs/review-job",
+  "uid": "batch-opaque-native-uid-01",
+  "priority": "0",
+  "taskGroups": [{
+    "name": "projects/10001/locations/us-central1/jobs/review-job/taskGroups/group0",
+    "taskCount": "1",
+    "taskSpec": {
+      "runnables": [{"script": {"path": "/mnt/source/scripts/main.sh"}}],
+      "volumes": [{"gcs": {"remotePath": "review-source/code/"}, "mountPath": "/mnt/source"}]
+    }
+  }],
+  "status": {"state": "SUCCEEDED"},
+  "createTime": "2026-10-20T00:00:00Z"
+}

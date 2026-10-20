@@ -16325,6 +16325,246 @@
     "gcp.review.sourcerepo.selected_file_secret_indicators": {
       "decision": "include",
       "group": "security_configuration"
+    },
+    "gcp.review.cloudtasks.selected_payload_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.bigquery.selected_routine_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.app_service.selected_app_settings_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.selected_literals.secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.acr.selected_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.lambda.selected_environment_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.ai_services.audit_logging": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.ai_services.managed_identity": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.ai_services.outbound_restriction": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.ai_services.prompt_shield": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.managed_hsm.audit_storage_destination": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.network.acr_public_ip_ranges_restricted": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.encryption.automation_cmk_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.logging.aci_log_analytics_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.logging.aks_supported_log_categories_destination_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.logging.managed_hsm_audit_destination_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.encryption.log_analytics_cluster_cmk_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.encryption.stream_analytics_job_storage_cmk_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.devops.visible_clone_urls_without_userinfo": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.configuration.selected_content_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.configuration.selected_content_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.storage.selected_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.devops.selected_content_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.app_configuration.selected_value_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.data_factory.selected_declaration_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.synapse.selected_pipeline_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.authorization_webhook": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.client_ca_configured": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.anonymous_disabled": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.readonly_disabled": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.client_certificate_rotation": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.explicit_cipher_allowlist": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.tls_file_pair_configured": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.kubelet_configmap.event_qps_bounded": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.s3.selected_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.log_analytics.selected_message_sample_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.application_insights.selected_trace_sample_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.machine_learning.selected_command_job_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.selected_container_logs.secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.databricks.selected_notebook_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.storage.blocking_sas_expiry_policy_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.machine_learning.selected_environment_conda_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.machine_learning.selected_code_file_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.function.application_insights_setting_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.function.runtime_major4_update_channel_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.network.perimeter_association_enforced": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.log_analytics.query_storage_cmk_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "k8s.review.selected_metadata.secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "azure.review.function.selected_package_source_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.workbench.terminal_access_disabled": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.workbench.file_download_disabled": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.workbench.auto_upgrade_schedule_declared": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "aws.review.workload.selected_command_literal_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
+    },
+    "gcp.review.cloudrun_job.declared_image_secret_indicators": {
+      "decision": "include",
+      "group": "security_configuration"
     }
   }
 }

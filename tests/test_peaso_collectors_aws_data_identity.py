@@ -121,8 +121,9 @@ def test_efs_mount_targets_per_file_system(sdk):
         "LifeCycleState": "available", "NumberOfMountTargets": 1, "SizeInBytes": {"Value": 1}, "PerformanceMode": "generalPurpose", "Tags": []}]}, {})
     efs.add_response("describe_mount_targets", {"MountTargets": [{"MountTargetId": "fsmt-0123456789", "FileSystemId": "fs-1", "SubnetId": "subnet-0123456789", "LifeCycleState": "available"}]},
         {"FileSystemId": "fs-1"})
+    efs.add_response("describe_mount_target_security_groups", {"SecurityGroups": ["sg-0123456789"]}, {"MountTargetId": "fsmt-0123456789"})
     read = facts.FETCHERS["efs_mount_target"](aws.Requests({}), session, REGION, ACCOUNT)
-    assert read.status == "collected" and read.items == [{"MountTargetId": "fsmt-0123456789", "FileSystemId": "fs-1", "SubnetId": "subnet-0123456789", "LifeCycleState": "available"}]
+    assert read.status == "collected" and read.items == [{"MountTargetId": "fsmt-0123456789", "FileSystemId": "fs-1", "SubnetId": "subnet-0123456789", "LifeCycleState": "available", "SecurityGroups": ["sg-0123456789"]}]
 
 
 def test_dynamodb_resource_policy_absent_and_tags(sdk):

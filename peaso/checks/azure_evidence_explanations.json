@@ -7743,10 +7743,10 @@
     "purpose": "Network filters limit permitted callers.",
     "limit": "Network rules do not establish authorization.",
     "review_group": "firewall",
-    "label": "Container registry denies by default and allows only VNet service-endpoint rules",
-    "missing_observation": "Evidence is incomplete for Container registry denies by default and allows only VNet service-endpoint rules.",
-    "manual_observation": "Owner review is required for Container registry denies by default and allows only VNet service-endpoint rules.",
-    "not_applicable_observation": "This check does not apply: Container registry denies by default and allows only VNet service-endpoint rules."
+    "label": "Container registry declares a VNet rule with deny-by-default network rules",
+    "missing_observation": "Evidence is incomplete for Container registry declares a VNet rule with deny-by-default network rules.",
+    "manual_observation": "Owner review is required for Container registry declares a VNet rule with deny-by-default network rules.",
+    "not_applicable_observation": "This check does not apply: Container registry declares a VNet rule with deny-by-default network rules."
   },
   "azure.claude.postgresql_flexible_no_azure_services_rule": {
     "purpose": "Network filters limit permitted callers.",
@@ -8262,13 +8262,13 @@
     "not_applicable_observation": "This check does not apply: Container registry enables trustPolicy."
   },
   "azure.claude.vmss_not_empty": {
-    "purpose": "The instance count shows whether the scale set declares deployed capacity.",
+    "purpose": "The model declares the requested VM scale set capacity; it does not count actual instances.",
     "limit": "An empty scale set alone does not establish a security defect.",
     "review_group": "specific",
-    "label": "VM scale set has at least one instance",
-    "missing_observation": "Evidence is incomplete for VM scale set has at least one instance.",
-    "manual_observation": "Owner review is required for VM scale set has at least one instance.",
-    "not_applicable_observation": "This check does not apply: VM scale set has at least one instance."
+    "label": "VM scale set declares nonzero capacity",
+    "missing_observation": "Evidence is incomplete for VM scale set declares nonzero capacity.",
+    "manual_observation": "Owner review is required for VM scale set declares nonzero capacity.",
+    "not_applicable_observation": "This check does not apply: VM scale set declares nonzero capacity."
   },
   "azure.claude.cosmos_automatic_failover": {
     "purpose": "Redundant service capacity reduces disruption if an instance or zone fails.",
@@ -8719,5 +8719,297 @@
     "missing_observation": "Evidence is incomplete for Azure VM declares export of platform metrics to a destination.",
     "manual_observation": "Owner review is required for Azure VM declares export of platform metrics to a destination.",
     "not_applicable_observation": "This check does not apply: Azure VM declares export of platform metrics to a destination."
+  },
+  "azure.review.app_service.selected_app_settings_secret_indicators": {
+    "purpose": "Offline checks detect potential credential leaks.",
+    "limit": "Only selected content was inspected; credentials were not tested.",
+    "missing_observation": "Selected supported literal settings could not be completely read, bound and scanned with both offline detectors.",
+    "renderer": "native",
+    "binding": null,
+    "title": "Selected App Service and Function literal app settings have no detected secrets",
+    "review_group": "secrets",
+    "label": "Selected App Service and Function literal app settings have no detected secrets"
+  },
+  "azure.review.acr.selected_image_secret_indicators": {
+    "purpose": "Offline checks detect potential credential leaks.",
+    "limit": "Only selected content was inspected; credentials were not tested.",
+    "missing_observation": "The selected ACR image could not be completely read, bound and scanned with both offline detectors.",
+    "review_group": "secrets",
+    "label": "Selected immutable ACR images have no detected secrets"
+  },
+  "azure.review.ai_services.audit_logging": {
+    "purpose": "Audit logging supports investigation.",
+    "limit": "Delivery and retention were not tested.",
+    "review_group": "logging",
+    "label": "AI Services configures supported audit logs to a destination",
+    "missing_observation": "Required account configuration could not be completely read.",
+    "manual_observation": "Configuration applicability requires review.",
+    "not_applicable_observation": "No supported applicable deployment was found."
+  },
+  "azure.review.ai_services.managed_identity": {
+    "purpose": "Managed identities avoid stored application credentials.",
+    "limit": "Role assignments were not assessed.",
+    "review_group": "permissions",
+    "label": "AI Services declares a managed identity",
+    "missing_observation": "Required account configuration could not be completely read.",
+    "manual_observation": "Configuration applicability requires review.",
+    "not_applicable_observation": "No supported applicable deployment was found."
+  },
+  "azure.review.ai_services.outbound_restriction": {
+    "purpose": "Restricted egress limits external connections.",
+    "limit": "Allowed destinations and traffic were not tested.",
+    "review_group": "network",
+    "label": "AI Services declares restricted outbound network access",
+    "missing_observation": "Required account configuration could not be completely read.",
+    "manual_observation": "Configuration applicability requires review.",
+    "not_applicable_observation": "No supported applicable deployment was found."
+  },
+  "azure.review.ai_services.prompt_shield": {
+    "purpose": "Prompt Shields filter supported prompt attacks.",
+    "limit": "Actual prompt traffic was not tested.",
+    "review_group": "workload_hardening",
+    "label": "Text deployments explicitly configure blocking Prompt Shields",
+    "missing_observation": "Required account configuration could not be completely read.",
+    "manual_observation": "Configuration applicability requires review.",
+    "not_applicable_observation": "No supported applicable deployment was found."
+  },
+  "azure.review.managed_hsm.audit_storage_destination": {
+    "purpose": "AuditEvent logging supports investigation of Managed HSM access.",
+    "limit": "Destination existence, delivery and retention were not tested.",
+    "review_group": "logging",
+    "label": "Managed HSM declares AuditEvent logging to Azure Storage",
+    "missing_observation": "Complete bound native configuration was unavailable.",
+    "manual_observation": "The native configuration is unresolved.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.network.acr_public_ip_ranges_restricted": {
+    "purpose": "VNet rules can coexist with unrestricted public IP exceptions.",
+    "limit": "Authentication, private routing and effective access were not tested.",
+    "review_group": "network",
+    "label": "ACR public network rules do not allow every IPv4 address",
+    "missing_observation": "Complete bound native configuration was unavailable.",
+    "manual_observation": "The native configuration is unresolved.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.encryption.automation_cmk_declared": {
+    "purpose": "The reference selects the intended asset-encryption key.",
+    "limit": "Key authorization and cryptographic use were not tested.",
+    "review_group": "encryption",
+    "label": "Automation declares a customer-managed key reference and attached system identity",
+    "missing_observation": "Complete native CMK reference and attached identity metadata was unavailable, unsupported or unbound.",
+    "manual_observation": "Complete native CMK reference and attached identity metadata was unavailable, unsupported or unbound.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.logging.aci_log_analytics_declared": {
+    "purpose": "Log Analytics settings identify the intended destination for container-group logs.",
+    "limit": "Workspace existence, access, ingestion and log delivery were not tested.",
+    "review_group": "logging",
+    "label": "Container groups declare a Log Analytics customer UUID and supported log type",
+    "missing_observation": "Complete native workspace customer UUID and log type metadata was unavailable, unsupported or unbound.",
+    "manual_observation": "Complete native workspace customer UUID and log type metadata was unavailable, unsupported or unbound.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.logging.aks_supported_log_categories_destination_declared": {
+    "purpose": "Control-plane logging declares where audit events should go.",
+    "limit": "Declared configuration only; effective access and delivery were not tested.",
+    "review_group": "logging",
+    "label": "AKS declares supported log categories to diagnostic destinations",
+    "missing_observation": "Complete native diagnostic configuration and source binding were unavailable or unsupported.",
+    "manual_observation": "Complete native diagnostic configuration and source binding were unavailable or unsupported.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.logging.managed_hsm_audit_destination_declared": {
+    "purpose": "Control-plane logging declares where audit events should go.",
+    "limit": "Declared configuration only; effective access and delivery were not tested.",
+    "review_group": "logging",
+    "label": "Managed HSM declares AuditEvent logging to Storage or Log Analytics",
+    "missing_observation": "Complete native diagnostic configuration and source binding were unavailable or unsupported.",
+    "manual_observation": "Complete native diagnostic configuration and source binding were unavailable or unsupported.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.encryption.log_analytics_cluster_cmk_declared": {
+    "purpose": "Key and identity declarations identify the intended customer-managed encryption configuration.",
+    "limit": "Declared configuration only; effective access and delivery were not tested.",
+    "review_group": "encryption",
+    "label": "Log Analytics cluster declares a customer-managed key and managed identity",
+    "missing_observation": "Complete native resource configuration and source binding were unavailable.",
+    "manual_observation": "Complete native resource configuration and source binding were unavailable.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.encryption.stream_analytics_job_storage_cmk_declared": {
+    "purpose": "The job selects this account for content storage.",
+    "limit": "Key access and stored-data encryption were not tested.",
+    "review_group": "encryption",
+    "label": "External Stream Analytics job storage declares customer-managed encryption",
+    "missing_observation": "Complete native resource configuration and source binding were unavailable.",
+    "manual_observation": "Complete native resource configuration and source binding were unavailable.",
+    "not_applicable_observation": "No applicable resource was found."
+  },
+  "azure.review.devops.visible_clone_urls_without_userinfo": {
+    "purpose": "Only selected projects and visible URL metadata are assessed.",
+    "limit": "Hidden repositories and credential validity were not assessed.",
+    "review_group": "secrets",
+    "label": "Visible selected Azure DevOps clone URLs do not contain userinfo",
+    "missing_observation": "Complete selected-project clone URL metadata was unavailable.",
+    "manual_observation": "Complete selected-project clone URL metadata was unavailable.",
+    "not_applicable_observation": "No visible selected repository URL metadata was returned."
+  },
+  "azure.review.configuration.selected_content_secret_indicators": {
+    "purpose": "Only explicitly selected source or configuration literals are scanned.",
+    "limit": "Protected, encrypted and referenced content is excluded.",
+    "review_group": "secrets",
+    "label": "Selected Azure ARM configuration and code literals have no detected secrets",
+    "missing_observation": "The selected Azure content could not be completely read, identity-bound and scanned.",
+    "manual_observation": "The selected Azure content could not be completely read, identity-bound and scanned.",
+    "not_applicable_observation": "No selected supported literal content was returned."
+  },
+  "azure.review.storage.selected_source_secret_indicators": {
+    "purpose": "Only explicitly selected source or configuration literals are scanned.",
+    "limit": "Only the captured supported text files are assessed.",
+    "review_group": "secrets",
+    "label": "Selected Azure stored source objects have no detected secrets",
+    "missing_observation": "Selected stored source content was unavailable, unbound, unsupported or incompletely inspected. A clean result cannot be established.",
+    "manual_observation": "Selected stored source content was unavailable, unbound, unsupported or incompletely inspected. A clean result cannot be established.",
+    "not_applicable_observation": "No selected supported literal content was returned."
+  },
+  "azure.review.devops.selected_content_secret_indicators": {
+    "purpose": "Only explicitly selected source or configuration literals are scanned.",
+    "limit": "Only selected file commits and pipeline revisions are assessed.",
+    "review_group": "secrets",
+    "label": "Selected Azure DevOps source and pipeline literals have no detected secrets",
+    "missing_observation": "Selected Azure DevOps literal content was unavailable, unbound or incompletely inspected. A clean result cannot be established.",
+    "manual_observation": "Selected Azure DevOps literal content was unavailable, unbound or incompletely inspected. A clean result cannot be established.",
+    "not_applicable_observation": "No selected supported literal content was returned."
+  },
+  "azure.review.app_configuration.selected_value_secret_indicators": {
+    "purpose": "Only the selected App Configuration key and label are scanned.",
+    "limit": "Key Vault references and unselected keys are not inspected.",
+    "label": "Selected App Configuration literal values have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established.",
+    "manual_observation": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established.",
+    "not_applicable_observation": "No selected supported public literal was returned."
+  },
+  "azure.review.data_factory.selected_declaration_secret_indicators": {
+    "purpose": "Only the selected Data Factory inline declarations are scanned.",
+    "limit": "Protected values, linked services and referenced code are not inspected.",
+    "label": "Selected Data Factory inline declarations have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established.",
+    "manual_observation": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established.",
+    "not_applicable_observation": "No selected supported public literal was returned."
+  },
+  "azure.review.synapse.selected_pipeline_secret_indicators": {
+    "purpose": "Only the selected Synapse pipeline declarations are scanned.",
+    "limit": "Protected values and referenced code are not inspected.",
+    "label": "Selected Synapse pipeline inline declarations have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established.",
+    "manual_observation": "Selected public literals were unavailable, unbound, protected or incompletely inspected. A clean result cannot be established.",
+    "not_applicable_observation": "No selected supported public literal was returned."
+  },
+  "azure.review.log_analytics.selected_message_sample_secret_indicators": {
+    "purpose": "Only the selected preceding-hour message sample is covered.",
+    "limit": "",
+    "label": "Selected Log Analytics message samples have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established.",
+    "manual_observation": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established.",
+    "not_applicable_observation": "No selected supported public literal was returned."
+  },
+  "azure.review.application_insights.selected_trace_sample_secret_indicators": {
+    "purpose": "Only the selected preceding-hour message sample is covered.",
+    "limit": "",
+    "label": "Selected Application Insights trace samples have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established.",
+    "manual_observation": "The selected message sample was unavailable, empty, unbound or incompletely inspected. A clean sample result cannot be established.",
+    "not_applicable_observation": "No selected supported public literal was returned."
+  },
+  "azure.review.machine_learning.selected_command_job_secret_indicators": {
+    "purpose": "Only returned Command-job literals are covered.",
+    "limit": "",
+    "label": "Selected Machine Learning Command-job literals have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "The selected Command-job literals could not be fully inspected; no clean result is established.",
+    "manual_observation": "The selected Command-job literals could not be fully inspected; no clean result is established.",
+    "not_applicable_observation": "No supported selected Command-job literals were inspected."
+  },
+  "azure.review.databricks.selected_notebook_source_secret_indicators": {
+    "purpose": "Only the selected point-in-time notebook export is covered.",
+    "limit": "",
+    "label": "Selected Databricks notebook source has no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "The selected notebook source could not be fully inspected; no clean result is established.",
+    "manual_observation": "The selected notebook source could not be fully inspected; no clean result is established.",
+    "not_applicable_observation": "No supported selected notebook source were inspected."
+  },
+  "azure.review.storage.blocking_sas_expiry_policy_declared": {
+    "purpose": "This checks the declared policy, not issued tokens or SAS types exempt from its enforcement.",
+    "limit": "",
+    "label": "Storage account declares a blocking SAS expiration policy",
+    "review_group": "secrets",
+    "missing_observation": "The storage-account read or SAS policy fields could not be established.",
+    "manual_observation": "The storage-account read or SAS policy fields could not be established.",
+    "not_applicable_observation": "No applicable storage account was collected."
+  },
+  "azure.review.machine_learning.selected_environment_conda_secret_indicators": {
+    "purpose": "Only returned inline Conda text is covered.",
+    "limit": "",
+    "label": "Selected ML environment Conda literals have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "The selected ML asset text could not be fully inspected; no clean result is established.",
+    "manual_observation": "The selected ML asset text could not be fully inspected; no clean result is established.",
+    "not_applicable_observation": "No supported selected ML asset text was inspected."
+  },
+  "azure.review.machine_learning.selected_code_file_secret_indicators": {
+    "purpose": "Only the selected captured code file is covered.",
+    "limit": "",
+    "label": "Selected ML code source files have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "The selected ML asset text could not be fully inspected; no clean result is established.",
+    "manual_observation": "The selected ML asset text could not be fully inspected; no clean result is established.",
+    "not_applicable_observation": "No supported selected ML asset text was inspected."
+  },
+  "azure.review.function.application_insights_setting_declared": {
+    "purpose": "Only the selected Function configuration is assessed.",
+    "limit": "",
+    "label": "Selected Function declares an Application Insights setting",
+    "review_group": "monitoring",
+    "missing_observation": "The selected Function configuration could not be established.",
+    "manual_observation": "The selected Function configuration could not be established.",
+    "not_applicable_observation": "This Function hosting model does not use the assessed declaration."
+  },
+  "azure.review.function.runtime_major4_update_channel_declared": {
+    "purpose": "Only the selected Function configuration is assessed.",
+    "limit": "",
+    "label": "Selected classic Function declares the automatic major4 runtime update channel",
+    "review_group": "patching",
+    "missing_observation": "The selected Function configuration could not be established.",
+    "manual_observation": "The selected Function configuration could not be established.",
+    "not_applicable_observation": "This Function hosting model does not use the assessed declaration."
+  },
+  "azure.review.network.perimeter_association_enforced": {
+    "purpose": "Only the declared Storage perimeter association is assessed.",
+    "limit": "",
+    "label": "Storage resource declares an enforced network perimeter association",
+    "review_group": "network",
+    "missing_observation": "The required native configuration could not be established.",
+    "manual_observation": "The required native configuration could not be established.",
+    "not_applicable_observation": "No existing supported association or Query-linked store was collected."
+  },
+  "azure.review.log_analytics.query_storage_cmk_declared": {
+    "purpose": "Only existing Query-linked storage declarations are assessed.",
+    "limit": "",
+    "label": "Query-linked workspace storage declares customer-managed Table encryption",
+    "review_group": "encryption",
+    "missing_observation": "The required native configuration could not be established.",
+    "manual_observation": "The required native configuration could not be established.",
+    "not_applicable_observation": "No existing supported association or Query-linked store was collected."
+  },
+  "azure.review.function.selected_package_source_secret_indicators": {
+    "purpose": "This covers stored ZIP text;",
+    "limit": "executed app bytes remain unknown.",
+    "missing_observation": "The selected configured package could not be completely read, identity-bound and scanned."
   }
 }

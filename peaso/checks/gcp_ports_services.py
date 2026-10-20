@@ -18,6 +18,13 @@ def scalar(query, kind, path, good, bad, title, *, canonical=None):
     @register(cid, "gcp", "hardening", kind, title, "medium", "CM-6",
         "Review the explicit native service setting and its version/workload applicability before changing configuration.")
     def evaluate(item, index):
+        if query == "sql_instance_mysql_binary_log_enabled":
+            import re
+            version = get(item, "databaseVersion", str)
+            if re.fullmatch(r"(?:POSTGRES_[0-9]+(?:_[0-9]+)?|SQLSERVER_[0-9]+_(?:STANDARD|ENTERPRISE|EXPRESS|WEB))", version):
+                return "NOT_APPLICABLE", {"reason": "binaryLogEnabled is a MySQL-only configuration field", "database_version": version}
+            if not re.fullmatch(r"MYSQL_[0-9]+(?:_[0-9]+)*", version):
+                return unknown("unrecognized Cloud SQL engine/version for binary log configuration")
         value = get(item, path, expected)
         if expected is str and value not in (good, bad):
             return unknown("unrecognized native service setting", field=path)

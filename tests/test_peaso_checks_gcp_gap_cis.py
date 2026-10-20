@@ -5,6 +5,8 @@ import json
 import pytest
 from peaso.checks import CHECKS, gcp_gap_cis as gap
 from peaso.checks.fixtures import CASES
+from tests.gcp_native_iam_test_inputs_20261020 import current_iam_fixture, PROJECT, SCOPE
+from tests.test_gcp_native57_iam_kms_review_20261020 import block_network_and_auth
 
 REGISTRY = {check.id: check for check in CHECKS if check.id in gap.IDS}
 SA = "gcp.gap.iam_user_managed_sa_no_admin_roles"
@@ -14,24 +16,25 @@ FW = "gcp.gap.firewall_tcp_ingress_iap_health_check_sources_only"
 @pytest.mark.parametrize("cid", gap.IDS)
 @pytest.mark.parametrize("case,wanted", [("pass", "PASS"), ("fail", "FAIL"), ("missing", "UNKNOWN"), ("malformed", "UNKNOWN"), ("denied", "UNKNOWN")])
 def test_fixture_truths(cid, case, wanted):
-    item = {"collection_status": "denied"} if case == "denied" else copy.deepcopy(CASES[cid][case])
-    index = copy.deepcopy(CASES[cid].get("index", {}))
+    fixture = current_iam_fixture(cid)
+    item = {"collection_status": "denied"} if case == "denied" else fixture[case]
+    index = fixture.get("index", {})
     before = copy.deepcopy((item, index))
     status, evidence = REGISTRY[cid].evaluate(item, index)
     assert status == wanted, evidence
     assert (item, index) == before
 
 
-def _sa_eval(role, email="app@p.iam.gserviceaccount.com", project_id="p"):
-    index = copy.deepcopy(CASES[SA]["index"])
+def _sa_eval(role, email="app@" + PROJECT + ".iam.gserviceaccount.com", project_id=PROJECT):
+    index = current_iam_fixture(SA)["index"]
     index["iam_policy"][0]["data"]["bindings"] = [{"role": role, "members": ["serviceAccount:" + email]}]
-    item = {"email": email, "projectId": project_id, "_provenance": {"scope": "projects/p"}}
+    item = {"email": email, "projectId": project_id, "_provenance": {"scope": SCOPE}}
     return REGISTRY[SA].evaluate(item, index)
 
 
 @pytest.mark.parametrize("role,wanted", [
     ("roles/owner", "FAIL"), ("roles/editor", "FAIL"), ("roles/iam.serviceAccountAdmin", "FAIL"), ("roles/compute.admin", "FAIL"),
-    ("projects/p/roles/deployAdmin", "FAIL"), ("roles/viewer", "PASS"), ("roles/storage.objectCreator", "PASS"),
+    (SCOPE + "/roles/deployAdmin", "FAIL"), ("roles/viewer", "PASS"), ("roles/storage.objectCreator", "PASS"),
     # CIS *Admin/*admin is a suffix glob; the Prowler substring test would also flag this role.
     ("roles/compute.osAdminLogin", "PASS"),
 ])
@@ -40,15 +43,34 @@ def test_cis_1_5_admin_role_criteria(role, wanted):
 
 
 def test_cis_1_5_only_user_managed_service_accounts():
-    for email in ("123-compute@developer.gserviceaccount.com", "p@appspot.gserviceaccount.com",
+    for email in ("123-compute@developer.gserviceaccount.com", PROJECT + "@appspot.gserviceaccount.com",
                   "service-123@gcp-sa-pubsub.iam.gserviceaccount.com", "x@other.iam.gserviceaccount.com"):
         assert _sa_eval("roles/owner", email=email)[0] == "NOT_APPLICABLE", email
 
 
 def test_cis_1_5_incomplete_root_policy_evidence_is_unknown():
-    index = copy.deepcopy(CASES[SA]["index"])
+    fixture = current_iam_fixture(SA)
+    index = fixture["index"]
     index["iam_policy"] = []
-    assert REGISTRY[SA].evaluate(copy.deepcopy(CASES[SA]["pass"]), index)[0] == "UNKNOWN"
+    assert REGISTRY[SA].evaluate(fixture["pass"], index)[0] == "UNKNOWN"
+
+
+@pytest.mark.parametrize("mutation", ["context", "item-scope", "crm-number", "project-id"])
+def test_cis_1_5_invalid_native_identity_stays_unknown(mutation):
+    original = copy.deepcopy(CASES[SA])
+    fixture = current_iam_fixture(SA)
+    item, index = fixture["pass"], fixture["index"]
+    assert REGISTRY[SA].evaluate(item, index)[0] == "PASS"
+    if mutation == "context":
+        index["context"]["provider"] = "aws"
+    elif mutation == "item-scope":
+        item["_provenance"]["scope"] = "projects/foreign-project"
+    elif mutation == "crm-number":
+        index["project"][0]["data"]["name"] = SCOPE
+    elif mutation == "project-id":
+        index["project"][0]["data"]["projectId"] = "foreign-project"
+    assert REGISTRY[SA].evaluate(item, index)[0] == "UNKNOWN"
+    assert CASES[SA] == original
 
 
 def _fw(**fields):

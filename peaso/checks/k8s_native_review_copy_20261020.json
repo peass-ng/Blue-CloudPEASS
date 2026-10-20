@@ -1,0 +1,1002 @@
+{
+  "schema_version": 1,
+  "checks": {
+    "k8s.ports.cronjob.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "5f957623eae282a721b1982be36be867c009eea073fb5f5d561d6517f5fe2ecd",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "22f5bb2d2bea05acbce21592c6dcae58169fa592252c1f48bc3f41bad452c1c8",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.cronjob.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "443b9e0c84bf5afeaf73461fd9a2b82fc60c1e6ff78040a7b5a869a4718caa75",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "edde004cf6eae4a37de112ac9585fe2101022badb46fc80dcec0a0cd0c93790b",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.cronjob.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "1e4ecf1e7aa40c09ea07eb3bc1aeef9629a4a32280801b1df6c1c3c49a7a16ea",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "85345fc42704867d5baf33c1aa114edab05f5190eeb06976f03727f853de57c2",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.daemonset.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "a978ff00c620a6ffcbbe53d72cc3c3e3a540692de1c896ab3971b5418cf30799",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "c8829d985a6173dbf153a16aea92304e6428ac44da420cfcae26dbf29850b874",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.daemonset.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "8b1b298854a56759fffe9a0884c40a67ec621a5a82719d0926bb3455ba1e701e",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "54bf78838c00f93f5df74ffd98a5d12af90b2485d5921b5ea38289f1ed450729",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.daemonset.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "6a403dd744c42cf7f437e7f9c0c5248ca9f0e7fdc8cbb9357b2e5d3172049a96",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "c529c7d8c639ec6896c151452c1d5afc3e52113bfd9b6df25975994261c29a8a",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.deployment.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "04fa831bedec403f6c0016b7f8a33e938b34cc5009f2899d584b2883558253e9",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "26c6dd57259a57f2c748b954498b2d78b9d93c1b891d53f8f484cc59eabc9682",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.deployment.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "98add1852e73a218a18807fd61ddef84a324b9cf389bc71a468fa4c19453b81a",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "ae38637d6148bdafb2ed950753440783b3707f1531590fde660eef209bcf726a",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.deployment.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "7173f0d376f8aa28a8584eaa15ba137a1b917a67fb9351f851b5afc7234bf429",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "1636e1fb9c8e10d851fd1bb38e501b7e7e3ae13a29b7eb0a3ca4ffd6a47e9f62",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.job.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "7b4ad0fdbe6a791b8c43e05f1083579bf75aeb1f408d17e2a6ad398c48de7039",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "a799550cda507486b37f2975e60583dca30240dbf131de4a5042f36e64e611a4",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.job.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "7153f96d1c6cf9e901ac0a3573469f332104b68695185c9fa7b3a29072cf634d",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "bdb5ac09b49682c1913ccb3a046a65fac4c8e95c1bbc106055d619789dda8e20",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.job.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "be61ac9073d2fc0ba24cc37b10d7f6a930a4cc288b46ad5373525c080c7d398a",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "bea5629aa0a025799f98032581111db29a91bf97eda959cc6056463ae968fe0a",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.pod.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "26df29654f814bdd1fe8324e4fca12b68ab0ae5a9f1beb7110b1e01f2ceeeadf",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "a8cbc1fe022bae23f35a62888324e9e13cfd03dd39f05de980538bbbe4b419a8",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.pod.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "2454f2e88fdce9c57a976d3248c75dcd1ae1d475d87ccbf917379908eab35f82",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "616f318ea95fc1500c96268d0db597127a0e8afb1fedeb4209084e74b6cebd21",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.pod.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "48cb0959919f37fef278d39f85ac6814fd7673e0d65c688c06b5e7dc8350cd16",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "5881ca3f60264970f48406c20c80e5bf78e264fd5544a73e2e566ce52ef15da8",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.podtemplate.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "107678e84b6ba198ecfb609ed70a8c3f41190574669a4d4ac981ca82e2404c65",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "84c6ba602a0365d74f3d59bbfd0a49717e4754b164794184b76c0392fb9bc24b",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.podtemplate.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "bbe6275768e3d89428d75fe13819c5c1c89ba8c1ca29d32f1b9e026c5514bb97",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "be244a3ee90abab4e8c8f534a51f3d1f5f6607c48c8924a35765fc30ede45b84",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.podtemplate.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "d1bdbc9257bc41f6c2275905ba1f9f3800487e6f317dabd48027dbc81d19f0c5",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "420b539b84483838d1e69fa1b50ab0e24a6654542e542838a9b6d973bd8434a8",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicaset.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "d05cab8a681baac1c8fd203a6aefda3e7adb1809093d3c2b89a5b34cc430c018",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "f8f77017654d92aebf41cfe3c5fd3d48e628680599dd870d887df088ccb8553e",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicaset.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "50f7bfcd108080ffb969df7445b924ac6537c92c4b8699d327ba72af73256330",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "8cd8ae206b794dfdbb213c3d6b9de4f08acd6c75c5b823fc2bccc967f8ed7156",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicaset.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "b59a33b974c175ee4de6158abec368f58c8016a6a59abb7c4cd1ab7363adb2d1",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "378a6cc24660b91f60d194e37a93d67b8f461405802ed5e9b6d757fb4bfaf2ad",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicationcontroller.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "d633e5ecc1a57a25e6581a1019e1843be33df72917a6979ac096a4750ffcf13b",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "eab7fc676c29cfefe931e952247f30d263b27cdcbc26a4aebe973001e3da73a3",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicationcontroller.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "b1b7ebb1e8e38fade366395d11b7f99352a357ac1fd59d2ad39c5ed52d44f7ae",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "fc3b4074176b278189e4ed8762fff5146a258508059ea8996847ec439b71630a",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicationcontroller.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "cec1314d7bdfd9334dcd9b94498d5d969fb056ac6eb701141351e40152b1531d",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "c93bfc465f1b7b1871d4a258837009d647f984168d20803484f571bb177ba7bb",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.statefulset.container_argument_kubelet_https_enabled": {
+      "description": {
+        "predecessor_sha256": "6ddd677952adfb3fa4303fed2386496e735fb21cf38d932de1979f11f5174cf7",
+        "fields": {
+          "description": "Checks the kube-apiserver kubelet-https flag on Kubernetes up to 1.18. From 1.19 this flag has no effect; missing or unverified versions remain unresolved."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "623b1d7020628f868be88929d66ed2210b3b32d2d19e396d5de500e2beb5936b",
+        "fields": {
+          "summary": "Enable kubelet HTTPS on a supported legacy configuration and plan the cluster upgrade.",
+          "steps": [
+            "For the legacy version assessed, enable kube-apiserver HTTPS connections to kubelets.",
+            "Upgrade the unsupported Kubernetes version and review its current TLS settings."
+          ],
+          "caveats": [
+            "Kubernetes 1.19 discards this legacy flag; it cannot demonstrate current connection security. No traffic or certificate validation was performed."
+          ]
+        }
+      }
+    },
+    "k8s.ports.statefulset.container_strong_kube_apiserver_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "e216b38bf8e928c21227084708085fcfe7e1a00a6b37c53a7e440a03663636ba",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "4f94423b0164402dc8d6f687deba0efe7734735e063420873a67c157fec9b14b",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.statefulset.container_strong_kubelet_cryptographic_ciphers": {
+      "description": {
+        "predecessor_sha256": "1dc0cf6491c9ff9d54cb535b4721dbe4d8e57ab2d652b44d9bb6511843f0c631",
+        "fields": {
+          "description": "Checks an explicit tls-cipher-suites list against the six reviewed TLS 1.2 suites. TLS 1.3 negotiation cannot be established from this flag."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "96443ec3a1205fcac587c167dc847be0a51ada4d4cc2a2910618d96729f015b7",
+        "fields": {
+          "summary": "Use the reviewed configurable TLS 1.2 cipher suites for this component.",
+          "steps": [
+            "Configure the supported reviewed TLS 1.2 cipher list for the named component.",
+            "Review minimum TLS version and client compatibility separately."
+          ],
+          "caveats": [
+            "Go does not configure TLS 1.3 cipher suites through this list. The newer upstream three-TLS 1.3-name interpretation is not claimed as equivalent; no TLS handshake was tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.cronjob.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.daemonset.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.deployment.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.job.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.pod.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.podtemplate.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicaset.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.replicationcontroller.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.ports.statefulset.always_pull": {
+      "description": {
+        "predecessor_sha256": "ce791ff7c36ec262f4dfd558131d4c4f5b785e7bb97cf184d79395546d2804a7",
+        "fields": {
+          "description": "Checks for explicit imagePullPolicy: Always on every applicable container. Immutable images with pull-on-miss are assessed by a separate check."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "aaa242192b51cce5e09f025d6d1b1516790440a644e4e1c5b730ac89208813ef",
+        "fields": {
+          "summary": "Set the applicable containers\u2019 imagePullPolicy to Always.",
+          "steps": [
+            "Set imagePullPolicy to Always after verifying registry access."
+          ],
+          "caveats": [
+            "A SHA256 digest with IfNotPresent does not satisfy this literal policy; the separate immutable-image check accepts that configuration. Image trust and runtime pulls were not tested."
+          ]
+        }
+      }
+    },
+    "k8s.claude.pod.no_host_ports": {
+      "description": {
+        "predecessor_sha256": "3835a98d860b08ffe99f1f22385b27d46e7fe7be1b1cd8f98f6ff0d4e7dc2631",
+        "fields": {
+          "description": "Checks regular containers for nonzero hostPort declarations. Zero is the documented default and publishes no host port.",
+          "pass_when": "No regular container declares a nonzero hostPort.",
+          "fail_when": "A regular container declares a hostPort from 1 through 65535."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "8a431559626d4ac99db6b54a815e3e2f888467611ae33b3eeb43689ce71bd5f7",
+        "fields": {
+          "steps": [
+            "Remove unnecessary nonzero hostPort declarations and use the intended Service instead."
+          ],
+          "caveats": [
+            "Explicit hostPort 0 publishes no host port. This regular-container declaration check does not prove reachability or cover every other exposure path."
+          ]
+        }
+      }
+    },
+    "k8s.claude.pod.runtime_default_seccomp": {
+      "description": {
+        "predecessor_sha256": "bef50d95f7beae887ea5108720121facb9e40bd0124042f7c848e93ea9543192",
+        "fields": {
+          "description": "Checks the declared seccomp profile for regular, init and ephemeral containers. A container profile overrides the Pod default.",
+          "evaluated": [
+            "Pod.spec.securityContext.seccompProfile.type",
+            "Pod.spec.containers[].securityContext.seccompProfile.type",
+            "Pod.spec.initContainers[].securityContext.seccompProfile.type",
+            "Pod.spec.ephemeralContainers[].securityContext.seccompProfile.type"
+          ],
+          "pass_when": "Every assessed container inherits or declares RuntimeDefault.",
+          "fail_when": "An assessed container does not inherit or declare RuntimeDefault."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "6825dd864de93ec65a02cc930416f28858c6a2f552869fd3cd86a1c1115a4310",
+        "fields": {
+          "steps": [
+            "Declare RuntimeDefault at Pod level or on each assessed container.",
+            "Remove conflicting init, ephemeral or regular-container overrides after checking compatibility."
+          ],
+          "caveats": [
+            "An explicit container profile overrides the Pod default. Running kernel enforcement and kubelet runtime defaults were not inspected."
+          ]
+        }
+      }
+    },
+    "k8s_ingress_backend_https": {
+      "description": {
+        "predecessor_sha256": "26beab3e5f5744357aeeca9cb7db6eac1db536bacda49086ec458efafcfa96ae",
+        "fields": {
+          "description": "Resolves declared rule and default-backend Services in the same namespace, then checks the nginx HTTPS/GRPCS annotation. No TLS handshake is performed.",
+          "evaluated": [
+            "spec.defaultBackend.service.name",
+            "spec.rules[].http.paths[].backend.service.name",
+            "spec.ingressClassName",
+            "ingressclass.spec.controller",
+            "service.metadata.namespace/name",
+            "metadata.annotations.nginx.ingress.kubernetes.io/backend-protocol"
+          ]
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "094afbafccc9080230189620f2c1115c7d054856244fbba264871f499a4ad032",
+        "fields": {
+          "caveats": [
+            "The declared nginx protocol and every rule/default backend Service must resolve. This does not prove backend TLS availability, certificate validity or controller enforcement."
+          ]
+        }
+      }
+    },
+    "k8s.ports.namespace.network_policy_default_deny_ingress": {
+      "description": {
+        "predecessor_sha256": "0037cbcd0b76cec1badea78cd27cd3d5ba467cafca99e726a369b7a51109745c",
+        "fields": {
+          "description": "Checks whether the namespace declares an all-Pod default-deny ingress NetworkPolicy. Empty label-selector fields have the same all-Pod meaning as an empty selector."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "2110ecdca83cfd318eb767a001d90cb0afb4bf590d566d95312f31a60ef5e078",
+        "fields": {
+          "caveats": [
+            "A default-deny declaration does not establish the effective result of additive policies or network-plugin enforcement. Empty matchLabels and matchExpressions still select all Pods."
+          ]
+        }
+      }
+    },
+    "k8s.ports.namespace.network_policy_default_deny_egress": {
+      "description": {
+        "predecessor_sha256": "0037cbcd0b76cec1badea78cd27cd3d5ba467cafca99e726a369b7a51109745c",
+        "fields": {
+          "description": "Checks whether the namespace declares an all-Pod default-deny egress NetworkPolicy. Empty label-selector fields have the same all-Pod meaning as an empty selector."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "2110ecdca83cfd318eb767a001d90cb0afb4bf590d566d95312f31a60ef5e078",
+        "fields": {
+          "caveats": [
+            "A default-deny declaration does not establish the effective result of additive policies or network-plugin enforcement. Empty matchLabels and matchExpressions still select all Pods."
+          ]
+        }
+      }
+    },
+    "k8s.cis.networkpolicy_no_default_allow_ingress": {
+      "remediation": {
+        "predecessor_sha256": "cd751469900a2306613351371c892b2a51d8054330822ea71c1a1bf8a4f0ee45",
+        "fields": {
+          "caveats": [
+            "Missing optional rule lists are empty only with complete native-read provenance. Unbound missing facts stay unresolved; individual policy declarations do not establish effective additive network enforcement."
+          ]
+        }
+      }
+    },
+    "k8s.cis.networkpolicy_no_default_allow_egress": {
+      "remediation": {
+        "predecessor_sha256": "cd751469900a2306613351371c892b2a51d8054330822ea71c1a1bf8a4f0ee45",
+        "fields": {
+          "caveats": [
+            "Missing optional rule lists are empty only with complete native-read provenance. Unbound missing facts stay unresolved; individual policy declarations do not establish effective additive network enforcement."
+          ]
+        }
+      }
+    },
+    "k8s_networkpolicy_no_world_ingress": {
+      "remediation": {
+        "predecessor_sha256": "4749329e03cfa921876c1d0ac784559cfc5608e05d2cdd8a5b1a5eaae4d707c8",
+        "fields": {
+          "caveats": [
+            "Missing optional rule lists are empty only with complete native-read provenance. Unbound missing facts stay unresolved; individual policy declarations do not establish effective additive network enforcement."
+          ]
+        }
+      }
+    },
+    "k8s_networkpolicy_no_world_ssh_rdp": {
+      "remediation": {
+        "predecessor_sha256": "7e1529040fa756b9ecd90719f700d9a3e07909117c4f67b443b46af4ef1313dd",
+        "fields": {
+          "caveats": [
+            "Missing optional rule lists are empty only with complete native-read provenance. Unbound missing facts stay unresolved; individual policy declarations do not establish effective additive network enforcement."
+          ]
+        }
+      }
+    },
+    "k8s.claude.ingress.no_nginx_snippet_alias": {
+      "description": {
+        "predecessor_sha256": "bd58dee30cb3864b82b5d2d798aa766d06fd44bc9d3f7bd006545b680d48c8e8",
+        "fields": {
+          "description": "Checks the complete native Ingress annotation map for the case-sensitive substring alias in a value under a snippet key. Only boolean indicators are retained; snippet text is never executed."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "c6f2912f5d75926763097f9d43b32b9b837eea5c7e83417e601de117b0490924",
+        "fields": {
+          "summary": "Remove unnecessary alias directives from the affected Ingress snippet annotations.",
+          "steps": [
+            "Remove unnecessary alias directives from the affected Ingress snippet annotations."
+          ],
+          "caveats": [
+            "Only native declared configuration is assessed; admission and runtime protection were not tested."
+          ],
+          "cli": []
+        }
+      }
+    },
+    "k8s.claude.ingress.no_nginx_snippet_lua": {
+      "description": {
+        "predecessor_sha256": "694a94e50746ce2d4864cc1ce003ef51aa240936d112a087f4ee37b8db7a657e",
+        "fields": {
+          "description": "Checks the complete native Ingress annotation map for the case-sensitive lua_, _lua or kubernetes.io pattern in a value under a snippet key. Only boolean indicators are retained; snippet text is never executed."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "d7d84cad6d253e728efe50127e6ce1ca76d1b1bd44b37274583ccdd24e0d31aa",
+        "fields": {
+          "summary": "Remove unnecessary Lua-related directives from the affected Ingress snippet annotations.",
+          "steps": [
+            "Remove unnecessary Lua-related directives from the affected Ingress snippet annotations."
+          ],
+          "caveats": [
+            "Only native declared configuration is assessed; admission and runtime protection were not tested."
+          ],
+          "cli": []
+        }
+      }
+    },
+    "k8s.claude.ingress.no_nginx_snippets": {
+      "description": {
+        "predecessor_sha256": "be2abd6697a62f05119a848293611a7bbdf0e0a81bf5e32828885ac3caec42e6",
+        "fields": {
+          "description": "Checks the complete native Ingress annotation map for a case-sensitive snippet annotation key. Only boolean indicators are retained; snippet text is never executed."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "1e0b88f2414f8713b6d58dab12a2f165b3cb494b0a5837c0cdc44cdea28d6fed",
+        "fields": {
+          "summary": "Remove unnecessary NGINX snippet annotations from the affected Ingress.",
+          "steps": [
+            "Remove unnecessary NGINX snippet annotations from the affected Ingress."
+          ],
+          "caveats": [
+            "Only native declared configuration is assessed; admission and runtime protection were not tested."
+          ],
+          "cli": []
+        }
+      }
+    },
+    "k8s.claude.podsecuritypolicy.default_seccomp_profile": {
+      "description": {
+        "predecessor_sha256": "1b15ac65f710510160e42aa378d05ba1bdeaaf1f09ba6a6a08baa0a28c9788c1",
+        "fields": {
+          "description": "Checks legacy PSP native seccomp default profile annotation. Annotation text is redacted; policy admission and runtime behavior are separate."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "1dcad95114a5e0d8c222ee06e07a559f6b20a1dd9b533f137d92a5e20f8ab16c",
+        "fields": {
+          "summary": "For legacy clusters, declare the required default seccomp profile and plan migration from removed PodSecurityPolicy APIs.",
+          "steps": [
+            "For legacy clusters, declare the required default seccomp profile and plan migration from removed PodSecurityPolicy APIs."
+          ],
+          "caveats": [
+            "Only native declared configuration is assessed; admission and runtime protection were not tested."
+          ],
+          "cli": []
+        }
+      }
+    },
+    "k8s.claude.podsecuritypolicy.security_services_hardening": {
+      "description": {
+        "predecessor_sha256": "2f594527b4a30cf0767fb5550b0837fa722d94538070e41e7eb988cc5f519189",
+        "fields": {
+          "description": "Checks legacy PSP native SELinux MustRunAs or AppArmor/seccomp default profile declarations. Annotation text is redacted; policy admission and runtime behavior are separate."
+        }
+      },
+      "remediation": {
+        "predecessor_sha256": "def21cc02f941f9409534554c6c3b5c70d81ada099f5732e8468b2258d89ed09",
+        "fields": {
+          "summary": "For legacy clusters, declare the required SELinux, AppArmor or seccomp defaults and plan migration from PodSecurityPolicy.",
+          "steps": [
+            "For legacy clusters, declare the required SELinux, AppArmor or seccomp defaults and plan migration from PodSecurityPolicy."
+          ],
+          "caveats": [
+            "Only native declared configuration is assessed; admission and runtime protection were not tested."
+          ],
+          "cli": []
+        }
+      }
+    }
+  }
+}

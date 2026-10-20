@@ -30412,5 +30412,38 @@
         ]
       }
     ]
+  },
+  "aws.review.lambda.selected_environment_secret_indicators": {
+    "purpose": "Offline checks detect potential credential leaks.",
+    "limit": "Only selected environment literals were inspected; credentials were not tested.",
+    "label": "Selected Lambda literal environment variables have no detected secrets",
+    "review_status": "local_explicit_content_native_reviewed",
+    "fields": [],
+    "missing_observation": "Selected Lambda environment variables could not be completely read, bound and scanned with both offline detectors."
+  },
+  "aws.review.configuration.selected_content_secret_indicators": {
+    "purpose": "Only explicitly selected returned configuration literals are scanned.",
+    "limit": "Referenced scripts, images and secret stores are excluded; credential validity is not checked.",
+    "review_group": "secrets",
+    "label": "Selected AWS configuration literals have no detected secrets",
+    "missing_observation": "The selected AWS configuration content was unreadable, unsupported, incomplete or unbound. Secret absence could not be assessed.",
+    "manual_observation": "The selected AWS configuration content was unreadable, unsupported, incomplete or unbound. Secret absence could not be assessed.",
+    "not_applicable_observation": "No selected literal content was returned."
+  },
+  "aws.review.s3.selected_source_secret_indicators": {
+    "purpose": "Only the selected object or version is covered.",
+    "label": "Selected S3 source text and archive members have no detected secrets",
+    "review_group": "secrets",
+    "missing_observation": "Selected content was unreadable, unsupported, incomplete or unbound. A clean result cannot be established.",
+    "manual_observation": "Selected content was unreadable, unsupported, incomplete or unbound. A clean result cannot be established.",
+    "not_applicable_observation": "No supported selected source text was scanned."
+  },
+  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
+    "purpose": "Only the returned inline buildspec is covered; referenced files and build artifacts are not inspected.",
+    "missing_observation": "The selected inline CodeBuild buildspec could not be completely read, identity-bound and scanned."
+  },
+  "aws.review.workload.selected_command_literal_secret_indicators": {
+    "purpose": "Only selected definition command literals are covered; image defaults and runtime overrides are not assessed.",
+    "missing_observation": "The selected ECS or Batch command literals could not be completely read and scanned."
   }
 }

@@ -57,6 +57,16 @@
           "framework_id": "pci_4.0_gcp",
           "requirement_id": "A3.4.1.23",
           "reason": "Workbench v2 disables public IP assignment, providing a bounded network access restriction. It does not establish complete CDE topology, allowed routes, firewall enforcement or actual network reachability."
+        },
+        {
+          "framework_id": "ccc_gcp",
+          "requirement_id": "CCC.MLDE.CN07.AR01",
+          "reason": "Workbench v2 disables public IP assignment as a bounded network configuration signal. This does not establish sensitive-data classification, approval of public access, firewall enforcement or actual internet reachability."
+        },
+        {
+          "framework_id": "ccc_gcp",
+          "requirement_id": "CCC.MLDE.CN07.AR02",
+          "reason": "Workbench v2 disables public IP assignment as a bounded network configuration signal. This does not establish sensitive-data classification, approval of public access, firewall enforcement or actual internet reachability."
         }
       ],
       "sources": [
@@ -106,6 +116,16 @@
           "framework_id": "pci_4.0_gcp",
           "requirement_id": "7.2.3.9",
           "reason": "Workbench v2 disables notebook root access, providing a bounded least-privilege configuration signal. It does not establish approval, task assignments, effective access or guest OS enforcement."
+        },
+        {
+          "framework_id": "ccc_gcp",
+          "requirement_id": "CCC.MLDE.CN03.AR01",
+          "reason": "Workbench v2 declares disabled notebook root access. This does not establish sensitive-data classification, necessity or approval of enabled root access, or guest OS enforcement."
+        },
+        {
+          "framework_id": "ccc_gcp",
+          "requirement_id": "CCC.MLDE.CN03.AR02",
+          "reason": "Workbench v2 declares disabled notebook root access. This does not establish sensitive-data classification, necessity or approval of enabled root access, or guest OS enforcement."
         }
       ],
       "sources": [

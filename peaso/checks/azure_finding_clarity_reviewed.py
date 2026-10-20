@@ -24490,7 +24490,8 @@ def _apply(check_id, original, kind):
         current = deepcopy(original)
     else:
         raise ValueError("Reviewed Azure finding clarity base type changed: " + check_id)
-    current.update(deepcopy(row[kind + "_fields"]))
+    from .azure_native_review_copy_20261020 import reviewed_fields
+    current.update(reviewed_fields(check_id, kind, row[kind + "_fields"]))
     return current
 
 

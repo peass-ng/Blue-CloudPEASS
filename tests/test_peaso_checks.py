@@ -129,8 +129,13 @@ STALE_FAIL_CASES = {
 
 
 _gcp_native_cases = {}
-for _native_case in json.loads((Path(__file__).parent /
-        'fixtures/gcp-native-review-behavior.json').read_text())['cases']:
+for _native_case in (json.loads((Path(__file__).parent /
+        'fixtures/gcp-native-review-behavior.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-alert-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-compute-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-final-services-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-prior-bounded-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-native57-native-successor-20261020.json').read_text())['cases']):
     _branch = {'PASS': 'pass', 'FAIL': 'fail', 'UNKNOWN': 'unknown'}[_native_case['expected_status']]
     _current = _gcp_native_cases.setdefault(_native_case['check_id'], {})
     _current.setdefault(_branch, _native_case['item'])
@@ -143,6 +148,9 @@ def test_every_check_has_behavior_fixtures(check):
     # Keep the historical release fixtures intact. Current behavior uses the
     # complete native producer cases after the customer/ancestor binding fixes.
     cases = _gcp_native_cases.get(check.id, CASES[check.id])
+    if check.provider == 'azure':
+        from tests.azure_native_successor_inputs_20261020 import current_cases
+        cases = current_cases(check.id, cases)
     index = cases.get("index", {})
     source_bound_unknown_fails = {
         # An unbound HTTP probe does not establish ownership or bucket existence.

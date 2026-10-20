@@ -553,7 +553,26 @@ def _load_09():
             if 'instance' in row and get(row, 'instance', str) != get(item, 'name', str):
                 raise Unavailable('SQL user foreign raw instance')
             if 'project' in row and get(row, 'project', str) != _scope(index).split('/', 1)[1]:
-                raise Unavailable('SQL user foreign raw project')
+                scope = _scope(index)
+                metadata = get(get(index, 'context', dict), 'metadata', dict)
+                binding = get(metadata, 'data_service_project_bindings', dict).get(scope)
+                project = get(row, 'project', str)
+                if (not isinstance(binding, dict) or binding.get('scope') != scope
+                        or binding.get('status') != 'collected' or binding.get('project_id') != project
+                        or not re.fullmatch(r'[a-z][a-z0-9-]{4,28}[a-z0-9]', project)
+                        or not isinstance(binding.get('project_number'), str)
+                        or scope != 'projects/' + binding['project_number']
+                        or not re.fullmatch(r'[1-9][0-9]*', binding['project_number'])
+                        or not isinstance(binding.get('source_requests'), list) or len(binding['source_requests']) != 1):
+                    raise Unavailable('SQL user foreign raw project')
+                receipts = [receipt for receipt in get(metadata, 'source_requests', list)
+                            if receipt.get('id') == binding['source_requests'][0]]
+                if (len(receipts) != 1 or receipts[0].get('scope') != scope
+                        or receipts[0].get('method') != 'GET'
+                        or receipts[0].get('url') != 'https://cloudresourcemanager.googleapis.com/v3/' + scope
+                        or receipts[0].get('status') != 'collected' or receipts[0].get('http_status') != 200
+                        or receipts[0].get('query', {}) != {}):
+                    raise Unavailable('SQL user project alias receipt unbound')
             if '_provenance' in row and get(row, '_provenance.scope', str) != _scope(index):
                 raise Unavailable('SQL user foreign scope')
             found |= kind in {'CLOUD_IAM_USER', 'CLOUD_IAM_SERVICE_ACCOUNT'}
@@ -772,8 +791,16 @@ def _load_09():
             return ('NOT_APPLICABLE', {'reason': 'version stopped'})
         if status != 'SERVING':
             raise Unavailable('serving status unavailable or unrecognized')
-        if not full_representation(item) or item.get('_field_mask'):
-            raise Unavailable('signed spec requires an unmasked full App Engine handler list')
+        mask = item.get('_field_mask')
+        full = full_representation(item) and not mask
+        # versions.list FULL with this exact field projection includes every
+        # handler's securityLevel; it does not certify full version metadata.
+        from ..collectors.gcp_appengine_versions import VERSIONS_FIELDS
+        projected = (mask == VERSIONS_FIELDS
+                     and get(item, '_provenance.representation', str) == 'partial'
+                     and get(item, 'serviceName', str) + '/versions/' + get(item, 'id', str) == name)
+        if not full and not projected:
+            raise Unavailable('complete App Engine handler security-level projection unavailable')
         handlers = list_of_objects(get(item, 'handlers', list))
         if not handlers:
             raise Unavailable('serving handler coverage unavailable')
@@ -1510,7 +1537,8 @@ def _load_51():
         return get(item, 'selfLink', str)
 
     def _url_backend_refs(url_map):
-        if url_map.get('_representation') != 'full':
+        from .facts import full_representation
+        if not full_representation(url_map):
             raise Unavailable('URL map backend references unavailable')
         refs = set()
 
@@ -1518,6 +1546,8 @@ def _load_51():
             if isinstance(value, dict):
                 guard(value)
                 for key, child in value.items():
+                    if key.startswith('_'):
+                        continue
                     if key in {'service', 'defaultService', 'backendService'}:
                         if not isinstance(child, str) or not child:
                             raise Unavailable('malformed URL map backend reference')
@@ -1686,26 +1716,50 @@ def _load_51():
 
     @signed('gcp_pci_backend_service_2ce96d36d0bf', 'backend_service', 'url_map', 'target_https_proxy', 'ssl_policy')
     def cdn_viewer_tls(item, index):
+        from .gcp_ports_relationships import compute_reference
         name = _backend(item, index)
+        scope = _scope(index)
+        backend = compute_reference(name, scope, ('backendServices',))
         enabled = get(item, 'enableCDN', bool)
         if not enabled:
             return ('NOT_APPLICABLE', {'backend': name, 'reason': 'CDN disabled'})
-        maps = _rows(index, 'url_map')
-        proxies = _rows(index, 'target_https_proxy')
-        policies = _by(_rows(index, 'ssl_policy'), 'selfLink')
-        serving_maps = []
-        for row in maps:
-            refs = _url_backend_refs(row)
-            if name in refs:
-                serving_maps.append(get(row, 'selfLink', str))
+
+        def keyed(rows, kind):
+            output = {}
+            for row in rows:
+                key = compute_reference(get(row, 'selfLink', str), scope, (kind,))
+                if key in output:
+                    raise Unavailable('ambiguous canonical ' + kind + ' identity')
+                output[key] = row
+            return output
+
+        maps = keyed(_rows(index, 'url_map'), 'urlMaps')
+        proxies = keyed(_rows(index, 'target_https_proxy'), 'targetHttpsProxies')
+        policies = keyed(_rows(index, 'ssl_policy'), 'sslPolicies')
+        serving_maps = set()
+        for key, row in maps.items():
+            refs = {compute_reference(ref, scope, ('backendServices', 'backendBuckets'))
+                    for ref in _url_backend_refs(row)}
+            if backend in refs:
+                if key.rsplit('/', 2)[0] != backend.rsplit('/', 2)[0]:
+                    raise Unavailable('URL map/backend location mismatch')
+                serving_maps.add(key)
         if not serving_maps:
             raise Unavailable('serving URL map association absent')
-        attached = [row for row in proxies if get(row, 'urlMap', str) in serving_maps]
+        attached = []
+        for key, row in proxies.items():
+            url_map = compute_reference(get(row, 'urlMap', str), scope, ('urlMaps',))
+            if url_map in serving_maps:
+                if key.rsplit('/', 2)[0] != url_map.rsplit('/', 2)[0]:
+                    raise Unavailable('HTTPS proxy/URL map location mismatch')
+                attached.append((key, row))
         if not attached:
             raise Unavailable('serving HTTPS proxy absent')
         weak = []
-        for proxy in attached:
-            ref = get(proxy, 'sslPolicy', str)
+        for key, proxy in attached:
+            ref = compute_reference(get(proxy, 'sslPolicy', str), scope, ('sslPolicies',))
+            if ref.rsplit('/', 2)[0] != key.rsplit('/', 2)[0]:
+                raise Unavailable('HTTPS proxy/SSL policy location mismatch')
             policy = policies.get(ref)
             if policy is None:
                 raise Unavailable('attached SSL policy absent')
@@ -1713,8 +1767,9 @@ def _load_51():
             if version not in {'TLS_1_0', 'TLS_1_1', 'TLS_1_2', 'TLS_1_3'}:
                 raise Unavailable('unrecognized TLS minimum')
             if version in {'TLS_1_0', 'TLS_1_1'}:
-                weak.append(get(proxy, 'selfLink', str))
-        return result(bool(weak), backend=name, weak_https_proxies=weak, serving_https_proxies=len(attached))
+                weak.append(key)
+        return result(bool(weak), backend=name, weak_https_proxies=weak,
+                      serving_https_proxies=len(attached), semantics='Declared CDN frontend TLS policy; no handshake or serving-traffic proof')
 
     @signed('gcp_pci_backend_service_571fd0bfec67', 'backend_service', 'log_sink')
     def armor_backend_logging(item, index):
@@ -1764,7 +1819,7 @@ def _load_52():
     import re
     from . import CHECKS, register as _native_register, result, unknown
     from .facts import Unavailable, complete_items, get, guard
-    SPECS = {'gcp_cloud_armor_waf_enabled': {'provider': 'gcp', 'resource_kind': 'security_policy', 'category': 'network', 'severity': 'high', 'title': 'Public backend has no web application filtering', 'remediation_hint': 'Attach a Cloud Armor policy containing an enabled evaluatePreconfiguredWaf expression to each public backend.', 'proposed_spec_sha256': '26ddc0e84e87442459f99dea96b95243ae4300a3af7561aefb1d5f2ea7e6b9cc'}, 'gcp.identity.non_service_account_mfa': {'provider': 'gcp', 'resource_kind': 'workspace_user', 'category': 'hardening', 'severity': 'high', 'title': 'Non-service Google Cloud users lack enforced two-step verification', 'remediation_hint': 'Require and enroll two-step verification for each active Workspace user with Cloud IAM access in the Admin console.', 'proposed_spec_sha256': 'd47e76135cb7322aa96d9e23d0e171e07074319572a55831b6459d88b0942d32'}, 'gcp.identity.super_admin_recovery_group': {'provider': 'gcp', 'resource_kind': 'workspace_user', 'category': 'hardening', 'severity': 'high', 'title': 'Super-admin recovery email belongs to a multi-person group', 'remediation_hint': "Set each super admin's recoveryEmail to a Directory group containing at least two active recovery operators.", 'proposed_spec_sha256': '8f5ee8597513ce09dc640f45a7526530863dfb721884c30976bfbd061594cfa6'}, 'gcp_c5_sbom': {'provider': 'gcp', 'resource_kind': 'artifact_repository', 'category': 'secure_development', 'severity': 'medium', 'title': 'Deployed image has an SBOM', 'remediation_hint': 'Publish an SBOM_REFERENCE Artifact Analysis occurrence for each deployed Artifact Registry image digest.', 'proposed_spec_sha256': '769d35633a8c0bce6be2c9458165676852e80a0182e1a1b27dc3d200544e5359'}, 'gcp_lb_server_header_rewrite': {'provider': 'gcp', 'resource_kind': 'url_map', 'category': 'network', 'severity': 'medium', 'title': 'Load balancer does not rewrite Server header', 'remediation_hint': 'Set replace=true for the Server response header with value lb on every route of the public URL map.', 'proposed_spec_sha256': '4fdaa30bde498f7d1c541e786f2368cf81f14affd07b6beb6072de7f73438b9b'}, 'gcp_pci_url_map_9ed56c323a05': {'provider': 'gcp', 'resource_kind': 'url_map', 'category': 'encryption', 'severity': 'medium', 'title': 'HTTP load balancer frontends redirect to HTTPS', 'remediation_hint': 'Set urlMaps.defaultUrlRedirect.httpsRedirect=true and equivalent redirects for every HTTP path matcher/route.', 'proposed_spec_sha256': '9c176e93f19b1f35d7e0345178da2542aff2f7cfae01f5acb1c5c1ac7726a2c8'}, 'gcp_c5_log_event_fields': {'provider': 'gcp', 'resource_kind': 'log_entry', 'category': 'logging', 'severity': 'medium', 'title': 'Audit event timestamp and actor fields', 'remediation_hint': 'Ensure the audit producer supplies protoPayload.authenticationInfo.principalEmail and a valid timestamp; investigate malformed events.', 'proposed_spec_sha256': '0dee7707ea39dbf03e9aaa91e7fe3991039a2caaa405feb758037aa1d6e54180'}, 'gcp_c5_security_event_route': {'provider': 'gcp', 'resource_kind': 'monitoring_alert_policy', 'category': 'incident_detection', 'severity': 'medium', 'title': 'Security event notification route', 'remediation_hint': 'Link each approved security log metric to an enabled Monitoring alert policy and enabled verified notification channel.', 'proposed_spec_sha256': 'f6d8b9e6973e05d1e01e26300cc1eadf8cf636efd32a9d4b4da196f32fc3b3a4'}, 'gcp_c5_secret_access': {'provider': 'gcp', 'resource_kind': 'secret', 'category': 'identity', 'severity': 'medium', 'title': 'Credential secret access restriction', 'remediation_hint': 'Remove allUsers and unapproved secretAccessor IAM bindings from credential secrets, including inherited grants.', 'proposed_spec_sha256': '2313cbb4186e8f35aea97c05621f9ab9149d23464f41132ec4a79c9efdbe5bb1'}, 'gcp.identity.super_admin_separation': {'provider': 'gcp', 'resource_kind': 'workspace_role_assignment', 'category': 'least_privilege', 'severity': 'high', 'title': 'Workspace super admins are separate from routine Google Cloud administrators', 'remediation_hint': 'Remove roles/owner, roles/editor and administrative IAM bindings for Workspace super admins; use separate routine-admin identities.', 'proposed_spec_sha256': '91e8d5cbe97be325cc288584e091a335f3f70367ec79c0de9c1b74cbfb2630fa'}, 'gcp.orgpolicy.central_constraints': {'provider': 'gcp', 'resource_kind': 'org_policy_effective', 'category': 'hardening', 'severity': 'medium', 'title': 'Organization policies enforce centralized constraints', 'remediation_hint': 'Set the required Org Policy constraints at the organization or folder; correct descendant exceptions and allowedValues.', 'proposed_spec_sha256': '1acf8aa9b49281416b5289764a7cf98bce26993f820a008e35db42e7cf08d8df'}, 'gcp.network.private_service_connect_google_apis': {'provider': 'gcp', 'resource_kind': 'forwarding_rule', 'category': 'network', 'severity': 'medium', 'title': 'VPCs use Private Service Connect for Google APIs', 'remediation_hint': 'Create a Google APIs Private Service Connect forwarding rule in each required VPC and point required private DNS A records at its IP.', 'proposed_spec_sha256': 'a717f4090611be6eae3657d3c82a09c5bcf1431d7d8f6cec426864d7cae5bf47'}, 'gcp_cloudbuild_private_pool': {'provider': 'gcp', 'resource_kind': 'worker_pool', 'category': 'network', 'severity': 'high', 'title': 'Cloud Build worker pool is reachable outside approved network', 'remediation_hint': 'Set privatePoolV1Config.networkConfig.peeredNetwork to an approved VPC on enabled Cloud Build worker pools.', 'proposed_spec_sha256': '1a63d653ef2162412671bb096e5c9075101c2d5e38909e3cd58a89886f5e504f'}, 'gcp_source_repo_access_restricted': {'provider': 'gcp', 'resource_kind': 'source_repository', 'category': 'identity', 'severity': 'high', 'title': 'Source repository permits unapproved access', 'remediation_hint': 'Remove allUsers/allAuthenticatedUsers and principals outside approved_developers from repository IAM bindings.', 'proposed_spec_sha256': 'ffd64fae6f133c699a42943f0ddfaad5d3a4fefc225a507ead8685fe15e6b985'}}
+    SPECS = {'gcp_cloud_armor_waf_enabled': {'provider': 'gcp', 'resource_kind': 'security_policy', 'category': 'network', 'severity': 'high', 'title': 'External backend policy declares an active preconfigured WAF deny rule', 'remediation_hint': 'Configure a supported preconfigured WAF deny rule in the attached external-backend security policy, disable preview, and resolve earlier rule bypasses; this checks declarations, not internet reachability.', 'proposed_spec_sha256': '26ddc0e84e87442459f99dea96b95243ae4300a3af7561aefb1d5f2ea7e6b9cc'}, 'gcp.identity.non_service_account_mfa': {'provider': 'gcp', 'resource_kind': 'workspace_user', 'category': 'hardening', 'severity': 'high', 'title': 'Non-service Google Cloud users lack enforced two-step verification', 'remediation_hint': 'Require and enroll two-step verification for each active Workspace user with Cloud IAM access in the Admin console.', 'proposed_spec_sha256': 'd47e76135cb7322aa96d9e23d0e171e07074319572a55831b6459d88b0942d32'}, 'gcp.identity.super_admin_recovery_group': {'provider': 'gcp', 'resource_kind': 'workspace_user', 'category': 'hardening', 'severity': 'high', 'title': 'Super-admin recovery email belongs to a multi-person group', 'remediation_hint': "Set each super admin's recoveryEmail to a Directory group containing at least two active recovery operators.", 'proposed_spec_sha256': '8f5ee8597513ce09dc640f45a7526530863dfb721884c30976bfbd061594cfa6'}, 'gcp_c5_sbom': {'provider': 'gcp', 'resource_kind': 'artifact_repository', 'category': 'secure_development', 'severity': 'medium', 'title': 'Deployed image has an SBOM', 'remediation_hint': 'Publish an SBOM_REFERENCE Artifact Analysis occurrence for each deployed Artifact Registry image digest.', 'proposed_spec_sha256': '769d35633a8c0bce6be2c9458165676852e80a0182e1a1b27dc3d200544e5359'}, 'gcp_lb_server_header_rewrite': {'provider': 'gcp', 'resource_kind': 'url_map', 'category': 'network', 'severity': 'medium', 'title': 'Load balancer does not rewrite Server header', 'remediation_hint': 'Set replace=true for the Server response header with value lb on every route of the public URL map.', 'proposed_spec_sha256': '4fdaa30bde498f7d1c541e786f2368cf81f14affd07b6beb6072de7f73438b9b'}, 'gcp_pci_url_map_9ed56c323a05': {'provider': 'gcp', 'resource_kind': 'url_map', 'category': 'encryption', 'severity': 'medium', 'title': 'HTTP load balancer frontends redirect to HTTPS', 'remediation_hint': 'Set urlMaps.defaultUrlRedirect.httpsRedirect=true and equivalent redirects for every HTTP path matcher/route.', 'proposed_spec_sha256': '9c176e93f19b1f35d7e0345178da2542aff2f7cfae01f5acb1c5c1ac7726a2c8'}, 'gcp_c5_log_event_fields': {'provider': 'gcp', 'resource_kind': 'log_entry', 'category': 'logging', 'severity': 'medium', 'title': 'Audit event timestamp and actor fields', 'remediation_hint': 'Ensure the audit producer supplies protoPayload.authenticationInfo.principalEmail and a valid timestamp; investigate malformed events.', 'proposed_spec_sha256': '0dee7707ea39dbf03e9aaa91e7fe3991039a2caaa405feb758037aa1d6e54180'}, 'gcp_c5_security_event_route': {'provider': 'gcp', 'resource_kind': 'monitoring_alert_policy', 'category': 'incident_detection', 'severity': 'medium', 'title': 'Security event notification route', 'remediation_hint': 'Link each approved security log metric to an enabled Monitoring alert policy and enabled verified notification channel.', 'proposed_spec_sha256': 'f6d8b9e6973e05d1e01e26300cc1eadf8cf636efd32a9d4b4da196f32fc3b3a4'}, 'gcp_c5_secret_access': {'provider': 'gcp', 'resource_kind': 'secret', 'category': 'identity', 'severity': 'medium', 'title': 'Credential secret access restriction', 'remediation_hint': 'Remove allUsers and unapproved secretAccessor IAM bindings from credential secrets, including inherited grants.', 'proposed_spec_sha256': '2313cbb4186e8f35aea97c05621f9ab9149d23464f41132ec4a79c9efdbe5bb1'}, 'gcp.identity.super_admin_separation': {'provider': 'gcp', 'resource_kind': 'workspace_role_assignment', 'category': 'least_privilege', 'severity': 'high', 'title': 'Workspace super admins are separate from routine Google Cloud administrators', 'remediation_hint': 'Remove roles/owner, roles/editor and administrative IAM bindings for Workspace super admins; use separate routine-admin identities.', 'proposed_spec_sha256': '91e8d5cbe97be325cc288584e091a335f3f70367ec79c0de9c1b74cbfb2630fa'}, 'gcp.orgpolicy.central_constraints': {'provider': 'gcp', 'resource_kind': 'org_policy_effective', 'category': 'hardening', 'severity': 'medium', 'title': 'Organization policies enforce centralized constraints', 'remediation_hint': 'Set the required Org Policy constraints at the organization or folder; correct descendant exceptions and allowedValues.', 'proposed_spec_sha256': '1acf8aa9b49281416b5289764a7cf98bce26993f820a008e35db42e7cf08d8df'}, 'gcp.network.private_service_connect_google_apis': {'provider': 'gcp', 'resource_kind': 'forwarding_rule', 'category': 'network', 'severity': 'medium', 'title': 'VPCs use Private Service Connect for Google APIs', 'remediation_hint': 'Create a Google APIs Private Service Connect forwarding rule in each required VPC and point required private DNS A records at its IP.', 'proposed_spec_sha256': 'a717f4090611be6eae3657d3c82a09c5bcf1431d7d8f6cec426864d7cae5bf47'}, 'gcp_cloudbuild_private_pool': {'provider': 'gcp', 'resource_kind': 'worker_pool', 'category': 'network', 'severity': 'high', 'title': 'Cloud Build worker pool is reachable outside approved network', 'remediation_hint': 'Set privatePoolV1Config.networkConfig.peeredNetwork to an approved VPC on enabled Cloud Build worker pools.', 'proposed_spec_sha256': '1a63d653ef2162412671bb096e5c9075101c2d5e38909e3cd58a89886f5e504f'}, 'gcp_source_repo_access_restricted': {'provider': 'gcp', 'resource_kind': 'source_repository', 'category': 'identity', 'severity': 'high', 'title': 'Source repository permits unapproved access', 'remediation_hint': 'Remove allUsers/allAuthenticatedUsers and principals outside approved_developers from repository IAM bindings.', 'proposed_spec_sha256': 'ffd64fae6f133c699a42943f0ddfaad5d3a4fefc225a507ead8685fe15e6b985'}}
     SPECS = {k: v for k, v in SPECS.items() if k in _ALLOWED}
     SPEC_SHA256 = {key: value['proposed_spec_sha256'] for key, value in SPECS.items()}
 
@@ -2060,18 +2115,141 @@ def _load_52():
 
     @register('gcp_cloud_armor_waf_enabled', ['security_policy', 'backend_service'])
     def cloud_armor_waf_enabled(item, index):
+        from urllib.parse import urlsplit
+        from .facts import full_representation
         _member(item, index, 'security_policy')
-        policy_name = get(item, 'selfLink', str)
-        backends = _rows(index, 'backend_service')
-        associated = [backend for backend in backends if get(backend, 'securityPolicy', str) == policy_name]
-        if not associated:
-            return ('NOT_APPLICABLE', {'reason': 'policy is not attached to a backend'})
-        public = [backend for backend in associated if get(backend, 'internetFacing', bool)]
-        if not public:
-            return ('NOT_APPLICABLE', {'reason': 'no associated internet-facing backend'})
+        scope = _scope(index)
+        if not full_representation(item):
+            raise Unavailable('full native Cloud Armor rule inventory unavailable')
+
+        def reference(value, kind):
+            parsed = urlsplit(value)
+            if parsed.query or parsed.fragment:
+                raise Unavailable('security policy reference query/fragment unsupported')
+            if parsed.scheme or parsed.netloc:
+                if (parsed.scheme != 'https' or parsed.netloc not in ('compute.googleapis.com', 'www.googleapis.com')
+                        or not parsed.path.startswith('/compute/v1/projects/')):
+                    raise Unavailable('foreign Cloud Armor reference authority')
+                value = parsed.path.removeprefix('/compute/v1/')
+            elif value.startswith(('global/', 'regions/')):
+                value = scope + '/' + value
+            if not re.fullmatch(re.escape(scope) + r'/(global|regions/[a-z][a-z0-9-]*)/' + kind
+                                + r'/[a-z](?:[-a-z0-9]*[a-z0-9])?', value):
+                raise Unavailable('Cloud Armor reference outside selected project/scope')
+            return value
+
+        policy_name = reference(get(item, 'selfLink', str), 'securityPolicies')
+        # Reject aliases of the same policy rather than picking one payload.
+        if sum(reference(get(row, 'selfLink', str), 'securityPolicies') == policy_name
+               for row in _rows(index, 'security_policy')) != 1:
+            raise Unavailable('ambiguous canonical security policy identity')
+        external, backend_names = [], set()
+        for backend in _rows(index, 'backend_service'):
+            own = reference(get(backend, 'selfLink', str), 'backendServices')
+            if own in backend_names:
+                raise Unavailable('ambiguous canonical backend identity')
+            backend_names.add(own)
+            if 'securityPolicy' not in backend:
+                if not full_representation(backend) or 'securityPolicy' in backend.get('_coverage', {}):
+                    raise Unavailable('backend policy attachment unavailable')
+                continue
+            attached = reference(get(backend, 'securityPolicy', str), 'securityPolicies')
+            if attached != policy_name:
+                continue
+            scheme = get(backend, 'loadBalancingScheme', str)
+            if scheme in ('EXTERNAL', 'EXTERNAL_MANAGED'):
+                if own.rsplit('/', 2)[0] != policy_name.rsplit('/', 2)[0]:
+                    raise Unavailable('backend/security policy location mismatch')
+                external.append(own)
+            elif scheme not in ('INTERNAL', 'INTERNAL_MANAGED', 'INTERNAL_SELF_MANAGED'):
+                raise Unavailable('unrecognized backend load balancing scheme')
+        if not external:
+            return ('NOT_APPLICABLE', {'reason': 'no declared external backend attaches this policy'})
+        policy_type = get(item, 'type', str) if 'type' in item or 'type' in item.get('_coverage', {}) else 'CLOUD_ARMOR'
+        if policy_type != 'CLOUD_ARMOR':
+            raise Unavailable('preconfigured backend WAF policy type unsupported')
         rules = _list(item, 'rules')
-        has_waf = any((get(rule, 'action', str) == 'deny' and 'evaluatePreconfiguredWaf' in get(rule, 'match.expr.expression', str) for rule in rules))
-        return result(not has_waf, policy=policy_name, public_backends=[get(b, 'name', str) for b in public])
+        priorities = set()
+        ordered = []
+        for rule in rules:
+            priority = get(rule, 'priority', int)
+            if not 0 <= priority <= 2147483647 or priority in priorities:
+                raise Unavailable('invalid or duplicate Cloud Armor rule priority')
+            priorities.add(priority)
+            preview = get(rule, 'preview', bool) if 'preview' in rule else False
+            if 'preview' in rule.get('_coverage', {}):
+                preview = get(rule, 'preview', bool)
+            action = get(rule, 'action', str)
+            if action not in ('allow', 'deny(403)', 'deny(404)', 'deny(502)', 'redirect', 'throttle', 'rate_based_ban'):
+                raise Unavailable('unsupported Cloud Armor action')
+            match = get(rule, 'match', dict)
+            if bool('expr' in match) == bool('versionedExpr' in match):
+                raise Unavailable('Cloud Armor match union unavailable or conflicting')
+            if 'expr' in match:
+                expression = get(match, 'expr.expression', str)
+                if not expression.strip():
+                    raise Unavailable('Cloud Armor CEL expression empty')
+                wildcard = expression.strip() == 'true'
+            else:
+                if get(match, 'versionedExpr', str) != 'SRC_IPS_V1':
+                    raise Unavailable('unsupported Cloud Armor basic match version')
+                ranges = get(match, 'config.srcIpRanges', list)
+                if not ranges or any(not isinstance(value, str) or not value for value in ranges):
+                    raise Unavailable('Cloud Armor source ranges unavailable')
+                from ipaddress import ip_network
+                for value in ranges:
+                    if value != '*':
+                        ip_network(value, strict=False)
+                wildcard = ranges == ['*']
+                expression = None
+            ordered.append((priority, rule, preview, action, expression, wildcard))
+        if 2147483647 not in priorities:
+            raise Unavailable('default Cloud Armor rule unavailable')
+        default = next(value for value in ordered if value[0] == 2147483647)
+        if not default[5] or default[2]:
+            raise Unavailable('default Cloud Armor rule is not an enforced wildcard')
+        supported = {'sqli-v33-stable', 'xss-v33-stable', 'sqli-v422-stable', 'xss-v422-stable'}
+        candidates, unresolved, enforced = [], False, []
+        for priority, rule, preview, action, expression, wildcard in sorted(ordered, key=lambda value: value[0]):
+            if preview:
+                continue
+            qualifies = False
+            if expression is not None and priority != 2147483647:
+                # Entire CEL expression only: no substring, negation, OR/AND,
+                # opt-outs, zero sensitivity or unknown rule-set expansion.
+                match = re.fullmatch(
+                    r"\s*evaluatePreconfiguredWaf\(\s*(['\"])([a-z0-9-]+)\1\s*"
+                    r"(?:,\s*\{\s*(['\"])sensitivity\3\s*:\s*([0-4])\s*\})?\s*\)\s*", expression)
+                if match is not None and match[2] in supported:
+                    sensitivity = int(match[4]) if match[4] is not None else 4
+                    qualifies = sensitivity > 0 and action in ('deny(403)', 'deny(404)', 'deny(502)')
+                    config = get(rule, 'preconfiguredWafConfig', dict) if 'preconfiguredWafConfig' in rule or 'preconfiguredWafConfig' in rule.get('_coverage', {}) else {}
+                    if not isinstance(config, dict) or any(key != 'exclusions' for key in config):
+                        raise Unavailable('preconfigured WAF request-field configuration unsupported')
+                    exclusions = get(config, 'exclusions', list) if 'exclusions' in config or 'exclusions' in config.get('_coverage', {}) else []
+                    if not isinstance(exclusions, list):
+                        raise Unavailable('malformed preconfigured WAF exclusions')
+                    if qualifies and exclusions:
+                        unresolved = True
+                        qualifies = False
+                elif expression.strip() != 'true':
+                    unresolved = True
+            if qualifies:
+                if not enforced:
+                    candidates.append(priority)
+                elif enforced[0][0] == 'allow' and enforced[0][1]:
+                    return result(True, policy=policy_name, external_backends=external,
+                                  reason='earlier wildcard allow bypasses the preconfigured WAF rule')
+                else:
+                    unresolved = True
+            enforced.append((action, wildcard))
+        if candidates:
+            return result(False, policy=policy_name, external_backends=external, waf_rule_priorities=candidates,
+                          semantics='Declared external backend association and first enforced supported preconfigured WAF deny rule; no internet reachability or traffic proof')
+        if unresolved:
+            return unknown('WAF CEL, tuning or earlier rule bypass semantics unresolved', policy=policy_name)
+        return result(True, policy=policy_name, external_backends=external,
+                      reason='no supported active preconfigured WAF deny rule declared')
 
     @register('gcp_cloudbuild_private_pool', ['worker_pool'])
     def cloudbuild_private_pool(item, index):
@@ -2212,30 +2390,149 @@ def _load_52():
 
     @register('gcp_pci_url_map_9ed56c323a05', ['url_map', 'target_proxy', 'forwarding_rule'])
     def pci_url_map_redirect(item, index):
+        from urllib.parse import urlsplit
+        from .facts import full_representation
         _member(item, index, 'url_map')
-        url = get(item, 'selfLink', str)
+        scope = _scope(index)
+
+        def reference(value, kinds):
+            parsed = urlsplit(value)
+            if parsed.query or parsed.fragment:
+                raise Unavailable('Compute reference query/fragment unsupported')
+            if parsed.scheme or parsed.netloc:
+                if (parsed.scheme != 'https' or parsed.netloc not in ('compute.googleapis.com', 'www.googleapis.com')
+                        or not parsed.path.startswith('/compute/v1/projects/')):
+                    raise Unavailable('foreign Compute reference authority')
+                value = parsed.path.removeprefix('/compute/v1/')
+            elif value.startswith(('global/', 'regions/')):
+                value = scope + '/' + value
+            pattern = re.escape(scope) + r'/(global|regions/[a-z][a-z0-9-]*)/(' + '|'.join(kinds) + r')/[a-z](?:[-a-z0-9]*[a-z0-9])?'
+            if not re.fullmatch(pattern, value):
+                raise Unavailable('Compute reference outside selected project/resource scope')
+            return value
+
+        url = reference(get(item, 'selfLink', str), ('urlMaps',))
+        if not full_representation(item):
+            raise Unavailable('full native URL map route declarations unavailable')
         proxies = _rows(index, 'target_proxy')
         frontends = _rows(index, 'forwarding_rule')
-        proxy_urls = {get(proxy, 'selfLink', str) for proxy in proxies}
-        if len(proxy_urls) != len(proxies):
-            return unknown('duplicate target proxy identity')
-        if any((('targetHttpProxies/' in get(frontend, 'target', str) or get(frontend, 'target', str).startswith('http-proxy:')) and get(frontend, 'target', str) not in proxy_urls for frontend in frontends)):
-            return unknown('HTTP frontend target proxy unresolved')
-        http_proxies = [proxy for proxy in proxies if get(proxy, 'proxyType', str) == 'HTTP' and get(proxy, 'urlMap', str) == url]
-        attached = [frontend for frontend in frontends if any((get(frontend, 'target', str) == get(proxy, 'selfLink', str) for proxy in http_proxies))]
+        proxy_kinds = {'targetHttpProxies': 'compute#targetHttpProxy', 'targetHttpsProxies': 'compute#targetHttpsProxy',
+                       'targetTcpProxies': 'compute#targetTcpProxy', 'targetSslProxies': 'compute#targetSslProxy',
+                       'targetGrpcProxies': 'compute#targetGrpcProxy'}
+        by_proxy, http_for_map = {}, set()
+        for proxy in proxies:
+            key = reference(get(proxy, 'selfLink', str), tuple(proxy_kinds))
+            if key in by_proxy:
+                raise Unavailable('duplicate canonical target proxy identity')
+            kind = key.split('/')[-2]
+            source_type = get(proxy, '_proxy_type', str) if '_proxy_type' in proxy else None
+            native_kind = get(proxy, 'kind', str) if 'kind' in proxy or 'kind' in proxy.get('_coverage', {}) else None
+            if (source_type is None and native_kind is None
+                    or source_type is not None and source_type != kind
+                    or native_kind is not None and native_kind != proxy_kinds[kind]):
+                raise Unavailable('native proxy type/source identity mismatch')
+            by_proxy[key] = proxy
+            if kind == 'targetHttpProxies':
+                mapping = reference(get(proxy, 'urlMap', str), ('urlMaps',))
+                if mapping == url:
+                    if mapping.rsplit('/', 2)[0] != key.rsplit('/', 2)[0]:
+                        raise Unavailable('HTTP proxy/URL map location mismatch')
+                    http_for_map.add(key)
+        attached, frontend_names = [], set()
+        for frontend in frontends:
+            target = get(frontend, 'target', str) if 'target' in frontend or 'target' in frontend.get('_coverage', {}) else None
+            if target is None:
+                if 'target' in frontend.get('_coverage', {}):
+                    get(frontend, 'target', str)
+                continue  # Backend-service/PSC forwarding rules have no target proxy.
+            if not isinstance(target, str):
+                raise Unavailable('malformed frontend target')
+            if '/targetHttpProxies/' not in '/' + target:
+                continue
+            key = reference(target, ('targetHttpProxies',))
+            if key not in by_proxy:
+                raise Unavailable('HTTP frontend target proxy unresolved')
+            if key in http_for_map:
+                own = reference(get(frontend, 'selfLink', str), ('forwardingRules',))
+                if own.rsplit('/', 2)[0] != key.rsplit('/', 2)[0]:
+                    raise Unavailable('HTTP frontend/proxy location mismatch')
+                if own in frontend_names:
+                    raise Unavailable('duplicate canonical HTTP frontend identity')
+                frontend_names.add(own)
+                attached.append(own)
         if not attached:
-            return ('NOT_APPLICABLE', {'reason': 'no HTTP frontend targets this URL map'})
-        if get(item, 'routeCoverageComplete', bool) is not True:
-            return unknown('URL map path/default route coverage incomplete')
-        routes = [_optional_object(item, 'defaultUrlRedirect')]
-        for matcher in _optional_objects(item, 'pathMatchers'):
-            routes.append(_optional_object(matcher, 'defaultUrlRedirect'))
-            for rule in _optional_objects(matcher, 'pathRules'):
-                routes.append(_optional_object(rule, 'urlRedirect'))
-            for rule in _optional_objects(matcher, 'routeRules'):
-                routes.append(_optional_object(rule, 'urlRedirect'))
-        unredirected = [i for i, route in enumerate(routes) if not _redirect(route)]
-        return result(bool(unredirected), url_map=url, unredirected_routes=unredirected)
+            return ('NOT_APPLICABLE', {'reason': 'no HTTP frontend declares this URL map'})
+
+        def route(row, service_field, redirect_field, action_field):
+            redirect = _optional_object(row, redirect_field)
+            action = _optional_object(row, action_field)
+            service = row.get(service_field)
+            if service_field in row.get('_coverage', {}):
+                get(row, service_field, str)
+            if redirect_field in row:
+                if service is not None or action_field in row or not redirect:
+                    raise Unavailable('conflicting or empty redirect route declaration')
+                return get(redirect, 'httpsRedirect', bool) if 'httpsRedirect' in redirect or 'httpsRedirect' in redirect.get('_coverage', {}) else False
+            weighted = _optional_objects(action, 'weightedBackendServices')
+            if service is not None and weighted:
+                raise Unavailable('conflicting backend route declarations')
+            if service is not None:
+                reference(get(row, service_field, str), ('backendServices', 'backendBuckets'))
+                return False
+            if weighted:
+                for backend in weighted:
+                    reference(get(backend, 'backendService', str), ('backendServices',))
+                    if not 0 <= get(backend, 'weight', int) <= 1000:
+                        raise Unavailable('backend route weight outside native range')
+                if not any(get(backend, 'weight', int) > 0 for backend in weighted):
+                    raise Unavailable('weighted route has no positive destination weight')
+                return False
+            raise Unavailable('default/path route destination unavailable')
+
+        routes = [route(item, 'defaultService', 'defaultUrlRedirect', 'defaultRouteAction')]
+        matchers = _optional_objects(item, 'pathMatchers')
+        names = [get(matcher, 'name', str) for matcher in matchers]
+        if len(names) != len(set(names)) or any(not name for name in names):
+            raise Unavailable('duplicate or missing path matcher identity')
+        host_rules = _optional_objects(item, 'hostRules')
+        referenced = set()
+        for host in host_rules:
+            hosts = get(host, 'hosts', list)
+            if not hosts or any(not isinstance(value, str) or not value for value in hosts):
+                raise Unavailable('host rule names unavailable')
+            matcher = get(host, 'pathMatcher', str)
+            if matcher not in names:
+                raise Unavailable('host rule path matcher unresolved')
+            referenced.add(matcher)
+        if set(names) != referenced:
+            raise Unavailable('path matcher association incomplete')
+        for matcher in matchers:
+            routes.append(route(matcher, 'defaultService', 'defaultUrlRedirect', 'defaultRouteAction'))
+            path_rules = _optional_objects(matcher, 'pathRules')
+            route_rules = _optional_objects(matcher, 'routeRules')
+            if path_rules and route_rules:
+                raise Unavailable('conflicting path and route rule modes')
+            seen_paths, priorities = set(), set()
+            for rule in path_rules:
+                paths = get(rule, 'paths', list)
+                if not paths or any(not isinstance(path, str) or not path.startswith('/') or path in seen_paths for path in paths) or len(paths) != len(set(paths)):
+                    raise Unavailable('path rule selectors unavailable or duplicated')
+                seen_paths.update(paths)
+                routes.append(route(rule, 'service', 'urlRedirect', 'routeAction'))
+            for rule in route_rules:
+                priority = get(rule, 'priority', int)
+                matches = _list(rule, 'matchRules')
+                if priority < 0 or priority in priorities or not matches:
+                    raise Unavailable('route rule priority or selectors unavailable')
+                priorities.add(priority)
+                for match in matches:
+                    selectors = [field for field in ('prefixMatch', 'fullPathMatch', 'regexMatch', 'pathTemplateMatch') if field in match]
+                    if len(selectors) != 1 or not get(match, selectors[0], str):
+                        raise Unavailable('route match path selector unavailable or unsupported')
+                routes.append(route(rule, 'service', 'urlRedirect', 'routeAction'))
+        return result(not all(routes), url_map=url, declared_http_frontends=attached,
+                      unredirected_routes=[i for i, value in enumerate(routes) if not value],
+                      semantics='Complete declared HTTP URL-map routes; no effective reachability or redirect-response probe')
     from .facts import memoized as _batch_memoized
     from collections import Counter as _batch_Counter
     import json as _batch_json
@@ -2711,7 +3008,8 @@ def _load_53():
         ident = _base(item, index, 'project')
         _, scope = _ctx(index)
         if ident != scope:
-            raise Unavailable('project identity differs from scope')
+            from .gcp_cloudsql_backup_alert_native import project_scope_aliases
+            project_scope_aliases(item, scope, index)
         entries = _rows(index, 'access_transparency_entry')
         now = _now(index)
         suffix = '/logs/cloudaudit.googleapis.com%2Faccess_transparency'
@@ -2726,13 +3024,11 @@ def _load_53():
         return result(False, project=scope, recent_access_transparency_entries=recent) if recent else unknown('no recent Access Transparency entry; provider access may not have occurred')
 
     def _backup_alert(item, index):
-        ident = _base(item, index, 'project')
+        _base(item, index, 'project')
         _, scope = _ctx(index)
-        if ident != scope:
-            raise Unavailable('project identity differs from scope')
         from .gcp_cloudsql_backup_alert_native import configured_alerts
         active = configured_alerts(item, scope, _rows(index, 'monitoring_alert_policy'),
-                                   _rows(index, 'logging_metric'))
+                                   _rows(index, 'logging_metric'), index=index)
         return result(not active, project=scope, enabled_alert_policies=active,
                       assessed_configuration='local scheduled-backup window failure alert',
                       notification_delivery_assessed=False)
@@ -3126,24 +3422,58 @@ def _load_54():
         return result(bool(bad), pool=name, checked_providers=seen, unsafe_providers=bad)
 
     def _gke(item, index):
+        from urllib.parse import urlsplit
         rows = _inventory(index, 'gke_cluster')
         name = _member(item, rows)
-        if not re.fullmatch(re.escape(_scope(index, 'projects/')) + '/locations/[^/]+/clusters/[^/]+', name):
-            raise Unavailable('foreign GKE cluster')
+        scope = _scope(index, 'projects/')
+        if not re.fullmatch(r'[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?', name):
+            raise Unavailable('native short GKE cluster name unavailable')
+        location = get(item, 'location', str)
+        if not re.fullmatch(r'[a-z][a-z0-9-]*', location):
+            raise Unavailable('GKE cluster location unavailable')
+        link = urlsplit(get(item, 'selfLink', str))
+        if (link.scheme != 'https' or link.netloc != 'container.googleapis.com'
+                or link.query or link.fragment
+                or not re.fullmatch(r'/v1/' + re.escape(scope) + r'/(locations|zones)/'
+                                    + re.escape(location) + '/clusters/' + re.escape(name), link.path)):
+            raise Unavailable('GKE name/location/selfLink project binding unavailable')
+
+        def group_reference(value):
+            parsed = urlsplit(value)
+            if parsed.query or parsed.fragment:
+                raise Unavailable('instance group reference query/fragment unsupported')
+            if parsed.scheme or parsed.netloc:
+                if (parsed.scheme != 'https' or parsed.netloc not in ('compute.googleapis.com', 'www.googleapis.com')
+                        or not parsed.path.startswith('/compute/v1/projects/')):
+                    raise Unavailable('foreign instance group reference authority')
+                value = parsed.path.removeprefix('/compute/v1/')
+            elif value.startswith(('zones/', 'regions/')):
+                value = scope + '/' + value
+            if not re.fullmatch(re.escape(scope) + r'/(zones|regions)/[a-z][a-z0-9-]*/instanceGroups/[a-z](?:[-a-z0-9]*[a-z0-9])?', value):
+                raise Unavailable('instance group outside exact project/location scope')
+            parts = value.split('/')
+            group_location = parts[3]
+            if (group_location != location and not (parts[2] == 'zones'
+                    and re.fullmatch(re.escape(location) + r'-[a-z]', group_location))):
+                raise Unavailable('instance group outside bound cluster location')
+            return value
+
         pools = list_of_objects(get(item, 'nodePools', list))
         if not pools:
             raise Unavailable('node pool inventory unavailable')
         managers = _inventory(index, 'instance_group_manager')
-        by_url = {get(m, 'instanceGroup', str): m for m in managers}
-        if len(by_url) != len(managers):
-            raise Unavailable('duplicate instance group manager')
-        project_path = '/projects/' + _scope(index, 'projects/').removeprefix('projects/') + '/'
-        if any((project_path not in url or '/instanceGroups/' not in url for url in by_url)):
-            raise Unavailable('foreign instance group')
-        total = 0
-        disabled = []
+        by_url = {}
+        for manager in managers:
+            key = group_reference(get(manager, 'instanceGroup', str))
+            if key in by_url:
+                raise Unavailable('duplicate canonical instance group manager')
+            by_url[key] = manager
+        total, disabled, seen_groups, seen_pools = 0, [], set(), set()
         for pool in pools:
             pool_name = get(pool, 'name', str)
+            if not pool_name or pool_name in seen_pools:
+                raise Unavailable('node pool identity missing or duplicated')
+            seen_pools.add(pool_name)
             urls = _strings(pool, 'instanceGroupUrls')
             if not urls:
                 raise Unavailable('node pool instance groups unavailable')
@@ -3151,13 +3481,18 @@ def _load_54():
             if not auto:
                 disabled.append(pool_name)
             for url in urls:
-                if url not in by_url:
+                key = group_reference(url)
+                if key in seen_groups:
+                    raise Unavailable('instance group repeated across node pools')
+                seen_groups.add(key)
+                if key not in by_url:
                     raise Unavailable('instance group targetSize unavailable')
-                size = get(by_url[url], 'targetSize', int)
+                size = get(by_url[key], 'targetSize', int)
                 if size < 0:
                     raise Unavailable('negative instance group targetSize')
                 total += size
-        return result(total < 3 and bool(disabled), cluster=name, target_nodes=total, pools_without_auto_upgrade=disabled)
+        return result(total < 3 and bool(disabled), cluster=name, location=location,
+                      target_nodes=total, pools_without_auto_upgrade=disabled)
 
     def _alerts(item, index, mode):
         scope = _scope(index, 'projects/')
@@ -3199,6 +3534,12 @@ def _load_54():
             elif mode == 'enumeration':
                 if flt != 'protoPayload.methodName =~ "\\.(list|get)$"':
                     raise Unavailable('enumeration metric filter semantics unrecognized')
+                descriptor = get(metric, 'metricDescriptor', dict)
+                if (get(descriptor, 'metricKind', str) != 'DELTA'
+                        or get(descriptor, 'valueType', str) != 'INT64'):
+                    raise Unavailable('enumeration event-count metric must be DELTA INT64')
+                if ('type' in descriptor or 'type' in descriptor.get('_coverage', {})) and get(descriptor, 'type', str) != 'logging.googleapis.com/user/' + metric_id:
+                    raise Unavailable('enumeration metric descriptor identity mismatch')
                 target = True
             else:
                 if flt != 'protoPayload.methodName="logging.entries.list"':
@@ -3226,10 +3567,44 @@ def _load_54():
                     if get(threshold, 'comparison', str) != 'COMPARISON_GT':
                         continue
                     limit = get(threshold, 'thresholdValue', (int, float))
+                    if mode == 'enumeration':
+                        from math import isfinite
+                        if type(limit) not in (int, float) or not isfinite(limit):
+                            raise Unavailable('enumeration threshold must be a finite numeric event count')
                     if limit < 0 or limit > (approved if mode == 'query' else 10):
                         continue
                     aggs = list_of_objects(get(threshold, 'aggregations', list))
-                    if any((get(a, 'alignmentPeriod', str) == '300s' and get(a, 'perSeriesAligner', str) in ('ALIGN_SUM', 'ALIGN_COUNT') and any((s in {'metric.label.' + label for label in principal_labels} for s in _strings(a, 'groupByFields'))) for a in aggs)):
+                    if mode == 'enumeration':
+                        conditions = list_of_objects(get(policy, 'conditions', list))
+                        combiner = get(policy, 'combiner', str)
+                        if combiner not in ('OR', 'AND', 'AND_WITH_MATCHING_RESOURCE') or len(conditions) > 1 and combiner != 'OR':
+                            raise Unavailable('enumeration alert condition combination unresolved')
+                        if get(threshold, 'duration', str) != '0s':
+                            raise Unavailable('enumeration alert retest window does not prove burst detection')
+                        if any(field in threshold for field in ('denominatorFilter', 'denominatorAggregations', 'forecastOptions')):
+                            raise Unavailable('enumeration ratio/forecast alert unsupported')
+                        trigger = get(threshold, 'trigger', dict) if 'trigger' in threshold or 'trigger' in threshold.get('_coverage', {}) else {}
+                        if not isinstance(trigger, dict) or (trigger and (set(trigger) != {'count'} or get(trigger, 'count', int) != 1)):
+                            raise Unavailable('enumeration alert trigger requires multiple or unknown series')
+                        if len(aggs) != 1:
+                            raise Unavailable('enumeration aggregation chain unsupported')
+                        aggregation = aggs[0]
+                        if (get(aggregation, 'alignmentPeriod', str) != '300s'
+                                or get(aggregation, 'perSeriesAligner', str) != 'ALIGN_SUM'):
+                            continue
+                        reducer = get(aggregation, 'crossSeriesReducer', str) if 'crossSeriesReducer' in aggregation or 'crossSeriesReducer' in aggregation.get('_coverage', {}) else 'REDUCE_NONE'
+                        if reducer == 'REDUCE_SUM':
+                            groups = _strings(aggregation, 'groupByFields')
+                            principal_groups = {'metric.label.' + label for label in principal_labels}
+                            if not principal_groups.intersection(groups) or not set(groups) <= principal_groups | {'resource.type'}:
+                                continue
+                        elif reducer == 'REDUCE_NONE':
+                            continue  # Per-instance series can hide a distributed principal burst.
+                        else:
+                            raise Unavailable('enumeration reduction does not prove event-volume semantics')
+                        return result(False, metric=metric_name, alert=get(policy, 'name', str),
+                                      semantics='Configured DELTA INT64 event sum by principal within monitored-resource series; no delivery or live event proof')
+                    elif any((get(a, 'alignmentPeriod', str) == '300s' and get(a, 'perSeriesAligner', str) in ('ALIGN_SUM', 'ALIGN_COUNT') and any((s in {'metric.label.' + label for label in principal_labels} for s in _strings(a, 'groupByFields'))) for a in aggs)):
                         return result(False, metric=metric_name, alert=get(policy, 'name', str))
         return result(True, project=scope, reason='no qualifying enabled alert in complete inventories')
 
@@ -3241,9 +3616,33 @@ def _load_54():
             return registered
         return decorate
 
-    @_signed('gcp_kms_key_destroy_alert', 'monitoring', 'project', 'KMS key disable or destroy events lack an alert', 'high', 'Create an enabled alert on log metrics matching Cloud KMS key-version disable and destroy API method names.', ['logging_metric', 'alert_policy'], 'scope')
+    @_signed('gcp_kms_key_destroy_alert', 'monitoring', 'project', 'Cloud KMS key-version destruction events lack an alert', 'high', 'Create an enabled positive-count alert on a log metric matching the native DestroyCryptoKeyVersion audit method.', ['logging_metric', 'alert_policy'], 'scope')
     def kms_key_destroy_alert(item, index):
-        return _alerts(item, index, 'kms')
+        # Keep this branch separate from the query/enumeration source contracts.
+        # They have different grouping and owner-volume criteria.
+        from .gcp_metric_alert_native import evaluate_metric_alert_rows_native
+        scope = _scope(index, 'projects/')
+        if get(item, 'provider', str) != 'gcp' or get(item, 'scope', str) != scope:
+            raise Unavailable('foreign project scope context')
+        metrics = _inventory(index, 'logging_metric')
+        policies = _inventory(index, 'alert_policy')
+        for kind, rows in (('metric', metrics), ('alert', policies)):
+            names = [get(row, 'name', str) for row in rows]
+            if len(names) != len(set(names)):
+                raise Unavailable('duplicate ' + kind + ' identity')
+        for metric in metrics:
+            name = get(metric, 'name', str)
+            prefix = scope + '/metrics/'
+            if not name.startswith(prefix) or not name[len(prefix):] or '/' in name[len(prefix):]:
+                raise Unavailable('metric identity unavailable or foreign')
+            if 'metricId' in metric and get(metric, 'metricId', str) != name[len(prefix):]:
+                raise Unavailable('metric ID conflicts with native name')
+        method = 'protoPayload.methodName="DestroyCryptoKeyVersion"'
+        reference = (method, 'resource.type="cloudkms_cryptokeyversion" AND ' + method)
+        # This scope-target check has no independent project GET dependency, so
+        # only the selected scope is admitted; no numeric/ID alias is invented.
+        return evaluate_metric_alert_rows_native({'projectId': scope.split('/', 1)[1]}, metrics, policies,
+            reference, event_threshold=True, resource_type="cloudkms_cryptokeyversion")
 
     @_signed('gcp_logging_enumeration_alert', 'monitoring', 'project', 'Cloud resource enumeration lacks an alert', 'medium', 'Create a log metric filtering .list/.get audit methods by principal and an enabled five-minute alert at ten events with a channel.', ['logging_metric', 'alert_policy'], 'scope')
     def logging_enumeration_alert(item, index):

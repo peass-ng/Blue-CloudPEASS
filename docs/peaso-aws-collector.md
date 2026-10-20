@@ -169,6 +169,83 @@ Lambda environment/code, STS credentials/tokens, secret values, VPN pre-shared
 keys/customer gateway configuration XML, and binary content are removed at
 serialization boundaries.
 
+## Optional selected Lambda environment secret scanning
+
+Standard Lambda metadata collection already uses `GetFunctionConfiguration` and
+drops variable values before caching. The optional dual-engine reader uses an
+isolated projection and an additional exact selected read before that boundary;
+it cannot infer secret absence from the stripped metadata cache.
+
+Name `aws.review.lambda.selected_environment_secret_indicators` in `checks`, set
+`options.content_secret_scans` to `true`, and provide
+`options.selected_aws_lambda_functions`: 1–8 unique, exact **unqualified** native
+Lambda function ARNs. Select explicit matching `account/Region` pair scopes.
+Aliases, published-version qualifiers, partial ARNs, names alone, wildcard scopes
+and broad category/framework selection do not enable this reader.
+
+```json
+{
+  "connector": {
+    "provider": "aws",
+    "scopes": ["123456789012/us-east-1"],
+    "options": {
+      "content_secret_scans": true,
+      "selected_aws_lambda_functions": [
+        "arn:aws:lambda:us-east-1:123456789012:function:example-function"
+      ]
+    }
+  },
+  "checks": ["aws.review.lambda.selected_environment_secret_indicators"]
+}
+```
+
+The only function-content API is
+`GetFunctionConfiguration(FunctionName=<exact selected ARN>)`, with no
+`Qualifier`. It requires **`lambda:GetFunctionConfiguration`** at the selected
+function ARN; this action is already part of the existing metadata permission
+set, so this feature introduces no role-template or grant change. The existing
+mandatory `sts:GetCallerIdentity` read binds the selected caller account and
+partition. No list, invoke, update or direct decrypt operation is added.
+
+For environment variables encrypted with a customer-managed KMS key, Lambda may
+also require the caller's preexisting key-scoped **`kms:Decrypt`** authorization
+to return readable variables. This reader never calls KMS directly, creates a
+grant, changes a key/role policy or recommends broad key permissions. Missing
+key access, `Environment.Error` and native KMS access errors remain UNKNOWN.
+Intended Secrets Manager/Parameter Store payloads are never fetched. Client-side
+ciphertext or other encodings are not decrypted; coverage describes the literal
+string bytes returned by Lambda, not hidden plaintext.
+
+The response must bind the exact function ARN/name, `$LATEST`, a native revision
+ID and successful read provenance to the verified account/Region. Missing or
+pending/failed configuration status, denied/deleted reads, omitted/error/empty
+variables, unsupported values, byte limits or incomplete engines remain UNKNOWN.
+Kingfisher 1.4.0 and TruffleHog 3.92.5 run offline with credential verification
+disabled; both must complete before PASS. Exact-value matches are redacted and
+merged with other AWS secret findings. Native function names, variable keys,
+values, revision/request IDs, raw request parameters and error text are absent
+from this profile's exported evidence and request-cache keys; only opaque keyed
+locators and typed scan results remain.
+
+Bounds are 8 selected functions, 128 variables, ASCII variable keys of 2–128
+characters and 4 KiB of key/value bytes per function, 8 KiB per scan input, 128 KiB per parsed SDK response and 1 MiB across
+responses. A shared 60-second inspection deadline, cancellation and call budgets
+are checked around SDK reads and scans; this profile caps SDK connect/read
+inactivity timeouts at 3/5 seconds and disables SDK automatic retries. The
+collector's bounded retries permit at most 5 attempts per selected function.
+Boto3 has already allocated the complete response before the adapter checks these
+limits: these are post-receipt inspection/retention bounds, not HTTP streaming or
+preallocation guarantees. SDK credential resolution and a continuously arriving
+response use the existing SDK transport behavior; late completion cannot become
+PASS. No content files, package downloads, runtime execution or credential
+validation occur. Coverage excludes other versions, runtime-injected variables,
+code/packages, logs and unselected functions.
+
+References: [GetFunctionConfiguration](https://docs.aws.amazon.com/lambda/latest/api/API_GetFunctionConfiguration.html),
+[environment response](https://docs.aws.amazon.com/lambda/latest/api/API_EnvironmentResponse.html),
+[literal environment semantics and quota](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html),
+and [customer-managed encryption prerequisites](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars-encryption.html).
+
 ## Actual service coverage
 
 | Service | Native resource types | Collected configuration and practical limits |
@@ -885,6 +962,103 @@ https://docs.aws.amazon.com/service-authorization/latest/reference/list_controlt
 https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetAutomatedReasoningPolicy.html
 https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetGuardrail.html
 
+### Optional explicitly selected configuration-content scanning
+
+The local check proposal `aws.review.configuration.selected_content_secret_indicators`
+adds dual offline scanning for the 15 literal surfaces below. It preserves the
+existing pattern-only checks; a pattern-only clean result does not mean both
+engines scanned the content. Registration and hosted option admission are separate
+integration steps; this section does not assert deployed availability.
+
+Name that exact check, set `content_secret_scans: true`, and supply
+`selected_aws_configuration_content`: 1–16 unique objects with exactly `surface`,
+`scope` and `resource_id`, plus a numeric `version` only for launch templates and
+SSM documents. Scopes must be 1–8 explicit matching `account/Region` pairs. All
+resource IDs are full native ARNs; REST stage ARNs have an empty account member
+and bind to the authenticated selected account. Numeric versions are 1–2147483647;
+`$Latest`, `$Default`, document aliases, arbitrary URLs and wildcard scope are not
+accepted. Supported resource names use each adapter's documented conservative
+ASCII grammar; unsupported names are rejected before credentials are requested.
+
+```json
+{
+  "connector": {
+    "provider": "aws",
+    "scopes": ["123456789012/us-east-1"],
+    "options": {
+      "content_secret_scans": true,
+      "selected_aws_configuration_content": [
+        {"surface":"codebuild_environment","scope":"123456789012/us-east-1",
+         "resource_id":"arn:aws:codebuild:us-east-1:123456789012:project/example"},
+        {"surface":"ssm_document","scope":"123456789012/us-east-1",
+         "resource_id":"arn:aws:ssm:us-east-1:123456789012:document/example","version":3}
+      ]
+    }
+  },
+  "checks": ["aws.review.configuration.selected_content_secret_indicators"]
+}
+```
+
+| `surface` | Exact selected read and inspected bytes | Minimum read authorization |
+| --- | --- | --- |
+| `cloudformation_outputs` | `DescribeStacks(StackName=stackARN)`; completed stack output keys/values | `cloudformation:DescribeStacks` |
+| `codebuild_environment` | `BatchGetProjects(names=[projectARN])`; `PLAINTEXT` environment names/values | `codebuild:BatchGetProjects` |
+| `rest_stage_variables` | `GetStage(restApiId, stageName)`; stage variable keys/values | `apigateway:GET` on the selected REST stage resource path |
+| `ecs_environment` | `DescribeTaskDefinition(taskDefinition=familyRevisionARN)`; active container literal environment | `ecs:DescribeTaskDefinition` |
+| `amplify_environment` | `GetApp(appId)`; selected app environment | `amplify:GetApp` |
+| `batch_environment` | `DescribeJobDefinitions(jobDefinitions=[revisionARN])`; active classic container environment | `batch:DescribeJobDefinitions` |
+| `beanstalk_options` | `DescribeConfigurationSettings(ApplicationName,EnvironmentName)`; deployed option values | `elasticbeanstalk:DescribeConfigurationSettings` |
+| `glue_job_arguments` | `GetJob(JobName)`; default and non-overridable argument keys/values | `glue:GetJob` |
+| `glue_connection_properties` | `GetConnection(CatalogId,Name,HidePassword=true)`; visible connection properties excluding password members | `glue:GetConnection` |
+| `launch_template_userdata` | `DescribeLaunchTemplateVersions(LaunchTemplateId,Versions=[numericVersion])`; decoded user data | `ec2:DescribeLaunchTemplateVersions` |
+| `launch_configuration_userdata` | `DescribeLaunchConfigurations(LaunchConfigurationNames=[name])`; decoded user data | `autoscaling:DescribeLaunchConfigurations` |
+| `ssm_document` | `DescribeDocument` proves native account ownership, then `GetDocument` at the same numeric version | `ssm:DescribeDocument` and `ssm:GetDocument` |
+| `state_machine_definition` | `DescribeStateMachine(stateMachineArn,includedData=ALL_DATA)`; ASL source and decoded string literals | `states:DescribeStateMachine` |
+| `notebook_lifecycle` | `DescribeNotebookInstanceLifecycleConfig(name)`; decoded OnCreate/OnStart source | `sagemaker:DescribeNotebookInstanceLifecycleConfig` |
+| `pipeline_definition` | `GetPipelineDefinition(pipelineId,version=latest)`; literal definition/parameter fields | `datapipeline:GetPipelineDefinition` |
+
+Scope reads to selected resources wherever the service supports resource-level
+permissions; some Describe operations require `Resource: "*"`. Exact request
+selection does not create resource-level IAM support. These are read permissions,
+not a recommendation for service administrator policies. `sts:GetCallerIdentity`
+binds account/partition without requiring an allow grant. No role template, write,
+execute, invoke, attachment fetch or secret-store read is added.
+
+For encrypted Step Functions definitions, AWS can additionally require existing
+key-scoped `kms:Decrypt` authorization to return `ALL_DATA`. The adapter makes no
+KMS call or grant change and does not substitute metadata-only output. See
+[DescribeStateMachine](https://docs.aws.amazon.com/step-functions/latest/apireference/API_DescribeStateMachine.html),
+[GetConnection HidePassword](https://docs.aws.amazon.com/glue/latest/webapi/API_GetConnection.html),
+[DescribeDocument ownership](https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_DescribeDocument.html)
+and [API Gateway read authorization](https://docs.aws.amazon.com/service-authorization/latest/reference/list_apigateway.html).
+
+References such as CodeBuild secret/parameter variables, ECS secret/env-file
+references, Glue password/authentication stores and Data Pipeline reference fields
+are not dereferenced. Amplify branches, Batch ECS/EKS/multinode variants, attached
+SSM files, notebook attachment/runtime state, Step Functions executions and active
+Data Pipeline execution state are outside this reader. A lifecycle configuration
+is selected directly; it does not prove that a notebook uses that script. The
+Data Pipeline `latest` definition is the saved definition, not the active version.
+
+Bounds: 32 selected content calls, 120 seconds across reads/scans, 2 MiB per parsed
+SDK response, 8 MiB total responses, 1 MiB rendered content per target, 256 literal
+pairs and 128 retained matches. Decoded user data/lifecycle scripts are limited to
+16 KiB, SSM content to 64 KiB. SDK responses are allocated before projection;
+these are inspection/retention limits, not streaming transport memory guarantees.
+Connect/read timeouts are bounded and existing shared budgets can stop reads
+earlier. Native denied, missing/deleted, empty, partial, malformed, changed,
+unsupported and oversized results stay UNKNOWN. Both pinned offline engines must
+complete before PASS; an observed supported leak can still FAIL when another
+engine is unavailable. Neither engine verifies credentials.
+
+Only typed results and opaque HMAC locations/request locators survive projection.
+Detected values are merged across engines and surfaces. A bounded union scrub also
+redacts matching earlier request-cache records, keys and snapshot metadata; if it
+cannot finish, affected content is withheld and coverage remains unresolved.
+Evidence does not expose content, native names or matched values. A clean result
+covers only these returned literal bytes, not all service configurations or runtime
+environments.
+
 ### Bounded configuration and optional content indicators
 
 Configuration-secret checks inspect selected returned configuration values in memory
@@ -1012,3 +1186,11 @@ The shared `aws_resource_policy` collector supplements service-specific inventor
 The scan engine enables `GenerateCredentialReport` only when the selected checks need the credential report, and `GenerateServiceLastAccessedDetails` only for the four IAM usage-history checks. AWS classifies both APIs as **Read** ([IAM service authorization](https://docs.aws.amazon.com/service-authorization/latest/reference/list_iam.html)); they create report results without modifying identities, credentials or permissions. Direct collector requests leave report generation disabled unless the internal selection gates are set.
 
 Existing credential reports are read first; only missing, expired or still-preparing reports trigger the selected refresh. AccessDenied never triggers a retry through generation. Service-access jobs are tied to the verified account, principal, session and generated job identifier, use bounded concurrency and a shared batch deadline, and require complete consistent pagination. Denied, malformed, late or incomplete reports remain unavailable evidence. These reports describe recorded access attempts, not current effective permissions or successful access.
+
+### Selected inline CodeBuild build instructions (local addition)
+
+A separate named optional check inspects returned inline buildspecs. It does not follow source files or build artifacts; see [exact selectors, read permissions and limits](peaso-aws-selected-codebuild-buildspecs.md).
+
+## Selected ECS and Batch command literals
+
+The optional [selected workload command reader](peaso-aws-selected-workload-commands.md) reads exact ECS task-definition or classic Batch job-definition revisions. It requires the explicit check, content-scan opt-in, and `ecs:DescribeTaskDefinition` or `batch:DescribeJobDefinitions`; it does not execute workloads or fetch referenced environment files. Local native acceptance does not certify deployment.

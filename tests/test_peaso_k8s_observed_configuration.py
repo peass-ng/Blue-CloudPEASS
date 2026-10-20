@@ -1,6 +1,11 @@
 """Replay every active K8s predicate, keeping declarations distinct from runtime."""
 from copy import deepcopy
 from collections import Counter
+from functools import lru_cache
+import gzip
+import hashlib
+import json
+from pathlib import Path
 import pytest
 from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
@@ -8,6 +13,64 @@ from peaso.checks.native_only import automated_checks
 from peaso.finding_observation import evidence_summary
 
 CHECK_BY_ID={c.id:c for c in automated_checks(CHECKS) if c.provider=='k8s'}
+PREDECESSORS = Path(__file__).with_name('fixtures') / 'k8s_public_observation_compatibility_predecessors_20261020.json.gz'
+PREDECESSORS_SHA256 = 'df506a1a368d8ceeeaa563ba342eb0f758479bbde885d87c6583c33c6c6175ad'
+
+
+@lru_cache(maxsize=1)
+def preserved_predecessors():
+    raw = PREDECESSORS.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == PREDECESSORS_SHA256
+    data = json.loads(gzip.decompress(raw))
+    for row in data['files'].values():
+        assert hashlib.sha256(row['source'].encode()).hexdigest() == row['sha256']
+    for row in data['native_sources'].values():
+        for version in ('original', 'enriched', 'current_at_capture'):
+            assert hashlib.sha256(row[version]['source'].encode()).hexdigest() == row[version]['sha256']
+    return data
+
+
+@lru_cache(maxsize=1)
+def current_native_cases():
+    """Verified test-only native inputs; never mutate global historical CASES."""
+    from peaso.checks import k8s_annotation_native_admission_20261020 as annotation
+    from peaso.checks import k8s_kubelet_configmap_admission_20261020 as kubelet
+    return {**annotation._reviewed_inputs()[1], **kubelet.reviewed_inputs()[1]}
+
+
+SELECTED_SECRET_IDS = {
+    'k8s.review.selected_container_logs.secret_indicators',
+    'k8s.review.selected_literals.secret_indicators',
+    'k8s.review.selected_metadata.secret_indicators',
+}
+AUTHORIZATION_FIXTURE_IDS = {
+    'k8s.ports.' + kind + '.container_argument_kubelet_authorization_mode_no_always_allow'
+    for kind in ('cronjob', 'daemonset', 'deployment', 'job', 'pod', 'podtemplate',
+                 'replicaset', 'replicationcontroller', 'statefulset')
+}
+
+
+@lru_cache(maxsize=1)
+def compatibility_receipt():
+    return json.loads((Path(__file__).parents[1] / 'docs/check-review/k8s-public-observation-compatibility-20261020.json').read_text())
+
+
+def recorded_observation(finding, summary):
+    """Test accounting only: explicitly distinguish saved evidence from rendering.
+
+    This does not add a public formatter fallback. For admitted new contracts,
+    the actual evaluator's canonical text remains in the technical evidence.
+    """
+    if summary is not None:
+        return summary
+    cid, status, evidence = finding['check_id'], finding['status'], finding['evidence']
+    allowed = SELECTED_SECRET_IDS | {cid for cid in current_native_cases() if cid.startswith('k8s.claude.')}
+    assert cid in allowed, finding
+    observed = evidence.get('observed')
+    assert isinstance(observed, str) and observed and '\n' not in observed and len(observed) < 600
+    if status == 'UNKNOWN':
+        assert any(word in observed.lower() for word in ('unbound', 'not be bound', 'unavailable', 'incomplete'))
+    return observed
 
 # Eleven small supplemental fixtures already accepted by the workload review;
 # all other cases use the existing registry fixture authority without copies.
@@ -22,6 +85,31 @@ SUPPLEMENTAL_IDS = {
     "k8s_pod_secret_pod_rule_non_compliant_fcdc38e543",
 }
 def cases_for(check_id,check):
+    if check_id in current_native_cases():
+        return current_native_cases()[check_id]
+    if check_id in AUTHORIZATION_FIXTURE_IDS:
+        # Kubelet accepts Webhook, not the historical API-server-only RBAC
+        # enum. Keep that exact old input as an UNKNOWN witness; never mutate
+        # CASES or claim that a malformed mode establishes authorization.
+        cases = deepcopy(CASES[check_id])
+        cases['unknown'] = deepcopy(cases['pass'])
+        cases['unknown_index'] = deepcopy(cases.get('pass_index', cases.get('index', {})))
+        changes = []
+        def replace_mode(value):
+            if isinstance(value, dict):
+                config = value.get('_component_config')
+                if isinstance(config, dict) and config.get('component') == 'kubelet':
+                    assert config['flags_complete'] is True and config['flags']['authorization-mode'] == 'RBAC'
+                    config['flags']['authorization-mode'] = 'Webhook'
+                    changes.append(True)
+                for child in value.values():
+                    replace_mode(child)
+            elif isinstance(value, list):
+                for child in value:
+                    replace_mode(child)
+        replace_mode(cases['pass'])
+        assert changes == [True]
+        return cases
     cases = None if check_id in SUPPLEMENTAL_IDS else CASES.get(check_id)
     if cases is None:
         if check_id in ("k8s.rbac.no_wildcards", "k8s.rbac.role_no_wildcards"):
@@ -71,23 +159,35 @@ def actual_observations():
     return rows
 
 
-def test_all_927_controls_have_actual_supported_observations(actual_observations):
-    assert len(CHECK_BY_ID)==927
+def test_every_current_active_control_has_accounted_actual_observations(actual_observations):
+    receipt = compatibility_receipt()
+    assert set(CHECK_BY_ID) == set(receipt['active_ids'])
+    assert len(CHECK_BY_ID) == 938
     counts=Counter()
     missing=[]
+    witnesses = {}
     for finding in actual_observations:
         before=deepcopy(finding)
-        summary=evidence_summary(finding)
+        rendered=evidence_summary(finding)
+        summary=recorded_observation(finding, rendered)
         if not isinstance(summary,str) or not summary:
             missing.append(finding)
         else:
             assert '\n' not in summary and len(summary)<600
         assert finding==before
         counts[finding['status']]+=1
+        witnesses.setdefault(finding['check_id'], {})[finding['fixture_state']] = finding['status']
     assert not missing, 'All missing observations: '+repr(missing)
-    assert counts['PASS']==926 and counts['FAIL']==927
-    # Other native test modules may install additional valid UNKNOWN fixtures.
-    assert counts['UNKNOWN']>=920 and set(counts)=={'PASS','FAIL','UNKNOWN'}
+    assert witnesses == receipt['active_branch_statuses']
+    assert dict(counts) == receipt['active_status_counts']
+    assert set(witnesses) == set(CHECK_BY_ID)
+    for cid, states in witnesses.items():
+        assert states.get('fail') == 'FAIL', (cid, states)
+        if 'pass' in states:
+            assert states['pass'] == 'PASS', (cid, states)
+        else:
+            assert cid == 'k8s.cis.avoid_use_of_system_masters_group'
+            assert set(states) == {'fail', 'unknown', 'malformed'}
 
 
 @pytest.mark.parametrize('cid',sorted(CHECK_BY_ID))
@@ -145,19 +245,36 @@ def test_secret_content_is_never_formatted(actual_observations):
 def test_native_enrichment_only_adds_explicit_result_evidence(filename,fields,original_source_sha256,added_fragments):
     import ast,hashlib
     from pathlib import Path
-    path=Path(__file__).parents[1]/'peaso'/'checks'/filename
-    candidate=path.read_text()
+    # This historical assertion applies to the exact accepted 91b2c4e bytes,
+    # not later native predicate successors. Original hashes remain unchanged.
+    record = preserved_predecessors()['native_sources'][filename]
+    assert record['original']['revision'] == '787fcfdc93d719559ad679834bbbf32b4eaca6b8'
+    assert record['enriched']['revision'] == '91b2c4ed88bf799fb4f11a437f6557c7dd3dcf34'
+    candidate=record['enriched']['source']
     original=candidate
     for fragment in added_fragments:
         assert original.count(fragment)==1,(filename,fragment)
         original=original.replace(fragment,'',1)
     # Original byte hashes are from accepted source787fcfd, not a new baseline.
     assert hashlib.sha256(original.encode()).hexdigest()==original_source_sha256
+    assert original == record['original']['source']
     tree=ast.parse(candidate)
     for node in ast.walk(tree):
         if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=='result' and (filename not in ('compliance_new_k8s_network.py','claude_gcp_k8s_k8s.py') or node.args and isinstance(node.args[0],ast.Constant) and node.args[0].value is False):
             node.keywords=[k for k in node.keywords if k.arg not in fields]
     assert ast.dump(tree)==ast.dump(ast.parse(original))
+
+
+@pytest.mark.parametrize('filename', ['batch_remaining_k8s.py', 'compliance_new_sw10.py', 'k8s_ports_cluster.py',
+                                      'compliance_new_k8s_network.py', 'claude_gcp_k8s_k8s.py'])
+def test_current_native_sources_are_separately_bound_from_historical_enrichment(filename):
+    record = preserved_predecessors()['native_sources'][filename]
+    raw = (Path(__file__).parents[1] / record['path']).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == record['current_at_capture']['sha256']
+    assert raw == record['current_at_capture']['source'].encode()
+    assert (raw == record['enriched']['source'].encode()) is record['current_is_historical_enrichment']
+    # This is a source identity assertion. Current native behavior is replayed
+    # separately above; no current source is labeled evidence-only enrichment.
 
 
 def test_real_incomplete_ingress_inventory_has_specific_unknown_observation():

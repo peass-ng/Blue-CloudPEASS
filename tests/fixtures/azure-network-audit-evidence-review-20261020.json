@@ -1,0 +1,76 @@
+{
+  "azure.network.acr_public_ip_ranges_restricted": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "public_network_access": "Enabled",
+        "trusted_service_bypass": "None",
+        "criterion": "declared_public_ipv4_union",
+        "effective_access": "not_tested",
+        "default_action": "Deny",
+        "declared_ip_rules": 1,
+        "collapsed_ipv4_ranges": [
+          "203.0.113.0/24"
+        ],
+        "allows_all_ipv4": false,
+        "observed": "The registry declares default Deny without IP rules covering every IPv4 address. Trusted-service bypass is None; authentication and effective access were not tested."
+      },
+      "expected_observation": "Public IPv4 access is restricted by the registry's declared rules. Trusted Azure service bypass is disabled."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "public_network_access": "Enabled",
+        "trusted_service_bypass": "None",
+        "criterion": "declared_public_ipv4_union",
+        "effective_access": "not_tested",
+        "default_action": "Deny",
+        "declared_ip_rules": 2,
+        "collapsed_ipv4_ranges": [
+          "0.0.0.0/0"
+        ],
+        "allows_all_ipv4": true,
+        "observed": "The registry declares public access from every IPv4 address. Trusted-service bypass is None; authentication and effective access were not tested."
+      },
+      "expected_observation": "The registry's public endpoint allows every IPv4 address in its declared network rules. Trusted Azure service bypass is disabled."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "public access or trusted-service bypass declaration unavailable"
+      },
+      "expected_observation": null
+    }
+  ],
+  "azure.review.managed_hsm.audit_storage_destination": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "criterion": "declared_audit_storage_destination",
+        "audit_storage_configured": true,
+        "storage_destination_references": [
+          "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.Storage/storageAccounts/archive"
+        ],
+        "observed": "Managed HSM declares AuditEvent logging to Azure Storage. Delivery, destination existence and retention were not tested."
+      },
+      "expected_observation": "AuditEvent logging is configured to an Azure Storage destination."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "criterion": "declared_audit_storage_destination",
+        "audit_storage_configured": false,
+        "observed": "No enabled AuditEvent logging declaration to an Azure Storage destination was found."
+      },
+      "expected_observation": "No enabled AuditEvent logging to Azure Storage is configured."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native category-group resolution was not collected",
+        "observed": "A diagnostic category group is enabled for storage. Its AuditEvent coverage could not be resolved."
+      },
+      "expected_observation": null
+    }
+  ]
+}

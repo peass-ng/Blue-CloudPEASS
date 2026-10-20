@@ -23,6 +23,7 @@ def _open(cidrs):
 @register("azure.aks.api_server_restricted", "azure", "exposure", "aks_cluster", "AKS API server is private or restricted to authorized IP ranges", "high", "SC-7",
           "Enable a private cluster or set apiServerAccessProfile.authorizedIPRanges to approved administrative CIDRs.")
 def aks_api_server(item, index):
+    from ipaddress import collapse_addresses
     props = get(item, "properties", dict)
     profile = optional(props, "apiServerAccessProfile", {}, dict)
     if not isinstance(profile, dict):
@@ -32,7 +33,10 @@ def aks_api_server(item, index):
     ranges = optional(profile, "authorizedIPRanges", [], list)
     if not isinstance(ranges, list) or any(not isinstance(r, str) for r in ranges):
         return unknown("malformed authorizedIPRanges")
-    return result(not ranges or bool(_open(ranges)), private_cluster=False, authorized_ip_ranges=ranges,
+    networks = [ip_network(value.strip(), strict=False) for value in ranges]
+    universal = any(network.prefixlen == 0 for version in (4, 6)
+                    for network in collapse_addresses(n for n in networks if n.version == version))
+    return result(not ranges or universal, private_cluster=False, authorized_ip_ranges=ranges,
                   semantics="Public API server without authorized IP ranges is reachable from 0.0.0.0/0; Entra/Kubernetes authentication still applies.")
 
 

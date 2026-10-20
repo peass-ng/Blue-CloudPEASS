@@ -2982,7 +2982,8 @@ def _apply(check_id, original, kind):
     if _digest(original) != row[kind + "_base_sha256"] or (not isinstance(original, dict) and not (kind == "remediation" and original is None)):
         raise ValueError("Reviewed Azure bulk clarity base changed: " + check_id + " (" + kind + ")")
     updated = deepcopy(original) if original is not None else {}
-    updated.update(deepcopy(row[kind + "_fields"]))
+    from .azure_native_review_copy_20261020 import reviewed_fields
+    updated.update(reviewed_fields(check_id, kind, row[kind + "_fields"]))
     return updated
 
 

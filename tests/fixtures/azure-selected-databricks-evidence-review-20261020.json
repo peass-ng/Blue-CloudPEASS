@@ -1,0 +1,94 @@
+{
+  "azure.review.databricks.selected_notebook_source_secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the captured notebook SOURCE bytes. This is a point-in-time export, not proof of an immutable revision or execution.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_notebook_export_only",
+        "immutable_revision_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 52,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "Both offline detectors found no supported secret in the selected Databricks notebook source."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the captured notebook source. Its value is hidden and was not validated.",
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "32d42b1ca3e318736bd2c472bac35ce4fa5704e8a3ffb5d6afb0348c5f8685f5",
+            "locations": [
+              {
+                "line": 2,
+                "path": "azure_databricks_selected_notebook:2c6d9cbbbc05589427fb9270fab0903531b961cf5470308de4d0218cead56202.notebook_source"
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_notebook_export_only",
+        "immutable_revision_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 82,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ]
+      },
+      "summary": "A likely secret was detected in the selected Databricks notebook source. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "coverage": "incomplete_selected_notebook_export",
+        "immutable_revision_proven": false,
+        "observed": "Selected notebook source was unavailable, unbound or incompletely inspected. A clean export result cannot be established."
+      },
+      "summary": "Selected notebook source was unavailable, unbound or incompletely inspected. A clean export result cannot be established."
+    }
+  ]
+}
