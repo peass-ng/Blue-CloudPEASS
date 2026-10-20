@@ -162,6 +162,7 @@ from .aws_lambda_config_next import normalize_aws_lambda_config
 from .aws_lambda_privesc_next import normalize_aws_lambda_role_assignment, correlate_aws_lambda_privesc
 from .aws_ec2_controls_next import normalize_aws_ec2_controls
 from .aws_vpc_network_next import normalize_aws_vpc_network, correlate_aws_vpc_custom_dns
+from .aws_vpc_endpoint_egress_next import normalize_aws_vpc_endpoint_egress
 from .aws_apigateway_controls_next import normalize_aws_apigateway_controls
 from .aws_apigateway_http_keys_next import normalize as normalize_aws_apigateway_http_keys
 from .aws_apigateway_portal_next import correlate as correlate_aws_apigateway_portal
@@ -224,8 +225,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "383d241b171bb04b3f2813775dca8db544a6908f"
-DEFAULT_RULE_PACK_SHA256 = "1365f86c4b6a02a5c31aba1f8bb87f2637c64af9ff726221bab7327d1f5f7e35"
+DEFAULT_RULE_REF = "fc00891ed11b95720220fae553dc79b053d03b5e"
+DEFAULT_RULE_PACK_SHA256 = "ecba3dd24aeb1ebcf08fb5b14e477c42d224441eaf6b189a2eed2e351904c97b"
 
 
 @dataclass(frozen=True)
@@ -466,6 +467,7 @@ def detect_aws_events(
         lambda_role_assignment = normalize_aws_lambda_role_assignment(record)
         ec2_controls = normalize_aws_ec2_controls(record)
         vpc_network = normalize_aws_vpc_network(record)
+        vpc_endpoint_egress = normalize_aws_vpc_endpoint_egress(record)
         apigateway_controls = normalize_aws_apigateway_controls(record)
         apigateway_http_keys = normalize_aws_apigateway_http_keys(record)
         apigateway_private_vpce = normalize_aws_apigateway_private_vpce(record)
@@ -641,6 +643,7 @@ def detect_aws_events(
                 + ([lambda_role_assignment] if lambda_role_assignment is not None else [])
                 + ([ec2_controls] if ec2_controls is not None else [])
                 + ([vpc_network] if vpc_network is not None else [])
+                + ([vpc_endpoint_egress] if vpc_endpoint_egress is not None else [])
                 + ([apigateway_controls] if apigateway_controls is not None else [])
                 + ([apigateway_http_keys] if apigateway_http_keys is not None else [])
                 + ([apigateway_private_vpce] if apigateway_private_vpce is not None else [])
