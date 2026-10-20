@@ -1,5 +1,6 @@
 """Replay current native witnesses and bind every Azure explanation to its source."""
 from copy import deepcopy
+from datetime import datetime, timezone
 import gzip
 import hashlib
 import inspect
@@ -42,7 +43,17 @@ def test_each_explanation_is_bound_to_the_current_exact_evaluator_and_contract(c
 
 
 @pytest.mark.parametrize('cid', sorted(CASES))
-def test_actual_native_positive_negative_unknown_manual_and_inapplicable_witnesses(cid):
+def test_actual_native_positive_negative_unknown_manual_and_inapplicable_witnesses(cid, monkeypatch):
+    if cid == 'azure.claude.storage_access_keys_rotated_90':
+        # Replay the retained ages at their capture date, rather than letting
+        # this immutable evidence fixture age by another day on every CI run.
+        from peaso.checks import claude_azure_data
+        class CapturedClock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                captured = datetime(2026, 10, 19, 12, tzinfo=timezone.utc)
+                return captured.astimezone(tz) if tz else captured.replace(tzinfo=None)
+        monkeypatch.setattr(claude_azure_data, 'datetime', CapturedClock)
     for case in CASES[cid]:
         item, index = deepcopy((case['item'], case['index']))
         status, evidence = CHECK_BY_ID[cid].evaluate(item, index)
