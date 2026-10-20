@@ -95,6 +95,7 @@ from .aws_secretsmanager_followup_next import normalize_aws_secretsmanager_follo
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
+from .aws_dynamodb_backup_stream_next import normalize_aws_dynamodb_backup_stream
 from .aws_sns_sqs_controls_next import normalize_aws_sns_sqs_controls
 from .aws_sqs_followup_next import normalize_aws_sqs_followup, correlate_aws_sqs_tagged_receive
 from .aws_sqs_data_next import normalize_aws_sqs_data, correlate_aws_sqs_fifo_dedup_collision
@@ -392,6 +393,7 @@ def detect_aws_events(
         guardduty_controls = normalize_aws_guardduty_controls(record)
         ecr_retention = normalize_aws_ecr_retention(record)
         dynamodb_controls = normalize_aws_dynamodb_controls(record)
+        dynamodb_backup_stream = normalize_aws_dynamodb_backup_stream(record)
         sns_sqs_controls = normalize_aws_sns_sqs_controls(record)
         sqs_followup = normalize_aws_sqs_followup(record)
         sqs_data = normalize_aws_sqs_data(record)
@@ -550,6 +552,7 @@ def detect_aws_events(
                 + ([guardduty_controls] if guardduty_controls is not None else [])
                 + ([ecr_retention] if ecr_retention is not None else [])
                 + ([dynamodb_controls] if dynamodb_controls is not None else [])
+                + ([dynamodb_backup_stream] if dynamodb_backup_stream is not None else [])
                 + ([sns_sqs_controls] if sns_sqs_controls is not None else [])
                 + ([sqs_followup] if sqs_followup is not None else [])
                 + ([sqs_data] if sqs_data is not None else [])
