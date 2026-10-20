@@ -15,6 +15,7 @@ _MEDIA_APIS = {
     "LIST_FRAGMENTS": "request.kvs_list_fragments_endpoint_discovered",
     "GET_IMAGES": "request.kvs_get_images_endpoint_discovered",
     "GET_CLIP": "request.kvs_get_clip_endpoint_discovered",
+    "GET_MEDIA_FOR_FRAGMENT_LIST": "request.kvs_fragment_list_media_endpoint_discovered",
     "GET_HLS_STREAMING_SESSION_URL": "request.kvs_hls_endpoint_discovered",
     "GET_DASH_STREAMING_SESSION_URL": "request.kvs_dash_endpoint_discovered",
     "PUT_MEDIA": "request.kvs_put_media_endpoint_discovered",
