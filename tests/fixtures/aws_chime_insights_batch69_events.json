@@ -1,0 +1,269 @@
+{
+  "derivation": "Synthetic derivatives of accepted disposable Chime Media Insights CloudTrail events. All account, role, pipeline, stream, function and actor identifiers are synthetic. No media or credentials are included.",
+  "events": [
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "CreateMediaInsightsPipelineConfiguration",
+      "eventID": "synthetic-insights-1",
+      "readOnly": false,
+      "requestParameters": {
+        "mediaInsightsPipelineConfigurationName": "synthetic-insights-config",
+        "resourceAccessRoleArn": "arn:aws:iam::999999999999:role/synthetic-media-role-a",
+        "elements": [
+          {
+            "type": "voiceAnalyticsProcessor",
+            "voiceAnalyticsProcessorConfiguration": {
+              "speakerSearchStatus": "Disabled",
+              "voiceToneAnalysisStatus": "Enabled"
+            }
+          },
+          {
+            "type": "amazonTranscribeProcessor",
+            "amazonTranscribeProcessorConfiguration": {
+              "languageCode": "en-US"
+            }
+          },
+          {
+            "type": "kinesisDataStreamSink",
+            "kinesisDataStreamSinkConfiguration": {
+              "insightsTarget": "arn:aws:kinesis:us-east-1:999999999999:stream/synthetic-output"
+            }
+          },
+          {
+            "type": "lambdaFunctionSink",
+            "lambdaFunctionSinkConfiguration": {
+              "insightsTarget": "arn:aws:lambda:us-east-1:999999999999:function:synthetic-sink"
+            }
+          }
+        ],
+        "clientRequestToken": "synthetic-token"
+      },
+      "responseElements": {
+        "mediaInsightsPipelineConfiguration": {
+          "mediaInsightsPipelineConfigurationId": "11111111-1111-4111-8111-111111111111",
+          "mediaInsightsPipelineConfigurationArn": "arn:aws:chime:us-east-1:999999999999:media-insights-pipeline-configuration/synthetic-insights-config",
+          "mediaInsightsPipelineConfigurationName": "synthetic-insights-config",
+          "resourceAccessRoleArn": "arn:aws:iam::999999999999:role/synthetic-media-role-a",
+          "elements": [
+            {
+              "type": "voiceAnalyticsProcessor",
+              "voiceAnalyticsProcessorConfiguration": {
+                "speakerSearchStatus": "Disabled",
+                "voiceToneAnalysisStatus": "Enabled"
+              }
+            },
+            {
+              "type": "amazonTranscribeProcessor",
+              "amazonTranscribeProcessorConfiguration": {
+                "languageCode": "en-US"
+              }
+            },
+            {
+              "type": "kinesisDataStreamSink",
+              "kinesisDataStreamSinkConfiguration": {
+                "insightsTarget": "arn:aws:kinesis:us-east-1:999999999999:stream/synthetic-output"
+              }
+            },
+            {
+              "type": "lambdaFunctionSink",
+              "lambdaFunctionSinkConfiguration": {
+                "insightsTarget": "arn:aws:lambda:us-east-1:999999999999:function:synthetic-sink"
+              }
+            }
+          ]
+        }
+      },
+      "eventTime": "2026-10-20T20:00:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "GetMediaInsightsPipelineConfiguration",
+      "eventID": "synthetic-insights-2",
+      "readOnly": true,
+      "requestParameters": {
+        "identifier": "arn:aws:chime:us-east-1:999999999999:media-insights-pipeline-configuration/synthetic-insights-config"
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:01:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "ListMediaInsightsPipelineConfigurations",
+      "eventID": "synthetic-insights-3",
+      "readOnly": true,
+      "requestParameters": {
+        "maxResults": 100
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:02:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "UpdateMediaInsightsPipelineConfiguration",
+      "eventID": "synthetic-insights-4",
+      "readOnly": false,
+      "requestParameters": {
+        "identifier": "arn:aws:chime:us-east-1:999999999999:media-insights-pipeline-configuration/synthetic-insights-config",
+        "resourceAccessRoleArn": "arn:aws:iam::999999999999:role/synthetic-media-role-b",
+        "elements": [
+          {
+            "type": "voiceAnalyticsProcessor",
+            "voiceAnalyticsProcessorConfiguration": {
+              "speakerSearchStatus": "Disabled",
+              "voiceToneAnalysisStatus": "Enabled"
+            }
+          },
+          {
+            "type": "amazonTranscribeProcessor",
+            "amazonTranscribeProcessorConfiguration": {
+              "languageCode": "en-US"
+            }
+          },
+          {
+            "type": "kinesisDataStreamSink",
+            "kinesisDataStreamSinkConfiguration": {
+              "insightsTarget": "arn:aws:kinesis:us-east-1:999999999999:stream/synthetic-output"
+            }
+          },
+          {
+            "type": "lambdaFunctionSink",
+            "lambdaFunctionSinkConfiguration": {
+              "insightsTarget": "arn:aws:lambda:us-east-1:999999999999:function:synthetic-sink"
+            }
+          }
+        ]
+      },
+      "responseElements": {
+        "mediaInsightsPipelineConfiguration": {
+          "mediaInsightsPipelineConfigurationId": "11111111-1111-4111-8111-111111111111",
+          "mediaInsightsPipelineConfigurationArn": "arn:aws:chime:us-east-1:999999999999:media-insights-pipeline-configuration/synthetic-insights-config",
+          "mediaInsightsPipelineConfigurationName": "synthetic-insights-config",
+          "resourceAccessRoleArn": "arn:aws:iam::999999999999:role/synthetic-media-role-b",
+          "elements": [
+            {
+              "type": "voiceAnalyticsProcessor",
+              "voiceAnalyticsProcessorConfiguration": {
+                "speakerSearchStatus": "Disabled",
+                "voiceToneAnalysisStatus": "Enabled"
+              }
+            },
+            {
+              "type": "amazonTranscribeProcessor",
+              "amazonTranscribeProcessorConfiguration": {
+                "languageCode": "en-US"
+              }
+            },
+            {
+              "type": "kinesisDataStreamSink",
+              "kinesisDataStreamSinkConfiguration": {
+                "insightsTarget": "arn:aws:kinesis:us-east-1:999999999999:stream/synthetic-output"
+              }
+            },
+            {
+              "type": "lambdaFunctionSink",
+              "lambdaFunctionSinkConfiguration": {
+                "insightsTarget": "arn:aws:lambda:us-east-1:999999999999:function:synthetic-sink"
+              }
+            }
+          ]
+        }
+      },
+      "eventTime": "2026-10-20T20:03:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "CreateMediaInsightsPipeline",
+      "eventID": "synthetic-insights-5",
+      "readOnly": false,
+      "requestParameters": {
+        "mediaInsightsPipelineConfigurationArn": "arn:aws:chime:us-east-1:999999999999:media-insights-pipeline-configuration/synthetic-insights-config",
+        "kinesisVideoStreamSourceRuntimeConfiguration": {
+          "streams": [
+            {
+              "streamArn": "arn:aws:kinesisvideo:us-east-1:999999999999:stream/synthetic-input/1",
+              "streamChannelDefinition": {
+                "numberOfChannels": 1
+              }
+            }
+          ],
+          "mediaEncoding": "pcm",
+          "mediaSampleRate": 8000
+        },
+        "clientRequestToken": "synthetic-runtime"
+      },
+      "responseElements": {
+        "mediaInsightsPipeline": {
+          "mediaPipelineId": "22222222-2222-4222-8222-222222222222",
+          "mediaPipelineArn": "arn:aws:chime:us-east-1:999999999999:media-pipeline/22222222-2222-4222-8222-222222222222",
+          "mediaInsightsPipelineConfigurationArn": "arn:aws:chime:us-east-1:999999999999:media-insights-pipeline-configuration/synthetic-insights-config"
+        }
+      },
+      "eventTime": "2026-10-20T20:04:00Z"
+    },
+    {
+      "eventSource": "chime-sdk-media-pipelines.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-operator"
+      },
+      "eventName": "DeleteMediaInsightsPipelineConfiguration",
+      "eventID": "synthetic-insights-6",
+      "readOnly": false,
+      "requestParameters": {
+        "identifier": "arn:aws:chime:us-east-1:999999999999:media-insights-pipeline-configuration/synthetic-insights-config"
+      },
+      "responseElements": null,
+      "eventTime": "2026-10-20T20:05:00Z"
+    }
+  ]
+}

@@ -108,6 +108,9 @@ from .aws_chime_voice_sip_next import normalize_aws_chime_voice_sip
 from .aws_chime_media_pipelines_next import (
     normalize_aws_chime_media_pipeline, correlate_aws_chime_live_pipeline_read,
 )
+from .aws_chime_media_insights_next import (
+    normalize_aws_chime_media_insights, correlate_aws_chime_media_insights,
+)
 from .aws_glue_controls_next import normalize_aws_glue_controls
 from .aws_cloudfront_controls_next import normalize_aws_cloudfront_controls
 from .aws_glue_session_correlations_next import correlate_aws_glue_cross_actor_statements
@@ -399,6 +402,7 @@ def detect_aws_events(
         chime_voice_connector = normalize_aws_chime_voice_connector(record)
         chime_voice_sip = normalize_aws_chime_voice_sip(record)
         chime_media_pipeline = normalize_aws_chime_media_pipeline(record)
+        chime_media_insights = normalize_aws_chime_media_insights(record)
         glue_controls = normalize_aws_glue_controls(record)
         cloudfront_controls = normalize_aws_cloudfront_controls(record)
         cognito_controls = normalize_aws_cognito_controls(record)
@@ -555,6 +559,7 @@ def detect_aws_events(
                 + ([chime_voice_connector] if chime_voice_connector is not None else [])
                 + ([chime_voice_sip] if chime_voice_sip is not None else [])
                 + ([chime_media_pipeline] if chime_media_pipeline is not None else [])
+                + ([chime_media_insights] if chime_media_insights is not None else [])
                 + ([glue_controls] if glue_controls is not None else [])
                 + ([cloudfront_controls] if cloudfront_controls is not None else [])
                 + ([cognito_controls] if cognito_controls is not None else [])
@@ -663,8 +668,14 @@ def detect_aws_events(
     lambda_mapping_records: list[Mapping[str, Any]] = []
     ecr_image_records: list[Mapping[str, Any]] = []
     chime_media_pipeline_records: list[Mapping[str, Any]] = []
+    chime_media_insights_records: list[Mapping[str, Any]] = []
     def remembering_records() -> Iterable[Mapping[str, Any]]:
         for record in records:
+            if (record.get("eventSource") == "chime-sdk-media-pipelines.amazonaws.com"
+                    and record.get("eventName") in {"CreateMediaInsightsPipelineConfiguration",
+                                                    "UpdateMediaInsightsPipelineConfiguration",
+                                                    "CreateMediaInsightsPipeline"}):
+                chime_media_insights_records.append(record)
             if (record.get("eventSource") == "chime-sdk-media-pipelines.amazonaws.com"
                     and record.get("eventName") in {"CreateMediaLiveConnectorPipeline", "GetMediaPipeline"}):
                 chime_media_pipeline_records.append(record)
@@ -813,6 +824,7 @@ def detect_aws_events(
     correlated += correlate_aws_ecr_tag_overwrite(ecr_image_records)
     correlated += correlate_aws_ecr_new_layer_push(ecr_image_records)
     correlated += correlate_aws_chime_live_pipeline_read(chime_media_pipeline_records)
+    correlated += correlate_aws_chime_media_insights(chime_media_insights_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
     return matches
