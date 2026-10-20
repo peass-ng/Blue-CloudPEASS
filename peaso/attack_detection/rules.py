@@ -55,6 +55,7 @@ from .aws_athena_workgroup_next import normalize_aws_athena_workgroup
 from .aws_athena_stored_query_next import normalize as normalize_aws_athena_stored_query, correlate as correlate_aws_athena_stored_query
 from .aws_athena_history_cross_actor_next import correlate as correlate_aws_athena_history_cross_actor
 from .aws_athena_spark_v3_cross_actor_next import normalize_create_workgroup as normalize_aws_athena_spark_workgroup, correlate as correlate_aws_athena_spark_v3
+from .aws_athena_spark35_endpoint_next import correlate as correlate_aws_athena_spark35_endpoint
 from .aws_config_recorder_next import normalize_aws_config_recorder_stop, normalize_aws_config_auto_remediation
 from .aws_eventbridge_archive_next import normalize_aws_eventbridge_archive
 from .aws_eventbridge_rule_targets_next import normalize_aws_eventbridge_rule_targets
@@ -167,8 +168,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "a3a75c55edb0a5c0e6dd5d52db6a20273c4088f3"
-DEFAULT_RULE_PACK_SHA256 = "e5bf4fa223748c3fac2e9be1571f63aca7efa589b85d821c5de4b7cc8fd753ad"
+DEFAULT_RULE_REF = "8252a6b518c04233ae468ab457c206d77c1ee19c"
+DEFAULT_RULE_PACK_SHA256 = "e2b1fb94077029be308ee93941887675d9f7b580b875a23bf92bf55885f5f45b"
 
 
 @dataclass(frozen=True)
@@ -561,7 +562,7 @@ def detect_aws_events(
                 athena_history_records.append(record)
             if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "StartQueryExecution"}:
                 athena_stored_records.append(record)
-            if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "CreateNotebook", "UpdateNotebook", "StartSession", "CreatePresignedNotebookUrl", "StartCalculationExecution"}:
+            if record.get("eventSource") == "athena.amazonaws.com" and record.get("eventName") in {"CreateWorkGroup", "CreateNotebook", "UpdateNotebook", "StartSession", "CreatePresignedNotebookUrl", "StartCalculationExecution", "GetSessionEndpoint"}:
                 athena_spark_records.append(record)
             if ((record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") in {"StartBuild", "UpdateProject"})
                     or (record.get("eventSource") == "ssm.amazonaws.com" and record.get("eventName") == "StartSession")
@@ -627,6 +628,7 @@ def detect_aws_events(
     correlated += correlate_aws_athena_stored_query(athena_stored_records)
     correlated += correlate_aws_athena_history_cross_actor(athena_history_records)
     correlated += correlate_aws_athena_spark_v3(athena_spark_records)
+    correlated += correlate_aws_athena_spark35_endpoint(athena_spark_records)
     correlated += correlate_aws_codebuild_gaps(codebuild_gap_records)
     if correlated:
         matches.extend(_detect_events(correlated, selected, lambda event: event, "aws"))
