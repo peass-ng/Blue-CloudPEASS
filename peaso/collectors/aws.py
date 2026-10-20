@@ -128,6 +128,7 @@ def _retry_after_minimum(exc):
 _SECRET_FIELDS = {"SecretAccessKey", "SessionToken", "Token", "WebIdentityToken", "SecretString", "SecretBinary", "Password", "MasterUserPassword", "PreSharedKey", "CustomerGatewayConfiguration", "ClientSecret", "clientSecret", "PrivateKey", "Base32StringSeed", "QRCodePNG", "aws_secret_access_key", "aws_session_token", "aws_access_key_id", "Credentials", "Environment", "UserData", "Code", "ResponseMetadata", "NextToken", "Marker", "ContinuationToken", "NextContinuationToken"}
 _LABEL_CONTAINERS = {"Tags", "tags", "TagSet", "tagSet", "TagList", "tagList", "Labels", "labels", "Annotations", "annotations"}
 _ENVIRONMENT_CONTAINERS = {"environment", "environmentVariables", "EnvironmentVariables"}
+_SECRET_FIELDS |= {"RuntimeEnvironmentVariables", "RuntimeEnvironmentSecrets", "PipelineConfigurationBody"}
 _PROHIBITED_VALUE_OPERATIONS = {"get_secret_value", "batch_get_secret_value", "get_object", "get_log_events", "filter_log_events", "get_parameter", "get_parameters", "get_parameters_by_path", "get_password_data", "get_authorization_token"}
 
 
@@ -155,7 +156,11 @@ def _safe(value, *, _labels=False, _environment=False, _status=False):
                 # Count-only projection (no names/values); its absence would read as "no variables".
                 result[key] = dict(val)
                 continue
-            if key in _SECRET_FIELDS and not (key == "Code" and _status and isinstance(val, str)):
+            # A scalar Environment tag is classification metadata, unlike a
+            # service's Environment block containing runtime variables.
+            ordinary_environment_tag = key == "Environment" and _labels and isinstance(val, str)
+            if key in _SECRET_FIELDS and not (ordinary_environment_tag or
+                    key == "Code" and _status and isinstance(val, str)):
                 continue
             typed_value = key in {"Value", "value", "HeaderValue", "headerValue"} and sensitive_record
             sensitive_map_value = _labels and _credential_label(key)
@@ -323,19 +328,63 @@ class Requests:
         if self.deadline is not None and time.monotonic() >= self.deadline:
             raise ReadFailure("timeout", "intentional_scan_deadline")
 
-    def client(self, session, service, region):
+    def client(self, session, service, region, *, _metadata_profile=None):
         from botocore.config import Config
         key = (id(session), service, region)
+        s3_bootstrap = (_metadata_profile is None and service == 'sts' and self.content_secret_scans
+            and 's3_selected_source_content' in getattr(self, 'content_secret_scan_kinds', ()))
+        if s3_bootstrap:
+            key += ('aws-selected-s3-bootstrap-v1',)
+            with self._lock:
+                self._sessions[id(session)] = session
+                if key not in self._clients:
+                    self._clients[key] = session.client(service, region_name=region, config=Config(
+                        connect_timeout=min(3, self.connect_timeout), read_timeout=min(5, self.timeout),
+                        retries={'total_max_attempts': 1, 'mode': 'standard'},
+                        ignore_configured_endpoint_urls=True, use_fips_endpoint=False, use_dualstack_endpoint=False))
+                return self._clients[key]
+        if _metadata_profile == 'aws-selected-s3-source-content-v1':
+            from .aws_s3_selected_source_secret_indicators import client_config
+            key += (_metadata_profile,)
+            with self._lock:
+                self._sessions[id(session)] = session
+                if key not in self._clients:
+                    self._clients[key] = session.client(service, region_name=region, config=client_config(self))
+                return self._clients[key]
+        lambda_environment_profile = _metadata_profile in ('aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1')
+        if _metadata_profile is not None and not lambda_environment_profile:
+            raise ReadFailure('not_collected', 'undeclared_client_profile')
+        if lambda_environment_profile:
+            key += (_metadata_profile,)
         with self._lock:
             self._sessions[id(session)] = session
             if key not in self._clients:
                 self._clients[key] = session.client(service, region_name=region, config=Config(
-                    connect_timeout=self.connect_timeout, read_timeout=self.timeout,
+                    connect_timeout=min(3, self.connect_timeout) if lambda_environment_profile else self.connect_timeout,
+                    read_timeout=min(5, self.timeout) if lambda_environment_profile else self.timeout,
                     retries={"total_max_attempts": 1, "mode": "standard"},
-                    max_pool_connections=self.workers))
+                    max_pool_connections=self.workers,
+                    **({'ignore_configured_endpoint_urls': True, 'use_fips_endpoint': False, 'use_dualstack_endpoint': False}
+                       if _metadata_profile == 'aws-selected-configuration-content-v1' else {})))
             return self._clients[key]
 
-    def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, _projection_context=None, **arguments):
+    def call(self, session, service, region, operation, *, _cache_refresh=False, _uncached_credential_exchange=False, _metadata_profile=None, _projection_context=None, _codecommit_routes=None, **arguments):
+        if _metadata_profile == 'aws-selected-s3-source-content-v1':
+            if (self.content_secret_scans is not True
+                    or 's3_selected_source_content' not in getattr(self, 'content_secret_scan_kinds', ())
+                    or not hasattr(self, 's3_source_io_lock')):
+                raise ReadFailure('not_collected', 'selected_s3_profile_uninitialized')
+            if _cache_refresh or _uncached_credential_exchange or _codecommit_routes is not None:
+                raise ReadFailure('not_collected', 'invalid_selected_s3_controls')
+            from .aws_s3_selected_source_secret_indicators import profile_call
+            return profile_call(self, session, service, region, operation,
+                _projection_context=_projection_context, **arguments)
+        if _codecommit_routes is not None and (
+                service != 'codecommit' or operation != 'get_folder'
+                or _metadata_profile != 'aws-code-log-content-indicators-v1'
+                or not isinstance(_codecommit_routes, dict) or set(_codecommit_routes) != {'files', 'folders'}
+                or any(not isinstance(v, list) or v for v in _codecommit_routes.values())):
+            raise ReadFailure('malformed', 'content_route_sink_invalid')
         credential_exchange = service == "sts" and operation == "assume_role"
         if _uncached_credential_exchange and not credential_exchange:
             raise ReadFailure("not_collected", "uncached_exchange_requires_assume_role")
@@ -347,7 +396,7 @@ class Requests:
             operation == 'generate_credential_report' and self.iam_credential_report_generation_requested or
             operation == 'generate_service_last_accessed_details' and self.iam_service_access_reports_requested))
         readonly_name = operation.startswith(("get_", "list_", "describe_", "batch_get_", "batch_describe_")) or (service, operation) == ("ec2", "search_transit_gateway_routes")
-        content_profiles = {'aws-code-log-content-indicators-v1', 'aws-package-content-indicators-v1'}
+        content_profiles = {'aws-code-log-content-indicators-v1', 'aws-package-content-indicators-v1', 'aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1'}
         content_profile = isinstance(_metadata_profile, str) and _metadata_profile in content_profiles
         content_log = (service, operation) == ('logs', 'filter_log_events') and _metadata_profile == 'aws-code-log-content-indicators-v1'
         if content_profile and self.content_secret_scans is not True:
@@ -356,6 +405,8 @@ class Requests:
             raise ReadFailure('not_collected', 'package_content_requires_safe_projection')
         if (service, operation) == ('codecommit', 'get_file') and _metadata_profile != 'aws-code-log-content-indicators-v1':
             raise ReadFailure('not_collected', 'repository_content_requires_safe_projection')
+        if (service, operation) in {('apigateway', 'get_stage'), ('ssm', 'describe_document')} and _metadata_profile != 'aws-selected-configuration-content-v1':
+            raise ReadFailure('not_collected', 'selected_configuration_requires_safe_projection')
         if (operation in _PROHIBITED_VALUE_OPERATIONS and not content_log) or (service, operation) not in READ_ACTIONS or not (readonly_name or credential_exchange or metadata_lookup or metadata_simulation or content_log or metadata_report):
             raise ReadFailure("not_collected", "non_read_operation")
         if _projection_context is not None and _metadata_profile != 'aws-code-log-content-indicators-v1':
@@ -380,13 +431,17 @@ class Requests:
                 from . import aws_code_log_content_indicators as projection_contract
             elif _metadata_profile == 'aws-package-content-indicators-v1':
                 from . import aws_package_content_indicators as projection_contract
+            elif _metadata_profile == 'aws-lambda-environment-content-v1':
+                from . import aws_lambda_environment_secret_indicators as projection_contract
+            elif _metadata_profile == 'aws-selected-configuration-content-v1':
+                from . import aws_selected_configuration_secret_indicators as projection_contract
             else:
                 raise ReadFailure('not_collected', 'undeclared_metadata_profile')
             if (service, operation) not in projection_contract.PROJECTION_OPERATIONS:
                 raise ReadFailure('not_collected', 'metadata_profile_operation_not_allowed')
             profile_projector = projection_contract.project_response
             if content_profile:
-                projection_context = (self, session) if _metadata_profile == 'aws-package-content-indicators-v1' else _projection_context
+                projection_context = (self, session) if _metadata_profile in ('aws-package-content-indicators-v1', 'aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1') else _projection_context
                 validator = getattr(projection_contract, 'validate_request', None)
                 if validator is not None:
                     validator(service, operation, dict(arguments), request_context=projection_context, region=region)
@@ -408,14 +463,29 @@ class Requests:
                 raise ReadFailure("not_collected", "undeclared_activity_event_query")
             if not isinstance(arguments.get("StartTime"), datetime) or not isinstance(arguments.get("EndTime"), datetime) or arguments["StartTime"].tzinfo is None or arguments["EndTime"].tzinfo is None or arguments["StartTime"] > arguments["EndTime"]:
                 raise ReadFailure("not_collected", "invalid_activity_window")
-        key = (id(session), service, region, operation, json.dumps(arguments, sort_keys=True, default=lambda v: v.isoformat() if isinstance(v, (date, datetime)) else str(v)))
+        cache_arguments = arguments
+        if service == 'codecommit' and (operation in ('get_folder', 'get_file')
+                or _metadata_profile == 'aws-code-log-content-indicators-v1'):
+            from .aws_code_log_content_indicators import opaque_arguments
+            cache_arguments = opaque_arguments(arguments)
+        if _metadata_profile == 'aws-lambda-environment-content-v1':
+            from .aws_lambda_environment_secret_indicators import opaque_arguments as lambda_environment_arguments
+            cache_arguments = lambda_environment_arguments(arguments)
+        if _metadata_profile == 'aws-selected-configuration-content-v1':
+            from .aws_selected_configuration_secret_indicators import opaque_arguments as configuration_arguments
+            cache_arguments = configuration_arguments(arguments)
+        key = (id(session), service, region, operation, json.dumps(cache_arguments, sort_keys=True, default=lambda v: v.isoformat() if isinstance(v, (date, datetime)) else str(v)))
         if _metadata_profile is not None:
             # Keep the existing cache schema for legacy callers. Profiles share
             # Futures only with callers using the same reviewed projection.
             key += (_metadata_profile,)
             if _projection_context is not None:
                 key += (json.dumps(_projection_context, sort_keys=True, allow_nan=False),)
-        if _uncached_credential_exchange:
+        if _codecommit_routes is not None:
+            # A cached folder cannot replay raw routing paths. Read afresh and
+            # project safe metadata without retaining a Future or route sink.
+            future, owner = None, True
+        elif _uncached_credential_exchange:
             # Trust probes must neither retain a successful STS response in a
             # Future nor consume a cached response from another call.
             future, owner = None, True
@@ -442,7 +512,13 @@ class Requests:
             with self._lock:
                 if self.max_calls is not None and self.calls >= self.max_calls:
                     raise ReadFailure("not_collected", "call_limit")
-            client = self.client(session, service, region)
+            client = self.client(session, service, region, _metadata_profile=_metadata_profile) if _metadata_profile in ('aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1') else self.client(session, service, region)
+            if _metadata_profile == 'aws-selected-configuration-content-v1':
+                projection_contract.validate_native_client(client, service, region)
+            if (service == 'sts' and self.content_secret_scans
+                    and 's3_selected_source_content' in getattr(self, 'content_secret_scan_kinds', ())):
+                from .aws_s3_selected_source_secret_indicators import validate_native_client
+                validate_native_client(client, service, region)
             for attempt in range(self.attempts):
                 if service == "cloudtrail" and operation == "lookup_events":
                     rate_key = (id(session), region)
@@ -468,7 +544,16 @@ class Requests:
                     if service == "cloudtrail" and operation == "lookup_events":
                         self.activity_lookup_calls += 1
                 try:
-                    response = getattr(client, operation)(**arguments)
+                    if _metadata_profile == 'aws-lambda-environment-content-v1':
+                        projection_contract._remaining(self)
+                    if _metadata_profile == 'aws-selected-configuration-content-v1':
+                        projection_contract.before_request(self)
+                    if content_profile or service == 'sts' or _uncached_credential_exchange:
+                        from .aws_content_sdk_logging import private_sdk_logs
+                        with private_sdk_logs():
+                            response = getattr(client, operation)(**arguments)
+                    else:
+                        response = getattr(client, operation)(**arguments)
                     if metadata_report:
                         with self._lock:
                             if operation == 'generate_credential_report':
@@ -477,9 +562,20 @@ class Requests:
                                 self.service_last_accessed_generations += 1
                     if profile_projector is not None:
                         if content_profile:
-                            response = profile_projector(response, service, operation, dict(arguments), request_context=projection_context, region=region)
+                            if _codecommit_routes is not None:
+                                response = profile_projector(response, service, operation, dict(arguments),
+                                    request_context=projection_context, region=region, routing=_codecommit_routes)
+                            else:
+                                response = profile_projector(response, service, operation, dict(arguments), request_context=projection_context, region=region)
                         else:
                             response = profile_projector(response, service, operation, dict(arguments))
+                    if _metadata_profile == 'aws-selected-configuration-content-v1':
+                        # This profile has already discarded all native content
+                        # and free text. Never re-project it as legacy metadata.
+                        response = _safe(response)
+                        if future is not None:
+                            future.set_result(response)
+                        return copy.deepcopy(response)
                     from . import aws_additional_secret_indicators
                     if (service, operation) in aws_additional_secret_indicators.OPERATIONS:
                         response = aws_additional_secret_indicators.project_response(
@@ -524,7 +620,7 @@ class Requests:
                         # Project executable/credential literals before the shared Future.
                         from .aws_codebuild_redaction import project_batch_get_projects
                         response = project_batch_get_projects(response)
-                    if service == 'lambda' and operation in {'list_functions', 'get_function_configuration'}:
+                    if service == 'lambda' and operation in {'list_functions', 'get_function_configuration'} and _metadata_profile != 'aws-lambda-environment-content-v1':
                         from .aws_lambda_environment_metadata import project_response
                         response = project_response(response, operation)
                     if service == 'cloudformation' and operation == 'describe_stacks':
@@ -617,6 +713,9 @@ class Requests:
                     self.check_deadline()
         except Exception as exc:
             failure = _failure(exc)
+            if _metadata_profile in ('aws-lambda-environment-content-v1', 'aws-selected-configuration-content-v1'):
+                # Unknown provider error codes can echo a selected name/value.
+                failure = ReadFailure(failure.status, 'selected_configuration_read_unavailable' if _metadata_profile == 'aws-selected-configuration-content-v1' else 'lambda_environment_read_unavailable')
             # A failed projection's traceback can retain raw provider payload
             # in frame locals. Cache a fresh code/status-only exception that
             # has never been raised, and raise a separate sanitized instance.
@@ -1741,6 +1840,20 @@ def collect(connector, requirements=None):
     options, auth = connector.get("options", {}), connector.get("auth", {})
     if not isinstance(options, dict) or not isinstance(auth, dict):
         raise ValueError("auth and options must be objects")
+    from . import aws_codebuild_buildspec_runtime_20261020 as codebuild_inline
+    from . import aws_workload_command_runtime_20261020 as workload_commands
+    workload_command_plan = workload_commands.authorize_collector(options, connector.get('scopes') or [])
+    if requirements is not None and workload_commands.KIND in requirements and set(requirements) <= {workload_commands.KIND, 'aws_account'} and workload_command_plan is None:
+        return workload_commands.disabled_snapshot(connector.get('scopes') or [])
+    codebuild_inline_permitted = codebuild_inline.authorize_collector(options, connector.get('scopes') or [])
+    if requirements is not None and codebuild_inline.KIND in requirements and set(requirements) <= {codebuild_inline.KIND, 'aws_account'} and not codebuild_inline_permitted:
+        return codebuild_inline.disabled_snapshot(connector.get('scopes') or [])
+    from . import aws_lambda_environment_secret_indicators
+    aws_lambda_environment_secret_indicators.selected_targets(options, connector.get('scopes') or [])
+    from . import aws_selected_configuration_secret_indicators
+    aws_selected_configuration_secret_indicators.selected_targets(options, connector.get('scopes') or [])
+    from . import aws_s3_selected_source_secret_indicators
+    aws_s3_selected_source_secret_indicators.selected_targets(options, connector.get('scopes') or [])
     from .aws_codecommit_review_native import review_policy
     review_policy(options, connector.get("scopes") or [])
     from .aws_controltower_native import normalize as normalize_controltower
@@ -1785,12 +1898,20 @@ def collect(connector, requirements=None):
         return discovered_regions.get(account, regions)
 
     requests = Requests(options)
+    aws_lambda_environment_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
+    aws_selected_configuration_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
+    aws_s3_selected_source_secret_indicators.initialize(requests, options, connector.get('scopes') or [])
+    codebuild_inline.initialize(requests, codebuild_inline_permitted)
     content_kinds = options.get('_content_secret_scan_kinds', [])
+    if isinstance(content_kinds, list) and codebuild_inline_permitted:
+        content_kinds = [kind for kind in content_kinds if kind != codebuild_inline.KIND]
     if not isinstance(content_kinds, list) or any(kind not in {
-            'codecommit_repository', 'log_group', 'lambda_function', 'lambda_layer_version', 'ecr_repository', 'instance'
+            'codecommit_repository', 'log_group', 'lambda_function', 'lambda_layer_version', 'ecr_repository', 'instance', 'lambda_selected_environment', 'configuration_selected_content', 's3_selected_source_content'
     } for kind in content_kinds):
         raise ValueError('invalid internal content check selection')
     requests.content_secret_scan_kinds = frozenset(content_kinds)
+    if codebuild_inline_permitted:
+        requests.content_secret_scan_kinds |= {codebuild_inline.KIND}
     requests.ec2_clock_metric_requested = options.get('_ec2_clock_metric_requested', requirements is None)
     if type(requests.ec2_clock_metric_requested) is not bool:
         raise ValueError('invalid internal EC2 clock metric selection')
@@ -1810,12 +1931,18 @@ def collect(connector, requirements=None):
     requests.ecr_latest_scan_requested = (requirements is None or options.get("_ecr_latest_scan_requested") is True)
     scope_workers = _bound(options, "scope_concurrency", 2, maximum=8)
     region_workers = _bound(options, "region_concurrency", 2, maximum=8)
-    inventories = options.get("inventories", AWS_TYPES)
+    inventories = options.get("inventories", [kind for kind in AWS_TYPES if kind not in (aws_lambda_environment_secret_indicators.KIND, aws_selected_configuration_secret_indicators.KIND, aws_s3_selected_source_secret_indicators.KIND)] if requirements is None else AWS_TYPES)
     if not isinstance(inventories, list) or any(kind not in AWS_TYPES for kind in inventories):
         raise ValueError("inventories must be supported AWS resource types")
     if requirements is not None and (not isinstance(requirements, list) or any(not isinstance(x, str) for x in requirements)):
         raise ValueError("requirements must be a list of resource types")
     wanted = set(inventories) & (set(requirements) if requirements is not None else set(AWS_TYPES))
+    if not codebuild_inline_permitted:
+        wanted.discard(codebuild_inline.KIND)
+    if workload_command_plan is None:
+        wanted.discard(workload_commands.KIND)
+    elif workload_commands.KIND not in wanted:
+        workload_command_plan = None
     if 'lightsail_iam_policy_attachment' in wanted:
         wanted.add('lightsail_bucket')
     lightsail_iam_only = ('lightsail_iam_policy_attachment' in wanted
@@ -2102,6 +2229,7 @@ def collect(connector, requirements=None):
         if discovered_regions:
             regions[:] = sorted({region for values in discovered_regions.values() for region in values})
         metadata["regions"] = list(regions)
+    workload_command_capture = workload_commands.collect_selected(workload_command_plan, contexts, requests)
     from peaso.ai.access import aws as capture_ai_access
     capture_ai_access(contexts)
     requests.audited_regions_by_account = {identity["Account"]: list(regions_for(identity["Account"])) for _, identity in contexts}
@@ -2293,6 +2421,14 @@ def collect(connector, requirements=None):
             read = _cloudtrail_activity(requests, session, region)
         elif kind in {"aws_identity_center_user", "aws_identity_center_permission_set"}:
             read = _identity_center(requests, session, region, kind)
+        elif kind == aws_lambda_environment_secret_indicators.KIND:
+            read = aws_lambda_environment_secret_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
+        elif kind == aws_selected_configuration_secret_indicators.KIND:
+            read = aws_selected_configuration_secret_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
+        elif kind == aws_s3_selected_source_secret_indicators.KIND:
+            read = aws_s3_selected_source_secret_indicators.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
+        elif kind == codebuild_inline.KIND:
+            read = codebuild_inline.collect_selected(requests, session, region, identity, options, connector.get('scopes') or [])
         elif kind in FETCHERS:
             read = FETCHERS[kind](requests, session, region, identity["Account"])
             if not isinstance(read, ReadResult):
@@ -2497,6 +2633,8 @@ def collect(connector, requirements=None):
     from peaso.collectors.aws_lambda_role_usage import summarize_lambda_role_usage
     metadata["lambda_execution_role_usage"] = summarize_lambda_role_usage(
         collections, identities, metadata.get("region_discovery"), explicit_regions=explicit_regions)
+    metadata.update(requests.lambda_environment_metadata)
+    metadata.update(requests.configuration_content_metadata)
     metadata.update({"calls": requests.calls, "cache_hits": requests.cache_hits,
         "max_calls": requests.max_calls, "max_pages": requests.max_pages,
         "max_resources": requests.max_items, "resource_count": total_items,
@@ -2536,6 +2674,11 @@ def collect(connector, requirements=None):
     metadata.setdefault('parameters', {}).update(environment_boundaries_metadata(environment_boundaries_owner, requests.observed_at))
     if eks_admission_owner is not None:
         metadata.setdefault('compliance_policy', {})['eks_image_integrity'] = eks_admission_owner
+    codebuild_inline.retain_union(requests)
+    collections, metadata = aws_selected_configuration_secret_indicators.finalize(requests, collections, metadata)
+    collections, metadata = aws_s3_selected_source_secret_indicators.finalize(requests, collections, metadata)
+    collections, metadata = codebuild_inline.finalize(requests, collections, metadata, options)
+    collections, metadata = workload_commands.publish(workload_command_capture, workload_command_plan, collections, metadata, options)
     return make_snapshot("aws", scopes, collections, created_at=requests.observed_at.isoformat(), metadata=_safe(metadata))
 
 
@@ -2607,11 +2750,27 @@ EXTENSION_MODULES += ("peaso.collectors.aws_bedrock_security_metadata",
                       "peaso.collectors.aws_configuration_payload_secret_indicators",
                       "peaso.collectors.aws_code_log_content_indicators",
                       "peaso.collectors.aws_package_content_indicators",
+                      "peaso.collectors.aws_lambda_environment_secret_indicators",
+                      "peaso.collectors.aws_selected_configuration_secret_indicators",
                       "peaso.collectors.aws_launch_template_instance_metadata",
                       "peaso.collectors.aws_ec2_clock_metadata",
                       "peaso.collectors.aws_cloudtrail_s3_delivery_metadata",
                       "peaso.collectors.aws_alb_waf_association_metadata",
-                      "peaso.collectors.aws_beanstalk_runtime_metadata")
+                      "peaso.collectors.aws_beanstalk_runtime_metadata",
+                      "peaso.collectors.aws_network_service_metadata",
+                      "peaso.collectors.aws_network_catalog")
 
+EXTENSION_MODULES += ("peaso.collectors.aws_network_inventory",)
 for _extension in EXTENSION_MODULES:
     _load_metadata_extension(_extension)
+
+# Explicit selected S3 source profile; never a generic listing/read fallback.
+SPECS['s3_selected_source_content'] = ('s3', 'head_object', None)
+READ_ACTIONS.update({('s3', 'head_object'), ('s3', 'get_object')})
+AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
+
+# Default-off inline buildspec runtime; generic inventory dispatch is forbidden.
+SPECS['codebuild_selected_inline_buildspec'] = ('codebuild', 'batch_get_projects', None)
+_NATIVE_IDS['codebuild_selected_inline_buildspec'] = 'id'
+AWS_TYPES[:] = sorted(set(SPECS) | GLOBAL_TYPES)
+AWS_TYPES.append('aws_selected_workload_command_literals')

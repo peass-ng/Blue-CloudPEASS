@@ -22,10 +22,12 @@ from . import azure_public_edge_native
 from . import azure_certificate_issuance_native
 from . import azure_devops_pipeline_native
 from . import azure_devops_git_native, azure_arm_metadata_native, azure_monitor_inventory_native, azure_aks_workloads_native, azure_databricks_native
+from . import azure_aks_legacy_projection_review_20261020
 from . import azure_storage_backup_native
 from . import azure_defender_network_native
 from . import azure_adaptive_network_native
 from . import azure_conditional_access_native
+from . import azure_identity_enforcement_review_20261020
 from . import azure_access_reviews_native
 from . import azure_database_native
 from . import azure_vault_key_versions_native
@@ -43,10 +45,20 @@ from . import azure_subnet_firewall_policy
 from . import azure_nsg_ingress_native
 from . import azure_storage_lifecycle_native
 from . import azure_key_rotation_evidence_native
+from . import azure_selected_configuration_secret_indicators
+from . import azure_app_settings_secret_indicators
+from . import azure_acr_image_secret_indicators
 from . import azure_sql_ltr_native
 from . import azure_alert_routing_native
+from . import azure_ai_services_native
+from . import azure_application_compute_2_native
+from . import azure_acr_public_ip_review_20261020
+from . import azure_automation_aci_metadata_native_20261020
+from . import azure_remaining_services_1_native
+from . import azure_native_contract_closure_20261020
 from peaso.snapshot import make_snapshot
 from peaso.check_services import service_for
+from . import azure_network_catalog
 
 ARM = "https://management.azure.com"
 GRAPH = "https://graph.microsoft.com"
@@ -66,6 +78,7 @@ ENDPOINTS = {
     "load_balancer": ("Microsoft.Network/loadBalancers", "2023-09-01"),
     "application_gateway": ("Microsoft.Network/applicationGateways", "2023-09-01"),
     "private_endpoint": ("Microsoft.Network/privateEndpoints", "2023-09-01"),
+    "private_link_service": ("Microsoft.Network/privateLinkServices", "2023-09-01"),
     "private_dns_zone": ("Microsoft.Network/privateDnsZones", "2020-06-01"),
     "dns_zone": ("Microsoft.Network/dnsZones", "2018-05-01"),
     "vm": ("Microsoft.Compute/virtualMachines", "2023-09-01"),
@@ -115,7 +128,7 @@ ENDPOINTS = {
     'cdn_profile': ('Microsoft.Cdn/profiles', '2025-04-15'),
     'frontdoor_waf_policy': ('Microsoft.Network/frontDoorWebApplicationFirewallPolicies', '2024-05-01'),
     'hdinsight_cluster': ('Microsoft.HDInsight/clusters', '2021-06-01'),
-    'healthcare_fhir_service': ('Microsoft.HealthcareApis/services', '2021-11-11'),
+    'healthcare_fhir_service': ('Microsoft.HealthcareApis/services', '2021-11-01'),
     'hpc_cache': ('Microsoft.StorageCache/caches', '2024-03-01'),
     'iot_hub': ('Microsoft.Devices/IotHubs', '2023-06-30'),
     'managed_hsm': ('Microsoft.KeyVault/managedHSMs', '2023-07-01'),
@@ -155,6 +168,8 @@ ENDPOINTS = {
     "arc_kubernetes_cluster": ("Microsoft.Kubernetes/connectedClusters", "2024-01-01"),
     "integration_service_environment": ("Microsoft.Logic/integrationServiceEnvironments", "2019-05-01"),
 }
+ENDPOINTS.update(azure_network_catalog.ENDPOINTS)
+
 # Proxy/extension resource kinds whose ARM provider rejects
 # Microsoft.Insights/diagnosticSettings (HTTP 400 on every item in live tenants).
 # Requesting them only produced UNKNOWN coverage noise and wall time.
@@ -198,7 +213,8 @@ EMBEDDED_LISTS = {
                         ("localUsers", "localUsers", "2023-05-01")),
     "arc_kubernetes_cluster": (("extensions", "providers/Microsoft.KubernetesConfiguration/extensions", "2023-05-01"),),
     "sql_server": (("serverAdministrators", "administrators", "2023-08-01"), ("virtualNetworkRules", "virtualNetworkRules", "2023-08-01"), ("firewallRules", "firewallRules", "2023-08-01"), ("securityAlertPolicies", "securityAlertPolicies", "2023-08-01")),
-    "synapse_workspace": (("sqlPools", "sqlPools", "2021-06-01"), ("firewallRules", "firewallRules", "2021-06-01")),
+    "synapse_workspace": (("sqlPools", "sqlPools", "2021-06-01"), ("firewallRules", "firewallRules", "2021-06-01"),
+                          ("workspaceVulnerabilityAssessments", "vulnerabilityAssessments", "2021-06-01")),
     "sql_database": (("backupShortTermRetentionPolicies", "backupShortTermRetentionPolicies", "2023-08-01"),
                      ("backupLongTermRetentionPolicies", "backupLongTermRetentionPolicies", "2023-08-01"),
                      ("longTermRetentionBackups", "longTermRetentionBackups", "2023-08-01"),
@@ -234,9 +250,87 @@ def _logs_metadata(props):
             for key, data in props.items() if key in ("applicationLogs", "httpLogs", "failedRequestsTracing", "detailedErrorMessages")}
 
 
+_NETWORK_PLATFORM_NATIVE_TYPES = {
+    "aks_cluster": "Microsoft.ContainerService/managedClusters",
+    "vnet": "Microsoft.Network/virtualNetworks", "nsg": "Microsoft.Network/networkSecurityGroups",
+    "network_watcher": "Microsoft.Network/networkWatchers",
+    "application_gateway": "Microsoft.Network/applicationGateways",
+    "web_application_firewall_policy": "Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies",
+    "load_balancer": "Microsoft.Network/loadBalancers", "public_ip": "Microsoft.Network/publicIPAddresses",
+    "frontdoor": "Microsoft.Network/frontDoors", "cdn_profile": "Microsoft.Cdn/profiles",
+    "subnet": "Microsoft.Network/virtualNetworks/subnets", "flow_log": "Microsoft.Network/networkWatchers/flowLogs",
+}
+
+
+def _arm_parent_native_type(row, kind):
+    """A declared ARM parent type must agree with its authoritative endpoint."""
+    if kind not in ENDPOINTS:
+        return  # Graph and derived/projection kinds have separate contracts.
+    if not isinstance(row, dict):
+        raise ValueError("malformed native ARM parent")
+    if "type" not in row:
+        return  # Optional omissions remain subject to existing family guards.
+    expected = "Microsoft.Resources/resourceGroups" if kind == "resource_group" else ENDPOINTS[kind][0]
+    value = row["type"]
+    # The official 2016-03-01 LogProfiles List example explicitly returns "".
+    if kind == "monitor_log_profile" and value == "":
+        return
+    if not isinstance(value, str) or value.casefold() != expected.casefold():
+        raise ValueError("native ARM parent type contradicts selected endpoint")
+
+
+def _network_platform_native_identity(row, scope, kind):
+    """Validate real ARM types/identities before attaching native provenance."""
+    expected = _NETWORK_PLATFORM_NATIVE_TYPES.get(kind)
+    if expected is None:
+        return
+    if not isinstance(row, dict) or str(row.get("type", "")).casefold() != expected.casefold():
+        raise ValueError("native network/platform type differs from selected inventory")
+    segment = r"[^/?#%\\\s]+"
+    namespace, *types = expected.split("/")
+    pattern = re.escape(scope) + "/resourceGroups/" + segment + "/providers/" + re.escape(namespace)
+    for resource_type in types:
+        pattern += "/" + re.escape(resource_type) + "/" + segment
+    rid = row.get("id")
+    if (not isinstance(rid, str) or re.fullmatch(pattern, rid, re.I) is None
+            or any(part in (".", "..") for part in rid.split("/"))):
+        raise ValueError("native network/platform identity differs from selected kind/scope")
+
+
 def _child_rows(rows, parent_id, field):
     if any(not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"].lower().startswith(parent_id.lower() + "/") for row in rows):
         raise ValueError("malformed or foreign embedded child identity")
+    if field == "flowLogs":
+        seen = set()
+        for row in rows:
+            _network_platform_native_identity(row, "/".join(parent_id.split("/")[:3]), "flow_log")
+            identity = row["id"].casefold()
+            if (identity in seen or not re.fullmatch(re.escape(parent_id + "/flowLogs/") + r"[^/?#%\\\s]+", row["id"], re.I)
+                    or not isinstance(row.get("properties"), dict)):
+                raise ValueError("duplicate, foreign or malformed native flow log child")
+            seen.add(identity)
+    if field == "slots":
+        if any(not re.fullmatch(re.escape(parent_id + "/slots/") + r"[^/?#%]+", row["id"], re.I)
+               or str(row.get("type", "")).casefold() != "microsoft.web/sites/slots"
+               or not isinstance(row.get("properties"), dict) for row in rows):
+            raise ValueError("foreign or malformed native App Service slot")
+    if field in ("configurations", "firewallRules", "administrators", "diagnosticSettings", "backupPolicies", "serverAdministrators", "virtualNetworkRules", "securityAlertPolicies", "vulnerabilityAssessmentScans", "vulnerabilityAssessments", "encryptionProtectors"):
+        segment = ("providers/Microsoft.Insights/diagnosticSettings" if field == "diagnosticSettings" else
+                   "administrators" if field == "serverAdministrators" else
+                   "encryptionProtector" if field == "encryptionProtectors" else
+                   "vulnerabilityAssessments/default/scans" if field == "vulnerabilityAssessmentScans" else field)
+        parent_type = re.split(r"/providers/", parent_id, maxsplit=1, flags=re.I)[1].rsplit("/", 1)[0]
+        expected_type = ("Microsoft.Insights/diagnosticSettings" if field == "diagnosticSettings" else
+                         "Microsoft.Sql/servers/databases/vulnerabilityAssessments/scans" if field == "vulnerabilityAssessmentScans" else parent_type + "/" + segment)
+        optional_mi_type = (field in ("vulnerabilityAssessments", "encryptionProtectors")
+                            and parent_type.casefold() == "microsoft.sql/managedinstances")
+        for row in rows:
+            if (not re.fullmatch(re.escape(parent_id + "/" + segment) + r"/[^/?#%]+", row["id"], re.I)
+                    or (not optional_mi_type or "type" in row) and str(row.get("type", "")).casefold() != expected_type.casefold()
+                    or not isinstance(row.get("name"), str)
+                    or row["name"].casefold() != row["id"].rsplit("/", 1)[-1].casefold()
+                    or not isinstance(row.get("properties"), dict)):
+                raise ValueError("foreign or malformed native embedded child")
     paths = {"privateEndpointConnections": "privateEndpointConnections", "managedNamespaces": "managedNamespaces",
              "eventHubs": "eventhubs", "authorizationRules": "authorizationRules", "disasterRecoveryConfigs": "disasterRecoveryConfigs",
              "tokens": "tokens", "scopeMaps": "scopeMaps", "cacheRules": "cacheRules",
@@ -276,6 +370,16 @@ def _child_rows(rows, parent_id, field):
         return [{**{key: data for key, data in row.items() if key in ("id", "name", "type")}, "parent_id": parent_id,
                  "properties": {key: data for key, data in row.get("properties", {}).items() if key in allowed}} for row in rows]
     if field == "resources":
+        # Only the selected VM's immediate extensions LIST can establish an
+        # installed extension; a different child below the VM is not one.
+        seen = set()
+        for row in rows:
+            identity = row["id"].casefold()
+            if (not re.fullmatch(re.escape(parent_id + "/extensions/") + r"[^/?#]+", row["id"], re.I)
+                    or str(row.get("type", "")).casefold() != "microsoft.compute/virtualmachines/extensions"
+                    or not isinstance(row.get("properties"), dict) or identity in seen):
+                raise ValueError("foreign, duplicate or malformed VM extension child")
+            seen.add(identity)
         return [{**{key: data for key, data in row.items() if key in ("id", "name", "type", "location")},
                  "properties": {key: data for key, data in row.get("properties", {}).items() if key in ("publisher", "type", "provisioningState", "autoUpgradeMinorVersion")}} for row in rows]
     if field == "configurations":
@@ -306,7 +410,97 @@ def _child_rows(rows, parent_id, field):
                     "api_version": "2024-04-01", "representation": "metadata",
                     "endpoint": parent_id + "/" + field}}
                 for row in rows]
+    if field == "backupPolicies":
+        return [{**_metadata_only({**row, "parent_id": parent_id}),
+                 "_provenance": {"source_operation": "BackupPolicies_List", "read_only": True,
+                     "api_version": "2024-04-01", "scope": parent_id,
+                     "request_path": parent_id + "/backupPolicies"}}
+                for row in rows]
+    if field == "diagnosticSettings" and re.fullmatch(r"/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.(?:KeyVault/(?:managedHSMs|vaults)|Network/(?:applicationGateways|loadBalancers))/[^/]+", parent_id, re.I):
+        return [{**_metadata_only({**row, "parent_id": parent_id}),
+                 "_provenance": {"source_operation": "DiagnosticSettings_List", "read_only": True,
+                     "api_version": "2021-05-01-preview", "scope": parent_id,
+                     "request_path": parent_id + "/providers/Microsoft.Insights/diagnosticSettings"}}
+                for row in rows]
     return [_metadata_only({**row, "parent_id": parent_id}) for row in rows]
+
+
+def _vault_diagnostic_settings_pages(reader, request, url, parent_id):
+    """Native unfiltered diagnostic LIST; exact child identity and operation proof."""
+    expected = ARM + parent_id + "/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview"
+    if url != expected:
+        raise ValueError("vault diagnostic request differs from selected parent")
+    seen = {}
+    for page in reader.pages(request, url):
+        distinct = []
+        for row in _child_rows(page, parent_id, "diagnosticSettings"):
+            identity = row["id"].casefold()
+            if identity in seen:
+                if seen[identity] != row:
+                    raise ValueError("conflicting native vault diagnostic identity")
+                continue
+            seen[identity] = row
+            distinct.append(row)
+        yield distinct
+
+
+def _sql_projected_child_pages(reader, request, url, parent_id, kind, segment):
+    """The four direct SQL projections retain their authoritative child contract."""
+    contracts = {'sql_database': ('databases', 'Microsoft.Sql/servers/databases'),
+                 'sql_firewall_rule': ('firewallRules', 'Microsoft.Sql/servers/firewallRules'),
+                 'sql_audit': ('auditingSettings', 'Microsoft.Sql/servers/auditingSettings'),
+                 'sql_security': ('securityAlertPolicies', 'Microsoft.Sql/servers/securityAlertPolicies')}
+    expected_segment, native_type = contracts[kind]
+    if segment != expected_segment or url != ARM + parent_id + '/' + segment + '?api-version=2023-08-01':
+        raise ValueError('SQL projected child request differs from selected native parent')
+    seen = {}
+    for page in reader.pages(request, url):
+        safe = []
+        for row in page:
+            rid = row.get('id') if isinstance(row, dict) else None
+            if (not isinstance(rid, str) or re.fullmatch(re.escape(parent_id + '/' + segment + '/') + r'[^/?#%\\\s]+', rid, re.I) is None
+                    or rid.rsplit('/', 1)[-1] in ('.', '..')
+                    or 'type' in row and str(row['type']).casefold() != native_type.casefold()
+                    or 'name' in row and str(row['name']).casefold() != rid.rsplit('/', 1)[-1].casefold()
+                    or not isinstance(row.get('properties'), dict)):
+                raise ValueError('foreign or contradictory native SQL projected child')
+            projected = _metadata_only({k: v for k, v in row.items() if k in ('id', 'name', 'type', 'location', 'kind', 'sku', 'identity', 'etag', 'properties')})
+            if rid.casefold() in seen:
+                if seen[rid.casefold()] != projected:
+                    raise ValueError('conflicting native SQL projected child identity')
+                continue
+            seen[rid.casefold()] = projected
+            safe.append(projected)
+        yield safe
+
+
+def _service_diagnostic_settings_pages(reader, request, url, parent_id):
+    """The two reviewed gateway kinds reuse exact native diagnostic LIST guards."""
+    if re.fullmatch(r"/subscriptions/[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}/resourceGroups/[^/?#%\\\s]+/providers/Microsoft\.Network/(?:applicationGateways|loadBalancers)/[^/?#%\\\s]+", parent_id, re.I) is None:
+        raise ValueError("unsupported service diagnostic parent")
+    # This receipt is recorded only after the real dedicated native LIST and
+    # every continuation completed. It also exists when the response has no
+    # rows, where row-level provenance cannot establish absence.
+    yield from _vault_diagnostic_settings_pages(reader, request, url, parent_id)
+    receipts = getattr(reader, '_service_diagnostic_receipts', None)
+    if receipts is None:
+        receipts = reader._service_diagnostic_receipts = {}
+    key = parent_id.casefold()
+    if key in receipts:
+        raise ValueError('duplicate dedicated service diagnostic read')
+    receipts[key] = {'source_operation': 'DiagnosticSettings_List',
+                     'api_version': '2021-05-01-preview', 'read_only': True,
+                     'scope': parent_id,
+                     'request_path': parent_id + '/providers/Microsoft.Insights/diagnosticSettings'}
+
+
+def _bind_service_diagnostic_receipt(collection, reader):
+    """Attach completed dedicated service LIST receipts before scan binding."""
+    if collection.get('type') != 'diagnostic_setting' or collection.get('status') not in ('collected', 'empty'):
+        return
+    proof = getattr(reader, '_service_diagnostic_receipts', {}).get(collection['scope'].casefold())
+    if proof is not None:
+        collection.setdefault('_provenance', {}).update(proof)
 
 
 def _embed(reader, request, parents, diagnostics=None, skip=()):
@@ -326,7 +520,14 @@ def _embed(reader, request, parents, diagnostics=None, skip=()):
         if known is not None:
             item.setdefault("_coverage", {})["diagnosticSettings"] = {key: known[key] for key in ("status", "error") if key in known}
             if known["status"] in ("collected", "empty") or known["items"]:
-                item["diagnosticSettings"] = [_metadata_only({**row, "parent_id": rid}) for row in known["items"]]
+                if kind == "managed_hsm":
+                    try:
+                        item["diagnosticSettings"] = _child_rows(known["items"], rid, "diagnosticSettings")
+                    except (ValueError, TypeError, KeyError):
+                        item["_coverage"]["diagnosticSettings"] = {"status": "malformed"}
+                        item.pop("diagnosticSettings", None)
+                else:
+                    item["diagnosticSettings"] = [_metadata_only({**row, "parent_id": rid}) for row in known["items"]]
         elif kind not in NO_DIAGNOSTIC_KINDS:
             specs.append(("diagnosticSettings", "providers/Microsoft.Insights/diagnosticSettings", "2021-05-01-preview"))
         if kind == "storage_service" and str(item.get("type", "")).lower().endswith("/fileservices"):
@@ -349,8 +550,26 @@ def _embed(reader, request, parents, diagnostics=None, skip=()):
                         yield projected
                     return
                 backup_seen = {}
+                workspace_va_seen = {}
                 for page in reader.pages(request, url):
-                    if field in ("backupJobs", "backupProtectedItems"):
+                    if field == "workspaceVulnerabilityAssessments":
+                        projected = []
+                        for row in _child_rows(page, rid, field):
+                            if (row["id"].casefold() != (rid + "/vulnerabilityAssessments/default").casefold() or
+                                    str(row.get("type", "")).casefold() != "microsoft.synapse/workspaces/vulnerabilityassessments" or
+                                    not isinstance(row.get("properties"), dict)):
+                                raise ValueError("foreign or malformed workspace vulnerability assessment")
+                            key = row["id"].casefold()
+                            if key in workspace_va_seen:
+                                if workspace_va_seen[key] != row:
+                                    raise ValueError("conflicting workspace vulnerability assessment identity")
+                                continue
+                            workspace_va_seen[key] = row
+                            projected.append({**{name: data for name, data in row.items() if name in ("id", "name", "type", "parent_id")},
+                                              "properties": {name: data for name, data in row["properties"].items() if name == "recurringScans"}})
+                        yield projected
+                        continue
+                    if field in ("backupJobs", "backupProtectedItems", "configurations", "firewallRules", "administrators", "diagnosticSettings", "backupPolicies", "slots", "serverAdministrators", "virtualNetworkRules", "securityAlertPolicies", "vulnerabilityAssessmentScans", "vulnerabilityAssessments", "encryptionProtectors"):
                         distinct = []
                         for row in page:
                             identity = row.get("id") if isinstance(row, dict) else None
@@ -374,6 +593,11 @@ def _embed(reader, request, parents, diagnostics=None, skip=()):
                 value = reader.call(request, url)
                 if not isinstance(value, dict) or not isinstance(value.get("properties"), dict) or str(value.get("id", "")).lower() != (rid + "/" + path).lower():
                     raise ValueError("malformed embedded singleton")
+                expected_sql_type = {"vulnerabilityAssessment": "Microsoft.Sql/servers/vulnerabilityAssessments",
+                                     "expressVulnerabilityAssessment": "Microsoft.Sql/servers/sqlVulnerabilityAssessments",
+                                     "encryptionProtector": "Microsoft.Sql/servers/encryptionProtector"}.get(field)
+                if expected_sql_type and str(value.get("type", "")).casefold() != expected_sql_type.casefold():
+                    raise ValueError("native SQL singleton type differs from requested child")
                 if field == "configuration":
                     props = value["properties"]
                     projected = {key: data for key, data in props.items() if key in APP_CONFIG_FIELDS}
@@ -443,6 +667,11 @@ DIRECTORY_SINGLETONS = {
     "directory_device_registration_policy": "policies/deviceRegistrationPolicy",
 }
 TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIRECTORY_SINGLETONS) + (
+    *azure_network_catalog.CHILDREN,
+    *azure_aks_legacy_projection_review_20261020.NATIVE_TYPES,
+    *azure_application_compute_2_native.NATIVE_TYPES,
+    *azure_acr_public_ip_review_20261020.NATIVE_TYPES,
+    *azure_automation_aci_metadata_native_20261020.NATIVE_TYPES,
     "certificate_issuance", *azure_nsg_ingress_native.NATIVE_TYPES,
     *azure_wave_compute_native.NATIVE_TYPES,
     *azure_wave_network_controls.NATIVE_TYPES,
@@ -461,11 +690,13 @@ TYPES = tuple(ENDPOINTS) + tuple(AUTHORIZATION) + tuple(DIRECTORY) + tuple(DIREC
     "resource_diagnostic_setting",
     "azure_resource", "resource", "backup_job", "sql_ltr_backup", "sql_restore_point",
     "managed_instance_database", "managed_instance_tde", "sql_database_inventory", "sql_tde_inventory",
-    "guest_configuration_report", "azure_sw18_evidence", "mysql_postgresql_sql_server", *azure_conditional_access_native.NATIVE_TYPES,
+    azure_identity_enforcement_review_20261020.KIND, "guest_configuration_report", "azure_sw18_evidence", "mysql_postgresql_sql_server", *azure_conditional_access_native.NATIVE_TYPES,
     "devops_project", *azure_devops_pipeline_native.NATIVE_TYPES, *azure_access_reviews_native.NATIVE_TYPES, *azure_arm_metadata_native.NATIVE_TYPES, *azure_monitor_inventory_native.NATIVE_TYPES, *azure_aks_workloads_native.NATIVE_TYPES, "azure_detection_telemetry", "entra_diagnostic_setting", *azure_storage_backup_native.NATIVE_TYPES,
     *azure_defender_network_native.NATIVE_TYPES, *azure_adaptive_network_native.NATIVE_TYPES, *azure_entra_user_native.NATIVE_TYPES, "directory_user_group_membership", "sql_managed_instance_administrator", "intune_diagnostic_setting",
     "storage_local_user", "sql_backup_short_term_policy", "eventgrid_subscription",
     *azure_vault_key_versions_native.NATIVE_TYPES, *azure_iot_policy_native.NATIVE_TYPES, *azure_function_limits_native.NATIVE_TYPES, *azure_functions_runtime_native.NATIVE_TYPES, *azure_secret_versions_native.NATIVE_TYPES, *azure_storage_recovery_metadata_native.NATIVE_TYPES, "sentinel_workspace", *azure_incident_inventory_native.NATIVE_TYPES, *azure_security_correlation_native.NATIVE_TYPES, *azure_apim_diagnostic_evidence_native.NATIVE_TYPES, *azure_storage_blob_keys_native.NATIVE_TYPES, *azure_audit_storage_native.NATIVE_TYPES, "assessment_metadata",
+    azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_selected_configuration_secret_indicators.KIND,
+    *azure_ai_services_native.NATIVE_TYPES,
     *azure_public_edge_native.NATIVE_TYPES, *azure_storage_lifecycle_native.NATIVE_TYPES, *azure_key_rotation_evidence_native.NATIVE_TYPES, "frontdoor_and_cdn_endpoint", "afd_profile", "afd_domain", "afd_route", "afd_security_policy",
 )
 
@@ -646,6 +877,27 @@ class _NoRedirect(HTTPRedirectHandler):
         raise AzureReadError("redirect_rejected")
 
 
+def _strict_native_json(raw):
+    """Decode complete native JSON without duplicate fields or nonfinite numbers."""
+    import math
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError('ambiguous native JSON')
+            value[key] = item
+        return value
+    def reject_constant(value):
+        raise ValueError('nonfinite native JSON')
+    def finite_float(value):
+        number = float(value)
+        if not math.isfinite(number):
+            raise ValueError('nonfinite native JSON')
+        return number
+    return json.loads(raw, object_pairs_hook=unique,
+                      parse_constant=reject_constant, parse_float=finite_float)
+
+
 class AzureTransport:
     """Audience-separated refreshed tokens and origin-checked HTTPS requests."""
     def __init__(self, auth, credential=None):
@@ -758,6 +1010,9 @@ class AzureTransport:
             origin_allowed = (parsed.hostname or "").lower() in self.vault_hosts and parsed.port in (None, 443)
         if audience == LOGS:
             origin_allowed = (parsed.hostname or "").lower() == "api.loganalytics.azure.com" and parsed.port in (None, 443)
+        from .azure_network_data import is_network_audience, allowed_route, project_response
+        if is_network_audience(audience):
+            origin_allowed = body is None and allowed_route(url, audience)
         if parsed.scheme != "https" or not origin_allowed or parsed.username or parsed.password or parsed.fragment:
             raise AzureReadError("untrusted_continuation")
         if body is not None:
@@ -769,15 +1024,21 @@ class AzureTransport:
             headers["Content-Type"] = "application/json"
         request = Request(url, data=payload, headers=headers, method="POST" if body is not None else "GET")
         with build_opener(_NoRedirect()).open(request, timeout=20) as response:
+            # These GET/read-only query endpoints document200 representations;
+            # partial, asynchronous and empty responses are not native evidence.
+            if type(getattr(response, 'status', None)) is not int or response.status != 200:
+                raise AzureReadError('incomplete_native_response')
             if max_response_bytes is None:
-                value = json.load(response)
+                raw = response.read()
             else:
                 if type(max_response_bytes) is not int or not 0 < max_response_bytes <= 20_000_000:
                     raise ValueError("invalid response byte limit")
                 raw = response.read(max_response_bytes + 1)
                 if len(raw) > max_response_bytes:
                     raise AzureReadError("response_too_large")
-                value = json.loads(raw)
+            value = _strict_native_json(raw)
+            if is_network_audience(audience):
+                value = project_response(value, audience)
             if capture_subject:
                 from .azure_disclosure_native import accepted_subject
                 if not hasattr(self, "disclosure_accepted_subjects"):
@@ -858,7 +1119,7 @@ def _metadata_only(value, secret=False):
         "userdata", "protectedsettings", "protectedsettingsfromkeyvault", "appsettings",
         "machinekey", "decryptionkey", "validationkey", "sourceuri", "accesssas",
         "redisconfiguration", "tenantsettings", "apiproperties", "globalparameters",
-        "migrationtoken", "secrettext", "webhookproperties", "storageaccountaccesskey", "storagecontainersaskey", "securevalue", "pfx", "certificatepassword", "certificate", "privatekeybytes", "sharedaccesskey", "sharedaccesspolicykey", "accountkey", "storageaccountkey", "accesskey", "accesskeys", "sasuri", "sasurl", "sastoken", "secretvalue", "apikey", "apikeys", "administratorloginpassword", "settings")}
+        "migrationtoken", "secrettext", "webhookproperties", "storageaccountaccesskey", "storagecontainersaskey", "workspacekey", "securevalue", "pfx", "certificatepassword", "certificate", "privatekeybytes", "sharedaccesskey", "sharedaccesspolicykey", "accountkey", "storageaccountkey", "accesskey", "accesskeys", "sasuri", "sasurl", "sastoken", "secretvalue", "apikey", "apikeys", "administratorloginpassword", "settings")}
     if isinstance(value.get("environmentVariables"), list):
         result["environmentVariables"] = [{key: ("[REDACTED]" if data is not None else None) if key in ("value", "secureValue") else _metadata_only(data, secret) for key, data in variable.items() if key in ("name", "value", "secureValue")} if isinstance(variable, dict) else _metadata_only(variable, secret) for variable in value["environmentVariables"]]
     for field in ("passwordCredentials", "keyCredentials"):
@@ -868,7 +1129,7 @@ def _metadata_only(value, secret=False):
                         "secretaccesskey", "accesskeysecret", "clientsecret", "secret",
                         "password", "passwd", "privatekey", "accesstoken", "refreshtoken",
                         "bearertoken", "authorization", "connectionstring", "sastoken",
-                        "credential", "credentials"}
+                        "credential", "credentials", "workspacekey"}
     parameter_name = value.get("name") or value.get("parameterName")
     if isinstance(parameter_name, str) and re.sub(r"[^a-z0-9]", "", parameter_name.lower()) in credential_names | {"primarykey", "secondarykey", "sharedaccesskey", "sharedaccesspolicykey", "storageaccountkey", "storageaccountaccesskey", "storagecontainersaskey"}:
         if "value" in value:
@@ -888,6 +1149,183 @@ def _metadata_only(value, secret=False):
         if redacted:
             result.setdefault("_redacted_metadata", {})[field] = redacted
     return result
+
+
+_DATABASE_CRYPTO_IDENTITY_KINDS = frozenset((
+    "mysql_single_server", "postgresql_single_server", "mysql_flexible_server", "postgresql_flexible_server",
+    "cosmos_account", "vault", "managed_hsm", "recovery_vault", "sql_server", "redis_cache"))
+
+
+def _bind_hsm_diagnostic_context(collection, proof):
+    """Bind actual HSM child-list receipts to this capture's opaque contexts."""
+    if collection.get("type") != "managed_hsm":
+        return
+    for parent in collection["items"]:
+        rows = parent.get("diagnosticSettings", [])
+        if not isinstance(rows, list):
+            continue
+        for child in rows:
+            if not isinstance(child, dict):
+                continue
+            native = child.get("_provenance")
+            if (isinstance(native, dict) and native.get("source_operation") == "DiagnosticSettings_List"
+                    and native.get("read_only") is True and native.get("scope") == parent.get("id")):
+                native.update(proof)
+
+
+def _database_crypto_parent_identity(item, scope, kind):
+    """Bind only the reviewed native database/crypto/backup ARM parent kinds."""
+    if kind not in _DATABASE_CRYPTO_IDENTITY_KINDS:
+        return
+    endpoint = ENDPOINTS[kind][0]
+    rid = item.get("id") if isinstance(item, dict) else None
+    if (not isinstance(rid, str)
+            or not re.fullmatch(re.escape(scope) + r"/resourceGroups/[^/?#%]+/providers/" + re.escape(endpoint) + r"/[^/?#%]+", rid, re.I)
+            or any(part in (".", "..") or any(ord(c) < 33 for c in part) for part in rid.split("/"))
+            or str(item.get("type", "")).casefold() != endpoint.casefold()
+            or "name" in item and (not isinstance(item["name"], str)
+                                   or item["name"].casefold() != rid.rsplit("/", 1)[-1].casefold())):
+        raise ValueError("native database/crypto/backup parent identity differs from selected inventory")
+    _database_crypto_private_endpoint_identity(item, kind)
+
+
+def _database_crypto_private_endpoint_identity(item, kind):
+    """A private-connection declaration must belong to its native DB/vault parent."""
+    if kind not in ("sql_server", "redis_cache", "cosmos_account", "vault"):
+        return
+    props = item.get("properties")
+    if not isinstance(props, dict) or "privateEndpointConnections" not in props:
+        return
+    rows, seen = props["privateEndpointConnections"], {}
+    valid = isinstance(rows, list)
+    for row in rows if isinstance(rows, list) else []:
+        identity = row.get("id") if isinstance(row, dict) else None
+        expected_type = ENDPOINTS[kind][0] + "/privateEndpointConnections"
+        if (not isinstance(identity, str)
+                or re.fullmatch(re.escape(item["id"] + "/privateEndpointConnections/") + r"[^/?#%\\\s]+", identity, re.I) is None
+                or identity.rsplit("/", 1)[-1] in (".", "..")
+                or "type" in row and str(row["type"]).casefold() != expected_type.casefold()
+                or "name" in row and str(row["name"]).casefold() != identity.rsplit("/", 1)[-1].casefold()
+                or not isinstance(row.get("properties"), dict)
+                or identity.casefold() in seen and seen[identity.casefold()] != row):
+            valid = False
+            break
+        seen[identity.casefold()] = row
+    if not valid:
+        # Keep independent scalar declarations usable; the unresolved child
+        # field cannot supply either a compliance PASS or an absence FAIL.
+        props.setdefault("_coverage", {})["privateEndpointConnections"] = {"status": "malformed"}
+
+
+def _remaining_service_parent_identity(item, scope, kind, seen=None):
+    """Bind only the three reviewed native service parents and their connections."""
+    if kind not in ('app_configuration', 'data_factory', 'search_service'):
+        return True
+    endpoint = ENDPOINTS[kind][0]
+    rid = item.get('id') if isinstance(item, dict) else None
+    if (not isinstance(rid, str) or re.fullmatch(re.escape(scope) + r'/resourceGroups/[^/?#%\\\s]+/providers/' + re.escape(endpoint) + r'/[^/?#%\\\s]+', rid, re.I) is None
+            or any(p in ('.', '..') for p in rid.split('/'))
+            or str(item.get('type', '')).casefold() != endpoint.casefold()
+            or not isinstance(item.get('name'), str) or item['name'].casefold() != rid.rsplit('/', 1)[-1].casefold()):
+        raise ValueError('native service parent path/type/name differs from selected inventory')
+    if seen is not None:
+        value = _metadata_only({k: v for k, v in item.items() if k in ('id', 'name', 'type', 'location', 'properties', 'sku', 'identity')})
+        for k in ('id', 'name', 'type'):
+            value[k] = value[k].casefold()
+        if rid.casefold() in seen:
+            if seen[rid.casefold()] != value:
+                raise ValueError('conflicting native service parent identity')
+            return False
+        seen[rid.casefold()] = value
+    props = item.get('properties')
+    if not isinstance(props, dict) or 'privateEndpointConnections' not in props:
+        return True
+    rows, identities, valid = props['privateEndpointConnections'], {}, isinstance(props['privateEndpointConnections'], list)
+    for row in rows if isinstance(rows, list) else []:
+        identity = row.get('id') if isinstance(row, dict) else None
+        if (not isinstance(identity, str) or re.fullmatch(re.escape(rid + '/privateEndpointConnections/') + r'[^/?#%\\\s]+', identity, re.I) is None
+                or identity.rsplit('/', 1)[-1] in ('.', '..')
+                or 'type' in row and str(row['type']).casefold() != (endpoint + '/privateEndpointConnections').casefold()
+                or 'name' in row and str(row['name']).casefold() != identity.rsplit('/', 1)[-1].casefold()
+                or not isinstance(row.get('properties'), dict)
+                or identity.casefold() in identities and identities[identity.casefold()] != row):
+            valid = False
+            break
+        identities[identity.casefold()] = row
+    if not valid:
+        props.setdefault('_coverage', {})['privateEndpointConnections'] = {'status': 'malformed'}
+        props.pop('privateEndpointConnections', None)
+    else:
+        props['privateEndpointConnections'] = list(identities.values())
+    return True
+
+
+def _remaining_services_private_links(item, kind):
+    """Keep only coherent immediate private-connection declarations for these services."""
+    if kind not in ("servicebus_namespace", "signalr_service", "storage_sync_service"):
+        return
+    props = item.get("properties")
+    if not isinstance(props, dict) or "privateEndpointConnections" not in props:
+        return
+    rows, seen = props["privateEndpointConnections"], {}
+    valid = isinstance(rows, list)
+    expected_type = ENDPOINTS[kind][0] + "/privateEndpointConnections"
+    prefix = item["id"] + "/privateEndpointConnections/"
+    for row in rows if isinstance(rows, list) else []:
+        identity = row.get("id") if isinstance(row, dict) else None
+        if (not isinstance(identity, str)
+                or re.fullmatch(re.escape(prefix) + r"[^/?#%\\\s]+", identity, re.I) is None
+                or identity.rsplit("/", 1)[-1] in (".", "..")
+                or "type" in row and str(row["type"]).casefold() != expected_type.casefold()
+                or "name" in row and str(row["name"]).casefold() != identity.rsplit("/", 1)[-1].casefold()
+                or not isinstance(row.get("properties"), dict)
+                or identity.casefold() in seen and seen[identity.casefold()] != row):
+            valid = False
+            break
+        seen[identity.casefold()] = row
+    if not valid:
+        props.setdefault("_coverage", {})["privateEndpointConnections"] = {"status": "malformed"}
+        props.pop("privateEndpointConnections", None)
+    else:
+        props["privateEndpointConnections"] = list(seen.values())
+
+
+def _bound_vault_metadata_origin(item, rid):
+    """Selected native vault endpoint, never a caller-selected data-plane origin."""
+    uri = item.get("properties", {}).get("vaultUri")
+    parsed = urlsplit(uri) if isinstance(uri, str) else None
+    name = rid.rsplit("/", 1)[-1]
+    if (parsed is None or parsed.scheme != "https" or parsed.username or parsed.password or parsed.port
+            or parsed.query or parsed.fragment or parsed.path not in ("", "/")
+            or not re.fullmatch(r"[a-zA-Z0-9-]{3,24}", name)
+            or parsed.netloc.casefold() != (name + ".vault.azure.net").casefold()):
+        raise ValueError("authoritative vault endpoint differs from selected native vault")
+    return "https://" + parsed.netloc
+
+
+def _normalize_vault_expiration(collection, vaults):
+    """Optional exp omission means no expiry only on a complete bound metadata LIST."""
+    kind = collection.get("type")
+    if kind not in ("key_metadata", "secret_metadata") or collection.get("status") not in ("collected", "empty"):
+        return
+    parent = vaults.get(str(collection.get("scope", "")).casefold())
+    if parent is None:
+        return
+    rid = parent["id"]
+    origin = _bound_vault_metadata_origin(parent, rid)
+    segment = "keys" if kind == "key_metadata" else "secrets"
+    for item in collection["items"]:
+        proof = item.get("_provenance", {})
+        attrs = item.get("properties", {}).get("attributes")
+        identifier = item.get("id")
+        if (not isinstance(identifier, str)
+                or not re.fullmatch(re.escape(rid + "/" + segment + "/") + r"[A-Za-z0-9-]{1,127}", identifier, re.I)
+                or item.get("parent_id", "").casefold() != rid.casefold()
+                or item.get("data_plane_id", "").casefold() != (origin + "/" + segment + "/" + identifier.rsplit("/", 1)[-1]).casefold()
+                or proof.get("endpoint") != segment + "/list" or proof.get("audience") != VAULT or proof.get("read_only") is not True
+                or not isinstance(attrs, dict) or type(attrs.get("enabled")) is not bool):
+            continue
+        attrs.setdefault("exp", None)
 
 
 def _policy_assignment_scope_allowed(kind, selected_scope, resource_id):
@@ -1111,10 +1549,16 @@ class _Reader:
 
 
 def _selected(options, requirements):
-    wanted = options.get("inventories", [kind for kind in TYPES if kind != "app_service_identity_detail"]) if requirements is None else requirements
+    wanted = options.get("inventories", [kind for kind in TYPES if kind not in ("app_service_identity_detail", azure_app_settings_secret_indicators.KIND, azure_acr_image_secret_indicators.KIND, azure_selected_configuration_secret_indicators.KIND, azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS]) if requirements is None else requirements
     if not isinstance(wanted, (list, tuple)) or any(kind not in TYPES for kind in wanted):
         raise ValueError("unsupported Azure inventory requirement")
     selected = set(wanted)
+    if selected.intersection(azure_nsp_query_cmk_runtime_20261020.KINDS):
+        selected.add("subscription")
+    selected.update(azure_identity_enforcement_review_20261020.required_types(selected))
+    selected.update(azure_application_compute_2_native.required_types(selected))
+    selected.update(azure_acr_public_ip_review_20261020.required_types(selected))
+    selected.update(azure_automation_aci_metadata_native_20261020.required_types(selected))
     if "activity_log_coverage" in selected:
         selected.add("activity_log")
     if azure_subnet_firewall_policy.active(options):
@@ -1126,6 +1570,7 @@ def _selected(options, requirements):
     selected.update(azure_certificate_issuance_native.required_types(selected))
     selected.update(azure_nsg_ingress_native.required_types(selected))
     selected.update(azure_aks_workloads_native.required_types(selected))
+    selected.update(azure_aks_legacy_projection_review_20261020.required_types(selected))
     selected.update(azure_entra_user_native.required_types(selected))
     selected.update(azure_public_edge_native.required_types(selected))
     selected.update(azure_storage_recovery_metadata_native.required_types(selected))
@@ -1355,9 +1800,25 @@ def _complete_diagnostic_inventory(reader, scopes):
                                       {"error": {"code": "parent_inventory_incomplete"}})})
 
 
+from . import azure_selected_storage_secret_indicators, azure_devops_selected_content_secret_indicators
+from . import azure_selected_secret_integration_20261020
+from . import azure_selected_declaration_secret_indicators
+from . import azure_selected_log_sample_secret_indicators
+from . import azure_ml_selected_job_secret_indicators
+from . import azure_databricks_notebook_secret_indicators
+from . import azure_ml_selected_asset_secret_indicators
+from . import azure_function_settings_declarations_20261020, azure_function_settings_runtime_hooks_20261020
+from . import azure_nsp_query_cmk_runtime_20261020
+TYPES += azure_nsp_query_cmk_runtime_20261020.KINDS
+from . import azure_function_package_integration_20261020 as package_source
+TYPES += (package_source.KIND,)
+TYPES += (azure_selected_storage_secret_indicators.KIND, azure_devops_selected_content_secret_indicators.KIND) + azure_selected_declaration_secret_indicators.KINDS + azure_selected_log_sample_secret_indicators.KINDS + (azure_ml_selected_job_secret_indicators.KIND, azure_databricks_notebook_secret_indicators.KIND, azure_function_settings_declarations_20261020.KIND) + azure_ml_selected_asset_secret_indicators.KINDS
+
+
 def collect(connector, requirements=None, *, transport=None):
     """Return native facts with separate directory, inheritance and usage coverage."""
     options, auth = connector.get("options", {}), connector.get("auth", {})
+    package_grant = package_source.authorize(options, connector.get('scopes', []))
     azure_devops_git_native.normalize(options, auth)
     azure_devops_pipeline_native.normalize(options, auth)
     azure_aks_workloads_native.normalize(options, auth)
@@ -1377,9 +1838,28 @@ def collect(connector, requirements=None, *, transport=None):
     if isinstance(supplied_policy, dict) and "sw32" in supplied_policy:
         from peaso.azure_sw32_policy import normalize_sw32
         sw32_owner = normalize_sw32(supplied_policy["sw32"])
+    azure_selected_configuration_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_selected_declaration_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_selected_log_sample_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_ml_selected_job_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_databricks_notebook_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_ml_selected_asset_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    function_targets, function_checks = azure_function_settings_declarations_20261020.preflight(
+        options, connector.get('scopes', []), options.get('_azure_function_settings_checks', []))
+    if function_targets:
+        from peaso.checks.azure_function_settings_runtime_admission_20261020 import reviewed_inputs as function_reviewed_inputs
+        function_reviewed_inputs()
+    azure_selected_storage_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_devops_selected_content_secret_indicators.selected_targets(options, connector.get('scopes', []), auth)
+    azure_app_settings_secret_indicators.selected_targets(options, connector.get('scopes', []))
+    azure_acr_image_secret_indicators.selected_targets(options, connector.get('scopes', []))
     azure_databricks_native.validate_auth(auth)
     azure_databricks_native.normalize(options)
     wanted = _selected(options, requirements)
+    if package_grant is None:
+        wanted.discard(package_source.KIND)
+        if not wanted or requirements and set(requirements) == {package_source.KIND}:
+            return make_snapshot('azure', connector.get('scopes', []), [], metadata={'omitted_inventories': sorted(set(TYPES) - wanted)})
     if "databricks_account_workspace" in wanted:
         wanted.add("databricks_workspace")
     from . import azure_disclosure_native
@@ -1402,6 +1882,8 @@ def collect(connector, requirements=None, *, transport=None):
     reader.progress("discovering")
     credential_context_id = uuid4().hex
     customer_context_id = "scan-local:" + credential_context_id
+    if package_grant is not None:
+        customer_context_id = 'package-customer-' + credential_context_id
     raw_scopes = connector.get("scopes") or ["*"]
     if not isinstance(raw_scopes, list) or any(not isinstance(x, str) for x in raw_scopes):
         raise ValueError("scopes must contain subscription IDs")
@@ -1431,11 +1913,14 @@ def collect(connector, requirements=None, *, transport=None):
         raise ValueError('guest baseline policy is outside the selected subscriptions')
     if resource_logging_owner is not None and not discover_all and resource_logging_owner['scope'].casefold() not in {scope.casefold() for scope in scopes}:
         raise ValueError('diagnostic approval outside selected subscriptions')
+    if package_grant is not None and tuple(scopes) != package_grant.scopes:
+        raise ValueError('package_scope_limit_changed')
     owned = transport is None
     tenant_scope = "/tenants/" + (auth.get("tenant_id") or "selected")
     now = datetime.now(timezone.utc)
     days = _bound(options.get("activity_days", 30), "activity_days", 1, 90)
     start, end = (now - timedelta(days=days)).isoformat(), now.isoformat()
+    request = None  # Bound only after explicit authentication validation succeeds.
     try:
         if options.get("hosted"):
             if any(auth.get(key) for key in ("certificate_path", "token_file")):
@@ -1449,7 +1934,11 @@ def collect(connector, requirements=None, *, transport=None):
                 raise ValueError("hosted Azure cannot select worker identity sources")
             auth = {**auth, "method": method}
         if owned:
-            transport = AzureTransport(auth)
+            if function_targets:
+                with azure_function_settings_declarations_20261020.private_native_logs():
+                    transport = AzureTransport(auth)
+            else:
+                transport = AzureTransport(auth)
         cache, cache_locks, cache_guard = {}, {}, threading.Lock()
         def request(url, *, body=None, audience=ARM):
             key = (audience, url, json.dumps(body, sort_keys=True) if body is not None else None)
@@ -1457,9 +1946,13 @@ def collect(connector, requirements=None, *, transport=None):
                 lock = cache_locks.setdefault(key, threading.Lock())
             with lock:
                 if key not in cache:
-                    cache[key] = transport.request(url, body=body, audience=audience)
+                    value = transport.request(url, body=body, audience=audience)
+                    if body is None and audience == ARM and azure_automation_aci_metadata_native_20261020.aci_metadata_route(url, scopes):
+                        value = _metadata_only(value)
+                    cache[key] = value
                 return cache[key]
         jobs = []
+        nsp_query_selected = bool(wanted.intersection(azure_nsp_query_cmk_runtime_20261020.KINDS))
         if discover_all:
             reader.run([("subscription", tenant_scope, "Microsoft.Resources", lambda: reader.pages(request, ARM + "/subscriptions?api-version=2022-12-01"))])
             scopes = [item["id"] for item in reader.collections[-1]["items"] if isinstance(item.get("subscriptionId"), str)]
@@ -1471,6 +1964,11 @@ def collect(connector, requirements=None, *, transport=None):
             # An explicit scan must not turn a tenant-wide subscription LIST
             # into subjects for checks bound to the selected subscription.
             for scope in scopes:
+                if nsp_query_selected:
+                    reader.run([azure_nsp_query_cmk_runtime_20261020.subscription_job(
+                        reader, transport, scope, credential_context_id=credential_context_id,
+                        customer_context_id=customer_context_id)])
+                    continue
                 def selected_subscription(scope=scope):
                     value = reader.call(request, ARM + scope + "?api-version=2022-12-01")
                     guid = r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}"
@@ -1489,6 +1987,21 @@ def collect(connector, requirements=None, *, transport=None):
                         raise ValueError("subscription tenant binding unavailable")
                     yield [value]
                 reader.run([("subscription", scope, "Microsoft.Resources", selected_subscription)])
+        if nsp_query_selected and scopes:
+            if discover_all:
+                # The discovery LIST is not a selected subscription GET receipt.
+                reader.run([azure_nsp_query_cmk_runtime_20261020.subscription_job(
+                    reader, transport, scope, credential_context_id=credential_context_id,
+                    customer_context_id=customer_context_id) for scope in scopes])
+            try:
+                nsp_query_parent = azure_nsp_query_cmk_runtime_20261020.parent_metadata_from_inventory(
+                    reader, transport, scopes, credential_context_id=credential_context_id,
+                    customer_context_id=customer_context_id)
+            except azure_nsp_query_cmk_runtime_20261020.ContextUnavailable:
+                # No guessed tenant mapping can bootstrap these declarations.
+                nsp_query_parent = {}
+            reader.nsp_query_cmk_metadata = azure_nsp_query_cmk_runtime_20261020.collect_into(
+                reader, transport, scopes, wanted, parent_metadata=nsp_query_parent)
         if discover_all:bind_tls_scopes(tls_owner, scopes)
         if "tenant" in wanted:
             jobs.append(("tenant", tenant_scope, "Microsoft.Resources", lambda: reader.pages(request, ARM + "/tenants?api-version=2022-12-01")))
@@ -1538,7 +2051,21 @@ def collect(connector, requirements=None, *, transport=None):
         if "subscription_diagnostic_setting" in wanted:
             for scope in scopes:
                 url = ARM + scope + "/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview"
-                jobs.append(("subscription_diagnostic_setting", scope, "Microsoft.Insights", lambda url=url: reader.pages(request, url)))
+                def subscription_diagnostics(url=url, scope=scope):
+                    seen = set()
+                    for page in reader.pages(request, url):
+                        for row in page:
+                            identity = row.get("id") if isinstance(row, dict) else None
+                            if (not isinstance(identity, str)
+                                    or re.fullmatch(re.escape(scope + "/providers/Microsoft.Insights/diagnosticSettings/") + r"[^/?#%\\\s]+", identity, re.I) is None
+                                    or identity.rsplit("/", 1)[-1] in (".", "..")
+                                    or str(row.get("type", "")).casefold() != "microsoft.insights/diagnosticsettings"
+                                    or "name" in row and str(row["name"]).casefold() != identity.rsplit("/", 1)[-1].casefold()
+                                    or identity.casefold() in seen):
+                                raise ValueError("foreign, duplicate or malformed native subscription diagnostic identity")
+                            seen.add(identity.casefold())
+                        yield page
+                jobs.append(("subscription_diagnostic_setting", scope, "Microsoft.Insights", subscription_diagnostics))
         # Query each selected subscription before detail reads. The discovery
         # collection is retained even when only downstream inventories are wanted.
         need_resources = wanted.intersection(set(ENDPOINTS) | {"diagnostic_setting", "subnet", "vnet_peering", "secret_metadata", "storage_service", "sql_database", "sql_firewall_rule", "sql_audit", "sql_security", "dns_record", "private_dns_link", "resource_graph", "app_service_config", "app_service_identity_detail", "sql_tde", "managed_identity_federated_credential", "key_metadata", "key_rotation_policy", "key_vault_certificate_policy", "sql_vulnerability_assessment", "sql_encryption_protector", "storage_container", "storage_encryption_scope", "app_service_slot", "automation_variable"})
@@ -1608,20 +2135,46 @@ def collect(connector, requirements=None, *, transport=None):
                         # they are collected once from "/" (deduplicated by GUID);
                         # subscriptions and management groups list only their custom roles.
                         url += "&" + urlencode({"$filter": "type eq 'CustomRole'"})
-                    jobs.append((kind, scope, "Microsoft.Authorization", lambda url=url: reader.pages(request, url)))
+                    if kind in ('role_assignment', 'role_definition'):
+                        def authorization_rows(url=url, kind=kind, scope=scope):
+                            yield from azure_remaining_services_1_native.authorization_pages(reader, request, url, kind, scope)
+                        jobs.append((kind, scope, "Microsoft.Authorization", authorization_rows))
+                    else:
+                        jobs.append((kind, scope, "Microsoft.Authorization", lambda url=url: reader.pages(request, url)))
         if "virtual_network_gateway" in wanted:
             for scope in scopes:
                 def gateways(scope=scope):
+                    groups, seen = set(), set()
+                    segment = r"[^/?#%\\\s]+"
                     for group_page in reader.pages(request, ARM + scope + "/resourcegroups?api-version=2021-04-01"):
                         for group in group_page:
                             gid = group.get("id") if isinstance(group, dict) else None
-                            if not isinstance(gid, str) or not gid.lower().startswith(scope.lower() + "/resourcegroups/"):
+                            if (not isinstance(gid, str)
+                                    or re.fullmatch(re.escape(scope) + "/resourceGroups/" + segment, gid, re.I) is None
+                                    or gid.rsplit("/", 1)[-1] in (".", "..")
+                                    or str(group.get("type", "")).casefold() != "microsoft.resources/resourcegroups"
+                                    or "name" in group and str(group["name"]).casefold() != gid.rsplit("/", 1)[-1].casefold()
+                                    or gid.casefold() in groups):
                                 raise ValueError("malformed resource group identity")
-                            yield from reader.pages(request, ARM + gid + "/providers/Microsoft.Network/virtualNetworkGateways?api-version=2023-09-01")
+                            groups.add(gid.casefold())
+                            prefix = gid + "/providers/Microsoft.Network/virtualNetworkGateways/"
+                            for page in reader.pages(request, ARM + prefix.rstrip("/") + "?api-version=2023-09-01"):
+                                for row in page:
+                                    rid = row.get("id") if isinstance(row, dict) else None
+                                    if (not isinstance(rid, str)
+                                            or re.fullmatch(re.escape(prefix) + segment, rid, re.I) is None
+                                            or rid.rsplit("/", 1)[-1] in (".", "..")
+                                            or str(row.get("type", "")).casefold() != "microsoft.network/virtualnetworkgateways"
+                                            or "name" in row and str(row["name"]).casefold() != rid.rsplit("/", 1)[-1].casefold()
+                                            or rid.casefold() in seen):
+                                        raise ValueError("foreign, duplicate or malformed native VPN gateway identity")
+                                    seen.add(rid.casefold())
+                                yield page
                 jobs.append(("virtual_network_gateway", scope, "Microsoft.Network", gateways))
         # Discovery supplies IDs; ARM GET provides authoritative current details.
         child_dependencies = {"subnet": "vnet", "vnet_peering": "vnet", "storage_service": "storage_account", "sql_database": "sql_server", "sql_firewall_rule": "sql_server", "sql_audit": "sql_server", "sql_security": "sql_server", "secret_metadata": "vault", "dns_record": "dns_zone", "private_dns_link": "private_dns_zone", "app_service_config": "app_service", "app_service_identity_detail": "app_service", "sql_tde": "sql_server", "managed_identity_federated_credential": "managed_identity", "key_metadata": "vault", "key_rotation_policy": "vault", "key_vault_certificate_policy": "vault", "sql_vulnerability_assessment": "sql_server", "sql_encryption_protector": "sql_server", "storage_container": "storage_account", "storage_encryption_scope": "storage_account", "app_service_slot": "app_service", "automation_variable": "automation_account", "apim_native": "api_management"}
         parents = wanted.intersection(ENDPOINTS) | {parent for child, parent in child_dependencies.items() if child in wanted}
+        parents |= azure_network_catalog.required_parents(wanted)
         if "diagnostic_setting" in wanted:
             parents |= set(ENDPOINTS) - {"resource_group"}
         # Broad collection: one authoritative ARM list of every tracked resource
@@ -1659,6 +2212,7 @@ def collect(connector, requirements=None, *, transport=None):
                     # ARG is eventually consistent. Only an authoritative ARM
                     # list can establish membership or an empty inventory.
                     seen_easm = set()
+                    remaining_service_seen = {}
                     assessment_captures = {}
                     def assessment_list_request(page_url, *, body=None, audience=ARM):
                         # Capture when transport first returns this page, not when
@@ -1713,13 +2267,21 @@ def collect(connector, requirements=None, *, transport=None):
                             rid = item.get("id") if isinstance(item, dict) else None
                             if not isinstance(rid, str) or not _policy_assignment_scope_allowed(kind, scope, rid):
                                 raise ValueError("resource outside selected subscription")
+                            _arm_parent_native_type(item, kind)
+                            _network_platform_native_identity(item, scope, kind)
+                            _database_crypto_parent_identity(item, scope, kind)
+                            if not _remaining_service_parent_identity(item, scope, kind, remaining_service_seen):
+                                continue
+                            _remaining_services_private_links(item, kind)
+                            if kind in ("security_contact", "security_setting", "security_assessment", "log_analytics_workspace") and str(item.get("type", "")).casefold() != ENDPOINTS[kind][0].casefold():
+                                raise ValueError("native monitoring type differs from selected inventory")
                             if kind in ("easm_workspace", "monitor_log_profile", "arc_kubernetes_cluster", "integration_service_environment", "databricks_workspace"):
                                 identity = rid.casefold()
                                 native_type = ENDPOINTS[kind][0].casefold()
                                 if identity in seen_easm or (str(item.get("type", "")).casefold() not in ((native_type, '') if kind == 'monitor_log_profile' else (native_type,))):
                                     raise ValueError("duplicate or malformed selected Azure identity")
                                 seen_easm.add(identity)
-                            if isinstance(item.get("properties"), dict) and kind != "container_group" and kind not in FULL_GET_KINDS:
+                            if isinstance(item.get("properties"), dict) and kind != "container_group" and kind not in FULL_GET_KINDS and kind != "stream_analytics_job":
                                 detailed.append(bound_policy_row(azure_swc.list_detail(item, kind)))
                                 continue
                             try:
@@ -1731,11 +2293,21 @@ def collect(connector, requirements=None, *, transport=None):
                                 result = reader.call(request, detail_url)
                                 if not isinstance(result, dict) or str(result.get("id", "")).lower() != rid.lower() or (kind in FULL_GET_KINDS and not isinstance(result.get("properties"), dict)):
                                     raise ValueError("malformed resource detail")
+                                _arm_parent_native_type(result, kind)
+                                _network_platform_native_identity(result, scope, kind)
+                                if kind in ("vm", "nsg", "storage_account", "container_group", "vm_scale_set", "security_pricing") and str(result.get("type", "")).casefold() != ENDPOINTS[kind][0].casefold():
+                                    raise ValueError("native resource detail type differs from selected inventory")
+                                if kind == "security_pricing" and str(result.get("name", "")).casefold() != rid.rsplit("/", 1)[-1].casefold():
+                                    raise ValueError("native pricing detail name differs from selected identity")
+                                _database_crypto_parent_identity(result, scope, kind)
+                                _remaining_service_parent_identity(result, scope, kind)
+                                _remaining_services_private_links(result, kind)
                                 if kind in FULL_GET_KINDS:
                                     result = azure_swc.full_detail(result, kind, version)
                                 if kind in ("frontdoor", "cdn_profile"):
                                     result = azure_frontdoor_native.metadata_projection(result)
                                 result = azure_swc.list_detail(result, kind)
+                                result = azure_native_contract_closure_20261020.metadata_detail(result, kind, scope, version)
                                 detailed.append(bound_policy_row(result))
                             except Exception as exc:
                                 incomplete = exc
@@ -1784,7 +2356,10 @@ def collect(connector, requirements=None, *, transport=None):
                 kind = collection["type"]
                 if kind in parents and "diagnostic_setting" in wanted and kind not in NO_DIAGNOSTIC_KINDS:
                     url = ARM + rid + "/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview"
-                    jobs.append(("diagnostic_setting", rid, "Microsoft.Insights", lambda url=url: reader.pages(request, url)))
+                    operation = (lambda url=url, rid=rid: _vault_diagnostic_settings_pages(reader, request, url, rid)) if kind in ("vault", "managed_hsm") else (lambda url=url: reader.pages(request, url))
+                    if kind in ("application_gateway", "load_balancer"):
+                        operation = lambda url=url, rid=rid: _service_diagnostic_settings_pages(reader, request, url, rid)
+                    jobs.append(("diagnostic_setting", rid, "Microsoft.Insights", operation))
                 if kind == "vnet":
                     for child, field in (("subnet", "subnets"), ("vnet_peering", "virtualNetworkPeerings")):
                         if child in wanted:
@@ -1801,6 +2376,7 @@ def collect(connector, requirements=None, *, transport=None):
                                     if (not isinstance(detail, dict) or str(detail.get("id", "")).lower() != child_id.lower() or
                                         not isinstance(detail.get("properties"), dict)):
                                         raise ValueError("malformed child detail")
+                                    _network_platform_native_identity(detail, "/".join(item["id"].split("/")[:3]), child)
                                     yield [azure_swc.full_detail(detail, child, ENDPOINTS["vnet"][1])]
                                 if not value:
                                     yield []
@@ -1812,7 +2388,10 @@ def collect(connector, requirements=None, *, transport=None):
                         url = ARM + child_scope + "/default?api-version=2023-05-01"
                         def storage_config(url=url, child_scope=child_scope):
                             detail = reader.call(request, url)
-                            if not isinstance(detail, dict) or str(detail.get("id", "")).lower() != (child_scope + "/default").lower():
+                            expected_type = "microsoft.storage/storageaccounts/" + child_scope.rsplit("/", 1)[-1].casefold()
+                            if (not isinstance(detail, dict) or str(detail.get("id", "")).lower() != (child_scope + "/default").lower()
+                                    or str(detail.get("type", "")).casefold() != expected_type
+                                    or not isinstance(detail.get("properties"), dict)):
                                 raise ValueError("malformed storage service metadata")
                             yield [detail]
                         jobs.append(("storage_service", child_scope, "Microsoft.Storage", storage_config))
@@ -1820,13 +2399,11 @@ def collect(connector, requirements=None, *, transport=None):
                     child_paths.extend((child, path, "2023-08-01") for child, path in (("sql_database", "databases"), ("sql_firewall_rule", "firewallRules"), ("sql_audit", "auditingSettings"), ("sql_security", "securityAlertPolicies")) if child in wanted)
                 if kind == "vault" and "key_metadata" in wanted:
                     def vault_keys(item=item, rid=rid):
-                        uri = item.get("properties", {}).get("vaultUri")
-                        parsed = urlsplit(uri) if isinstance(uri, str) else None
-                        if parsed is None or parsed.scheme != "https" or parsed.username or parsed.password or parsed.port or parsed.query or parsed.fragment or parsed.path not in ("", "/") or not re.fullmatch(r"[a-zA-Z0-9-]{3,24}\.vault\.azure\.net", parsed.netloc):
-                            raise ValueError("malformed authoritative vault endpoint")
+                        origin = _bound_vault_metadata_origin(item, rid)
                         if hasattr(transport, "allow_vault"):
-                            transport.allow_vault(uri)
-                        origin = "https://" + parsed.netloc
+                            transport.allow_vault(origin)
+                        parsed = urlsplit(origin)
+                        seen = {}
                         for page in reader.pages(request, origin + "/keys?api-version=2025-07-01", audience=VAULT):
                             safe = []
                             for key in page:
@@ -1838,9 +2415,16 @@ def collect(connector, requirements=None, *, transport=None):
                                 attrs = key.get("attributes")
                                 if not isinstance(attrs, dict):
                                     raise ValueError("malformed key attributes")
-                                safe.append({"id": rid + "/keys/" + parts[1], "type": "Microsoft.KeyVault/vaults/keys", "name": parts[1], "parent_id": rid,
+                                projected = {"id": rid + "/keys/" + parts[1], "type": "Microsoft.KeyVault/vaults/keys", "name": parts[1], "parent_id": rid,
                                              "vaultProperties": {key: value for key, value in item.get("properties", {}).items() if key == "enableRbacAuthorization"}, "data_plane_id": origin + "/keys/" + parts[1], "properties": {"attributes": {field: value for field, value in attrs.items() if field in ("enabled", "exp", "nbf", "created", "updated", "recoverableDays", "recoveryLevel")}},
-                                             "_provenance": {"endpoint": "keys/list", "audience": VAULT, "read_only": True}})
+                                             "_provenance": {"endpoint": "keys/list", "audience": VAULT, "read_only": True}}
+                                identity = projected['id'].casefold()
+                                if identity in seen:
+                                    if seen[identity] != projected:
+                                        raise ValueError('conflicting native key metadata identity')
+                                    continue
+                                seen[identity] = projected
+                                safe.append(projected)
                             yield safe
                     jobs.append(("key_metadata", rid, "Microsoft.KeyVault", vault_keys))
                 if kind == "vault" and "key_vault_certificate_policy" in wanted:
@@ -1873,10 +2457,8 @@ def collect(connector, requirements=None, *, transport=None):
                         child_paths.append(("secret_metadata", "secrets", "2023-07-01"))
                     else:
                         def secrets(item=item, rid=rid, uri=uri):
-                            if not isinstance(uri, str) or not re.fullmatch(r"https://[A-Za-z0-9-]{3,24}\.vault\.azure\.net/?", uri):
-                                raise ValueError("malformed authoritative secret vault endpoint")
-                            if hasattr(transport, "allow_vault"): transport.allow_vault(uri)
-                            origin = uri.rstrip("/")
+                            origin = _bound_vault_metadata_origin(item, rid)
+                            if hasattr(transport, "allow_vault"): transport.allow_vault(origin)
                             for page in reader.pages(request, origin + "/secrets?api-version=2025-07-01", audience=VAULT):
                                 safe = []
                                 for secret in page:
@@ -1905,7 +2487,10 @@ def collect(connector, requirements=None, *, transport=None):
                     url = ARM + rid + "/config/web?api-version=2023-12-01"
                     def app_config(url=url, rid=rid):
                         detail = reader.call(request, url)
-                        if not isinstance(detail, dict) or not str(detail.get("id", "")).lower().startswith(rid.lower() + "/"):
+                        if (not isinstance(detail, dict) or not isinstance(detail.get("id"), str) or
+                                detail["id"].casefold() != (rid + "/config/web").casefold() or
+                                not isinstance(detail.get("type"), str) or
+                                detail["type"].casefold() != "microsoft.web/sites/config"):
                             raise ValueError("malformed App Service configuration")
                         props = detail.get("properties")
                         if not isinstance(props, dict):
@@ -1917,7 +2502,10 @@ def collect(connector, requirements=None, *, transport=None):
                     url = ARM + rid + "/" + path + "?api-version=" + version
                     # One storage collection per account, not duplicate service scopes.
                     child_scope = rid + "/" + path if child == "storage_service" else rid
-                    jobs.append((child, child_scope, ENDPOINTS[kind][0].split("/")[0], lambda url=url: reader.pages(request, url)))
+                    fetch = lambda url=url: reader.pages(request, url)
+                    if kind == "sql_server" and child in ("sql_database", "sql_firewall_rule", "sql_audit", "sql_security"):
+                        fetch = lambda url=url, rid=rid, child=child, path=path: _sql_projected_child_pages(reader, request, url, rid, child, path)
+                    jobs.append((child, child_scope, ENDPOINTS[kind][0].split("/")[0], fetch))
         reader.run(jobs)
         jobs = []
         if "key_rotation_policy" in wanted:
@@ -1951,7 +2539,14 @@ def collect(connector, requirements=None, *, transport=None):
                     url = ARM + rid + "/transparentDataEncryption/current?api-version=2023-08-01"
                     def tde(url=url, rid=rid):
                         detail = reader.call(request, url)
-                        if not isinstance(detail, dict) or str(detail.get("id", "")).lower() not in (rid.lower(), (rid + "/transparentDataEncryption/current").lower()):
+                        if (not isinstance(detail, dict)
+                                or str(detail.get("id", "")).casefold() not in (rid.casefold(), (rid + "/transparentDataEncryption/current").casefold())
+                                or str(detail.get("id", "")).casefold() == rid.casefold() and (
+                                    str(detail.get("name", "")).casefold() != "current"
+                                    or str(detail.get("type", "")).casefold() != "microsoft.sql/servers/databases/transparentdataencryption")
+                                or "type" in detail and str(detail["type"]).casefold() != "microsoft.sql/servers/databases/transparentdataencryption"
+                                or "name" in detail and str(detail["name"]).casefold() != "current"
+                                or not isinstance(detail.get("properties"), dict)):
                             raise ValueError("malformed SQL TDE metadata")
                         yield [{**detail, "parent_id": rid}]
                     jobs.append(("sql_tde", rid, "Microsoft.Sql", tde))
@@ -1963,6 +2558,7 @@ def collect(connector, requirements=None, *, transport=None):
         vaults_by_id = {item["id"].lower(): item for collection in reader.collections if collection["type"] == "vault" for item in collection["items"]}
         key_by_id = {item["id"].lower(): item for collection in reader.collections if collection["type"] == "key_metadata" for item in collection["items"]}
         for collection in reader.collections:
+            _normalize_vault_expiration(collection, vaults_by_id)
             if collection["type"] == "secret_metadata":
                 for item in collection["items"]:
                     parent = vaults_by_id.get(collection["scope"].lower())
@@ -1989,6 +2585,7 @@ def collect(connector, requirements=None, *, transport=None):
             skipped_embeds.add("longTermRetentionBackups")
         _embed(reader, request, embedded_parents, known_diagnostics, skipped_embeds)
         azure_swc.collect_nested_metadata(reader, request, embedded_parents)
+        azure_network_catalog.collect_children(reader, request, scopes, wanted)
         azure_swc.collect_diagnostic_categories(reader, request, embedded_parents, scopes, wanted)
         azure_swc.collect_vm_instance_views(reader, request, embedded_parents)
         azure_wave_compute_native.collect(reader, request, scopes, wanted, options)
@@ -2024,16 +2621,29 @@ def collect(connector, requirements=None, *, transport=None):
             def synapse_assessments(item=item, rid=rid):
                 if item.get("_coverage", {}).get("sqlPools", {}).get("status") not in ("collected", "empty"):
                     raise AzureReadError("parent_sql_pools_unavailable")
+                seen = {}
                 for pool in item["sqlPools"]:
                     pid = pool["id"]
                     for page in reader.pages(request, ARM + pid + "/vulnerabilityAssessments?api-version=2021-06-01"):
-                        yield _child_rows(page, pid, "sqlVulnerabilityAssessments")
+                        distinct = []
+                        for row in _child_rows(page, pid, "sqlVulnerabilityAssessments"):
+                            key = row["id"].casefold()
+                            if key in seen:
+                                if seen[key] != row:
+                                    raise ValueError("conflicting SQL vulnerability assessment identity")
+                                continue
+                            seen[key] = row
+                            distinct.append(row)
+                        yield distinct
             synapse_jobs.append((item, ("synapse_assessments", rid, "Microsoft.Synapse", synapse_assessments)))
         with ThreadPoolExecutor(max_workers=reader.workers) as pool:
             for (item, _), read in zip(synapse_jobs, pool.map(reader._read, [job[1] for job in synapse_jobs])):
                 item.setdefault("_coverage", {})["sqlVulnerabilityAssessments"] = {key: read[key] for key in ("status", "error") if key in read}
                 if read["status"] in ("collected", "empty"):
                     item["sqlVulnerabilityAssessments"] = read["items"]
+        azure_application_compute_2_native.collect_synapse_sql_private_endpoints(reader, request, reader.collections, wanted)
+        azure_acr_public_ip_review_20261020.collect(reader, request, scopes, wanted)
+        azure_automation_aci_metadata_native_20261020.collect(reader, request, scopes, wanted)
         # Authoritative parent gathers reduce to one complete subscription scope.
         derived = {
             "flow_log": ("network_watcher", "flowLogs"), "backup_protected_item": ("recovery_vault", "backupProtectedItems"), "backup_policy": ("recovery_vault", "backupPolicies"), "backup_job": ("recovery_vault", "backupJobs"),
@@ -2121,6 +2731,15 @@ def collect(connector, requirements=None, *, transport=None):
                     seen_graph = set()
                     try:
                         for page in reader.pages(request, url, audience=GRAPH, next_key="@odata.nextLink"):
+                            if kind == "user_registration_detail":
+                                for row in page:
+                                    identity = row.get("id") if isinstance(row, dict) else None
+                                    if (not isinstance(identity, str) or re.fullmatch(
+                                            r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", identity) is None):
+                                        raise ValueError("malformed native user registration GUID")
+                            if kind == 'named_location':
+                                for row in page:
+                                    azure_remaining_services_1_native.graph_identity(kind, row)
                             if kind in ("directory_application", "directory_service_principal", "directory_user",
                                         "directory_group", "user_registration_detail", "directory_role_assignment",
                                         "directory_role_definition", "directory_role_eligibility_schedule",
@@ -2150,10 +2769,12 @@ def collect(connector, requirements=None, *, transport=None):
         for kind, endpoint in DIRECTORY_SINGLETONS.items():
             if kind in wanted:
                 url = GRAPH + "/v1.0/" + endpoint
-                def singleton(url=url):
+                def singleton(url=url, kind=kind):
                     value = reader.call(request, url, audience=GRAPH)
                     if not isinstance(value, dict) or not value.get("id"):
                         raise ValueError("malformed directory singleton metadata")
+                    if kind == 'authentication_methods_policy':
+                        azure_remaining_services_1_native.graph_identity(kind, value)
                     yield [{**value, "_provenance": {"tenant_id": tenant_scope.removeprefix("/tenants/"), "endpoint": urlsplit(url).path, "read_only": True}}]
                 jobs.append((kind, tenant_scope, "Microsoft.Graph", singleton))
         if "directory_cba_configuration" in wanted:
@@ -2374,6 +2995,8 @@ def collect(connector, requirements=None, *, transport=None):
         azure_arm_metadata_native.collect(reader, request, scopes, wanted)
         azure_monitor_inventory_native.collect(reader, request, scopes, wanted)
         azure_aks_workloads_native.collect(reader, request, transport, scopes, wanted, options, auth)
+        azure_aks_legacy_projection_review_20261020.collect_diagnostics(reader, request, scopes, wanted)
+        azure_aks_legacy_projection_review_20261020.collect_hsm_categories(reader, request, scopes, wanted)
         azure_databricks_native.collect(reader, request, transport, scopes, wanted, options, auth)
         azure_devops_git_native.collect(reader, request, transport, scopes, wanted, options, auth)
         azure_devops_pipeline_native.collect(reader, request, transport, scopes, wanted, options, auth)
@@ -2397,6 +3020,22 @@ def collect(connector, requirements=None, *, transport=None):
         azure_security_correlation_native.collect(reader, request, scopes, wanted, options)
         collect_detection_telemetry(reader, request, scopes, wanted, options,
                                     verified_tenant=getattr(transport, "verified_tenant", None))
+        if package_grant is not None:
+            package_source.collect(reader, transport, package_grant, scopes,
+                customer_context_id=customer_context_id, credential_context_id=credential_context_id)
+        azure_selected_configuration_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_selected_declaration_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_selected_log_sample_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_ml_selected_job_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_databricks_notebook_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_ml_selected_asset_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_function_settings_declarations_20261020.collect(reader, transport, scopes, wanted, options,
+            named_checks=function_checks, credential_context_id=credential_context_id, customer_context_id=customer_context_id)
+        azure_selected_storage_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_devops_selected_content_secret_indicators.collect(reader, request, transport, scopes, wanted, options, auth)
+        azure_app_settings_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_acr_image_secret_indicators.collect(reader, transport, scopes, wanted, options)
+        azure_ai_services_native.collect(reader, request, scopes, wanted)
         azure_disclosure_native.collect(reader, transport, scopes, options,
                                         credential_context_id, customer_context_id)
         from .azure_effective_routes_native import collect as collect_effective_routes
@@ -2413,7 +3052,12 @@ def collect(connector, requirements=None, *, transport=None):
                     reader.unavailable(kind, scope, "azure", exc)
     finally:
         if owned and transport is not None:
-            transport.close()
+            if function_targets:
+                transport.tokens.clear()
+                with azure_function_settings_declarations_20261020.private_native_logs():
+                    transport.close()
+            else:
+                transport.close()
     # Complete empty parent lists prove no child instances; denied/partial
     # parents never fabricate an empty child envelope.
     child_parents = {"key_metadata": "vault", "key_vault_key": "vault", "key_rotation_policy": "vault", "key_vault_certificate_policy": "vault", "secret_metadata": "vault",
@@ -2451,13 +3095,30 @@ def collect(connector, requirements=None, *, transport=None):
     # Scan-local opaque binding is generated here, never accepted from portable
     # connector input, and is unique across credentials/captures/customers.
     for collection in reader.collections:
+        _bind_service_diagnostic_receipt(collection, reader)
         proof = {"credential_context_id": credential_context_id, "customer_context_id": customer_context_id}
         if collection["service"] == "Microsoft.Graph":
             proof.update(tenant_id=authenticated_tenant, tenant_verified=bool(getattr(transport, "verified_tenant", None)))
         collection.setdefault("_provenance", {}).update(proof)
         for item in collection["items"]:
             item.setdefault("_provenance", {}).update(proof)
+        _bind_hsm_diagnostic_context(collection, proof)
+    if request is not None:
+        azure_identity_enforcement_review_20261020.collect(reader, request, scopes, wanted, transport,
+            credential_context_id, customer_context_id)
     metadata = reader.metadata()
+    metadata.update(getattr(reader, "nsp_query_cmk_metadata", {}))
+    metadata.update(getattr(reader, 'configuration_secret_metadata', {}))
+    metadata.update(getattr(reader, 'declaration_secret_metadata', {}))
+    metadata.update(getattr(reader, 'log_sample_secret_metadata', {}))
+    metadata.update(getattr(reader, 'ml_command_job_secret_metadata', {}))
+    metadata.update(getattr(reader, 'databricks_notebook_secret_metadata', {}))
+    metadata.update(getattr(reader, 'ml_asset_secret_metadata', {}))
+    metadata.update(getattr(reader, 'function_declaration_metadata', {}))
+    metadata.update(getattr(reader, 'storage_source_secret_metadata', {}))
+    metadata.update(getattr(reader, 'devops_selected_metadata', {}))
+    metadata.update(getattr(reader, 'app_setting_secret_metadata', {}))
+    metadata.update(getattr(reader, 'acr_image_secret_metadata', {}))
     if "security_admin_rule" in wanted:
         admin_rows = [c for c in reader.collections if c["type"] == "security_admin_rule" and c["scope"] in scopes]
         vnet_rows = {c["scope"]: c for c in reader.collections if c["type"] == "vnet" and c["scope"] in scopes}
@@ -2615,5 +3276,11 @@ def collect(connector, requirements=None, *, transport=None):
     except Exception:
         reader.progress("error")
         raise
+    if package_grant is not None:
+        snapshot = package_source.finish(reader, snapshot, options, transport,
+            locals().get('cache', {}), locals().get('cache_locks', {}))
+        reader.progress('completed')
+        return snapshot
+    snapshot = azure_function_settings_runtime_hooks_20261020.final_snapshot(reader, snapshot)
     reader.progress("completed")
     return snapshot

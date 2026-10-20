@@ -156,7 +156,8 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
   const areaCandidates = (primary?.areas.filter(n => !term || matches(n) || matchedAreas.has(n.id)) || []).sort((a,b) => Number(!focusAreas.includes(a.id))-Number(!focusAreas.includes(b.id)));
   const assetCandidates = (primary?.members.filter(n => model.area.get(n.id) === selectedArea && n.id !== selectedArea && matches(n)) || []).sort((a,b) => focusRank(a)-focusRank(b));
   const phase = !selectedNetwork ? "network" : !selectedArea ? "area" : "asset";
-  const pageCount = Math.max(1, Math.ceil((phase === "network" ? groups.length : phase === "area" ? areaCandidates.length : assetCandidates.length) / (phase === "network" ? NETWORKS_PER_PAGE : phase === "area" ? AREAS_PER_PAGE : ASSETS_PER_PAGE)));
+  const directCandidates = primary?.members.filter(n => n.id !== primary.root?.id && !areas.has(kind(n)) && !model.area.has(n.id) && matches(n)) || [];
+  const pageCount = Math.max(1, phase === "area" ? Math.max(Math.ceil(areaCandidates.length / AREAS_PER_PAGE), Math.ceil(directCandidates.length / 24)) : Math.ceil((phase === "network" ? groups.length : assetCandidates.length) / (phase === "network" ? NETWORKS_PER_PAGE : ASSETS_PER_PAGE)));
   const shownGroups = phase === "network" ? groups.slice(page * NETWORKS_PER_PAGE, (page + 1) * NETWORKS_PER_PAGE) : groups;
   const areaPage = phase === "asset" ? Math.floor(Math.max(0, areaCandidates.findIndex(n => n.id === selectedArea)) / AREAS_PER_PAGE) : page;
   const shownAreas = selectedNetwork ? areaCandidates.slice(areaPage * AREAS_PER_PAGE, (areaPage + 1) * AREAS_PER_PAGE) : [];
@@ -187,7 +188,7 @@ export function networkView(model: NetworkModel, provider: string, selectedNetwo
     }
     const directAreas = expanded ? shownAreas : preview ? group.areas.slice(0, 4) : [];
     const ordinaryServices = (expanded || preview)
-      ? group.members.filter(n => serviceTypes.has(kind(n)) && !model.area.has(n.id) && (!term || matches(n))).slice(0, expanded ? 24 : 4)
+      ? group.members.filter(n => n.id !== group.root?.id && !areas.has(kind(n)) && !model.area.has(n.id) && (!term || matches(n))).slice(expanded && !selectedArea ? page * 24 : 0, expanded ? (!selectedArea ? page * 24 : 0) + 24 : 4)
       : [];
     const directServices = preview
       ? [...new Map([...focusedMembers, ...ordinaryServices].map(n => [n.id, n])).values()]
@@ -334,7 +335,114 @@ export function nativeDetails(n: GraphNode): { name: string; value: string }[] {
   if (placement === "unknown") fields.push(["Network placement", "Unknown: native attachment or endpoint facts missing"]);
   const status = d.status && typeof d.status === "object" ? d.status as Record<string,unknown> : {};
   fields.push(["Pod IP", status.podIP], ["Host IP", status.hostIP]);
+  fields.push(...attachmentDetails(d));
+  const observed = Array.isArray(n.network_attributes) ? n.network_attributes : Array.isArray(d.NetworkAttributes) ? d.NetworkAttributes : [];
+  for (const item of observed) {
+    if (!item || typeof item !== "object") continue;
+    const attribute = item as Record<string,unknown>;
+    if (typeof attribute.name !== "string") continue;
+    const value = attribute.value;
+    if (!["string","number","boolean"].includes(typeof value) && !(Array.isArray(value) && value.every(v => ["string","number","boolean"].includes(typeof v)))) continue;
+    const generic = /^(value|id|name|type|address|mode|enabled|status|state)$/i.test(attribute.name);
+    const label = generic && typeof attribute.path === "string" ? attribute.path : attribute.name;
+    const name = label.replace(/([a-z0-9])([A-Z])/g,"$1 $2").replaceAll("_"," ").replaceAll("."," / ");
+    const text = Array.isArray(value) ? value.join(", ") : String(value);
+    if (!fields.some(([label,existing]) => label.toLowerCase() === name.toLowerCase() && String(existing) === text)) fields.push([name,text]);
+  }
   return fields.filter(([,v]) => typeof v === "string" && v || typeof v === "number").map(([name,value]) => ({ name, value: String(value) }));
+}
+
+function attachmentDetails(data: Record<string,unknown>): [string,string][] {
+  const names: Record<string,string> = {
+    VpcId:"VPC", vpcId:"VPC", SubnetId:"Subnet", subnetId:"Subnet", SubnetIds:"Subnets", subnetIds:"Subnets", subnets:"Subnets",
+    SecurityGroups:"Security groups", SecurityGroupIds:"Security groups", securityGroups:"Security groups", securityGroupIds:"Security groups",
+    network:"Network", subnetwork:"Subnetwork", privateNetwork:"Private network", authorizedNetwork:"Authorized network",
+    FileSystemId:"EFS filesystem", MountTargetId:"Mount target", IpAddress:"IP address", Ipv6Address:"IPv6 address",
+    VpcOriginId:"VPC origin", OriginEndpointArn:"Origin target", HTTPPort:"Origin HTTP port", HTTPSPort:"Origin HTTPS port",
+    OriginProtocolPolicy:"Origin protocol", DomainName:"Origin hostname", clusterArn:"ECS cluster", serviceArn:"Service ARN", taskArn:"ECS task",
+    connector:"VPC connector", vpcConnector:"VPC connector", egress:"VPC egress", ingress:"Ingress", networkEndpointType:"Endpoint type",
+    pscTargetService:"PSC target", targetService:"Producer forwarding rule", pscServiceAttachmentLink:"PSC attachment", pscConnectionStatus:"PSC status",
+    publicNetworkAccess:"Public network access", virtualNetworkSubnetId:"Integration subnet", vnetSubnetID:"Node subnet", podSubnetID:"Pod subnet",
+    privateLinkServiceId:"Private Link target", groupIds:"Private Link subresources", provisioningState:"Provisioning state",
+    volumeName:"Persistent volume", claimName:"Volume claim", volumeHandle:"Cloud storage handle", driver:"Storage driver", server:"NFS server",
+    HostVPCId:"VPC", VpcConnectorArn:"App Runner connector", VpcEndpointId:"Private endpoint", SecurityGroupIdList:"Security groups",
+    infrastructureSubnetId:"Environment subnet", environmentId:"App environment", managedEnvironmentId:"App environment",
+    EndpointConfigName:"Endpoint configuration", DirectInternetAccess:"Direct Internet access", AppNetworkAccessType:"App network access",
+    EnableNetworkIsolation:"Network isolation", gatewayClassName:"Gateway class", storageClassName:"Storage class",
+    ResolverEndpointId:"DNS resolver endpoint", ResolverRuleId:"DNS resolver rule", networkUrl:"Network", targetNetwork:"DNS peer network",
+    controllerName:"Gateway controller", externalName:"External service name", external:"External ingress", publicNetworkAccessForIngestion:"Public ingestion",
+    containerPort:"Container port", hostPort:"Host port", hostNetwork:"Host networking", targetPort:"Target port", hostnames:"Route hostnames",
+    vpcSubnetIds:"Subnets", vpcSecurityGroupIds:"Security groups", networkInterfaceIds:"Interfaces", subnet:"Subnetwork",
+    serviceNetworkId:"Service network", serviceNetworkArn:"Service network", serviceId:"Service", resourceGatewayId:"Resource gateway",
+    virtualNetworkSubnetResourceId:"Agent pool subnet", publiclyAccessible:"Public access", disableExecuteApiEndpoint:"Default API endpoint disabled",
+    enablePrivateServiceConnect:"PSC enabled", dedicatedEndpointDns:"Dedicated endpoint DNS", DnsResolvers:"DNS resolvers",
+    SubnetArns:"Subnets", SecurityGroupArns:"Security groups", GatewayARN:"Storage gateway", Ec2InstanceId:"Gateway instance",
+    VpcEndpointService:"Endpoint service", PrivateLinkEndpoint:"Private Link endpoint", Ipv4Address:"IPv4 address",
+    VPCId:"Associated VPC", VPCRegion:"Associated VPC region", PrivateZone:"Private DNS zone",
+    ConnectionId:"VPC link", connectionId:"VPC link", ConnectionType:"Connection type", connectionType:"Connection type", IntegrationUri:"Integration target",
+    LoadBalancerArn:"Load balancer", Port:"Port", Protocol:"Protocol", SslPolicy:"TLS policy", ServerName:"Endpoint server",
+    fqdn:"Endpoint hostname", ipAddressRange:"Ingress IP range", transport:"Transport", allowInsecure:"Allow insecure ingress",
+    DeploymentStatus:"Configuration deployment", vpcIdentifier:"VPC", resourceConfigurationId:"Resource configuration",
+    targetGroupIdentifier:"Target group", listenerArn:"Lattice listener",
+    meshes:"Meshes", gateways:"Gateways", serviceName:"Backend service", serverTlsPolicy:"Server TLS policy", clientTlsPolicy:"Client TLS policy",
+    authorizationPolicy:"Authorization policy", interceptionPort:"Interception port", allowOpen:"Allow plaintext", rrdatas:"DNS addresses", ttl:"DNS TTL",
+    wellKnownCACertificates:"CA trust", domainName:"Domain name", forwardingRuleState:"DNS forwarding state", targetDnsServers:"DNS forwarders",
+    ipv4Address:"IPv4 address", ipv6Address:"IPv6 address", cname:"DNS alias", privateDnsZoneArmResourceId:"Private DNS zone",
+    isolationMode:"Managed network isolation", serviceResourceId:"Outbound Private Link target", subresourceTarget:"Private Link subresource",
+    linkedResourceId:"Linked monitor resource", ingestionAccessMode:"Ingestion access mode", queryAccessMode:"Query access mode",
+    cidrs:"Service CIDRs", networkAttachment:"Network attachment", vpc:"Network", url:"Endpoint URL", CNAME:"Endpoint hostname", EndpointURL:"Endpoint URL",
+    SecurityGroup:"Security group", EniId:"HSM interface", EniIp:"HSM IPv4 address", EniIpV6:"HSM IPv6 address", UriEndpoint:"Proxy endpoint",
+    VerifiedAccessGroupId:"Verified Access group", VerifiedAccessInstanceId:"Verified Access instance", EndpointDomain:"Endpoint domain", ApplicationDomain:"Application domain",
+    PolicyEnabled:"Policy enabled",
+  };
+  const containers = new Set(["properties","Config","DistributionConfig","Origins","Items","VpcOriginConfig","VpcOrigin","VpcOriginEndpointConfig",
+    "networkConfiguration","awsvpcConfiguration","VpcConfig","DBSubnetGroup","DBSubnetGroupDetails","VpcSecurityGroups","Subnets","VpcOptions",
+    "networkConfig","settings","ipConfiguration","pscConfig","template","vpcAccess","serviceConfig","networkInterfaces",
+    "privateEndpointConnections","privateLinkServiceConnections","manualPrivateLinkServiceConnections","networkAcls","networkProfile","agentPoolProfiles",
+    "spec","volumes","persistentVolumeClaim","csi","nfs","attachments","details","NetworkDetails","NetworkConfig","VpcConfiguration",
+    "NetworkConfiguration","EgressConfiguration","IngressConfiguration","PhysicalConnectionRequirements","Configuration","projects","vpcConfig",
+    "environment","workerPools","allocationPolicy","network","networkInterfaces","vnetConfiguration","configuration","ingress","jobTemplate",
+    "endpointConfiguration","EndpointDetails","Server","vpcAccessConnector","privateVisibilityConfig","peeringConfig","networks","containers","ports","listeners","rules","backendRefs","parentRefs",
+    "gcpConfig","accessConfig","networkConfigs","privateServiceConnectConfig","privateEndpoints","pscConfigs","pscConnections","endpoints","connections",
+    "PrivateLinkConfig","GatewayNetworkInterfaces","VpcEndpoints","remoteAccess","resources","VPCs","NetworkIntegrations","NetworkResources","resourceMethods","methodIntegration",
+    "GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS","ANY","HealthCheckConfig","MutualAuthentication","ipSecurityRestrictions","additionalPortMappings",
+    "NetworkSettings","OptionSettings","config","NetworkTargets","target","defaultAction","forward","targetGroups","action","destinations","validation","targetRefs",
+    "networkSettings","aRecords","aaaaRecords","cnameRecord","mxRecords","srvRecords","ptrRecords","targetDnsServers","currentDeployment","publicEndpoint","resourceConfigurationDefinition","dnsResource","ipResource",
+    "managedNetwork","destination","accessModeSettings","configurationAccess","logsIngestion","metricsIngestion","vpcPeeringConfig","pscInterfaceConfig",
+    "Hsms","NetworkInterfaceOptions","LoadBalancerOptions","CidrOptions","XksProxyConfiguration"]);
+  const rows: [string,string][] = [];
+  const seen = new Set<string>();
+  const visit = (value: unknown, depth = 0) => {
+    if (depth > 12 || rows.length >= 80 || !value || typeof value !== "object") return;
+    if (Array.isArray(value)) { value.forEach(v => visit(v,depth + 1)); return; }
+    const obj = value as Record<string,unknown>;
+    const networkOptions: Record<string, Record<string,string>> = {
+      "aws:ec2:vpc": {VPCId:"VPC",Subnets:"Subnets",ELBSubnets:"Load balancer subnets",DBSubnets:"Database subnets",AssociatePublicIpAddress:"Assign public IP",ELBScheme:"Load balancer scheme"},
+      "aws:autoscaling:launchconfiguration": {SecurityGroups:"Security groups"},
+      "aws:elb:loadbalancer": {SecurityGroups:"Security groups",ManagedSecurityGroup:"Managed security group"},
+      "aws:elbv2:loadbalancer": {SecurityGroups:"Security groups",ManagedSecurityGroup:"Managed security group"},
+    };
+    const optionLabel = typeof obj.Namespace === "string" && typeof obj.OptionName === "string" ? networkOptions[obj.Namespace]?.[obj.OptionName] : undefined;
+    if (optionLabel && typeof obj.Value === "string" && !seen.has(`${optionLabel}:${obj.Value}`)) {
+      seen.add(`${optionLabel}:${obj.Value}`); rows.push([optionLabel,obj.Value]);
+    }
+    if ((obj.name === "networkInterfaceId" || obj.name === "subnetId") && typeof obj.value === "string") {
+      const key = `${obj.name}:${obj.value}`;
+      if (!seen.has(key)) { seen.add(key); rows.push([obj.name === "subnetId" ? "Subnet" : "Interface",obj.value]); }
+    }
+    for (const [key,item] of Object.entries(obj)) {
+      const text = ["string","number","boolean"].includes(typeof item) ? String(item) : Array.isArray(item) && item.every(v => typeof v === "string") ? item.join(", ") : "";
+      if (names[key] && text && !seen.has(`${key}:${text}`)) { seen.add(`${key}:${text}`); rows.push([names[key],text]); }
+      if (key === "outboundRules" && item && typeof item === "object" && !Array.isArray(item)) Object.values(item).forEach(rule => visit(rule,depth + 1));
+      if (key === "SubnetMapping" && item && typeof item === "object" && !Array.isArray(item)) {
+        const subnets = Object.values(item).filter(subnet => typeof subnet === "string").join(", ");
+        if (subnets) rows.push(["Subnets",subnets]);
+      }
+      if (containers.has(key)) visit(item,depth + 1);
+    }
+  };
+  visit(data);
+  return rows;
 }
 export function ruleRows(n: GraphNode): { order: string; direction: string; protocol: string; port: string; source: string; destination: string; action: string }[] {
   const native = (n.evidence as Record<string, unknown> | undefined)?.native_resource;

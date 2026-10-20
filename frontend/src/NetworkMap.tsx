@@ -34,6 +34,11 @@ const icons: Record<string, typeof Network> = {
   vpc_endpoint: Waypoints, vpc_endpoint_service: Waypoints, ec2_instance_connect_endpoint: Waypoints, private_endpoint: Waypoints,
   elastic_ip: Globe2, ec2_eip: Globe2, address: Globe2, url_map: Route, backend_bucket: Cloud, health_check: ShieldCheck,
   network_interface: Disc3, nic: Disc3, instance: Server, vm: Server, rds_instance: Server, rds_cluster: Server, lambda_function: Cloud, eks_cluster: Boxes, gke_cluster: Boxes, pod: Boxes, service: Cloud,
+  ecs_cluster: Boxes, ecs_service: Boxes, ecs_task: Boxes, ecs_task_set: Boxes, ecs_container_instance: Server,
+  efs_file_system: HardDrive, efs_mount_target: Disc3, cloudfront_distribution: Globe2, cloudfront_vpc_origin: Waypoints,
+  service_attachment: Waypoints, network_endpoint_group: Waypoints, network_attachment: Disc3, vpc_access_connector: GitFork,
+  private_link_service: Waypoints, persistentvolume: HardDrive, persistentvolumeclaim: HardDrive,
+  cloudrun_service: Cloud, cloudrun_job: Boxes, function: Cloud, filestore_instance: HardDrive, redis_instance: Server,
 };
 type N = Node<{ item: VisibleItem; expanded: boolean; internalResults?: ConfigurationDecision[]; onInspectInternal?: (results: ConfigurationDecision[]) => void }, "networkAsset">;
 type E = Edge<{ count: number; type: string; uncertain: boolean; grouped?: boolean; color?: string; sections: ElkEdgeSection[]; rooted: boolean; showLabel: boolean }, "networkLink">;
@@ -148,7 +153,7 @@ function ResourceDetail({ n, graph }: { n: GraphNode; graph: Graph }) {
   useEffect(() => setPage(0), [n.id]);
   return <>
     <details className="network-resource-details"><summary>Resource details</summary>
-      <dl className="network-facts">{nativeDetails(n).filter(x => x.name !== "Name" && x.name !== "Type").map(x => <div key={x.name}><dt>{x.name}</dt><dd>{x.value}</dd></div>)}</dl>
+      <dl className="network-facts">{nativeDetails(n).filter(x => x.name !== "Name" && x.name !== "Type").map((x,index) => <div key={`${x.name}:${index}`}><dt>{x.name}</dt><dd>{x.value}</dd></div>)}</dl>
     </details>
     {!observed(n) && <p className="notice">Referenced resource was not collected in this scope. Its configuration and attachment are unknown.</p>}
     <h3>Loaded attachment records · {refs.length}</h3>

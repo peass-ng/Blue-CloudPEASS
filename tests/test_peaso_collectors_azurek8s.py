@@ -150,18 +150,18 @@ def test_tenant_subscription_policy_normalizes_only_expected_identity(identifier
 
 
 def test_azure_vm_full_detail_requests_instance_view_power_state():
-    rid = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/server"
+    rid = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/server"
     def handler(url, body, audience):
         path = urlsplit(url).path
         if path == rid:
             assert "$expand=instanceView" in urlsplit(url).query
-            return {"id": rid, "properties": {"provisioningState": "Succeeded",
+            return {"id": rid, "type": "Microsoft.Compute/virtualMachines", "name": "server", "properties": {"provisioningState": "Succeeded",
                 "instanceView": {"statuses": [{"code": "PowerState/running"}]}}}
-        if path == "/subscriptions/sub-a/providers/Microsoft.Compute/virtualMachines":
-            return {"value": [{"id": rid}]}
+        if path == "/subscriptions/11111111-1111-1111-1111-111111111111/providers/Microsoft.Compute/virtualMachines":
+            return {"value": [{"id": rid, "type": "Microsoft.Compute/virtualMachines", "name": "server"}]}
         return {"value": []}
     api = FakeAzure(handler)
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["vm"], transport=api)
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["vm"], transport=api)
     vm = collection(snapshot, "vm")["items"][0]
     assert vm["properties"]["instanceView"]["statuses"] == [{"code": "PowerState/running"}]
     assert vm["_provenance"]["expand"] == "instanceView"
@@ -179,21 +179,21 @@ def test_azure_graph_pagination_then_arm_details_cross_subscription():
         sub = urlsplit(url).path.split("/")[2]
         if urlsplit(url).path.endswith("/virtualNetworks/same"):
             return {"id": f"/subscriptions/{sub}/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/same",
-                "properties": {"provisioningState": "Succeeded", "addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}
-        return {"value": [{"id": f"/subscriptions/{sub}/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/same", "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}]}
+                "type": "Microsoft.Network/virtualNetworks", "properties": {"provisioningState": "Succeeded", "addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}
+        return {"value": [{"id": f"/subscriptions/{sub}/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/same", "type": "Microsoft.Network/virtualNetworks", "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}]}
     api = FakeAzure(handler)
-    snapshot = azure.collect({"scopes": ["sub-a", "sub-b"], "options": {"concurrency": 2}}, ["vnet"], transport=api)
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"], "options": {"concurrency": 2}}, ["vnet"], transport=api)
     assert validate(snapshot) == snapshot
     # Two graph pages, then one ARM inventory, VNet detail and diagnostic read per scope.
     assert len(api.calls) == 8
     graph = [body for _, body, _ in api.calls if body is not None]
-    assert len(graph) == 2 and all(sorted(body["subscriptions"]) == ["sub-a", "sub-b"] for body in graph)
-    assert len(collection(snapshot, "resource_graph", "/subscriptions/sub-a")["items"]) == 1
-    assert len(collection(snapshot, "resource_graph", "/subscriptions/sub-b")["items"]) == 1
+    assert len(graph) == 2 and all(sorted(body["subscriptions"]) == ["11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"] for body in graph)
+    assert len(collection(snapshot, "resource_graph", "/subscriptions/11111111-1111-1111-1111-111111111111")["items"]) == 1
+    assert len(collection(snapshot, "resource_graph", "/subscriptions/22222222-2222-2222-2222-222222222222")["items"]) == 1
     assert sum("/providers/Microsoft.Insights/diagnosticSettings?" in url for url, _, _ in api.calls) == 2
     assert len({(url, repr(body), audience) for url, body, audience in api.calls}) == len(api.calls)
-    assert collection(snapshot, "vnet", "/subscriptions/sub-a")["status"] == "collected"
-    assert collection(snapshot, "vnet", "/subscriptions/sub-b")["status"] == "collected"
+    assert collection(snapshot, "vnet", "/subscriptions/11111111-1111-1111-1111-111111111111")["status"] == "collected"
+    assert collection(snapshot, "vnet", "/subscriptions/22222222-2222-2222-2222-222222222222")["status"] == "collected"
     ids = [r["id"] for r in resources(snapshot) if r["type"] == "vnet"]
     assert len(set(ids)) == 2
     assert not api.closed
@@ -225,19 +225,20 @@ def test_azure_route_table_detail_captures_peering_barrier_and_provisioning():
 
 
 def test_azure_nsg_detail_captures_rule_provisioning():
-    nsg_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
+    nsg_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg"
     def handler(url, body, audience):
         if body is not None:
             return {"data": []}
         if "/providers/Microsoft.Network/networkSecurityGroups?" in url:
-            return {"value": [{"id": nsg_id, "properties": {"securityRules": []}}]}
+            return {"value": [{"id": nsg_id, "type": "Microsoft.Network/networkSecurityGroups", "properties": {"securityRules": []}}]}
         if urlsplit(url).path == nsg_id:
-            return {"id": nsg_id, "properties": {"provisioningState": "Succeeded",
-                "securityRules": [{"name": "allow", "properties": {"provisioningState": "Succeeded",
-                    "direction": "Ingress", "access": "Allow"}}]}}
+            return {"id": nsg_id, "type": "Microsoft.Network/networkSecurityGroups", "properties": {"provisioningState": "Succeeded",
+                "securityRules": [{"id": nsg_id + "/securityRules/allow", "name": "allow", "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                    "properties": {"provisioningState": "Succeeded", "priority": 100, "protocol": "Tcp", "sourcePortRange": "*", "destinationPortRange": "443",
+                        "sourceAddressPrefix": "10.0.0.0/8", "destinationAddressPrefix": "*", "direction": "Inbound", "access": "Allow"}}]}}
         return {"value": []}
     api = FakeAzure(handler)
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["nsg"], transport=api)
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["nsg"], transport=api)
     nsg = collection(snapshot, "nsg")["items"][0]
     assert collection(snapshot, "nsg")["status"] == "collected"
     assert nsg["properties"]["securityRules"][0]["properties"]["provisioningState"] == "Succeeded"
@@ -246,7 +247,7 @@ def test_azure_nsg_detail_captures_rule_provisioning():
 
 
 def test_azure_subnet_and_peering_use_full_child_detail():
-    vnet_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/net"
+    vnet_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/net"
     subnet_id = vnet_id + "/subnets/app"
     peering_id = vnet_id + "/virtualNetworkPeerings/peer"
     def handler(url, body, audience):
@@ -254,29 +255,29 @@ def test_azure_subnet_and_peering_use_full_child_detail():
             return {"data": []}
         path = urlsplit(url).path
         if "/providers/Microsoft.Network/virtualNetworks?" in url:
-            return {"value": [{"id": vnet_id, "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]},
-                "subnets": [{"id": subnet_id, "properties": {}}],
-                "virtualNetworkPeerings": [{"id": peering_id, "properties": {}}]}}]}
+            return {"value": [{"type": "Microsoft.Network/virtualNetworks", "id": vnet_id, "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]},
+                "subnets": [{"type": "Microsoft.Network/virtualNetworks/subnets", "id": subnet_id, "properties": {}}],
+                "virtualNetworkPeerings": [{"type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings", "id": peering_id, "properties": {}}]}}]}
         if path == vnet_id:
-            return {"id": vnet_id, "properties": {"provisioningState": "Succeeded",
+            return {"type": "Microsoft.Network/virtualNetworks", "id": vnet_id, "properties": {"provisioningState": "Succeeded",
                 "addressSpace": {"addressPrefixes": ["10.0.0.0/16"]},
-                "subnets": [{"id": subnet_id}], "virtualNetworkPeerings": [{"id": peering_id}]}}
+                "subnets": [{"type": "Microsoft.Network/virtualNetworks/subnets", "id": subnet_id}], "virtualNetworkPeerings": [{"type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings", "id": peering_id}]}}
         if path == subnet_id:
-            return {"id": subnet_id, "properties": {"provisioningState": "Succeeded",
-                "addressPrefix": "10.0.1.0/24", "networkSecurityGroup": {"id": "nsg-a"},
-                "routeTable": {"id": "rt-a"}}}
+            return {"type": "Microsoft.Network/virtualNetworks/subnets", "id": subnet_id, "properties": {"provisioningState": "Succeeded",
+                "addressPrefix": "10.0.1.0/24", "networkSecurityGroup": {"id": vnet_id.split("/providers/")[0] + "/providers/Microsoft.Network/networkSecurityGroups/nsg-a"},
+                "routeTable": {"id": vnet_id.split("/providers/")[0] + "/providers/Microsoft.Network/routeTables/rt-a"}}}
         if path == peering_id:
-            return {"id": peering_id, "properties": {"provisioningState": "Succeeded",
+            return {"type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings", "id": peering_id, "properties": {"provisioningState": "Succeeded",
                 "peeringState": "Connected", "peeringSyncLevel": "FullyInSync"}}
         return {"value": []}
     api = FakeAzure(handler)
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["subnet", "vnet_peering"], transport=api)
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["subnet", "vnet_peering"], transport=api)
     subnet = collection(snapshot, "subnet", vnet_id)["items"][0]
     peering = collection(snapshot, "vnet_peering", vnet_id)["items"][0]
     assert subnet["_provenance"]["representation"] == "full"
     assert peering["_provenance"]["representation"] == "full"
-    assert subnet["properties"]["routeTable"]["id"] == "rt-a"
-    assert subnet["properties"]["networkSecurityGroup"]["id"] == "nsg-a"
+    assert subnet["properties"]["routeTable"]["id"] == vnet_id.split("/providers/")[0] + "/providers/Microsoft.Network/routeTables/rt-a"
+    assert subnet["properties"]["networkSecurityGroup"]["id"] == vnet_id.split("/providers/")[0] + "/providers/Microsoft.Network/networkSecurityGroups/nsg-a"
     assert {subnet_id, peering_id} <= {urlsplit(url).path for url, _, _ in api.calls}
 
 
@@ -326,10 +327,10 @@ def test_azure_effective_routes_are_bound_to_the_collected_nic(monkeypatch):
 
 def test_azure_security_admin_absence_needs_complete_vnet_queries(monkeypatch):
     from peaso.collectors import azure_effective_routes_native
-    vnet_id = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet-a"
+    vnet_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/vnet-a"
     class FakeQueries:
         def __init__(self, _reader, _transport, scope):
-            assert scope == "/subscriptions/sub-a"
+            assert scope == "/subscriptions/11111111-1111-1111-1111-111111111111"
             self.proofs = []
         def pages(self, kind, parent):
             assert kind == "admin" and parent == vnet_id
@@ -341,12 +342,12 @@ def test_azure_security_admin_absence_needs_complete_vnet_queries(monkeypatch):
         if body is not None:
             return {"data": [], "resultTruncated": "false"}
         if "/providers/Microsoft.Network/virtualNetworks?" in url:
-            return {"value": [{"id": vnet_id, "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}]}
+            return {"value": [{"id": vnet_id, "type": "Microsoft.Network/virtualNetworks", "properties": {"addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}]}
         if urlsplit(url).path == vnet_id:
-            return {"id": vnet_id, "properties": {"provisioningState": "Succeeded",
+            return {"id": vnet_id, "type": "Microsoft.Network/virtualNetworks", "properties": {"provisioningState": "Succeeded",
                 "addressSpace": {"addressPrefixes": ["10.0.0.0/16"]}, "subnets": []}}
         return {"value": []}
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["security_admin_rule"], transport=FakeAzure(handler))
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["security_admin_rule"], transport=FakeAzure(handler))
     assert collection(snapshot, "security_admin_rule")["status"] == "empty"
     context = snapshot["metadata"]["network_context"]["azure"]["security_admin"]
     assert context["status"] == "collected" and context["complete"] is True and context["policies"] == []
@@ -394,11 +395,11 @@ def test_azure_graph_denial_falls_back_arm_and_graph_denial_explicit():
     def handler(url, body, audience):
         if body is not None or audience == azure.GRAPH:
             raise ReadError(403)
-        account = {"id": "/subscriptions/sub-a/providers/Microsoft.Storage/storageAccounts/account", "properties": {"minimumTlsVersion": "TLS1_2"}}
+        account = {"id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/account", "type": "Microsoft.Storage/storageAccounts", "name": "account", "properties": {"minimumTlsVersion": "TLS1_2"}}
         if urlparse(url).path.casefold() == account["id"].casefold():  # mandatory full-resource GET
             return account
         return {"value": [account]}
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["storage_account", "directory_user"], transport=FakeAzure(handler))
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["storage_account", "directory_user"], transport=FakeAzure(handler))
     assert collection(snapshot, "resource_graph")["status"] == "denied"
     assert collection(snapshot, "storage_account")["status"] == "collected"
     assert collection(snapshot, "directory_user")["status"] == "denied"
@@ -426,12 +427,22 @@ def test_azure_preserves_permission_exclusions_conditions_deny_and_management_pa
             return {"value": [{"id": mg}]}
         if path == mg:
             return {"id": mg, "properties": {"details": {"parent": {"id": "/providers/Microsoft.Management/managementGroups/root"}}, "children": []}}
+        if path.startswith("/providers/Microsoft.Authorization/"):
+            return {"value": []}  # No synthetic tenant-root CustomRole or assignment.
+        role="33333333-3333-3333-3333-333333333333"
+        assignment="44444444-4444-4444-4444-444444444444"
+        principal="55555555-5555-5555-5555-555555555555"
+        parent=path.split("/providers/Microsoft.Authorization/")[0] or "/"
         if path.endswith("roleDefinitions"):
-            return {"value": [{"id": path + "/role", "properties": {"permissions": [permission]}}]}
+            return {"value": [{"id": path + "/" + role, "name": role, "type": "Microsoft.Authorization/roleDefinitions",
+                "properties": {"roleName": "Review role", "roleType": "CustomRole", "assignableScopes": [parent], "permissions": [permission]}}]}
         if path.endswith("roleAssignments"):
-            return {"value": [{"id": path + "/assignment", "properties": {"scope": mg, "principalId": "principal", "roleDefinitionId": mg + "/providers/Microsoft.Authorization/roleDefinitions/role", "condition": "@Resource[tag] StringEquals 'production'", "conditionVersion": "2.0"}}]}
-        return {"value": [{"id": path + "/deny", "properties": {"permissions": [permission], "doNotApplyToChildScopes": True}}]}
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["role_assignment", "role_definition", "deny_assignment"], transport=FakeAzure(handler))
+            return {"value": [{"id": path + "/" + assignment, "name": assignment, "type": "Microsoft.Authorization/roleAssignments",
+                "properties": {"scope": parent, "principalId": principal, "roleDefinitionId": parent.rstrip("/") + "/providers/Microsoft.Authorization/roleDefinitions/" + role,
+                    "condition": "@Resource[tag] StringEquals 'production'", "conditionVersion": "2.0"}}]}
+        return {"value": [{"id": path + "/66666666-6666-6666-6666-666666666666", "name": "66666666-6666-6666-6666-666666666666", "type": "Microsoft.Authorization/denyAssignments",
+            "properties": {"scope": parent, "permissions": [permission], "doNotApplyToChildScopes": True}}]}
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["role_assignment", "role_definition", "deny_assignment"], transport=FakeAzure(handler))
     assert collection(snapshot, "role_definition", mg)["items"][0]["properties"]["permissions"] == [permission]
     assert collection(snapshot, "role_assignment", mg)["items"][0]["properties"]["conditionVersion"] == "2.0"
     assert collection(snapshot, "deny_assignment", mg)["items"][0]["properties"]["doNotApplyToChildScopes"]
@@ -439,15 +450,17 @@ def test_azure_preserves_permission_exclusions_conditions_deny_and_management_pa
 
 
 def test_azure_secret_metadata_and_vm_sensitive_fields_never_retained():
-    vault = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.KeyVault/vaults/vault"
+    vault = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.KeyVault/vaults/vault"
     def handler(url, body, audience):
         if body:
             return {"data": [{"id": vault, "type": "microsoft.keyvault/vaults"}]}
         if "/secrets?" in url:
             return {"value": [{"id": vault + "/secrets/name", "properties": {"value": "do-not-store", "attributes": {"enabled": True}}}]}
-        return {"value": [{"id": vault, "properties": {"enableRbacAuthorization": True, "adminPassword": "do-not-store"}}]}
+        native={"id": vault, "name": "vault", "type": "Microsoft.KeyVault/vaults", "properties": {"enableRbacAuthorization": True, "adminPassword": "do-not-store"}}
+        if urlsplit(url).path==vault:return native
+        return {"value": [native]}
     api = FakeAzure(handler)
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["secret_metadata"], transport=api)
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["secret_metadata"], transport=api)
     secret = collection(snapshot, "secret_metadata")["items"][0]
     assert secret["properties"]["attributes"]["enabled"]
     assert "do-not-store" not in json.dumps(snapshot)
@@ -501,7 +514,10 @@ def test_k8s_denied_reads_do_not_hide_available_rbac_and_no_secret_paths():
     def handler(path, params):
         if path.endswith("pods"):
             raise ReadError(403)
-        return kube_list([kube_item("read", "team-a", rules=[{"resources": ["secrets"], "verbs": ["list"]}])])
+        role=kube_item("read", "team-a", rules=[{"apiGroups": [""], "resources": ["secrets"], "verbs": ["list"]}])
+        role.update(apiVersion="rbac.authorization.k8s.io/v1", kind="Role")
+        role["metadata"].update(uid="33333333-3333-3333-3333-333333333333", resourceVersion="12")
+        return kube_list([role])
     api = FakeKube(handler)
     snapshot = k8s.collect({"scopes": ["team-a"]}, ["role", "pod"], api=api)
     assert collection(snapshot, "pod")["status"] == "denied"
@@ -856,15 +872,15 @@ def test_azure_fallback_list_cross_subscription_rejected():
 
 
 def test_azure_resource_graph_lag_cannot_hide_new_arm_resource():
-    rid = "/subscriptions/sub-a/resourceGroups/new/providers/Microsoft.Network/virtualNetworks/new"
+    rid = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/new/providers/Microsoft.Network/virtualNetworks/new"
     def handler(url, body, audience):
         if body:
             return {"data": [], "resultTruncated": "false"}
         if urlsplit(url).path == rid:
-            return {"id": rid, "properties": {"provisioningState": "Succeeded",
+            return {"id": rid, "type": "Microsoft.Network/virtualNetworks", "properties": {"provisioningState": "Succeeded",
                 "subnets": [], "virtualNetworkPeerings": []}}
-        return {"value": [{"id": rid, "properties": {"subnets": [], "virtualNetworkPeerings": []}}]}
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["vnet"], transport=FakeAzure(handler))
+        return {"value": [{"id": rid, "type": "Microsoft.Network/virtualNetworks", "properties": {"subnets": [], "virtualNetworkPeerings": []}}]}
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["vnet"], transport=FakeAzure(handler))
     assert collection(snapshot, "resource_graph")["status"] == "empty"
     assert collection(snapshot, "vnet")["status"] == "collected"
     assert collection(snapshot, "vnet")["items"][0]["id"] == rid
@@ -886,15 +902,17 @@ def test_azure_thin_arm_list_get_denial_retains_unavailable_detail():
 
 
 def test_azure_app_config_whitelists_settings_and_never_exports_credentials():
-    rid = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Web/sites/app"
+    rid = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Web/sites/app"
     def handler(url, body, audience):
         if body:
             return {"data": []}
         if "/config/web?" in url:
-            return {"id": rid + "/config/web", "properties": {"minTlsVersion": "1.3", "ftpsState": "FtpsOnly", "appSettings": [{"name": "PASSWORD", "value": "sensitive"}], "machineKey": {"validationKey": "sensitive"}}}
-        return {"value": [{"id": rid, "properties": {"httpsOnly": True}}]}
+            return {"id": rid + "/config/web", "name": "web", "type": "Microsoft.Web/sites/config", "properties": {"minTlsVersion": "1.3", "ftpsState": "FtpsOnly", "appSettings": [{"name": "PASSWORD", "value": "sensitive"}], "machineKey": {"validationKey": "sensitive"}}}
+        native={"id": rid, "name": "app", "type": "Microsoft.Web/sites", "properties": {"httpsOnly": True}}
+        if urlsplit(url).path==rid:return native
+        return {"value": [native]}
     api = FakeAzure(handler)
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["app_service_config"], transport=api)
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["app_service_config"], transport=api)
     config = collection(snapshot, "app_service_config")["items"][0]
     assert config["properties"] == {"minTlsVersion": "1.3", "ftpsState": "FtpsOnly"}
     assert config["parent_id"] == rid
@@ -919,18 +937,20 @@ def test_azure_storage_services_use_metadata_get_default_no_list_keys():
 
 
 def test_azure_sql_tde_reads_user_database_metadata_and_preserves_native_parent_id():
-    server = "/subscriptions/sub-a/resourceGroups/rg/providers/Microsoft.Sql/servers/server"
+    server = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/rg/providers/Microsoft.Sql/servers/server"
     user = server + "/databases/application"
     def handler(url, body, audience):
         if body:
             return {"data": []}
         if "/transparentDataEncryption/current?" in url:
-            return {"id": user, "type": "Microsoft.Sql/servers/databases/transparentDataEncryption", "properties": {"state": "Enabled"}}
+            return {"id": user, "name": "current", "type": "Microsoft.Sql/servers/databases/transparentDataEncryption", "properties": {"state": "Enabled"}}
         if "/databases?" in url:
-            return {"value": [{"id": user, "name": "application"}, {"id": server + "/databases/master", "name": "master"}]}
-        return {"value": [{"id": server, "properties": {"publicNetworkAccess": "Disabled"}}]}
+            return {"value": [{"id": user, "name": "application", "type": "Microsoft.Sql/servers/databases", "properties": {}}, {"id": server + "/databases/master", "name": "master", "type": "Microsoft.Sql/servers/databases", "properties": {}}]}
+        native={"id": server, "name": "server", "type": "Microsoft.Sql/servers", "properties": {"publicNetworkAccess": "Disabled"}}
+        if urlsplit(url).path==server:return native
+        return {"value": [native]}
     api = FakeAzure(handler)
-    snapshot = azure.collect({"scopes": ["sub-a"]}, ["sql_tde"], transport=api)
+    snapshot = azure.collect({"scopes": ["11111111-1111-1111-1111-111111111111"]}, ["sql_tde"], transport=api)
     record = collection(snapshot, "sql_tde")["items"][0]
     assert record["id"] == record["parent_id"] == user
     assert record["properties"]["state"] == "Enabled"

@@ -1,0 +1,1432 @@
+{
+  "agent_connectivity_template": {
+    "fields": "agentConnectivityTemplates(egressNetworkConfig(vpcEgress,dnsPeeringConfig(targetNetwork),networkAttachment),name),nextPageToken,unreachable",
+    "get_fields": "egressNetworkConfig(vpcEgress,dnsPeeringConfig(targetNetwork),networkAttachment),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "agentConnectivityTemplates",
+    "location_kind": "region",
+    "reference": "https://networkservices.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "egressNetworkConfig(vpcEgress,dnsPeeringConfig(targetNetwork),networkAttachment),name",
+    "scope_kind": "projects",
+    "segment": "agentConnectivityTemplates",
+    "service": "networkservices",
+    "version": "v1"
+  },
+  "agent_gateway": {
+    "fields": "agentGateways(networkConfig(egress(networkAttachment),dnsPeeringConfig(targetNetwork)),protocols,agentGatewayCard(mtlsEndpoint),name),nextPageToken,unreachable",
+    "get_fields": "networkConfig(egress(networkAttachment),dnsPeeringConfig(targetNetwork)),protocols,agentGatewayCard(mtlsEndpoint),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "agentGateways",
+    "location_kind": "region",
+    "reference": "https://networkservices.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "networkConfig(egress(networkAttachment),dnsPeeringConfig(targetNetwork)),protocols,agentGatewayCard(mtlsEndpoint),name",
+    "scope_kind": "projects",
+    "segment": "agentGateways",
+    "service": "networkservices",
+    "version": "v1"
+  },
+  "api_observation_source": {
+    "fields": "observationSources(name,gclbObservationSource(pscNetworkConfigs(network,subnetwork)),state),nextPageToken,unreachable",
+    "get_fields": "name,gclbObservationSource(pscNetworkConfigs(network,subnetwork)),state",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "observationSources",
+    "location_kind": "region",
+    "reference": "https://apim.googleapis.com/$discovery/rest?version=v1alpha",
+    "resource_fields": "name,gclbObservationSource(pscNetworkConfigs(network,subnetwork)),state",
+    "scope_kind": "projects",
+    "segment": "observationSources",
+    "service": "apim",
+    "version": "v1alpha"
+  },
+  "apigee_instance": {
+    "fields": "state,accessLoggingConfig(enabled),ipRange,consumerAcceptList,peeringCidrRange,host,port,isVersionLocked,serviceAttachment,name",
+    "organization_scoped": true,
+    "reference": "https://apigee.googleapis.com/$discovery/rest?version=v1",
+    "segment": "instances",
+    "service": "apigee",
+    "version": "v1"
+  },
+  "apigee_organization": {
+    "fields": "authorizedNetwork,networkEgressRestricted,projectId,disableVpcPeering,addonsConfig(apiSecurityConfig(enabled),monetizationConfig(enabled),analyticsConfig(enabled,state),integrationConfig(enabled),advancedApiOpsConfig(enabled),connectorsPlatformConfig(enabled)),state,name,type,properties(property(name)),portalDisabled",
+    "organization_scoped": true,
+    "reference": "https://apigee.googleapis.com/$discovery/rest?version=v1",
+    "segment": null,
+    "service": "apigee",
+    "version": "v1"
+  },
+  "automated_dns_record": {
+    "fields": "automatedDnsRecords(consumerNetwork,fqdn,dnsSuffix,state,name,hostname,dnsZone),nextPageToken,unreachable",
+    "get_fields": "consumerNetwork,fqdn,dnsSuffix,state,name,hostname,dnsZone",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "automatedDnsRecords",
+    "location_kind": "region",
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "consumerNetwork,fqdn,dnsSuffix,state,name,hostname,dnsZone",
+    "scope_kind": "projects",
+    "segment": "automatedDnsRecords",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "backupdr_management_server": {
+    "fields": "managementServers(name,networks(network),state),nextPageToken,unreachable",
+    "key": "managementServers",
+    "reference": "https://backupdr.googleapis.com/$discovery/rest?version=v1",
+    "segment": "managementServers",
+    "service": "backupdr",
+    "version": "v1"
+  },
+  "baremetal_instance": {
+    "fields": "instances(networkTemplate,networks(vrf(name,state,vlanAttachments(peerIp,id,routerIp)),state,mountPoints(ipAddress,defaultGateway),id,ipAddress,name,type,gatewayIp,jumboFramesEnabled,servicesCidr,cidr),name,id,logicalInterfaces(name,logicalNetworkInterfaces(networkType,defaultGateway,network,ipAddress,id)),state,volumes(protocol,name,state,id),luns(multiprotocolType,name,id,state)),nextPageToken,unreachable",
+    "key": "instances",
+    "reference": "https://baremetalsolution.googleapis.com/$discovery/rest?version=v2",
+    "segment": "instances",
+    "service": "baremetalsolution",
+    "version": "v2"
+  },
+  "baremetal_network": {
+    "fields": "networks(vrf(name,state,vlanAttachments(peerIp,id,routerIp)),state,mountPoints(ipAddress),id,ipAddress,name,gatewayIp,servicesCidr,cidr),nextPageToken,unreachable",
+    "key": "networks",
+    "reference": "https://baremetalsolution.googleapis.com/$discovery/rest?version=v2",
+    "segment": "networks",
+    "service": "baremetalsolution",
+    "version": "v2"
+  },
+  "beyondcorp_connection": {
+    "fields": "appConnections(gateway(uri,type,appGateway,ingressPort),applicationEndpoint(host,port),name,connectors,state),nextPageToken,unreachable",
+    "get_fields": "gateway(uri,type,appGateway,ingressPort),applicationEndpoint(host,port),name,connectors,state",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "appConnections",
+    "location_kind": "region",
+    "reference": "https://beyondcorp.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "gateway(uri,type,appGateway,ingressPort),applicationEndpoint(host,port),name,connectors,state",
+    "scope_kind": "projects",
+    "segment": "appConnections",
+    "service": "beyondcorp",
+    "version": "v1"
+  },
+  "beyondcorp_connector": {
+    "fields": "appConnectors(resourceInfo(status,id),state,name),nextPageToken,unreachable",
+    "get_fields": "resourceInfo(status,id),state,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "appConnectors",
+    "location_kind": "region",
+    "reference": "https://beyondcorp.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "resourceInfo(status,id),state,name",
+    "scope_kind": "projects",
+    "segment": "appConnectors",
+    "service": "beyondcorp",
+    "version": "v1"
+  },
+  "beyondcorp_gateway": {
+    "fields": "appGateways(name,state,allocatedConnections(pscUri,ingressPort)),nextPageToken,unreachable",
+    "get_fields": "name,state,allocatedConnections(pscUri,ingressPort)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "appGateways",
+    "location_kind": "region",
+    "reference": "https://beyondcorp.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,state,allocatedConnections(pscUri,ingressPort)",
+    "scope_kind": "projects",
+    "segment": "appGateways",
+    "service": "beyondcorp",
+    "version": "v1"
+  },
+  "bigquery_private_connection": {
+    "fields": "connections(configuration(endpoint(hostPort),network(privateServiceConnect(networkAttachment)),tls(mode)),name),nextPageToken",
+    "get_fields": "configuration(endpoint(hostPort),network(privateServiceConnect(networkAttachment)),tls(mode)),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "connections",
+    "location_kind": "region",
+    "reference": "https://bigqueryconnection.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "configuration(endpoint(hostPort),network(privateServiceConnect(networkAttachment)),tls(mode)),name",
+    "scope_kind": "projects",
+    "segment": "connections",
+    "service": "bigqueryconnection",
+    "version": "v1"
+  },
+  "blockchain_node": {
+    "fields": "blockchainNodes(connectionInfo(endpointInfo(jsonRpcApiEndpoint,websocketsApiEndpoint),serviceAttachment),state,ethereumDetails(network,additionalEndpoints(executionClientPrometheusMetricsApiEndpoint,beaconApiEndpoint,beaconPrometheusMetricsApiEndpoint)),name,privateServiceConnectEnabled),nextPageToken,unreachable",
+    "get_fields": "connectionInfo(endpointInfo(jsonRpcApiEndpoint,websocketsApiEndpoint),serviceAttachment),state,ethereumDetails(network,additionalEndpoints(executionClientPrometheusMetricsApiEndpoint,beaconApiEndpoint,beaconPrometheusMetricsApiEndpoint)),name,privateServiceConnectEnabled",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "blockchainNodes",
+    "location_kind": "region",
+    "reference": "https://blockchainnodeengine.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "connectionInfo(endpointInfo(jsonRpcApiEndpoint,websocketsApiEndpoint),serviceAttachment),state,ethereumDetails(network,additionalEndpoints(executionClientPrometheusMetricsApiEndpoint,beaconApiEndpoint,beaconPrometheusMetricsApiEndpoint)),name,privateServiceConnectEnabled",
+    "scope_kind": "projects",
+    "segment": "blockchainNodes",
+    "service": "blockchainnodeengine",
+    "version": "v1"
+  },
+  "cloud_ftp_server": {
+    "fields": "servers(internalConfig(serviceAttachment,pscEndpoints(network,status,endpoint)),name,externalConfig(ipAddress,allowedCidrBlocks),state),nextPageToken,unreachable",
+    "get_fields": "internalConfig(serviceAttachment,pscEndpoints(network,status,endpoint)),name,externalConfig(ipAddress,allowedCidrBlocks),state",
+    "get_parameters": {
+      "view": "SERVER_VIEW_FULL"
+    },
+    "hydrate": true,
+    "key": "servers",
+    "location_kind": "region",
+    "reference": "https://ftp.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "internalConfig(serviceAttachment,pscEndpoints(network,status,endpoint)),name,externalConfig(ipAddress,allowedCidrBlocks),state",
+    "scope_kind": "projects",
+    "segment": "servers",
+    "service": "ftp",
+    "version": "v1"
+  },
+  "cloud_ids_endpoint": {
+    "fields": "endpoints(endpointIp,network,state,endpointForwardingRule,name),nextPageToken,unreachable",
+    "key": "endpoints",
+    "location_kind": "zone",
+    "reference": "https://ids.googleapis.com/$discovery/rest?version=v1",
+    "segment": "endpoints",
+    "service": "ids",
+    "version": "v1"
+  },
+  "clouddeploy_network_target": {
+    "fields": "targets(name,anthosCluster(membership),gke(cluster,dnsEndpoint,internalIp),executionConfigs(workerPool,privatePool(workerPool))),nextPageToken,unreachable",
+    "get_fields": "name,anthosCluster(membership),gke(cluster,dnsEndpoint,internalIp),executionConfigs(workerPool,privatePool(workerPool))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "targets",
+    "location_kind": "region",
+    "reference": "https://clouddeploy.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,anthosCluster(membership),gke(cluster,dnsEndpoint,internalIp),executionConfigs(workerPool,privatePool(workerPool))",
+    "scope_kind": "projects",
+    "segment": "targets",
+    "service": "clouddeploy",
+    "version": "v1"
+  },
+  "cloudrun_revision": {
+    "fields": "revisions(volumes(name),containers(readinessProbe(httpGet(port),tcpSocket(port),grpc(port)),volumeMounts(name),livenessProbe(httpGet(port),tcpSocket(port),grpc(port)),startupProbe(httpGet(port),tcpSocket(port),grpc(port)),ports(containerPort,name),name),conditions(state),name,vpcAccess(networkInterfaces(subnetwork,network),egress)),nextPageToken",
+    "get_fields": "volumes(name),containers(readinessProbe(httpGet(port),tcpSocket(port),grpc(port)),volumeMounts(name),livenessProbe(httpGet(port),tcpSocket(port),grpc(port)),startupProbe(httpGet(port),tcpSocket(port),grpc(port)),ports(containerPort,name),name),conditions(state),name,vpcAccess(networkInterfaces(subnetwork,network),egress)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "revisions",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "services",
+        "segment": "services"
+      }
+    ],
+    "reference": "https://run.googleapis.com/$discovery/rest?version=v2",
+    "resource_fields": "volumes(name),containers(readinessProbe(httpGet(port),tcpSocket(port),grpc(port)),volumeMounts(name),livenessProbe(httpGet(port),tcpSocket(port),grpc(port)),startupProbe(httpGet(port),tcpSocket(port),grpc(port)),ports(containerPort,name),name),conditions(state),name,vpcAccess(networkInterfaces(subnetwork,network),egress)",
+    "scope_kind": "projects",
+    "segment": "revisions",
+    "service": "run",
+    "version": "v2"
+  },
+  "contact_center": {
+    "fields": "contactCenters(state,name,privateAccess(egressSettings(name,serviceAttachmentNames),ingressSettings(name,serviceAttachmentNames))),nextPageToken,unreachable",
+    "get_fields": "state,name,privateAccess(egressSettings(name,serviceAttachmentNames),ingressSettings(name,serviceAttachmentNames))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "contactCenters",
+    "location_kind": "region",
+    "reference": "https://contactcenteraiplatform.googleapis.com/$discovery/rest?version=v1alpha1",
+    "resource_fields": "state,name,privateAccess(egressSettings(name,serviceAttachmentNames),ingressSettings(name,serviceAttachmentNames))",
+    "scope_kind": "projects",
+    "segment": "contactCenters",
+    "service": "contactcenteraiplatform",
+    "version": "v1alpha1"
+  },
+  "data_fusion_instance": {
+    "fields": "instances(maintenanceEvents(state),serviceEndpoint,apiEndpoint,privateInstance,accelerators(state),networkConfig(privateServiceConnectConfig(unreachableCidrBlock,effectiveUnreachableCidrBlock,networkAttachment),network,connectionType),workforceIdentityServiceEndpoint,name,state),nextPageToken,unreachable",
+    "key": "instances",
+    "reference": "https://datafusion.googleapis.com/$discovery/rest?version=v1",
+    "segment": "instances",
+    "service": "datafusion",
+    "version": "v1"
+  },
+  "data_pipeline": {
+    "fields": "pipelines(state,workload(dataflowLaunchTemplateRequest(launchParameters(environment(network,subnetwork))),dataflowFlexTemplateRequest(launchParameter(environment(network,subnetwork)))),name),nextPageToken",
+    "get_fields": "state,workload(dataflowLaunchTemplateRequest(launchParameters(environment(network,subnetwork))),dataflowFlexTemplateRequest(launchParameter(environment(network,subnetwork)))),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "pipelines",
+    "location_kind": "region",
+    "reference": "https://datapipelines.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,workload(dataflowLaunchTemplateRequest(launchParameters(environment(network,subnetwork))),dataflowFlexTemplateRequest(launchParameter(environment(network,subnetwork)))),name",
+    "scope_kind": "projects",
+    "segment": "pipelines",
+    "service": "datapipelines",
+    "version": "v1"
+  },
+  "dataplex_network_task": {
+    "fields": "tasks(state,spark(infrastructureSpec(vpcNetwork(network,subNetwork,networkTags))),executionStatus(latestJob(name,state)),name,notebook(infrastructureSpec(vpcNetwork(network,subNetwork,networkTags)))),nextPageToken",
+    "get_fields": "state,spark(infrastructureSpec(vpcNetwork(network,subNetwork,networkTags))),executionStatus(latestJob(name,state)),name,notebook(infrastructureSpec(vpcNetwork(network,subNetwork,networkTags)))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "tasks",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "lakes",
+        "segment": "lakes"
+      }
+    ],
+    "reference": "https://dataplex.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,spark(infrastructureSpec(vpcNetwork(network,subNetwork,networkTags))),executionStatus(latestJob(name,state)),name,notebook(infrastructureSpec(vpcNetwork(network,subNetwork,networkTags)))",
+    "scope_kind": "projects",
+    "segment": "tasks",
+    "service": "dataplex",
+    "version": "v1"
+  },
+  "dataproc_batch": {
+    "fields": "batches(state,name,stateHistory(state),environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri))),nextPageToken,unreachable",
+    "get_fields": "state,name,stateHistory(state),environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "batches",
+    "location_kind": "region",
+    "reference": "https://dataproc.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,name,stateHistory(state),environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri))",
+    "scope_kind": "projects",
+    "segment": "batches",
+    "service": "dataproc",
+    "version": "v1"
+  },
+  "dataproc_session": {
+    "fields": "sessions(state,environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri)),name,stateHistory(state)),nextPageToken",
+    "get_fields": "state,environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri)),name,stateHistory(state)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "sessions",
+    "location_kind": "region",
+    "reference": "https://dataproc.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri)),name,stateHistory(state)",
+    "scope_kind": "projects",
+    "segment": "sessions",
+    "service": "dataproc",
+    "version": "v1"
+  },
+  "dataproc_session_template": {
+    "fields": "sessionTemplates(name,environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri))),nextPageToken",
+    "get_fields": "name,environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "sessionTemplates",
+    "location_kind": "region",
+    "reference": "https://dataproc.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,environmentConfig(executionConfig(networkTags,networkUri,subnetworkUri))",
+    "scope_kind": "projects",
+    "segment": "sessionTemplates",
+    "service": "dataproc",
+    "version": "v1"
+  },
+  "dataproc_workflow_template": {
+    "fields": "templates(name,id,placement(managedCluster(config(endpointConfig(enableHttpPortAccess),gceClusterConfig(networkUri,subnetworkUri),auxiliaryNodeGroups(nodeGroup(name)))))),nextPageToken,unreachable",
+    "get_fields": "name,id,placement(managedCluster(config(endpointConfig(enableHttpPortAccess),gceClusterConfig(networkUri,subnetworkUri),auxiliaryNodeGroups(nodeGroup(name)))))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "templates",
+    "location_kind": "region",
+    "reference": "https://dataproc.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,id,placement(managedCluster(config(endpointConfig(enableHttpPortAccess),gceClusterConfig(networkUri,subnetworkUri),auxiliaryNodeGroups(nodeGroup(name)))))",
+    "scope_kind": "projects",
+    "segment": "workflowTemplates",
+    "service": "dataproc",
+    "version": "v1"
+  },
+  "eventarc_pipeline": {
+    "fields": "pipelines(destinations(httpEndpoint(uri),networkConfig(networkAttachment)),name),nextPageToken,unreachable",
+    "get_fields": "destinations(httpEndpoint(uri),networkConfig(networkAttachment)),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "pipelines",
+    "location_kind": "region",
+    "reference": "https://eventarc.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "destinations(httpEndpoint(uri),networkConfig(networkAttachment)),name",
+    "scope_kind": "projects",
+    "segment": "pipelines",
+    "service": "eventarc",
+    "version": "v1"
+  },
+  "eventarc_trigger": {
+    "fields": "triggers(destination(gke(cluster),cloudRun(region),httpEndpoint(uri),networkConfig(networkAttachment)),name),nextPageToken,unreachable",
+    "get_fields": "destination(gke(cluster),cloudRun(region),httpEndpoint(uri),networkConfig(networkAttachment)),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "triggers",
+    "location_kind": "region",
+    "reference": "https://eventarc.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "destination(gke(cluster),cloudRun(region),httpEndpoint(uri),networkConfig(networkAttachment)),name",
+    "scope_kind": "projects",
+    "segment": "triggers",
+    "service": "eventarc",
+    "version": "v1"
+  },
+  "fleet_membership": {
+    "fields": "resources(endpoint(googleManaged,multiCloudCluster(clusterMissing,resourceLink),kubernetesResource(membershipResources(clusterScoped),resourceOptions(v1beta1Crd),connectResources(clusterScoped)),applianceCluster(resourceLink),gkeCluster(clusterMissing,resourceLink),edgeCluster(resourceLink),onPremCluster(clusterMissing,resourceLink,adminCluster)),name,monitoringConfig(cluster)),nextPageToken,unreachable",
+    "get_fields": "endpoint(googleManaged,multiCloudCluster(clusterMissing,resourceLink),kubernetesResource(membershipResources(clusterScoped),resourceOptions(v1beta1Crd),connectResources(clusterScoped)),applianceCluster(resourceLink),gkeCluster(clusterMissing,resourceLink),edgeCluster(resourceLink),onPremCluster(clusterMissing,resourceLink,adminCluster)),name,monitoringConfig(cluster)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "resources",
+    "location_kind": "region",
+    "reference": "https://gkehub.googleapis.com/$discovery/rest?version=v1",
+    "scope_kind": "projects",
+    "segment": "memberships",
+    "service": "gkehub",
+    "version": "v1"
+  },
+  "gke_baremetal_admin_cluster": {
+    "fields": "bareMetalAdminClusters(name,controlPlane(controlPlaneNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),validationCheck(status(result(state))),loadBalancer(bgpLbConfig(bgpPeerConfigs(asn,ipAddress),loadBalancerNodePoolConfig(nodePoolConfig(kubeletConfig(serializeImagePullsDisabled),nodeConfigs(nodeIp))),asn,addressPools(avoidBuggyIps,manualAssign,addresses)),portConfig(controlPlaneLoadBalancerPort),vipConfig(controlPlaneVip)),maintenanceConfig(maintenanceAddressCidrBlocks),state,networkConfig(advancedNetworking,islandModeCidr(serviceAddressCidrBlocks,podAddressCidrBlocks),multipleNetworkInterfacesConfig(enabled)),fleet(membership),status(conditions(state)),endpoint,maintenanceStatus(machineDrainStatus(drainedMachines(nodeIp),drainingMachines(nodeIp)))),nextPageToken,unreachable",
+    "get_fields": "name,controlPlane(controlPlaneNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),validationCheck(status(result(state))),loadBalancer(bgpLbConfig(bgpPeerConfigs(asn,ipAddress),loadBalancerNodePoolConfig(nodePoolConfig(kubeletConfig(serializeImagePullsDisabled),nodeConfigs(nodeIp))),asn,addressPools(avoidBuggyIps,manualAssign,addresses)),portConfig(controlPlaneLoadBalancerPort),vipConfig(controlPlaneVip)),maintenanceConfig(maintenanceAddressCidrBlocks),state,networkConfig(advancedNetworking,islandModeCidr(serviceAddressCidrBlocks,podAddressCidrBlocks),multipleNetworkInterfacesConfig(enabled)),fleet(membership),status(conditions(state)),endpoint,maintenanceStatus(machineDrainStatus(drainedMachines(nodeIp),drainingMachines(nodeIp)))",
+    "get_parameters": {
+      "view": "FULL"
+    },
+    "hydrate": true,
+    "key": "bareMetalAdminClusters",
+    "location_kind": "region",
+    "reference": "https://gkeonprem.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,controlPlane(controlPlaneNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),validationCheck(status(result(state))),loadBalancer(bgpLbConfig(bgpPeerConfigs(asn,ipAddress),loadBalancerNodePoolConfig(nodePoolConfig(kubeletConfig(serializeImagePullsDisabled),nodeConfigs(nodeIp))),asn,addressPools(avoidBuggyIps,manualAssign,addresses)),portConfig(controlPlaneLoadBalancerPort),vipConfig(controlPlaneVip)),maintenanceConfig(maintenanceAddressCidrBlocks),state,networkConfig(advancedNetworking,islandModeCidr(serviceAddressCidrBlocks,podAddressCidrBlocks),multipleNetworkInterfacesConfig(enabled)),fleet(membership),status(conditions(state)),endpoint,maintenanceStatus(machineDrainStatus(drainedMachines(nodeIp),drainingMachines(nodeIp)))",
+    "scope_kind": "projects",
+    "segment": "bareMetalAdminClusters",
+    "service": "gkeonprem",
+    "version": "v1"
+  },
+  "gke_baremetal_cluster": {
+    "fields": "bareMetalClusters(name,status(conditions(state)),endpoint,validationCheck(status(result(state))),maintenanceConfig(maintenanceAddressCidrBlocks),maintenanceStatus(machineDrainStatus(drainingMachines(nodeIp),drainedMachines(nodeIp))),networkConfig(srIovConfig(enabled),islandModeCidr(serviceAddressCidrBlocks,podAddressCidrBlocks),multipleNetworkInterfacesConfig(enabled),advancedNetworking),controlPlane(controlPlaneNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),adminClusterMembership,fleet(membership),loadBalancer(metalLbConfig(addressPools(addresses),loadBalancerNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),vipConfig(controlPlaneVip,ingressVip),bgpLbConfig(loadBalancerNodePoolConfig(nodePoolConfig(kubeletConfig(serializeImagePullsDisabled),nodeConfigs(nodeIp))),addressPools(manualAssign,avoidBuggyIps,addresses),bgpPeerConfigs(asn,ipAddress),asn),portConfig(controlPlaneLoadBalancerPort)),state),nextPageToken,unreachable",
+    "get_fields": "name,status(conditions(state)),endpoint,validationCheck(status(result(state))),maintenanceConfig(maintenanceAddressCidrBlocks),maintenanceStatus(machineDrainStatus(drainingMachines(nodeIp),drainedMachines(nodeIp))),networkConfig(srIovConfig(enabled),islandModeCidr(serviceAddressCidrBlocks,podAddressCidrBlocks),multipleNetworkInterfacesConfig(enabled),advancedNetworking),controlPlane(controlPlaneNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),adminClusterMembership,fleet(membership),loadBalancer(metalLbConfig(addressPools(addresses),loadBalancerNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),vipConfig(controlPlaneVip,ingressVip),bgpLbConfig(loadBalancerNodePoolConfig(nodePoolConfig(kubeletConfig(serializeImagePullsDisabled),nodeConfigs(nodeIp))),addressPools(manualAssign,avoidBuggyIps,addresses),bgpPeerConfigs(asn,ipAddress),asn),portConfig(controlPlaneLoadBalancerPort)),state",
+    "get_parameters": {
+      "view": "FULL"
+    },
+    "hydrate": true,
+    "key": "bareMetalClusters",
+    "location_kind": "region",
+    "reference": "https://gkeonprem.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,status(conditions(state)),endpoint,validationCheck(status(result(state))),maintenanceConfig(maintenanceAddressCidrBlocks),maintenanceStatus(machineDrainStatus(drainingMachines(nodeIp),drainedMachines(nodeIp))),networkConfig(srIovConfig(enabled),islandModeCidr(serviceAddressCidrBlocks,podAddressCidrBlocks),multipleNetworkInterfacesConfig(enabled),advancedNetworking),controlPlane(controlPlaneNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),adminClusterMembership,fleet(membership),loadBalancer(metalLbConfig(addressPools(addresses),loadBalancerNodePoolConfig(nodePoolConfig(nodeConfigs(nodeIp)))),vipConfig(controlPlaneVip,ingressVip),bgpLbConfig(loadBalancerNodePoolConfig(nodePoolConfig(kubeletConfig(serializeImagePullsDisabled),nodeConfigs(nodeIp))),addressPools(manualAssign,avoidBuggyIps,addresses),bgpPeerConfigs(asn,ipAddress),asn),portConfig(controlPlaneLoadBalancerPort)),state",
+    "scope_kind": "projects",
+    "segment": "bareMetalClusters",
+    "service": "gkeonprem",
+    "version": "v1"
+  },
+  "gke_vmware_admin_cluster": {
+    "fields": "vmwareAdminClusters(vcenter(address,cluster),privateRegistryConfig(address),loadBalancer(seesawConfig(masterIp,ipBlocks(ips(ip,hostname),netmask)),f5Config(address),vipConfig(addonsVip,controlPlaneVip),manualLbConfig(ingressHttpsNodePort,konnectivityServerNodePort,addonsNodePort,controlPlaneNodePort,ingressHttpNodePort)),proxy(url),state,name,status(conditions(state)),fleet(membership),validationCheck(status(result(state))),networkConfig(dhcpIpConfig(enabled),staticIpConfig(ipBlocks(ips(ip,hostname),netmask,gateway)),podAddressCidrBlocks,hostConfig(dnsServers,dnsSearchDomains),haControlPlaneConfig(controlPlaneIpBlock(ips(ip,hostname),netmask,gateway)),serviceAddressCidrBlocks,vcenterNetwork),endpoint,bootstrapClusterMembership,platformConfig(bundles(status(conditions(state))),status(conditions(state)))),nextPageToken,unreachable",
+    "get_fields": "vcenter(address,cluster),privateRegistryConfig(address),loadBalancer(seesawConfig(masterIp,ipBlocks(ips(ip,hostname),netmask)),f5Config(address),vipConfig(addonsVip,controlPlaneVip),manualLbConfig(ingressHttpsNodePort,konnectivityServerNodePort,addonsNodePort,controlPlaneNodePort,ingressHttpNodePort)),proxy(url),state,name,status(conditions(state)),fleet(membership),validationCheck(status(result(state))),networkConfig(dhcpIpConfig(enabled),staticIpConfig(ipBlocks(ips(ip,hostname),netmask,gateway)),podAddressCidrBlocks,hostConfig(dnsServers,dnsSearchDomains),haControlPlaneConfig(controlPlaneIpBlock(ips(ip,hostname),netmask,gateway)),serviceAddressCidrBlocks,vcenterNetwork),endpoint,bootstrapClusterMembership,platformConfig(bundles(status(conditions(state))),status(conditions(state)))",
+    "get_parameters": {
+      "view": "FULL"
+    },
+    "hydrate": true,
+    "key": "vmwareAdminClusters",
+    "location_kind": "region",
+    "reference": "https://gkeonprem.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "vcenter(address,cluster),privateRegistryConfig(address),loadBalancer(seesawConfig(masterIp,ipBlocks(ips(ip,hostname),netmask)),f5Config(address),vipConfig(addonsVip,controlPlaneVip),manualLbConfig(ingressHttpsNodePort,konnectivityServerNodePort,addonsNodePort,controlPlaneNodePort,ingressHttpNodePort)),proxy(url),state,name,status(conditions(state)),fleet(membership),validationCheck(status(result(state))),networkConfig(dhcpIpConfig(enabled),staticIpConfig(ipBlocks(ips(ip,hostname),netmask,gateway)),podAddressCidrBlocks,hostConfig(dnsServers,dnsSearchDomains),haControlPlaneConfig(controlPlaneIpBlock(ips(ip,hostname),netmask,gateway)),serviceAddressCidrBlocks,vcenterNetwork),endpoint,bootstrapClusterMembership,platformConfig(bundles(status(conditions(state))),status(conditions(state)))",
+    "scope_kind": "projects",
+    "segment": "vmwareAdminClusters",
+    "service": "gkeonprem",
+    "version": "v1"
+  },
+  "gke_vmware_cluster": {
+    "fields": "vmwareClusters(fleet(membership),adminClusterMembership,disableBundledIngress,loadBalancer(seesawConfig(masterIp,ipBlocks(ips(ip,hostname),netmask)),metalLbConfig(addressPools(addresses)),manualLbConfig(konnectivityServerNodePort,controlPlaneNodePort,ingressHttpNodePort,ingressHttpsNodePort),f5Config(address),vipConfig(controlPlaneVip,ingressVip)),state,networkConfig(staticIpConfig(ipBlocks(ips(ip,hostname),netmask,gateway)),podAddressCidrBlocks,dhcpIpConfig(enabled),hostConfig(dnsServers,dnsSearchDomains),vcenterNetwork,serviceAddressCidrBlocks,controlPlaneV2Config(controlPlaneIpBlock(ips(ip,hostname),netmask,gateway))),vcenter(cluster,address),validationCheck(status(result(state))),name,dataplaneV2(advancedNetworking),status(conditions(state)),endpoint),nextPageToken,unreachable",
+    "get_fields": "fleet(membership),adminClusterMembership,disableBundledIngress,loadBalancer(seesawConfig(masterIp,ipBlocks(ips(ip,hostname),netmask)),metalLbConfig(addressPools(addresses)),manualLbConfig(konnectivityServerNodePort,controlPlaneNodePort,ingressHttpNodePort,ingressHttpsNodePort),f5Config(address),vipConfig(controlPlaneVip,ingressVip)),state,networkConfig(staticIpConfig(ipBlocks(ips(ip,hostname),netmask,gateway)),podAddressCidrBlocks,dhcpIpConfig(enabled),hostConfig(dnsServers,dnsSearchDomains),vcenterNetwork,serviceAddressCidrBlocks,controlPlaneV2Config(controlPlaneIpBlock(ips(ip,hostname),netmask,gateway))),vcenter(cluster,address),validationCheck(status(result(state))),name,dataplaneV2(advancedNetworking),status(conditions(state)),endpoint",
+    "get_parameters": {
+      "view": "FULL"
+    },
+    "hydrate": true,
+    "key": "vmwareClusters",
+    "location_kind": "region",
+    "reference": "https://gkeonprem.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "fleet(membership),adminClusterMembership,disableBundledIngress,loadBalancer(seesawConfig(masterIp,ipBlocks(ips(ip,hostname),netmask)),metalLbConfig(addressPools(addresses)),manualLbConfig(konnectivityServerNodePort,controlPlaneNodePort,ingressHttpNodePort,ingressHttpsNodePort),f5Config(address),vipConfig(controlPlaneVip,ingressVip)),state,networkConfig(staticIpConfig(ipBlocks(ips(ip,hostname),netmask,gateway)),podAddressCidrBlocks,dhcpIpConfig(enabled),hostConfig(dnsServers,dnsSearchDomains),vcenterNetwork,serviceAddressCidrBlocks,controlPlaneV2Config(controlPlaneIpBlock(ips(ip,hostname),netmask,gateway))),vcenter(cluster,address),validationCheck(status(result(state))),name,dataplaneV2(advancedNetworking),status(conditions(state)),endpoint",
+    "scope_kind": "projects",
+    "segment": "vmwareClusters",
+    "service": "gkeonprem",
+    "version": "v1"
+  },
+  "hypercompute_cluster": {
+    "fields": "clusters(orchestrator(slurm(nodeSets(id,storageConfigs(id)),partitions(id),loginNodes(storageConfigs(id)))),name),nextPageToken,unreachable",
+    "get_fields": "orchestrator(slurm(nodeSets(id,storageConfigs(id)),partitions(id),loginNodes(storageConfigs(id)))),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "clusters",
+    "location_kind": "zone",
+    "reference": "https://hypercomputecluster.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "orchestrator(slurm(nodeSets(id,storageConfigs(id)),partitions(id),loginNodes(storageConfigs(id)))),name",
+    "scope_kind": "projects",
+    "segment": "clusters",
+    "service": "hypercomputecluster",
+    "version": "v1"
+  },
+  "integration_connection": {
+    "fields": "connections(eventingRuntimeData(webhookData(id,name),status(state),webhookSubscriptions(webhookData(id,name)),eventsListenerEndpoint),destinationConfigs(destinations(serviceAttachment,host,port)),status(state,status),sslConfig(additionalVariables(boolValue,encryptionKeyValue(type)),type,useSsl),name,host,eventingConfig(sslConfig(additionalVariables(boolValue,encryptionKeyValue(type)),type,useSsl),registrationDestinationConfig(destinations(serviceAttachment,host,port)),proxyDestinationConfig(destinations(serviceAttachment,host,port)),eventsListenerIngressEndpoint),connectorVersionInfraConfig(deploymentModelMigrationState,tlsMigrationState)),nextPageToken,unreachable",
+    "key": "connections",
+    "reference": "https://connectors.googleapis.com/$discovery/rest?version=v1",
+    "segment": "connections",
+    "service": "connectors",
+    "version": "v1"
+  },
+  "integration_endpoint_attachment": {
+    "fields": "endpointAttachments(state,endpointIp,name,endpointGlobalAccess,serviceAttachment),nextPageToken,unreachable",
+    "key": "endpointAttachments",
+    "reference": "https://connectors.googleapis.com/$discovery/rest?version=v1",
+    "segment": "endpointAttachments",
+    "service": "connectors",
+    "version": "v1"
+  },
+  "internal_ip_range": {
+    "fields": "internalRanges(ipCidrRange,rangeStatus,excludeCidrRanges,name,network,targetCidrRange),nextPageToken,unreachable",
+    "get_fields": "ipCidrRange,rangeStatus,excludeCidrRanges,name,network,targetCidrRange",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "internalRanges",
+    "location_kind": "region",
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "ipCidrRange,rangeStatus,excludeCidrRanges,name,network,targetCidrRange",
+    "scope_kind": "projects",
+    "segment": "internalRanges",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "looker_instance": {
+    "fields": "instances(consumerNetwork,customDomain(state),ingressPrivateIp,controlledEgressEnabled,pscConfig(serviceAttachments(targetServiceAttachmentUri,localFqdn,connectionStatus,localFqdns),allowedVpcs,lookerServiceAttachmentUri),egressPublicIp,encryptionConfig(kmsKeyState),privateIpEnabled,state,controlledEgressConfig(egressFqdns),publicIpEnabled,ingressPublicIp,pscEnabled,ingressIpAllowlistConfig(allowlistRules(ipRange)),name),nextPageToken,unreachable",
+    "key": "instances",
+    "reference": "https://looker.googleapis.com/$discovery/rest?version=v1",
+    "segment": "instances",
+    "service": "looker",
+    "version": "v1"
+  },
+  "lustre_instance": {
+    "fields": "instances(network,accessRulesOptions(accessRules(ipAddressRanges,name,squashMode)),name,state),nextPageToken,unreachable",
+    "key": "instances",
+    "reference": "https://lustre.googleapis.com/$discovery/rest?version=v1",
+    "segment": "instances",
+    "service": "lustre",
+    "version": "v1"
+  },
+  "managed_ad_domain": {
+    "fields": "domains(authorizedNetworks,state,fqdn,trusts(targetDomainName,targetDnsIpAddresses,state),name,reservedIpRange),nextPageToken,unreachable",
+    "get_fields": "authorizedNetworks,state,fqdn,trusts(targetDomainName,targetDnsIpAddresses,state),name,reservedIpRange",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "domains",
+    "location_kind": "global",
+    "reference": "https://managedidentities.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "authorizedNetworks,state,fqdn,trusts(targetDomainName,targetDnsIpAddresses,state),name,reservedIpRange",
+    "scope_kind": "projects",
+    "segment": "domains",
+    "service": "managedidentities",
+    "version": "v1"
+  },
+  "managed_ad_peering": {
+    "fields": "peerings(authorizedNetwork,state,name),nextPageToken,unreachable",
+    "get_fields": "authorizedNetwork,state,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "peerings",
+    "location_kind": "global",
+    "reference": "https://managedidentities.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "authorizedNetwork,state,name",
+    "scope_kind": "projects",
+    "segment": "peerings",
+    "service": "managedidentities",
+    "version": "v1"
+  },
+  "managed_kafka_connect_cluster": {
+    "fields": "connectClusters(name,gcpConfig(accessConfig(networkConfigs(dnsDomainNames,additionalSubnets,primarySubnet))),state),nextPageToken,unreachable",
+    "get_fields": "name,gcpConfig(accessConfig(networkConfigs(dnsDomainNames,additionalSubnets,primarySubnet))),state",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "connectClusters",
+    "location_kind": "region",
+    "reference": "https://managedkafka.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,gcpConfig(accessConfig(networkConfigs(dnsDomainNames,additionalSubnets,primarySubnet))),state",
+    "scope_kind": "projects",
+    "segment": "connectClusters",
+    "service": "managedkafka",
+    "version": "v1"
+  },
+  "memcached_instance": {
+    "fields": "instances(state,authorizedNetwork,memcacheNodes(state,host,port),reservedIpRangeId,name,discoveryEndpoint),nextPageToken,unreachable",
+    "key": "instances",
+    "reference": "https://memcache.googleapis.com/$discovery/rest?version=v1",
+    "segment": "instances",
+    "service": "memcache",
+    "version": "v1"
+  },
+  "metastore_service": {
+    "fields": "services(hiveMetastoreConfig(endpointProtocol),state,scheduledBackup(latestBackup(state)),port,network,name,endpointUri,networkConfig(consumers(subnetwork,endpointLocation,endpointUri)),metadataManagementActivity(metadataExports(state),restores(state))),nextPageToken,unreachable",
+    "get_fields": "hiveMetastoreConfig(endpointProtocol),state,scheduledBackup(latestBackup(state)),port,network,name,endpointUri,networkConfig(consumers(subnetwork,endpointLocation,endpointUri)),metadataManagementActivity(metadataExports(state),restores(state))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "services",
+    "location_kind": "region",
+    "reference": "https://metastore.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "hiveMetastoreConfig(endpointProtocol),state,scheduledBackup(latestBackup(state)),port,network,name,endpointUri,networkConfig(consumers(subnetwork,endpointLocation,endpointUri)),metadataManagementActivity(metadataExports(state),restores(state))",
+    "scope_kind": "projects",
+    "segment": "services",
+    "service": "metastore",
+    "version": "v1"
+  },
+  "migration_connection_profile": {
+    "fields": "connectionProfiles(oracle(forwardSshConnectivity(hostname,port),privateConnectivity(privateConnection),port,host,oracleAsmConfig(port,ssl(type),hostname),ssl(type)),cloudsql(privateIp,publicIp,settings(ipConfig(privateNetwork,requireSsl,enableIpv4,allocatedIpRange)),additionalPublicIp),state,mysql(privateConnectivity(privateConnection),ssl(type),privateServiceConnectConnectivity(serviceAttachment),port,host),sqlserver(privateServiceConnectConnectivity(serviceAttachment),forwardSshConnectivity(hostname,port),ssl(type),privateConnectivity(privateConnection),dbmPort,host,port),postgresql(privateConnectivity(privateConnection),port,host,networkArchitecture,privateServiceConnectConnectivity(serviceAttachment),ssl(type),forwardSshConnectivity(hostname,port)),name,alloydb(settings(vpcNetwork,primaryInstanceSettings(instanceNetworkConfig(authorizedExternalNetworks(cidrRange),enableOutboundPublicIp,enablePublicIp),id,privateIp,outboundPublicIpAddresses)))),nextPageToken,unreachable",
+    "get_fields": "oracle(forwardSshConnectivity(hostname,port),privateConnectivity(privateConnection),port,host,oracleAsmConfig(port,ssl(type),hostname),ssl(type)),cloudsql(privateIp,publicIp,settings(ipConfig(privateNetwork,requireSsl,enableIpv4,allocatedIpRange)),additionalPublicIp),state,mysql(privateConnectivity(privateConnection),ssl(type),privateServiceConnectConnectivity(serviceAttachment),port,host),sqlserver(privateServiceConnectConnectivity(serviceAttachment),forwardSshConnectivity(hostname,port),ssl(type),privateConnectivity(privateConnection),dbmPort,host,port),postgresql(privateConnectivity(privateConnection),port,host,networkArchitecture,privateServiceConnectConnectivity(serviceAttachment),ssl(type),forwardSshConnectivity(hostname,port)),name,alloydb(settings(vpcNetwork,primaryInstanceSettings(instanceNetworkConfig(authorizedExternalNetworks(cidrRange),enableOutboundPublicIp,enablePublicIp),id,privateIp,outboundPublicIpAddresses)))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "connectionProfiles",
+    "location_kind": "region",
+    "reference": "https://datamigration.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "oracle(forwardSshConnectivity(hostname,port),privateConnectivity(privateConnection),port,host,oracleAsmConfig(port,ssl(type),hostname),ssl(type)),cloudsql(privateIp,publicIp,settings(ipConfig(privateNetwork,requireSsl,enableIpv4,allocatedIpRange)),additionalPublicIp),state,mysql(privateConnectivity(privateConnection),ssl(type),privateServiceConnectConnectivity(serviceAttachment),port,host),sqlserver(privateServiceConnectConnectivity(serviceAttachment),forwardSshConnectivity(hostname,port),ssl(type),privateConnectivity(privateConnection),dbmPort,host,port),postgresql(privateConnectivity(privateConnection),port,host,networkArchitecture,privateServiceConnectConnectivity(serviceAttachment),ssl(type),forwardSshConnectivity(hostname,port)),name,alloydb(settings(vpcNetwork,primaryInstanceSettings(instanceNetworkConfig(authorizedExternalNetworks(cidrRange),enableOutboundPublicIp,enablePublicIp),id,privateIp,outboundPublicIpAddresses)))",
+    "scope_kind": "projects",
+    "segment": "connectionProfiles",
+    "service": "datamigration",
+    "version": "v1"
+  },
+  "ml_network_job": {
+    "fields": "jobs(trainingOutput(trials(state)),trainingInput(network),jobId,state),nextPageToken",
+    "key": "jobs",
+    "project_wide": true,
+    "reference": "https://ml.googleapis.com/$discovery/rest?version=v1",
+    "segment": "jobs",
+    "service": "ml",
+    "version": "v1"
+  },
+  "multicast_consumer_association": {
+    "fields": "multicastConsumerAssociations(network,state(state),name,resourceState),nextPageToken,unreachable",
+    "get_fields": "network,state(state),name,resourceState",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "multicastConsumerAssociations",
+    "location_kind": "region",
+    "reference": "https://networkservices.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "network,state(state),name,resourceState",
+    "scope_kind": "projects",
+    "segment": "multicastConsumerAssociations",
+    "service": "networkservices",
+    "version": "v1"
+  },
+  "ncc_hub_route": {
+    "fields": "routes(state,ipCidrRange,name,nextHopInterconnectAttachment(vpcNetwork),nextHopRouterApplianceInstance(vpcNetwork,uri,siteToSiteDataTransfer),nextHopVpcNetwork(uri),nextHopVpnTunnel(vpcNetwork)),nextPageToken,unreachable",
+    "get_fields": "state,ipCidrRange,name,nextHopInterconnectAttachment(vpcNetwork),nextHopRouterApplianceInstance(vpcNetwork,uri,siteToSiteDataTransfer),nextHopVpcNetwork(uri),nextHopVpnTunnel(vpcNetwork)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "routes",
+    "location_kind": "global",
+    "parents": [
+      {
+        "key": "hubs",
+        "segment": "hubs"
+      },
+      {
+        "key": "routeTables",
+        "segment": "routeTables"
+      }
+    ],
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,ipCidrRange,name,nextHopInterconnectAttachment(vpcNetwork),nextHopRouterApplianceInstance(vpcNetwork,uri,siteToSiteDataTransfer),nextHopVpcNetwork(uri),nextHopVpnTunnel(vpcNetwork)",
+    "scope_kind": "projects",
+    "segment": "routes",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "network_transport": {
+    "fields": "transports(name,pscRoutingEnabled,peeringNetwork,network,state),nextPageToken,unreachable",
+    "get_fields": "name,pscRoutingEnabled,peeringNetwork,network,state",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "transports",
+    "location_kind": "region",
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,pscRoutingEnabled,peeringNetwork,network,state",
+    "scope_kind": "projects",
+    "segment": "transports",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "ngfw_authz_policy": {
+    "fields": "authzPolicies(target(loadBalancingScheme),networkRules(to(operations(mcp(baseProtocolMethodsOption,methods(name,params(ignoreCase))),hosts(ignoreCase),snis(ignoreCase),paths(ignoreCase)),notOperations(mcp(baseProtocolMethodsOption,methods(name,params(ignoreCase))),hosts(ignoreCase),snis(ignoreCase),paths(ignoreCase))),from(sources(principals(principal(ignoreCase)),resources(iamServiceAccount(ignoreCase))),notSources(principals(principal(ignoreCase)),resources(iamServiceAccount(ignoreCase))))),name,httpRules(to(operations(mcp(baseProtocolMethodsOption,methods(name))),notOperations(mcp(baseProtocolMethodsOption,methods(name)))))),nextPageToken,unreachable",
+    "get_fields": "target(loadBalancingScheme),networkRules(to(operations(mcp(baseProtocolMethodsOption,methods(name,params(ignoreCase))),hosts(ignoreCase),snis(ignoreCase),paths(ignoreCase)),notOperations(mcp(baseProtocolMethodsOption,methods(name,params(ignoreCase))),hosts(ignoreCase),snis(ignoreCase),paths(ignoreCase))),from(sources(principals(principal(ignoreCase)),resources(iamServiceAccount(ignoreCase))),notSources(principals(principal(ignoreCase)),resources(iamServiceAccount(ignoreCase))))),name,httpRules(to(operations(mcp(baseProtocolMethodsOption,methods(name))),notOperations(mcp(baseProtocolMethodsOption,methods(name)))))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "authzPolicies",
+    "location_kind": "region",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "target(loadBalancingScheme),networkRules(to(operations(mcp(baseProtocolMethodsOption,methods(name,params(ignoreCase))),hosts(ignoreCase),snis(ignoreCase),paths(ignoreCase)),notOperations(mcp(baseProtocolMethodsOption,methods(name,params(ignoreCase))),hosts(ignoreCase),snis(ignoreCase),paths(ignoreCase))),from(sources(principals(principal(ignoreCase)),resources(iamServiceAccount(ignoreCase))),notSources(principals(principal(ignoreCase)),resources(iamServiceAccount(ignoreCase))))),name,httpRules(to(operations(mcp(baseProtocolMethodsOption,methods(name))),notOperations(mcp(baseProtocolMethodsOption,methods(name)))))",
+    "scope_kind": "projects",
+    "segment": "authzPolicies",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_dns_threat_detector": {
+    "fields": "dnsThreatDetectors(excludedNetworks,name),nextPageToken,unreachable",
+    "get_fields": "excludedNetworks,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "dnsThreatDetectors",
+    "location_kind": "region",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "excludedNetworks,name",
+    "scope_kind": "projects",
+    "segment": "dnsThreatDetectors",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_endpoint": {
+    "fields": "firewallEndpoints(associations(name,network),endpointSettings(httpPartialResponseBlocked,jumboFramesEnabled),name,associatedNetworks,state),nextPageToken,unreachable",
+    "get_fields": "associations(name,network),endpointSettings(httpPartialResponseBlocked,jumboFramesEnabled),name,associatedNetworks,state",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "firewallEndpoints",
+    "location_kind": "zone",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "associations(name,network),endpointSettings(httpPartialResponseBlocked,jumboFramesEnabled),name,associatedNetworks,state",
+    "scope_kind": "projects",
+    "segment": "firewallEndpoints",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_endpoint_association": {
+    "fields": "firewallEndpointAssociations(network,name,state,firewallEndpoint),nextPageToken,unreachable",
+    "get_fields": "network,name,state,firewallEndpoint",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "firewallEndpointAssociations",
+    "location_kind": "zone",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "network,name,state,firewallEndpoint",
+    "scope_kind": "projects",
+    "segment": "firewallEndpointAssociations",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_intercept_association": {
+    "fields": "interceptEndpointGroupAssociations(locations(state),state,name,interceptEndpointGroup,networkCookie,locationsDetails(state),network),nextPageToken",
+    "get_fields": "locations(state),state,name,interceptEndpointGroup,networkCookie,locationsDetails(state),network",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "interceptEndpointGroupAssociations",
+    "location_kind": "global",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "locations(state),state,name,interceptEndpointGroup,networkCookie,locationsDetails(state),network",
+    "scope_kind": "projects",
+    "segment": "interceptEndpointGroupAssociations",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_intercept_deployment_group": {
+    "fields": "interceptDeploymentGroups(name,network,connectedEndpointGroups(name),state,locations(state),nestedDeployments(name,state)),nextPageToken",
+    "get_fields": "name,network,connectedEndpointGroups(name),state,locations(state),nestedDeployments(name,state)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "interceptDeploymentGroups",
+    "location_kind": "global",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,network,connectedEndpointGroups(name),state,locations(state),nestedDeployments(name,state)",
+    "scope_kind": "projects",
+    "segment": "interceptDeploymentGroups",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_intercept_endpoint_group": {
+    "fields": "interceptEndpointGroups(name,associations(name,network,state),state,connectedDeploymentGroup(name,locations(state))),nextPageToken",
+    "get_fields": "name,associations(name,network,state),state,connectedDeploymentGroup(name,locations(state))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "interceptEndpointGroups",
+    "location_kind": "global",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,associations(name,network,state),state,connectedDeploymentGroup(name,locations(state))",
+    "scope_kind": "projects",
+    "segment": "interceptEndpointGroups",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_mirroring_association": {
+    "fields": "mirroringEndpointGroupAssociations(state,mirroringEndpointGroup,network,locationsDetails(state),name,networkCookie,locations(state)),nextPageToken",
+    "get_fields": "state,mirroringEndpointGroup,network,locationsDetails(state),name,networkCookie,locations(state)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "mirroringEndpointGroupAssociations",
+    "location_kind": "global",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,mirroringEndpointGroup,network,locationsDetails(state),name,networkCookie,locations(state)",
+    "scope_kind": "projects",
+    "segment": "mirroringEndpointGroupAssociations",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_mirroring_deployment_group": {
+    "fields": "mirroringDeploymentGroups(name,state,connectedEndpointGroups(name),nestedDeployments(name,state),locations(state),network),nextPageToken",
+    "get_fields": "name,state,connectedEndpointGroups(name),nestedDeployments(name,state),locations(state),network",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "mirroringDeploymentGroups",
+    "location_kind": "global",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,state,connectedEndpointGroups(name),nestedDeployments(name,state),locations(state),network",
+    "scope_kind": "projects",
+    "segment": "mirroringDeploymentGroups",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_mirroring_endpoint_group": {
+    "fields": "mirroringEndpointGroups(associations(name,state,network),name,state,connectedDeploymentGroups(locations(state),name)),nextPageToken",
+    "get_fields": "associations(name,state,network),name,state,connectedDeploymentGroups(locations(state),name)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "mirroringEndpointGroups",
+    "location_kind": "global",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "associations(name,state,network),name,state,connectedDeploymentGroups(locations(state),name)",
+    "scope_kind": "projects",
+    "segment": "mirroringEndpointGroups",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "ngfw_organization_endpoint": {
+    "fields": "firewallEndpoints(associations(name,network),endpointSettings(httpPartialResponseBlocked,jumboFramesEnabled),name,associatedNetworks,state),nextPageToken,unreachable",
+    "get_fields": "associations(name,network),endpointSettings(httpPartialResponseBlocked,jumboFramesEnabled),name,associatedNetworks,state",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "firewallEndpoints",
+    "location_kind": "zone",
+    "reference": "https://networksecurity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "associations(name,network),endpointSettings(httpPartialResponseBlocked,jumboFramesEnabled),name,associatedNetworks,state",
+    "scope_kind": "organizations",
+    "segment": "firewallEndpoints",
+    "service": "networksecurity",
+    "version": "v1"
+  },
+  "oracle_autonomous_database": {
+    "fields": "autonomousDatabases(odbSubnet,properties(dataSafeState,state,refreshableState,localStandbyDb(state),databaseManagementState,operationsInsightsState,privateEndpoint,privateEndpointIp,privateEndpointLabel),odbNetwork,name,network,cidr),nextPageToken,unreachable",
+    "get_fields": "odbSubnet,properties(dataSafeState,state,refreshableState,localStandbyDb(state),databaseManagementState,operationsInsightsState,privateEndpoint,privateEndpointIp,privateEndpointLabel),odbNetwork,name,network,cidr",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "autonomousDatabases",
+    "location_kind": "region",
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "odbSubnet,properties(dataSafeState,state,refreshableState,localStandbyDb(state),databaseManagementState,operationsInsightsState,privateEndpoint,privateEndpointIp,privateEndpointLabel),odbNetwork,name,network,cidr",
+    "scope_kind": "projects",
+    "segment": "autonomousDatabases",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "oracle_db_system": {
+    "fields": "dbSystems(name,properties(privateIp,hostnamePrefix,hostname,timeZone(id),dbHome(database(name,properties(state,databaseManagementConfig(managementState),dbBackupConfig(backupDestinationDetails(type))),opsInsightsStatus)),lifecycleState),odbNetwork,odbSubnet),nextPageToken,unreachable",
+    "get_fields": "name,properties(privateIp,hostnamePrefix,hostname,timeZone(id),dbHome(database(name,properties(state,databaseManagementConfig(managementState),dbBackupConfig(backupDestinationDetails(type))),opsInsightsStatus)),lifecycleState),odbNetwork,odbSubnet",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "dbSystems",
+    "location_kind": "region",
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,properties(privateIp,hostnamePrefix,hostname,timeZone(id),dbHome(database(name,properties(state,databaseManagementConfig(managementState),dbBackupConfig(backupDestinationDetails(type))),opsInsightsStatus)),lifecycleState),odbNetwork,odbSubnet",
+    "scope_kind": "projects",
+    "segment": "dbSystems",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "oracle_exadb_vm_cluster": {
+    "fields": "exadbVmClusters(odbSubnet,backupOdbSubnet,name,properties(lifecycleState,hostname,timeZone(id),hostnamePrefix),odbNetwork,identityConnector(connectionState)),nextPageToken,unreachable",
+    "get_fields": "odbSubnet,backupOdbSubnet,name,properties(lifecycleState,hostname,timeZone(id),hostnamePrefix),odbNetwork,identityConnector(connectionState)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "exadbVmClusters",
+    "location_kind": "region",
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "odbSubnet,backupOdbSubnet,name,properties(lifecycleState,hostname,timeZone(id),hostnamePrefix),odbNetwork,identityConnector(connectionState)",
+    "scope_kind": "projects",
+    "segment": "exadbVmClusters",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "oracle_goldengate_connection": {
+    "fields": "goldengateConnections(odbSubnet,name,properties(ingressIpAddresses,icebergConnectionProperties(storage(azureDataLakeStorageIcebergStorage(endpoint),amazonS3IcebergStorage(endpoint))),kafkaConnectionProperties(bootstrapServers(port,host,privateIpAddress),securityProtocol),microsoftFabricConnectionProperties(endpoint),goldengateConnectionProperties(port,host),genericConnectionProperties(host),redisConnectionProperties(securityProtocol),postgresqlConnectionProperties(port,host,securityProtocol),kafkaSchemaRegistryConnectionProperties(url),elasticsearchConnectionProperties(securityProtocol),amazonKinesisConnectionProperties(endpoint),mongodbConnectionProperties(securityProtocol),mysqlConnectionProperties(host,port,securityProtocol),amazonS3ConnectionProperties(endpoint),javaMessageServiceConnectionProperties(securityProtocol),azureDataLakeStorageConnectionProperties(endpoint),microsoftSqlserverConnectionProperties(securityProtocol,host,port),lifecycleState,db2ConnectionProperties(port,host,securityProtocol)),odbNetwork),nextPageToken,unreachable",
+    "get_fields": "odbSubnet,name,properties(ingressIpAddresses,icebergConnectionProperties(storage(azureDataLakeStorageIcebergStorage(endpoint),amazonS3IcebergStorage(endpoint))),kafkaConnectionProperties(bootstrapServers(port,host,privateIpAddress),securityProtocol),microsoftFabricConnectionProperties(endpoint),goldengateConnectionProperties(port,host),genericConnectionProperties(host),redisConnectionProperties(securityProtocol),postgresqlConnectionProperties(port,host,securityProtocol),kafkaSchemaRegistryConnectionProperties(url),elasticsearchConnectionProperties(securityProtocol),amazonKinesisConnectionProperties(endpoint),mongodbConnectionProperties(securityProtocol),mysqlConnectionProperties(host,port,securityProtocol),amazonS3ConnectionProperties(endpoint),javaMessageServiceConnectionProperties(securityProtocol),azureDataLakeStorageConnectionProperties(endpoint),microsoftSqlserverConnectionProperties(securityProtocol,host,port),lifecycleState,db2ConnectionProperties(port,host,securityProtocol)),odbNetwork",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "goldengateConnections",
+    "location_kind": "region",
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "odbSubnet,name,properties(ingressIpAddresses,icebergConnectionProperties(storage(azureDataLakeStorageIcebergStorage(endpoint),amazonS3IcebergStorage(endpoint))),kafkaConnectionProperties(bootstrapServers(port,host,privateIpAddress),securityProtocol),microsoftFabricConnectionProperties(endpoint),goldengateConnectionProperties(port,host),genericConnectionProperties(host),redisConnectionProperties(securityProtocol),postgresqlConnectionProperties(port,host,securityProtocol),kafkaSchemaRegistryConnectionProperties(url),elasticsearchConnectionProperties(securityProtocol),amazonKinesisConnectionProperties(endpoint),mongodbConnectionProperties(securityProtocol),mysqlConnectionProperties(host,port,securityProtocol),amazonS3ConnectionProperties(endpoint),javaMessageServiceConnectionProperties(securityProtocol),azureDataLakeStorageConnectionProperties(endpoint),microsoftSqlserverConnectionProperties(securityProtocol,host,port),lifecycleState,db2ConnectionProperties(port,host,securityProtocol)),odbNetwork",
+    "scope_kind": "projects",
+    "segment": "goldengateConnections",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "oracle_goldengate_deployment": {
+    "fields": "goldengateDeployments(properties(privateIpAddress,ingressIps(ingressIpAddress),oggData(groupRolesMapping(securityGroupId)),deploymentDiagnosticData(diagnosticState),lifecycleState,fqdn,loadBalancerSubnetId,lifecycleSubState,publicIpAddress),odbNetwork,name,odbSubnet),nextPageToken,unreachable",
+    "get_fields": "properties(privateIpAddress,ingressIps(ingressIpAddress),oggData(groupRolesMapping(securityGroupId)),deploymentDiagnosticData(diagnosticState),lifecycleState,fqdn,loadBalancerSubnetId,lifecycleSubState,publicIpAddress),odbNetwork,name,odbSubnet",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "goldengateDeployments",
+    "location_kind": "region",
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "properties(privateIpAddress,ingressIps(ingressIpAddress),oggData(groupRolesMapping(securityGroupId)),deploymentDiagnosticData(diagnosticState),lifecycleState,fqdn,loadBalancerSubnetId,lifecycleSubState,publicIpAddress),odbNetwork,name,odbSubnet",
+    "scope_kind": "projects",
+    "segment": "goldengateDeployments",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "oracle_network": {
+    "fields": "odbNetworks(name,serviceConnectivityConfig(pscInterfaceConfig(networkAttachment)),state,network),nextPageToken,unreachable",
+    "get_fields": "name,serviceConnectivityConfig(pscInterfaceConfig(networkAttachment)),state,network",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "odbNetworks",
+    "location_kind": "region",
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,serviceConnectivityConfig(pscInterfaceConfig(networkAttachment)),state,network",
+    "scope_kind": "projects",
+    "segment": "odbNetworks",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "oracle_subnet": {
+    "fields": "odbSubnets(cidrRange,state,name),nextPageToken,unreachable",
+    "get_fields": "cidrRange,state,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "odbSubnets",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "odbNetworks",
+        "segment": "odbNetworks"
+      }
+    ],
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "cidrRange,state,name",
+    "scope_kind": "projects",
+    "segment": "odbSubnets",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "oracle_vm_cluster": {
+    "fields": "cloudVmClusters(backupOdbSubnet,cidr,backupSubnetCidr,name,identityConnector(connectionState),network,odbDnsZone,properties(dnsListenerIp,hostnamePrefix,scanDns,scanDnsRecordId,timeZone(id),hostname,state),odbNetwork,odbSubnet),nextPageToken,unreachable",
+    "get_fields": "backupOdbSubnet,cidr,backupSubnetCidr,name,identityConnector(connectionState),network,odbDnsZone,properties(dnsListenerIp,hostnamePrefix,scanDns,scanDnsRecordId,timeZone(id),hostname,state),odbNetwork,odbSubnet",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "cloudVmClusters",
+    "location_kind": "region",
+    "reference": "https://oracledatabase.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "backupOdbSubnet,cidr,backupSubnetCidr,name,identityConnector(connectionState),network,odbDnsZone,properties(dnsListenerIp,hostnamePrefix,scanDns,scanDnsRecordId,timeZone(id),hostname,state),odbNetwork,odbSubnet",
+    "scope_kind": "projects",
+    "segment": "cloudVmClusters",
+    "service": "oracledatabase",
+    "version": "v1"
+  },
+  "parallelstore_instance": {
+    "fields": "instances(name,network,effectiveReservedIpRange,state,reservedIpRange),nextPageToken,unreachable",
+    "get_fields": "name,network,effectiveReservedIpRange,state,reservedIpRange",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "instances",
+    "location_kind": "region",
+    "reference": "https://parallelstore.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,network,effectiveReservedIpRange,state,reservedIpRange",
+    "scope_kind": "projects",
+    "segment": "instances",
+    "service": "parallelstore",
+    "version": "v1"
+  },
+  "psc_authorization_policy": {
+    "fields": "pscAuthorizationPolicies(name),nextPageToken,unreachable",
+    "get_fields": "name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "pscAuthorizationPolicies",
+    "location_kind": "region",
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name",
+    "scope_kind": "projects",
+    "segment": "pscAuthorizationPolicies",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "regional_psc_endpoint": {
+    "fields": "regionalEndpoints(ipAddress,address,pscForwardingRule,subnetwork,network,name),nextPageToken,unreachable",
+    "get_fields": "ipAddress,address,pscForwardingRule,subnetwork,network,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "regionalEndpoints",
+    "location_kind": "region",
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "ipAddress,address,pscForwardingRule,subnetwork,network,name",
+    "scope_kind": "projects",
+    "segment": "regionalEndpoints",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "secure_source_instance": {
+    "fields": "instances(privateConfig(httpServiceAttachment,pscAllowedProjects,sshServiceAttachment),state,name),nextPageToken,unreachable",
+    "get_fields": "privateConfig(httpServiceAttachment,pscAllowedProjects,sshServiceAttachment),state,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "instances",
+    "location_kind": "region",
+    "reference": "https://securesourcemanager.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "privateConfig(httpServiceAttachment,pscAllowedProjects,sshServiceAttachment),state,name",
+    "scope_kind": "projects",
+    "segment": "instances",
+    "service": "securesourcemanager",
+    "version": "v1"
+  },
+  "service_connection_map": {
+    "fields": "serviceConnectionMaps(name,producerPscConfigs(serviceAttachmentUri,automatedDnsCreationSpec(dnsSuffix,hostname)),consumerPscConfigs(state,network),consumerPscConnections(pscConnectionId,network,serviceAttachmentUri,state,ip,dnsAutomationStatus(fqdn,state),selectedSubnetwork)),nextPageToken,unreachable",
+    "get_fields": "name,producerPscConfigs(serviceAttachmentUri,automatedDnsCreationSpec(dnsSuffix,hostname)),consumerPscConfigs(state,network),consumerPscConnections(pscConnectionId,network,serviceAttachmentUri,state,ip,dnsAutomationStatus(fqdn,state),selectedSubnetwork)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "serviceConnectionMaps",
+    "location_kind": "region",
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,producerPscConfigs(serviceAttachmentUri,automatedDnsCreationSpec(dnsSuffix,hostname)),consumerPscConfigs(state,network),consumerPscConnections(pscConnectionId,network,serviceAttachmentUri,state,ip,dnsAutomationStatus(fqdn,state),selectedSubnetwork)",
+    "scope_kind": "projects",
+    "segment": "serviceConnectionMaps",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "service_connection_token": {
+    "fields": "serviceConnectionTokens(network,name),nextPageToken,unreachable",
+    "get_fields": "network,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "serviceConnectionTokens",
+    "location_kind": "region",
+    "reference": "https://networkconnectivity.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "network,name",
+    "scope_kind": "projects",
+    "segment": "serviceConnectionTokens",
+    "service": "networkconnectivity",
+    "version": "v1"
+  },
+  "service_directory_endpoint": {
+    "fields": "endpoints(name,port,address,network),nextPageToken",
+    "get_fields": "name,port,address,network",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "endpoints",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "namespaces",
+        "segment": "namespaces"
+      },
+      {
+        "key": "services",
+        "segment": "services"
+      }
+    ],
+    "reference": "https://servicedirectory.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,port,address,network",
+    "scope_kind": "projects",
+    "segment": "endpoints",
+    "service": "servicedirectory",
+    "version": "v1"
+  },
+  "service_directory_service": {
+    "fields": "services(endpoints(name,port,address,network),name),nextPageToken",
+    "get_fields": "endpoints(name,port,address,network),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "services",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "namespaces",
+        "segment": "namespaces"
+      }
+    ],
+    "reference": "https://servicedirectory.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "endpoints(name,port,address,network),name",
+    "scope_kind": "projects",
+    "segment": "services",
+    "service": "servicedirectory",
+    "version": "v1"
+  },
+  "tpu_node": {
+    "fields": "nodes(networkConfig(enableExternalIps,subnetwork,canIpForward,network),id,name,upcomingMaintenance(maintenanceStatus),cidrBlock,networkConfigs(enableExternalIps,subnetwork,canIpForward,network),state,networkEndpoints(ipAddress,accessConfig(externalIp),port)),nextPageToken,unreachable",
+    "key": "nodes",
+    "location_kind": "zone",
+    "reference": "https://tpu.googleapis.com/$discovery/rest?version=v2",
+    "segment": "nodes",
+    "service": "tpu",
+    "version": "v2"
+  },
+  "tpu_queued_resource": {
+    "fields": "queuedResources(state(state),tpu(nodeSpec(node(networkConfig(enableExternalIps,subnetwork,canIpForward,network),id,name,upcomingMaintenance(maintenanceStatus),cidrBlock,networkConfigs(enableExternalIps,subnetwork,canIpForward,network),state,networkEndpoints(ipAddress,accessConfig(externalIp),port)))),name),nextPageToken,unreachable",
+    "key": "queuedResources",
+    "location_kind": "zone",
+    "reference": "https://tpu.googleapis.com/$discovery/rest?version=v2",
+    "segment": "queuedResources",
+    "service": "tpu",
+    "version": "v2"
+  },
+  "uptime_check_network_config": {
+    "fields": "uptimeCheckConfigs(syntheticMonitor(cloudFunctionV2(name)),internalCheckers(name,state,network),name,httpCheck(port),tcpCheck(port)),nextPageToken",
+    "get_fields": "syntheticMonitor(cloudFunctionV2(name)),internalCheckers(name,state,network),name,httpCheck(port),tcpCheck(port)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "uptimeCheckConfigs",
+    "location_kind": "region",
+    "project_wide": true,
+    "reference": "https://monitoring.googleapis.com/$discovery/rest?version=v3",
+    "resource_fields": "syntheticMonitor(cloudFunctionV2(name)),internalCheckers(name,state,network),name,httpCheck(port),tcpCheck(port)",
+    "scope_kind": "projects",
+    "segment": "uptimeCheckConfigs",
+    "service": "monitoring",
+    "version": "v3"
+  },
+  "vertex_agent_engine": {
+    "fields": "reasoningEngines(spec(containerSpec(port),deploymentSpec(keepAliveProbe(httpGet(port)),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)))),name),nextPageToken",
+    "get_fields": "spec(containerSpec(port),deploymentSpec(keepAliveProbe(httpGet(port)),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)))),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "reasoningEngines",
+    "location_kind": "region",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "spec(containerSpec(port),deploymentSpec(keepAliveProbe(httpGet(port)),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)))),name",
+    "scope_kind": "projects",
+    "segment": "reasoningEngines",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_agent_sandbox": {
+    "fields": "sandboxEnvironments(state,name,connectionInfo(sandboxInternalIp,serviceAttachment,loadBalancerIp,loadBalancerHostname)),nextPageToken",
+    "get_fields": "state,name,connectionInfo(sandboxInternalIp,serviceAttachment,loadBalancerIp,loadBalancerHostname)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "sandboxEnvironments",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "reasoningEngines",
+        "segment": "reasoningEngines"
+      }
+    ],
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,name,connectionInfo(sandboxInternalIp,serviceAttachment,loadBalancerIp,loadBalancerHostname)",
+    "scope_kind": "projects",
+    "segment": "sandboxEnvironments",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_agent_sandbox_template": {
+    "fields": "sandboxEnvironmentTemplates(state,egressControlConfig(networkAttachment,dnsPeeringConfigs(targetNetwork),internetAccess),customContainerEnvironment(ports(protocol,port)),ingressControlConfig(serviceAttachment,enablePrivateServiceConnect,pscAutomationConfigs(state,ipAddress,network,projectId)),name),nextPageToken",
+    "get_fields": "state,egressControlConfig(networkAttachment,dnsPeeringConfigs(targetNetwork),internetAccess),customContainerEnvironment(ports(protocol,port)),ingressControlConfig(serviceAttachment,enablePrivateServiceConnect,pscAutomationConfigs(state,ipAddress,network,projectId)),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "sandboxEnvironmentTemplates",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "reasoningEngines",
+        "segment": "reasoningEngines"
+      }
+    ],
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,egressControlConfig(networkAttachment,dnsPeeringConfigs(targetNetwork),internetAccess),customContainerEnvironment(ports(protocol,port)),ingressControlConfig(serviceAttachment,enablePrivateServiceConnect,pscAutomationConfigs(state,ipAddress,network,projectId)),name",
+    "scope_kind": "projects",
+    "segment": "sandboxEnvironmentTemplates",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_custom_job": {
+    "fields": "customJobs(state,name,jobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))),nextPageToken",
+    "key": "customJobs",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "segment": "customJobs",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_feature_online_store": {
+    "fields": "featureOnlineStores(dedicatedServingEndpoint(publicEndpointDomainName,serviceAttachment,privateServiceConnectConfig(serviceAttachment,enablePrivateServiceConnect,pscAutomationConfigs(state,ipAddress,network,projectId))),name,state),nextPageToken",
+    "key": "featureOnlineStores",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "segment": "featureOnlineStores",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_hyperparameter_job": {
+    "fields": "hyperparameterTuningJobs(trials(state,id,name),name,state,trialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))),nextPageToken",
+    "get_fields": "trials(state,id,name),name,state,trialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "hyperparameterTuningJobs",
+    "location_kind": "region",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "trials(state,id,name),name,state,trialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))",
+    "scope_kind": "projects",
+    "segment": "hyperparameterTuningJobs",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_index_endpoint": {
+    "fields": "indexEndpoints(deployedIndexes(pscAutomationConfigs(state,ipAddress,network,projectId),id,privateEndpoints(serviceAttachment,pscAutomatedEndpoints(network,projectId)),reservedIpRanges),privateServiceConnectConfig(serviceAttachment,enablePrivateServiceConnect,pscAutomationConfigs(state,ipAddress,network,projectId)),enablePrivateServiceConnect,publicEndpointDomainName,publicEndpointEnabled,name,network),nextPageToken",
+    "key": "indexEndpoints",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "segment": "indexEndpoints",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_nas_job": {
+    "fields": "nasJobs(state,nasJobSpec(multiTrialAlgorithmSpec(trainTrialSpec(trainTrialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))),searchTrialSpec(searchTrialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))))),name,nasJobOutput(multiTrialJobOutput(searchTrials(id,state),trainTrials(id,state)))),nextPageToken",
+    "get_fields": "state,nasJobSpec(multiTrialAlgorithmSpec(trainTrialSpec(trainTrialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))),searchTrialSpec(searchTrialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))))),name,nasJobOutput(multiTrialJobOutput(searchTrials(id,state),trainTrials(id,state)))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "nasJobs",
+    "location_kind": "region",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,nasJobSpec(multiTrialAlgorithmSpec(trainTrialSpec(trainTrialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))),searchTrialSpec(searchTrialJobSpec(reservedIpRanges,pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),network,workerPoolSpecs(lustreMounts(instanceIp)))))),name,nasJobOutput(multiTrialJobOutput(searchTrials(id,state),trainTrials(id,state)))",
+    "scope_kind": "projects",
+    "segment": "nasJobs",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_network_schedule": {
+    "fields": "schedules(createNotebookExecutionJobRequest(notebookExecutionJob(name,workbenchRuntime(vmImage(name)),customEnvironmentSpec(networkSpec(network,enableInternetAccess,subnetwork)),jobState)),name,state,createPipelineJobRequest(pipelineJob(name,network,jobDetail(pipelineContext(name),pipelineRunContext(name),taskDetails(execution(name,state),state,pipelineTaskStatus(state))),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),state,reservedIpRanges))),nextPageToken",
+    "get_fields": "createNotebookExecutionJobRequest(notebookExecutionJob(name,workbenchRuntime(vmImage(name)),customEnvironmentSpec(networkSpec(network,enableInternetAccess,subnetwork)),jobState)),name,state,createPipelineJobRequest(pipelineJob(name,network,jobDetail(pipelineContext(name),pipelineRunContext(name),taskDetails(execution(name,state),state,pipelineTaskStatus(state))),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),state,reservedIpRanges))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "schedules",
+    "location_kind": "region",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "createNotebookExecutionJobRequest(notebookExecutionJob(name,workbenchRuntime(vmImage(name)),customEnvironmentSpec(networkSpec(network,enableInternetAccess,subnetwork)),jobState)),name,state,createPipelineJobRequest(pipelineJob(name,network,jobDetail(pipelineContext(name),pipelineRunContext(name),taskDetails(execution(name,state),state,pipelineTaskStatus(state))),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),state,reservedIpRanges))",
+    "scope_kind": "projects",
+    "segment": "schedules",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_notebook_execution_job": {
+    "fields": "notebookExecutionJobs(name,workbenchRuntime(vmImage(name)),customEnvironmentSpec(networkSpec(network,enableInternetAccess,subnetwork)),jobState),nextPageToken",
+    "get_fields": "name,workbenchRuntime(vmImage(name)),customEnvironmentSpec(networkSpec(network,enableInternetAccess,subnetwork)),jobState",
+    "get_parameters": {
+      "view": "NOTEBOOK_EXECUTION_JOB_VIEW_FULL"
+    },
+    "hydrate": true,
+    "key": "notebookExecutionJobs",
+    "location_kind": "region",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,workbenchRuntime(vmImage(name)),customEnvironmentSpec(networkSpec(network,enableInternetAccess,subnetwork)),jobState",
+    "scope_kind": "projects",
+    "segment": "notebookExecutionJobs",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_notebook_runtime": {
+    "fields": "notebookRuntimes(networkSpec(network,enableInternetAccess,subnetwork),name,networkTags,healthState,runtimeState),nextPageToken",
+    "key": "notebookRuntimes",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "segment": "notebookRuntimes",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_persistent_resource": {
+    "fields": "persistentResources(state,network,reservedIpRanges,name,resourcePools(id),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork))),nextPageToken",
+    "key": "persistentResources",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "segment": "persistentResources",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_pipeline_job": {
+    "fields": "pipelineJobs(name,network,jobDetail(pipelineContext(name),pipelineRunContext(name),taskDetails(execution(name,state),state,pipelineTaskStatus(state))),pscInterfaceConfig(networkAttachment,dnsPeeringConfigs(targetNetwork)),state,reservedIpRanges),nextPageToken",
+    "key": "pipelineJobs",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "segment": "pipelineJobs",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vertex_runtime_template": {
+    "fields": "notebookRuntimeTemplates(networkSpec(network,enableInternetAccess,subnetwork),networkTags,name),nextPageToken",
+    "get_fields": "networkSpec(network,enableInternetAccess,subnetwork),networkTags,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "notebookRuntimeTemplates",
+    "location_kind": "region",
+    "reference": "https://aiplatform.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "networkSpec(network,enableInternetAccess,subnetwork),networkTags,name",
+    "scope_kind": "projects",
+    "segment": "notebookRuntimeTemplates",
+    "service": "aiplatform",
+    "version": "v1"
+  },
+  "vm_migration_image_import": {
+    "fields": "imageImports(machineImageTargetDefaults(networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),recentImageImportJobs(machineImageTargetDetails(networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),name,state,warnings(helpLinks(url))),name),nextPageToken,unreachable",
+    "get_fields": "machineImageTargetDefaults(networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),recentImageImportJobs(machineImageTargetDetails(networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),name,state,warnings(helpLinks(url))),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "imageImports",
+    "location_kind": "region",
+    "reference": "https://vmmigration.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "machineImageTargetDefaults(networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),recentImageImportJobs(machineImageTargetDetails(networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),name,state,warnings(helpLinks(url))),name",
+    "scope_kind": "projects",
+    "segment": "imageImports",
+    "service": "vmmigration",
+    "version": "v1"
+  },
+  "vm_migration_vm": {
+    "fields": "migratingVms(computeEngineTargetDefaults(networkTags,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network),hostname),state,recentCutoverJobs(name,computeEngineTargetDetails(networkTags,hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),state),computeEngineDisksTargetDefaults(vmTargetDefaults(hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network),networkTags)),recentCloneJobs(state,computeEngineTargetDetails(networkTags,hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),name),lastReplicationCycle(name,warnings(helpLinks(url)),state),currentSyncInfo(name,warnings(helpLinks(url)),state),name),nextPageToken,unreachable",
+    "get_fields": "computeEngineTargetDefaults(networkTags,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network),hostname),state,recentCutoverJobs(name,computeEngineTargetDetails(networkTags,hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),state),computeEngineDisksTargetDefaults(vmTargetDefaults(hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network),networkTags)),recentCloneJobs(state,computeEngineTargetDetails(networkTags,hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),name),lastReplicationCycle(name,warnings(helpLinks(url)),state),currentSyncInfo(name,warnings(helpLinks(url)),state),name",
+    "get_parameters": {
+      "view": "MIGRATING_VM_VIEW_FULL"
+    },
+    "hydrate": true,
+    "key": "migratingVms",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "sources",
+        "segment": "sources"
+      }
+    ],
+    "reference": "https://vmmigration.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "computeEngineTargetDefaults(networkTags,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network),hostname),state,recentCutoverJobs(name,computeEngineTargetDetails(networkTags,hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),state),computeEngineDisksTargetDefaults(vmTargetDefaults(hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network),networkTags)),recentCloneJobs(state,computeEngineTargetDetails(networkTags,hostname,networkInterfaces(subnetwork,externalIp,networkTier,internalIp,network)),name),lastReplicationCycle(name,warnings(helpLinks(url)),state),currentSyncInfo(name,warnings(helpLinks(url)),state),name",
+    "scope_kind": "projects",
+    "segment": "migratingVms",
+    "service": "vmmigration",
+    "version": "v1"
+  },
+  "vmware_dns_binding": {
+    "fields": "managementDnsZoneBindings(state,vpcNetwork,vmwareEngineNetwork,name),nextPageToken,unreachable",
+    "get_fields": "state,vpcNetwork,vmwareEngineNetwork,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "managementDnsZoneBindings",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "privateClouds",
+        "segment": "privateClouds"
+      }
+    ],
+    "reference": "https://vmwareengine.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,vpcNetwork,vmwareEngineNetwork,name",
+    "scope_kind": "projects",
+    "segment": "managementDnsZoneBindings",
+    "service": "vmwareengine",
+    "version": "v1"
+  },
+  "vmware_network": {
+    "fields": "vmwareEngineNetworks(state,name,vpcNetworks(network,type)),nextPageToken,unreachable",
+    "key": "vmwareEngineNetworks",
+    "reference": "https://vmwareengine.googleapis.com/$discovery/rest?version=v1",
+    "segment": "vmwareEngineNetworks",
+    "service": "vmwareengine",
+    "version": "v1"
+  },
+  "vmware_network_peering": {
+    "fields": "networkPeerings(peerNetworkType,state,exchangeSubnetRoutes,importCustomRoutesWithPublicIp,peerNetwork,vmwareEngineNetwork,exportCustomRoutesWithPublicIp,name),nextPageToken,unreachable",
+    "key": "networkPeerings",
+    "reference": "https://vmwareengine.googleapis.com/$discovery/rest?version=v1",
+    "segment": "networkPeerings",
+    "service": "vmwareengine",
+    "version": "v1"
+  },
+  "vmware_network_policy": {
+    "fields": "networkPolicies(name,internetAccess(state),vmwareEngineNetworkCanonical,edgeServicesCidr,vmwareEngineNetwork,externalIp(state)),nextPageToken,unreachable",
+    "key": "networkPolicies",
+    "reference": "https://vmwareengine.googleapis.com/$discovery/rest?version=v1",
+    "segment": "networkPolicies",
+    "service": "vmwareengine",
+    "version": "v1"
+  },
+  "vmware_private_cloud": {
+    "fields": "privateClouds(networkConfig(vmwareEngineNetworkCanonical,managementCidr,managementIpAddressLayoutVersion,dnsServerIp,vmwareEngineNetwork),hcx(fqdn,state,internalIp),vcenter(fqdn,internalIp,state),name,state,nsx(internalIp,state,fqdn)),nextPageToken,unreachable",
+    "key": "privateClouds",
+    "reference": "https://vmwareengine.googleapis.com/$discovery/rest?version=v1",
+    "segment": "privateClouds",
+    "service": "vmwareengine",
+    "version": "v1"
+  },
+  "vmware_private_connection": {
+    "fields": "privateConnections(serviceNetwork,vmwareEngineNetworkCanonical,peeringState,name,vmwareEngineNetwork,state),nextPageToken,unreachable",
+    "key": "privateConnections",
+    "reference": "https://vmwareengine.googleapis.com/$discovery/rest?version=v1",
+    "segment": "privateConnections",
+    "service": "vmwareengine",
+    "version": "v1"
+  },
+  "vmware_subnet": {
+    "fields": "subnets(gatewayIp,ipCidrRange,state,name),nextPageToken,unreachable",
+    "get_fields": "gatewayIp,ipCidrRange,state,name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "subnets",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "privateClouds",
+        "segment": "privateClouds"
+      }
+    ],
+    "reference": "https://vmwareengine.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "gatewayIp,ipCidrRange,state,name",
+    "scope_kind": "projects",
+    "segment": "subnets",
+    "service": "vmwareengine",
+    "version": "v1"
+  },
+  "workload_deployment": {
+    "fields": "deployments(state,workerPool,sqlServerWorkload(database(floatingIpAddress),activeDirectory(dnsAddress),location(dnsZone,internetAccess,network,subnetwork)),sapSystemS4Config(location(dnsZone,deploymentDnsEnabled,subnetName,networkProject,createCommsFirewall,dnsZoneNameSuffix,vpcName,internetAccess)),name),nextPageToken,unreachable",
+    "get_fields": "state,workerPool,sqlServerWorkload(database(floatingIpAddress),activeDirectory(dnsAddress),location(dnsZone,internetAccess,network,subnetwork)),sapSystemS4Config(location(dnsZone,deploymentDnsEnabled,subnetName,networkProject,createCommsFirewall,dnsZoneNameSuffix,vpcName,internetAccess)),name",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "deployments",
+    "location_kind": "region",
+    "reference": "https://workloadmanager.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "state,workerPool,sqlServerWorkload(database(floatingIpAddress),activeDirectory(dnsAddress),location(dnsZone,internetAccess,network,subnetwork)),sapSystemS4Config(location(dnsZone,deploymentDnsEnabled,subnetName,networkProject,createCommsFirewall,dnsZoneNameSuffix,vpcName,internetAccess)),name",
+    "scope_kind": "projects",
+    "segment": "deployments",
+    "service": "workloadmanager",
+    "version": "v1"
+  },
+  "workstation": {
+    "fields": "workstations(name,state,host,runtimeHost(gceInstanceHost(id,name))),nextPageToken,unreachable",
+    "get_fields": "name,state,host,runtimeHost(gceInstanceHost(id,name))",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "workstations",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "workstationClusters",
+        "segment": "workstationClusters"
+      },
+      {
+        "key": "workstationConfigs",
+        "segment": "workstationConfigs"
+      }
+    ],
+    "reference": "https://workstations.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,state,host,runtimeHost(gceInstanceHost(id,name))",
+    "scope_kind": "projects",
+    "segment": "workstations",
+    "service": "workstations",
+    "version": "v1"
+  },
+  "workstation_cluster": {
+    "fields": "workstationClusters(network,name,gatewayConfig(http2Enabled),privateClusterConfig(enablePrivateEndpoint,clusterHostname,serviceAttachmentUri),subnetwork,controlPlaneIp),nextPageToken,unreachable",
+    "key": "workstationClusters",
+    "reference": "https://workstations.googleapis.com/$discovery/rest?version=v1",
+    "segment": "workstationClusters",
+    "service": "workstations",
+    "version": "v1"
+  },
+  "workstation_config": {
+    "fields": "workstationConfigs(name,host(gceInstance(disablePublicIpAddresses,boostConfigs(id))),readinessChecks(port)),nextPageToken,unreachable",
+    "get_fields": "name,host(gceInstance(disablePublicIpAddresses,boostConfigs(id))),readinessChecks(port)",
+    "get_parameters": {},
+    "hydrate": true,
+    "key": "workstationConfigs",
+    "location_kind": "region",
+    "parents": [
+      {
+        "key": "workstationClusters",
+        "segment": "workstationClusters"
+      }
+    ],
+    "reference": "https://workstations.googleapis.com/$discovery/rest?version=v1",
+    "resource_fields": "name,host(gceInstance(disablePublicIpAddresses,boostConfigs(id))),readinessChecks(port)",
+    "scope_kind": "projects",
+    "segment": "workstationConfigs",
+    "service": "workstations",
+    "version": "v1"
+  }
+}
