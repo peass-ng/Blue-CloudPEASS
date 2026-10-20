@@ -30,6 +30,7 @@ from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_codebuild_sandbox_read_next import normalize as normalize_codebuild_sandbox_read
 from .aws_codebuild_gap_correlations_next import correlate as correlate_aws_codebuild_gaps
 from .aws_appsync_five_next import normalize as normalize_aws_appsync_five
+from .aws_appsync_read_function_next import normalize as normalize_aws_appsync_read_function
 from .aws_sagemaker_control_next import normalize_aws_sagemaker_control
 from .aws_rolesanywhere_next import normalize as normalize_aws_rolesanywhere
 from .aws_customer_profiles_next import normalize as normalize_aws_customer_profiles
@@ -160,8 +161,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "653f68f24ffe37ea8bee60ddc6ef855548b04156"
-DEFAULT_RULE_PACK_SHA256 = "369b8ae37c27e0473a6df0710b4e95f0d84a58b4ab3670ff042d95aa4620c035"
+DEFAULT_RULE_REF = "d10ffd13499c16e452d9dbc978939e39c49b82f9"
+DEFAULT_RULE_PACK_SHA256 = "9e4e121122a4d2fe718c1bd987b253258fcef3de6f78d939afb89187e1b39578"
 
 
 @dataclass(frozen=True)
@@ -282,6 +283,7 @@ def detect_aws_events(
         codebuild_execution = normalize_codebuild_execution(record)
         codebuild_sandbox_read = normalize_codebuild_sandbox_read(record)
         appsync_five = normalize_aws_appsync_five(record)
+        appsync_read_function = normalize_aws_appsync_read_function(record)
         sagemaker_control = normalize_aws_sagemaker_control(record)
         rolesanywhere = normalize_aws_rolesanywhere(record)
         customer_profiles = normalize_aws_customer_profiles(record)
@@ -404,6 +406,7 @@ def detect_aws_events(
                 + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([codebuild_sandbox_read] if codebuild_sandbox_read is not None else [])
                 + ([appsync_five] if appsync_five is not None else [])
+                + ([appsync_read_function] if appsync_read_function is not None else [])
                 + ([sagemaker_control] if sagemaker_control is not None else [])
                 + ([rolesanywhere] if rolesanywhere is not None else [])
                 + ([customer_profiles] if customer_profiles is not None else [])
