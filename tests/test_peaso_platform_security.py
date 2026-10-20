@@ -140,7 +140,7 @@ def test_ai_status_and_local_launch_explain_missing_isolation(tmp_path, monkeypa
     from peaso.server import create_app
     from peaso.ai import auth
     monkeypatch.delenv('PEASO_AI_ISOLATION_LAUNCHER', raising=False)
-    monkeypatch.setattr(auth, 'codex_available', lambda *a: True)
+    monkeypatch.setattr('peaso.ai.providers.resolve_access', lambda *a, **kw: ('inert-model-token', 'platform'))
     settings = Settings(state_dir=tmp_path / 'state', identity_dir=tmp_path / 'identity',
                         auth_mode='local', local_token='security-fixture-token-12345678')
     with TestClient(create_app(settings), base_url='http://127.0.0.1') as client:
@@ -162,6 +162,7 @@ def test_ai_worker_guard_preserves_deterministic_scan_without_starting_agents(tm
     monkeypatch.setattr(pipeline, 'Settings', lambda: settings)
     monkeypatch.setattr('peaso.storage.runtime.stores', lambda settings: (store, artifacts))
     monkeypatch.setattr(pipeline, 'personal_token', lambda *args: ('inert-model-token', 'platform'))
+    monkeypatch.setattr('peaso.ai.providers.validate_access', lambda access: access)
     monkeypatch.setattr(pipeline, 'invoke', lambda *args: pytest.fail('Worker must enforce isolation before invoking any agent'))
     report = {'provider': 'aws', 'findings': [{'id': 'original-fail', 'status': 'FAIL'}]}
     before = copy.deepcopy(report)

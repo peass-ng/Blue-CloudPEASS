@@ -12,7 +12,7 @@ import time
 from types import FunctionType
 
 from . import gcp_selected_object_secret_indicators as objects
-from .aws_package_content_indicators import scan_zip, scan_tar
+from .aws_package_content_indicators import scan_zip, scan_tar, PartialArchive
 from peaso.secret_scanning import scan_content, merge_leaks
 
 SCHEMA = 'gcp-selected-archive-secrets-v1'
@@ -89,6 +89,12 @@ class Deadline:
         objects._check(self.transport, self.state)
 
 
+class PartialInspection(objects.Incomplete):
+    def __init__(self, parsed):
+        super().__init__('partial_archive')
+        self.parsed = parsed
+
+
 def _parse(raw, format_name, transport, state):
     expanded_cap = min(MAX_EXPANDED_BYTES, MAX_TOTAL_EXPANDED_BYTES - state['archive_expanded'])
     member_cap = min(MAX_MEMBERS, MAX_TOTAL_MEMBERS - state['archive_members'])
@@ -109,10 +115,12 @@ def _parse(raw, format_name, transport, state):
         remaining = objects._remaining(transport, state)
         outcome = scan_content(bytes(payload), path, timeout=min(5, remaining / 2))
         requests.check_deadline()
-        if not outcome['complete']:
-            raise objects.Incomplete('archive_detector_unavailable')
         entry = {'path': path, 'bytes': len(payload), 'engines': outcome['engines']}
         files.append(entry)
+        if not outcome['complete']:
+            if outcome['leaks']:
+                raise PartialArchive([{'leaks': outcome['leaks']}], 0, 0)
+            raise objects.Incomplete('archive_detector_unavailable')
         return [{'leaks': outcome['leaks']}]
     parser = scan_zip if format_name == 'zip' else scan_tar
     # No global monkeypatch: each parser function has its own immutable bindings.
@@ -137,6 +145,13 @@ def _parse(raw, format_name, transport, state):
         if len(leaks) > objects.MAX_LEAKS or sum(len(x['locations']) for x in leaks) > objects.MAX_LOCATIONS:
             raise objects.Incomplete('archive_finding_limit')
         return {'expanded_bytes': expanded, 'members': members, 'files': files, 'leaks': leaks}
+    except PartialArchive as exc:
+        leaks = merge_leaks([leak for ref in exc.refs for leak in ref['leaks']])
+        if (not leaks or len(leaks) > objects.MAX_LEAKS
+                or sum(len(x['locations']) for x in leaks) > objects.MAX_LOCATIONS):
+            raise objects.Incomplete('archive_incomplete') from None
+        raise PartialInspection({'expanded_bytes': max(exc.expanded, sum(f['bytes'] for f in files)),
+            'members': max(exc.members, len(files)), 'files': files, 'leaks': leaks}) from None
     finally:
         # Failed parses conservatively consume their whole reserved allowance;
         # repeated malformed archives cannot reset scan-wide expansion budgets.
@@ -183,8 +198,10 @@ def collect_selected_archives(collector, scope):
                     objects._check(transport, state)
                     marker.update(parsed, compressed_bytes=metadata['size'], complete=True,
                                   status='collected', reason='complete')
+                except PartialInspection as exc:
+                    marker.update(exc.parsed, compressed_bytes=metadata['size'],
+                                  status='partial', reason='partial_positive')
                 except Exception:
-                    # Parser/provider/filename/error text and partial results never escape.
                     marker['reason'] = 'archive_incomplete'
                 state['archives'][ident] = {'name': ident, MARKER: marker}
             result.append(deepcopy(state['archives'][ident]))

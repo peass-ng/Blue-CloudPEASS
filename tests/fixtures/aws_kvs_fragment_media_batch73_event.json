@@ -1,0 +1,21 @@
+{
+  "eventSource": "kinesisvideo.amazonaws.com",
+  "eventName": "GetDataEndpoint",
+  "eventCategory": "Management",
+  "eventType": "AwsApiCall",
+  "managementEvent": true,
+  "readOnly": true,
+  "recipientAccountId": "999999999999",
+  "awsRegion": "us-east-1",
+  "eventID": "synthetic-kvs-fragment-media-endpoint",
+  "eventTime": "2026-10-20T19:00:00Z",
+  "userIdentity": {
+    "type": "AssumedRole",
+    "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-reader/session"
+  },
+  "requestParameters": {
+    "streamARN": "arn:aws:kinesisvideo:us-east-1:999999999999:stream/synthetic-kvs-stream/1234567890123",
+    "aPIName": "GET_MEDIA_FOR_FRAGMENT_LIST"
+  },
+  "responseElements": null
+}

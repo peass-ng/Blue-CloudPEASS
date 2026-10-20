@@ -28,12 +28,57 @@ GENERATED_CATALOGS = frozenset({
 # Release owner may pin the final reviewed network correction here. Retain its
 # original baseline hash as before_sha256; after_sha256/after_size bind all new
 # bytes. This explicit file allowlist cannot admit unrelated package changes.
-REVIEWED_CURRENT_CHANGES = {'peaso/ai/network.py': {'after_sha256': 'f8da3a90c6fbc0e2c2bb8fa40f2007bf45abdfa149b37c92d8b7b693f5ebd6fd',
+REVIEWED_CURRENT_CHANGES = {'peaso/ai/auth.py': {'after_sha256': 'c1879bc238710478fea7fcebbe38200c2b6c601f14970765956d42f4b18d9658',
+                      'after_size': 15391,
+                      'before_sha256': '4698a34f11d32f5d61dfa62ed2abd82dbf7f484d7c88af3903ea59a0038ee9d9'},
+ 'peaso/ai/codex_relay_cli.py': {'after_sha256': 'a1e8c519b624ab30d131f1a4a070deb2eea8e780584a41b405f6212592539fb9',
+                                 'after_size': 1571,
+                                 'before_sha256': 'eb21e350afa98e319676e12b5b60dbe9b9ef516fbc203970267798a66e5d6aee'},
+ 'peaso/ai/fargate.py': {'after_sha256': '9b39ddbb3844744c81fff421ed643c912ab61339071700c69e01af8ad7ccb176',
+                         'after_size': 9071,
+                         'before_sha256': 'f619a772d49642fb32453f6b9c18038e7573ba0370671f7e43581fe507cf76c5'},
+ 'peaso/ai/model_relay.py': {'after_sha256': '38b983c2a628e0b8d67aff0c58cdc3dabf5569262386c3124edfbd26b760cb6a',
+                             'after_size': 12638,
+                             'before_sha256': 'c8ffb7196454a6b1214fe9a47deb014b3d1679a59855494a0069125ab4bf9c4a'},
+ 'peaso/ai/network.py': {'after_sha256': 'f8da3a90c6fbc0e2c2bb8fa40f2007bf45abdfa149b37c92d8b7b693f5ebd6fd',
                          'after_size': 14438,
                          'before_sha256': 'c7e43d252261d26b2ee9d6fa2a3cee79a344dd052bee2f959a98b2a624d8d024'},
+ 'peaso/ai/pipeline.py': {'after_sha256': 'aa72ae893f8aba748440beeaeac25d78736afb66413dbf210e4146cd128585a1',
+                          'after_size': 22845,
+                          'before_sha256': 'cff1e0a4e346c407ddef53a3e3b984b9eed0ff965acb9fb54329bcdb6751aa56'},
+ 'peaso/ai/runner.py': {'after_sha256': '34283810a05c9f06cb4046a98fc8b2689c0e85c2beb019caa9e658132c4b0197',
+                        'after_size': 6065,
+                        'before_sha256': 'd789f8a65af278d089bd9eaf18dc88d2dfa348b67f4f2d486a6b51f0aae9b997'},
+ 'peaso/ai/task_runtime.py': {'after_sha256': '85d5cd47ca3a586fc623dbd008ac1279784ebcd43d57fe0e696f4748012cea91',
+                              'after_size': 7439,
+                              'before_sha256': '1a8fd2234bcd145f08683449c0748fdf2a7741fb01b1e412799f85991366c02f'},
  'peaso/analysis/common.py': {'after_sha256': '43f5f66f4ab5d99ea96fe122108ff04e2e8fe857c964bf755cdfe6d5772054d9',
                               'after_size': 13921,
                               'before_sha256': '3895ba27f4a153bfa6ed88dfef7d3628dfa1ec4786e4d319d29a0ca42981a656'},
+ 'peaso/attack_detection/aws_kinesis_video_controls_next.py': {'after_sha256': 'bd468a871700f24b6ef3dd967bfc64cb507e28b7da7649f9d2ac2ac4286ff549',
+                                                               'after_size': 5861,
+                                                               'before_sha256': '51cb1690457da6ec9cb370cf3c4c015504a382acaada0d15426e2ec127e5725b'},
+ 'peaso/attack_detection/rules.py': {'after_sha256': 'b5a0ad9c83769be0d22829ee9fa40fb7773bdeb1286a74c454aaf7949fc0823c',
+                                     'after_size': 68840,
+                                     'before_sha256': 'c65b53b8f01ecfca2e4dbfc15d31f72f5915002c7a4b137aefb6c6cdbccf00a9'},
+ 'peaso/checks/gcp_artifact_file_secret_review_20261019.py': {'after_sha256': '83b18b9e43d88c7fa4271defd6cb9d1111e320814e7e4d8f191f010fba7ba0b2',
+                                                              'after_size': 7137,
+                                                              'before_sha256': '0fe7d4fcbcd953d913e2ffa1df5b08573f01c8527ff333d351ddd3e037b36e54'},
+ 'peaso/checks/gcp_composer_source_secret_review_20261019.py': {'after_sha256': '4d792063c7dfde93400aa5ca89c5637f978fbca645aae51aaba7e06ae7aa12b7',
+                                                                'after_size': 10867,
+                                                                'before_sha256': 'd176034b246ff2f901e767f52d3c02832ec192766f361e552852d579dd567027'},
+ 'peaso/checks/gcp_image_secret_review_20261019.py': {'after_sha256': '0c0e9e68f1a7a39457822e3f7a20195f21c1f61948efa5c4e6b3fa926872263b',
+                                                      'after_size': 11222,
+                                                      'before_sha256': '83fe957437bdb4a8142361bc4329af903dede65cb2e0242d2c35cda5211c79fd'},
+ 'peaso/checks/gcp_selected_archive_secret_review_20261019.py': {'after_sha256': 'cde1fe3ec267ef201f7b9fbe432dd2266b36164b3ee6e20fa55d589f77388cfb',
+                                                                 'after_size': 7805,
+                                                                 'before_sha256': 'd7636cee350ce0aa0c9fc32f3a71ef141f960050abb0757af082772a4f315a6a'},
+ 'peaso/checks/gcp_sourcerepo_secret_review_20261019.py': {'after_sha256': '1edae1338a7f2a7f8b13e5939b4e33ad01c79c7fe3d80f634c69f5243d2664ac',
+                                                           'after_size': 12892,
+                                                           'before_sha256': 'f397ee93b511f396bb49fb467e05a88e23a741e492a22dcb93d9f8d99aded5d0'},
+ 'peaso/checks/gcp_task_routine_secret_review_20261020.py': {'after_sha256': '7deb55ddf182adade8f6f0e2beb52a019ed30e62908698de5758fef7b99fa63b',
+                                                             'after_size': 10779,
+                                                             'before_sha256': '18a4701d7e40fb18bc75291f80383a376713aa4a3fc3c4703b7c7f5c275aeeb1'},
  'peaso/collectors/aws_codebuild_buildspec_runtime_20261020.py': {'after_sha256': '70e9d13e572bc77bae366e7bbcadee51c5a2e32dcba9c87043385c7013a9081d',
                                                                   'after_size': 11526,
                                                                   'before_sha256': '50be001febf5a568b2b2ffbe7c295edafeb3f34a5e395a4bf29a6bc94f58b01f'},
@@ -46,10 +91,31 @@ REVIEWED_CURRENT_CHANGES = {'peaso/ai/network.py': {'after_sha256': 'f8da3a90c6f
  'peaso/collectors/azure_function_package_integration_20261020.py': {'after_sha256': '9eb8c15ad1052795777ae95960f7c65a8062d5555e2456a9c34a9f2aa6d1e58c',
                                                                      'after_size': 12770,
                                                                      'before_sha256': '678fc74f19156541992b9ce3536cf642253842b34583e6408005a4e38858c0e0'},
+ 'peaso/collectors/gcp_artifact_file_secret_indicators.py': {'after_sha256': 'da4edfdac77dda5c80891ac7d812c1859e536e4786360b8d5656f64af289d4ff',
+                                                             'after_size': 16516,
+                                                             'before_sha256': '30606f70908536e1fd5a710ccd5f62d0fb953fa1eeac474341c7f38c01db2e5b'},
+ 'peaso/collectors/gcp_composer_source_secret_indicators.py': {'after_sha256': '2b357152018fc33b6cf31bba99ac52c2bd5bd9390a9c9c60233c26b66915f903',
+                                                               'after_size': 16342,
+                                                               'before_sha256': 'fbe60d18f2ec81fd014ed8b1650daf194f49166324c01e0d5d9ab09c4f062257'},
+ 'peaso/collectors/gcp_image_secret_indicators.py': {'after_sha256': '2022bbd2816bfe82679b160c12b90d674c12746e14d95138bb3bb236dc0514c3',
+                                                     'after_size': 22560,
+                                                     'before_sha256': '7891365e7a5ecd82734dd385d1ed64b56b11e1283e07dc2f3b9e16cbee2e104e'},
+ 'peaso/collectors/gcp_selected_archive_secret_indicators.py': {'after_sha256': '4dc9fd5feb8b193f5a119ee7b2f2b387d5eaf9f3c04fe2502c5df7e7ed07a4d3',
+                                                                'after_size': 11655,
+                                                                'before_sha256': '5da0da030a5d7be256956f7126f5a8b5aaed8c552b49185a8d6ed7d4e1badd23'},
+ 'peaso/collectors/gcp_selected_task_routine_secret_indicators.py': {'after_sha256': '393720df111585dfd41e586f548ce35140a01e86dd980564805552b1b085cc66',
+                                                                     'after_size': 15943,
+                                                                     'before_sha256': 'b424bf05b428b54914baad891b272151351284c630b62c72d3ae1c826ccf8530'},
+ 'peaso/collectors/gcp_sourcerepo_secret_indicators.py': {'after_sha256': 'ba809b97f9e9b36674b2938c74a1f9ee874e3121cbef947008db66091dbaf9e4',
+                                                          'after_size': 15969,
+                                                          'before_sha256': '34f0c7eaf42626d7da2bbeac98ce912e792000aa28e42bea91c6fbc3f0591069'},
  'peaso/server/app.py': {'after_sha256': '45192b68c74f5b3019dd44cadc8276d3fdc8614586311bc83a43a3c92bec1180',
                          'after_size': 124659,
-                         'before_sha256': '5f2b3dc9bb6f54c56502b22263973c6d1c6f0932af703317d46008dd11732707'}}
-REVIEWABLE_CURRENT_PATHS = frozenset(['peaso/ai/network.py', 'peaso/analysis/common.py', 'peaso/collectors/aws_codebuild_buildspec_runtime_20261020.py', 'peaso/collectors/aws_workload_command_runtime_20261020.py', 'peaso/collectors/azure.py', 'peaso/collectors/azure_function_package_integration_20261020.py', 'peaso/server/app.py'])
+                         'before_sha256': '5f2b3dc9bb6f54c56502b22263973c6d1c6f0932af703317d46008dd11732707'},
+ 'peaso/storage/runtime.py': {'after_sha256': '980fd107b762399ee3eb13968360e46d547c8a05d78e7ac81b8597312f08710e',
+                              'after_size': 2097,
+                              'before_sha256': '4a52941e15925e48296da78e3a8386a58a60de5bfb0ad0119d66a397886a2214'}}
+REVIEWABLE_CURRENT_PATHS = frozenset(['peaso/ai/auth.py', 'peaso/ai/codex_relay_cli.py', 'peaso/ai/fargate.py', 'peaso/ai/model_relay.py', 'peaso/ai/network.py', 'peaso/ai/pipeline.py', 'peaso/ai/runner.py', 'peaso/ai/task_runtime.py', 'peaso/analysis/common.py', 'peaso/attack_detection/aws_kinesis_video_controls_next.py', 'peaso/attack_detection/rules.py', 'peaso/checks/gcp_artifact_file_secret_review_20261019.py', 'peaso/checks/gcp_composer_source_secret_review_20261019.py', 'peaso/checks/gcp_image_secret_review_20261019.py', 'peaso/checks/gcp_selected_archive_secret_review_20261019.py', 'peaso/checks/gcp_sourcerepo_secret_review_20261019.py', 'peaso/checks/gcp_task_routine_secret_review_20261020.py', 'peaso/collectors/aws_codebuild_buildspec_runtime_20261020.py', 'peaso/collectors/aws_workload_command_runtime_20261020.py', 'peaso/collectors/azure.py', 'peaso/collectors/azure_function_package_integration_20261020.py', 'peaso/collectors/gcp_artifact_file_secret_indicators.py', 'peaso/collectors/gcp_composer_source_secret_indicators.py', 'peaso/collectors/gcp_image_secret_indicators.py', 'peaso/collectors/gcp_selected_archive_secret_indicators.py', 'peaso/collectors/gcp_selected_task_routine_secret_indicators.py', 'peaso/collectors/gcp_sourcerepo_secret_indicators.py', 'peaso/server/app.py', 'peaso/storage/runtime.py'])
 INITIALIZER_ADDITION = (
     b"from . import native_admission_cpu_shared_successor_20261020 as _deployed_ai_shared_source\n"
     b"_historical_aws_workload_command_shared_successor_20261020 = aws_workload_command_shared_successor_20261020\n"
@@ -81,6 +147,9 @@ def cpu_epoch_bytes(relative, raw):
     """Two finite signed layers, followed by the original CPU source assertions."""
     if relative not in {'peaso/checks/__init__.py', 'peaso/collectors/azure.py'}:
         return raw
+    if relative == 'peaso/checks/__init__.py':
+        from tests.gcp_positive_conservation_epoch_20261020 import metadata_initializer_bytes
+        raw = metadata_initializer_bytes(raw)
     layers = (
         ('azure_metadata_only_shared_successor_20261020',
          '12bf2cd88f943bcb3cdb91a3701cd3197e78d6ba7ed7e956afd854d6d1b292ed',

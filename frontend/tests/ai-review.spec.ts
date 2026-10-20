@@ -4,6 +4,7 @@ async function setup(page: Page) {
   await page.route('**/api/**', route => route.fulfill({ json: { items: [] } }));
   await page.route('**/api/me', route => route.fulfill({ json: { tenant_id: 'fixture', auth_kind: 'user' } }));
   await page.route('**/api/ai/codex', route => route.fulfill({ json: { available: true, connected: false, platform_configured: true } }));
+  await page.route('**/api/ai/configuration', route => route.fulfill({ json: { available: true, hosted: true, source: 'hacktricks', selection: null, codex_connected: false, isolation_available: true } }));
   await page.route('**/api/health', route => route.fulfill({ json: { auth_mode: 'local' } }));
   await page.route('**/api/connectors', route => route.fulfill({ json: { items: [{ id: 'account', name: 'Production AWS', provider: 'aws' }] } }));
 }
@@ -30,7 +31,8 @@ test('Settings starts and cancels personal Codex sign-in', async ({ page }) => {
   await page.route('**/api/ai/codex', route => route.request().method() === 'DELETE' ? route.fulfill({ status: 204 }) : route.fulfill({ json: { connected: false, platform_configured: true, available: true } }));
   await page.route('**/api/ai/codex/login', route => route.fulfill({ json: { user_code: 'TEST-123', verification_url: 'https://auth.openai.com/codex/device', interval: 5, expires_at: Date.now() / 1000 + 900 } }));
   await page.goto('/#Settings');
-  await expect(page.getByText('Scans use the platform Codex account by default.')).toBeVisible();
+  await expect(page.getByText('HackTricks AI is used.', { exact: true })).toBeVisible();
+  await page.getByLabel('AI provider').selectOption('codex');
   await page.getByRole('button', { name: 'Sign in with Codex', exact: true }).click();
   await expect(page.getByText('TEST-123', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Cancel sign-in', exact: true }).click();
@@ -39,8 +41,9 @@ test('Settings starts and cancels personal Codex sign-in', async ({ page }) => {
 test('Settings distinguishes missing isolation from a disconnected Codex account', async ({ page }) => {
   await setup(page);
   await page.route('**/api/ai/codex', route => route.fulfill({ json: { connected: true, available: false, isolation_available: false } }));
+  await page.route('**/api/ai/configuration', route => route.fulfill({ json: { available: false, hosted: false, selection: null, codex_connected: true, isolation_available: false } }));
   await page.goto('/#Settings');
-  await expect(page.getByText('AI review is unavailable until the platform administrator configures isolated agent execution. Connecting Codex does not remove this requirement.', { exact: true })).toBeVisible();
+  await expect(page.getByText('AI review is unavailable until isolated agent execution is configured.', { exact: true })).toBeVisible();
   await expect(page.getByText('Your Codex connection is unavailable. Reconnect to enable AI review.', { exact: true })).toHaveCount(0);
 });
 test('Top 15 Actions shows prioritized plans without duplicate verification tables', async ({ page }) => {
@@ -130,6 +133,7 @@ for (const target of ['Network Findings', 'Top 15 Actions', 'Top 15 Recommended 
 test('disconnecting personal Codex hides AI navigation without a reload', async ({ page }) => {
   await setup(page);
   let connected = true;
+  await page.route('**/api/ai/configuration', route => route.fulfill({ json: { available: connected, hosted: false, source: connected ? 'personal' : null, selection: { provider: 'codex', model: 'gpt-5.3-codex', thinking: 'high', credential_saved: false }, codex_connected: connected, isolation_available: true } }));
   await page.route('**/api/ai/codex', route => {
     if (route.request().method() === 'DELETE') { connected = false; return route.fulfill({ status: 204 }); }
     return route.fulfill({ json: { connected, available: connected, platform_configured: false } });

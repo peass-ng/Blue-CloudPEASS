@@ -67,10 +67,10 @@ def run_agent(config):
     with tempfile.TemporaryDirectory(prefix='ai-', dir='/tmp') as directory:
         root = Path(directory)
         unpack(relay_request('GET', '/input', config['relay_token']), root)
-        # This file carries a task-local relay capability, not the real Codex token.
+        # This file carries a task-local relay capability, not the real model credential.
         fd = os.open(root/'codex-auth.json', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, 'w') as stream:
-            json.dump({'access_token': config['relay_token']}, stream)
+            json.dump({**config.get('ai_configuration', {}), 'access_token': config['relay_token']}, stream)
         env = {'PATH': os.defpath + ':/usr/local/bin', 'HOME': directory, 'TMPDIR': directory,
                'PYTHONPATH': '/app', 'CODEX_HOME': directory + '/.codex', 'LANG': 'C.UTF-8',
                'AWS_EC2_METADATA_DISABLED': 'true', 'PEASO_AI_MODEL_RELAY': 'http://127.0.0.1:8765',
@@ -84,6 +84,9 @@ def run_agent(config):
                 raise InvalidAgentOutput('invalid_agent_result')
             if process.returncode == 124:
                 raise TimeoutError('agent_runtime_limit')
+            if process.returncode == 78:
+                from .providers import ConfigurationError
+                raise ConfigurationError('ai_configuration_invalid')
             if process.returncode:
                 raise RuntimeError('agent_failed')
             # Never follow an agent-created symlink in the trusted uploader.
@@ -128,6 +131,7 @@ def relay_request(method, path, capability, *, body=None, limit=MAX_INPUT):
 
 def main():
     from .output_validation import InvalidAgentOutput
+    from .providers import ConfigurationError
     os.umask(0o077)
     try:
         if sys.argv[1] == 'relay':
@@ -157,6 +161,8 @@ def main():
     except InvalidAgentOutput:
         print('ai_agent_failure=invalid_output', file=sys.stderr, flush=True)
         sys.exit(65)
+    except ConfigurationError:
+        sys.exit(78)
     except BaseException:
         # Credentials, signed URLs, provider bodies and exception text stay private.
         sys.exit(1)

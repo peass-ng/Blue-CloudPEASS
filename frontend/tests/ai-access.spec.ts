@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 for (const available of [false, true]) {
-  test(`AI launch requires available Codex access: ${available}`, async ({ page }) => {
+  test(`AI launch requires available AI access: ${available}`, async ({ page }) => {
     let submitted: Record<string, unknown> | undefined;
     await page.route("**/api/**", async route => {
       const path = new URL(route.request().url()).pathname;
@@ -26,7 +26,7 @@ for (const available of [false, true]) {
     } else {
       await expect(toggle).toBeDisabled();
       await expect(toggle).not.toBeChecked();
-      await expect(page.getByText("Connect Codex in Settings or configure a usable CODEX_ACCESS_TOKEN to enable AI checks.")).toBeVisible();
+      await expect(page.getByText("Configure an AI provider, model and thinking effort in Settings to enable AI checks.")).toBeVisible();
     }
     await page.getByRole("button", { name: "Start scan", exact: true }).click();
     await expect.poll(() => submitted?.ai_enabled).toBe(available);

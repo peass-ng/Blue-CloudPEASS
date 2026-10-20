@@ -24,7 +24,7 @@ def evaluate(item, index):
                     and sum(isinstance(r, dict) and r.get('name') == name for r in e['items']) == 1]
         if len(matching) != 1: raise ValueError('collection')
         coverage = item['_coverage'][a.MARKER]; refs = coverage['source_requests']
-        if (coverage.get('status') != 'collected' or not isinstance(refs, list) or len(refs) != 2 or len(set(refs)) != 2
+        if (coverage.get('status') not in ('collected', 'incomplete') or not isinstance(refs, list) or len(refs) != 2 or len(set(refs)) != 2
                 or any(not isinstance(r, str) or not re.fullmatch(r'request-[1-9][0-9]*', r) for r in refs)
                 or not set(refs) <= set(matching[0].get('source_requests', []))
                 or not set(refs) <= set(item.get('_provenance', {}).get('source_requests', []))): raise ValueError('receipts')
@@ -32,10 +32,11 @@ def evaluate(item, index):
         if (set(m) != {'schema', 'identity', 'scope', 'format', 'complete', 'digest_verified', 'bytes', 'expanded_bytes',
                        'members', 'files', 'leaks', 'verification'}
                 or m['schema'] != a.SCHEMA or m['identity'] != name or m['scope'] != scope or m['format'] not in a.FORMATS
-                or m['complete'] is not True or m['digest_verified'] is not True or m['verification'] != 'not_attempted'
+                or type(m['complete']) is not bool or m['digest_verified'] is not True or m['verification'] != 'not_attempted'
                 or type(m['bytes']) is not int or not 0 <= m['bytes'] <= a.MAX_FILE_BYTES
                 or type(m['expanded_bytes']) is not int or not 0 <= m['expanded_bytes'] <= archives.MAX_EXPANDED_BYTES
                 or type(m['members']) is not int or not 1 <= m['members'] <= archives.MAX_MEMBERS): raise ValueError('producer')
+        if coverage['status'] != ('collected' if m['complete'] else 'incomplete'): raise ValueError('coverage')
         files = m['files']; expected = {'kingfisher': KINGFISHER_VERSION, 'trufflehog': TRUFFLEHOG_VERSION}
         if not isinstance(files, list) or not 1 <= len(files) <= m['members']: raise ValueError('files')
         for i, f in enumerate(files, 1):
@@ -45,7 +46,8 @@ def evaluate(item, index):
             engines = f['engines']
             if (not isinstance(engines, list) or len(engines) != 2 or any(not isinstance(e, dict)
                     or set(e) != {'engine', 'version', 'status'} or e.get('engine') not in expected
-                    or e.get('version') != expected.get(e.get('engine')) or e.get('status') != 'complete' for e in engines)
+                    or e.get('version') != expected.get(e.get('engine'))
+                    or e.get('status') not in ('complete', 'unavailable') for e in engines)
                     or {e['engine'] for e in engines} != set(expected)): raise ValueError('engines')
         if sum(f['bytes'] for f in files) > m['expanded_bytes']: raise ValueError('expansion')
         if m['format'] == 'utf8' and (len(files) != 1 or m['members'] != 1 or m['expanded_bytes'] != m['bytes'] or files[0]['bytes'] != m['bytes']):
@@ -54,7 +56,19 @@ def evaluate(item, index):
         leaks = merge_leaks(m['leaks']); paths = {f['path'] for f in files}
         if sum(len(l['locations']) for l in leaks) > 512 or any(set(loc) - {'path', 'line'} or loc['path'] not in paths for l in leaks for loc in l['locations']):
             raise ValueError('locations')
-        evidence = {'secret_leaks': deepcopy(leaks), 'credential_validation': 'not_attempted', 'complete': True,
+        if not m['complete']:
+            if not leaks: raise ValueError('partial negative')
+            for f in files:
+                if not any(e['status'] == 'complete' for e in f['engines']):
+                    raise ValueError('no completed detector')
+            for leak in leaks:
+                for detector in leak['detectors']:
+                    if not any(f['path'] == loc['path'] and any(e['engine'] == detector['engine'] and e['status'] == 'complete' for e in f['engines'])
+                               for loc in leak['locations'] for f in files):
+                        raise ValueError('unproven detector')
+        elif any(e['status'] != 'complete' for f in files for e in f['engines']):
+            raise ValueError('incomplete detector')
+        evidence = {'secret_leaks': deepcopy(leaks), 'credential_validation': 'not_attempted', 'complete': m['complete'],
                     'digest_verified': True, 'format': m['format'], 'bytes': m['bytes'], 'files': deepcopy(files)}
         if leaks:
             return 'FAIL', {**evidence, 'observed': 'A likely secret was detected in an explicitly selected Artifact Registry file. The value is hidden; detection did not validate the credential.'}

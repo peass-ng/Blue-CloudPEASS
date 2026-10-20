@@ -43,10 +43,12 @@ def evaluate(item, index, *, kind):
                 or sum(i == item for i in own['items']) != 1):
             raise ValueError('selection')
         ident, m = item['name'], item[MARKER]
+        partial = (m.get('complete') is False and m.get('reason') not in ('complete', 'source_unavailable')
+                   and isinstance(m.get('leaks'), list) and bool(m['leaks']))
         if (set(m) != {'schema', 'kind', 'complete', 'scope', 'identity', 'parts', 'leaks',
                        'native_requests', 'read_receipts', 'source_requests', 'reason', 'verification'}
                 or m['schema'] != SCHEMA or m['kind'] != kind or m['scope'] != scope or m['identity'] != ident
-                or m['complete'] is not True or m['reason'] != 'complete'
+                or not (partial or m['complete'] is True and m['reason'] == 'complete')
                 or m['verification'] != 'not_attempted'):
             raise ValueError('incomplete')
         if len(project['items']) != 1:
@@ -67,7 +69,8 @@ def evaluate(item, index, *, kind):
                 or p.get('_provenance', {}).get('scope') != scope
                 or set(item.get('_provenance', {}).get('source_requests', [])) != set(refs)
                 or item.get('_provenance', {}).get('scope') != scope
-                or item.get('_coverage', {}).get(MARKER) != {'status': 'collected', 'source_requests': refs}
+                or item.get('_coverage', {}).get(MARKER) != {
+                    'status': 'unknown' if partial else 'collected', 'source_requests': refs}
                 or not isinstance(receipts, list) or len(receipts) != 1):
             raise ValueError('provenance')
         receipt = receipts[0]
@@ -95,30 +98,38 @@ def evaluate(item, index, *, kind):
             raise ValueError('parent receipt')
         parts, versions = m['parts'], {'kingfisher': KINGFISHER_VERSION, 'trufflehog': TRUFFLEHOG_VERSION}
         expected = ['body', 'headers'] if kind == TASK_KIND else ['definition']
-        if not isinstance(parts, list) or len(parts) != len(expected):
+        if not isinstance(parts, list) or not (1 <= len(parts) <= len(expected) if partial else len(parts) == len(expected)):
             raise ValueError('parts')
         for part, name in zip(parts, expected):
             if (set(part) != {'part', 'bytes', 'complete', 'engines'} or part['part'] != name
                     or type(part['bytes']) is not int or not 0 <= part['bytes'] <= MAX_CONTENT
-                    or kind == ROUTINE_KIND and part['bytes'] == 0 or part['complete'] is not True):
+                    or kind == ROUTINE_KIND and part['bytes'] == 0
+                    or type(part['complete']) is not bool
+                    or not partial and part['complete'] is not True):
                 raise ValueError('part completeness')
             engines = part['engines']
             if (not isinstance(engines, list) or len(engines) != 2
                     or any(not isinstance(e, dict) or set(e) != {'engine', 'version', 'status'}
                            or e.get('engine') not in versions or e.get('version') != versions.get(e.get('engine'))
-                           or e.get('status') != 'complete' for e in engines)
+                           or e.get('status') not in (('complete', 'unavailable') if partial else ('complete',)) for e in engines)
                     or {e['engine'] for e in engines} != set(versions)):
                 raise ValueError('detectors')
         if sum(p['bytes'] for p in parts) > MAX_CONTENT or not isinstance(m['leaks'], list) or len(m['leaks']) > 256:
             raise ValueError('budget')
         leaks = merge_leaks(m['leaks'])
         if (leaks != m['leaks'] or sum(len(l['locations']) for l in leaks) > 512
-                or any(set(loc) - {'path', 'line'} or loc.get('path') not in {ident + '.' + p for p in expected}
-                       for leak in leaks for loc in leak['locations'])):
+                or any(set(loc) - {'path', 'line'} or loc.get('path') not in {ident + '.' + p['part'] for p in parts}
+                       for leak in leaks for loc in leak['locations'])
+                or any(d['engine'] not in {e['engine'] for p in parts for e in p['engines']
+                                         if e['status'] == 'complete' and any(loc['path'] == ident + '.' + p['part']
+                                                                             for loc in leak['locations'])}
+                       for leak in leaks for d in leak['detectors'])):
             raise ValueError('leaks')
         evidence = {'secret_leaks': deepcopy(leaks), 'credential_validation': 'not_attempted',
-                    'complete': True, 'coverage': 'selected_observed_content_only',
+                    'complete': not partial, 'coverage': 'partial_selected_observed_content_only' if partial else 'selected_observed_content_only',
                     'parts': deepcopy(parts), 'source_requests': list(refs)}
+        if partial:
+            evidence['reason'] = m['reason']
         observed = ('A likely secret was detected in the ' + label + '. The value is hidden; offline detection did not validate the credential.' if leaks else
                     'Both offline detectors completed without detecting a supported secret in the ' + label + '. Coverage is limited to the selected content observed during this read.')
         return ('FAIL' if leaks else 'PASS'), {**evidence, 'observed': observed}

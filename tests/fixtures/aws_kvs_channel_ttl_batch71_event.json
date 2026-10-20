@@ -1,0 +1,25 @@
+{
+  "eventVersion": "1.11",
+  "eventSource": "kinesisvideo.amazonaws.com",
+  "eventName": "UpdateSignalingChannel",
+  "eventCategory": "Management",
+  "eventType": "AwsApiCall",
+  "managementEvent": true,
+  "readOnly": false,
+  "recipientAccountId": "999999999999",
+  "awsRegion": "us-east-1",
+  "eventID": "synthetic-kvs-channel-ttl",
+  "eventTime": "2026-10-20T19:00:00Z",
+  "userIdentity": {
+    "type": "AssumedRole",
+    "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-admin/session"
+  },
+  "requestParameters": {
+    "channelARN": "arn:aws:kinesisvideo:us-east-1:999999999999:channel/synthetic-kvs-channel/1234567890123",
+    "currentVersion": "2",
+    "singleMasterConfiguration": {
+      "messageTtlSeconds": 5
+    }
+  },
+  "responseElements": null
+}

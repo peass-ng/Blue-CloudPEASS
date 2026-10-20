@@ -9,6 +9,7 @@ from peaso.ai import deadline, output_validation, runner
 
 
 def inputs(tmp_path, monkeypatch, outputs, clock=None):
+    monkeypatch.setattr(runner, 'validate_runtime', lambda *args: None)
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(sys, 'argv', ['runner', 'hardening'])
     monkeypatch.setenv(deadline.ENVIRONMENT_KEY, '520')
@@ -48,6 +49,20 @@ def test_repeated_invalid_output_is_never_published(tmp_path, monkeypatch, capsy
     assert runner.entrypoint() == 65
     assert len(calls) == 2 and not (tmp_path/'result.json').exists()
     assert capsys.readouterr() == ('', '')
+
+
+def test_credentials_are_rechecked_before_constructing_a_repair_agent(tmp_path, monkeypatch):
+    from peaso.ai.providers import ConfigurationError
+    calls = inputs(tmp_path, monkeypatch, [review('invented'), review('assigned')])
+    probes = []
+    def validate(*args):
+        probes.append(True)
+        if len(probes) == 2:
+            raise ConfigurationError('Credential no longer permits inference.')
+    monkeypatch.setattr(runner, 'validate_runtime', validate)
+    assert runner.entrypoint() == 78
+    assert len(probes) == 2 and len(calls) == 1
+    assert not (tmp_path/'result.json').exists()
 
 
 def test_correction_stops_when_original_deadline_is_spent(tmp_path, monkeypatch):

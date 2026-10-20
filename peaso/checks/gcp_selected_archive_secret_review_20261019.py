@@ -35,9 +35,11 @@ def evaluate(item, index):
         if (set(marker) != {'schema', 'identity', 'scope', 'format', 'status', 'complete', 'compressed_bytes',
                             'expanded_bytes', 'members', 'files', 'leaks', 'verification', 'reason'}
                 or marker['schema'] != SCHEMA or marker['identity'] != name or marker['scope'] != scope
-                or marker['format'] not in MIME_TYPES or marker['status'] != 'collected'
-                or marker['complete'] is not True or marker['verification'] != 'not_attempted'
-                or marker['reason'] != 'complete'):
+                or marker['format'] not in MIME_TYPES or marker['status'] not in ('collected', 'partial')
+                or type(marker['complete']) is not bool
+                or marker['verification'] != 'not_attempted'
+                or (marker['status'], marker['complete'], marker['reason']) not in
+                   (('collected', True, 'complete'), ('partial', False, 'partial_positive'))):
             raise ValueError('incomplete producer')
         for field, cap in (('compressed_bytes', MAX_OBJECT_BYTES), ('expanded_bytes', MAX_EXPANDED_BYTES),
                            ('members', MAX_MEMBERS)):
@@ -56,7 +58,7 @@ def evaluate(item, index):
             if (not isinstance(engines, list) or len(engines) != 2
                     or any(not isinstance(e, dict) or set(e) != {'engine', 'version', 'status'}
                            or e.get('engine') not in expected or e.get('version') != expected.get(e.get('engine'))
-                           or e.get('status') != 'complete' for e in engines)
+                           or e.get('status') not in ('complete', 'unavailable') for e in engines)
                     or {e['engine'] for e in engines} != set(expected)):
                 raise ValueError('both detectors required for every member')
         if sum(f['bytes'] for f in files) > marker['expanded_bytes']:
@@ -69,8 +71,28 @@ def evaluate(item, index):
                 or any(loc['path'] not in paths or set(loc) - {'path', 'line'}
                        for leak in leaks for loc in leak['locations'])):
             raise ValueError('foreign member source')
+        if not marker['complete']:
+            if not leaks: raise ValueError('partial negative')
+            coverage = item['_coverage'][MARKER]
+            refs = coverage['source_requests']
+            if (coverage.get('status') != 'collected' or not isinstance(refs, list) or len(refs) != 2
+                    or len(set(refs)) != 2 or any(not isinstance(r, str)
+                    or not re.fullmatch(r'request-[1-9][0-9]*', r) for r in refs)
+                    or not set(refs) <= set(matching[0].get('source_requests', []))
+                    or not set(refs) <= set(item.get('_provenance', {}).get('source_requests', []))):
+                raise ValueError('partial native receipts')
+            for file in files:
+                if not any(e['status'] == 'complete' for e in file['engines']):
+                    raise ValueError('no completed detector')
+            for leak in leaks:
+                for detector in leak['detectors']:
+                    if not any(file['path'] == loc['path'] and any(e['engine'] == detector['engine'] and e['status'] == 'complete' for e in file['engines'])
+                               for loc in leak['locations'] for file in files):
+                        raise ValueError('unproven detector')
+        elif any(e['status'] != 'complete' for file in files for e in file['engines']):
+            raise ValueError('incomplete detector')
         evidence = {'secret_leaks': deepcopy(leaks), 'credential_validation': 'not_attempted',
-                    'complete': True, 'format': marker['format'], 'files': deepcopy(files),
+                    'complete': marker['complete'], 'format': marker['format'], 'files': deepcopy(files),
                     'compressed_bytes': marker['compressed_bytes'], 'expanded_bytes': marker['expanded_bytes']}
         if leaks:
             return 'FAIL', {**evidence, 'observed': 'A likely secret was detected in a text member of an explicitly selected Cloud Storage archive. The value is hidden; detection did not validate the credential.'}

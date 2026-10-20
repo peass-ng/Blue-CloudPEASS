@@ -1,4 +1,4 @@
-"""Encrypted personal Codex sign-in and an explicitly configured platform token.
+"""Encrypted personal AI configuration, Codex sign-in and explicit platform default.
 
 Device protocol mirrors codex-rs/login/src/device_code_auth.rs. Never accepts
 an issuer, verification URL or OAuth client supplied by a browser.
@@ -96,18 +96,23 @@ def personal_token(store, cipher, user):
 
 
 def codex_available(store, identity_dir, user):
-    """Resolve usable access, including refreshing a connected personal account."""
+    """Compatibility name: resolve any configured AI provider for local scans."""
     try:
         from .crypto import AICipher
-        personal_token(store, AICipher(identity_dir), user)
+        from .providers import resolve_access
+        resolve_access(store, AICipher(identity_dir), user, verify=False)
         return True
     except Exception:
         return False
 
 
 def require_local_codex(settings, store, user):
-    if settings.auth_mode == 'local' and not codex_available(store, settings.identity_dir, user):
-        raise HTTPException(409, 'AI checks require a usable Codex token. Sign in with Codex in Settings, configure CODEX_ACCESS_TOKEN, or disable AI for this scan.')
+    from .crypto import AICipher
+    from .providers import resolve_access
+    try:
+        resolve_access(store, AICipher(settings.identity_dir), user, auth_mode=settings.auth_mode)
+    except Exception:
+        raise HTTPException(409, 'AI checks require a valid AI configuration. Configure a provider, model and thinking effort in Settings, or disable AI for this scan.')
     if settings.auth_mode == 'local':
         from .isolation import available
         if not available():
@@ -130,18 +135,111 @@ def mount_auth_routes(app, store, identity_dir, account_identity, *, auth_mode='
             raise HTTPException(403, 'Sign in with your user account')
         return user.tenant_id
 
+    from .providers import (ConfigurationError, Selection, STATE_KEY, check_selection,
+        connected_codex_token, resolve_access, validate_access, configuration_error, record_error, clear_error)
+
+    @app.get('/api/ai/configuration')
+    def configuration(user=Depends(account_identity)):
+        uid = owner(user)
+        raw = store.ai_state(uid, STATE_KEY)
+        try:
+            selected = cipher.decrypt(raw) if raw else None
+        except Exception:
+            selected = None
+        selection = ({key: selected.get(key, '') for key in ('provider', 'model', 'thinking')}
+                     if isinstance(selected, dict) else None)
+        if selection is not None:
+            selection['credential_saved'] = bool(selected.get('credential'))
+        raw_auth = store.ai_state(uid, 'auth')
+        connected = bool(raw_auth and not cipher.decrypt(raw_auth).get('disconnected'))
+        from .isolation import available as isolation_available
+        isolated = isolation_available()
+        source, usable = None, False
+        try:
+            _, source = resolve_access(store, cipher, uid, auth_mode=auth_mode, verify=False)
+            usable = True
+        except Exception as error:
+            if selected or raw_auth or (auth_mode != 'local' and (os.getenv('CODEX_ACCESS_TOKEN') or os.getenv('CODEX_TOKEN_SECRET_ARN'))):
+                record_error(store, cipher, uid, error)
+        return {'available': usable and isolated, 'hosted': auth_mode != 'local',
+                'source': 'hacktricks' if source == 'platform' and auth_mode != 'local' else source,
+                'selection': selection, 'codex_connected': connected,
+                'isolation_available': isolated, 'configuration_error': configuration_error(store, cipher, uid)}
+
+    @app.post('/api/ai/configuration')
+    def save_configuration(body: Selection, user=Depends(account_identity)):
+        uid = owner(user)
+        raw = store.ai_state(uid, STATE_KEY)
+        previous = cipher.decrypt(raw) if raw else {}
+        try:
+            if body.provider == 'codex':
+                secret = connected_codex_token(store, cipher, uid)
+            else:
+                secret = body.credential.get_secret_value() if body.credential else (
+                    previous.get('credential', '') if previous.get('provider') == body.provider else '')
+            access = validate_access(check_selection(body.provider, body.model, body.thinking, secret))
+        except Exception as error:
+            # Validation helpers expose controlled messages only. OAuth, SDK and
+            # transport exception bodies can contain private credentials.
+            detail = str(error) if isinstance(error, ConfigurationError) else 'AI authentication is unavailable. Reconnect or supply a valid credential.'
+            record_error(store, cipher, uid, ConfigurationError(detail))
+            raise HTTPException(422, detail) from None
+        value = {**access.public(), 'validated': True}
+        if body.provider != 'codex':
+            value['credential'] = secret
+        if not store.set_ai_state(uid, STATE_KEY, cipher.encrypt(value), raw):
+            raise HTTPException(409, 'AI settings changed; reload and try again.')
+        clear_error(store, cipher, uid)
+        return configuration(user)
+
+    @app.post('/api/ai/configuration/validate')
+    def revalidate_configuration(user=Depends(account_identity)):
+        uid = owner(user)
+        raw = store.ai_state(uid, STATE_KEY)
+        try:
+            resolve_access(store, cipher, uid, auth_mode=auth_mode, ignore_error=True)
+            if store.ai_state(uid, STATE_KEY) != raw:
+                raise ConfigurationError('AI settings changed. Reload and validate again.')
+            if raw:
+                data = cipher.decrypt(raw)
+                if not store.set_ai_state(uid, STATE_KEY, cipher.encrypt({**data, 'validated': True, 'validation_failed': False}), raw):
+                    raise ConfigurationError('AI settings changed. Reload and validate again.')
+            clear_error(store, cipher, uid)
+        except Exception as error:
+            raise HTTPException(422, str(record_error(store, cipher, uid, error))) from None
+        return configuration(user)
+
+    @app.delete('/api/ai/configuration', status_code=204)
+    def clear_configuration(user=Depends(account_identity)):
+        uid = owner(user)
+        # Switching to the hosted default is an explicit selection and must be
+        # validated before replacing any saved personal configuration.
+        if auth_mode != 'local':
+            try:
+                from .providers import model_access
+                validate_access(model_access(default_token()))
+            except Exception as error:
+                raise HTTPException(422, str(record_error(store, cipher, uid, error))) from None
+        raw = store.ai_state(uid, STATE_KEY)
+        if not store.set_ai_state(uid, STATE_KEY, None, raw):
+            raise HTTPException(409, 'AI settings changed; reload and try again.')
+        clear_error(store, cipher, uid)
+        return Response(status_code=204)
+
     @app.get('/api/ai/codex')
     def status(user=Depends(account_identity)):
         uid = owner(user)
         raw = store.ai_state(uid, 'auth')
         connected = bool(raw and not cipher.decrypt(raw).get('disconnected'))
         platform_configured = bool(valid(os.getenv('CODEX_ACCESS_TOKEN', '')) or os.getenv('CODEX_TOKEN_SECRET_ARN'))
-        available = codex_available(store, identity_dir, uid) if auth_mode == 'local' else connected or platform_configured
+        summary = configuration(user)
+        available = summary['available']
         from .isolation import available as isolation_available
         isolated = isolation_available()
         return {'connected': connected, 'source': 'personal' if connected else 'platform',
                 'platform_configured': platform_configured, 'available': available and isolated,
-                'isolation_available': isolated, 'unavailable_reason': 'ai_isolation_unavailable' if not isolated else None}
+                'isolation_available': isolated, 'configuration_error': summary['configuration_error'],
+                'unavailable_reason': 'ai_isolation_unavailable' if not isolated else None}
 
     @app.post('/api/ai/codex/login')
     def start(user=Depends(account_identity)):
@@ -188,7 +286,7 @@ def mount_auth_routes(app, store, identity_dir, account_identity, *, auth_mode='
         # CAS pending first: a disconnected/cancelled login cannot reconnect later.
         if not store.set_ai_state(uid, 'pending', None, locked):
             raise HTTPException(409, 'Sign-in was cancelled')
-        if not store.set_ai_state(uid, 'auth', cipher.encrypt(tokens), previous_auth):
+        if not store.set_ai_state(uid, 'auth', cipher.encrypt({**tokens, 'requires_selection': True}), previous_auth):
             raise HTTPException(409, 'Codex connection changed; retry')
         return {'status': 'connected'}
 

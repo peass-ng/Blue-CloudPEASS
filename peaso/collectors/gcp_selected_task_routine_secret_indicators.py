@@ -288,12 +288,15 @@ def collect_sources(collector, scope, kind):
                     marker['parts'].append({'part': part, 'bytes': len(raw),
                         'complete': outcome['complete'], 'engines': outcome['engines']})
                     leaks.extend(outcome['leaks'])
+                    # Only scanner-redacted observations survive the raw part.
+                    merged = merge_leaks(leaks)
+                    if len(merged) > MAX_LEAKS or sum(len(l['locations']) for l in merged) > MAX_LOCATIONS:
+                        raise Incomplete('finding_limit')
+                    marker['leaks'] = merged
                     if outcome['complete'] is not True:
                         raise Incomplete('detector_unavailable')
                 del parts
                 merged = merge_leaks(leaks)
-                if len(merged) > MAX_LEAKS or sum(len(l['locations']) for l in merged) > MAX_LOCATIONS:
-                    raise Incomplete('finding_limit')
                 _remaining(transport, state['deadline'])
                 marker.update(complete=True, reason='complete', leaks=merged)
             except Incomplete as exc:

@@ -23,6 +23,7 @@ def definition():
 
 @pytest.fixture
 def configured(monkeypatch):
+    monkeypatch.setattr('peaso.ai.providers.validate_before_launch', lambda access: access)
     values={'CLUSTER':'cluster','TASK_DEFINITION':definition()['taskDefinitionArn'],
         'SUBNETS':'subnet-12345678','SECURITY_GROUPS':'sg-12345678','BUCKET':'private-ai-bucket'}
     for key,value in values.items(): monkeypatch.setenv('PEASO_AI_FARGATE_'+key,value)
@@ -73,13 +74,17 @@ class Tasks:
     def stop_task(self,**kw):self.stops.append(kw)
 
 
-def test_task_transport_never_exposes_real_model_token(configured,tmp_path):
+@pytest.mark.parametrize('provider', [None, 'codex', 'openai', 'anthropic', 'anthropic_token', 'openrouter'])
+def test_task_transport_never_exposes_real_model_token(configured,tmp_path,provider):
     (tmp_path/'credentials.json').write_text('{"entries":[]}')
     (tmp_path/'findings.json').write_text('{"items":[]}')
     tasks,storage=Tasks(),Storage()
-    assert fargate.invoke('hardening',tmp_path,'real-private-token',30,ecs=tasks,s3=storage)=={'items':[]}
+    from peaso.ai.providers import ModelAccess
+    access = ModelAccess(provider, 'selected-model', 'medium', 'real-private-token') if provider else 'real-private-token'
+    assert fargate.invoke('hardening',tmp_path,access,30,ecs=tasks,s3=storage)=={'items':[]}
     relay=next(v for k,v in storage.objects.items() if k.endswith('relay.json'))
     assert json.loads(relay)['token']=='real-private-token'
+    assert json.loads(relay)['ai_configuration'] == ({'provider': provider, 'model': 'selected-model', 'thinking': 'medium'} if provider else {})
     data=next(v for k,v in storage.objects.items() if k.endswith('input.tgz'))
     with tarfile.open(fileobj=io.BytesIO(data),mode='r:gz') as archive:
         assert set(archive.getnames())=={'credentials.json','findings.json'}
@@ -187,7 +192,8 @@ def test_private_relay_has_no_auth_or_general_proxy_endpoint(monkeypatch):
     finally:server.shutdown();thread.join(timeout=3)
 
 
-def test_pinned_codex_cli_and_chack_use_only_private_relay(tmp_path,monkeypatch):
+@pytest.mark.parametrize('provider', [None, 'codex', 'openai'])
+def test_pinned_codex_cli_and_chack_use_only_private_relay(tmp_path,monkeypatch,provider):
     """Opt-in actual pinned CLI/Chack, with a local fake SSE model, no paid call."""
     import os,subprocess,sys
     from pathlib import Path
@@ -195,6 +201,8 @@ def test_pinned_codex_cli_and_chack_use_only_private_relay(tmp_path,monkeypatch)
     if not binary:pytest.skip('set PEASO_TEST_CODEX_BIN to the pinned Codex 0.147.0 executable')
     from http.server import BaseHTTPRequestHandler
     routes=[]
+    requests=[]
+    prefix = '/openai/v1' if provider == 'openai' else '/codex'
     item={'id':'msg_fixture','type':'message','role':'assistant','content':[{'type':'output_text','text':'{"items":[]}'}]}
     events=[{'type':'response.created','response':{'id':'resp_fixture'}},
         {'type':'response.output_item.done','output_index':0,'item':item},
@@ -203,14 +211,17 @@ def test_pinned_codex_cli_and_chack_use_only_private_relay(tmp_path,monkeypatch)
     class Handler(BaseHTTPRequestHandler):
         def log_message(self,*args):pass
         def do_GET(self):
+            if self.path == '/validate':
+                raw=b'{"valid":true}';self.send_response(200);self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
             routes.append(('GET',self.path))
-            raw=b'{"models":[]}' if self.path.startswith('/codex/models?') else b'{}'
-            self.send_response(200 if self.path.startswith('/codex/models?') else 403)
+            raw=b'{"models":[]}' if self.path.startswith(prefix+'/models') else b'{}'
+            self.send_response(200 if self.path.startswith(prefix+'/models') else 403)
             self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw)
         def do_POST(self):
-            self.rfile.read(int(self.headers.get('Content-Length','0')));routes.append(('POST',self.path))
-            raw=''.join('data: '+json.dumps(e)+'\n\n' for e in events).encode() if self.path=='/codex/responses' else b'{}'
-            self.send_response(200 if self.path=='/codex/responses' else 403)
+            body=self.rfile.read(int(self.headers.get('Content-Length','0')));routes.append(('POST',self.path))
+            if self.path == prefix+'/responses': requests.append(json.loads(body))
+            raw=''.join('data: '+json.dumps(e)+'\n\n' for e in events).encode() if self.path==prefix+'/responses' else b'{}'
+            self.send_response(200 if self.path==prefix+'/responses' else 403)
             self.send_header('Content-Type','text/event-stream');self.send_header('Content-Length',str(len(raw)))
             self.end_headers();self.wfile.write(raw)
     server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
@@ -219,7 +230,10 @@ def test_pinned_codex_cli_and_chack_use_only_private_relay(tmp_path,monkeypatch)
     root=tmp_path/'work';root.mkdir()
     (root/'credentials.json').write_text('{"entries":[]}')
     (root/'findings.json').write_text('{"scan":{},"items":[]}')
-    (root/'codex-auth.json').write_text(json.dumps({'access_token':model_relay.placeholder('account')}))
+    authentication = {'access_token': model_relay.placeholder('account')}
+    if provider:
+        authentication.update(provider=provider, model='gpt-5.3-codex', thinking='high')
+    (root/'codex-auth.json').write_text(json.dumps(authentication))
     env={'PATH':str(bindir)+os.pathsep+os.environ['PATH'],'HOME':str(root),'TMPDIR':str(root),
          'PYTHONPATH':str(Path(__file__).resolve().parents[1]),'CODEX_HOME':str(root/'.codex'),
          'PEASO_AI_MODEL_RELAY':'http://127.0.0.1:'+str(server.server_port),'CHACK_CODEX_DIRECT_CACHE_TRANSPORT':'off'}
@@ -228,7 +242,10 @@ def test_pinned_codex_cli_and_chack_use_only_private_relay(tmp_path,monkeypatch)
                                capture_output=True,text=True,timeout=60)
         assert process.returncode==0,process.stderr[-2000:]
         assert json.loads((root/'result.json').read_text())=={'items':[]}
-        assert ('POST','/codex/responses') in routes
+        assert ('POST',prefix+'/responses') in routes
+        if provider:
+            assert requests[-1]['model'] == 'gpt-5.3-codex'
+            assert requests[-1]['reasoning']['effort'] == 'high'
     finally:server.shutdown();thread.join(timeout=3)
 
 
@@ -289,6 +306,24 @@ def test_started_agent_failure_is_not_classified_as_an_infrastructure_retry(conf
     with pytest.raises(RuntimeError, match='agent_failed') as failed:
         fargate.invoke('network', tmp_path, 'private', 30, ecs=tasks, s3=storage)
     assert not isinstance(failed.value, fargate.TaskStartupError)
+    assert tasks.stops and len(storage.deleted) == 3
+
+
+def test_runtime_credential_validation_failure_is_not_retried(configured, tmp_path, monkeypatch):
+    from peaso.ai import providers
+    (tmp_path/'credentials.json').write_text('{"entries":[]}')
+    tasks, storage = Tasks(), Storage()
+    tasks.describe_tasks = lambda **kw: {'tasks': [{'lastStatus': 'STOPPED',
+        'containers': [{'name': 'agent', 'exitCode': 78}]}]}
+    storage.get_object = lambda **kw: pytest.fail('Preflight failure has no agent result')
+    reported = []
+    def report(access):
+        reported.append(access)
+        return providers.ConfigurationError('AI configuration needs validation.')
+    monkeypatch.setattr(providers, 'launch_error', report)
+    with pytest.raises(providers.ConfigurationError):
+        fargate.invoke('network', tmp_path, 'private', 30, ecs=tasks, s3=storage)
+    assert reported == ['private'] and len(tasks.requests) == 1
     assert tasks.stops and len(storage.deleted) == 3
 
 

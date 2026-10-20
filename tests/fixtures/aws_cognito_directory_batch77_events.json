@@ -1,0 +1,153 @@
+[
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-cognito-b77-1",
+    "eventName": "ListUsers",
+    "readOnly": true,
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "limit": 10
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-cognito-b77-2",
+    "eventName": "AdminGetUser",
+    "readOnly": true,
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "username": "[REDACTED]"
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-cognito-b77-3",
+    "eventName": "AdminUserGlobalSignOut",
+    "readOnly": false,
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "username": "[REDACTED]"
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-cognito-b77-4",
+    "eventName": "AdminDisableUser",
+    "readOnly": false,
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "username": "[REDACTED]"
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-cognito-b77-5",
+    "eventName": "SetLogDeliveryConfiguration",
+    "readOnly": false,
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "logConfigurations": []
+    },
+    "responseElements": {
+      "logDeliveryConfiguration": {
+        "userPoolId": "us-east-1_SYNTH123",
+        "logConfigurations": []
+      }
+    }
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-cognito-b77-6",
+    "eventName": "DeleteUserPoolDomain",
+    "readOnly": false,
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123",
+      "domain": "synthetic-domain"
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "cognito-idp.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-cognito-b77-7",
+    "eventName": "DeleteUserPool",
+    "readOnly": false,
+    "requestParameters": {
+      "userPoolId": "us-east-1_SYNTH123"
+    },
+    "responseElements": null
+  }
+]

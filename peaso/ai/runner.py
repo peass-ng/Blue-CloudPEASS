@@ -10,6 +10,41 @@ import time
 from pathlib import Path
 
 
+def validate_runtime(authentication, relay):
+    from .providers import ModelAccess, ConfigurationError, model_access, validate_access
+    if relay:
+        import requests
+        try:
+            with requests.Session() as session:
+                session.trust_env = False
+                with session.get(relay + '/validate', headers={'Authorization': 'Bearer ' + authentication['access_token']},
+                                 allow_redirects=False, timeout=(5, 35)) as response:
+                    if response.status_code != 200 or response.json() != {'valid': True}:
+                        raise ConfigurationError('AI configuration preflight failed.')
+        except Exception:
+            raise ConfigurationError('AI configuration preflight failed.') from None
+    else:
+        access = ModelAccess(authentication['provider'], authentication['model'], authentication['thinking'], authentication['access_token']) if authentication.get('model') else model_access(authentication['access_token'])
+        validate_access(access)
+
+
+def output_text(result):
+    """Keep SDK structured output as JSON across Chack's string formatter.
+
+    Pinned Chack's OpenRouter SDK returns a dict in run1_output, then applies
+    str() when building output. Serialize the original object; never evaluate
+    Python-looking model text or discard a changed/budget-warning response.
+    """
+    output = result.output
+    if isinstance(output, dict):
+        return json.dumps(output)
+    for field in ('run2_output', 'run1_output'):
+        native = getattr(result, field, None)
+        if isinstance(native, dict) and output == str(native):
+            return json.dumps(native)
+    return output
+
+
 def main():
     started = time.monotonic()
     from chack_agent import Chack, load_config
@@ -17,12 +52,10 @@ def main():
     stage = sys.argv[1]
     root = Path.cwd()
     auth_path = root / 'codex-auth.json'
-    token = json.loads(auth_path.read_text())['access_token']
+    authentication = json.loads(auth_path.read_text())
     auth_path.unlink()
     entries = json.loads((root / 'credentials.json').read_text())['entries']
     config = load_config(str(agent_config_path(stage)))
-    config.credentials.codex_access_token = token
-    config.credentials.openai_api_key = ''
     from .deadline import configure_runner
     configure_runner(config)
     config.env = {'CHACK_EXEC_CWD': str(root)}
@@ -30,13 +63,19 @@ def main():
     if relay:
         from .codex_relay_cli import relay_origin
         relay = relay_origin(relay)
+    validate_runtime(authentication, relay)
+    from .providers import configure_agent
+    configure_agent(config, authentication, relay=relay)
+    if relay and authentication.get('provider', 'codex') in {'codex', 'openai'}:
         # Chack writes a fresh CODEX_HOME, so enforce routing through the CLI
         # wrapper rather than hoping its generated config preserves our keys.
         wrapper = root / 'relay-codex'
         wrapper.write_text('#!' + sys.executable + '\nfrom peaso.ai.codex_relay_cli import main\nmain()\n')
         wrapper.chmod(0o700)
         os.environ['CODEX_PATH'] = str(wrapper)
-        config.env.update(OPENAI_BASE_URL=relay + '/codex', CHACK_CODEX_DIRECT_CACHE_TRANSPORT='off')
+        os.environ['PEASO_AI_CODEX_AUTH'] = authentication.get('provider', 'codex')
+        path = '/openai/v1' if authentication.get('provider') == 'openai' else '/codex'
+        config.env.update(OPENAI_BASE_URL=relay + path, CHACK_CODEX_DIRECT_CACHE_TRANSPORT='off')
     from .deadline import ENVIRONMENT_KEY, timeout_seconds
     from .output_validation import context, validate, feedback, private_file, InvalidAgentOutput, MAX_OUTPUT
     original = context(stage, root)
@@ -44,6 +83,8 @@ def main():
     end = started + budget
     text = ''
     for attempt in range(2):
+        if attempt:
+            validate_runtime(authentication, relay)
         remaining = end - time.monotonic()
         if remaining <= 0:
             raise TimeoutError()
@@ -54,17 +95,18 @@ def main():
         )
         if getattr(result, 'error', None):
             raise RuntimeError('agent_failed')
-        if len(result.output.encode('utf-8')) > MAX_OUTPUT:
+        output = output_text(result)
+        if len(output.encode('utf-8')) > MAX_OUTPUT:
             raise InvalidAgentOutput('agent_output_limit')
         data = None
         try:
-            data = json.loads(result.output)
+            data = json.loads(output)
             validate(stage, data, original)
         except ValueError as error:
             if attempt:
                 raise InvalidAgentOutput('invalid_agent_result') from None
             private_file(root/'candidate-output.json', data if data is not None else
-                         {'unparsed_output': result.output[:100000]})
+                         {'unparsed_output': output[:100000]})
             private_file(root/'validation-feedback.json', feedback(error))
             text = ('Correct candidate-output.json using validation-feedback.json. Both files and all original '
                     'inputs are in the working directory. Resolve references against original findings/resources '
@@ -79,12 +121,15 @@ def main():
 
 def entrypoint():
     from .output_validation import InvalidAgentOutput
+    from .providers import ConfigurationError
     try:
         main()
     except TimeoutError:
         return 124
     except InvalidAgentOutput:
         return 65
+    except ConfigurationError:
+        return 78
     return 0
 
 

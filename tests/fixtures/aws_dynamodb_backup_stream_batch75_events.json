@@ -1,0 +1,213 @@
+[
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-1",
+    "eventName": "UpdateTable",
+    "requestParameters": {
+      "tableName": "synthetic-table",
+      "streamSpecification": {
+        "streamEnabled": true,
+        "streamViewType": "NEW_AND_OLD_IMAGES"
+      }
+    },
+    "responseElements": {
+      "tableDescription": {
+        "tableName": "synthetic-table",
+        "tableStatus": "UPDATING"
+      }
+    }
+  },
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-2",
+    "eventName": "UpdateTable",
+    "requestParameters": {
+      "tableName": "synthetic-table",
+      "globalSecondaryIndexUpdates": [
+        {
+          "create": {
+            "indexName": "synthetic-gsi",
+            "keySchema": [
+              {
+                "attributeName": "gpk",
+                "keyType": "HASH"
+              }
+            ],
+            "projection": {
+              "projectionType": "ALL"
+            }
+          }
+        }
+      ]
+    },
+    "responseElements": {
+      "tableDescription": {
+        "tableName": "synthetic-table",
+        "tableStatus": "UPDATING"
+      }
+    }
+  },
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-3",
+    "eventName": "UpdateContinuousBackups",
+    "requestParameters": {
+      "tableName": "synthetic-table",
+      "pointInTimeRecoverySpecification": {
+        "pointInTimeRecoveryEnabled": true,
+        "recoveryPeriodInDays": 1
+      }
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-4",
+    "eventName": "CreateBackup",
+    "requestParameters": {
+      "tableName": "synthetic-table",
+      "backupName": "synthetic-backup"
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-5",
+    "eventName": "RestoreTableFromBackup",
+    "requestParameters": {
+      "targetTableName": "synthetic-restored",
+      "backupArn": "arn:aws:dynamodb:us-east-1:999999999999:table/synthetic-table/backup/01234567890123-abcdef01",
+      "billingModeOverride": "PAY_PER_REQUEST"
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-6",
+    "eventName": "UpdateTimeToLive",
+    "requestParameters": {
+      "tableName": "synthetic-table",
+      "timeToLiveSpecification": {
+        "enabled": true,
+        "attributeName": "expires_at"
+      }
+    },
+    "responseElements": {
+      "timeToLiveSpecification": {
+        "enabled": true,
+        "attributeName": "expires_at"
+      }
+    }
+  },
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-7",
+    "eventName": "DeleteBackup",
+    "requestParameters": {
+      "backupArn": "arn:aws:dynamodb:us-east-1:999999999999:table/synthetic-table/backup/01234567890123-abcdef01"
+    },
+    "responseElements": null
+  },
+  {
+    "eventSource": "dynamodb.amazonaws.com",
+    "eventCategory": "Management",
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "readOnly": false,
+    "recipientAccountId": "999999999999",
+    "awsRegion": "us-east-1",
+    "eventTime": "2026-10-20T20:00:00Z",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::999999999999:assumed-role/synthetic-operator/session"
+    },
+    "eventID": "synthetic-ddb-b75-8",
+    "eventName": "DeleteTable",
+    "requestParameters": {
+      "tableName": "synthetic-table"
+    },
+    "responseElements": {
+      "tableDescription": {
+        "tableName": "synthetic-table",
+        "tableStatus": "DELETING"
+      }
+    }
+  }
+]

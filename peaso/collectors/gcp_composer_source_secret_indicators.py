@@ -252,15 +252,22 @@ def collect_sources(collector, scope):
                     payload = objects._read(transport, state, target, media=True, expected=metadata)
                     objects._text(payload)
                     outcome = scan_content(payload, 'composer.dag.content/' + objects.identity(target).split(':', 1)[1], timeout=min(5, objects._remaining(transport, state) / 2))
+                    # The matched generation and media read are already bound. Keep
+                    # redacted observations even if a detector or a later file fails.
+                    leaks = merge_leaks(leaks + outcome['leaks'])
+                    if len(leaks) > MAX_LEAKS or sum(len(x['locations']) for x in leaks) > MAX_LOCATIONS:
+                        raise Incomplete('finding_limit')
+                    marker['leaks'] = leaks
+                    prior_engines = {e['engine']: e for e in marker['engines']}
+                    marker['engines'] = [prior_engines.get(e['engine'], e)
+                        if prior_engines.get(e['engine'], {}).get('status') == 'complete' else e
+                        for e in outcome['engines']]
+                    marker['bytes'] += len(payload)
+                    marker['files'].append(objects.identity(target))
                     objects._check(transport, state)
                     if not outcome['complete']:
                         raise Incomplete('detector_unavailable')
                     engines = outcome['engines']
-                    leaks = merge_leaks(leaks + outcome['leaks'])
-                    if len(leaks) > MAX_LEAKS or sum(len(x['locations']) for x in leaks) > MAX_LOCATIONS:
-                        raise Incomplete('finding_limit')
-                    marker['bytes'] += len(payload)
-                    marker['files'].append(objects.identity(target))
                 if not files:
                     # Never use an empty prefix as a detector-backed clean content verdict.
                     raise Incomplete('empty_prefix')

@@ -2,6 +2,7 @@ import { Component, lazy, Suspense, useEffect, useState } from "react";
 import type { ErrorInfo, ReactNode } from "react";
 import {
   ChevronDown,
+  AlertTriangle,
   Cloud,
   ArrowUpRight,
   Gauge,
@@ -119,7 +120,7 @@ export function App() {
   const client = useQueryClient();
   const identity = useApi<Me>("/me", false);
   const signedIn = identity.isSuccess;
-  const codex = useApi<{ available: boolean; platform_configured: boolean }>("/ai/codex", false, signedIn);
+  const codex = useApi<{ available: boolean; platform_configured: boolean; configuration_error?: { message: string } | null }>("/ai/codex", false, signedIn, true);
   const aiAvailable = signedIn && (codex.data?.available === true || codex.data?.platform_configured === true);
   const workspaces = useApi<{ items: Workspace[] }>("/workspaces", false, signedIn);
   const workspaceList = items(workspaces.data);
@@ -248,6 +249,7 @@ export function App() {
               >
                 <p.icon size={18} />
                 <span>{p.label}</span>
+                {p.label === "Settings" && codex.data?.configuration_error && <AlertTriangle size={16} role="img" aria-label="AI configuration needs attention" />}
                 {p.label === "Attack Analysis" && <span className="feature-beta nav-beta">Beta</span>}
                 {p.label === "Hardening Findings" && report.data && (
                   <span className="nav-count">

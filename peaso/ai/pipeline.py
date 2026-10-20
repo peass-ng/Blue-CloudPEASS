@@ -41,6 +41,7 @@ def kill_tree(process):
 
 
 def invoke(stage, platform, entries, token, findings, reviews, timeout):
+    stop_at = time.monotonic() + timeout
     # Chack's Codex backend enables unrestricted shell tools. Refuse to start
     # it in the platform process namespace, even with a clean environment.
     remote = isolation.remote()
@@ -49,7 +50,8 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
         configuration()
     else:
         isolation.launcher()
-    stop_at = time.monotonic() + timeout
+        from .providers import validate_before_launch
+        token = validate_before_launch(token)
     categories = {'hardening': {'hardening'}, 'exposure': {'exposure'},
                   'network': set(), 'priorities': {'hardening', 'exposure'}}
     if stage not in categories:
@@ -66,7 +68,8 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
         os.chmod(root, 0o700)
         files = {'credentials': {'version': 2, 'entries': entries}}
         if not remote:
-            files['codex-auth'] = {'access_token': token}
+            from .providers import auth_document
+            files['codex-auth'] = auth_document(token)
         if stage == 'priorities':
             from .briefing import build
             build(root, platform, findings, reviews, private_json)
@@ -99,6 +102,9 @@ def invoke(stage, platform, entries, token, findings, reviews, timeout):
             env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         try:
             process.wait(timeout=max(0, stop_at - time.monotonic()))
+            if process.returncode == 78:
+                from .providers import launch_error
+                raise launch_error(token)
             if process.returncode or not (root / 'result.json').is_file():
                 raise RuntimeError('agent_failed')
             if (root / 'result.json').stat().st_size > 8_000_000:
@@ -357,7 +363,9 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
         ai_user = selectors.get('ai_user_id', tenant)
         if ai_user != tenant and store.workspace_role(tenant, ai_user) not in ('write', 'admin'):
             raise PermissionError('ai_owner_no_longer_authorized')
-        token, result['auth_source'] = personal_token(store, cipher, selectors.get('ai_user_id', tenant))
+        from .providers import resolve_access, credential_value
+        token, result['auth_source'] = resolve_access(store, cipher, ai_user,
+            auth_mode=settings.auth_mode, token_resolver=personal_token)
         if not isolation.available():
             result.update(status='unavailable', reason='ai_isolation_unavailable')
             result['limitations'].append('AI agents were not started: this deployment has no configured isolation launcher. Deterministic scan findings remain available.')
@@ -420,9 +428,9 @@ def review_scan(report, snapshot, selectors, *, tenant, artifacts, deadline=None
         result['status'] = 'partial' if failed_stage else 'completed'
         result['coverage'] = {'hardening': len(hardening), 'exposure': len(exposure) + len(duplicates),
             'reviewed': sum(row['verdict'] in ('PASS', 'FAIL', 'NOT_APPLICABLE', 'EMPTY') for row in reviewed), 'total': len(reviewed)}
-        # Redact exact cloud and Codex secret values before durable publication.
+        # Redact exact cloud and AI credential values before durable publication.
         # Retain public IDs/metadata: only credential-bearing fields are secrets.
-        secrets = [token] + [value for entry in entries for key, value in entry.items()
+        secrets = [credential_value(token), *getattr(getattr(token, 'guard', None), 'secrets', ())] + [value for entry in entries for key, value in entry.items()
             if key in ('token', 'aws_access_key_id', 'aws_secret_access_key', 'aws_session_token') and isinstance(value, str)]
         for entry in entries:
             if entry.get('format') == 'kubeconfig':

@@ -1,14 +1,42 @@
-import { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { json, request, useApi } from "./api";
 import { Panel, State, humanError } from "./ui";
+
 type Login = { verification_url: string; user_code: string; interval: number; expires_at: number };
+type Selection = { provider: string; model: string; thinking: string; credential_saved: boolean };
+type Configuration = { available: boolean; hosted: boolean; source: string | null; selection: Selection | null; codex_connected: boolean; isolation_available: boolean; configuration_error?: { message: string; at: number } | null };
+const providers = [
+  ["openai", "OpenAI API key"], ["codex", "Codex sign-in"],
+  ["anthropic", "Anthropic API key"], ["anthropic_token", "Anthropic token"],
+  ["openrouter", "OpenRouter API key"],
+];
+
 export function CodexSettings() {
-  const connection = useApi<{ connected: boolean; source: string; platform_configured: boolean; available: boolean; isolation_available?: boolean }>("/ai/codex", false);
+  const connection = useApi<Configuration>("/ai/configuration", false, true, true);
+  const client = useQueryClient();
+  const initialized = useRef(false);
+  const [provider, setProvider] = useState("");
+  const [model, setModel] = useState("");
+  const [thinking, setThinking] = useState("");
+  const [credential, setCredential] = useState("");
   const [login, setLogin] = useState<Login>();
   const [message, setMessage] = useState("");
+  useEffect(() => {
+    if (!connection.data || initialized.current) return;
+    initialized.current = true;
+    const selected = connection.data.selection;
+    if (selected) { setProvider(selected.provider); setModel(selected.model); setThinking(selected.thinking); }
+  }, [connection.data]);
+  function refresh() { void client.invalidateQueries({ predicate: query => query.queryKey[0] === "live" && ["/ai/codex", "/ai/configuration"].includes(String(query.queryKey[2])) }); }
   const start = useMutation({ mutationFn: () => request<Login>("/ai/codex/login", json({})), onSuccess: value => { setLogin(value); setMessage(""); } });
-  const disconnect = useMutation({ mutationFn: () => request("/ai/codex", { method: "DELETE" }), onSuccess: () => { setLogin(undefined); setMessage(""); void connection.refetch(); } });
+  const disconnect = useMutation({ mutationFn: () => request("/ai/codex", { method: "DELETE" }), onSuccess: () => { setLogin(undefined); setMessage(""); refresh(); } });
+  const revalidate = useMutation({ mutationFn: () => request("/ai/configuration/validate", json({})), onSuccess: () => { setMessage("Saved AI configuration validated."); refresh(); }, onError: () => refresh() });
+  const save = useMutation({
+    mutationFn: () => provider ? request<Configuration>("/ai/configuration", json({ provider, model, thinking, ...(credential ? { credential } : {}) })) : request("/ai/configuration", { method: "DELETE" }),
+    onSuccess: () => { setCredential(""); setMessage(provider ? "AI configuration validated and saved. All scan agents use this selection." : connection.data?.hosted ? "HackTricks AI is used." : "Custom AI configuration removed."); refresh(); },
+    onError: () => refresh(),
+  });
   useEffect(() => {
     if (!login) return;
     let stopped = false;
@@ -19,21 +47,46 @@ export function CodexSettings() {
       try {
         const result = await request<{ status: string }>("/ai/codex/login/poll", json({}));
         if (stopped) return;
-        if (result.status === "connected") { setLogin(undefined); void connection.refetch(); return; }
+        if (result.status === "connected") { setLogin(undefined); setMessage("Codex connected. Choose your model and thinking effort, then validate and save."); refresh(); return; }
       } catch (error) { if (!stopped) { setMessage(humanError(error)); setLogin(undefined); } return; }
       if (!stopped) timer = setTimeout(() => void poll(), login.interval * 1000);
     }
     timer = setTimeout(() => void poll(), login.interval * 1000);
     return () => { stopped = true; clearTimeout(timer); };
   }, [login]);
-  return <Panel title="AI review · Codex">
-    <p>AI can recheck failed findings and recommend up to 15 prioritized security actions after each scan.</p>
-    {connection.error ? <State error={connection.error} onRetry={() => void connection.refetch()} /> : <p>{connection.data?.isolation_available === false ? "AI review is unavailable until the platform administrator configures isolated agent execution. Connecting Codex does not remove this requirement." : connection.data?.available ? connection.data.connected ? "Your Codex account is connected. Scans you launch use your account." : "Scans use the platform Codex account by default." : connection.data?.connected ? "Your Codex connection is unavailable. Reconnect to enable AI review." : "Connect Codex to enable AI review."}</p>}
-    <p className="muted small">AI-enabled scans share scan evidence with Codex and allow read-only verification of the scanned cloud accounts. You can turn AI off when launching or scheduling a scan.</p>
-    {login && <div role="status"><p>Open <a href={login.verification_url} target="_blank" rel="noreferrer">Codex sign-in</a> and enter <strong>{login.user_code}</strong>.</p><p>Waiting for sign-in. The code expires in 15 minutes. Enable device code login in your ChatGPT security settings if needed.</p></div>}
-    {message && <p role="alert">{message}</p>}
-    {(start.error || disconnect.error) && <p role="alert">{humanError(start.error || disconnect.error)}</p>}
-    <div className="button-row"><button className="button" disabled={start.isPending || !!login || disconnect.isPending} onClick={() => start.mutate()}>{connection.data?.connected ? "Reconnect Codex" : "Sign in with Codex"}</button>
-    {(connection.data?.connected || login) && <button className="button" disabled={disconnect.isPending} onClick={() => disconnect.mutate()}>{login ? "Cancel sign-in" : "Disconnect Codex"}</button>}</div>
-  </Panel>;
+  const active = connection.data;
+  const savedCredential = active?.selection?.provider === provider && active.selection.credential_saved;
+  const ready = provider ? !!model.trim() && !!thinking && (provider === "codex" ? active?.codex_connected : !!credential || savedCredential) : active?.hosted || !!active?.selection;
+  return <Panel title="AI review"><div className="form">
+    <p>AI can recheck failed findings, explain the network, and prioritize security actions after each scan.</p>
+    {connection.error ? <State error={connection.error} onRetry={() => void connection.refetch()} /> : <p role="status">{active?.isolation_available === false ? "AI review is unavailable until isolated agent execution is configured." : active?.source === "hacktricks" ? "HackTricks AI is used." : active?.available ? active.selection ? "Your AI configuration is used." : "Local AI is configured." : "Configure an AI provider to enable AI review."}</p>}
+    <p className="muted small">AI-enabled scans share evidence with the selected provider and allow read-only verification of scanned cloud accounts. You can turn AI off for each scan or schedule.</p>
+    {active?.configuration_error && <p role="alert">AI is paused: {active.configuration_error.message} No AI workloads will be launched. Validate and save your settings to resume.</p>}
+    {active?.configuration_error && <button className="button" disabled={revalidate.isPending} onClick={() => revalidate.mutate()}>Revalidate saved AI configuration</button>}
+    {active?.hosted && <p className="muted small">HackTricks AI is the default when no personal configuration is selected. If validation fails, AI stops until you fix your settings or explicitly select and validate HackTricks AI.</p>}
+    <form className="form" onSubmit={event => { event.preventDefault(); setMessage(""); save.mutate(); }}>
+      <label>AI provider<select value={provider} onChange={event => { setProvider(event.target.value); setCredential(""); setModel(""); setThinking(""); setMessage(""); save.reset(); }}>
+        <option value="">{active?.hosted ? "HackTricks AI (default)" : "Select an AI provider"}</option>
+        {providers.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select></label>
+      {provider && <>
+        {provider !== "codex" && <label>{provider === "anthropic_token" ? "Anthropic token" : "API key"}<input type="password" autoComplete="new-password" value={credential} onChange={event => setCredential(event.target.value)} placeholder={savedCredential ? "Saved credential; leave blank to keep it" : "Enter your credential"} /></label>}
+        {provider === "anthropic_token" && <p className="muted small">Use a Claude Code token created with claude setup-token.</p>}
+        <label>Model ID<input value={model} onChange={event => setModel(event.target.value)} required maxLength={200} placeholder="Exact model ID from your provider" /></label>
+        <label>Thinking effort<select value={thinking} onChange={event => setThinking(event.target.value)} required>
+          <option value="">Select thinking effort</option>
+          {["none", "minimal", "low", "medium", "high", "xhigh", "max"].map(value => <option key={value} value={value}>{value}</option>)}
+        </select></label>
+        <p className="muted small">The backend sends a small inference request to check your credential, model, thinking and tool support before saving and before each AI workload starts.</p>
+      </>}
+      <div className="button-row">
+        <button className="button primary" type="submit" disabled={!ready || save.isPending}>{save.isPending ? "Validating…" : provider ? "Validate and save AI" : active?.hosted ? "Use HackTricks AI" : "Remove AI configuration"}</button>
+        {provider === "codex" && <button className="button" type="button" disabled={start.isPending || !!login || disconnect.isPending} onClick={() => start.mutate()}>{active?.codex_connected ? "Reconnect Codex" : "Sign in with Codex"}</button>}
+        {(login || active?.codex_connected && provider === "codex") && <button className="button" type="button" disabled={disconnect.isPending} onClick={() => disconnect.mutate()}>{login ? "Cancel sign-in" : "Disconnect Codex"}</button>}
+      </div>
+    </form>
+    {login && <div role="status"><p>Open <a href={login.verification_url} target="_blank" rel="noreferrer">Codex sign-in</a> and enter <strong>{login.user_code}</strong>.</p><p>Waiting for sign-in. The code expires in 15 minutes.</p></div>}
+    {message && <p role="status">{message}</p>}
+    {(start.error || disconnect.error || save.error || revalidate.error) && <p role="alert">{humanError(start.error || disconnect.error || save.error || revalidate.error)}</p>}
+  </div></Panel>;
 }

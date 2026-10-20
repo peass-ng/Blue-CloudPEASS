@@ -1,0 +1,59 @@
+"""Exact test-only initializer ancestry for the seven GCP content fixes."""
+import hashlib
+
+CURRENT_INITIALIZER_SHA256 = "8cd818f4733bd8d51d04cab583171ddfdcec6575fbff1a1b2222bdc6da15301e"
+METADATA_INITIALIZER_SHA256 = "e828e145917364fcd20a5a2d6de7e24eb304eee5698fea1cb1bed8669fef01c6"
+EDITS = (
+    (b"from . import gcp_positive_conservation_shared_source_successor_20261020 as _positive_shared_source\n", b""),
+    (b"aws_workload_command_shared_successor_20261020 = _positive_shared_source\n",
+     b"aws_workload_command_shared_successor_20261020 = _deployed_ai_shared_source\n"),
+    (b"from peaso import gcp_positive_conservation_source_admission_successor_20261020 as _positive_source\n"
+     b"gcp_function_secret_page_admission_20261020.source_inputs = _positive_source.reviewed_inputs\n", b""),
+)
+
+
+def metadata_initializer_bytes(raw):
+    """Accept either exact epoch; reverse only the reviewed three hunks."""
+    digest = hashlib.sha256(raw).hexdigest()
+    if digest == METADATA_INITIALIZER_SHA256:
+        return raw
+    if digest != CURRENT_INITIALIZER_SHA256:
+        raise RuntimeError("Unreviewed GCP source initializer changed")
+    for after, before in EDITS:
+        if raw.count(after) != 1:
+            raise RuntimeError("GCP source initializer reversal ambiguous")
+        raw = raw.replace(after, before, 1)
+    if hashlib.sha256(raw).hexdigest() != METADATA_INITIALIZER_SHA256:
+        raise RuntimeError("GCP source initializer predecessor changed")
+    return raw
+
+
+PREDECESSOR_ARCHIVE = "tests/fixtures/gcp_positive_conservation_predecessors_20261020.json.gz"
+PREDECESSOR_ARCHIVE_SHA256 = "90678d4abb5dcbff1471736f00da2d67744c1628e67f53e08deffe1470be661c"
+
+
+def restore_content_predecessors(destination):
+    """Restore only twelve hash-bound leaves in an isolated historical tree."""
+    import gzip
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    destination = Path(destination).resolve()
+    if destination == root:
+        raise RuntimeError("Historical restoration requires an isolated tree")
+    raw = (root / PREDECESSOR_ARCHIVE).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != PREDECESSOR_ARCHIVE_SHA256:
+        raise RuntimeError("GCP predecessor archive changed")
+    archive = json.loads(gzip.decompress(raw))
+    if archive['schema_version'] != 1 or len(archive['files']) != 12:
+        raise RuntimeError("GCP predecessor roster changed")
+    for relative, row in archive['files'].items():
+        target = (destination / relative).resolve()
+        if not target.is_relative_to(destination / 'peaso'):
+            raise RuntimeError("GCP predecessor source path changed")
+        if hashlib.sha256(target.read_bytes()).hexdigest() != row['after_sha256']:
+            raise RuntimeError("GCP current source changed: " + relative)
+        before = bytes.fromhex(row['before_hex'])
+        if hashlib.sha256(before).hexdigest() != row['before_sha256']:
+            raise RuntimeError("GCP predecessor bytes changed: " + relative)
+        target.write_bytes(before)

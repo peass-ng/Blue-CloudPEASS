@@ -15,7 +15,7 @@ import zlib
 
 from .gcp_sbom_native import _digest_uri
 from .gcp_registry_image_uri import parse as parse_image_uri
-from .aws_package_content_indicators import scan_tar, _json, _path, TAR_TYPES, CONFIG_TYPES, OCI, DOCKER
+from .aws_package_content_indicators import scan_tar, PartialArchive, _json, _path, TAR_TYPES, CONFIG_TYPES, OCI, DOCKER
 from peaso.secret_scanning import scan_content, merge_leaks, KINGFISHER_VERSION, TRUFFLEHOG_VERSION
 
 CHECK_ID = 'gcp.review.artifact_image.content_secret_indicators'
@@ -241,6 +241,32 @@ def _tar(raw, media, expected_diff):
 
 
 def inspect_image(row, scope, repositories, projects, reader):
+    partial = None
+    leaks = []
+    inspected = []
+    scanned = []
+    expanded = members = files = 0
+    engines = []
+
+    def add_refs(refs, layer_digest):
+        for ordinal, ref in enumerate(refs):
+            # The common TAR scanner receives pseudonymized member names.
+            leaks.extend(dict(leak, locations=[dict(loc, path='matched-file-' + str(ordinal + 1), layer=layer_digest)
+                for loc in leak['locations']]) for leak in ref.get('Leaks', []))
+
+    def source_reports(observations):
+        # scan_content emits a leak only from a detector invocation that
+        # completed. scan_tar returns those redacted leaks, including in
+        # PartialArchive.refs; it does not return a layer-wide engine ledger.
+        reports = {}
+        for leak in observations:
+            for location in leak['locations']:
+                key = (location['layer'], location['path'], leak['fingerprint'])
+                reports.setdefault(key, set()).update(d['engine'] for d in leak['detectors'])
+        return [{'layer': layer, 'path': path, 'fingerprint': fingerprint,
+                 'engines': [{'engine': engine, 'status': 'complete'} for engine in sorted(reporters)]}
+                for (layer, path, fingerprint), reporters in sorted(reports.items())]
+
     try:
         uri, repo, digest = bind_image(row, scope, repositories, projects)
         raw = reader.get(uri, 'manifests', digest, MAX_MANIFEST)
@@ -265,23 +291,33 @@ def inspect_image(row, scope, repositories, projects, reader):
             raise ValueError('unsupported platform/config rootfs')
         reader.check()
         outcome = scan_content(config_raw, 'image-config.json', timeout=min(10, max(.001, (reader.end-time.monotonic())/2)))
-        if not outcome['complete']: raise ValueError('config detector incomplete')
         leaks = [dict(leak, locations=[dict(loc, layer=config['digest']) for loc in leak['locations']]) for leak in outcome['leaks']]
-        expanded, members, files, scanned = len(config_raw), 0, 0, []
+        engines = outcome['engines']
+        inspected = [config['digest']]
+        expanded = len(config_raw)
+        partial = {'schema': SCHEMA, 'status': 'partial', 'complete': False, 'uri': uri, 'repository': repo,
+            'manifest_digest': digest, 'descriptors': deepcopy([config] + layers), 'layers_scanned': scanned,
+            'inspected_digests': inspected, 'expanded_bytes': expanded, 'members': members,
+            'regular_files': files, 'engines': engines, 'leaks': leaks, 'verification': 'not_attempted'}
+        if not outcome['complete']: raise ValueError('config detector incomplete')
         for layer, diff in zip(layers, decoded['rootfs']['diff_ids']):
             reader.check()
             payload = reader.get(uri, 'blobs', layer['digest'], MAX_LAYER, layer['size'])
             uncompressed, regular = _tar(payload, layer['mediaType'], diff)
             if len(uncompressed) + expanded > MAX_EXPANDED or files + regular > MAX_MEMBERS:
                 raise ValueError('image expansion/member bound')
-            refs, tar_expanded, members = scan_tar(uncompressed, 'application/vnd.oci.image.layer.v1.tar', Deadline(reader), (expanded, members))
+            try:
+                refs, tar_expanded, members = scan_tar(uncompressed, 'application/vnd.oci.image.layer.v1.tar', Deadline(reader), (expanded, members))
+            except PartialArchive as observed:
+                add_refs(observed.refs, layer['digest'])
+                if observed.refs:
+                    inspected.append(layer['digest'])
+                raise
             expanded, files = tar_expanded, files + regular
             if members > MAX_MEMBERS: raise ValueError('image member bound')
-            for ordinal, ref in enumerate(refs):
-                # A filename can itself contain a different secret from the file
-                # body. Retain ordinal references, never provider-controlled paths.
-                leaks.extend(dict(leak, locations=[dict(loc, path='matched-file-' + str(ordinal + 1), layer=layer['digest']) for loc in leak['locations']]) for leak in ref.get('Leaks', []))
+            add_refs(refs, layer['digest'])
             scanned.append(layer['digest'])
+            inspected.append(layer['digest'])
         reader.check()
         leaks = merge_leaks(leaks)
         if len(leaks) > MAX_LEAKS or sum(len(leak['locations']) for leak in leaks) > MAX_LOCATIONS:
@@ -291,6 +327,17 @@ def inspect_image(row, scope, repositories, projects, reader):
             'expanded_bytes': expanded, 'members': members, 'regular_files': files,
             'engines': outcome['engines'], 'leaks': leaks, 'verification': 'not_attempted'}
     except Exception:
+        if partial is not None and leaks:
+            try:
+                safe = merge_leaks(leaks)
+                if (len(safe) <= MAX_LEAKS and sum(len(leak['locations']) for leak in safe) <= MAX_LOCATIONS
+                        and all(loc.get('layer') in inspected for leak in safe for loc in leak['locations'])):
+                    partial.update(layers_scanned=list(scanned), inspected_digests=list(inspected),
+                        expanded_bytes=expanded, members=members, regular_files=files,
+                        leaks=safe, source_reports=source_reports(leaks))
+                    return partial
+            except (TypeError, ValueError, KeyError, AttributeError):
+                pass
         return {'schema': SCHEMA, 'status': 'unavailable', 'complete': False, 'leaks': []}
 
 
@@ -335,7 +382,8 @@ def enrich(collector, *, reader_factory=None):
                 provenance.setdefault('scope', scope)
                 images['source_requests'] = sorted(set(images.get('source_requests', [])) | set(receipts))
                 row.setdefault('_coverage', {})[MARKER] = {
-                    'status': 'collected' if row[MARKER]['complete'] else 'unavailable',
+                    'status': 'collected' if row[MARKER]['complete'] else
+                        'partial' if row[MARKER]['status'] == 'partial' else 'unavailable',
                     'source_requests': receipts}
             if run_proof is not None:
                 completed = run_sources.finish(collector, run_proof)

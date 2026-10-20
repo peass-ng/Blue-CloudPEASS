@@ -43,8 +43,10 @@ def evaluate(item, index):
         m = item[MARKER]
         if (set(m) != {'schema', 'complete', 'scope', 'selection', 'repository', 'files', 'leaks',
                        'native_requests', 'read_receipts', 'source_requests', 'reason', 'verification', 'content_accounting'}
-                or m['schema'] != SCHEMA or m['scope'] != scope or m['complete'] is not True
-                or m['reason'] != 'complete' or m['verification'] != 'not_attempted'
+                or m['schema'] != SCHEMA or m['scope'] != scope or type(m['complete']) is not bool
+                or (m['reason'] != 'complete' if m['complete'] else m['reason'] not in {
+                    'detectors_incomplete', 'content_deadline', 'unsupported_text', 'unsupported_binary',
+                    'finding_limit', 'source_unavailable'}) or m['verification'] != 'not_attempted'
                 or len(own['items']) != 1 or own['items'][0] != item):
             raise ValueError('incomplete')
         selected = m['selection']
@@ -85,7 +87,7 @@ def evaluate(item, index):
             raise ValueError('provenance')
         if (set(item.get('_provenance', {}).get('source_requests', [])) != set(refs)
                 or item.get('_provenance', {}).get('scope') != scope
-                or item.get('_coverage', {}).get(MARKER) != {'status': 'collected', 'source_requests': refs}):
+                or item.get('_coverage', {}).get(MARKER) != {'status': 'collected' if m['complete'] else 'unknown', 'source_requests': refs}):
             raise ValueError('item provenance')
         git_owner = 'sourcerepo-content:' + hashlib.sha256((repo + ':' + selected['commit']).encode()).hexdigest()
         expected = [('GET', 'sourcerepo.repos.get.selected_files', expected_name, 16384, 'csr_native_repo_name_url_v1'),
@@ -104,14 +106,16 @@ def evaluate(item, index):
         if len(set(ids)) != 3 or set(ids) & set(native) or set(ids) | set(native) != set(refs):
             raise ValueError('receipt ownership')
         files = m['files']
-        if not isinstance(files, list) or len(files) != len(selected['paths_sha256']):
+        if (not isinstance(files, list) or not 1 <= len(files) <= len(selected['paths_sha256'])
+                or m['complete'] and len(files) != len(selected['paths_sha256'])):
             raise ValueError('files')
         versions = {'kingfisher': KINGFISHER_VERSION, 'trufflehog': TRUFFLEHOG_VERSION}
         total = 0
         for file, path_hash in zip(files, selected['paths_sha256']):
             if (set(file) != {'path_sha256', 'blob_sha1', 'bytes', 'complete', 'engines', 'identity'}
                     or file['path_sha256'] != path_hash or not _sha(file['blob_sha1'], 40)
-                    or file['blob_sha1'] == '0' * 40 or file['complete'] is not True
+                    or file['blob_sha1'] == '0' * 40 or type(file['complete']) is not bool
+                    or m['complete'] and file['complete'] is not True
                     or type(file['bytes']) is not int or not 0 <= file['bytes'] <= 262144):
                 raise ValueError('blob binding')
             blob_id = 'sourcerepo-selected-blob:' + hashlib.sha256(json.dumps(
@@ -124,14 +128,18 @@ def evaluate(item, index):
             if (not isinstance(engines, list) or len(engines) != 2
                     or any(not isinstance(e, dict) or set(e) != {'engine', 'version', 'status'}
                            or e.get('engine') not in versions or e.get('version') != versions.get(e.get('engine'))
-                           or e.get('status') != 'complete' for e in engines)
+                           or e.get('status') not in ('complete', 'unavailable') for e in engines)
                     or {e['engine'] for e in engines} != set(versions)):
                 raise ValueError('detectors')
+            if file['complete'] != all(engine['status'] == 'complete' for engine in engines):
+                raise ValueError('detector completeness')
         if total > 2097152 or not isinstance(m['leaks'], list) or len(m['leaks']) > 256:
             raise ValueError('budget')
         accounting = m['content_accounting']
         if (set(accounting) != {'commit_sha', 'object_count', 'inflated_bytes', 'wire_bytes', 'selected_bytes'}
-                or accounting['commit_sha'] != selected['commit'] or accounting['selected_bytes'] != total
+                or accounting['commit_sha'] != selected['commit']
+                or (accounting['selected_bytes'] != total if m['complete'] else
+                    not total <= accounting['selected_bytes'] <= 2097152)
                 or any(type(accounting[k]) is not int for k in ('object_count', 'inflated_bytes', 'wire_bytes', 'selected_bytes'))
                 or not 1 <= accounting['object_count'] <= 4096
                 or not total <= accounting['inflated_bytes'] <= 16777216
@@ -139,13 +147,24 @@ def evaluate(item, index):
                 or receipts[2]['bytes'] != accounting['wire_bytes'] + 8):
             raise ValueError('parser accounting')
         leaks = merge_leaks(m['leaks'])
-        valid_paths = {'sourcerepo.selected_file.' + h for h in selected['paths_sha256']}
+        valid_paths = {'sourcerepo.selected_file.' + file['path_sha256'] for file in files}
         if (leaks != m['leaks'] or sum(len(l['locations']) for l in leaks) > 512
                 or any(set(loc) - {'path', 'line'} or loc['path'] not in valid_paths
                        for leak in leaks for loc in leak['locations'])):
             raise ValueError('finding binding')
+        # Each reported location needs a completed detector that actually
+        # participated in this leak's detector union. Never infer a positive
+        # from the unavailable engine or an uninspected selected path.
+        completed = {'sourcerepo.selected_file.' + file['path_sha256']:
+                     {engine['engine'] for engine in file['engines'] if engine['status'] == 'complete'}
+                     for file in files}
+        if any(not completed[loc['path']].intersection(detector['engine'] for detector in leak['detectors'])
+               for leak in leaks for loc in leak['locations']):
+            raise ValueError('positive detector binding')
+        if not m['complete'] and not leaks:
+            raise ValueError('incomplete negative')
         evidence = {'secret_leaks': deepcopy(leaks), 'credential_validation': 'not_attempted',
-                    'complete': True, 'coverage': 'selected_files_at_advertised_commit_only',
+                    'complete': m['complete'], 'coverage': 'selected_files_at_advertised_commit_only',
                     'commit': selected['commit'], 'files': deepcopy(files), 'source_requests': list(refs)}
         if leaks:
             return 'FAIL', {**evidence, 'observed': 'A likely secret was detected in an explicitly selected repository file. The value is hidden; offline detection did not validate the credential.'}

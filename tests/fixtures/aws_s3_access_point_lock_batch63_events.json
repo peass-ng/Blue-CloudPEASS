@@ -1,0 +1,344 @@
+{
+  "note": "Synthetic derivative of verified S3 management and object data event shapes. No real account, principal, resource, or credential values.",
+  "events": [
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "CreateAccessPoint",
+      "eventID": "synthetic-s3-lock-1",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "CreateAccessPointRequest": {
+          "Bucket": "synthetic-s3-lock-bucket"
+        }
+      },
+      "resources": null
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "PutBucketPolicy",
+      "eventID": "synthetic-s3-lock-2",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "bucketPolicy": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::synthetic-s3-lock-bucket/*",
+              "Condition": {
+                "StringEquals": {
+                  "s3:DataAccessPointAccount": "999999999999"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "PutAccessPointPolicy",
+      "eventID": "synthetic-s3-lock-3",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "PutAccessPointPolicyRequest": {}
+      },
+      "resources": null
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "GetObject",
+      "eventID": "synthetic-s3-lock-4",
+      "eventCategory": "Data",
+      "managementEvent": false,
+      "readOnly": true,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "key": "synthetic/canary.txt"
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS::S3::Object",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket/synthetic/canary.txt"
+        }
+      ],
+      "errorCode": "AccessDenied"
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "GetObject",
+      "eventID": "synthetic-s3-lock-5",
+      "eventCategory": "Data",
+      "managementEvent": false,
+      "readOnly": true,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "key": "synthetic/canary.txt",
+        "accountId": "999999999999",
+        "accessPointName": "synthetic-access-point"
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS::S3::Object",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket/synthetic/canary.txt"
+        },
+        {
+          "type": "AWS::S3::AccessPoint",
+          "ARN": "arn:aws:s3:us-east-1:999999999999:accesspoint/synthetic-access-point",
+          "accountId": "999999999999"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "PutObjectLockLegalHold",
+      "eventID": "synthetic-s3-lock-6",
+      "eventCategory": "Data",
+      "managementEvent": false,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "key": "synthetic/canary.txt",
+        "versionId": "synthetic-version-1",
+        "legal-hold": ""
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS::S3::Object",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket/synthetic/canary.txt"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "PutObjectLockLegalHold",
+      "eventID": "synthetic-s3-lock-7",
+      "eventCategory": "Data",
+      "managementEvent": false,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "key": "synthetic/canary.txt",
+        "versionId": "synthetic-version-1",
+        "legal-hold": ""
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS::S3::Object",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket/synthetic/canary.txt"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "PutObjectLockRetention",
+      "eventID": "synthetic-s3-lock-8",
+      "eventCategory": "Data",
+      "managementEvent": false,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "key": "synthetic/canary.txt",
+        "versionId": "synthetic-version-1",
+        "retention": ""
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        },
+        {
+          "type": "AWS::S3::Object",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket/synthetic/canary.txt"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "PutBucketObjectLockConfiguration",
+      "eventID": "synthetic-s3-lock-9",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "ObjectLockConfiguration": {
+          "ObjectLockEnabled": "Enabled",
+          "Rule": {
+            "DefaultRetention": {
+              "Mode": "GOVERNANCE",
+              "Days": 1
+            }
+          }
+        }
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        }
+      ]
+    },
+    {
+      "eventSource": "s3.amazonaws.com",
+      "eventType": "AwsApiCall",
+      "awsRegion": "us-east-1",
+      "recipientAccountId": "999999999999",
+      "userIdentity": {
+        "type": "IAMUser",
+        "arn": "arn:aws:iam::999999999999:user/synthetic-limited-reader",
+        "accountId": "999999999999"
+      },
+      "eventTime": "2026-10-20T17:00:00Z",
+      "responseElements": null,
+      "eventName": "PutBucketObjectLockConfiguration",
+      "eventID": "synthetic-s3-lock-10",
+      "eventCategory": "Management",
+      "managementEvent": true,
+      "readOnly": false,
+      "requestParameters": {
+        "bucketName": "synthetic-s3-lock-bucket",
+        "ObjectLockConfiguration": {
+          "ObjectLockEnabled": "Enabled"
+        }
+      },
+      "resources": [
+        {
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::synthetic-s3-lock-bucket",
+          "accountId": "999999999999"
+        }
+      ]
+    }
+  ]
+}

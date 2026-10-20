@@ -40,6 +40,12 @@ class Incomplete(Exception):
     pass
 
 
+class PartialInspection(Incomplete):
+    def __init__(self, parsed):
+        super().__init__('partial_positive')
+        self.parsed = parsed
+
+
 def identity(target):
     return 'artifact-selected-file:' + hashlib.sha256(json.dumps(target, sort_keys=True,
         separators=(',', ':'), ensure_ascii=True).encode()).hexdigest()
@@ -236,11 +242,14 @@ def _inspect(payload, target, transport, state):
     objects._text(payload)
     outcome = scan_content(payload, 'artifact.content', timeout=min(5, _remaining(transport, state) / 2))
     _check(transport, state)
-    if not outcome['complete']: raise Incomplete('detectors_unavailable')
     leaks = merge_leaks(outcome['leaks'])
     if len(leaks) > objects.MAX_LEAKS or sum(len(l['locations']) for l in leaks) > objects.MAX_LOCATIONS: raise Incomplete('finding_limit')
-    return {'expanded_bytes': len(payload), 'members': 1, 'files': [
+    parsed = {'expanded_bytes': len(payload), 'members': 1, 'files': [
         {'path': 'artifact.content', 'bytes': len(payload), 'engines': outcome['engines']}], 'leaks': leaks}
+    if not outcome['complete']:
+        if leaks: raise PartialInspection(parsed)
+        raise Incomplete('detectors_unavailable')
+    return parsed
 
 
 def collect_selected_files(collector, scope):
@@ -269,10 +278,16 @@ def collect_selected_files(collector, scope):
                         if state['bytes'] + size > MAX_TOTAL_BYTES: raise Incomplete('total_bytes')
                         payload = reader.read(target, size=size)
                         if hashlib.sha256(payload).hexdigest() != target['sha256']: raise Incomplete('media_digest_mismatch')
-                        parsed = _inspect(payload, target, transport, state)
+                        marker.update(bytes=size, digest_verified=True)
+                        try:
+                            parsed = _inspect(payload, target, transport, state)
+                        except archives.PartialInspection as exc:
+                            raise PartialInspection(exc.parsed) from None
                         del payload
                         _check(transport, state)
                         marker.update(parsed, bytes=size, complete=True, digest_verified=True)
+                    except PartialInspection as exc:
+                        marker.update(exc.parsed)
                     except Exception: pass
                     state['items'][ident] = {'name': ident, MARKER: marker}
                 result.append(deepcopy(state['items'][ident]))
