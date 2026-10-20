@@ -95,6 +95,7 @@ from .aws_secretsmanager_self_policy_next import normalize_aws_secret_self_read_
 from .aws_secretsmanager_tamper_next import normalize_aws_secret_tamper
 from .aws_secretsmanager_followup_next import normalize_aws_secretsmanager_followup
 from .aws_secretsmanager_rotation_next import normalize_aws_secretsmanager_rotation, correlate_aws_secretsmanager_rotation
+from .aws_secretsmanager_replica_chain_next import normalize_aws_secretsmanager_replica_chain, correlate_aws_secretsmanager_replica_chain
 from .aws_guardduty_controls_next import normalize_aws_guardduty_controls
 from .aws_ecr_retention_next import normalize_aws_ecr_retention
 from .aws_dynamodb_controls_next import normalize_aws_dynamodb_controls
@@ -405,6 +406,7 @@ def detect_aws_events(
         secret_tamper = normalize_aws_secret_tamper(record)
         secret_followup = normalize_aws_secretsmanager_followup(record)
         secret_rotation = normalize_aws_secretsmanager_rotation(record)
+        secret_replica_chain = normalize_aws_secretsmanager_replica_chain(record)
         guardduty_controls = normalize_aws_guardduty_controls(record)
         ecr_retention = normalize_aws_ecr_retention(record)
         dynamodb_controls = normalize_aws_dynamodb_controls(record)
@@ -577,6 +579,7 @@ def detect_aws_events(
                 + ([secret_tamper] if secret_tamper is not None else [])
                 + ([secret_followup] if secret_followup is not None else [])
                 + ([secret_rotation] if secret_rotation is not None else [])
+                + ([secret_replica_chain] if secret_replica_chain is not None else [])
                 + ([guardduty_controls] if guardduty_controls is not None else [])
                 + ([ecr_retention] if ecr_retention is not None else [])
                 + ([dynamodb_controls] if dynamodb_controls is not None else [])
@@ -688,6 +691,7 @@ def detect_aws_events(
     sfn_new_machine_records: list[Mapping[str, Any]] = []
     sfn_http_credential_records: list[Mapping[str, Any]] = []
     secret_rotation_records: list[Mapping[str, Any]] = []
+    secret_replica_chain_records: list[Mapping[str, Any]] = []
     lambda_privesc_records: list[Mapping[str, Any]] = []
     ssm_command_records: list[Mapping[str, Any]] = []
     ssm_automation_window_records: list[Mapping[str, Any]] = []
@@ -789,6 +793,10 @@ def detect_aws_events(
             if (record.get("eventSource") == "secretsmanager.amazonaws.com"
                     and record.get("eventName") in {"RotateSecret", "PutSecretValue", "UpdateSecretVersionStage"}):
                 secret_rotation_records.append(record)
+            if (record.get("eventSource") == "secretsmanager.amazonaws.com"
+                    and record.get("eventName") in {"ReplicateSecretToRegions", "StopReplicationToReplica",
+                                                     "PutResourcePolicy", "GetSecretValue"}):
+                secret_replica_chain_records.append(record)
             if ((record.get("eventSource") == "codepipeline.amazonaws.com" and record.get("eventName") in {
                     "CreatePipeline", "UpdatePipeline", "StartPipelineExecution", "AcknowledgeJob", "PutJobSuccessResult"})
                     or (record.get("eventSource") == "codebuild.amazonaws.com" and record.get("eventName") == "UpdateProject")
@@ -854,6 +862,7 @@ def detect_aws_events(
     correlated += correlate_aws_sfn_new_machine_start(sfn_new_machine_records)
     correlated += correlate_aws_sfn_connection_secret_read(sfn_http_credential_records)
     correlated += correlate_aws_secretsmanager_rotation(secret_rotation_records)
+    correlated += correlate_aws_secretsmanager_replica_chain(secret_replica_chain_records)
     correlated += correlate_aws_lambda_privesc(lambda_privesc_records)
     correlated += correlate_aws_ssm_command_output_read(ssm_command_records)
     correlated += correlate_aws_ssm_document_window(ssm_automation_window_records)
