@@ -21,19 +21,42 @@ WORKLOAD_TYPES = {'instance', 'vm', 'pod', 'node', 'daemonset', 'lambda_function
                   'rds_cluster', 'eks_cluster', 'gke_cluster', 'container', 'function', 'app_service'}
 
 
-def without_secrets(value):
+def without_secrets(value, *, network_projection=False):
     if isinstance(value, dict):
-        return {key: without_secrets(item) for key, item in value.items()
-                if not re.search(r'password|secret|token|private.?key|pre.?shared|shared.?key|authentication.?key|'
-                                 r'customerGatewayConfiguration|user.?data|custom.?data|environment|appSettings', key, re.I)}
+        network_fields = {'managedEnvironmentId', 'environmentId', 'environmentConfig', 'privateEnvironmentConfig', 'enablePrivateEnvironment', 'environmentResourceId', 'integrationServiceEnvironment', 'EnvironmentId', 'EnvironmentName'}
+        return {key: without_secrets(item, network_projection=network_projection) for key, item in value.items()
+                if (network_projection and key in network_fields) or not re.search(
+                    r'password|secret|token|private.?key|pre.?shared|shared.?key|authentication.?key|'
+                    r'customerGatewayConfiguration|user.?data|custom.?data|environment|appSettings', key, re.I)}
     if isinstance(value, (list, tuple)):
-        return [without_secrets(item) for item in value]
+        return [without_secrets(item, network_projection=network_projection) for item in value]
     return value
 
 
 def native_network_resource(row):
     from peaso.analysis.network import NETWORK_TYPES
     from peaso.analysis.reachability import REACHABILITY_TYPES
+    from peaso.analysis.network_services import SERVICE_TYPES, project_network_data
+    from peaso.analysis.network_catalog import CONTROL_TYPES
+    if row.get('type') in CONTROL_TYPES.get(row['provider'], set()):
+        return dict(row, data=without_secrets(row.get('data', {})))
+    if row.get('type') in SERVICE_TYPES.get(row['provider'], set()):
+        projected = project_network_data(row.get('data', {}))
+        from peaso.analysis.network_observations import network_observations
+        retained = {(fact['path'], repr(fact['value'])) for fact in network_observations(projected)}
+        observations = [fact for fact in network_observations(row.get('data', {}))
+                        if (fact['path'], repr(fact['value'])) not in retained]
+        if observations:
+            projected['NetworkAttributes'] = network_observations({'NetworkAttributes': projected.get('NetworkAttributes', []) + observations})
+        clean = without_secrets(projected, network_projection=True)
+        if row['provider'] == 'gcp' and row['type'] == 'dataflow_network_job':
+            environment = projected.get('environment') or {}
+            if isinstance(environment, dict) and isinstance(environment.get('workerPools'), list):
+                clean['environment'] = {'workerPools': [{k: v for k, v in pool.items()
+                    if k in {'network', 'subnetwork', 'ipConfiguration'} and isinstance(v, str)}
+                    for pool in environment['workerPools'] if isinstance(pool, dict)]}
+        return dict(row, data=clean,
+                    ai_projection='network fields only; omitted workload settings are unavailable')
     controls = (NETWORK_TYPES | set().union(*REACHABILITY_TYPES.values())) - WORKLOAD_TYPES
     if row.get('type') in controls:
         return dict(row, data=without_secrets(row.get('data', {})))
@@ -45,7 +68,7 @@ def native_network_resource(row):
             'privateEndpointConnections', 'networkAcls', 'ipConfigurations') if key in props}
     if provider == 'k8s':
         meta = data.get('metadata') or {}
-        selected['metadata'] = {key: meta[key] for key in ('name', 'namespace', 'uid', 'labels') if key in meta}
+        selected['metadata'] = {key: meta[key] for key in ('name', 'namespace', 'uid', 'labels', 'ownerReferences') if key in meta}
         spec = data.get('spec') or {}
         if row.get('type') == 'daemonset':
             template = spec.get('template') or {}
@@ -53,9 +76,20 @@ def native_network_resource(row):
             spec = template.get('spec') or {}
         selected['spec'] = {key: spec[key] for key in ('hostNetwork', 'nodeName', 'podCIDR', 'podCIDRs',
             'dnsPolicy', 'nodeSelector') if key in spec}
-        selected['ports'] = [port for container in spec.get('containers', []) for port in container.get('ports', [])]
+        selected['ports'] = data.get('ports') if isinstance(data.get('ports'), list) else [port for container in spec.get('containers', []) for port in container.get('ports', [])]
         status = data.get('status') or {}
         selected['status'] = {key: status[key] for key in ('podIP', 'podIPs', 'hostIP', 'addresses') if key in status}
+        from peaso.analysis.network_services import project_network_data
+        for key in ('volumes', 'providerID'):
+            if key in spec:
+                selected['spec'][key] = project_network_data(spec[key])
+    from peaso.analysis.network_observations import network_observations
+    if isinstance(data.get('NetworkAttributes'), list):
+        selected['NetworkAttributes'] = network_observations({'NetworkAttributes': data['NetworkAttributes']})
+    retained = {(fact['path'], repr(fact['value'])) for fact in network_observations(selected)}
+    additional = [fact for fact in network_observations(data) if (fact['path'], repr(fact['value'])) not in retained]
+    if additional:
+        selected['NetworkAttributes'] = network_observations({'NetworkAttributes': selected.get('NetworkAttributes', []) + additional})
     return dict(row, data=without_secrets(selected), ai_projection='network fields only; omitted workload settings are unavailable')
 
 

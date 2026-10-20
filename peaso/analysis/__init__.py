@@ -38,6 +38,12 @@ for _requirements in REQUIRED_TYPES.values():
     _requirements["iam_graph"] = list(_requirements["least_privilege"])
 for _provider, _types in REACHABILITY_TYPES.items():
     REQUIRED_TYPES[_provider]["network"] = sorted(set(REQUIRED_TYPES[_provider]["network"]) | _types)
+from .network_services import SERVICE_TYPES
+from .network_catalog import CONTROL_TYPES
+for _provider, _types in SERVICE_TYPES.items():
+    REQUIRED_TYPES[_provider]["network"] = sorted(set(REQUIRED_TYPES[_provider]["network"]) | _types)
+for _provider, _types in CONTROL_TYPES.items():
+    REQUIRED_TYPES[_provider]["network"] = sorted(set(REQUIRED_TYPES[_provider]["network"]) | _types)
 # Internet-to-asset exposure and federated-trust review (peaso.analysis.internet_exposure / trust).
 for _provider, _types in EXPOSURE_TYPES.items():
     REQUIRED_TYPES[_provider]["exposure"] = sorted(set(REQUIRED_TYPES[_provider]["exposure"]) | set(_types))
