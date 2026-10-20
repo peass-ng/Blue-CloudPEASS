@@ -10,8 +10,9 @@ WORKLOAD_FIELDS = {
     'aws': {'InstanceId', 'VpcId', 'SubnetId', 'SecurityGroups', 'NetworkInterfaces', 'PrivateIpAddress',
             'PublicIpAddress', 'PrivateDnsName', 'PublicDnsName', 'Ipv6Address', 'SourceDestCheck',
             'DBInstanceIdentifier', 'DBSubnetGroup', 'VpcSecurityGroups', 'PubliclyAccessible', 'Endpoint',
-            'VpcConfig', 'NetworkConfiguration', 'DNSName', 'Scheme', 'AvailabilityZones', 'IpAddressType'},
-    'gcp': {'id', 'name', 'selfLink', 'networkInterfaces', 'tags', 'serviceAccounts', 'networkConfig',
+            'VpcConfig', 'NetworkConfiguration', 'DNSName', 'Scheme', 'AvailabilityZones', 'IpAddressType',
+            'Tags', 'TagList', 'FunctionName', 'Description', 'DBClusterIdentifier', 'DBSubnetGroupDetails', 'State'},
+    'gcp': {'id', 'name', 'selfLink', 'labels', 'description', 'networkInterfaces', 'tags', 'serviceAccounts', 'networkConfig',
             'privateClusterConfig', 'ipAllocationPolicy', 'masterAuthorizedNetworksConfig'},
     'azure': {'id', 'name', 'type', 'location', 'tags'},
     'k8s': {'apiVersion', 'kind', 'metadata'},
@@ -71,17 +72,28 @@ def prepare(report, inventory, snapshot):
     if not selected and not graph.get('nodes') and not graph.get('edges'):
         return None
     findings = []
+    # A separate issue catalog prevents repeating Exposure without disclosing
+    # unrelated native policies, identities or workload configuration. Preserve
+    # it through the second projection at the file-writing boundary.
+    issue_fields = ('id', 'check_id', 'title', 'resource_id', 'native_resource_id', 'scope', 'status', 'evidence_summary')
+    def issue(row):
+        return {key: row[key] for key in issue_fields if isinstance(row.get(key), str)}
+    exposure = {row['id']: issue(row) for row in report.get('exposure_findings', [])
+                if row.get('id') and row.get('status') in ('FAIL', 'MANUAL', 'UNKNOWN', 'DENIED')}
     for raw in report.get('findings', []):
         row = hydrate_finding(raw, report.get('check_frameworks'), report.get('check_meta'),
             report.get('check_meta_encoding'), report.get('remediation_templates'))
         if row.get('category') == 'network':
             findings.append(row)
+        elif row.get('category') == 'exposure' and row.get('status') in ('FAIL', 'MANUAL', 'UNKNOWN', 'DENIED'):
+            exposure[row['id']] = issue(row)
     network_types = types | {node.get('type') for node in graph.get('nodes', [])}
     coverage = [row for row in report.get('coverage', []) if row.get('level') == 'scope'
                 or row.get('type') in network_types]
     scoped = {key: report[key] for key in ('provider', 'snapshot_id', 'created_at', 'scopes') if key in report}
     scoped.update(resources=[{key: value for key, value in row.items() if key != 'data'} for row in selected],
-                  findings=findings, graphs={'network': graph}, coverage=coverage)
+                  findings=findings, graphs={'network': graph}, coverage=coverage,
+                  exposure_findings=list(exposure.values()))
     return {'report': scoped, 'inventory': selected}
 
 
@@ -91,8 +103,10 @@ def build(root, platform, reviews, write_json):
     platform = prepare(platform['report'], platform['inventory'], {})
     if platform is None:
         raise ValueError('network_context_unavailable')
-    # This contains no IAM, privilege-escalation, least-privilege or unrelated checks.
+    # The lookup database contains native network evidence only. Exposure
+    # issue summaries are supplied separately as a deduplication catalog.
     build_context(root, platform, platform['report']['findings'], reviews, write_json)
+    write_json(root / 'exposure.json', {'findings': platform['report']['exposure_findings']})
     graph = platform['report']['graphs']['network']
     nodes = graph.get('nodes', [])
     by_id = {row['id']: row for row in nodes}

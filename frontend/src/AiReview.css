@@ -24,3 +24,7 @@
 .action-references summary { cursor: pointer; color: var(--mint); }
 .action-references ul { padding-left: 1.4rem; }
 .action-references li { margin: .5rem 0; overflow-wrap: anywhere; }
+
+.network-architecture { max-width: 100ch; }
+.network-architecture p { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.7; }
+.network-architecture p + p { margin-top: 1.25rem; }

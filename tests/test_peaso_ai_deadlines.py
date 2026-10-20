@@ -23,7 +23,7 @@ def test_runner_does_not_discard_work_within_the_parent_deadline(tmp_path, monke
     config = SimpleNamespace(agent=SimpleNamespace(max_runtime_minutes=5), credentials=SimpleNamespace())
     payload = {'items': []} if stage in ('hardening', 'exposure') else (
         {'actions': [], 'limitations': []} if stage == 'priorities' else
-        {'explanation': 'Captured network reviewed.', 'findings': [], 'limitations': []})
+        {'explanation': 'Captured network reviewed.', 'findings': []})
     class Chack:
         def __init__(self, actual):
             self.config = actual

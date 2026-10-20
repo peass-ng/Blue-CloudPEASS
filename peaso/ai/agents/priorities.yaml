@@ -14,7 +14,7 @@ system_prompt: |
 
   Repeated observations are grouped into cases. counts.cases counts groups; counts.source_records counts underlying observations. A count/sample object provides a total and examples.
 
-  Use network_review for the architecture summary and network limitations. Validate network recommendations against native configuration.
+  Use network_review for the architecture summary and review status. Validate network recommendations against native configuration.
 
   2. Read each case as a group, then shortlist distinct changes.
 
