@@ -26,6 +26,7 @@ from .aws_user_boundary_self_next import normalize_aws_self_user_boundary_delete
 from .aws_wildcard_trust_next import normalize_aws_wildcard_role_trust
 from .aws_keyspaces_next import normalize_keyspaces_other_user_credential
 from .aws_codebuild_next import normalize_aws_codebuild_change
+from .aws_codebuild_execution_next import normalize_codebuild_execution
 from .aws_s3_retention_next import normalize_aws_s3_retention
 from .aws_s3_notification_next import normalize_aws_s3_template_notification
 from .aws_s3_replication_next import normalize_aws_s3_replication
@@ -121,6 +122,8 @@ from .aws_kms_replicate_next import normalize_aws_kms_replication
 from .aws_kms_rotation_complete_next import normalize_aws_kms_on_demand_rotation
 from .aws_iam_group_role_next import normalize_aws_iam_group_role
 from .aws_iam_mfa_controls_next import normalize_aws_iam_mfa_controls
+from .aws_iam_policy_removal_next import normalize as normalize_aws_iam_policy_removal
+from .aws_iam_credential_boundary_next import normalize as normalize_aws_iam_credential_boundary
 from .gcp import normalize_gcp_audit
 from .gcp_next import normalize_gcp_project_self_iam_bindings
 from .gcp_iam_cross_project_next import normalize_gcp_cross_project_sa_grants
@@ -142,8 +145,8 @@ from .kubernetes_daemonset_next import normalize_kubernetes_privileged_daemonset
 
 
 DEFAULT_RULE_REPO = "peass-ng/peasso-cspm-detections"
-DEFAULT_RULE_REF = "d70e31fb67162979d4bcfe03ceeb844b1b5753e7"
-DEFAULT_RULE_PACK_SHA256 = "b4a9480034334892c597ad898386b369967ecb54e23ca4c556d642c1a84272dd"
+DEFAULT_RULE_REF = "e5219a1fea8071d7a92f1b207d2d28e67dce2037"
+DEFAULT_RULE_PACK_SHA256 = "fb34bdc3f5301cbdff68967b8d265ca57592c634f49a1b5f1fe380c54b0b2443"
 
 
 @dataclass(frozen=True)
@@ -261,6 +264,7 @@ def detect_aws_events(
         trust = normalize_aws_wildcard_role_trust(record)
         keyspaces_credential = normalize_keyspaces_other_user_credential(record)
         codebuild_change = normalize_aws_codebuild_change(record)
+        codebuild_execution = normalize_codebuild_execution(record)
         s3_retention = normalize_aws_s3_retention(record)
         s3_notification = normalize_aws_s3_template_notification(record)
         s3_replication = normalize_aws_s3_replication(record)
@@ -357,6 +361,8 @@ def detect_aws_events(
         kms_rotation_complete = normalize_aws_kms_on_demand_rotation(record)
         iam_group_role = normalize_aws_iam_group_role(record)
         iam_mfa_controls = normalize_aws_iam_mfa_controls(record)
+        iam_policy_removal = normalize_aws_iam_policy_removal(record)
+        iam_credential_boundary = normalize_aws_iam_credential_boundary(record)
         return (([base] if base is not None else [])
                 + ([cloudtrail_selectors] if cloudtrail_selectors is not None else [])
                 + ([profile] if profile is not None else [])
@@ -366,6 +372,7 @@ def detect_aws_events(
                 + ([trust] if trust is not None else [])
                 + ([keyspaces_credential] if keyspaces_credential is not None else [])
                 + ([codebuild_change] if codebuild_change is not None else [])
+                + ([codebuild_execution] if codebuild_execution is not None else [])
                 + ([s3_retention] if s3_retention is not None else [])
                 + ([s3_notification] if s3_notification is not None else [])
                 + ([s3_replication] if s3_replication is not None else [])
@@ -461,7 +468,9 @@ def detect_aws_events(
                 + ([kms_replication] if kms_replication is not None else [])
                 + ([kms_rotation_complete] if kms_rotation_complete is not None else [])
                 + ([iam_group_role] if iam_group_role is not None else [])
-                + ([iam_mfa_controls] if iam_mfa_controls is not None else []))
+                + ([iam_mfa_controls] if iam_mfa_controls is not None else [])
+                + ([iam_policy_removal] if iam_policy_removal is not None else [])
+                + ([iam_credential_boundary] if iam_credential_boundary is not None else []))
 
     selected = rules if rules is not None else load_rules(product="aws")
     glue_correlation_records: list[Mapping[str, Any]] = []
