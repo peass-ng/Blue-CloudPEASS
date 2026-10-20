@@ -1,7 +1,10 @@
 """Offline checks for source-accounting completeness and integrity boundaries."""
 import importlib.util
+import base64
+import gzip
+import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import tempfile
 import unittest
 
@@ -9,6 +12,36 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('audit_gcp_source_parity', ROOT / 'scripts/audit_gcp_source_parity.py')
 audit = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(audit)
+WORKBENCH_FIXTURE = ROOT / 'tests/fixtures/gcp-workbench-source-parity.json.gz'
+WORKBENCH_FIXTURE_SHA256 = '955e82e3f88b7907c235123738172cddd3fa04dafa1fc2add799c32736962186'
+WORKBENCH_PAYLOAD_SHA256 = '95adb1026940b0a96761b73763cca53594f1abfe298bb92b416ecbcedb661cc0'
+
+
+def workbench_review_inputs():
+    """Read only the pinned public payload and the upstream blobs it cites."""
+    packed = WORKBENCH_FIXTURE.read_bytes()
+    assert len(packed) <= 200_000 and hashlib.sha256(packed).hexdigest() == WORKBENCH_FIXTURE_SHA256
+    expanded = gzip.decompress(packed)
+    assert len(expanded) <= 1_500_000
+    fixture = json.loads(expanded)
+    assert fixture['schema_version'] == 1 and len(fixture['blobs']) == 5
+    payload_raw = base64.b64decode(fixture['payload_b64'], validate=True)
+    assert len(payload_raw) <= 50_000
+    assert fixture['payload_sha256'] == WORKBENCH_PAYLOAD_SHA256
+    assert hashlib.sha256(payload_raw).hexdigest() == WORKBENCH_PAYLOAD_SHA256
+    payload = json.loads(payload_raw)
+    referenced = {entry['path'] for row in payload['checks']
+                  for entry in row['source_review']['source_blobs'] + row['source_review']['compliance_mapping_blobs']}
+    referenced.update(row['upstream_evaluator']['source_path'] for row in payload['checks'])
+    assert referenced == set(fixture['blobs'])
+    blobs = {}
+    for name, entry in fixture['blobs'].items():
+        path = PurePosixPath(name)
+        assert not path.is_absolute() and '..' not in path.parts
+        raw = base64.b64decode(entry['content_b64'], validate=True)
+        assert hashlib.sha256(raw).hexdigest() == entry['sha256']
+        blobs[name] = raw
+    return payload, blobs
 
 
 class SourceParityTests(unittest.TestCase):
@@ -95,10 +128,7 @@ class SourceParityTests(unittest.TestCase):
                          'mapped-active')
 
     def test_workbench_merge_payload_preserves_pins_and_verified_source(self):
-        path = audit.CACHE / 'source-proposals/workbench-manifest-rows.json'
-        if not path.exists():
-            self.skipTest('Generate the bounded admission payload with --workbench-payload first')
-        payload = json.loads(path.read_text())
+        payload, blobs = workbench_review_inputs()
         self.assertEqual({row['check_id'] for row in payload['checks']}, set(audit.WORKBENCH_IDS))
         self.assertEqual(payload['extension_mapping']['requirements'], [])
         for row in payload['checks']:
@@ -112,11 +142,11 @@ class SourceParityTests(unittest.TestCase):
             self.assertEqual(row['requirements'], [])
             self.assertIn('lineage_only', row['framework_mapping_assurance'])
             for entry in row['source_review']['source_blobs'] + row['source_review']['compliance_mapping_blobs']:
-                raw = (audit.CACHE / 'prowler' / entry['path']).read_bytes()
+                raw = blobs[entry['path']]
                 self.assertEqual(audit.blob_sha(raw), entry['sha'])
                 self.assertEqual(audit.digest(raw), entry['sha256'])
-            code = audit.CACHE / 'prowler' / row['upstream_evaluator']['source_path']
-            self.assertEqual(audit.digest(code.read_bytes()), row['upstream_evaluator']['sha256'])
+            code = blobs[row['upstream_evaluator']['source_path']]
+            self.assertEqual(audit.digest(code), row['upstream_evaluator']['sha256'])
         references = payload['numbered_requirement_review']['candidates']
         self.assertEqual(len(references), 13)
         self.assertEqual({(ref['framework_id'], ref['requirement_id']) for ref in references},
