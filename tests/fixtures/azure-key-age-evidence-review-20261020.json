@@ -1,0 +1,48 @@
+[
+  {
+    "status": "PASS",
+    "evidence": {
+      "key_age_days": {
+        "key1": 5.0000071790625,
+        "key2": 5.0000071790625
+      },
+      "key_age_seconds": {
+        "key1": 432000.620271,
+        "key2": 432000.620271
+      },
+      "threshold_seconds": 7776000,
+      "captured_at": "2026-10-20T02:12:11.689146+00:00",
+      "key_creation_time": {
+        "key1": "2026-10-15T02:12:11.068875+00:00",
+        "key2": "2026-10-15T02:12:11.068875+00:00"
+      },
+      "time_source": "scan_capture"
+    }
+  },
+  {
+    "status": "FAIL",
+    "evidence": {
+      "key_age_days": {
+        "key1": 200.000000037419,
+        "key2": 200.000000037419
+      },
+      "key_age_seconds": {
+        "key1": 17280000.003233,
+        "key2": 17280000.003233
+      },
+      "threshold_seconds": 7776000,
+      "captured_at": "2026-10-20T02:12:11.889192+00:00",
+      "key_creation_time": {
+        "key1": "2026-04-03T02:12:11.885959+00:00",
+        "key2": "2026-04-03T02:12:11.885959+00:00"
+      },
+      "time_source": "scan_capture"
+    }
+  },
+  {
+    "status": "UNKNOWN",
+    "evidence": {
+      "reason": "missing fact: properties.keyCreationTime"
+    }
+  }
+]

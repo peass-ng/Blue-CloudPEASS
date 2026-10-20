@@ -145,6 +145,7 @@ def test_transport_subject_receipt_is_recorded_only_after_native_http_success(mo
     from urllib.error import HTTPError
     from types import SimpleNamespace
     class Response(io.BytesIO):
+        status=200
         def __enter__(self):return self
         def __exit__(self,*args):self.close()
     def open_response(request,timeout):
@@ -167,6 +168,14 @@ def test_real_azure_collect_hook_retains_safe_proofs_and_scan_generated_binding(
     snap,_,base=setup();scope=snap['scopes'][0]
     bykind={c['type']:c['items']for c in snap['collections']}
     bykind['subscription'][0]['tenantId']=TENANT
+    # Native Authorization List responses include ARM type/name and GUID IDs;
+    # retain the offline fixture's same principals, permissions and scopes.
+    for row in bykind['role_definition']:
+        row.update(type='Microsoft.Authorization/roleDefinitions',name=row['id'].rsplit('/',1)[-1])
+    for index,row in enumerate(bykind['role_assignment']):
+        name='22222222-3333-4444-5555-'+format(index+1,'012x')
+        row.update(id=row['id'].rsplit('/',1)[0]+'/'+name,
+                   type='Microsoft.Authorization/roleAssignments',name=name)
     class FullTransport(Transport):
         def request(self,url,*,body=None,audience=native.ARM,capture_subject=False):
             if capture_subject:return super().request(url,body=body,audience=audience,capture_subject=True)

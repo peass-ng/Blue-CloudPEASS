@@ -129,8 +129,13 @@ STALE_FAIL_CASES = {
 
 
 _gcp_native_cases = {}
-for _native_case in json.loads((Path(__file__).parent /
-        'fixtures/gcp-native-review-behavior.json').read_text())['cases']:
+for _native_case in (json.loads((Path(__file__).parent /
+        'fixtures/gcp-native-review-behavior.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-alert-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-compute-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-final-services-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-prior-bounded-native-successor-20261020.json').read_text())['cases'] +
+        json.loads((Path(__file__).parent / 'fixtures/gcp-native57-native-successor-20261020.json').read_text())['cases']):
     _branch = {'PASS': 'pass', 'FAIL': 'fail', 'UNKNOWN': 'unknown'}[_native_case['expected_status']]
     _current = _gcp_native_cases.setdefault(_native_case['check_id'], {})
     _current.setdefault(_branch, _native_case['item'])
@@ -138,11 +143,23 @@ for _native_case in json.loads((Path(__file__).parent /
 
 
 @pytest.mark.parametrize("check", CHECKS, ids=lambda c: c.id)
-def test_every_check_has_behavior_fixtures(check):
-    assert check.id in CASES, "registered checks cannot claim support without fixtures"
+def test_every_check_has_behavior_fixtures(check, request):
+    from tests.generic_k8s_behavior_successors_20261020 import (
+        WORKLOAD, JOB_IMAGE, current_cases as native_successor_cases, dependency_state,
+        assert_workload_native_behavior)
+    if check.id == WORKLOAD:
+        # This signed native addition deliberately has no fabricated CASES row.
+        # Exercise its real SDK clean/empty tests and captured FAIL instead.
+        assert_workload_native_behavior(check, request.getfixturevalue('monkeypatch'))
+    else:
+        assert check.id in CASES or check.id == JOB_IMAGE, "registered checks cannot claim support without fixtures"
     # Keep the historical release fixtures intact. Current behavior uses the
     # complete native producer cases after the customer/ancestor binding fixes.
-    cases = _gcp_native_cases.get(check.id, CASES[check.id])
+    cases = _gcp_native_cases.get(check.id, CASES.get(check.id, {}))
+    if check.provider == 'azure':
+        from tests.azure_native_successor_inputs_20261020 import current_cases
+        cases = current_cases(check.id, cases)
+    cases = native_successor_cases(check, cases)
     index = cases.get("index", {})
     source_bound_unknown_fails = {
         # An unbound HTTP probe does not establish ownership or bucket existence.
@@ -166,15 +183,35 @@ def test_every_check_has_behavior_fixtures(check):
             before = copy.deepcopy(data)
             state_index = cases.get(name + "_index", cases.get("case_indices", {}).get(name, index))
             scoped = copy.deepcopy(state_index)
-            before_index = copy.deepcopy(scoped)
+            before_index = dependency_state(check.id, scoped)
             assert check.evaluate(data, scoped)[0] == expected
             assert data == before, "evaluators must not mutate native snapshot facts"
-            assert scoped == before_index, "evaluators must not mutate scoped dependency facts"
+            assert dependency_state(check.id, scoped) == before_index, "evaluators must not mutate scoped dependency facts"
     assert check.evaluate(cases.get("missing", {}), index)[0] == "UNKNOWN"
     assert check.evaluate(cases.get("malformed", None), index)[0] == "UNKNOWN"
     assert check.evaluate({"collection_status": "denied"}, index)[0] == "UNKNOWN"
     from peaso.checks.hacktricks_scope import includes
     assert (HACKTRICKS in check.frameworks) == includes(check.id)
+
+
+@pytest.mark.parametrize('field', ['snapshot', 'expected', 'scope', 'identity', 'collections'])
+def test_package_dependency_comparison_detects_owner_or_fact_mutation(field):
+    from peaso import azure_function_package_index_20261020 as owner
+    from tests.generic_k8s_behavior_successors_20261020 import PACKAGE, dependency_state
+    index = copy.deepcopy(CASES[PACKAGE]['pass_index'])
+    before = dependency_state(PACKAGE, index)
+    admitted = index[owner.INDEX_KEY]
+    if field == 'snapshot':
+        admitted.snapshot['provider'] = 'foreign'
+    elif field == 'expected':
+        admitted.expected['provider'] = 'foreign'
+    elif field == 'scope':
+        admitted.scope += '/foreign'
+    elif field == 'identity':
+        index[owner.INDEX_KEY] = copy.deepcopy(admitted)
+    else:
+        index['collections'].clear()
+    assert dependency_state(PACKAGE, index) != before
 
 
 @pytest.mark.parametrize("check", CHECKS, ids=lambda c: c.id)
@@ -183,6 +220,14 @@ def test_unavailable_inventory_never_passes(check, collection_status, expected):
     kinds = check.dependencies if check.target == "scope" else [check.kind]
     snapshot = make_snapshot(check.provider, ["test-scope"], [{"type": kind, "scope": "test-scope", "service": "test", "status": collection_status, "items": []} for kind in dict.fromkeys(kinds)])
     report = evaluate_snapshot(snapshot, categories=[check.category], checks=[check.id])
+    if collection_status == 'empty':
+        from peaso.checks.k8s_kubelet_configmap_admission_20261020 import IDS
+        if check.id in IDS:
+            from tests.generic_k8s_behavior_successors_20261020 import assert_kubelet_empty_contract
+            finding, = report['findings']
+            assert_kubelet_empty_contract(check, finding)
+            assert 'PASS' not in report['stats']['by_status']
+            return
     if check.target == "scope" and collection_status == "empty":
         # A complete empty dependency is evaluated as a reviewed absence fact.
         # Per-rule pass/fail indexes above assert the actual intended predicate.

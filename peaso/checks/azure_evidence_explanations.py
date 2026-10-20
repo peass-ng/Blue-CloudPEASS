@@ -81,6 +81,18 @@ def _scalar_observation(check_id, evidence):
 
 def _observation(finding):
     """Reuse exact native evidence interpreters before adding explanatory copy."""
+    from .azure_review_observed_20261020 import observation as current_review
+    selected = current_review(finding)
+    if selected:
+        return selected
+    from .azure_ai_services_observed import observation as ai_services
+    selected = ai_services(finding)
+    if selected:
+        return selected
+    from .selected_content_observed import observation as selected_content
+    selected = selected_content(finding)
+    if selected:
+        return selected
     from .azure_native_evidence_observations import evidence_summary as native
     observed = native(finding)
     if observed:
@@ -136,5 +148,9 @@ def evidence_summary(finding):
         return None
     if finding.get('status') not in {'PASS', 'FAIL'}:
         return None
+    from .public_source_secret_observed_20261020 import observation as public_source
+    grouped = public_source(finding)
+    if grouped:
+        return grouped
     observation = _observation(finding)
     return reviewed_explanation(check_id, observation, finding['status']) if observation else None

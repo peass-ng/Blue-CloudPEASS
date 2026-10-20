@@ -1,0 +1,269 @@
+{
+  "antrea_cluster_group": [
+    [
+      "crd.antrea.io"
+    ],
+    "clustergroups",
+    false
+  ],
+  "antrea_cluster_networkpolicy": [
+    [
+      "crd.antrea.io"
+    ],
+    "clusternetworkpolicies",
+    false
+  ],
+  "antrea_egress": [
+    [
+      "crd.antrea.io"
+    ],
+    "egresses",
+    false
+  ],
+  "antrea_external_ip_pool": [
+    [
+      "crd.antrea.io"
+    ],
+    "externalippools",
+    false
+  ],
+  "antrea_group": [
+    [
+      "crd.antrea.io"
+    ],
+    "groups",
+    true
+  ],
+  "antrea_networkpolicy": [
+    [
+      "crd.antrea.io"
+    ],
+    "networkpolicies",
+    true
+  ],
+  "calico_bgp_configuration": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "bgpconfigurations",
+    false
+  ],
+  "calico_bgp_peer": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "bgppeers",
+    false
+  ],
+  "calico_global_network_set": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "globalnetworksets",
+    false
+  ],
+  "calico_host_endpoint": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "hostendpoints",
+    false
+  ],
+  "calico_ip_pool": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "ippools",
+    false
+  ],
+  "calico_native_global_networkpolicy": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "globalnetworkpolicies",
+    false
+  ],
+  "calico_native_networkpolicy": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "networkpolicies",
+    true
+  ],
+  "calico_network_set": [
+    [
+      "projectcalico.org",
+      "crd.projectcalico.org"
+    ],
+    "networksets",
+    true
+  ],
+  "cilium_bgp_advertisement": [
+    [
+      "cilium.io"
+    ],
+    "ciliumbgpadvertisements",
+    false
+  ],
+  "cilium_bgp_cluster_config": [
+    [
+      "cilium.io"
+    ],
+    "ciliumbgpclusterconfigs",
+    false
+  ],
+  "cilium_bgp_peer_config": [
+    [
+      "cilium.io"
+    ],
+    "ciliumbgppeerconfigs",
+    false
+  ],
+  "cilium_bgp_peering_policy": [
+    [
+      "cilium.io"
+    ],
+    "ciliumbgppeeringpolicies",
+    false
+  ],
+  "cilium_cidr_group": [
+    [
+      "cilium.io"
+    ],
+    "ciliumcidrgroups",
+    false
+  ],
+  "cilium_egress_gateway_policy": [
+    [
+      "cilium.io"
+    ],
+    "ciliumegressgatewaypolicies",
+    false
+  ],
+  "cilium_endpoint": [
+    [
+      "cilium.io"
+    ],
+    "ciliumendpoints",
+    true
+  ],
+  "cilium_l2_announcement_policy": [
+    [
+      "cilium.io"
+    ],
+    "ciliuml2announcementpolicies",
+    false
+  ],
+  "cilium_load_balancer_ip_pool": [
+    [
+      "cilium.io"
+    ],
+    "ciliumloadbalancerippools",
+    false
+  ],
+  "cilium_local_redirect_policy": [
+    [
+      "cilium.io"
+    ],
+    "ciliumlocalredirectpolicies",
+    true
+  ],
+  "cilium_node": [
+    [
+      "cilium.io"
+    ],
+    "ciliumnodes",
+    false
+  ],
+  "cilium_pod_ip_pool": [
+    [
+      "cilium.io"
+    ],
+    "ciliumpodippools",
+    false
+  ],
+  "istio_destination_rule": [
+    [
+      "networking.istio.io"
+    ],
+    "destinationrules",
+    true
+  ],
+  "istio_gateway": [
+    [
+      "networking.istio.io"
+    ],
+    "gateways",
+    true
+  ],
+  "istio_service_entry": [
+    [
+      "networking.istio.io"
+    ],
+    "serviceentries",
+    true
+  ],
+  "istio_sidecar": [
+    [
+      "networking.istio.io"
+    ],
+    "sidecars",
+    true
+  ],
+  "istio_virtual_service": [
+    [
+      "networking.istio.io"
+    ],
+    "virtualservices",
+    true
+  ],
+  "istio_workload_entry": [
+    [
+      "networking.istio.io"
+    ],
+    "workloadentries",
+    true
+  ],
+  "metallb_bgp_advertisement": [
+    [
+      "metallb.io"
+    ],
+    "bgpadvertisements",
+    true
+  ],
+  "metallb_bgp_peer": [
+    [
+      "metallb.io"
+    ],
+    "bgppeers",
+    true
+  ],
+  "metallb_ip_address_pool": [
+    [
+      "metallb.io"
+    ],
+    "ipaddresspools",
+    true
+  ],
+  "metallb_l2_advertisement": [
+    [
+      "metallb.io"
+    ],
+    "l2advertisements",
+    true
+  ],
+  "network_attachment_definition": [
+    [
+      "k8s.cni.cncf.io"
+    ],
+    "network-attachment-definitions",
+    true
+  ]
+}

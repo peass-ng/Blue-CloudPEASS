@@ -49,7 +49,8 @@ cases(track("function.ingress_not_allow_all"), {"serviceConfig": {"ingressSettin
 
 def _service_suffix(name):
     parts = name.split("/")
-    if len(parts) != 6 or parts[0] != "projects" or parts[2] != "locations" or parts[4] != "services":
+    if (len(parts) != 6 or parts[0] != "projects" or parts[2] != "locations" or parts[4] != "services"
+            or any(not part or part != part.strip() for part in parts)):
         raise Unavailable("malformed Cloud Run service name")
     return "/".join(parts[2:])
 
@@ -58,7 +59,32 @@ def backing_service(function, index):
     """The Cloud Run service behind a 2nd-gen function, from the complete scoped inventory."""
     name = get(function, "serviceConfig.service", str)
     suffix = _service_suffix(name)
-    rows = [s for s in complete_items(index, "cloudrun_service") if _service_suffix(get(s, "name", str)) == suffix]
+    services = complete_items(index, "cloudrun_service")
+    names = [get(service, "name", str) for service in services]
+    for candidate in names:
+        _service_suffix(candidate)
+    scope = get(index, "context.scope", str)
+    if not scope.startswith("projects/") or len(scope.split("/")) != 2:
+        raise Unavailable("function project scope unavailable")
+    aliases = {scope.split("/")[1]}
+    parents = {value.split("/")[1] for value in [name, *names]}
+    if not parents <= aliases:
+        projects = complete_items(index, "project")
+        if len(projects) != 1:
+            raise Unavailable("native project alias identity absent or ambiguous")
+        project = projects[0]
+        project_id = get(project, "projectId", str)
+        number_name = get(project, "name", str)
+        if (not number_name.startswith("projects/") or not number_name.removeprefix("projects/").isascii()
+                or not number_name.removeprefix("projects/").isdigit()
+                or get(project, "_provenance.scope", str) != scope
+                or not get(project, "_provenance.source_requests", list)
+                or scope not in ("projects/" + project_id, number_name)):
+            raise Unavailable("native project alias identity is not bound to function scope")
+        aliases.update((project_id, number_name.removeprefix("projects/")))
+    if not parents <= aliases:
+        raise Unavailable("backing Cloud Run service belongs to another project")
+    rows = [service for service, candidate in zip(services, names) if _service_suffix(candidate) == suffix]
     if len(rows) != 1:
         raise Unavailable("backing Cloud Run service absent or ambiguous")
     return rows[0]
@@ -79,7 +105,7 @@ def run_exposure(service):
 
 
 @gcp("function.not_publicly_accessible", "function", "Cloud Function is not publicly accessible or invocable", severity="high",
-     control="AC-3", category="exposure", dependencies=["function", "cloudrun_service"],
+     control="AC-3", category="exposure", dependencies=["function", "cloudrun_service", "project"],
      remediation="Remove allUsers and allAuthenticatedUsers from the function IAM policy and, for 2nd-gen functions, from the "
                  "roles/run.invoker binding of the backing Cloud Run service.")
 def function_public(function, index):
@@ -120,7 +146,7 @@ cases(track("function.not_publicly_accessible"), _G2, _G2,
 
 
 @gcp("function.vpc_connector_configured", "function", "Cloud Function egress uses a Serverless VPC Access connector",
-     control="SC-7", category="hardening", dependencies=["function", "cloudrun_service"],
+     control="SC-7", category="hardening", dependencies=["function", "cloudrun_service", "project"],
      remediation="Attach a Serverless VPC Access connector to the function (gcloud functions deploy --vpc-connector=...).")
 def function_vpc(function, index):
     skip = deleting(function)
@@ -226,6 +252,8 @@ def sql_private_only(instance, index):
     if backend == "EXTERNAL":
         return "NOT_APPLICABLE", {"reason": "External (on-premises) primary representation", "backend_type": backend}
     types = [get(row, "type", str) for row in list_of_objects(optional(instance, "ipAddresses", [], list))]
+    if any(value not in ("PRIMARY", "PRIVATE", "OUTGOING", "MIGRATED_1ST_GEN") for value in types):
+        raise Unavailable("unrecognized Cloud SQL IP address type")
     return result(any(t != "PRIVATE" for t in types), ip_address_types=types)
 
 

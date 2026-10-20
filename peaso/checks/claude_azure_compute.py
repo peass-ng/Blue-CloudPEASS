@@ -351,12 +351,15 @@ CASES[cid("vm_windows_automatic_updates")] = {"pass": _win(True), "fail": _win(F
         remediation="Deploy Windows VMs as Trusted Launch or Confidential VMs with uefiSettings.secureBootEnabled true.")
 def vm_windows_secure_boot(item, index):
     os_type = _os_type(item)
+    os_profile = optional(get(item, "properties", dict), "osProfile", None)
+    if os_profile is not None:
+        if not isinstance(os_profile, dict):
+            raise Unavailable("malformed VM OS profile")
+        opposite = "linuxConfiguration" if os_type == "Windows" else "windowsConfiguration"
+        if optional(os_profile, opposite, None) is not None:
+            raise Unavailable("VM OS profile contradicts native OS disk type")
     if os_type != "Windows":
         return "NOT_APPLICABLE", {"os_type": os_type}
-    image = get(item, "properties.storageProfile", dict).get("imageReference")
-    offer = image.get("offer") if isinstance(image, dict) else None
-    if isinstance(offer, str) and "windows" not in offer.lower():
-        return "NOT_APPLICABLE", {"image_offer": offer}
     security_type = enum(item, "properties.securityProfile.securityType", ("TrustedLaunch", "ConfidentialVM", "Standard"))
     if security_type == "Standard":
         return result(True, security_type=security_type)
@@ -635,7 +638,7 @@ CASES[cid("vmss_load_balancer_backend")] = {"pass": _lb({"loadBalancerBackendAdd
                                             "missing": {}, "malformed": _lb({"loadBalancerBackendAddressPools": [{"id": 1}]})}
 
 
-@claude("vmss_not_empty", "vm_scale_set", "VM scale set has at least one instance", control="CM-8",
+@claude("vmss_not_empty", "vm_scale_set", "VM scale set declares nonzero capacity", control="CM-8",
         remediation="Decommission empty scale sets or scale them to the intended capacity.")
 def vmss_not_empty(item, index):
     capacity = get(item, "sku.capacity", int)
@@ -749,7 +752,7 @@ CASES[cid("acr_geo_replication")] = {"pass": _acr("Premium", ["eastus", "westeur
                                      "malformed": _acr("Weird", [])}
 
 
-@claude("acr_vnet_service_endpoint", "container_registry", "Container registry denies by default and allows only VNet service-endpoint rules",
+@claude("acr_vnet_service_endpoint", "container_registry", "Container registry declares a VNet rule with deny-by-default network rules",
         control="SC-7", category="network",
         remediation="Set networkRuleSet.defaultAction Deny and add virtualNetworkRules (or prefer private endpoints).")
 def acr_vnet_service_endpoint(item, index):
@@ -944,23 +947,37 @@ CASES[cid("databricks_diagnostic_log_delivery")] = {
         control="SC-7", category="network", dependencies=["databricks_workspace", "vnet"],
         remediation="Associate a network security group with both Databricks host (public) and container (private) subnets.")
 def databricks_subnet_nsg(item, index):
+    import re
+
     params = get(item, "properties.parameters", dict)
     if params.get("customVirtualNetworkId") is None:
         return "NOT_APPLICABLE", {"reason": "workspace uses the Databricks-managed virtual network"}
     vnet_id = _lower_id(get(params, "customVirtualNetworkId.value", str))
     names = [get(params, key + ".value", str) for key in ("customPrivateSubnetName", "customPublicSubnetName")]
-    if any(not name.strip() for name in names) or names[0] == names[1]:
+    if any(not name.strip() for name in names) or names[0].casefold() == names[1].casefold():
         raise Unavailable("workspace private and public subnet names are missing or ambiguous")
     vnets = [v for v in scoped(index, "vnet") if _lower_id(get(v, "id", str)) == vnet_id]
     if len(vnets) != 1:
         raise Unavailable("workspace virtual network not in the collected VNet inventory")
-    subnets = {get(s, "name", str): s for s in list_of_objects(get(vnets[0], "properties.subnets", list))}
+    subnets = {}
+    for subnet in list_of_objects(get(vnets[0], "properties.subnets", list)):
+        name = get(subnet, "name", str).casefold()
+        sid = _lower_id(get(subnet, "id", str))
+        if not name or name in subnets or sid != vnet_id + "/subnets/" + name:
+            raise Unavailable("foreign, duplicate or contradictory Databricks subnet identity")
+        subnets[name] = subnet
     without = []
     for name in names:
-        if name not in subnets:
+        if name.casefold() not in subnets:
             raise Unavailable("workspace subnet not in the collected VNet subnets")
-        if _omitted(subnets[name], "properties", "networkSecurityGroup", "addressPrefix") is None:
+        association = _omitted(subnets[name.casefold()], "properties", "networkSecurityGroup", "addressPrefix")
+        if association is None:
             without.append(name)
+        else:
+            nsg_id = _lower_id(get(association, "id", str))
+            subscription = "/".join(vnet_id.split("/")[:3])
+            if not re.fullmatch(re.escape(subscription) + r"/resourcegroups/[^/?#]+/providers/microsoft\.network/networksecuritygroups/[^/?#]+", nsg_id):
+                raise Unavailable("invalid or foreign Databricks subnet NSG reference")
     return result(bool(without), subnets=names, subnets_without_nsg=without)
 _DBX_VNET = "/subscriptions/s/resourceGroups/rg/providers/Microsoft.Network/virtualNetworks/dbx"
 _dbx_ws = {"properties": {"parameters": {"customVirtualNetworkId": {"value": _DBX_VNET}, "customPrivateSubnetName": {"value": "priv"},

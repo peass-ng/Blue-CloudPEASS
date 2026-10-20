@@ -1,4 +1,4 @@
-"""Opt-in bounded content inspection. Only metadata/categories survive the SDK boundary.
+"""Opt-in bounded content inspection with opaque paths and redacted observations.
 
 GetFile cannot limit network response size: the 1MiB limit is inspected bytes,
 not transferred bytes (AWS may return up to 6MiB). No payload is cached.
@@ -6,6 +6,7 @@ Offline Kingfisher and TruffleHog detection is limited to the selected bounded c
 """
 from __future__ import annotations
 import copy
+import json
 import re
 from .aws_user_data_secret_indicators import project
 
@@ -51,17 +52,58 @@ def validate_request(service, operation, arguments, *, region=None, request_cont
         raise ReadFailure('malformed', 'content_profile_arguments_invalid')
 
 
+def opaque_arguments(arguments):
+    """Process-HMAC request identity; exact native arguments stay ephemeral."""
+    from peaso.secret_scanning import _fingerprint
+    return {'request_locator': 'codecommit-request:' + _fingerprint(
+        'codecommit-request-v1:' + json.dumps(arguments, sort_keys=True, ensure_ascii=True, separators=(',', ':')))}
+
+
+def path_locator(region, repository, commit, path):
+    """Bind opaque exact path bytes to the repository, Region and commit."""
+    from peaso.secret_scanning import _fingerprint
+    return '/codecommit-path/' + _fingerprint('codecommit-path-v1:' + json.dumps(
+        [region, repository, commit, path], ensure_ascii=True, separators=(',', ':')))
+
+
+def request_binding(service, operation, region, arguments, context):
+    return {'service': service, 'operation': operation, 'region': region,
+        'arguments': opaque_arguments(arguments) if service == 'codecommit' else copy.deepcopy(arguments),
+        'context': copy.deepcopy(context)}
+
+
+def _completed_scan(requests, key, scan=None):
+    """Bounded redacted replay only; never retain route maps or provider text."""
+    if not hasattr(requests, '_lock'):
+        return None
+    with requests._lock:
+        cache = getattr(requests, '_codecommit_completed_scans', None)
+        if cache is None:
+            cache = requests._codecommit_completed_scans = {}
+        if scan is None:
+            return copy.deepcopy(cache.get(key))
+        if scan['complete'] is True and len(json.dumps(scan, ensure_ascii=True).encode()) <= 2097152:
+            if len(cache) >= 4 and key not in cache:
+                cache.pop(next(iter(cache)))
+            cache[key] = copy.deepcopy(scan)
+    return None
+
+
 def _categories(text):
     return project(text, '')['MatchedCategories']
 
 
-def project_response(response, service, operation, arguments, *, request_context=None, region=None):
+def project_response(response, service, operation, arguments, *, request_context=None, region=None, routing=None):
     """No raw content, response metadata or arbitrary exception text leaves here."""
     from .aws import ReadFailure
     validate_request(service, operation, arguments, region=region, request_context=request_context)
     if not isinstance(response, dict):
         raise ReadFailure('malformed', 'content_response_shape')
-    binding = {'service': service, 'operation': operation, 'region': region, 'arguments': copy.deepcopy(arguments), 'context': copy.deepcopy(request_context)}
+    if routing is not None and (service != 'codecommit' or operation != 'get_folder'
+            or not isinstance(routing, dict) or set(routing) != {'files', 'folders'}
+            or any(not isinstance(v, list) or v for v in routing.values())):
+        raise ReadFailure('malformed', 'content_route_sink_invalid')
+    binding = request_binding(service, operation, region, arguments, request_context)
     try:
         if operation == 'get_repository':
             row = response['repositoryMetadata']
@@ -78,6 +120,7 @@ def project_response(response, service, operation, arguments, *, request_context
             if response['commitId'] != arguments['commitSpecifier'] or response['folderPath'] != arguments['folderPath']:
                 raise ValueError()
             value = {'files': [], 'folders': []}
+            ephemeral = {'files': [], 'folders': []}
             for source, target in (('files', 'files'), ('subFolders', 'folders')):
                 rows = response.get(source, [])
                 if not isinstance(rows, list) or len(rows) > 10000:
@@ -86,8 +129,11 @@ def project_response(response, service, operation, arguments, *, request_context
                     path = row['absolutePath']
                     if not _text(path) or not path.startswith('/') or '..' in path.split('/') or path == arguments['folderPath'] or path.rsplit('/', 1)[0] != arguments['folderPath'].rstrip('/'):
                         raise ValueError()
-                    value[target].append(path)
+                    value[target].append(path_locator(region, arguments['repositoryName'], arguments['commitSpecifier'], path))
+                    ephemeral[target].append(path)
             value['unsupported_entries'] = bool(response.get('symbolicLinks') or response.get('subModules'))
+            if routing is not None:
+                routing.update(ephemeral)
         elif operation == 'get_file':
             if response['commitId'] != arguments['commitSpecifier'] or response['filePath'] != arguments['filePath']:
                 raise ValueError()
@@ -101,7 +147,8 @@ def project_response(response, service, operation, arguments, *, request_context
                     if any(ord(char) < 32 and char not in '\t\r\n' for char in text):
                         raise UnicodeError()
                     from peaso.secret_scanning import scan_content
-                    outcome = scan_content(payload, arguments['filePath'])
+                    outcome = scan_content(payload, path_locator(region, arguments['repositoryName'],
+                        arguments['commitSpecifier'], arguments['filePath']))
                     value.update(leaks=outcome['leaks'], scanner_complete=outcome['complete'])
                     value['categories'] = sorted(set(_categories(text)) | ({'secret'} if outcome['leaks'] else set()))
                 except UnicodeError:
@@ -132,13 +179,19 @@ def project_response(response, service, operation, arguments, *, request_context
         raise ReadFailure('malformed', 'content_response_invalid') from None
 
 
-def _call(requests, session, region, service, operation, *, remaining_bytes=None, **arguments):
+def _call(requests, session, region, service, operation, *, remaining_bytes=None, routing=None, **arguments):
     context = {'remaining_bytes': remaining_bytes} if remaining_bytes is not None else None
     validate_request(service, operation, arguments, region=region, request_context=context)
-    value = requests.call(session, service, region, operation, _metadata_profile=PROFILE, _projection_context=context, **arguments)
-    expected = {'service': service, 'operation': operation, 'region': region, 'arguments': arguments, 'context': context}
+    route_args = {'_codecommit_routes': routing} if routing is not None else {}
+    value = requests.call(session, service, region, operation, _metadata_profile=PROFILE, _projection_context=context, **route_args, **arguments)
+    expected = request_binding(service, operation, region, arguments, context)
     if not isinstance(value, dict) or value.get('binding') != expected or not isinstance(value.get('value'), dict):
         raise ValueError('content_projection_binding_invalid')
+    if routing is not None:
+        for field in ('files', 'folders'):
+            if value['value'].get(field) != [path_locator(region, arguments['repositoryName'],
+                    arguments['commitSpecifier'], path) for path in routing[field]]:
+                raise ValueError('content_projection_route_binding_invalid')
     return value['value']
 
 
@@ -172,16 +225,26 @@ def scan_repository(requests, session, region, item):
         scan.update(identity=arn, repository=name, account_id=repo['accountId'], branch=repo['defaultBranch'])
         branch = _call(requests, session, region, 'codecommit', 'get_branch', repositoryName=name, branchName=scan['branch'])
         commit = scan['commit'] = branch['commitId']
+        replay_key = opaque_arguments({'region': region, 'repository': arn, 'branch': scan['branch'], 'commit': commit})['request_locator']
+        completed = _completed_scan(requests, replay_key)
+        if completed is not None:
+            return completed
         pending, seen, paths, incomplete = ['/'], set(), set(), False
         while pending and len(seen) < MAX_FOLDERS:
             folder = pending.pop(0)
             if folder in seen:
                 raise ValueError()
             seen.add(folder)
-            row = _call(requests, session, region, 'codecommit', 'get_folder', repositoryName=name, commitSpecifier=commit, folderPath=folder)
+            routing = {'files': [], 'folders': []}
+            try:
+                row = _call(requests, session, region, 'codecommit', 'get_folder', routing=routing,
+                    repositoryName=name, commitSpecifier=commit, folderPath=folder)
+                files, folders = routing['files'], routing['folders']
+            finally:
+                routing.clear()
             incomplete |= row['unsupported_entries']
-            pending.extend(row['folders'])
-            for path in row['files']:
+            pending.extend(folders)
+            for path in files:
                 if path in paths:
                     raise ValueError()
                 paths.add(path)
@@ -193,13 +256,14 @@ def scan_repository(requests, session, region, item):
                     content = _call(requests, session, region, 'codecommit', 'get_file', repositoryName=name, commitSpecifier=commit, filePath=path, remaining_bytes=MAX_BYTES-scan['inspected_bytes'])
                     readable = content['readable'] and scan['inspected_bytes'] + content['size'] <= MAX_BYTES
                     scan['inspected_bytes'] += content['inspected_bytes']
-                    scan['records'].append({'path': path, 'size': content['size'], 'inspected_bytes': content['inspected_bytes'], 'readable': readable, 'categories': content['categories'] if readable else [], 'leaks': content.get('leaks', []), 'scanner_complete': content.get('scanner_complete', False)})
+                    scan['records'].append({'path': path_locator(region, name, commit, path), 'size': content['size'], 'inspected_bytes': content['inspected_bytes'], 'readable': readable, 'categories': content['categories'] if readable else [], 'leaks': content.get('leaks', []), 'scanner_complete': content.get('scanner_complete', False)})
                     incomplete |= not readable or not content.get('scanner_complete', False)
                 except Exception as exc:
                     _failure(scan, exc)
                     incomplete = True
         scan['complete'] = not (pending or incomplete or scan['errors'])
         scan['collection_status'] = 'collected' if scan['complete'] else 'partial'
+        _completed_scan(requests, replay_key, scan)
         return scan
     except Exception as exc:
         return _failure(scan, exc)

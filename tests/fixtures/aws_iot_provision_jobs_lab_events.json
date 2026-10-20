@@ -1,0 +1,123 @@
+{
+  "derivation": "Synthetic account, role, certificate, policy, template and job identifiers. Only the observed CloudTrail field shapes from an owned IoT lab; no live certificate, key or private job payload.",
+  "events": [
+    {
+      "eventSource": "iot.amazonaws.com",
+      "eventName": "CreateProvisioningTemplate",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:00:00Z",
+      "eventID": "synthetic-CreateProvisioningTemplate",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "requestParameters": {
+        "templateName": "synthetic-iot-template",
+        "enabled": true,
+        "provisioningRoleArn": "arn:aws:iam::999999999999:role/SyntheticProvisioningRole"
+      },
+      "responseElements": {
+        "templateName": "synthetic-iot-template",
+        "templateArn": "arn:aws:iot:us-east-1:999999999999:provisioningtemplate/synthetic-iot-template"
+      }
+    },
+    {
+      "eventSource": "iot.amazonaws.com",
+      "eventName": "CreateProvisioningClaim",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:01:00Z",
+      "eventID": "synthetic-CreateProvisioningClaim",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "requestParameters": {
+        "templateName": "synthetic-iot-template"
+      },
+      "responseElements": {
+        "certificateId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "eventSource": "iot.amazonaws.com",
+      "eventName": "RegisterCertificateWithoutCA",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:02:00Z",
+      "eventID": "synthetic-RegisterCertificateWithoutCA",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "requestParameters": {
+        "status": "ACTIVE",
+        "certificatePem": "-----BEGIN CERTIFICATE-----\\nSYNTHETIC PUBLIC CERTIFICATE\\n-----END CERTIFICATE-----"
+      },
+      "responseElements": {
+        "certificateArn": "arn:aws:iot:us-east-1:999999999999:cert/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "certificateId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "eventSource": "iot.amazonaws.com",
+      "eventName": "AttachPolicy",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:03:00Z",
+      "eventID": "synthetic-AttachPolicy",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "requestParameters": {
+        "target": "arn:aws:iot:us-east-1:999999999999:cert/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policyName": "SyntheticDevicePolicy"
+      },
+      "responseElements": null
+    },
+    {
+      "eventSource": "iot.amazonaws.com",
+      "eventName": "GetJobDocument",
+      "eventCategory": "Management",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": true,
+      "recipientAccountId": "999999999999",
+      "awsRegion": "us-east-1",
+      "eventTime": "2026-10-20T15:04:00Z",
+      "eventID": "synthetic-GetJobDocument",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticOperator/session"
+      },
+      "requestParameters": {
+        "jobId": "synthetic-job",
+        "beforeSubstitution": false
+      },
+      "responseElements": null
+    }
+  ]
+}

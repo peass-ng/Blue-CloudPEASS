@@ -56,6 +56,24 @@ def test_current_freeze_uses_its_own_byte_budget_and_rejects_one_byte_over(tmp_p
         optimizer.assert_called_once()
 
 
+
+def test_api_archive_enforces_aws_upload_byte_limit(tmp_path, monkeypatch):
+    authored = tmp_path / "authored"
+    authored.mkdir()
+    GeneratedPackagePermissions().fixture_source(authored)
+    build = tmp_path / "build"
+    monkeypatch.setattr(deploy, "ROOT", authored)
+    monkeypatch.setattr(deploy, "BUILD", build)
+    monkeypatch.setattr(deploy, "run", lambda *args, **kwargs: None)
+    deploy.freeze_release()
+    package = deploy.package_api()
+    measured = package.stat().st_size
+    monkeypatch.setattr(deploy, "CURRENT_API_ARCHIVE_LIMIT", measured)
+    deploy.package_api()
+    monkeypatch.setattr(deploy, "CURRENT_API_ARCHIVE_LIMIT", measured - 1)
+    with pytest.raises(RuntimeError, match="API archive byte limit exceeded"):
+        deploy.package_api()
+
 def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     from peaso.server.validation import CUSTOMER_ROLE_TEMPLATE_URL, COLLECTOR_ROLE_ARN
     from urllib.parse import urlparse
@@ -89,7 +107,8 @@ def test_customer_role_quick_create_template_is_dedicated_and_narrowly_public():
     assert 'cache_control       = "public,max-age=31536000,immutable"' in storage
     assert 'metadata            = { sha256 = each.key }' in storage
     assert 'key                 = "aws/customer-role.json"' in storage
-    assert 'Resource = [for object in aws_s3_object.customer_role_template : object.arn]' in storage
+    assert 'Resource = aws_s3_object.customer_role_template[local.customer_role_template_sha256].arn' in storage
+    assert 'Resource = [for object in aws_s3_object.customer_role_template' not in storage
     assert 'Action = "s3:GetObject"' in storage
     assert 'bucket              = aws_s3_bucket.frontend.id' in storage.split('resource "aws_s3_object" "customer_role_download"', 1)[1].split('resource ', 1)[0]
     assert 'bucket              = aws_s3_bucket.templates[0].id' in storage.split('resource "aws_s3_object" "customer_role_template"', 1)[1].split('resource ', 1)[0]
@@ -156,6 +175,7 @@ spec.loader.exec_module(deploy)
 deploy.ROOT, deploy.BUILD = Path(sys.argv[2]), Path(sys.argv[3])
 def offline_pip(args, **kwargs):
     assert args[1:4] == ["-m", "pip", "install"], args
+    assert "--no-compile" in args  # Do not ship bytecode for the build host interpreter.
     constraint = Path(args[args.index("--constraint") + 1])
     assert constraint == deploy.BUILD / "source-snapshot/infra/aws/sdk-constraints.txt"
     assert constraint.read_bytes() == b"boto3==1.43.38\nbotocore==1.43.38\ns3transfer==0.19.0\n"

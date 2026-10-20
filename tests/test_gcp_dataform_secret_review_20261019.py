@@ -396,7 +396,7 @@ def native_case(monkeypatch, mode, canary=False):
             value = {'id':'123456789', 'name':'review', 'commonInstanceMetadata':{'items':[]}}
         else:
             pytest.fail('unexpected metadata endpoint: '+url)
-        return SimpleNamespace(status_code=200, headers={}, json=lambda:value)
+        return SimpleNamespace(status_code=200, headers={}, content=json.dumps(value).encode(), json=lambda:value)
     monkeypatch.setattr(collector.transport, '_session', lambda:SimpleNamespace(request=metadata_request))
     snapshot = collector.collect()
     env, = [e for e in snapshot['collections'] if e['type'] == adapter.KIND]

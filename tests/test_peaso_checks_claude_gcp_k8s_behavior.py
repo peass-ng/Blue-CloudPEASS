@@ -1,5 +1,7 @@
 """Behavior fixtures for the claude_gcp_k8s compute, IAM and Kubernetes predicates."""
 import copy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -28,14 +30,32 @@ def test_groups_registered_and_disjoint():
 
 
 @pytest.mark.parametrize("check_id", GROUP)
-def test_documented_outcomes(check_id):
-    cases = CASES[check_id]
+def test_documented_outcomes(check_id, monkeypatch):
+    from tests.aws_k8s_current_native_inputs_20261020 import annotation_current_cases
+    cases = annotation_current_cases(check_id, CASES[check_id])
+    if check_id in {'gcp.claude.bigquery_dataset.no_gmail_access', 'gcp.claude.bigquery_dataset.no_googlegroups_access'}:
+        # Historical fail rows contain non-mailbox text and remain UNKNOWN.
+        # Replay already-reviewed real native mailbox observations separately.
+        current = json.loads((Path(__file__).parent/'fixtures/gcp-prior-bounded-native-successor-20261020.json').read_text())
+        rows = [row for row in current['cases'] if row['check_id'] == check_id]
+        assert {row['expected_status'] for row in rows} == {'PASS', 'FAIL', 'UNKNOWN'}
+        cases = copy.deepcopy(cases)
+        for row in rows:
+            branch = row['expected_status'].lower()
+            cases[branch] = copy.deepcopy(row['item'])
+            cases[branch + '_index'] = copy.deepcopy(row['index'])
     assert "index" not in cases, "scope fixtures must use <case>_index"
     for name, expected in (("pass", "PASS"), ("fail", "FAIL"), ("manual", "MANUAL"), ("unknown", "UNKNOWN"),
                            ("not_applicable", "NOT_APPLICABLE")):
         if name in cases:
             index = cases.get(name + "_index", cases.get("pass_index"))
-            assert run(check_id, cases[name], index) == expected, name
+            from peaso.checks import k8s_annotation_indicators_review_20261020 as annotation
+            if name == 'not_applicable' and check_id in annotation.PSP_IDS:
+                assert run(check_id, cases[name], index) == 'UNKNOWN'
+                from tests.aws_k8s_current_native_inputs_20261020 import assert_modern_psp_native_applicability
+                assert_modern_psp_native_applicability(check_id, monkeypatch)
+            else:
+                assert run(check_id, cases[name], index) == expected, name
     for name in ("missing", "malformed"):
         if name in cases:
             assert run(check_id, cases[name], cases.get("pass_index")) == "UNKNOWN", name

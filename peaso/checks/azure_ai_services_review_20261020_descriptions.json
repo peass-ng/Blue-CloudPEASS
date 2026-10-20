@@ -1,0 +1,64 @@
+{
+  "azure.review.ai_services.audit_logging": {
+    "title": "AI Services configures supported audit logs to a destination",
+    "description": "AI Services configures supported audit logs to a destination. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "finding_type": "logging",
+    "requirement_controls": [],
+    "remediation": "Enable the Audit category or a supported audit/allLogs group in a diagnostic setting. Configure a Log Analytics, Storage, Event Hub or partner destination. Verify ingestion separately.",
+    "remediation_steps": [
+      "Enable the Audit category or a supported audit/allLogs group in a diagnostic setting.",
+      "Configure a Log Analytics, Storage, Event Hub or partner destination.",
+      "Verify ingestion separately."
+    ],
+    "purpose": "Supported Audit category and a configured destination do not establish delivery, retention or sink access.",
+    "missing_observation": "Required native configuration could not be completely read and bound to the selected account.",
+    "pass_observation": "A diagnostic setting enables supported Audit logs with a destination. Delivery and retention were not tested.",
+    "fail_observation": "No diagnostic setting enables supported Audit logs with a destination."
+  },
+  "azure.review.ai_services.managed_identity": {
+    "title": "AI Services declares a managed identity",
+    "description": "AI Services declares a managed identity. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "finding_type": "permissions",
+    "requirement_controls": [],
+    "remediation": "Enable a system-assigned or user-assigned managed identity. Grant only the roles needed by the workload and review those role assignments separately.",
+    "remediation_steps": [
+      "Enable a system-assigned or user-assigned managed identity.",
+      "Grant only the roles needed by the workload and review those role assignments separately."
+    ],
+    "purpose": "A declared managed identity does not establish least privilege or role assignment safety.",
+    "missing_observation": "Required native configuration could not be completely read and bound to the selected account.",
+    "pass_observation": "The account declares a supported managed identity type. Role assignments were not assessed.",
+    "fail_observation": "The account has no managed identity declaration."
+  },
+  "azure.review.ai_services.outbound_restriction": {
+    "title": "AI Services declares restricted outbound network access",
+    "description": "AI Services declares restricted outbound network access. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "finding_type": "network",
+    "requirement_controls": [],
+    "remediation": "Enable restrictOutboundNetworkAccess for the supported account. Review allowedFqdnList for necessary destinations and verify workload compatibility.",
+    "remediation_steps": [
+      "Enable restrictOutboundNetworkAccess for the supported account.",
+      "Review allowedFqdnList for necessary destinations and verify workload compatibility."
+    ],
+    "purpose": "The native outbound restriction flag does not establish allowed-destination safety or tested traffic blocking.",
+    "missing_observation": "Required native configuration could not be completely read and bound to the selected account.",
+    "pass_observation": "The account declares outbound restrictions enabled. Destinations and traffic were not tested.",
+    "fail_observation": "The account declares outbound restrictions disabled."
+  },
+  "azure.review.ai_services.prompt_shield": {
+    "title": "Text deployments explicitly configure blocking Prompt Shields",
+    "description": "Text deployments explicitly configure blocking Prompt Shields. Evaluate only complete native ARM configuration for the selected subscription and account.",
+    "finding_type": "workload_hardening",
+    "requirement_controls": [],
+    "remediation": "Assign an explicit RAI policy to each supported text deployment. Enable the Jailbreak filter with source Prompt and blocking true. Review default or unsupported policies manually.",
+    "remediation_steps": [
+      "Assign an explicit RAI policy to each supported text deployment.",
+      "Enable the Jailbreak filter with source Prompt and blocking true.",
+      "Review default or unsupported policies manually."
+    ],
+    "purpose": "Explicit RAI filter configuration does not establish runtime resistance to prompt attacks; default policies are unresolved.",
+    "missing_observation": "Required native configuration could not be completely read and bound to the selected account.",
+    "pass_observation": "Supported text deployments explicitly reference policies with enabled blocking Jailbreak filtering on prompts. Traffic was not tested.",
+    "fail_observation": "A supported text deployment explicitly references a policy without enabled blocking Jailbreak filtering on prompts."
+  }
+}

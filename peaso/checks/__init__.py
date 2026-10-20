@@ -1496,5 +1496,117 @@ gcp_clouddeploy_source_secret_review_20261019.install()
 from . import gcp_sourcerepo_secret_review_20261019
 gcp_sourcerepo_secret_review_20261019.install()
 
+from . import gcp_task_routine_secret_review_20261020
+gcp_task_routine_secret_review_20261020.install()
+
+from . import azure_app_settings_secret_review_20261020
+azure_app_settings_secret_review_20261020.install()
+
+from . import k8s_literal_secret_review_20261020
+k8s_literal_secret_review_20261020.install()
+from . import k8s_literal_current_metadata_20261020
+k8s_literal_current_metadata_20261020.install()
+
+from . import azure_acr_image_secret_review_20261020
+azure_acr_image_secret_review_20261020.install()
+
+from . import aws_lambda_environment_secret_review_20261020
+aws_lambda_environment_secret_review_20261020.install()
+
+from . import azure_ai_services_review_20261020
+azure_ai_services_review_20261020.install()
+
+from . import azure_synapse_dependency_review_20261020
+azure_synapse_dependency_review_20261020.install()
+
+from . import azure_hsm_audit_review_20261020
+azure_hsm_audit_review_20261020.install(register)
+
+from . import azure_acr_public_ip_review_20261020
+azure_acr_public_ip_review_20261020.install()
+
+from . import azure_automation_aci_metadata_review_20261020
+azure_automation_aci_metadata_review_20261020.install()
+
+from . import azure_final_native_admission_20261020
+azure_final_native_admission_20261020.install()
+
+from . import azure_edge_native_admission_20261020
+azure_edge_native_admission_20261020.install()
+
+from . import k8s_annotation_native_admission_20261020
+k8s_annotation_native_admission_20261020.install()
+
+from . import aws_selected_configuration_admission_20261020
+aws_selected_configuration_admission_20261020.install()
+
+from . import azure_selected_secrets_admission_20261020
+azure_selected_secrets_admission_20261020.install()
+
+from . import azure_declaration_secrets_admission_20261020
+azure_declaration_secrets_admission_20261020.install()
+
+from . import k8s_kubelet_configmap_admission_20261020
+k8s_kubelet_configmap_admission_20261020.install()
+
+from . import aws_s3_selected_source_admission_20261020
+from . import aws_codebuild_buildspec_s3_successor_20261020
+from . import aws_workload_command_shared_successor_20261020
+from . import azure_metadata_only_shared_successor_20261020 as _deployed_ai_shared_source
+_historical_aws_workload_command_shared_successor_20261020 = aws_workload_command_shared_successor_20261020
+aws_workload_command_shared_successor_20261020 = _deployed_ai_shared_source
+aws_workload_command_shared_successor_20261020.install_s3()
+
+from . import azure_log_samples_admission_20261020
+azure_log_samples_admission_20261020.install()
+
+from . import azure_ml_job_secrets_admission_20261020
+azure_ml_job_secrets_admission_20261020.install()
+
+from . import azure_databricks_notebook_secrets_admission_20261020
+azure_databricks_notebook_secrets_admission_20261020.install()
+
+from . import azure_ml_asset_secrets_admission_20261020
+azure_ml_asset_secrets_admission_20261020.install()
+
+from . import azure_function_settings_runtime_admission_20261020
+azure_function_settings_runtime_admission_20261020.install()
+
+from . import k8s_selected_log_sample_admission_20261020
+k8s_selected_log_sample_admission_20261020.install()
+
+from .azure_sas_policy_declaration_admission_20261020 import install as _install_azure_sas_policy_declaration_20261020
+_install_azure_sas_policy_declaration_20261020()
+
+from . import azure_nsp_query_cmk_production_tde_successor_20261020
+from . import azure_function_package_tde_successor_20261020
+
+from . import gcp_dataproc_source_runtime_admission_20261020
+gcp_dataproc_source_runtime_admission_20261020.install()
+
+from . import k8s_selected_metadata_runtime_admission_20261020
+from . import gcp_workbench_shared_hook_successor_20261020
+from . import gcp_dataflow_batch_shared_hook_successor_20261020
+from . import aws_codebuild_buildspec_shared_successor_20261020
+from . import azure_function_package_shared_successor_20261020
+# Explicit shared-admission successor; the historical module remains canonical
+# in sys.modules with every receipt and original function object preserved.
+_historical_azure_function_package_shared_successor_20261020 = azure_function_package_shared_successor_20261020
+azure_function_package_shared_successor_20261020 = aws_workload_command_shared_successor_20261020
+from . import gcp_function_secret_page_admission_20261020
+from peaso import gcp_cloudrun_job_image_function_source_successor_20261020 as _job_function_source
+gcp_function_secret_page_admission_20261020.source_inputs = _job_function_source.reviewed_inputs
+from peaso import gcp_function_secret_page_source_20261020 as _historical_function_page_source
+_historical_function_page_source.reviewed_inputs = _job_function_source.reviewed_inputs
+azure_function_package_shared_successor_20261020.install_bundle()
+
+from . import gcp_workbench_head3_admission_20261020
+from . import gcp_cloudrun_job_image_workbench_source_successor_20261020 as _job_workbench_source
+gcp_workbench_head3_admission_20261020.reviewed_inputs = _job_workbench_source.reviewed_inputs
+gcp_workbench_head3_admission_20261020.install_bundle()
+
+from . import gcp_cloudrun_job_image_secret_review_20261020
+gcp_cloudrun_job_image_secret_review_20261020.install()
+
 from . import aws_ai_recheck_corrections_20261020
 aws_ai_recheck_corrections_20261020.install()

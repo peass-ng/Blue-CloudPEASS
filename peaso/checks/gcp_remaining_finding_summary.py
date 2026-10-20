@@ -232,6 +232,20 @@ def evidence_summary(finding):
     if sql is not None:
         return sql
     observed = row['static_observed_sentence']
+    if cid == 'gcp_logging_enumeration_alert':
+        if (isinstance(evidence.get('project'), str)
+                and evidence['project'].startswith('projects/')
+                and evidence.get('reason') == 'no qualifying enabled alert in complete inventories'):
+            return 'The collected configuration has no qualifying enabled alert for enumeration event counts by principal.'
+        return None
+    if cid == 'gcp_cloud_armor_waf_enabled':
+        if not isinstance(evidence.get('policy'), str) or not _strings(evidence.get('external_backends'), nonempty=True):
+            return None
+        if evidence.get('reason') == 'earlier wildcard allow bypasses the preconfigured WAF rule':
+            return 'An earlier allow-all rule bypasses the configured preconfigured WAF deny rule.'
+        if evidence.get('reason') == 'no supported active preconfigured WAF deny rule declared':
+            return 'The policy attached to these external backends declares no supported active preconfigured WAF deny rule.'
+        return None
     if cid == 'gcp.identity.non_service_account_mfa':
         enrolled, enforced = evidence.get('isEnrolledIn2Sv'), evidence.get('isEnforcedIn2Sv')
         return observed if type(enrolled) is bool and type(enforced) is bool and not (enrolled and enforced) else None
@@ -302,6 +316,15 @@ def evidence_summary(finding):
     if cid in ('gcp.ports.kms_key_rotated_within_90_day','gcp.claude.kms_key.rotation_100_days'):
         seconds = evidence.get('rotation_seconds')
         limit = 86400 * (100 if '100_days' in cid else 90)
+        if cid == 'gcp.claude.kms_key.rotation_100_days' and isinstance(seconds, str):
+            from .claude_gcp_k8s_common import duration_seconds
+            from .facts import Unavailable
+            try:
+                exact = duration_seconds(evidence.get('rotation_period'))
+            except Unavailable:
+                return None
+            canonical = format(exact, 'f').rstrip('0').rstrip('.') if exact != int(exact) else str(int(exact))
+            return f'The declared key rotation interval is {seconds} seconds, exceeding 100 days.' if seconds == canonical and exact > limit else None
         return f'The declared key rotation interval is {seconds / 86400:g} days.' if type(seconds) is int and seconds > limit else None
     if cid == 'gcp_pci_asset_6ee2fef37d98':
         days, minimum = evidence.get('retention_days'), evidence.get('min_retention_days')
@@ -324,8 +347,19 @@ def evidence_summary(finding):
         declared_at=evidence.get('declared_at')
         field = {'instance':'instance_enable_oslogin','project':'project_enable_oslogin'}.get(declared_at) if isinstance(declared_at,str) else None
         return observed if field and evidence.get(field) is False else None
+    if cid == 'gcp.ports.compute_ssl_policy_strict_declaration':
+        if evidence.get('reason') == 'No explicit SSL policy; default compatibility does not establish the strict cipher/TLS policy':
+            return 'No SSL policy is attached; the default compatibility profile does not meet this check’s strict policy requirement.'
+        profile, minimum = evidence.get('profile'), evidence.get('min_tls_version')
+        if (profile in ('COMPATIBLE', 'MODERN', 'FIPS_202205', 'CUSTOM')
+                and minimum in ('TLS_1_0', 'TLS_1_1', 'TLS_1_2')
+                and (profile == 'COMPATIBLE' or minimum in ('TLS_1_0', 'TLS_1_1'))):
+            return f'The SSL policy uses the {profile} profile with minimum {minimum.replace("_", " ", 1).replace("_", ".")}.'
+        return None
+    if cid == 'gcp.reviewed.project.os_login_2fa' and evidence.get('enable_oslogin') is False:
+        return 'The project does not enable OS Login, so its two-factor flag cannot enforce OS Login authentication.'
     if cid == 'gcp.reviewed.network.flow_logs':
-        return observed if evidence.get('flow_logs_enabled') is False and evidence.get('network_management_configs') == 'not_collected' else None
+        return observed if evidence.get('flow_logs_enabled') is False and evidence.get('network_management_configs') == 'collected' else None
     if cid in ('gcp.htbp.orgpolicy.domain_restricted_sharing','gcp.htbp.orgpolicy.essential_contacts_domain_restricted'):
         return observed if evidence.get('enforced') is False and evidence.get('allowed_values') == [] else None
     if cid == 'gcp.htbp.orgpolicy.sa_key_creation_and_upload_blocked':
@@ -348,6 +382,11 @@ def evidence_summary(finding):
     }.get(cid)
     if empty_field:
         return observed if empty_field in evidence and evidence[empty_field] == [] else None
+    if cid == 'gcp_kms_key_destroy_alert':
+        metrics = evidence.get('matching_metrics')
+        return observed if (evidence.get('assessed_configuration') == 'positive-count event threshold'
+                            and evidence.get('alerting') == []
+                            and (metrics == [] or _strings(metrics))) else None
     if cid.startswith('gcp.claude.logging.metric_alert_'):
         return observed if evidence.get('alerting') == [] and _strings(evidence.get('matching_metrics')) else None
     if cid.startswith('gcp.claude2.logging.metric_alert_'):
@@ -357,7 +396,13 @@ def evidence_summary(finding):
     if cid in ('gcp.claude.bigquery_dataset.no_gmail_access','gcp.claude.bigquery_dataset.no_googlegroups_access'):
         suffix = 'gmail.com' if cid.endswith('gmail_access') else 'googlegroups.com'
         records = evidence.get('matching_entries')
-        return observed if isinstance(records,list) and any(isinstance(r,dict) and isinstance(r.get('userByEmail'),str) and r['userByEmail'].endswith(suffix) for r in records) else None
+        if isinstance(records, list) and any(
+                isinstance(r, dict) and isinstance(r.get('role'), str) and r['role']
+                and any(isinstance(r.get(field), str) and r[field].count('@') == 1
+                        and bool(r[field].split('@')[0]) and r[field].rsplit('@', 1)[1].lower() == suffix
+                        for field in ('userByEmail', 'groupByEmail')) for r in records):
+            return observed
+        return None
     if cid in ('gcp.claude.dns_zone.ksk_not_rsasha1','gcp.claude.dns_zone.zsk_not_rsasha1'):
         key_type = 'keySigning' if 'ksk_' in cid else 'zoneSigning'
         count = evidence.get('rsasha1_specs')
@@ -461,6 +506,10 @@ def evidence_summary(finding):
         return observed if isinstance(value,str) and value.isascii() and value.isdigit() and int(value)>90*86400 else None
     if cid == 'gcp.claude.workload_identity_provider.multi_tenant_condition':
         from .claude_gcp_k8s_iam import MULTI_TENANT_ISSUERS
+        if (evidence.get('attribute_condition') is True
+                and evidence.get('semantics') == 'Condition accepts every credential'
+                and evidence.get('issuer_host') in MULTI_TENANT_ISSUERS):
+            return 'The provider trusts a shared OIDC issuer and its attribute condition accepts every credential.'
         return observed if evidence.get('attribute_condition') is False and isinstance(evidence.get('issuer_host'),str) and evidence['issuer_host'] in MULTI_TENANT_ISSUERS else None
     if cid == 'gcp.htbp.pubsub.push_endpoint_not_tunnel':
         from .hacktricks_bp_gcp import EXFIL_HOST
@@ -570,6 +619,12 @@ def evidence_summary(finding):
     if cid == 'gcp.ports.function_basic_role_declarations':
         records=evidence.get('role_assignment_declarations')
         return observed if isinstance(records,list) and any(isinstance(r,dict) and r.get('role') in ('roles/owner','roles/editor') for r in records) else None
+    if cid in ('gcp.ports.function_logging_mutation_declarations', 'gcp.ports.function_legacy_deployment_role_declarations'):
+        records = evidence.get('role_assignment_declarations')
+        return observed if isinstance(records, list) and any(
+            isinstance(r, dict) and isinstance(r.get('role'), str) and r['role']
+            and isinstance(r.get('policy'), str) and r['policy'].startswith(('projects/', 'folders/', 'organizations/'))
+            for r in records) else None
     if cid == 'gcp.ports.service_account_mutating_role_declarations':
         records=evidence.get('mutating_role_declarations')
         return observed if isinstance(records,list) and any(isinstance(r,dict) and type(r.get('mutating_permission_count')) is int and r['mutating_permission_count']>0 and isinstance(r.get('role'),str) for r in records) else None

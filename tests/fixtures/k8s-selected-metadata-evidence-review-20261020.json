@@ -1,0 +1,103 @@
+{
+  "k8s.review.selected_metadata.secret_indicators": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "secret_leaks": [],
+        "credential_validation": "not_attempted",
+        "complete": true,
+        "coverage": "selected_object_metadata_only",
+        "parts": [
+          {
+            "bytes": 125,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "literals"
+          }
+        ],
+        "literal_count": 2,
+        "reference_count": 0,
+        "source_requests": [
+          "k8s-literal-read-1",
+          "k8s-literal-read-2"
+        ],
+        "observed": "Both offline detectors completed without detecting a supported secret in the selected object labels and annotations."
+      },
+      "summary": "Both offline detectors found no supported secret in the selected object labels and annotations."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "secret_leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "d3c62dee3938ff9915a98f28bd880238bdcb8739647e3dde97d3b4c95d82bea5",
+            "locations": [
+              {
+                "line": 9,
+                "path": "k8s_selected_metadata:a9c9f2cb393baf3c6b45a9045e673c3fd6449f58ed7dc975cf35473a8c8155bc.literals"
+              }
+            ]
+          }
+        ],
+        "credential_validation": "not_attempted",
+        "complete": true,
+        "coverage": "selected_object_metadata_only",
+        "parts": [
+          {
+            "bytes": 187,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ],
+            "part": "literals"
+          }
+        ],
+        "literal_count": 3,
+        "reference_count": 0,
+        "source_requests": [
+          "k8s-literal-read-1",
+          "k8s-literal-read-2"
+        ],
+        "observed": "A likely secret was detected in the selected object labels or annotations. Its value is hidden and was not validated."
+      },
+      "summary": "A likely secret was detected in the selected object labels and annotations. Its value is hidden and was not validated."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "Selected object metadata was unavailable, changed or incompletely inspected. A clean result cannot be established."
+      },
+      "summary": "Selected object metadata was unavailable, changed or incompletely inspected. A clean result cannot be established."
+    }
+  ]
+}

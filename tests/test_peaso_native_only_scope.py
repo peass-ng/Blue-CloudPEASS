@@ -152,8 +152,32 @@ def test_unsupported_listener_contract_is_separate_from_customer_inputs():
     assert row['mandatory_external_fields'] == []
     unsupported = {cid for cid, item in exclusions().items()
                    if item.get('disposition') == 'unsupported_exact_contract'}
-    assert unsupported == {ident, 'aws_cis_lightsail_ssm_patch_compliance', 'gcp_logging_detect_t1110'}
-    assert scope()['excluded_unsupported_controls'] == len(unsupported)
+    historical = {ident, 'aws_cis_lightsail_ssm_patch_compliance', 'gcp_logging_detect_t1110'}
+    assert historical <= unsupported
+    # Exact native-source reviews archive impossible or unobservable legacy
+    # contracts; they are distinct from customer policy or attestation inputs.
+    assert unsupported == historical | {
+        'azure.claude.iam_root_custom_role_no_wildcard',
+        'azure.claude.managed_hsm_audit_logging',
+        'azure.gap.automation_account_encrypted_with_cmk',
+        'azure.gap.monitor_log_cluster_encrypted_with_cmk',
+        'azure.gap.stream_analytics_job_encrypted_with_cmk',
+        'azure.other.access_analysis_coverage',
+        'azure_aks_cluster_10_2_1_1_17_885658f',
+        'azure_api_management_10_3_1_3_8a50dc0',
+        'azure_devops_project_1_2_8_6_fb0e5a8',
+        'azure_pci_10_2_1_1_16',
+        'gcp_certificate_renewal_30_days',
+        'gcp_certificate_rotation_180_days',
+        'gcp_certificate_rotation_90_days',
+        'gcp_lb_server_header_rewrite',
+    }
+    grouped = {cid for cid, entry in exclusions().items() if entry.get('disposition') in
+               {'unsupported_exact_contract', 'retired_native_service', 'superseded_native_criterion'}}
+    assert scope()['excluded_unsupported_controls'] == len(grouped)
+    for cid in unsupported:
+        assert exclusions()[cid]['mandatory_external_fields'] == []
+        assert cid not in {check.id for check in engine._registry()}
     lightsail = exclusions()['aws_cis_lightsail_ssm_patch_compliance']
     assert lightsail['mandatory_external_fields'] == []
     assert 'aws_cis_lightsail_ssm_patch_compliance' not in {check.id for check in engine._registry()}

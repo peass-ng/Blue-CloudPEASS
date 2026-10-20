@@ -14302,5 +14302,92 @@
     "renderer": "external",
     "source": "peaso/checks/compliance_new_k8s_owner_policy.py::selected_loadbalancer_type",
     "title": "Owner-selected Service declares LoadBalancer type"
+  },
+  "k8s.review.selected_literals.secret_indicators": {
+    "purpose": "Only selected workload templates and ConfigMap literals are scanned.",
+    "limit": "Referenced content, running replicas and credential validity are not assessed.",
+    "missing_observation": "Selected supported literals could not be completely read, identity-bound and scanned with both offline detectors.",
+    "renderer": "native",
+    "binding": null,
+    "title": "Selected Pod and ConfigMap literals have no detected secrets",
+    "review_group": "secrets",
+    "label": "Selected workload and ConfigMap literals have no detected secrets"
+  },
+  "k8s.review.kubelet_configmap.authorization_webhook": {
+    "purpose": "Checks whether authorization.mode explicitly selects Webhook in a kubelet-config ConfigMap.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet declaration uses Webhook authorization",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.kubelet_configmap.client_ca_configured": {
+    "purpose": "Checks whether authentication.x509.clientCAFile declares a nonempty client CA path. The referenced file is not read.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet declaration configures a client CA path",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.kubelet_configmap.anonymous_disabled": {
+    "purpose": "Checks whether authentication.anonymous.enabled is explicitly false in a kubelet-config ConfigMap.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet declaration disables anonymous authentication",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.kubelet_configmap.readonly_disabled": {
+    "purpose": "Checks whether readOnlyPort is explicitly zero in a kubelet-config ConfigMap.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet declaration disables the read-only port",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.kubelet_configmap.client_certificate_rotation": {
+    "purpose": "Checks whether rotateCertificates is explicitly true in a kubelet-config ConfigMap.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet declaration enables client certificate rotation",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.kubelet_configmap.explicit_cipher_allowlist": {
+    "purpose": "Compares the declared tlsCipherSuites list with the reviewed cipher allowlist. Negotiated TLS and node adoption are not tested.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet cipher declaration matches the reviewed allowlist",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.kubelet_configmap.tls_file_pair_configured": {
+    "purpose": "Checks whether tlsCertFile and tlsPrivateKeyFile both declare nonempty paths. The files and their certificate/key match are not inspected.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet declaration configures certificate and key paths",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.kubelet_configmap.event_qps_bounded": {
+    "purpose": "Checks whether eventRecordQPS declares a positive event rate limit; zero means unlimited. Workload suitability is not assessed.",
+    "limit": "Only the ConfigMap declaration is assessed; node adoption and runtime overrides are not verified.",
+    "title": "Explicit kubelet declaration limits event creation rate",
+    "source": "peaso/checks/k8s_kubelet_configmap_review_20261020.py::evaluate",
+    "renderer": "native_declaration",
+    "review_group": "kubelet_configmap_declaration"
+  },
+  "k8s.review.selected_container_logs.secret_indicators": {
+    "purpose": "Only the selected current-container samples are covered.",
+    "title": "Selected current container log samples have no detected secrets",
+    "renderer": "selected_log_content",
+    "source": "peaso/checks/k8s_selected_log_sample_secret_review_20261020.py::evaluate"
+  },
+  "k8s.review.selected_metadata.secret_indicators": {
+    "purpose": "Only top-level labels and annotations of the selected objects are covered.",
+    "title": "Selected object labels and annotations have no detected secrets",
+    "renderer": "selected_metadata_content",
+    "source": "peaso/checks/k8s_selected_metadata_secret_review_20261020.py::evaluate",
+    "format": "selected_metadata_content"
   }
 }

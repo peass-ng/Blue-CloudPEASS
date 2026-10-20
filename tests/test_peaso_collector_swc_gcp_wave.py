@@ -115,10 +115,10 @@ def test_https_reuses_aggregated_inventory_and_unique_policy_reads():
         if request['url'].endswith('/aggregated/targetHttpsProxies'):
             return {'items': {'regions/europe-west1': {'targetHttpsProxies': [
                 {'name': 'https', 'serverTlsPolicy': policy}]}}}
-        if request['url'].endswith('/serverTlsPolicies/p'):
-            return {'name': policy, 'mtlsPolicy': {'clientValidationMode': 'REJECT_INVALID'}}
+        if request['url'].endswith('/serverTlsPolicies'):
+            return {'serverTlsPolicies':[{'name': policy, 'mtlsPolicy': {'clientValidationMode': 'REJECT_INVALID'}}]}
         return {}
-    result, transport = snapshot(['target_proxy', 'target_https_proxy', 'server_tls_policy'], resolve)
+    result, transport = snapshot(['target_proxy', 'target_https_proxy', 'server_tls_policy'], resolve, networksecurity_network_locations=['global'])
     row = collection(result, 'target_https_proxy')['items'][0]
     assert row['_provenance']['representation'] == 'full'
     assert row['_aggregated_scope'] == 'regions/europe-west1'
@@ -199,7 +199,8 @@ def test_sql_users_empty_pagination_denial(mode, expected):
 def test_https_proxy_collection_and_policy_failure(mode, expected):
     policy = SCOPE + '/locations/global/serverTlsPolicies/p'
     def resolve(request):
-        if request['url'].endswith('/serverTlsPolicies/p'):
+        if request['url'].endswith('/serverTlsPolicies'):
+            if mode == 'empty': return {'serverTlsPolicies': []}
             raise ReadError('denied', 'fixture_denial')
         if request['url'].endswith('/aggregated/targetHttpsProxies'):
             page = request['params'].get('pageToken')
@@ -211,13 +212,13 @@ def test_https_proxy_collection_and_policy_failure(mode, expected):
                 {'name': 'two' if page else 'one', 'serverTlsPolicy': policy}]}},
                 **({'nextPageToken': 'more'} if not page else {})}
         return {}
-    result, _ = snapshot(['target_proxy', 'target_https_proxy', 'server_tls_policy'], resolve)
+    result, _ = snapshot(['target_proxy', 'target_https_proxy', 'server_tls_policy'], resolve, networksecurity_network_locations=['global'])
     # An incomplete supporting proxy inventory prevents a complete alias assertion.
     alias = collection(result, 'target_https_proxy')
     assert alias['coverage_status'] == ('unavailable' if mode in ('denied', 'partial') else expected)
     assert collection(result, 'target_proxy')['coverage_status'] == expected
     assert collection(result, 'server_tls_policy')['coverage_status'] == (
-        'empty' if mode == 'empty' else 'denied' if mode == 'paginated' else 'unavailable')
+        'empty' if mode == 'empty' else 'denied')
 
 
 def test_two_locations_retains_success_when_other_location_denied():
@@ -252,15 +253,16 @@ def test_server_tls_policy_partial_and_deduplicated_refs():
             return {'items': {'global': {'targetHttpsProxies': [
                 {'name': str(i), 'serverTlsPolicy': SCOPE + '/locations/global/serverTlsPolicies/' + policy}
                 for i, policy in enumerate(('a', 'a', 'b'))]}}}
-        if url.endswith('/serverTlsPolicies/a'):
-            return {'name': SCOPE + '/locations/global/serverTlsPolicies/a',
-                    'mtlsPolicy': {'clientValidationMode': 'REJECT_INVALID'}}
-        if url.endswith('/serverTlsPolicies/b'):
-            raise ReadError('denied', 'fixture_denial')
+        if url.endswith('/serverTlsPolicies'):
+            if request['params'].get('pageToken'):
+                raise ReadError('denied', 'fixture_denial')
+            return {'serverTlsPolicies':[{'name': SCOPE + '/locations/global/serverTlsPolicies/a',
+                    'mtlsPolicy': {'clientValidationMode': 'REJECT_INVALID'}}], 'nextPageToken':'next'}
         return {}
-    result, transport = snapshot(['server_tls_policy'], resolve)
+    result, transport = snapshot(['server_tls_policy'], resolve, networksecurity_network_locations=['global'])
     assert collection(result, 'server_tls_policy')['coverage_status'] == 'partial'
-    assert sum(r['url'].endswith('/serverTlsPolicies/a') for r in transport.requests) == 1
+    assert sum(r['url'].endswith('/serverTlsPolicies') for r in transport.requests) == 2
+    assert len(collection(result, 'server_tls_policy')['items']) == 1
 
 
 def test_location_discovery_follows_pages_before_listing_each_location():

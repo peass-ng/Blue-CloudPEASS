@@ -8,6 +8,7 @@ import peaso.checks.claude_azure_data as data
 from peaso.checks import CHECKS
 from peaso.checks.claude_azure_common import cid, scope_index
 from peaso.checks.fixtures import CASES
+from tests.azure_native_successor_inputs_20261020 import current_cases, native_row
 
 REGISTRY = {check.id: check for check in CHECKS}
 GROUP = sorted(data.DATA_IDS)
@@ -27,7 +28,7 @@ def test_group_registered():
 
 @pytest.mark.parametrize("check_id", GROUP)
 def test_pass_fail_and_unknown(check_id):
-    check, cases = REGISTRY[check_id], CASES[check_id]
+    check, cases = REGISTRY[check_id], current_cases(check_id, CASES[check_id])
     assert check.provider == "azure" and check.remediation and check.dependencies
     assert "index" not in cases, "scope fixtures must use pass_index/fail_index"
     assert run(check_id, cases["pass"], cases.get("pass_index")) == "PASS"
@@ -131,7 +132,7 @@ def test_sql_va_classic_vs_express():
 def test_storage_key_age_and_policy():
     rotated = cid("storage_access_keys_rotated_90")
     assert run(rotated, {"properties": {"keyCreationTime": {"key1": None, "key2": None}}}) == "UNKNOWN"
-    assert run(rotated, {"properties": {"keyCreationTime": {}}}) == "NOT_APPLICABLE"
+    assert run(rotated, {"properties": {"keyCreationTime": {}}}) == "UNKNOWN"
     assert run(cid("storage_key_expiration_policy_max_90"), {"properties": {}}) == "FAIL"
     assert run(cid("storage_key_expiration_policy_90"), {"properties": {"keyPolicy": {"keyExpirationPeriodInDays": 60}}}) == "FAIL"
 
@@ -159,11 +160,10 @@ def test_storage_service_type_scoping():
 
 def test_vhd_account_resolution():
     slug = cid("storage_vhd_accounts_cmk")
-    managed = {"id": "/subscriptions/s/v", "properties": {"storageProfile": {"osDisk": {"managedDisk": {"id": "d"}}}}}
-    index = scope_index({"storage_account": [data._acct("Microsoft.Storage")], "vm": [managed]})
-    assert run(slug, data.SCOPE, index) == "PASS"
-    stranger = scope_index({"storage_account": [], "vm": [data._vhd_vm]})
-    assert run(slug, data.SCOPE, stranger) == "UNKNOWN"
+    managed = native_row(slug, 'pass_native_managed_disk_exclusion')
+    assert run(slug, managed['item'], managed['index']) == "PASS"
+    stranger = native_row(slug, 'unknown_foreign_blob_host')
+    assert run(slug, stranger['item'], stranger['index']) == "UNKNOWN"
 
 
 def test_waf_bot_rule_disabled_and_other_resources():

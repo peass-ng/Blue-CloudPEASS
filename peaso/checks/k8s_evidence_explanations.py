@@ -26,6 +26,9 @@ def reviewed_explanation(check_id, observation, status=None):
     row = review_rows().get(check_id)
     if row is None or not _text(observation, 2000):
         return None
+    if check_id == 'k8s.review.selected_metadata.secret_indicators' and any(
+            text in observation for text in ('selected object labels and annotations', 'selected object labels or annotations')):
+        return observation  # The native observation already names this exact scope.
     purpose = row['purpose']
     if purpose in observation:
         return observation
@@ -187,7 +190,10 @@ def _scalar_sentence(finding, row):
 
 def _precise_native(finding, row):
     e, status = finding['evidence'], finding['status']
-    predicate = row.get('binding', {}).get('predicate')
+    binding = row.get('binding')
+    if not isinstance(binding, dict):
+        return None
+    predicate = binding.get('predicate')
     if predicate == 'backend_https':
         if 'declared_backend_protocol' not in e:
             return None
@@ -277,7 +283,7 @@ def _precise_native(finding, row):
 
 def _external_observation(finding, row):
     e, status = finding['evidence'], finding['status']
-    fmt = row['format']
+    fmt = row.get('format')
     if fmt == 'file':
         path = _text(e.get('path') or e.get('selector'))
         if not path:
@@ -402,6 +408,10 @@ def evidence_summary(finding):
     check_id = finding.get('check_id')
     if not isinstance(check_id, str):
         return None
+    from .k8s_kubelet_declaration_observed_20261020 import observation as declaration_observation
+    declaration = declaration_observation(finding)
+    if declaration:
+        return declaration
     row = review_rows().get(check_id)
     e = finding.get('evidence')
     status = finding.get('status')
@@ -450,5 +460,9 @@ def evidence_summary(finding):
         return None
     if status not in ('PASS', 'FAIL'):
         return None
+    from .selected_content_observed import observation as selected_content
+    selected = selected_content(finding)
+    if selected:
+        return reviewed_explanation(check_id, selected, status)
     observation = _precise_native(finding, row) if row['renderer'] == 'native' else _external_observation(finding, row)
     return reviewed_explanation(finding['check_id'], observation, status) if observation else None

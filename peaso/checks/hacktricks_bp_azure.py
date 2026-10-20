@@ -221,7 +221,31 @@ def logic_trigger(item, index):
     oauth = optional(control, "openAuthenticationPolicies", None)
     if ips is not None and not isinstance(ips, list) or oauth is not None and not isinstance(oauth, dict):
         raise Unavailable("malformed trigger access control")
-    restricted = ips is not None or bool(optional(oauth or {}, "policies", {}, dict))
+    ranges = []
+    for entry in ips or []:
+        value = get(entry, "addressRange", str)
+        try:
+            if "-" in value:
+                first, last = (ipaddress.IPv4Address(part) for part in value.split("-"))
+                if first > last:
+                    raise ValueError("reversed native IPv4 range")
+            else:
+                network = ipaddress.IPv4Network(value, strict=False)
+                first, last = network.network_address, network.broadcast_address
+        except (ValueError, TypeError) as exc:
+            raise Unavailable("malformed native caller IPv4 range") from exc
+        ranges.append((int(first), int(last)))
+    end = -1
+    for first, last in sorted(ranges):
+        if first > end + 1:
+            break
+        end = max(end, last)
+    # Empty is the documented Only other Logic Apps option. A nonempty
+    # union admitting the entire IPv4 space imposes no source restriction.
+    ip_restricted = ips is not None and (not ips or end < (1 << 32) - 1)
+    policies = optional(oauth or {}, "policies", {}, dict)
+    restricted = ip_restricted or bool(policies)
+
     return result(not restricted, request_triggers=request, allowed_caller_ip_ranges=ips,
                   oauth_policies=sorted(optional(oauth or {}, "policies", {}, dict)),
                   semantics="An empty allowedCallerIpAddresses list admits only other Logic Apps and counts as restricted")
@@ -426,7 +450,14 @@ def _restricted(rules, default):
         value = rule.get("priority")
         return value if isinstance(value, int) and not isinstance(value, bool) else 2 ** 31
     for rule in sorted(rules, key=priority):
-        if rule.get("ipAddress") in ANY_SOURCE and not rule.get("vnetSubnetResourceId") and not rule.get("headers"):
+        source = rule.get("ipAddress")
+        universal = source in ANY_SOURCE
+        if isinstance(source, str) and not universal:
+            try:
+                universal = ipaddress.ip_network(source, strict=False).prefixlen == 0
+            except ValueError:
+                pass
+        if universal and not rule.get("vnetSubnetResourceId") and not rule.get("headers"):
             action = rule.get("action", "Allow")
             if action not in ("Allow", "Deny"):
                 raise Unavailable("unrecognized restriction rule action")

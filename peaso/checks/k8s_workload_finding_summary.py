@@ -19,6 +19,41 @@ def workload_evidence_summary(finding):
         return None
     evidence = finding["evidence"]
     predicate = row["reviewed_binding"]["predicate"]
+    if predicate == "runtime_default_seccomp":
+        # This current source resolves overrides across regular/init/ephemeral rows.
+        profiles, pod = evidence.get("container_profiles"), evidence.get("pod_profile")
+        supported = (None, "RuntimeDefault", "Localhost", "Unconfined")
+        if (not isinstance(profiles, list) or not profiles or pod not in supported
+                or any(profile not in supported for profile in profiles)):
+            return None
+        effective = [profile if profile is not None else pod for profile in profiles]
+        bad = next((profile for profile in effective if profile != "RuntimeDefault"), "no-failure")
+        if bad == "no-failure":
+            return None
+        if bad is None:
+            return "An assessed regular, init or ephemeral container has no declared or inherited RuntimeDefault seccomp profile."
+        return "An assessed regular, init or ephemeral container declares or inherits " + bad + " seccomp instead of RuntimeDefault."
+    if predicate == "effective_runtime_seccomp":
+        failures = evidence.get("non_runtime_default")
+        if isinstance(failures, list):
+            for failure in failures[:100]:
+                if not isinstance(failure, dict):
+                    continue
+                name, profile = _text(failure.get("container")), failure.get("effective_profile")
+                if name and profile in ("Localhost", "Unconfined"):
+                    return "Assessed Linux container “" + name + "” declares or inherits " + profile + " seccomp instead of RuntimeDefault."
+        return None
+    if finding["check_id"] == "k8s.claude.pod.no_host_ports":
+        failures = evidence.get("violations")
+        if isinstance(failures, list):
+            for failure in failures[:100]:
+                if not isinstance(failure, dict):
+                    continue
+                name, ports = _text(failure.get("container")), failure.get("host_ports")
+                if (name and isinstance(ports, list) and ports
+                        and all(type(port) is int and 1 <= port <= 65535 for port in ports)):
+                    return "Regular container “" + name + "” declares hostPort " + str(ports[0]) + "."
+        return None
     if row.get("static_observed_sentence"):
         return row["static_observed_sentence"]
     if predicate == "host_namespaces":

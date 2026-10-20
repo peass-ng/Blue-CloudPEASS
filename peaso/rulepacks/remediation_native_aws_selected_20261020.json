@@ -1,0 +1,86 @@
+{
+  "aws.review.configuration.selected_content_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "1f27130ec31d76de8327e65b6151ff4f88bd4abd979750e2ae8c6d6ea9831655",
+    "summary": "Remove exposed credential literals and rotate confirmed exposed credentials.",
+    "steps": [
+      "Replace exposed literal credentials with scoped workload identity or a secret reference.",
+      "Rotate confirmed exposed credentials and re-scan the selected configuration."
+    ],
+    "caveats": [
+      "Only explicitly selected returned literals are assessed; referenced content and credential validity are not tested."
+    ],
+    "references": [
+      {
+        "title": "Native AWS configuration read API",
+        "url": "https://docs.aws.amazon.com/boto3/latest/reference/services/codebuild/client/batch_get_projects.html"
+      },
+      {
+        "title": "Optional content read permissions",
+        "url": "https://github.com/HackTricks-Training/PEASSo-CSPM/blob/main/docs/secret-content-permissions.md"
+      }
+    ],
+    "cli": []
+  },
+  "aws.review.s3.selected_source_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "895c7b1145486fdfc34175aa0a55f50db4abbca9520a3dd3a34c9beb68f82c75",
+    "summary": "Remove the exposed literal and rotate the affected credential.",
+    "steps": [
+      "Move credentials out of the selected object and use a supported secret reference or workload identity.",
+      "Rotate the exposed credential and re-scan the object."
+    ],
+    "caveats": [
+      "Only selected supported text is assessed; referenced content and credential validity are not checked."
+    ],
+    "references": [
+      {
+        "title": "S3 GetObject API",
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html"
+      }
+    ],
+    "cli": []
+  },
+  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "504905444c7c54affc7d99294798a6a20ecbd3dc8b6dc42600992f1732238688",
+    "summary": "Remove the exposed credential from the inline buildspec and rotate it. Use a supported secret reference.",
+    "steps": [
+      "Remove credential literals from the inline buildspec and use supported secret references.",
+      "Rotate exposed credentials and review their use."
+    ],
+    "caveats": [
+      "Only returned inline build instructions are inspected; referenced files and build artifacts are outside this check."
+    ],
+    "references": [
+      {
+        "title": "CodeBuild buildspec reference",
+        "url": "https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html"
+      },
+      {
+        "title": "CodeBuild project source API",
+        "url": "https://docs.aws.amazon.com/codebuild/latest/APIReference/API_ProjectSource.html"
+      }
+    ],
+    "cli": []
+  },
+  "aws.review.workload.selected_command_literal_secret_indicators": {
+    "review_status": "approved",
+    "proposed_spec_sha256": "dfcb9e2a2a2fdc01dabaf03b5e60384ee8ee80766e7e7ae65c2071f7be7eae45",
+    "summary": "Remove secret literals from the selected task or job definition.",
+    "steps": [
+      "Remove secret literals from the selected task or job definition.",
+      "Rotate exposed credentials and update affected workloads to a corrected revision."
+    ],
+    "caveats": [
+      "Image defaults, external files and runtime overrides are not inspected."
+    ],
+    "references": [
+      {
+        "title": "ECS task definition reference",
+        "url": "https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeTaskDefinition.html"
+      }
+    ],
+    "cli": []
+  }
+}

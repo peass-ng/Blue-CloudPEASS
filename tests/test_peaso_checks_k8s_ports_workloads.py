@@ -72,10 +72,9 @@ def test_seccomp_scope_is_not_collapsed_between_pod_and_controller_sources():
 def test_digest_pin_satisfies_immutable_intent_but_preserves_literal_source_alternative():
     item = {"spec": {"containers": [{"name": "app", "image": "repo/app@sha256:" + "a" * 64, "imagePullPolicy": "IfNotPresent"}]}}
     assert REGISTRY[ports.native_id("pod", "content_digest_or_always_pull")].evaluate(item, {})[0] == "PASS"
-    # Pinned SQL alarms whenever imagePullPolicy <> Always and has no digest exception. The native
-    # deliberately deviates (recorded in the reviewed row reason): a valid content digest is immutable,
-    # so IfNotPresent cannot run a stale or substituted image. Never still fails.
-    assert REGISTRY[ports.native_id("pod", "always_pull")].evaluate(item, {})[0] == "PASS"
+    # Source-bound successor: literal Always is distinct from immutable-image intent.
+    # The explicit digest exception belongs only to content_digest_or_always_pull.
+    assert REGISTRY[ports.native_id("pod", "always_pull")].evaluate(item, {})[0] == "FAIL"
     assert item["spec"]["containers"][0]["imagePullPolicy"] != "Always"
     item["spec"]["containers"][0]["imagePullPolicy"] = "Never"
     assert REGISTRY[ports.native_id("pod", "always_pull")].evaluate(item, {})[0] == "FAIL"
@@ -104,8 +103,9 @@ def test_image_registry_port_and_optional_default_pull_policy():
     check = REGISTRY["k8s.ports.pod.pinned_image"]
     assert check.evaluate({"spec": {"containers": [{"name": "a", "image": "registry.example:5000/app:v2"}]}}, {})[0] == "PASS"
     pull = REGISTRY["k8s.ports.pod.always_pull"]
-    assert pull.evaluate({"spec": {"containers": [{"name": "a", "image": "app:latest"}]}}, {})[0] == "PASS"
+    assert pull.evaluate({"spec": {"containers": [{"name": "a", "image": "app:latest"}]}}, {})[0] == "FAIL"
     assert pull.evaluate({"spec": {"containers": [{"name": "a", "image": "app:v2"}]}}, {})[0] == "FAIL"
+    assert pull.evaluate({"spec": {"containers": [{"name": "a", "image": "app:v2", "imagePullPolicy": "Always"}]}}, {})[0] == "PASS"
 
 
 def test_shard_is_pinned_disjoint_and_has_concrete_rejection_evidence():

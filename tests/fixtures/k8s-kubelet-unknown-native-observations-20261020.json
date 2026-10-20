@@ -1,0 +1,162 @@
+{
+  "k8s.review.kubelet_configmap.authorization_webhook": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.authorization_webhook",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.authorization_webhook",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  },
+  "k8s.review.kubelet_configmap.client_ca_configured": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.client_ca_configured",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.client_ca_configured",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  },
+  "k8s.review.kubelet_configmap.anonymous_disabled": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.anonymous_disabled",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.anonymous_disabled",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  },
+  "k8s.review.kubelet_configmap.readonly_disabled": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.readonly_disabled",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.readonly_disabled",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  },
+  "k8s.review.kubelet_configmap.client_certificate_rotation": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.client_certificate_rotation",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.client_certificate_rotation",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  },
+  "k8s.review.kubelet_configmap.explicit_cipher_allowlist": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.explicit_cipher_allowlist",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.explicit_cipher_allowlist",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  },
+  "k8s.review.kubelet_configmap.tls_file_pair_configured": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.tls_file_pair_configured",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.tls_file_pair_configured",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  },
+  "k8s.review.kubelet_configmap.event_qps_bounded": {
+    "unknown": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.event_qps_bounded",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The explicit field, bounded YAML projection, native identity or complete authenticated inventory could not be bound. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+        "scope": "native_named_configmap_declaration_only",
+        "raw_content_retained": false
+      }
+    },
+    "empty": {
+      "provider": "k8s",
+      "check_id": "k8s.review.kubelet_configmap.event_qps_bounded",
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "No matching kubelet-config ConfigMap declaration was collected in this scope. Node configuration was not assessed."
+      }
+    }
+  }
+}

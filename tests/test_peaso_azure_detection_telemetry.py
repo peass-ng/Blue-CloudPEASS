@@ -270,7 +270,7 @@ def engine_case(monkeypatch, cid, *, mode="ok", disabled_rule=False, dialect="sw
                     "webhookReceivers": [{"serviceUri": "https://secret.test/?credential=SECRET_LOG_OR_TOKEN"}]}}
                 return {"value": [row]} if path.endswith("/actionGroups") else row
             if path == SCOPE + "/providers/Microsoft.OperationalInsights/workspaces":
-                return {"value": [{"id": WORKSPACE, "properties": {"customerId": CUSTOMER}}]}
+                return {"value": [{"id": WORKSPACE, "type": "Microsoft.OperationalInsights/workspaces", "properties": {"customerId": CUSTOMER}}]}
             return super().request(url, body=body, audience=audience)
     transport = EngineTransport(mode=mode, table=table)
     if verified_tenant is not None:

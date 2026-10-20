@@ -7,6 +7,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import gzip
+import os
+import tempfile
 import json
 from pathlib import Path
 import sys
@@ -175,7 +178,7 @@ def render_documents() -> dict[Path, bytes]:
         return (json.dumps(value, ensure_ascii=False, separators=(",", ":") if compact else None,
                            indent=None if compact else 2) + "\n").encode()
 
-    return {PACK / "runtime_metadata.json": encoded(runtime, compact=True),
+    outputs = {PACK / "runtime_metadata.json": encoded(runtime, compact=True),
             PACK / "native_catalog.json": encoded({"schema_version": "1.0", "evaluator_version": "1.0.0",
                                                     "compliance_source_manifest_sha256": signed, "automation_scope": automation_scope(), "checks": public,
                                                     "archived_checks": [check.public() for check in CHECKS if check.id in exclusions()],
@@ -187,6 +190,43 @@ def render_documents() -> dict[Path, bytes]:
             FRONTEND: encoded(fixture, compact=True)}
 
 
+    # API metadata is captured only after the complete native registry and
+    # reviewed packs above have passed their build-time admission checks.
+    from peaso.engine import get_catalog, PROVIDERS, FRAMEWORK_ALIASES
+    from peaso.server.catalog_view import summary as api_summary, frameworks_view
+    from peaso.server.validation import _selector_index
+    from peaso.server.materialized_catalog import MAX_WIRE_BYTES, MAX_DOCUMENT_BYTES, MAX_COMPRESSED_BYTES, SOURCE_PATHS, wire_fits
+    full = get_catalog()
+    compact_summary = dict(api_summary(), privesc_catalog=full["privesc_catalog"])
+    frameworks = frameworks_view()
+    selectors = {provider: dict(zip(("categories", "checks", "frameworks"),
+                                    (sorted(values) for values in _selector_index(provider))))
+                 for provider in PROVIDERS}
+    if [row["id"] for row in compact_summary["checks"]] != [row["id"] for row in full["checks"]]:
+        raise ValueError("API summary/full check order differs")
+    sources = {relative: hashlib.sha256(outputs.get(ROOT / relative, (ROOT / relative).read_bytes())).hexdigest()
+               for relative in sorted(SOURCE_PATHS)}
+    from peaso.checks import CHECK_ALIASES, CHECKS
+    from peaso.checks.catalog import description_for, framework_selector_index, framework_display_names
+    description_ids = native_ids | analysis_ids | set(CHECK_ALIASES)
+    reviewed_descriptions = {cid: description_for(cid) for cid in sorted(description_ids)}
+    document = encoded({"schema_version": 1, "sources": sources, "full": full,
+                        "descriptions": reviewed_descriptions,
+                        "native_kinds": {check.id: [check.provider, check.kind] for check in CHECKS},
+                        "framework_expansion": {key: sorted(values) for key, values in sorted(framework_selector_index().items())},
+                        "framework_display": framework_display_names(), "framework_aliases": FRAMEWORK_ALIASES,
+                        "summary": compact_summary, "frameworks": frameworks, "selectors": selectors}, compact=True)
+    compressed = gzip.compress(document, compresslevel=9, mtime=0)
+    if (len(document) > MAX_DOCUMENT_BYTES or len(compressed) > MAX_COMPRESSED_BYTES
+            or any(not wire_fits(encoded(view, compact=True)) for view in (compact_summary, frameworks))):
+        raise ValueError("Materialized API catalog exceeds bounded package/wire budgets")
+    outputs[PACK / "api_catalog.json.gz"] = compressed
+    outputs[PACK / "api_catalog_manifest.json"] = encoded({"schema_version": 1, "sources": sources,
+        "gzip_sha256": hashlib.sha256(compressed).hexdigest(),
+        "document_sha256": hashlib.sha256(document).hexdigest(), "uncompressed_bytes": len(document)}, compact=True)
+    return outputs
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="Write the reviewed catalog views after all checks pass")
@@ -195,7 +235,14 @@ def main(argv=None) -> int:
     stale = [path for path, payload in outputs.items() if not path.is_file() or path.read_bytes() != payload]
     if args.write:
         for path, payload in outputs.items():
-            path.write_bytes(payload)
+            if path not in stale:
+                continue
+            # Atomic replacement also makes a hardlinked release staging safe.
+            with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as stream:
+                stream.write(payload)
+                temporary = stream.name
+            os.chmod(temporary, 0o644)
+            os.replace(temporary, path)
         print(json.dumps({"written": [str(path.relative_to(ROOT)) for path in stale], "checked": len(outputs)}))
         return 0
     print(json.dumps({"stale": [str(path.relative_to(ROOT)) for path in stale], "checked": len(outputs)}))

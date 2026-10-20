@@ -1,76 +1,76 @@
 {
   "checks": {
     "aws.c2b.directoryservice.shared_accounts_review": {
-      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
-      "source": "peaso/checks/claude2_aws_b_identity.py::ds_shared@441-446",
       "mandatory_external_fields": [
         "trusted_directory_share_accounts"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "source": "peaso/checks/claude2_aws_b_identity.py::ds_shared@441-446"
     },
     "aws.cb.ram.shared_with_accounts_review": {
-      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
-      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314",
       "mandatory_external_fields": [
         "approved_trusted_RAM_accounts"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314"
     },
     "aws.cb.ram.shared_with_organization_units_review": {
-      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
-      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314",
       "mandatory_external_fields": [
         "approved_trusted_RAM_organization_units"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314"
     },
     "aws.cb.ram.shared_with_organizations_review": {
-      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
-      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314",
       "mandatory_external_fields": [
         "approved_trusted_RAM_organizations"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Matching RAM principals produce MANUAL and require a customer-provided trusted list; provider read-only metadata cannot decide organizational approval.",
+      "source": "peaso/checks/claude_aws_b_security.py::_ram.evaluate@303-314"
     },
     "aws.cb.rds.cluster_snapshot_shared_accounts_review": {
-      "reason": "The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
-      "source": "peaso/checks/claude_aws_b_db.py::_snapshots.shared@883-889",
       "mandatory_external_fields": [
         "approved_trusted_snapshot_accounts"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
+      "source": "peaso/checks/claude_aws_b_db.py::_snapshots.shared@883-889"
     },
     "aws.cb.rds.instance_snapshot_shared_accounts_review": {
-      "reason": "The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
-      "source": "peaso/checks/claude_aws_b_db.py::_snapshots.shared@883-889",
       "mandatory_external_fields": [
         "approved_trusted_snapshot_accounts"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "The evaluator emits MANUAL for snapshot shares; deciding which accounts are trusted requires a customer-approved account list. Public sharing has separate native controls.",
+      "source": "peaso/checks/claude_aws_b_db.py::_snapshots.shared@883-889"
     },
     "aws.claude2_a.cloudwatch.cross_account_sharing_role_absent": {
-      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
-      "source": "peaso/checks/claude2_aws_a_misc.py::cross_account_sharing@24-36",
       "mandatory_external_fields": [
         "trusted_cross_account_monitoring_accounts"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "source": "peaso/checks/claude2_aws_a_misc.py::cross_account_sharing@24-36"
     },
     "aws.claude2_a.config.aggregation_authorization_trusted": {
-      "source": "peaso/checks/claude2_aws_a_misc.py::aggregation_authorization@97-101",
-      "reason": "Every external aggregator account requires a MANUAL trust decision; no native approval universe or failing verdict exists.",
       "mandatory_external_fields": [
         "customer_approved_scope_or_trust"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Every external aggregator account requires a MANUAL trust decision; no native approval universe or failing verdict exists.",
+      "source": "peaso/checks/claude2_aws_a_misc.py::aggregation_authorization@97-101"
     },
     "aws.claude2_a.dlm.snapshot_sharing_trusted_accounts": {
-      "source": "peaso/checks/claude2_aws_a_misc.py::dlm_sharing@158-176",
-      "reason": "External target accounts require MANUAL approval against a customer trusted-account list.",
       "mandatory_external_fields": [
         "customer_approved_scope_or_trust"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "External target accounts require MANUAL approval against a customer trusted-account list.",
+      "source": "peaso/checks/claude2_aws_a_misc.py::dlm_sharing@158-176"
     },
     "aws.claude_a.organizations.no_untrusted_delegated_administrators": {
       "mandatory_external_fields": [
@@ -141,12 +141,12 @@
       ]
     },
     "aws.pci.client_vpn.no_authorize_all_groups": {
-      "source": "peaso/checks/compliance_new_sw06.py::_vpn_all_groups@412",
-      "reason": "Evaluation requires a customer-approved exception list approved_authorize_all_groups_endpoint_ids, with no native collector producer.",
       "mandatory_external_fields": [
         "customer_approved_scope_or_trust"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Evaluation requires a customer-approved exception list approved_authorize_all_groups_endpoint_ids, with no native collector producer.",
+      "source": "peaso/checks/compliance_new_sw06.py::_vpn_all_groups@412"
     },
     "aws.pci.cloudfront.min_tls_policy": {
       "mandatory_external_fields": [],
@@ -342,12 +342,12 @@
       "source": "peaso/checks/compliance_new_sw35.py::_registered@507"
     },
     "aws.pci.vpc.antispoofing_ingress": {
-      "source": "peaso/checks/compliance_new_sw44.py::antispoofing@340-341",
-      "reason": "Evaluation requires customer-defined ProtectedInternalCidrs and PCI CdeCidrs; no native collector produces that approved scope.",
       "mandatory_external_fields": [
         "customer_approved_scope_or_trust"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Evaluation requires customer-defined ProtectedInternalCidrs and PCI CdeCidrs; no native collector produces that approved scope.",
+      "source": "peaso/checks/compliance_new_sw44.py::antispoofing@340-341"
     },
     "aws.pci.vpc.approved_egress": {
       "mandatory_external_fields": [],
@@ -529,6 +529,17 @@
       "reason": "Current evaluator needs customer-defined scope, threshold, allowlist, signing trust, or owner applicability to produce its intended verdict. Mandatory fields: required_lightsail_bucket_instance_arns.",
       "source": "peaso/checks/compliance_new_sw06.py::_lightsail_instance_access@455",
       "source_gate_evidence": "mapping = get(_params(index), \"required_lightsail_bucket_instance_arns\", dict)"
+    },
+    "aws_cis_lightsail_ssm_patch_compliance": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "aws.cb.ssm.instance_patch_compliant",
+      "native_alternatives": [
+        "aws.cb.ssm.instance_patch_compliant",
+        "aws.cb.ssm.resource_compliance_summary_compliant"
+      ],
+      "reason": "The exact historical predicate requires Verified LightsailArn-to-SSM managed-node identity and matching PatchState. Native Lightsail GetInstances/GetInstance expose no EC2 or managed-SSM ID, and reviewed SSM SourceType/SourceId APIs provide no immutable Lightsail ARN link. IP addresses, computer names and supportCode are not that identity proof. Exclude this unsupported exact cross-service contract rather than asserting patch compliance from invented SsmMatch fields. Actual SSM managed-node patch controls remain available; this is not an owner-policy input requirement.",
+      "source": "peaso/checks/compliance_new_sw44.py::lightsail_patch; docs/aws-review/field-producers.json::producer_triage"
     },
     "aws_cis_organization_account_guardrails": {
       "mandatory_external_fields": [
@@ -712,12 +723,12 @@
       ]
     },
     "aws_ebs_snapshot_trusted_accounts": {
-      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
-      "source": "peaso/checks/compliance_new_sw06.py::_ebs_trusted@153",
       "mandatory_external_fields": [
         "parameters.trusted_account_ids"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Deciding whether the named external accounts are trusted requires a customer-approved account list; it is not determined from provider read-only inventory.",
+      "source": "peaso/checks/compliance_new_sw06.py::_ebs_trusted@153"
     },
     "aws_ec2_ai_nitro_instance_type": {
       "mandatory_external_fields": [],
@@ -1029,6 +1040,20 @@
           "line": 439
         }
       ]
+    },
+    "aws_nist_ec2_instance_not_publicly_accessible": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "aws.nist.ec2_instance_effective_public_reachability",
+      "native_alternatives": [
+        "aws.nist.ec2_instance_effective_public_reachability",
+        "aws_fedramp_ec2_effective_public_exposure",
+        "aws.claude_a.ec2.instance_no_public_ip",
+        "aws.claude_a.ec2.instance_no_public_ip_not_terminated",
+        "aws_g6_ec2_instance_no_public_ipv6"
+      ],
+      "reason": "The exact signed predicate requires a public path to a listening port and the historical handler requires ListeningPortVerified plus complete listener/target/route/ingress inventories. The available independently validated native model proves only a bounded direct IPv4 configuration allowance, with application_listening=unknown and all_paths_evaluated=false. Neither that positive witness nor its absence settles the old listener contract. PublicReachability assertions in legacy fixtures have no authoritative listener producer. Quarantine this exact historical contract while preserving lineage and keeping the active native configuration alternatives available. This is an unsupported evidence/semantics classification, not an owner-input requirement or a blanket claim that future AWS-native ELB/telemetry proofs are impossible.",
+      "source": "peaso/checks/compliance_new_sw46.py::_ec2_public@396-431; docs/compliance-ledgers/new-checks-aws.json::aws_nist_ec2_instance_not_publicly_accessible"
     },
     "aws_nist_ecs_task_definition_container_environment_no_secret": {
       "mandatory_external_fields": [],
@@ -1437,6 +1462,17 @@
       "source": "peaso/checks/compliance_new_sw03.py::vm_endpoint_protection:479",
       "source_gate_evidence": "_policy(index, endpointProtection).assessmentKey selects the Defender security-assessment row."
     },
+    "azure.cis.enforce_ssl_connection_mysql_server": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforMySQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "mysql_single_server",
+      "retired_resource_type": "Microsoft.DBforMySQL/servers",
+      "retirement_date": "2024-09-17",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
     "azure.cis.entra_activity_diagnostic": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw21.entraDiagnostics.{status,scope}"
@@ -1498,6 +1534,17 @@
       "source": "peaso/checks/compliance_new_sw15.py::workload_keyvault_storage:613",
       "source_gate_evidence": "workload_keyvault_storage calls _evidence(workloadSecrets, dated=True) and _policy(index).approvedVaultUris before evaluating classified secrets."
     },
+    "azure.cis.legacy_infrastructure_double_encryption_postgresql_single_server": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
     "azure.cis.monitor_resource_logging_services_support_it": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw16[ID].{status,scope,resources[resourceId,requiredCategories,requiredCategoryGroups,approvedSinkIds,minRetentionDays]}"
@@ -1506,6 +1553,28 @@
       "reason": "Required log routes and approved destinations are owner defined.",
       "source": "peaso/checks/compliance_new_sw16.py::resource_logging:999",
       "source_gate_evidence": "resource_logging requires a policy resource-ID set equal to the native discovery set, then _log_routes reads required categories, groups, sinks, and retention."
+    },
+    "azure.cis.mysql_single_audit_log_enabled": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforMySQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "mysql_single_server",
+      "retired_resource_type": "Microsoft.DBforMySQL/servers",
+      "retirement_date": "2024-09-17",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.mysql_single_audit_log_events_connection": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/lifecycle/products/azure-database-for-mysql-single-server",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforMySQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "mysql_single_server",
+      "retired_resource_type": "Microsoft.DBforMySQL/servers",
+      "retirement_date": "2024-09-17",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
     },
     "azure.cis.non_privileged_role_assignments_periodically_reviewed": {
       "mandatory_external_fields": [
@@ -1516,6 +1585,94 @@
       "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
       "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
     },
+    "azure.cis.postgresql_single_connection_throttling": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.postgresql_single_log_checkpoints": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.postgresql_single_log_connections": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.postgresql_single_log_disconnections": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.postgresql_single_log_retention_days": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.postgresql_single_no_azure_services_rule": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.postgresql_single_ssl_enforcement": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
+    "azure.cis.private_endpoint_should_mariadb_servers": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/lifecycle/announcements/azure-products-retirement-september-2025",
+      "reason": "The entire AzurePublic service retired before this review. Retained historical definition is not an automated assessment of current supported products.",
+      "retired_resource_kind": "mariadb_server",
+      "retired_resource_type": "Microsoft.DBforMariaDB/servers",
+      "retirement_date": "2025-09-19",
+      "source": "docs/check-review/azure-mariadb-hpc-retirement-20261020.json"
+    },
     "azure.cis.privileged_role_assignments_periodically_reviewed": {
       "mandatory_external_fields": [
         "compliance_policy.sw25.<check_id>|sw25_policy.<check_id>"
@@ -1524,6 +1681,17 @@
       "reason": "Selected source branch has no independent read-only-provider PASS path. SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict",
       "source": "peaso/checks/compliance_new_sw25.py::native_guest_reviews -> _reviews",
       "source_gate_evidence": "SW25 native_guest_reviews does not yield an owner-policy-free PASS for these subjects; _reviews loads per-ID review policy before verdict"
+    },
+    "azure.cis.public_network_access_should_mariadb_servers": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/lifecycle/announcements/azure-products-retirement-september-2025",
+      "reason": "The entire AzurePublic service retired before this review. Retained historical definition is not an automated assessment of current supported products.",
+      "retired_resource_kind": "mariadb_server",
+      "retired_resource_type": "Microsoft.DBforMariaDB/servers",
+      "retirement_date": "2025-09-19",
+      "source": "docs/check-review/azure-mariadb-hpc-retirement-20261020.json"
     },
     "azure.cis.shared_access_signature_tokens_expire_within_hour": {
       "mandatory_external_fields": [
@@ -1551,6 +1719,39 @@
       "reason": "Selected source branch has no independent read-only-provider PASS path. SW33 Unity Catalog branch requires owner Databricks account mapping",
       "source": "peaso/checks/compliance_new_sw33.py::_unity_catalog",
       "source_gate_evidence": "SW33 Unity Catalog branch requires owner Databricks account mapping"
+    },
+    "azure.claude.hpc_cache_cmk": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/lifecycle/announcements/azure-products-retirement-september-2025",
+      "reason": "The entire AzurePublic service retired before this review. Retained historical definition is not an automated assessment of current supported products.",
+      "retired_resource_kind": "hpc_cache",
+      "retired_resource_type": "Microsoft.StorageCache/caches",
+      "retirement_date": "2025-09-30",
+      "source": "docs/check-review/azure-mariadb-hpc-retirement-20261020.json"
+    },
+    "azure.claude.iam_root_custom_role_no_wildcard": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.iam.no_full_custom_role",
+      "native_alternatives": [
+        "azure.iam.no_full_custom_role"
+      ],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles",
+      "reason": "The historical predicate requires a CustomRole with root (/) in assignableScopes. Azure forbids root as a custom-role AssignableScope, so valid native ARM role definitions cannot satisfy this applicability condition. Exclude this impossible exact contract rather than fabricate a role. The existing native custom-role permission control remains automated.",
+      "source": "peaso/checks/claude_azure_identity.py::iam_root_custom_role_no_wildcard; docs/check-review/azure-identity-enforcement-native-20261020.json::root_only_custom_role"
+    },
+    "azure.claude.managed_hsm_audit_logging": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.logging.managed_hsm_audit_destination_declared",
+      "native_alternatives": [
+        "azure.logging.managed_hsm_audit_destination_declared"
+      ],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/migrate-to-azure-storage-lifecycle-policy",
+      "reason": "This exact historical criterion relies on diagnosticSettings.logs[].retentionPolicy.days. Microsoft disabled diagnostic-settings storage retention on2025-09-30; those fields cannot establish current retention. The native declared AuditEvent/storage destination replacement is automated separately without a retention or delivery claim. Current alternative supersedes the narrower Storage-only declaration and accepts native Log Analytics destinations.",
+      "source": "peaso/checks/claude_azure_identity.py::hsm_logging; docs/check-review/azure-database-crypto-backup-1-native-review-20261020.json::hsm_contract_decision"
     },
     "azure.gap.appservice_api_app_latest_tls_version": {
       "mandatory_external_fields": [
@@ -1585,6 +1786,16 @@
       "native_alternative": "Native diagnostic settings support a fixed category/sink rule.",
       "reason": "Category and destination sets are organization policy.",
       "source": "peaso/checks/compliance_new_sw31.py::audit_diagnostic/_diagnostic"
+    },
+    "azure.gap.automation_account_encrypted_with_cmk": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.encryption.automation_cmk_declared",
+      "native_alternatives": [
+        "azure.encryption.automation_cmk_declared"
+      ],
+      "reason": "The exact predecessor additionally requires key-access usability facts not established by the native Automation declaration. The separate replacement checks only the native key reference and attached system identity.",
+      "source": "docs/check-review/azure-application-compute-2-native-review-20261020.json"
     },
     "azure.gap.bot_service_encrypted_with_cmk": {
       "mandatory_external_fields": [
@@ -1919,6 +2130,16 @@
       "source": "peaso/checks/compliance_new_sw19.py::_query_cmk",
       "source_gate_evidence": "SW19 _query_cmk loads per-ID required storage encryption policy"
     },
+    "azure.gap.monitor_log_cluster_encrypted_with_cmk": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.encryption.log_analytics_cluster_cmk_declared",
+      "native_alternatives": [
+        "azure.encryption.log_analytics_cluster_cmk_declared"
+      ],
+      "reason": "The exact historical contract requires usability or coverage beyond these native metadata APIs. The separate alternative checks only its explicitly documented native declaration.",
+      "source": "docs/check-review/azure-native-contract-closure-20261020.json"
+    },
     "azure.gap.mysql_server_private_link_used": {
       "mandatory_external_fields": [
         "context.metadata.sw14Policy.{status,scope,approvedCidrs on public-enabled branch}"
@@ -1965,6 +2186,17 @@
       "source": "peaso/checks/compliance_new_sw14.py::_policy",
       "source_gate_evidence": "The dispatched helper calls _policy for approved CIDRs/keys/trust, or requires supplemental evidence for feature support or testing."
     },
+    "azure.gap.postgresql_server_infrastructure_encryption_enabled": {
+      "cloud": "AzurePublic",
+      "disposition": "retired_native_service",
+      "mandatory_external_fields": [],
+      "official_reference": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-database-postgresql-overview",
+      "reason": "Exact runtime criterion depends on retired Microsoft.DBforPostgreSQL/servers Single Server. Current AzurePublic scans exclude this historical endpoint; Flexible Server criteria and legacy backup restore-point checks remain separate.",
+      "retired_resource_kind": "postgresql_single_server",
+      "retired_resource_type": "Microsoft.DBforPostgreSQL/servers",
+      "retirement_date": "2025-03-28",
+      "source": "docs/check-review/azure-single-server-retirement-20261020.json"
+    },
     "azure.gap.recovery_service_vault_encrypted_with_cmk": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw13.{status,scope,authorized_by,document_id,observed_at,expires_at,checks[ID].approvedKeyUris}",
@@ -1974,6 +2206,26 @@
       "native_alternative": "Native full vault GET can prove absent CMK, bad identity selection, or disabled exact key version.",
       "reason": "Current PASS depends on owner key approval and external authorization evidence.",
       "source": "peaso/checks/compliance_new_sw13.py::vault_customer_key"
+    },
+    "azure.gap.stream_analytics_job_encrypted_with_cmk": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.encryption.stream_analytics_job_storage_cmk_declared",
+      "native_alternatives": [
+        "azure.encryption.stream_analytics_job_storage_cmk_declared"
+      ],
+      "reason": "The exact historical contract requires usability or coverage beyond these native metadata APIs. The separate alternative checks only its explicitly documented native declaration.",
+      "source": "docs/check-review/azure-native-contract-closure-20261020.json"
+    },
+    "azure.other.access_analysis_coverage": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.port.security_center_defender_for_cloudposture_enabled",
+      "native_alternatives": [
+        "azure.port.security_center_defender_for_cloudposture_enabled"
+      ],
+      "reason": "The exact historical contract requires usability or coverage beyond these native metadata APIs. The separate alternative checks only its explicitly documented native declaration.",
+      "source": "docs/check-review/azure-native-contract-closure-20261020.json"
     },
     "azure.other.acr_untagged_retention": {
       "mandatory_external_fields": [
@@ -2273,14 +2525,14 @@
       "source_gate_evidence": "_detection and _enumeration call _policy before any verdict; check policy supplies reviewed query semantics, required sources and observation windows."
     },
     "azure.other.audit_storage_access_logging": {
-      "reason": "The native path requires an owner-approved audit-account classification, expiry and exact scope; these are not derived from provider read-only inventory.",
-      "source": "peaso/collectors/azure_audit_storage_native.py::assess@184-190",
       "mandatory_external_fields": [
         "operator_classification.audit_account_ids",
         "operator_classification.observed_at",
         "operator_classification.expires_at"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "The native path requires an owner-approved audit-account classification, expiry and exact scope; these are not derived from provider read-only inventory.",
+      "source": "peaso/collectors/azure_audit_storage_native.py::assess@184-190"
     },
     "azure.other.azure_activity_anomaly": {
       "mandatory_external_fields": [
@@ -2992,6 +3244,26 @@
       "source": "peaso/checks/compliance_new_sw32.py::_policy",
       "source_gate_evidence": "The dispatched rule calls _policy for owner-selected assessment keys, retention ages, approved viewers/algorithms/peers, or prevention criteria."
     },
+    "azure.review.managed_hsm.audit_storage_destination": {
+      "disposition": "superseded_native_criterion",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.logging.managed_hsm_audit_destination_declared",
+      "native_alternatives": [
+        "azure.logging.managed_hsm_audit_destination_declared"
+      ],
+      "reason": "Replaced by the general native AuditEvent declaration that also accepts valid Log Analytics destinations and resolves native category groups. The narrower Storage-only requirement is retained for history.",
+      "source": "docs/check-review/azure-aks-hsm-final-native-review-20261020.json"
+    },
+    "azure_aks_cluster_10_2_1_1_17_885658f": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.logging.aks_supported_log_categories_destination_declared",
+      "native_alternatives": [
+        "azure.logging.aks_supported_log_categories_destination_declared"
+      ],
+      "reason": "The exact historical contract requires usability or coverage beyond these native metadata APIs. The separate alternative checks only its explicitly documented native declaration.",
+      "source": "docs/check-review/azure-aks-hsm-final-native-review-20261020.json"
+    },
     "azure_aks_cluster_3_5_1_14_247ebcd": {
       "mandatory_external_fields": [
         "context.metadata.compliance_policy.sw26.{status,scope,[ID]}"
@@ -3018,6 +3290,16 @@
       "reason": "Selected source branch has no independent read-only-provider PASS path. SW30 KMS branch needs external network reachability/key proof for PASS",
       "source": "peaso/checks/compliance_new_sw30.py::_kms",
       "source_gate_evidence": "SW30 KMS branch needs external network reachability/key proof for PASS"
+    },
+    "azure_api_management_10_3_1_3_8a50dc0": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure_api_management_appinsights_ensure_is_configured_42aac6a",
+      "native_alternatives": [
+        "azure_api_management_appinsights_ensure_is_configured_42aac6a"
+      ],
+      "reason": "The exact historical contract additionally requires usable logger credentials and functioning tracing, which read-only ARM metadata cannot prove. The existing native alternative checks the configured logger declaration.",
+      "source": "docs/check-review/azure-final-edge-native-closure-20261020.json"
     },
     "azure_api_management_1_2_8_1_ba319cf": {
       "mandatory_external_fields": [
@@ -3357,6 +3639,16 @@
       "reason": "Every account needs an owner-declared retention minimum before the predicate can decide.",
       "source": "peaso/checks/compliance_new_azure_data_protection.py::cosmos_backup_retention/_owner"
     },
+    "azure_devops_project_1_2_8_6_fb0e5a8": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.review.devops.visible_clone_urls_without_userinfo",
+      "native_alternatives": [
+        "azure.review.devops.visible_clone_urls_without_userinfo"
+      ],
+      "reason": "The exact historical criterion requires complete repository visibility beyond security-trimmed read-only API results. The separate native alternative checks only API-visible clone URLs for explicitly selected projects; hidden repositories remain unassessed.",
+      "source": "docs/check-review/azure-final-edge-native-closure-20261020.json"
+    },
     "azure_devops_project_3_5_1_7_dc58423": {
       "mandatory_external_fields": [
         "compliance_policy.sw14.devopsCredentialPolicy.credentialVariableNames",
@@ -3368,12 +3660,12 @@
       "source_gate_evidence": "SW14 DevOps credential branch requires owner variable inventory"
     },
     "azure_devops_project_6_5_5_2_2908a87": {
-      "reason": "Requires a customer-scoped later_stage_deployment_limit policy before evaluating pipeline stages; the intended limit is not derived from provider APIs.",
-      "source": "peaso/checks/compliance_new_sw32.py::_pipelines@416;_policy@290-296",
       "mandatory_external_fields": [
         "compliance_policy.sw32.later_stage_deployment_limit"
       ],
-      "native_alternative": null
+      "native_alternative": null,
+      "reason": "Requires a customer-scoped later_stage_deployment_limit policy before evaluating pipeline stages; the intended limit is not derived from provider APIs.",
+      "source": "peaso/checks/compliance_new_sw32.py::_pipelines@416;_policy@290-296"
     },
     "azure_diagnostic_setting_11_5_2_3_7959930": {
       "mandatory_external_fields": [
@@ -3503,6 +3795,16 @@
       "native_alternative": "Native NSG paths can support a fixed high-risk-port rule.",
       "reason": "Allowed ports are organization-specific.",
       "source": "peaso/checks/compliance_new_sw31.py::nsg_ports"
+    },
+    "azure_pci_10_2_1_1_16": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternative": "azure.logging.aci_log_analytics_declared",
+      "native_alternatives": [
+        "azure.logging.aci_log_analytics_declared"
+      ],
+      "reason": "The exact predecessor requires per-container log-delivery/workspace evidence unavailable from the native container-group configuration. The separate replacement checks only the native Log Analytics customer UUID and log type declaration.",
+      "source": "docs/check-review/azure-application-compute-2-native-review-20261020.json"
     },
     "azure_pci_10_2_1_1_25": {
       "mandatory_external_fields": [
@@ -4803,6 +5105,33 @@
       "source": "peaso/checks/batch_remaining_gcp.py::c5_workforce_federation@3233",
       "source_gate_evidence": "customer workforce provider mapping; semantic family: c5_workforce_federation@3233, _workforce@3019, _strings@2795, _inventory@3246, _policy@2774, _scope@2738, _member@2768, _signed@3180"
     },
+    "gcp_certificate_renewal_30_days": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternatives": [
+        "gcp_certificate_validity"
+      ],
+      "reason": "The exact contract requires complete deployed replacement-certificate history, including deployedAt and a timely replacement before the expiry threshold. Certificate Manager read-only certificates.list/get exposes current usedBy references and certificate state/expiry, not historical deployment timestamps or replacement deployment completeness; do not fabricate deployment or treat current references as timely renewal proof.",
+      "source": "peaso/checks/batch_remaining_gcp.py::_cert"
+    },
+    "gcp_certificate_rotation_180_days": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternatives": [
+        "gcp_certificate_validity"
+      ],
+      "reason": "The exact historical-deployment contract requires a verified deployed-certificate association before evaluating rotation age. Native certificate createTime is resource creation and managed renewal can replace the leaf without recreating that resource; current usedBy references do not provide the required historical deployment/rotation record. Archive this literal contract rather than invent deployment status or claim effective rotation from resource age.",
+      "source": "peaso/checks/batch_remaining_gcp.py::_cert"
+    },
+    "gcp_certificate_rotation_90_days": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternatives": [
+        "gcp_certificate_validity"
+      ],
+      "reason": "The exact contract requires deployed leaf issuance age plus a verified deployment association. The current read-only native producer returns current usedBy references and redacts PEM; it does not provide a reviewed deployed-leaf notBefore/history projection. Do not manufacture deployment records or force a positive with custom PEM metadata; a new safe issuance observer would need a separate reviewed contract.",
+      "source": "peaso/checks/batch_remaining_gcp.py::_cert"
+    },
     "gcp_cloud_armor_cidr_deny": {
       "mandatory_external_fields": [],
       "native_alternative": null,
@@ -4895,6 +5224,20 @@
       "native_alternative": null,
       "reason": "approved KMS key-version algorithm set",
       "source": "peaso/checks/batch_remaining_gcp.py::_load_08.<locals>._approved_algorithm@236"
+    },
+    "gcp_lb_server_header_rewrite": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternatives": [],
+      "reason": "The literal contract requires every effective route of an internet-facing URL map to replace the Server header with the custom value lb. Native URL maps provide declarations but the producer supplies neither public serving topology nor complete inherited effective-header routes, and no provider requirement establishes the customer-specific Server=lb convention. Exclude this unautomatable exact custom contract rather than fabricate internetFacing/effectiveRoutes markers or customer approval.",
+      "source": "peaso/checks/batch_remaining_gcp.py::lb_server_header_rewrite"
+    },
+    "gcp_logging_detect_t1110": {
+      "disposition": "unsupported_exact_contract",
+      "mandatory_external_fields": [],
+      "native_alternatives": [],
+      "reason": "The historical project-scoped predicate requires synthetic audit_coverage.complete/authentication_events, authenticationEvent and a nonzero status.code for failed logins. The native project audit adapter selects unrelated RPC methods and produces none of those classification/completeness fields. Official Workspace login failures are organization-scoped login.googleapis.com / google.login.LoginService.loginFailure Data Access entries, not the project/status schema. A permission-denied RPC does not establish a failed login. Archive this unsupported exact contract instead of fabricating classification or a clean scan; a future organization-level login observer needs a separately reviewed native producer/consumer and cannot be claimed here.",
+      "source": "peaso/checks/compliance_new_sw50.py::_audit_check; peaso/collectors/gcp_audit_native.py::AuditGCPCollector; docs/gcp-review/authentication-contract-review.json"
     },
     "gcp_logging_detect_t1119": {
       "mandatory_external_fields": [
@@ -5980,38 +6323,6 @@
       "native_alternative": "Service inventory and type are native; the selected identity set is owner supplied.",
       "reason": "Mandatory owner policy controls the pass/fail target; API data alone cannot decide it.",
       "source": "peaso/checks/compliance_new_k8s_owner_policy.py::selected_loadbalancer_type"
-    },
-    "aws_nist_ec2_instance_not_publicly_accessible": {
-      "reason": "The exact signed predicate requires a public path to a listening port and the historical handler requires ListeningPortVerified plus complete listener/target/route/ingress inventories. The available independently validated native model proves only a bounded direct IPv4 configuration allowance, with application_listening=unknown and all_paths_evaluated=false. Neither that positive witness nor its absence settles the old listener contract. PublicReachability assertions in legacy fixtures have no authoritative listener producer. Quarantine this exact historical contract while preserving lineage and keeping the active native configuration alternatives available. This is an unsupported evidence/semantics classification, not an owner-input requirement or a blanket claim that future AWS-native ELB/telemetry proofs are impossible.",
-      "source": "peaso/checks/compliance_new_sw46.py::_ec2_public@396-431; docs/compliance-ledgers/new-checks-aws.json::aws_nist_ec2_instance_not_publicly_accessible",
-      "mandatory_external_fields": [],
-      "native_alternative": "aws.nist.ec2_instance_effective_public_reachability",
-      "disposition": "unsupported_exact_contract",
-      "native_alternatives": [
-        "aws.nist.ec2_instance_effective_public_reachability",
-        "aws_fedramp_ec2_effective_public_exposure",
-        "aws.claude_a.ec2.instance_no_public_ip",
-        "aws.claude_a.ec2.instance_no_public_ip_not_terminated",
-        "aws_g6_ec2_instance_no_public_ipv6"
-      ]
-    },
-    "aws_cis_lightsail_ssm_patch_compliance": {
-      "reason": "The exact historical predicate requires Verified LightsailArn-to-SSM managed-node identity and matching PatchState. Native Lightsail GetInstances/GetInstance expose no EC2 or managed-SSM ID, and reviewed SSM SourceType/SourceId APIs provide no immutable Lightsail ARN link. IP addresses, computer names and supportCode are not that identity proof. Exclude this unsupported exact cross-service contract rather than asserting patch compliance from invented SsmMatch fields. Actual SSM managed-node patch controls remain available; this is not an owner-policy input requirement.",
-      "source": "peaso/checks/compliance_new_sw44.py::lightsail_patch; docs/aws-review/field-producers.json::producer_triage",
-      "mandatory_external_fields": [],
-      "native_alternative": "aws.cb.ssm.instance_patch_compliant",
-      "native_alternatives": [
-        "aws.cb.ssm.instance_patch_compliant",
-        "aws.cb.ssm.resource_compliance_summary_compliant"
-      ],
-      "disposition": "unsupported_exact_contract"
-    },
-    "gcp_logging_detect_t1110": {
-      "reason": "The historical project-scoped predicate requires synthetic audit_coverage.complete/authentication_events, authenticationEvent and a nonzero status.code for failed logins. The native project audit adapter selects unrelated RPC methods and produces none of those classification/completeness fields. Official Workspace login failures are organization-scoped login.googleapis.com / google.login.LoginService.loginFailure Data Access entries, not the project/status schema. A permission-denied RPC does not establish a failed login. Archive this unsupported exact contract instead of fabricating classification or a clean scan; a future organization-level login observer needs a separately reviewed native producer/consumer and cannot be claimed here.",
-      "source": "peaso/checks/compliance_new_sw50.py::_audit_check; peaso/collectors/gcp_audit_native.py::AuditGCPCollector; docs/gcp-review/authentication-contract-review.json",
-      "mandatory_external_fields": [],
-      "disposition": "unsupported_exact_contract",
-      "native_alternatives": []
     }
   },
   "schema_version": "1.0"

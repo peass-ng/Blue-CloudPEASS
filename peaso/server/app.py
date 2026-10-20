@@ -28,7 +28,8 @@ from peaso.storage.runtime import stores, WorkflowDispatcher
 from peaso.storage.reports import finding_summary
 from .config import Settings
 from .models import ConnectorCreate, ConnectorCheck, ConnectorPatch, ScanCreate, AttackLogSource, AttackLogRun, ScheduleCreate, SchedulePatch, ReachabilityQuery, ReachabilityBatchQuery, ReachabilityMatrixQuery, ReachabilityGridQuery, WorkspaceCreate, WorkspaceInvite, WorkspaceRole
-from .validation import validate_connector, validate_selectors, auth_capabilities, COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL, EXTERNAL_ID_PREFIX
+from .materialized_catalog import validate_selectors
+from .validation import validate_connector, auth_capabilities, COLLECTOR_ROLE_ARN, CUSTOMER_ROLE_TEMPLATE_URL, EXTERNAL_ID_PREFIX
 
 
 def _safe_api_failure_details(exc):
@@ -79,6 +80,11 @@ def _credential_target_coverage(bundle):
 
 
 def create_app(settings=None, *, store=None, authenticator=None, artifacts=None):
+    # Intake needs the signed ID roster, never the native evaluator registry.
+    from .native_policy_validation_static_20261020 import install as install_static_review_validation
+    install_static_review_validation()
+    from peaso.presentation_metadata_20261020 import install as install_static_finding_types
+    install_static_finding_types()
     settings = settings or Settings()
     if store is None or artifacts is None:
         runtime_store, runtime_artifacts = stores(settings)
@@ -303,7 +309,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
     def with_labels(finding, labels):
         if "frameworks" in finding or not labels:
             return finding
-        from peaso.engine import finding_frameworks
+        from .report_projection_static_20261020 import finding_frameworks
         return dict(finding, frameworks=finding_frameworks(finding, labels))
 
     def check_fields(bundle):
@@ -313,25 +319,27 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     def with_meta(finding, meta, bundle=None):
         from peaso.finding_types import annotate
-        from peaso.check_services import finding_service
         from peaso.ai.finding_reviews import apply_review
         finding = apply_review(finding, (bundle or {}).get("_finding_reviews", {}), meta)
         # Per-check fields are hydrated before any filter, facet or summary so every consumer sees full rows.
         if not meta or finding.get("check_id") not in meta:
             result = annotate(finding)
+            from .materialized_catalog import finding_service
             service = finding_service(result)
             return dict(result, service=service) if service else result
-        from peaso.engine import hydrate_finding
+        from .report_projection_static_20261020 import hydrate_finding
         bundle = bundle or {}
         result = annotate(hydrate_finding(finding, None, meta, bundle.get("check_meta_encoding"),
                                bundle.get("remediation_templates")))
+        from .materialized_catalog import finding_service
         service = finding_service(result)
         return dict(result, service=service) if service else result
 
     def with_remediation(finding, bundle):
-        from peaso.checks.catalog import description_for
+        from .materialized_catalog import description_for
         from peaso.finding_presentation import refresh_finding_presentation, evaluator_contract_fingerprint
-        from peaso.remediation import bind_command, exposure_details, template as current_template
+        from .remediation_presentation_static_20261020 import bind_command, exposure_details
+        from .materialized_catalog import template_for as current_template
         finding = with_meta(finding, check_fields(bundle), bundle)
         cid = finding.get("check_id")
         templates = bundle.get("remediation_templates") or {}
@@ -364,7 +372,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
                 archived_template=archived, current_evaluator_contract=evaluator_contract_fingerprint())
         if not allow_summary:
             return finding
-        from peaso.finding_observation import evidence_summary
+        from .evidence_static import evidence_summary
         observation = (finding.get("ai_review") or {}).get("reason") or evidence_summary(finding)
         if observation:
             finding = dict(finding, evidence_summary=observation, evidence_summary_format="natural-language-v2")
@@ -923,8 +931,8 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
             return scope
 
         requested_frameworks = {item.strip().lower() for item in framework.split(",")} if framework else set()
-        from peaso.engine import FRAMEWORK_ALIASES
-        from peaso.checks.catalog import expand_framework_selectors
+        from .materialized_catalog import framework_aliases, expand_framework_selectors
+        FRAMEWORK_ALIASES = framework_aliases()
         requested_frameworks.update(FRAMEWORK_ALIASES.get(item, item).lower() for item in tuple(requested_frameworks))
         # Family labels and canonical names also select their checklist versions (ids) and vice versa.
         requested_frameworks = {str(item).lower() for item in expand_framework_selectors(requested_frameworks)}
@@ -940,7 +948,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
         def field(value, name):
             if name == "service":
-                from peaso.check_services import finding_service
+                from .materialized_catalog import finding_service
                 corrected = finding_service(value)
                 if corrected:
                     return corrected
@@ -1547,7 +1555,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         for key in ("outgoing", "incoming", "findings"):
             card[key + "_total"] = len(card.get(key, []))
             card[key] = card.get(key, [])[:500]
-        from peaso.engine import privesc_technique_details
+        from .report_projection_static_20261020 import privesc_technique_details
         from peaso.privesc.versioned_catalog import card_technique_ids, lookup_entries
         binding = bundle.get("privesc_catalog")
         if binding is None and isinstance(bundle.get("summary"), dict) and "privesc_catalog" in bundle["summary"]:
@@ -1887,17 +1895,22 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
 
     @app.get("/api/catalog/frameworks")
     def catalog_frameworks(request: Request, user=Depends(identity)):
-        from .catalog_view import frameworks_view
+        from .materialized_catalog import frameworks_view
         return catalog_response(request, "frameworks", frameworks_view)
 
+    @app.get("/api/catalog/checks/{check_id}")
+    def catalog_check(check_id: str, request: Request, user=Depends(identity)):
+        from .materialized_catalog import bounded_response, check_detail
+        return bounded_response(request, check_detail(check_id))
+
     @app.get("/api/catalog")
-    def catalog(request: Request, view: Literal["full", "summary"] = "full", user=Depends(identity)):
+    def catalog(request: Request, view: Literal["full", "summary"] = "full",
+                offset: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=500), user=Depends(identity)):
         if view == "summary":
-            from .catalog_view import summary
-            from peaso.privesc.versioned_catalog import current_binding
-            return catalog_response(request, "summary", lambda: dict(summary(), privesc_catalog=current_binding()))
-        from peaso.engine import get_catalog
-        return catalog_response(request, "full", get_catalog)
+            from .materialized_catalog import summary
+            return catalog_response(request, "summary", summary)
+        from .materialized_catalog import bounded_response, full_page
+        return bounded_response(request, full_page(offset, limit))
 
     # Built frontend is served by the same API origin when available.
     static = Path(__file__).resolve().parents[1] / "frontend_dist"

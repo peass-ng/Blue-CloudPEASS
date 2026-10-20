@@ -1,10 +1,12 @@
 """Metadata-only key/encryption/date declarations at the captured snapshot clock."""
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from ipaddress import ip_network
 import re
 from . import register, result, unknown
 from .facts import get, optional, omitted, complete_items, Unavailable, list_of_objects
 from .fixtures import CASES
+from .gcp_api_key_service_names_native import canonical_target
 
 IDS, REFERENCE_SPECS = [], {}
 
@@ -86,12 +88,9 @@ check("kms_key_rotated_within_90_day", "kms_key", kms_period,
 def api_targets(item, index):
     restrictions = get(item, "restrictions", dict)
     targets = optional(restrictions, "apiTargets", [], list)
-    for target in list_of_objects(targets):
-        service = get(target, "service", str)
-        if not service:
-            return unknown("empty API restriction service")
-    return result(not targets or any(target["service"] == "cloudapis.googleapis.com" for target in targets),
-        restricted_services=[target["service"] for target in targets])
+    names = [canonical_target(get(target, "service", str)) for target in list_of_objects(targets)]
+    return result(not names or "cloudapis.googleapis.com" in names,
+        restricted_services=names)
 
 
 check("iam_api_key_restricts_apis", "api_key", api_targets,
@@ -115,6 +114,11 @@ def caller_restrictions(item, index):
     elif any(not isinstance(value, str) for value in allowed):
         raise Unavailable("malformed caller restriction strings")
     broad = any(value in ("0.0.0.0", "0.0.0.0/0", "::", "::0", "::/0", "*", "*.[TLD]/*", "*.[TLD]") for value in allowed if isinstance(value, str))
+    if mode == "serverKeyRestrictions":
+        # Parse every entry before deciding: malformed siblings cannot be
+        # hidden by an earlier universal range or a restricted address.
+        networks = [ip_network(value, strict=False) for value in allowed]
+        broad = broad or any(network.prefixlen == 0 for network in networks)
     return result(not allowed or broad, restriction_mode=mode, allowed=allowed,
         semantics="Caller restriction declarations; no key string or request execution is collected")
 

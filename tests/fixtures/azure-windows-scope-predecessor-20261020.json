@@ -1,0 +1,27 @@
+{
+  "commit": "f1ced4267df3a0e0b17375f3ed9fe98d574f784a",
+  "dependencies": {
+    "enum": {
+      "module": "peaso.checks.claude_azure_common",
+      "name": "enum",
+      "source_sha256": "e1f48ae98148565ba229fecb1160d8521635732fc33cb1df1b6d531a932f1f0c"
+    },
+    "get": {
+      "module": "peaso.checks.facts",
+      "name": "get",
+      "source_sha256": "ff9a4dba8caaa58473b4ef63c99d8f1fd95bdd1f5fde515615e456aa343945fe"
+    },
+    "result": {
+      "module": "peaso.checks",
+      "name": "result",
+      "source_sha256": "6a55a0665a792d876b6971022144f05ebd47a4d87c98bc9459daa70165845f1d"
+    }
+  },
+  "functions": {
+    "_os_type": "def _os_type(item, path=\"properties.storageProfile.osDisk.osType\"):\n    return enum(item, path, (\"Windows\", \"Linux\"))\n",
+    "vm_windows_secure_boot": "def vm_windows_secure_boot(item, index):\n    os_type = _os_type(item)\n    if os_type != \"Windows\":\n        return \"NOT_APPLICABLE\", {\"os_type\": os_type}\n    image = get(item, \"properties.storageProfile\", dict).get(\"imageReference\")\n    offer = image.get(\"offer\") if isinstance(image, dict) else None\n    if isinstance(offer, str) and \"windows\" not in offer.lower():\n        return \"NOT_APPLICABLE\", {\"image_offer\": offer}\n    security_type = enum(item, \"properties.securityProfile.securityType\", (\"TrustedLaunch\", \"ConfidentialVM\", \"Standard\"))\n    if security_type == \"Standard\":\n        return result(True, security_type=security_type)\n    boot = get(item, \"properties.securityProfile.uefiSettings.secureBootEnabled\", bool)\n    return result(not boot, security_type=security_type, secure_boot=boot)\n"
+  },
+  "path": "peaso/checks/claude_azure_compute.py",
+  "schema": 1,
+  "source_sha256": "df3c93ea9fb3a4492c994ac3a297fe4172483a1b60049d07298eba3979dc76ce"
+}

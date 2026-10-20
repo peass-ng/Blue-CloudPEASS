@@ -284,7 +284,12 @@ def test_all_reviewed_kind_paths_are_native_sdk_members():
     for kind, paths in MANUAL_PATHS.items():
         service, operation, expression = aws.SPECS[kind]
         shape = fields.shape_at(models.output(service, operation), expression)
-        assert kind not in aws.FETCHERS and kind not in aws.ENRICHERS
+        assert kind not in aws.FETCHERS
+        if kind == 'vpc':
+            from peaso.collectors.aws_network_inventory import vpc_dns_attributes
+            assert aws.ENRICHERS[kind] is vpc_dns_attributes
+        else:
+            assert kind not in aws.ENRICHERS
         assert all(fields.shape_at(shape, path) is not None for path in paths)
     permission = models.session.get_service_model('ec2').shape_for('IpPermission')
     assert 'protocol number' in permission.members['IpProtocol'].documentation
@@ -355,6 +360,12 @@ def collect_sdk(sdk, payloads):
     for kind, row in sorted(payloads.items()):
         _, operation, expression = aws.SPECS[kind]
         ec2.add_response(operation, {expression: [row]}, {})
+        if kind == 'vpc':
+            for attribute, output in [('enableDnsSupport', 'EnableDnsSupport'),
+                                      ('enableDnsHostnames', 'EnableDnsHostnames')]:
+                ec2.add_response('describe_vpc_attribute',
+                                 {'VpcId': row['VpcId'], output: {'Value': True}},
+                                 {'VpcId': row['VpcId'], 'Attribute': attribute})
     return aws.collect({'provider': 'aws', 'scopes': [ACCOUNT], 'options': {'regions': [REGION], 'service_concurrency': 1, 'retry_attempts': 1}}, list(payloads))
 
 
@@ -376,6 +387,13 @@ def test_sdk_network_kind_projection_and_consumer(sdk, kind):
     env = next(e for e in snap['collections'] if e['type'] == kind and e['status'] == 'collected')
     item, = env['items']
     assert all(item[key] == value for key, value in row.items())
+    if kind == 'vpc':
+        assert item['NetworkDnsAttributes'] == [
+            {'VpcId': row['VpcId'], 'EnableDnsSupport': {'Value': True}},
+            {'VpcId': row['VpcId'], 'EnableDnsHostnames': {'Value': True}},
+        ]
+        assert all(item['_coverage'][key]['status'] == 'collected'
+                   for key in ('enableDnsSupport', 'enableDnsHostnames'))
     expected = 'FAIL' if kind == 'security_group' else 'PASS'  # SG declares world HTTPS.
     assert evaluate_snapshot(snap, checks=[cid])['findings'][0]['status'] == expected
 

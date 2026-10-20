@@ -32,14 +32,26 @@ DOCS = ["https://kubernetes.io/docs/concepts/security/pod-security-standards/",
 
 
 def pod_spec(item, kind):
+    guard(item)
+    expected_kind = {"pod": "Pod", "deployment": "Deployment", "daemonset": "DaemonSet",
+        "statefulset": "StatefulSet", "replicaset": "ReplicaSet", "replicationcontroller": "ReplicationController",
+        "job": "Job", "cronjob": "CronJob", "podtemplate": "PodTemplate"}[kind]
+    version = "apps/v1" if kind in ("deployment", "daemonset", "statefulset", "replicaset") else "batch/v1" if kind in ("job", "cronjob") else "v1"
+    for field, expected in (("kind", expected_kind), ("apiVersion", version)):
+        if field in item and get(item, field, str) != expected:
+            raise Unavailable("workload type conflicts with selected native inventory")
     spec = get(item, KIND_PATHS[kind], dict)
     rows = list(list_of_objects(get(spec, "containers", list)))
     if not rows:
         raise Unavailable("PodSpec requires at least one regular container")
     for key in ("initContainers", "ephemeralContainers"):
         rows += list_of_objects(optional(spec, key, [], list))
+    names = set()
     for row in rows:
-        get(row, "name", str)
+        name = get(row, "name", str)
+        if not name or len(name) > 63 or re.fullmatch(r"[a-z0-9](?:[-a-z0-9]*[a-z0-9])?", name) is None or name in names:
+            raise Unavailable("container name is malformed or ambiguous")
+        names.add(name)
     return spec, rows
 
 
@@ -68,10 +80,7 @@ def quantity(value):
 
 
 def evaluate_predicate(item, kind, predicate):
-    if predicate in ("host_namespaces", "host_network", "pod_runtime_default_seccomp", "explicit_serviceaccount"):
-        spec = get(item, KIND_PATHS[kind], dict)
-    else:
-        spec, rows = pod_spec(item, kind)
+    spec, rows = pod_spec(item, kind)
     if predicate == "host_namespaces":
         observed, unavailable = {}, []
         for field in ("hostPID", "hostIPC"):
@@ -101,8 +110,21 @@ def evaluate_predicate(item, kind, predicate):
         return result(not bool(value), declared_service_account=value)
     violations = []
     uncertain_containers = []
+    excluded_containers = []
     for container in rows:
         try:
+            ephemeral = any(container is row for row in spec.get("ephemeralContainers", []))
+            init = any(container is row for row in spec.get("initContainers", []))
+            if predicate in ("readiness_probe", "liveness_probe", "cpu_limit", "cpu_request", "memory_limit", "memory_request") and ephemeral:
+                excluded_containers.append(container["name"])
+                continue
+            if predicate in ("readiness_probe", "liveness_probe") and init:
+                restart = optional(container, "restartPolicy", None)
+                if restart not in (None, "Always"):
+                    raise Unavailable("unrecognized init container restart policy")
+                if restart is None:
+                    excluded_containers.append(container["name"])
+                    continue
             context = (optional(container, "securityContext", {}, dict)
                        if predicate in ("privileged", "privilege_escalation", "readonly_root", "declared_nonroot",
                                         "context_present", "container_runtime_default_seccomp", "no_added_capabilities",
@@ -140,7 +162,11 @@ def evaluate_predicate(item, kind, predicate):
                     quantity(get(values, resource))
             elif predicate in ("readiness_probe", "liveness_probe"):
                 key = "readinessProbe" if predicate == "readiness_probe" else "livenessProbe"
-                optional(container, key, None, dict)
+                if key in container or key in container.get("_coverage", {}):
+                    probe = get(container, key, dict)
+                    handlers = [field for field in ("exec", "httpGet", "tcpSocket", "grpc") if field in probe]
+                    if len(handlers) != 1 or not get(probe, handlers[0], dict):
+                        raise Unavailable("probe requires one native action declaration")
                 failed = key not in container
             elif predicate == "no_host_ports":
                 try:
@@ -182,14 +208,14 @@ def evaluate_predicate(item, kind, predicate):
                             raise Unavailable("invalid image pull policy")
                         # Kubernetes defaults untagged/latest images to Always;
                         # pinned tags/digests default to IfNotPresent.
-                        failed = policy != "Always" if policy is not None else tagged
+                        failed = (policy != "Always" if predicate == "always_pull" or policy is not None else tagged)
                         # A SHA256 digest is content-addressed: IfNotPresent can only run the
                         # pinned bytes, so it satisfies the intent of an Always pull for both
                         # variants. Never still trusts whatever the node cached under that name.
                         immutable = bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9./:_-]*@sha256:[0-9a-fA-F]{64}", image))
                         if "@" in image and not immutable:
                             raise Unavailable("unrecognized or malformed content digest reference")
-                        if immutable and policy in (None, "IfNotPresent", "Always"):
+                        if predicate == "content_digest_or_always_pull" and immutable and policy in (None, "IfNotPresent", "Always"):
                             failed = False
             else:
                 raise ValueError("unreviewed workload predicate")
@@ -201,6 +227,7 @@ def evaluate_predicate(item, kind, predicate):
         raise Unavailable("container declaration unavailable: " + ", ".join(uncertain_containers))
     return result(bool(violations), containers_needing_review=violations,
         assessed_container_classes=["containers", "initContainers", "ephemeralContainers"],
+        containers_excluded_by_native_applicability=excluded_containers,
         semantics="Declared native configuration; admission, inheritance and runtime state are not inferred")
 
 

@@ -1,0 +1,34 @@
+{
+  "azure.review.storage.blocking_sas_expiry_policy_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "The SAS policy declares Block for intervals longer than 3.00:00:00. This checks the declared policy, not issued tokens or SAS types exempt from its enforcement.",
+        "sas_expiry_policy_declared": true,
+        "expiration_action": "Block",
+        "maximum_interval_seconds": 259200,
+        "token_issuance_verified": false
+      },
+      "summary": "The SAS policy declares Block for intervals longer than 3.00:00:00. This checks the declared policy, not issued tokens or SAS types exempt from its enforcement."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "The SAS policy declares Log for intervals longer than 3.00:00:00; out-of-policy requests remain allowed. This checks the declared policy, not issued tokens or SAS types exempt from its enforcement.",
+        "sas_expiry_policy_declared": true,
+        "expiration_action": "Log",
+        "maximum_interval_seconds": 259200,
+        "token_issuance_verified": false
+      },
+      "summary": "The SAS policy declares Log for intervals longer than 3.00:00:00; out-of-policy requests remain allowed. This checks the declared policy, not issued tokens or SAS types exempt from its enforcement."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The native storage-account identity, full read or SAS policy fields could not be established.",
+        "token_issuance_verified": false
+      },
+      "summary": "The native storage-account identity, full read or SAS policy fields could not be established."
+    }
+  ]
+}

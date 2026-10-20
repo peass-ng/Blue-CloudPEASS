@@ -1,0 +1,456 @@
+{
+  "aws": {
+    "aws.review.lambda.selected_environment_secret_indicators": [
+      {
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literal_environment_only",
+          "engines": [
+            {
+              "engine": "kingfisher",
+              "status": "complete",
+              "version": "1.4.0"
+            },
+            {
+              "engine": "trufflehog",
+              "status": "complete",
+              "version": "3.92.5"
+            }
+          ],
+          "variable_count": 1,
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Lambda environment variables. Coverage is limited to the observed $LATEST literal configuration."
+        },
+        "summary": "Both offline detectors found no supported secret in selected Lambda environment variables. Offline checks detect potential credential leaks."
+      },
+      {
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "7521715afa1ef367c3e84d2616c8032f09398e6f412498ac4d0e3a7d7eda576c",
+              "locations": [
+                {
+                  "line": 1,
+                  "path": "lambda_selected_environment:07f6e98dfca17d96e26bfd84599011ba106ddf1ef174fdb70b5d1be62906d451.variables"
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literal_environment_only",
+          "engines": [
+            {
+              "engine": "kingfisher",
+              "status": "complete",
+              "version": "1.4.0"
+            },
+            {
+              "engine": "trufflehog",
+              "status": "complete",
+              "version": "3.92.5"
+            }
+          ],
+          "variable_count": 1,
+          "observed": "A likely secret was detected in selected Lambda environment variables. The value is hidden; offline detection did not validate the credential."
+        },
+        "summary": "A likely secret was detected in selected Lambda environment variables. Offline checks detect potential credential leaks."
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Lambda environment variables were disabled, unreadable, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        },
+        "summary": "Selected Lambda environment variables were disabled, unreadable, unsupported, incomplete or unbound. Secret absence could not be assessed. The check remains undetermined. Offline checks detect potential credential leaks."
+      }
+    ]
+  },
+  "gcp": {},
+  "azure": {
+    "azure.review.app_service.selected_app_settings_secret_indicators": [
+      {
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "bytes": 12,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "literals"
+            }
+          ],
+          "source_requests": [
+            "app-settings-read-1",
+            "app-settings-read-2"
+          ],
+          "literal_count": 1,
+          "reference_count": 0,
+          "observed": "Both offline detectors completed without detecting a supported secret in selected literal app settings. Coverage is limited to these observed literals; Key Vault references were not dereferenced."
+        }
+      },
+      {
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "1e62eea1ef9deb7aef9b41eaf3741e21bc236c6178d75c9ae3d0ee2be2de4bad",
+              "locations": [
+                {
+                  "line": 1,
+                  "path": "app_service_selected_settings:18b9c034b066aeb413dc26dc8e288c9604e1ead13a15676614fecbfbb982ee87.literals"
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "bytes": 40,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "literals"
+            }
+          ],
+          "source_requests": [
+            "app-settings-read-1",
+            "app-settings-read-2"
+          ],
+          "literal_count": 1,
+          "reference_count": 0,
+          "observed": "A likely secret was detected in selected literal app settings. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected literal app settings were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      }
+    ],
+    "azure.review.acr.selected_image_secret_indicators": [
+      {
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_image_content_only",
+          "parts": [
+            {
+              "bytes": 415,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "manifest"
+            },
+            {
+              "bytes": 234,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "config"
+            },
+            {
+              "bytes": 12,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "layer-1.member-1"
+            }
+          ],
+          "source_requests": [
+            "acr-read-1",
+            "acr-read-2",
+            "acr-read-3",
+            "acr-read-4",
+            "acr-read-5",
+            "acr-read-6",
+            "acr-read-7",
+            "acr-read-8"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in the selected immutable ACR image. Coverage is limited to the observed manifest, config and supported layer files."
+        }
+      },
+      {
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "841ee37a1338df686d8f665435f17d06c592c6289c4a30f6a044c903469f4a87",
+              "locations": [
+                {
+                  "line": 1,
+                  "path": "acr_selected_image:772596340296d9823f80306947f337dfcfdeaae84bb61637ae136714e6ef6880.layer-1.member-1"
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_image_content_only",
+          "parts": [
+            {
+              "bytes": 415,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "manifest"
+            },
+            {
+              "bytes": 234,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "config"
+            },
+            {
+              "bytes": 40,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "layer-1.member-1"
+            }
+          ],
+          "source_requests": [
+            "acr-read-1",
+            "acr-read-2",
+            "acr-read-3",
+            "acr-read-4",
+            "acr-read-5",
+            "acr-read-6",
+            "acr-read-7",
+            "acr-read-8"
+          ],
+          "observed": "A likely secret was detected in a selected immutable ACR image. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "The selected ACR image was disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      }
+    ]
+  },
+  "k8s": {
+    "k8s.review.selected_literals.secret_indicators": [
+      {
+        "status": "PASS",
+        "evidence": {
+          "secret_leaks": [],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "bytes": 120,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "literals"
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "Both offline detectors completed without detecting a supported secret in selected Kubernetes literals. Coverage is limited to the observed Pod and ConfigMap literals; references were not dereferenced."
+        }
+      },
+      {
+        "status": "FAIL",
+        "evidence": {
+          "secret_leaks": [
+            {
+              "detectors": [
+                {
+                  "engine": "kingfisher",
+                  "rule": "betterleaks.github-pat"
+                },
+                {
+                  "engine": "trufflehog",
+                  "rule": "Github"
+                }
+              ],
+              "fingerprint": "8cf0f5a2013e91bd6929aadf53c8501c56100294f00e706b0d4098eab324cf3d",
+              "locations": [
+                {
+                  "line": 10,
+                  "path": "k8s_selected_literals:3cda7d7edc31533050a3a1f169d8d512788f9d693f34884d70c04445be52c0ae.literals"
+                }
+              ]
+            }
+          ],
+          "credential_validation": "not_attempted",
+          "complete": true,
+          "coverage": "selected_observed_literals_only",
+          "parts": [
+            {
+              "bytes": 148,
+              "complete": true,
+              "engines": [
+                {
+                  "engine": "kingfisher",
+                  "status": "complete",
+                  "version": "1.4.0"
+                },
+                {
+                  "engine": "trufflehog",
+                  "status": "complete",
+                  "version": "3.92.5"
+                }
+              ],
+              "part": "literals"
+            }
+          ],
+          "literal_count": 3,
+          "reference_count": 0,
+          "source_requests": [
+            "k8s-literal-read-1",
+            "k8s-literal-read-2"
+          ],
+          "observed": "A likely secret was detected in selected Kubernetes literals. The value is hidden; offline detection did not validate the credential."
+        }
+      },
+      {
+        "status": "UNKNOWN",
+        "evidence": {
+          "observed": "Selected Kubernetes literals were disabled, unsupported, incomplete or unbound. Secret absence could not be assessed."
+        }
+      }
+    ]
+  }
+}

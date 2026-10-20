@@ -108,7 +108,10 @@ def _default_allow(item, direction):
     if direction not in active_types:
         return "NOT_APPLICABLE", {"reason": f"Policy does not select {direction} traffic"}
     field = direction.lower()
-    rules = list_of_objects(get(spec, field, list))
+    # The API omits empty rule slices. Only the collector's existing native
+    # full-object receipt establishes the documented empty-list default.
+    native = item.get("provenance", {}).get("evidence") == "read-only list"
+    rules = list_of_objects(optional(spec, field, [], list) if native else get(spec, field, list))
     broad = []
     peer_key = "from" if direction == "Ingress" else "to"
     for number, rule in enumerate(rules):

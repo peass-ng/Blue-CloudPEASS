@@ -55,9 +55,9 @@ def capture(monkeypatch,cid,mode='ok'):
    path=urlsplit(url).path
    if path.casefold()==(SUB+'/providers/Microsoft.Compute/virtualMachines').casefold():
     if mode=='vm_denied':raise Denied('SECRET_SHOULD_NOT_ESCAPE')
-    return {'value':[{'id':VM,'name':'test','properties':{'storageProfile':{'osDisk':{'osType':'Windows'}}}}]}
+    return {'value':[{'id':VM,'type':'Microsoft.Compute/virtualMachines','name':'test','properties':{'storageProfile':{'osDisk':{'osType':'Windows'}}}}]}
    if path.casefold()==VM.casefold():
-    return {'id':VM,'name':'test','properties':{'storageProfile':{'osDisk':{'osType':'Windows'}}}}
+    return {'id':VM,'type':'Microsoft.Compute/virtualMachines','name':'test','properties':{'storageProfile':{'osDisk':{'osType':'Windows'}}}}
    if path.casefold()==(VM+'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments').casefold():
     if mode=='assignment_denied':raise Denied('SECRET_SHOULD_NOT_ESCAPE')
     value=[] if mode=='no_assignments' else [assignment]

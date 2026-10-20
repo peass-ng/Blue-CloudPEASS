@@ -3,6 +3,7 @@ from copy import deepcopy
 import gzip,json
 from pathlib import Path
 import pytest
+from tests.provider_observation_residual_successors_20261020 import AZURE_BINDINGS, azure_case, gcp_case, immutable_inputs
 from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 from peaso.checks.gcp_observed_evidence import evidence_summary as gcp
@@ -55,6 +56,8 @@ NATIVE_SUCCESSORS={'gcp_pci_bucket_157fb0c69361',
 
 
 def current_case(cid, branch):
+ native=gcp_case(cid,branch,CASES.get(cid))
+ if native is not None:return native
  if cid in NATIVE_SUCCESSORS:
   row=next(row for row in NATIVE_CASES
            if row['check_id']==cid and row['expected_status']==branch.upper())
@@ -69,17 +72,17 @@ def test_gcp_actual_callbacks_have_brief_typed_observations(cid,branch):
  status,evidence=CHECK[cid].evaluate(item,index)
  assert status==branch.upper()
  finding={'provider':'gcp','check_id':cid,'status':status,'evidence':evidence};before=deepcopy(finding)
- summary=(current_observation if cid in NATIVE_SUCCESSORS else gcp)(finding)
+ summary=(current_observation if cid in NATIVE_SUCCESSORS or cid=='gcp_kms_key_destroy_alert' else gcp)(finding)
  assert summary and len(summary)<=350
  assert 'semantics:'not in summary and 'supplied records'not in summary and 'More recorded details'not in summary
  assert finding==before
 
 @pytest.mark.parametrize('cid',AZURE_IDS)
 def test_azure_actual_bulk_success_shapes_have_direct_observations(cid):
- case=BULK[cid]['PASS'];status,evidence=CHECK[cid].evaluate(deepcopy(case['item']),deepcopy(case['index']))
+ case,_=azure_case(cid,'PASS',BULK[cid]['PASS']);status,evidence=CHECK[cid].evaluate(deepcopy(case['item']),deepcopy(case['index']))
  assert status=='PASS'
  finding={'provider':'azure','check_id':cid,'status':status,'evidence':evidence};before=deepcopy(finding)
- text=azure(finding)
+ text=(current_observation if cid in AZURE_BINDINGS else azure)(finding)
  assert text and len(text)<250
  assert 'semantics:'not in text and 'supplied records'not in text
  assert finding==before
@@ -166,7 +169,7 @@ def test_signed_native_gcp_observations_use_real_scope_joined_records(branch):
  key={'name':scope+'/locations/global/keyRings/r/cryptoKeys/k','_provenance':{'scope':scope}}
  principals=['user:a','user:b','user:c']+(['user:d']if branch=='fail'else [])
  inputs.append(('gcp_pci_kms_key_a3927a5f3b84',key,index({'kms_key':[key],'kms_effective_use':[{**key,'principals':principals,'resolutionComplete':True}]})))
- record={'timestamp':'invalid'if branch=='fail'else '2026-01-01T00:00:00Z','eventClass':'authenticated_audit','protoPayload':{'methodName':'read','authenticationInfo':{'principalEmail':'user@example.com'}}}
+ record={'resource':{'type':'gce_instance'},'logName':scope+'/logs/cloudaudit.googleapis.com%2Factivity','timestamp':'invalid'if branch=='fail'else '2026-01-01T00:00:00Z','eventClass':'authenticated_audit','protoPayload':{'methodName':'read','authenticationInfo':{'principalEmail':'user@example.com'}}}
  inputs.append(('gcp_c5_log_event_fields',record,index({'log_entry':[record]})))
  for cid,subject,facts in inputs:
   status,evidence=CHECK[cid].evaluate(subject,facts)

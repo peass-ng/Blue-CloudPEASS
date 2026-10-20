@@ -18,6 +18,22 @@ DEPENDENCY_SUCCESSORS = {
  # on the account trail inventory rather than a generic bucket projection.
  'aws_cis_lambda_execution_role_no_admin': (['lambda_function', 'iam_role'], ['lambda_function', 'iam_role', 'iam_policy']),
  'aws_cloudtrail_s3_siem_delivery': (['cloudtrail_account_inventory', 'bucket'], ['cloudtrail_account_inventory']),
+ # Reviewed Azure identity, full native AKS Pod/Namespace, HTTP-log and
+ # Synapse evidence successors; signed predecessor dependencies stay intact.
+ 'azure.cis.multifactor_auth_status_privileged_users': (['directory_user', 'conditional_access_policy'], ['directory_user', 'conditional_access_policy', 'azure_identity_enforcement_native']),
+ 'azure_directory_user_entra_non_privileged_user_has_mfa_b242ca9': (['directory_user', 'conditional_access_policy'], ['directory_user', 'conditional_access_policy', 'azure_identity_enforcement_native']),
+ 'azure_directory_user_entra_privileged_user_has_mfa_6f6d584': (['directory_user', 'conditional_access_policy'], ['directory_user', 'conditional_access_policy', 'azure_identity_enforcement_native']),
+ 'azure_directory_user_7_2_1_19_28e2aa7': (['directory_user'], ['directory_user', 'azure_identity_enforcement_native']),
+ 'azure_aks_cluster_7_2_1_6_93c4fab': (['aks_cluster'], ['aks_cluster', 'aks_legacy_pod_inventory']),
+ 'azure_aks_cluster_aks_cluster_rbac_enabled_db12524': (['aks_cluster'], ['aks_cluster', 'aks_legacy_pod_inventory']),
+ 'azure_application_gateway_app_http_logs_enabled_2de0361': (['application_gateway', 'load_balancer', 'diagnostic_setting', 'diagnostic_category', 'log_analytics_workspace', 'storage_account'], ['application_gateway', 'diagnostic_setting', 'diagnostic_category', 'log_analytics_workspace', 'storage_account']),
+ 'azure_pci_1_3_1_33': (['synapse_workspace'], ['synapse_workspace', 'synapse_sql_private_endpoint_evidence']),
+}
+
+# HTTP access-log evidence is scoped to Application Gateways; native Layer4
+# LoadBalancer health logging cannot satisfy that reviewed criterion.
+KIND_SUCCESSORS = {
+ 'azure_application_gateway_app_http_logs_enabled_2de0361': ('application_gateway_and_load_balancer', 'application_gateway'),
 }
 
 def test_all_signed_pending_ids_are_unique_and_registered_once():
@@ -58,7 +74,11 @@ def test_all_signed_pending_ids_are_unique_and_registered_once():
    if c.id in DEPENDENCY_SUCCESSORS:
     original, expected = DEPENDENCY_SUCCESSORS[c.id]
     assert r['dependencies'] == original
-   assert (c.provider,c.kind,c.dependencies)==(r['provider'],r['kind'],expected)
+   expected_kind = r['kind']
+   if c.id in KIND_SUCCESSORS:
+    original_kind, expected_kind = KIND_SUCCESSORS[c.id]
+    assert r['kind'] == original_kind
+   assert (c.provider,c.kind,c.dependencies)==(r['provider'],expected_kind,expected)
 
 @pytest.mark.parametrize('ident',MANIFEST['checks'])
 def test_each_new_definition_rejects_absent_and_denied_input(ident):

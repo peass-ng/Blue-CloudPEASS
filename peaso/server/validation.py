@@ -12,6 +12,26 @@ OPTIONS = {
     "selected_gcs_objects",
     "selected_gcs_archives",
     "selected_dataform_files",
+    "selected_cloudtasks_tasks", "selected_bigquery_routines",
+    "selected_dataflow_referenced_sources", "selected_batch_referenced_sources",
+    "selected_workbench_referenced_sources",
+    "selected_dataproc_referenced_sources",
+    "selected_azure_app_settings",
+    "selected_azure_acr_images",
+    "selected_azure_ml_command_jobs",
+    "selected_azure_ml_environment_versions", "selected_azure_ml_code_files",
+    "selected_azure_function_settings",
+    "selected_azure_function_package_sources",
+    "selected_azure_databricks_notebooks",
+    "selected_azure_log_workspaces", "selected_azure_application_insights",
+    "selected_azure_app_configuration_values", "selected_azure_data_factory_declarations", "selected_azure_synapse_pipelines",
+    "selected_azure_configuration_content", "selected_azure_storage_sources", "selected_azure_devops_content",
+    "selected_aws_lambda_functions",
+    "selected_aws_configuration_content",
+    "selected_aws_s3_sources",
+    "selected_k8s_literal_resources",
+    "selected_k8s_log_samples",
+    "selected_k8s_metadata_resources",
     "selected_gke_clusters", "selected_gke_namespaces",
     "selected_artifact_images", "selected_artifact_files",
     "selected_cloudrun_services",
@@ -28,6 +48,9 @@ OPTIONS = {
     "resource_iam", "include_inherited", "asset_types", "recommender_locations", "kms_locations", "cloudbuild_locations", "include_source_account",
     "trusted_scope_ids", "trusted_domains", "gcp_data_access_required_principals", "gcp_psc_dns_policy", "concurrency", "retries", "page_size", "activity_days", "log_entry_minutes", "scope_concurrency", "region_concurrency", "service_concurrency", "collect_all", "compliance_policy", "compliance_parameters",
 }
+OPTIONS.add('selected_aws_codebuild_inline_buildspecs')
+OPTIONS.add('selected_aws_workload_commands')
+OPTIONS.add('selected_cloudrun_job_declared_images')
 AUTH = {
     "aws": {"method", "aws_access_key_id", "aws_secret_access_key", "aws_session_token", "role_arn", "external_id", "role_chain", "assume_roles", "region_name", "role_session_name"},
     "gcp": {"method", "token", "sa_json", "quota_project", "external_account_json", "subject_token", "project_proof_label"},
@@ -45,6 +68,196 @@ LEGACY_EXTERNAL_ID_PREFIX = "peaso-"
 
 
 def validate_connector(provider, auth, options, settings, *, server_external_id=False, scopes=None):
+    if 'selected_cloudrun_job_declared_images' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('Selected Job declared images require GCP')
+            from peaso.collectors.gcp_cloudrun_job_image_runtime_20261020 import validate_options as validate_cloudrun_job_images
+            validate_cloudrun_job_images(options, scopes or [])
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected Cloud Run Job declared images require exact supported selectors in one explicit project') from None
+    if 'selected_aws_workload_commands' in options:
+        try:
+            from peaso.collectors.aws_workload_command_runtime_20261020 import targets as workload_command_targets
+            workload_command_targets(options, scopes or [], [], provider)
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected AWS commands require exact ECS/classic Batch definition ARN revisions in selected account/Region scopes; images, environment files and EKS Batch are unsupported') from None
+    if 'selected_aws_codebuild_inline_buildspecs' in options:
+        try:
+            from peaso.collectors.aws_codebuild_buildspec_runtime_20261020 import targets as codebuild_inline_targets
+            codebuild_inline_targets(options, scopes or [], [], provider)
+        except Exception:
+            raise HTTPException(422, 'Selected CodeBuild buildspecs require exact project ARNs in selected AWS account/region scopes') from None
+    if 'selected_azure_function_package_sources' in options:
+        try:
+            from peaso.collectors.azure_function_package_integration_20261020 import preflight as package_preflight
+            package_preflight(options, scopes or [], [], provider=provider)
+        except (ValueError, TypeError, KeyError, AttributeError):
+            raise HTTPException(422, 'Selected Azure packages require 1–2 exact owned site and Blob ZIP selections') from None
+    if 'selected_azure_function_settings' in options:
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only selected Function settings')
+            from peaso.collectors.azure_function_settings_declarations_20261020 import preflight
+            preflight(options, scopes or [], [])
+        except Exception:
+            raise HTTPException(422, 'Selected Function settings require 1–4 exact native site ARM IDs in selected subscription scopes; slots and URLs are unsupported') from None
+    if any(option in options for option in ('selected_azure_ml_environment_versions', 'selected_azure_ml_code_files')):
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only ML asset selection')
+            from peaso.collectors.azure_ml_selected_asset_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Azure ML assets require 1–4 total exact scoped environment-version IDs or code-version/datastore/selected storage-file targets') from None
+    if 'selected_azure_databricks_notebooks' in options:
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only Databricks notebook selection')
+            from peaso.collectors.azure_databricks_notebook_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Azure Databricks notebooks require 1–4 exact scoped workspace_resource_id and absolute notebook path targets') from None
+    if 'selected_azure_ml_command_jobs' in options:
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only ML job selection')
+            from peaso.collectors.azure_ml_selected_job_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Azure ML jobs require 1–4 exact case-sensitive native Command-job ARM IDs in selected subscriptions') from None
+    log_sample_options = ('selected_azure_log_workspaces', 'selected_azure_application_insights')
+    if any(option in options for option in log_sample_options):
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only log sample selection')
+            from peaso.collectors.azure_selected_log_sample_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Azure log samples require 1–4 total exact scoped workspace/table or Application Insights component targets') from None
+    declaration_options = ('selected_azure_app_configuration_values', 'selected_azure_data_factory_declarations', 'selected_azure_synapse_pipelines')
+    if any(option in options for option in declaration_options):
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only declaration selection')
+            from peaso.collectors.azure_selected_declaration_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Azure declarations require 1–8 total exact scoped App Configuration key/label, Data Factory pipeline/dataflow or Synapse pipeline targets') from None
+    for option, module, needs_auth, detail in (
+        ('selected_azure_configuration_content', 'azure_selected_configuration_secret_indicators', False, 'Selected Azure configuration requires 1–8 exact supported surface/resource_id targets in selected subscriptions'),
+        ('selected_azure_storage_sources', 'azure_selected_storage_secret_indicators', False, 'Selected Azure storage requires 1–4 exact native Blob/File account, container/share, path and format targets; version is optional'),
+        ('selected_azure_devops_content', 'azure_devops_selected_content_secret_indicators', True, 'Selected DevOps content requires 1–8 exact scoped immutable Git files or pipeline definition revisions with configured organization/project bindings')):
+        if option not in options:
+            continue
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only content selection')
+            from importlib import import_module
+            validator = import_module('peaso.collectors.' + module).selected_targets
+            args = (options, scopes or [], auth) if needs_auth else (options, scopes or [])
+            validator(*args)
+        except Exception:
+            raise HTTPException(422, detail) from None
+
+    if 'selected_aws_s3_sources' in options:
+        try:
+            if provider != 'aws':
+                raise ValueError('AWS-only S3 source selection')
+            from peaso.collectors.aws_s3_selected_source_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected S3 sources require 1–4 exact bucket, key, format and optional existing version targets in matching account/Region scopes') from None
+    if 'selected_aws_configuration_content' in options:
+        try:
+            if provider != 'aws':
+                raise ValueError('AWS-only content selection')
+            from peaso.collectors.aws_selected_configuration_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected AWS configuration requires 1–16 exact surface, scope and resource_id targets in matching account/Region scopes; SSM documents and launch templates require numeric versions') from None
+    if 'selected_aws_lambda_functions' in options:
+        try:
+            if provider != 'aws':
+                raise ValueError('AWS-only content selection')
+            from peaso.collectors.aws_lambda_environment_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Lambda environments require 1–8 unique unqualified function ARNs in explicit matching account/Region scopes') from None
+    if 'selected_azure_acr_images' in options:
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only content selection')
+            from peaso.collectors.azure_acr_image_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected ACR images require 1–4 exact registry ARM IDs, repositories and immutable SHA256 digests in selected subscriptions') from None
+    if 'selected_k8s_literal_resources' in options:
+        try:
+            if provider != 'k8s':
+                raise ValueError('Kubernetes-only content selection')
+            from peaso.collectors.k8s_literal_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected literals require 1–8 exact supported workload or ConfigMap targets with exact namespaces of one cluster, including an overall all-namespace scan') from None
+    if 'selected_k8s_metadata_resources' in options:
+        try:
+            if provider != 'k8s':
+                raise ValueError('Kubernetes-only metadata selection')
+            from peaso.collectors.k8s_selected_metadata_runtime_20261020 import preflight
+            preflight(options, scopes or [], [])
+        except Exception:
+            raise HTTPException(422, 'Selected metadata requires 1–8 exact supported namespaced object targets of one configured Kubernetes cluster') from None
+    if 'selected_k8s_log_samples' in options:
+        try:
+            if provider != 'k8s':
+                raise ValueError('Kubernetes-only log selection')
+            from peaso.collectors.k8s_selected_log_sample_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected log samples require 1–4 unique exact cluster_id/namespace/pod/container targets in explicit namespace scopes of one cluster') from None
+    if 'selected_azure_app_settings' in options:
+        try:
+            if provider != 'azure':
+                raise ValueError('Azure-only content selection')
+            from peaso.collectors.azure_app_settings_secret_indicators import selected_targets
+            selected_targets(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected app settings require 1–8 unique exact site or slot ARM IDs in explicitly selected subscriptions') from None
+    if 'selected_dataflow_referenced_sources' in options or 'selected_batch_referenced_sources' in options:
+        try:
+            from peaso.collectors.gcp_dataflow_batch_source_runtime_20261020 import preflight as selected_job_preflight
+            selected_job_preflight(options, scopes or [], [], provider)
+        except Exception:
+            raise HTTPException(422, 'Selected Dataflow/Batch sources require 1-4 exact owned native resource/reference/bucket/object/generation targets') from None
+    if 'selected_workbench_referenced_sources' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only selected Workbench sources')
+            from peaso.collectors.gcp_workbench_source_runtime_20261020 import preflight
+            preflight(options, scopes or [], [])
+        except Exception:
+            raise HTTPException(422, 'Selected Workbench sources require 1-4 exact owned instance/metadata-field/bucket/object/generation targets') from None
+    if 'selected_dataproc_referenced_sources' in options:
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only source selection')
+            from peaso.collectors.gcp_dataproc_source_runtime_20261020 import preflight
+            preflight(options, scopes or [])
+        except Exception:
+            raise HTTPException(422, 'Selected Dataproc sources require 1–4 exact native job/cluster references and same-project GCS plain object generations') from None
+    for option, kind in (('selected_cloudtasks_tasks', 'cloudtasks_selected_task'),
+                         ('selected_bigquery_routines', 'bigquery_selected_routine')):
+        if option not in options:
+            continue
+        try:
+            if provider != 'gcp':
+                raise ValueError('GCP-only content selection')
+            from peaso.collectors.gcp_selected_task_routine_secret_indicators import selected_targets
+            selected_targets({**options, 'content_secret_scans': True,
+                              '_content_secret_scan_kinds': [kind]}, scopes or [], kind)
+        except Exception:
+            raise HTTPException(422, option + ' requires 1–8 unique exact native names in one explicit GCP project') from None
     if 'selected_cloudbuild_builds' in options:
         try:
             if provider != 'gcp':
@@ -158,8 +371,8 @@ def validate_connector(provider, auth, options, settings, *, server_external_id=
                     or any(not isinstance(region, str) or not re.fullmatch(r'[a-z][a-z0-9-]{0,62}', region)
                            or region == 'global' for region in value) or len(set(value)) != len(value)):
                 raise HTTPException(422, 'GCP job scan regions must contain 1–5 distinct explicit non-global regions')
-    if 'content_secret_scans' in options and (provider not in {'aws', 'gcp'} or type(options['content_secret_scans']) is not bool):
-        raise HTTPException(422, 'content_secret_scans must be an AWS or GCP boolean option')
+    if 'content_secret_scans' in options and (provider not in {'aws', 'gcp', 'azure', 'k8s'} or type(options['content_secret_scans']) is not bool):
+        raise HTTPException(422, 'content_secret_scans must be a supported provider boolean option')
     if 'node_clock_evidence' in options:
         try:
             if provider != 'k8s':raise ValueError('Node clock observations are Kubernetes-only')

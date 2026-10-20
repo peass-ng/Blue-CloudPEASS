@@ -35833,7 +35833,8 @@ def _apply(check_id, original, kind):
     if not isinstance(original, dict) or _digest(original) != row[kind + "_base_sha256"]:
         raise ValueError("Reviewed Kubernetes clarity base changed: " + check_id + " (" + kind + ")")
     updated = deepcopy(original)
-    updated.update(deepcopy(row[kind + "_fields"]))
+    from .k8s_native_review_copy_20261020 import reviewed_fields
+    updated.update(reviewed_fields(check_id, kind, row[kind + "_fields"]))
     return updated
 
 

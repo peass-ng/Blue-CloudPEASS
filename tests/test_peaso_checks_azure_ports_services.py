@@ -131,7 +131,7 @@ class ServiceApi:
             return {"data": []}
         endpoint = ENDPOINTS[self.kind][0]
         rid = "/subscriptions/sub/resourceGroups/group/providers/" + endpoint + "/resource"
-        return {"value": [{"id": rid, "properties": {"publicNetworkAccess": "Disabled", "apiProperties": {"storageAccountConnectionString": "secret"}, "globalParameters": {"PASSWORD": {"value": "secret"}}, "redisConfiguration": {"rdb-storage-connection-string": "secret"}}}]}
+        return {"value": [{"id": rid, "type": endpoint, "name": "resource", "properties": {"publicNetworkAccess": "Disabled", "apiProperties": {"storageAccountConnectionString": "secret"}, "globalParameters": {"PASSWORD": {"value": "secret"}}, "redisConfiguration": {"rdb-storage-connection-string": "secret"}}}]}
 
 
 @pytest.mark.parametrize("kind", ["redis_cache", "cognitive_account", "app_configuration", "data_factory", "api_management", "search_service"])

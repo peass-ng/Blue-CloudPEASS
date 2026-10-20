@@ -110,29 +110,89 @@ CASES[cid]["index"] = {"context": {"metadata": {"trusted_domains": ["primary.exa
 
 def project_roots(item, index):
     scope = get(item, "_provenance.scope", str)
+    if (get(index, "context.provider", str) != "gcp" or get(index, "context.scope", str) != scope
+            or not re.fullmatch(r"projects/[^/]+", scope)):
+        raise Unavailable("selected project scope is missing or contradictory")
     projects = complete_items(index, "project")
-    matches = [project for project in projects if project.get("_provenance", {}).get("scope") == scope or project.get("name") == scope or "projects/" + project.get("projectId", "") == scope]
-    if len(matches) != 1:
+    if len(projects) != 1:
         raise Unavailable("project metadata relation missing or ambiguous")
-    project = matches[0]
-    roots = {scope, get(project, "name", str), "projects/" + get(project, "projectId", str)}
+    project = projects[0]
+    project_id, project_name = get(project, "projectId", str), get(project, "name", str)
+    if (not re.fullmatch(r"[a-z][a-z0-9-]{4,28}[a-z0-9]", project_id)
+            or not re.fullmatch(r"projects/[1-9][0-9]{0,18}", project_name)
+            or int(project_name.split("/")[1]) > 9223372036854775807):
+        raise Unavailable("native CRM project ID/number pair is malformed")
+    roots = {project_name, "projects/" + project_id}
+    if scope not in roots or get(project, "_provenance.scope", str) != scope:
+        raise Unavailable("native CRM project identity does not bind the selected scope")
+    number = optional(project, "projectNumber", None, str)
+    if number is not None and "projects/" + number != project_name:
+        raise Unavailable("contradictory native project number")
+    if "projectId" in item or "projectId" in item.get("_coverage", {}):
+        if get(item, "projectId", str) != project_id:
+            raise Unavailable("resource project ID differs from native CRM identity")
+    if "name" in item:
+        name = get(item, "name", str)
+        if name.startswith("projects/") and "/".join(name.split("/")[:2]) not in roots:
+            raise Unavailable("resource name belongs to a different project")
     ancestors = list_of_objects(get(project, "_ancestry", list))
-    for ancestor in ancestors:
+    if not ancestors:
+        raise Unavailable("complete project ancestry unavailable")
+    parents, seen, organization_seen = [], set(), False
+    for position, ancestor in enumerate(ancestors):
         resource = get(ancestor, "resourceId", dict)
         kind, identifier = get(resource, "type", str), get(resource, "id", str)
-        if kind in ("folder", "organization"):
-            roots.add(kind + "s/" + identifier)
+        if position == 0:
+            if kind != "project" or "projects/" + identifier not in roots:
+                raise Unavailable("project ancestry root differs from native CRM identity")
+            continue
+        if (kind not in ("folder", "organization") or not re.fullmatch(r"[1-9][0-9]{0,18}", identifier)
+                or int(identifier) > 9223372036854775807 or organization_seen):
+            raise Unavailable("malformed project ancestor")
+        parent = kind + "s/" + identifier
+        if parent in seen:
+            raise Unavailable("duplicate project ancestor")
+        seen.add(parent)
+        parents.append(parent)
+        organization_seen = kind == "organization"
+    parent = optional(project, "parent", None, str)
+    if parent is not None and (not parents or parent != parents[0]):
+        raise Unavailable("native project parent contradicts ancestry")
+    roots.update(parents)
+    for kind in ("project", "iam_policy"):
+        for envelope in list_of_objects(get(index, "collections", dict).get(kind, [])):
+            if (envelope.get("coverage_status", envelope.get("status")) not in ("collected", "empty")
+                    or get(envelope, "scope", str) not in ({scope} if kind == "project" else roots)):
+                raise Unavailable("dependency coverage incomplete: " + kind)
     policies = complete_items(index, "iam_policy")
     selected = [policy for policy in policies if get(policy, "name", str) in roots]
+    identities = [project_name if policy["name"] in (project_name, "projects/" + project_id) else policy["name"]
+                  for policy in selected]
+    if len(identities) != len(set(identities)):
+        raise Unavailable("duplicate root policy identity")
     # Folder/organization root policies are collected at their own scopes; the
     # collector materializes them on the project only when every ancestor's
     # getIamPolicy document was read.
-    if project.get("_coverage", {}).get("_inherited_iam_policies", {}).get("status") == "collected":
+    inherited = optional(project, "_inherited_iam_policies", None, list)
+    if inherited is not None:
+        coverage = get(project, "_coverage._inherited_iam_policies", dict)
+        if (get(coverage, "status", str) != "collected"
+                or optional(coverage, "collection_status", "collected", str) != "collected"
+                or optional(coverage, "ancestors", parents, list) != parents):
+            raise Unavailable("inherited IAM coverage contradicts complete ancestry")
         present = {policy["name"] for policy in selected}
-        for policy in list_of_objects(get(project, "_inherited_iam_policies", list)):
-            if get(policy, "name", str) in roots and policy["name"] not in present:
+        inherited_names = set()
+        for policy in list_of_objects(inherited):
+            name = get(policy, "name", str)
+            if name not in parents or name in inherited_names or optional(policy, "ancestor", name, str) != name:
+                raise Unavailable("foreign or duplicate inherited IAM root")
+            inherited_names.add(name)
+            if name not in present:
                 selected.append(policy)
-                present.add(policy["name"])
+                present.add(name)
+            elif any(policy.get(field) != next(p for p in selected if p["name"] == name).get(field)
+                     for field in ("bindings", "etag", "version")):
+                raise Unavailable("contradictory inherited IAM policy")
     # Every actual ancestor plus one project alias must be represented.
     expected_parents = {root for root in roots if root.startswith(("folders/", "organizations/"))}
     actual = {policy["name"] for policy in selected}

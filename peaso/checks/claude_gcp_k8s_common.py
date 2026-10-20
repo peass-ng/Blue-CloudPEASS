@@ -110,10 +110,17 @@ def captured_at(item, index):
 
 
 def duration_seconds(value):
-    """Protobuf JSON duration ``<n>s`` -> integer seconds, else UNKNOWN."""
-    if not isinstance(value, str) or not re.fullmatch(r"[0-9]+(\.[0-9]+)?s", value):
+    """Exact nonnegative protobuf seconds (up to nanoseconds), else UNKNOWN."""
+    from decimal import Decimal
+    match = re.fullmatch(r"([0-9]+)(?:\.([0-9]{1,9}))?s", value) if isinstance(value, str) else None
+    if match is None:
         raise Unavailable("malformed protobuf duration")
-    return int(float(value[:-1]))
+    whole = match.group(1).lstrip("0") or "0"
+    if len(whole) > 12 or int(whole) > 315576000000:
+        raise Unavailable("protobuf duration seconds outside supported bounds")
+    # Construct directly from text: no float or context-rounded arithmetic.
+    fraction = match.group(2)
+    return Decimal(whole + ("." + fraction if fraction is not None else ""))
 
 
 # --- GCP IAM policy helpers --------------------------------------------------------------------------------

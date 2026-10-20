@@ -52,6 +52,11 @@ BUDGETS = {
 #    linearly with the registry, so registering checks raises the ceiling and nothing else does. Measured
 #    ~11.2 KB/check on 1x (1152 checks, 12.9 MB; ~25% headroom). The opt-in 10x fixture has 10x the
 #    resources per check type, so its rate is the 1x rate scaled by 10 (not separately re-measured).
+# Native source admissions are a one-off process startup cost. Keep their
+# own bound visible instead of charging them to each snapshot evaluation.
+# Reviewed Linux 3.12 cold evaluation: 12.51 CPU s including startup; warm
+# macOS 3.12 evaluation: 1.04 CPU s, native startup: 5.37 CPU s.
+NATIVE_CATALOG_BUDGETS = {"native_catalog_cpu_sec": 15, "native_catalog_wall_sec": 60}
 FINDING_BYTES = 600
 REPORT_KB_PER_CHECK = {"1x": 14, "10x": 140}
 
@@ -224,6 +229,12 @@ def measure(profile):
     from peaso.engine import evaluate_snapshot
     snapshot = synthetic_snapshot(*PROFILES[profile])
     privesc.catalog()  # catalog load is a one-off process cost, not evaluation
+    assert "peaso.checks" not in sys.modules, "Benchmark must measure a cold native catalog"
+    startup_wall, startup_cpu = time.perf_counter(), time.process_time()
+    from peaso import checks as native_checks
+    assert native_checks.CHECKS
+    native_catalog_wall = time.perf_counter() - startup_wall
+    native_catalog_cpu = time.process_time() - startup_cpu
     started, before = time.perf_counter(), resource.getrusage(resource.RUSAGE_SELF)
     report = evaluate_snapshot(snapshot)
     wall, after = time.perf_counter() - started, resource.getrusage(resource.RUSAGE_SELF)
@@ -233,7 +244,9 @@ def measure(profile):
     peak_mb = _process_peak_rss_mb()
     from peaso.checks import CHECKS
     registered = sum(1 for check in CHECKS if check.provider == "aws")
-    return {"profile": profile, "resources": report["stats"]["resource_count"], "findings": report["stats"]["finding_count"],
+    return {"native_catalog_cpu_sec": round(native_catalog_cpu, 2),
+            "native_catalog_wall_sec": round(native_catalog_wall, 2),
+            "profile": profile, "resources": report["stats"]["resource_count"], "findings": report["stats"]["finding_count"],
             "wall_sec": round(wall, 2), "cpu_sec": round(after.ru_utime - before.ru_utime + after.ru_stime - before.ru_stime, 2),
             "maxrss_mb": round(peak_mb),
             "report_mb": round(report_bytes / 1e6, 1), "snapshot_mb": round(len(json.dumps(snapshot)) / 1e6, 1),
@@ -249,7 +262,7 @@ def run(profile):
 
 
 def check(result):
-    budget = dict(BUDGETS[result["profile"]], finding_bytes=FINDING_BYTES,
+    budget = dict(BUDGETS[result["profile"]], **NATIVE_CATALOG_BUDGETS, finding_bytes=FINDING_BYTES,
                   report_mb=round(result["registered_checks"] * REPORT_KB_PER_CHECK[result["profile"]] / 1000, 1))
     print(json.dumps({"measured": result, "budget": budget}))
     assert result["schema_version"] == "1.1"

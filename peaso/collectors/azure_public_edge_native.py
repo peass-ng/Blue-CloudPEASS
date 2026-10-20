@@ -103,7 +103,7 @@ def collect(reader,request,scopes,wanted):
     if not active:return
     from .azure import _safe_error,AzureReadError
     for scope in scopes:
-        status='collected';error=None;profiles=[];bindings=[];updates=[]
+        status='collected';error=None;profiles=[];bindings=[];updates=[];supporting={}
         try:
             from .azure import ARM
             native={};sources={}
@@ -134,19 +134,45 @@ def collect(reader,request,scopes,wanted):
                 if listed!=seen:raise ValueError('Native public-edge membership changed between captures')
                 native[kind]=rows;sources[kind]=source
             profiles=_profiles(reader,request,scope);native['frontdoor_profile']=profiles
-            ips={row['id'].casefold() for row in native['public_ip']}
-            for kind,rows in native.items():
-                for row in rows:bindings.append(_binding(row,kind,scope,ips))
-            if reader.budget.max_items is not None and reader.total+len(profiles)+len(bindings)>reader.budget.max_items:
+            from .azure_public_edge_config_20261020 import resolve
+            bindings,supporting=resolve(reader,request,native,scope,_binding)
+            # Existing complete native inventories keep their own universe.
+            # Referenced GETs must agree with their membership, never create
+            # duplicate collection tuples or silently expand an empty roster.
+            support_updates=[]
+            for support_kind,rows in list(supporting.items()):
+                existing=[c for c in reader.collections if c['type']==support_kind and c['scope'].casefold()==scope.casefold()]
+                if not rows or not existing:
+                    continue
+                if len(existing)!=1 or existing[0]['status']not in('collected','empty'):
+                    raise ValueError('referenced edge inventory incomplete or ambiguous')
+                current={row['id'].casefold():row for row in existing[0]['items']}
+                if len(current)!=len(existing[0]['items']) or any(row['id'].casefold()not in current for row in rows):
+                    raise ValueError('edge GET contradicts complete native supporting inventory')
+                updated={**current,**{row['id'].casefold():row for row in rows}}
+                support_updates.append((existing[0],list(updated.values())))
+                supporting.pop(support_kind)
+            if reader.budget.max_items is not None and reader.total+len(profiles)+len(bindings)+sum(map(len,supporting.values()))>reader.budget.max_items:
                 raise AzureReadError('resource_limit')
-            updates=[(sources[kind],rows)for kind,rows in native.items()if kind in sources]
+            updates=[(sources[kind],rows)for kind,rows in native.items()if kind in sources]+support_updates
         except Exception as exc:
             status,error=_safe_error(exc)
+            if getattr(exc,'code','')=='partial_native_edge_inventory':status='partial'
             if status in {'collected','empty'}:status='unknown'
-            profiles=[];bindings=[];updates=[]
+            profiles=[];bindings=[];updates=[];supporting={}
         # Commit source GETs only after the whole native join succeeds.
         for source,rows in updates:
             source['items']=rows
+        # These are exact referenced resources, not discovery of all policies.
+        # The signed public-edge consumer joins each reference by native ID.
+        for kind,rows in supporting.items():
+            if not rows:
+                continue
+            env={'type':kind,'scope':scope,'service':'Microsoft.Network','status':'collected',
+                 'items':rows,'reference_inventory':'public_edge_binding',
+                 'source_operation':'Peasso.public_edge_config.native_reference_gets'}
+            reader.collections.append(env);reader.total+=len(rows)
+            reader.progress(scope=scope,settled=env)
         for kind,rows in [('frontdoor_profile',profiles),('public_edge_binding',bindings)]:
             if kind not in active:continue
             env={'type':kind,'scope':scope,'service':'Microsoft.Network','status':status if error else 'collected' if rows else 'empty','items':rows}

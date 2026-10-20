@@ -1,0 +1,43 @@
+{
+  "check_id": "k8s.review.selected_metadata.secret_indicators",
+  "evidence": {
+    "complete": false,
+    "coverage": "incomplete",
+    "credential_validation": "not_attempted",
+    "observed": "The same secret was detected in 1 scanned location(s). Its value is hidden. Coverage is incomplete.",
+    "secret_leaks": [
+      {
+        "detectors": [
+          {
+            "engine": "kingfisher",
+            "rule": "betterleaks.github-pat"
+          },
+          {
+            "engine": "trufflehog",
+            "rule": "Github"
+          }
+        ],
+        "fingerprint": "a962b3187bb100116dc32cc6974235ccc22ea07a402be87c4e39bdf141c1b421",
+        "locations": [
+          {
+            "line": 9,
+            "path": "k8s_selected_metadata:cac81b77de5ae93b1808d5772610fe93a2738642212778466d684afa2a30dba7.literals",
+            "resource_id": "k8s_selected_metadata:cac81b77de5ae93b1808d5772610fe93a2738642212778466d684afa2a30dba7",
+            "scope": "team-a"
+          }
+        ]
+      }
+    ]
+  },
+  "evidence_summary": "The same secret was detected in 1 scanned location(s). Its value is hidden. Coverage is incomplete.",
+  "id": "secret-a962b3187bb100116dc32cc6974235ccc22ea07a402be87c4e39bdf141c1b421",
+  "linked_check_ids": [
+    "k8s.review.selected_metadata.secret_indicators"
+  ],
+  "provider": "k8s",
+  "resource_id": "secret:a962b3187bb100116dc32cc6974235ccc22ea07a402be87c4e39bdf141c1b421",
+  "resource_name": "Exposed secret",
+  "scope": "team-a",
+  "secret_fingerprint": "a962b3187bb100116dc32cc6974235ccc22ea07a402be87c4e39bdf141c1b421",
+  "status": "FAIL"
+}

@@ -1,0 +1,184 @@
+{
+  "events": [
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ssec-01",
+      "eventName": "PutBucketEncryption",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:01:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "ServerSideEncryptionConfiguration": {
+          "Rule": {
+            "BlockedEncryptionTypes": {
+              "EncryptionType": "NONE"
+            }
+          }
+        },
+        "bucketName": "synthetic-ssec-target-bucket"
+      },
+      "responseElements": null,
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ssec-02",
+      "eventName": "PutBucketLifecycle",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:02:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "LifecycleConfiguration": {
+          "Rule": {
+            "Expiration": {
+              "Days": 1
+            },
+            "Filter": {
+              "Prefix": "canary/"
+            },
+            "NoncurrentVersionExpiration": {
+              "NoncurrentDays": 1
+            },
+            "Status": "Enabled"
+          }
+        },
+        "bucketName": "synthetic-ssec-target-bucket"
+      },
+      "responseElements": null,
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ssec-03",
+      "eventName": "PutBucketVersioning",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:03:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "VersioningConfiguration": {
+          "Status": "Suspended"
+        },
+        "bucketName": "synthetic-ssec-target-bucket"
+      },
+      "responseElements": null,
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Data",
+      "eventID": "synthetic-ssec-04",
+      "eventName": "CopyObject",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:04:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": false,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "bucketName": "synthetic-ssec-target-bucket",
+        "key": "canary/synthetic-data.txt",
+        "x-amz-copy-source": "synthetic-ssec-target-bucket/canary/synthetic-data.txt?versionId=synthetic-original-version",
+        "x-amz-server-side-encryption-customer-algorithm": "AES256"
+      },
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::synthetic-ssec-target-bucket",
+          "type": "AWS::S3::Bucket"
+        },
+        {
+          "ARN": "arn:aws:s3:::synthetic-ssec-target-bucket/canary/synthetic-data.txt",
+          "type": "AWS::S3::Object"
+        }
+      ],
+      "responseElements": {
+        "x-amz-copy-source-version-id": "synthetic-original-version",
+        "x-amz-server-side-encryption-customer-algorithm": "AES256",
+        "x-amz-version-id": "null"
+      },
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Management",
+      "eventID": "synthetic-ssec-05",
+      "eventName": "PutBucketVersioning",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:05:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "bucketName": "synthetic-ssec-target-bucket"
+      },
+      "responseElements": null,
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    },
+    {
+      "awsRegion": "us-east-1",
+      "eventCategory": "Data",
+      "eventID": "synthetic-ssec-06",
+      "eventName": "PutObject",
+      "eventSource": "s3.amazonaws.com",
+      "eventTime": "2026-01-02T03:06:00Z",
+      "eventType": "AwsApiCall",
+      "managementEvent": false,
+      "readOnly": false,
+      "recipientAccountId": "999999999999",
+      "requestParameters": {
+        "bucketName": "synthetic-ssec-target-bucket",
+        "key": "canary/synthetic-data.txt",
+        "x-amz-server-side-encryption-customer-algorithm": "AES256"
+      },
+      "resources": [
+        {
+          "ARN": "arn:aws:s3:::synthetic-ssec-target-bucket",
+          "type": "AWS::S3::Bucket"
+        },
+        {
+          "ARN": "arn:aws:s3:::synthetic-ssec-target-bucket/canary/synthetic-data.txt",
+          "type": "AWS::S3::Object"
+        }
+      ],
+      "responseElements": {
+        "x-amz-server-side-encryption-customer-algorithm": "AES256",
+        "x-amz-version-id": "synthetic-versioned-put"
+      },
+      "userIdentity": {
+        "accountId": "999999999999",
+        "arn": "arn:aws:sts::999999999999:assumed-role/SyntheticLabOperator/session"
+      }
+    }
+  ],
+  "provenance": "Synthetic derivative of accepted S3 management and data events from a disposable SSE-C laboratory. Account, actor, bucket, object, versions, event IDs and times are synthetic. SSE-C key material never appears in this fixture or CloudTrail event fields. Real receipts remain private."
+}

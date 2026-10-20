@@ -19,7 +19,7 @@ FRAMEWORKS = ["HackTricks Cloud Best Practices"]
 
 
 def frameworks_for(check_id):
-    from peaso.checks.hacktricks_scope import includes
+    from peaso.presentation_metadata_20261020 import includes_in_hacktricks as includes
     return list(FRAMEWORKS) if includes(check_id) else []
 
 

@@ -73,7 +73,9 @@ def pipeline(monkeypatch, *, rows=None, payload=None, format_name='tar.gz', opti
     class Metadata:
         status_code = 200
         headers = {}
-        def __init__(self, data): self.data = data
+        def __init__(self, data):
+            self.data = data
+            self.content = json.dumps(data).encode()
         def json(self): return deepcopy(self.data)
     def request(method, url, **kwargs):
         calls.append({'method': method, 'url': url, 'params': deepcopy(kwargs.get('params'))})
@@ -362,8 +364,33 @@ def test_install_native_cases_is_idempotent(monkeypatch):
         assert check.evaluate(cases[label], MemoIndex(cases[label + '_index']))[0] == label.upper()
 
 
+def admitted_environment_check():
+    """Exercise the installed paired consumer on real native source captures."""
+    import inspect
+    from peaso.checks import CHECKS
+    from peaso.checks import gcp_function_secret_partial_page_20261020 as admitted
+    registered, = [c for c in CHECKS if c.id == 'gcp.review.function.literal_environment_secret_indicators']
+    assert inspect.unwrap(registered.evaluate) is admitted.evaluate
+    return registered
+
+
+def assert_native_environment_positive(row, index, registered):
+    from peaso.checks import gcp_function_secret_review_20261019 as predecessor
+    from peaso.collectors import gcp_function_secret_pairs_20261020 as paired
+    # The immutable v1 consumer cannot interpret the admitted paired v2 projection.
+    assert predecessor.evaluate(row, index)[0] == 'UNKNOWN'
+    assert row[paired.MARKER]['schema'] == paired.SCHEMA
+    status, evidence = registered.evaluate(row, index)
+    assert status == 'FAIL' and evidence['complete'] is True
+    assert {d['engine'] for leak in evidence['secret_leaks'] for d in leak['detectors']} == {'kingfisher', 'trufflehog'}
+    refs = set(row['_provenance']['source_requests'])
+    reads = [r for r in index['context']['metadata']['source_requests'] if r['id'] in refs]
+    assert any(r['status'] == 'collected' and r['http_status'] == 200
+               and r['url'].endswith('/locations/-/functions') for r in reads)
+
+
 def test_both_named_environment_and_source_checks_compose_on_native_metadata(monkeypatch):
-    from peaso.checks import gcp_function_secret_review_20261019 as environment_check
+    environment_check = admitted_environment_check()
     row = function()
     row['serviceConfig']['environmentVariables'] = {'CREDENTIAL': TOKEN}
     payload = ARCHIVE['archive']('tar.gz', {'source.env': ('TOKEN=' + TOKEN + '\n').encode()})
@@ -374,14 +401,14 @@ def test_both_named_environment_and_source_checks_compose_on_native_metadata(mon
         'reason': 'function_source_reference_not_retained'} for field in ('source', 'sourceProvenance')}
     from peaso.checks.facts import get, Unavailable
     with pytest.raises(Unavailable): get(function_row, 'buildConfig.source', dict)
-    assert environment_check.evaluate(function_row, result.index)[0] == 'FAIL'
+    assert_native_environment_positive(function_row, result.index, environment_check)
     assert result.result[0] == 'FAIL'
     assert TOKEN not in json.dumps(result.index) + repr(result.transport.cache)
 
 
 @pytest.mark.parametrize('multi_page', [False, True])
 def test_source_limit_keeps_ordinary_native_inventory_and_environment_results(monkeypatch, multi_page):
-    from peaso.checks import gcp_function_secret_review_20261019 as environment_check
+    environment_check = admitted_environment_check()
     rows = [function(NAME + str(i)) for i in range(native.MAX_FUNCTIONS + 1)]
     for row in rows: row['serviceConfig']['environmentVariables'] = {'CREDENTIAL': TOKEN}
     pages = [{'functions': rows[:6], 'nextPageToken': 'cursor'}, {'functions': rows[6:]}] if multi_page else None
@@ -389,7 +416,8 @@ def test_source_limit_keeps_ordinary_native_inventory_and_environment_results(mo
                       options={'_content_secret_scan_kinds': ['function', native.KIND]})
     source = result.index['collections']['function'][0]
     assert source['status'] == 'collected' and len(source['items']) == native.MAX_FUNCTIONS + 1
-    assert all(environment_check.evaluate(row, result.index)[0] == 'FAIL' for row in source['items'])
+    for row in source['items']:
+        assert_native_environment_positive(row, result.index, environment_check)
     assert result.result[0] == 'UNKNOWN' and not result.streams
     assert TOKEN not in json.dumps(result.index) + repr(result.transport.cache)
     assert not hasattr(result.transport, '_function_source_pending')

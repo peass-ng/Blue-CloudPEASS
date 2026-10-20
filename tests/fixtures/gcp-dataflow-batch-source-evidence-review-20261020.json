@@ -1,0 +1,190 @@
+{
+  "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": [
+    {
+      "provider": "gcp",
+      "check_id": "gcp.review.dataflow.selected_package_referenced_source_secret_indicators",
+      "status": "PASS",
+      "evidence": {
+        "complete": true,
+        "secret_leaks": [],
+        "parts": [
+          {
+            "path": "dataflow-source:a464d1b6e9f26790bb834aad65bf8f48bd78e0245ab13c55d7b6e30c5b49742c.part-1",
+            "bytes": 11,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "version": "1.4.0",
+                "status": "complete"
+              },
+              {
+                "engine": "trufflehog",
+                "version": "3.92.5",
+                "status": "complete"
+              }
+            ],
+            "complete": true
+          }
+        ],
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "coverage": "selected_current_referenced_package_only",
+        "observed": "Both offline detectors completed without a supported secret detection in the selected captured Dataflow package bytes. This does not establish the original executed or deployed code."
+      }
+    },
+    {
+      "provider": "gcp",
+      "check_id": "gcp.review.dataflow.selected_package_referenced_source_secret_indicators",
+      "status": "FAIL",
+      "evidence": {
+        "complete": true,
+        "secret_leaks": [
+          {
+            "fingerprint": "71db45db46d41f0600a05390d7fb99cd00ea84c65a1975e0bc369956522747d4",
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "locations": [
+              {
+                "path": "dataflow-source:a464d1b6e9f26790bb834aad65bf8f48bd78e0245ab13c55d7b6e30c5b49742c.part-1",
+                "line": 1
+              }
+            ]
+          }
+        ],
+        "parts": [
+          {
+            "path": "dataflow-source:a464d1b6e9f26790bb834aad65bf8f48bd78e0245ab13c55d7b6e30c5b49742c.part-1",
+            "bytes": 46,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "version": "1.4.0",
+                "status": "complete"
+              },
+              {
+                "engine": "trufflehog",
+                "version": "3.92.5",
+                "status": "complete"
+              }
+            ],
+            "complete": true
+          }
+        ],
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "coverage": "selected_current_referenced_package_only",
+        "observed": "A likely secret was detected in captured Dataflow package bytes; its value is hidden. This does not establish the original executed or deployed code."
+      }
+    },
+    {
+      "provider": "gcp",
+      "check_id": "gcp.review.dataflow.selected_package_referenced_source_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "The selected current referenced package was unavailable, unbound or incompletely inspected."
+      }
+    }
+  ],
+  "gcp.review.batch.selected_mounted_script_source_secret_indicators": [
+    {
+      "provider": "gcp",
+      "check_id": "gcp.review.batch.selected_mounted_script_source_secret_indicators",
+      "status": "PASS",
+      "evidence": {
+        "observed": "Both offline detectors completed without detecting a supported secret in the captured selected Batch mounted script source. This capture does not establish the bytes executed by the job.",
+        "secret_leaks": [],
+        "complete": true,
+        "coverage": "selected_captured_mounted_script_source_only",
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "version": "1.4.0",
+                "status": "complete"
+              },
+              {
+                "engine": "trufflehog",
+                "version": "3.92.5",
+                "status": "complete"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "provider": "gcp",
+      "check_id": "gcp.review.batch.selected_mounted_script_source_secret_indicators",
+      "status": "FAIL",
+      "evidence": {
+        "observed": "A likely secret was detected in the captured selected Batch mounted script source. Its value is hidden and was not validated. This capture does not establish the bytes executed by the job.",
+        "secret_leaks": [
+          {
+            "fingerprint": "71db45db46d41f0600a05390d7fb99cd00ea84c65a1975e0bc369956522747d4",
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "locations": [
+              {
+                "path": "batch_selected_mounted_script_source:ed85a51231b362547a99c001e74baefcd28d93f2be5c92fa5fd8201aa46bf587.source",
+                "line": 1
+              }
+            ]
+          }
+        ],
+        "complete": true,
+        "coverage": "selected_captured_mounted_script_source_only",
+        "executed_bytes_proven": false,
+        "credential_validation": "not_attempted",
+        "parts": [
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "version": "1.4.0",
+                "status": "complete"
+              },
+              {
+                "engine": "trufflehog",
+                "version": "3.92.5",
+                "status": "complete"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "provider": "gcp",
+      "check_id": "gcp.review.batch.selected_mounted_script_source_secret_indicators",
+      "status": "UNKNOWN",
+      "evidence": {
+        "complete": false,
+        "observed": "Selected Batch mounted script source was unavailable, unbound or incompletely inspected."
+      }
+    }
+  ]
+}

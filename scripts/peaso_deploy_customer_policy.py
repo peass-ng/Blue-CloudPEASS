@@ -51,6 +51,57 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(BULK_METADATA_REFERENCES)
 WAF_IP_SET_REFERENCE_SHA256 = '0e24619d9b2d738a072c129d20668ad3e25fe3b76ab0793adae3820f981cbfaa'
 WAF_IP_SET_ACTIONS = frozenset({'wafv2:ListIPSets', 'wafv2:GetIPSet'})
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | WAF_IP_SET_ACTIONS
+NETWORK_SERVICE_READ_REFERENCES = {
+    'cloudhsm:DescribeClusters': 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_cloudhsm.html',
+    **dict.fromkeys({'ec2:DescribeVerifiedAccessEndpoints', 'ec2:DescribeVerifiedAccessGroups', 'ec2:DescribeVerifiedAccessInstances'},
+        'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeVerifiedAccessEndpoints.html'),
+    'elasticbeanstalk:DescribeConfigurationSettings': 'https://docs.aws.amazon.com/elasticbeanstalk/latest/api/API_DescribeConfigurationSettings.html',
+    **dict.fromkeys({'lightsail:GetLoadBalancers', 'lightsail:GetContainerServices'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_lightsail.html'),
+    **dict.fromkeys({'vpc-lattice:ListTargetGroups', 'vpc-lattice:GetTargetGroup', 'vpc-lattice:ListTargets',
+        'vpc-lattice:ListResourceConfigurations', 'vpc-lattice:GetResourceConfiguration', 'vpc-lattice:ListServiceNetworkResourceAssociations',
+        'vpc-lattice:ListListeners', 'vpc-lattice:GetListener', 'vpc-lattice:ListRules', 'vpc-lattice:GetRule'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_vpc-lattice.html'),
+    'route53:GetHostedZone': 'https://docs.aws.amazon.com/Route53/latest/APIReference/API_GetHostedZone.html',
+    'quicksight:ListVPCConnections': 'https://docs.aws.amazon.com/quicksight/latest/APIReference/API_ListVPCConnections.html',
+    **dict.fromkeys({'timestream-influxdb:ListDbInstances', 'timestream-influxdb:GetDbInstance'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_timestream-influxdb.html'),
+    **dict.fromkeys({'osis:ListPipelines', 'osis:GetPipeline'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_osis.html'),
+    **dict.fromkeys({'eks:ListNodegroups', 'eks:DescribeNodegroup', 'eks:ListFargateProfiles', 'eks:DescribeFargateProfile'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_eks.html'),
+    'datasync:ListAgents': 'https://docs.aws.amazon.com/datasync/latest/apireference/API_ListAgents.html',
+    'datasync:DescribeAgent': 'https://docs.aws.amazon.com/datasync/latest/apireference/API_DescribeAgent.html',
+    'storagegateway:DescribeGatewayInformation': 'https://docs.aws.amazon.com/storagegateway/latest/APIReference/API_DescribeGatewayInformation.html',
+    'cloudfront:ListVpcOrigins': 'https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_ListVpcOrigins.html',
+    'cloudfront:GetVpcOrigin': 'https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_GetVpcOrigin.html',
+    'elasticfilesystem:DescribeMountTargetSecurityGroups': 'https://docs.aws.amazon.com/efs/latest/ug/API_DescribeMountTargetSecurityGroups.html',
+    'ec2:DescribeNetworkInterfaceAttribute': 'https://docs.aws.amazon.com/efs/latest/APIReference/API_DescribeMountTargetSecurityGroups.html',
+    'memorydb:DescribeSubnetGroups': 'https://docs.aws.amazon.com/memorydb/latest/APIReference/API_DescribeSubnetGroups.html',
+    **dict.fromkeys({'apprunner:ListServices', 'apprunner:DescribeService', 'apprunner:ListVpcConnectors',
+        'apprunner:ListVpcIngressConnections', 'apprunner:DescribeVpcIngressConnection'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_apprunner.html'),
+    **dict.fromkeys({'route53resolver:ListResolverEndpoints', 'route53resolver:ListResolverEndpointIpAddresses',
+        'route53resolver:ListResolverRuleAssociations'}, 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_route53resolver.html'),
+    **dict.fromkeys({'directconnect:DescribeDirectConnectGateways', 'directconnect:DescribeDirectConnectGatewayAssociations'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_directconnect.html'),
+    **dict.fromkeys({'globalaccelerator:ListListeners', 'globalaccelerator:ListEndpointGroups'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_globalaccelerator.html'),
+    'dax:DescribeSubnetGroups': 'https://docs.aws.amazon.com/dax/latest/APIReference/API_DescribeSubnetGroups.html',
+    'ec2:DescribeCustomerGateways': 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeCustomerGateways.html',
+    'grafana:DescribeWorkspace': 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_grafana.html',
+    'elasticache:DescribeServerlessCaches': 'https://docs.aws.amazon.com/AmazonElastiCache/latest/APIReference/API_DescribeServerlessCaches.html',
+    **dict.fromkeys({'emr-serverless:GetApplication', 'emr-serverless:ListApplications'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_emr-serverless.html'),
+    **dict.fromkeys({'aoss:ListVpcEndpoints', 'aoss:BatchGetVpcEndpoint'},
+        'https://docs.aws.amazon.com/service-authorization/latest/reference/list_opensearchserverless.html'),
+    **dict.fromkeys({'vpc-lattice:ListResourceGateways', 'vpc-lattice:GetResourceGateway', 'vpc-lattice:ListServiceNetworks',
+        'vpc-lattice:ListServices', 'vpc-lattice:ListServiceNetworkVpcAssociations', 'vpc-lattice:GetServiceNetworkVpcAssociation',
+        'vpc-lattice:ListServiceNetworkServiceAssociations'}, 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_vpc-lattice.html'),
+}
+_NATIVE_NETWORK_IAM = json.loads((Path(__file__).resolve().parents[1] / 'peaso/collectors/aws_network_inventory_iam.json').read_text())
+NETWORK_SERVICE_READ_REFERENCES.update({action: row['source'] for action, row in _NATIVE_NETWORK_IAM['actions'].items()})
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(NETWORK_SERVICE_READ_REFERENCES)
 # AWS EC2 service authorization lists both as route-table metadata reads.
 # SearchTransitGatewayRoutes is an exact read-only exception to the usual
 # Get/List/Describe operation-name rule.
@@ -193,6 +244,9 @@ VERIFIED_ACTIONS = VERIFIED_ACTIONS | {SECURITYHUB_HISTORY_METADATA_REFERENCE[0]
 PRESERVED_TEMPLATE_READ_ACTIONS = frozenset({("cloudformation", "list_stacks")})
 SERVICE_PREFIXES = {'elbv2': 'elasticloadbalancing', 'elb': 'elasticloadbalancing', 'docdb': 'rds', 'neptune': 'rds', 'opensearch': 'es', 's3control': 's3', 'efs': 'elasticfilesystem', 'apigatewayv2': 'apigateway', 'sso-admin': 'sso', 'accessanalyzer': 'access-analyzer', 'emr': 'elasticmapreduce', 'bedrock-agent': 'bedrock', 'sesv2': 'ses', 'stepfunctions': 'states', 'supplychain': 'scn'}
 SERVICE_PREFIXES['resourcegroupstaggingapi'] = 'tag'
+SERVICE_PREFIXES['opensearchserverless'] = 'aoss'
+SERVICE_PREFIXES['cloudhsmv2'] = 'cloudhsm'
+SERVICE_PREFIXES.update(_NATIVE_NETWORK_IAM['prefixes'])
 ACTION_ALIASES = {('s3', 'list_buckets'): 's3:ListAllMyBuckets', ('s3', 'get_public_access_block'): 's3:GetBucketPublicAccessBlock', ('s3', 'get_bucket_encryption'): 's3:GetEncryptionConfiguration', ('s3control', 'get_public_access_block'): 's3:GetAccountPublicAccessBlock', ('s3', 'get_bucket_lifecycle_configuration'): 's3:GetLifecycleConfiguration', ('s3', 'get_object_lock_configuration'): 's3:GetBucketObjectLockConfiguration', ('s3', 'get_bucket_notification_configuration'): 's3:GetBucketNotification', ('s3', 'get_bucket_replication'): 's3:GetReplicationConfiguration', ('s3', 'list_directory_buckets'): 's3express:ListAllMyDirectoryBuckets', ('accessanalyzer', 'list_findings_v2'): 'access-analyzer:ListFindings', ('accessanalyzer', 'get_finding_v2'): 'access-analyzer:GetFinding'}
 
 # S3Control's Outposts list uses a distinct IAM service namespace.
@@ -200,6 +254,9 @@ ACTION_ALIASES[('s3', 'list_objects_v2')] = 's3:ListBucket'
 ACTION_ALIASES[('s3control', 'list_regional_buckets')] = 's3-outposts:ListRegionalBuckets'
 
 GATEWAY_PATHS = {
+    ("apigatewayv2", "get_integrations"): ("/apis/*/integrations",),
+    ("apigateway", "get_vpc_links"): ("/vpclinks",),
+    ("apigatewayv2", "get_vpc_links"): ("/vpclinks",),
     ("apigateway", "get_rest_apis"): ("/restapis",),
     ("apigateway", "get_stages"): ("/restapis/*/stages",),
     ("apigatewayv2", "get_apis"): ("/apis",),
@@ -214,6 +271,7 @@ GATEWAY_PATHS = {
 }
 # Reviewed companion permissions AWS documents for one SDK call (reference-verified like any action).
 DEPENDENT_ACTIONS = {("wafv2", "get_web_acl_for_resource"): ("cognito-idp:GetWebACLForResource",)}
+DEPENDENT_ACTIONS[("efs", "describe_mount_target_security_groups")] = ("ec2:DescribeNetworkInterfaceAttribute",)
 DEPENDENT_ACTIONS[("ec2", "get_launch_template_data")] = (
     "ec2:DescribeSpotInstanceRequests", "ec2:DescribeInstanceCreditSpecifications",
     "ec2:DescribeVolumes", "ec2:DescribeInstanceAttribute")
@@ -238,6 +296,32 @@ UNGRANTED_CONTENT_OPERATIONS = frozenset({('ecr','list_image_referrers'),
 ECR_CONTENT_IAM_ACTIONS = frozenset({'ecr:BatchGetImage','ecr:GetDownloadUrlForLayer'})
 VERIFIED_ACTIONS = VERIFIED_ACTIONS | ECR_CONTENT_IAM_ACTIONS
 ACTION_ALIASES[('ecr','list_image_referrers')] = 'ecr:BatchGetImage'
+
+# These newly declared calls are reachable only in the explicitly selected
+# content profile. Their IAM mappings are reviewed, but they never broaden the
+# generated default metadata role.
+OPTIONAL_CONFIGURATION_READ_REFERENCES = {
+    ('amplify', 'get_app'): ('amplify:GetApp', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_amplify.html'),
+    ('apigateway', 'get_stage'): ('apigateway:GET', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_apigateway.html'),
+    ('glue', 'get_job'): ('glue:GetJob', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_glue.html'),
+    ('glue', 'get_connection'): ('glue:GetConnection', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_glue.html'),
+    ('ssm', 'describe_document'): ('ssm:DescribeDocument', 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_ssm.html'),
+}
+UNGRANTED_CONTENT_OPERATIONS = UNGRANTED_CONTENT_OPERATIONS | frozenset(OPTIONAL_CONFIGURATION_READ_REFERENCES)
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(row[0] for row in OPTIONAL_CONFIGURATION_READ_REFERENCES.values())
+GATEWAY_PATHS[('apigateway', 'get_stage')] = ('/restapis/*/stages/*',)
+
+# S3 source reads are opt-in only. Version access is a permission on GetObject,
+# not a fictitious get_object_version SDK operation. Never grant these by default.
+OPTIONAL_S3_SOURCE_READ_REFERENCES = {
+    ('s3', 'head_object'): ('s3:GetObject', 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html'),
+    ('s3', 'get_object'): ('s3:GetObject', 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html'),
+}
+OPTIONAL_S3_SOURCE_VERSION_PERMISSION = ('s3:GetObjectVersion', 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html')
+ACTION_ALIASES.update({key: row[0] for key, row in OPTIONAL_S3_SOURCE_READ_REFERENCES.items()})
+UNGRANTED_CONTENT_OPERATIONS = UNGRANTED_CONTENT_OPERATIONS | frozenset(OPTIONAL_S3_SOURCE_READ_REFERENCES)
+VERIFIED_ACTIONS = VERIFIED_ACTIONS | frozenset(row[0] for row in OPTIONAL_S3_SOURCE_READ_REFERENCES.values()) | {OPTIONAL_S3_SOURCE_VERSION_PERMISSION[0]}
+
 
 # Exact metadata-only grants reviewed against the AWS programmatic policy
 # reference. Keep the receipt alongside the finite discovery recipes.
@@ -282,7 +366,8 @@ def iam_action(service, operation):
     """Resolve only a reviewed metadata API; never derive an unverified grant."""
     if (service, operation) in UNGRANTED_CREDENTIAL_OPERATIONS:
         raise ValueError("Credential API prohibited: " + service + "/" + operation)
-    if operation in FORBIDDEN_OPERATIONS and (service, operation) not in PROJECTED_CONFIGURATION_OPERATIONS:
+    if (operation in FORBIDDEN_OPERATIONS and (service, operation) not in PROJECTED_CONFIGURATION_OPERATIONS
+            and (service, operation) not in OPTIONAL_S3_SOURCE_READ_REFERENCES):
         raise ValueError("Value/content/credential API prohibited: " + service + "/" + operation)
     if (service, operation) == EVIDENCE_OPERATION:
         return "iam:GenerateCredentialReport"
@@ -290,7 +375,7 @@ def iam_action(service, operation):
         if operation in {"get_caller_identity", "assume_role"}:
             return None
         raise ValueError("Unreviewed STS operation")
-    if (service, operation) not in READ_OPERATION_EXCEPTIONS and not operation.startswith(("list_", "get_", "describe_", "batch_get_")):
+    if (service, operation) not in READ_OPERATION_EXCEPTIONS and (service, operation) not in OPTIONAL_S3_SOURCE_READ_REFERENCES and not operation.startswith(("list_", "get_", "describe_", "batch_get_")):
         raise ValueError("Mutation outside metadata policy: " + service + "/" + operation)
     if service in {"apigateway", "apigatewayv2"}:
         if (service, operation) in GATEWAY_PATHS:
@@ -816,6 +901,10 @@ def refresh(root: Path, *, read_actions=None, include_credential_report_generati
         'Actions': sorted(RECHECK_METADATA_READ_REFERENCES),
         'References': RECHECK_METADATA_READ_REFERENCES,
         'Boundary': 'Selection-gated metadata reads only; no schedule payloads, messages or writes',
+    }
+    template["Metadata"]["PeasoNetworkServiceMetadataReference"] = {
+        "Sources": NETWORK_SERVICE_READ_REFERENCES,
+        "Boundary": "Read-only VPC origin and subnet/security-group attachments; no application content or network changes.",
     }
     # Compact new templates to preserve source export budgets. Archived versions
     # are never reformatted or overwritten; CloudFormation parses the same JSON.

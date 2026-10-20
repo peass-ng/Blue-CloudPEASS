@@ -509,6 +509,9 @@ def c5_log_event_fields(item, index):
     _member(item, index, 'log_entry')
     if get(item, 'eventClass', str) != 'authenticated_audit':
         return unknown('exempt or system event cannot be classified by this predicate')
+    resource_type = get(item, 'resource.type', str)
+    if not resource_type.strip():
+        return unknown('required audit monitored-resource type unavailable')
     timestamp = _full_omitted(item, 'timestamp', '')
     if not isinstance(timestamp, str):
         return unknown('malformed audit timestamp')

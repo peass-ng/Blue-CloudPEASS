@@ -29,6 +29,9 @@ AWS_REVIEWED = Path(__file__).resolve().parent / "rulepacks/remediation_aws_revi
 AWS_FAMILIES_REVIEWED = Path(__file__).resolve().parent / "rulepacks/remediation_aws_families_reviewed.json"
 AZURE_REVIEWED = Path(__file__).resolve().parent / "rulepacks/remediation_azure_reviewed.json"
 COMPLIANCE_REVIEWED = (
+    (Path(__file__).resolve().parent / "rulepacks/remediation_native_gcp_selected_20261020.json", "gcp"),
+    (Path(__file__).resolve().parent / "rulepacks/remediation_native_k8s_declarations_20261020.json", "k8s"),
+    (Path(__file__).resolve().parent / "rulepacks/remediation_native_aws_selected_20261020.json", "aws"),
     (Path(__file__).resolve().parent / "rulepacks/remediation_compliance_new_aws.json", "aws"),
     (Path(__file__).resolve().parent / "rulepacks/remediation_compliance_new_gcp.json", "gcp"),
     (Path(__file__).resolve().parent / "rulepacks/remediation_compliance_new_azure.json", "azure"),
@@ -37,6 +40,7 @@ COMPLIANCE_REVIEWED = (
     (Path(__file__).resolve().parent / "rulepacks/remediation_compliance_batch_remaining_azure.json", "azure"),
     (Path(__file__).resolve().parent / "rulepacks/remediation_compliance_batch_remaining_gcp.json", "gcp"),
     (Path(__file__).resolve().parent / "rulepacks/remediation_compliance_batch_remaining_k8s.json", "k8s"),
+    (Path(__file__).resolve().parent / "rulepacks/remediation_native_azure_review_20261020.json", "azure"),
 )
 MAX_IDENTITY_LENGTH = 512
 _SAFE_AWS_ID = re.compile(r"(?:sg|sgr|i|subnet|vpc|vol|db|fs|eni)-[0-9a-fA-F]{8,32}\Z")

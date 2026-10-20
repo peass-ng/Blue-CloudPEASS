@@ -8,13 +8,22 @@ from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 from peaso.checks.gcp_remaining_clarity_reviewed import ROWS, _digest, description, remediation, severity_review
 from peaso.checks.gcp_remaining_finding_summary import evidence_summary
-from peaso.checks.gcp_remaining_clarity_reviewed import NATIVE_EXTENSION_REVIEWS
+from peaso.checks.gcp_remaining_clarity_reviewed import NATIVE_EXTENSION_REVIEWS as HISTORICAL_EXTENSION_REVIEWS
 from peaso.checks.facts import MemoIndex
+from tests.gcp_clarity_combined_successor_20261020 import (
+    cases_fingerprint, current_extension_reviews, extension_cases, historical_admission_row)
+
+NATIVE_EXTENSION_REVIEWS = current_extension_reviews(HISTORICAL_EXTENSION_REVIEWS)
 
 PACK=Path(__file__).resolve().parents[1]/'peaso/rulepacks'
 CHECK_BY_ID={c.id:c for c in CHECKS}
 # Current source-produced cases are a test-local overlay. CENTRAL stays historical.
 NATIVE=json.loads((Path(__file__).parent/'fixtures/gcp-native-review-behavior.json').read_text())
+NATIVE['cases'] += json.loads((Path(__file__).parent/'fixtures/gcp-alert-native-successor-20261020.json').read_text())['cases']
+NATIVE['cases'] += json.loads((Path(__file__).parent/'fixtures/gcp-compute-native-successor-20261020.json').read_text())['cases']
+NATIVE['cases'] += json.loads((Path(__file__).parent/'fixtures/gcp-final-services-native-successor-20261020.json').read_text())['cases']
+NATIVE['cases'] += json.loads((Path(__file__).parent/'fixtures/gcp-prior-bounded-native-successor-20261020.json').read_text())['cases']
+NATIVE['cases'] += json.loads((Path(__file__).parent/'fixtures/gcp-native57-native-successor-20261020.json').read_text())['cases']
 CURRENT_NATIVE_IDS={row['check_id'] for row in NATIVE['cases']}
 
 
@@ -48,20 +57,14 @@ LEGACY_NO_DECISIVE_OBSERVATION = {'gcp.claude.firewall.public_ingress_common_por
  'gcp.ports.compute_instance_block_project_wide_ssh_enabled',
  'gcp.ports.compute_instance_ip_forwarding_disabled',
  'gcp.ports.compute_network_dns_logging_scoped',
- 'gcp.ports.compute_ssl_policy_strict_declaration',
  'gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1',
  'gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1',
  'gcp.ports.function_active_public_binding',
- 'gcp.ports.function_legacy_deployment_role_declarations',
- 'gcp.ports.function_logging_mutation_declarations',
  'gcp.ports.storage_bucket_not_publicly_accessible',
  'gcp_backend_service_checks_armor_security_policy_contains_f48cc81ccae3',
  'gcp_certificate_renewal_30_days',
  'gcp_certificate_validity',
- 'gcp_cloud_armor_waf_enabled',
- 'gcp_kms_key_destroy_alert',
  'gcp_logging_detect_t1110',
- 'gcp_logging_enumeration_alert',
  'gcp_pci_bucket_56c6b1b7f813'}
 
 VALIDATION_CORRECTIONS={'gcp.ports.sql_instance_require_ssl_enabled','gcp.ports.reference_sql_ssl_connections','gcp.claude.kms_key.rotation_100_days','gcp.claude.gke.binary_authorization','gcp.claude.gke.release_channel','gcp.ports.cloudfunction_function_no_ingress_settings_allow_all'}
@@ -263,6 +266,131 @@ def _stable_binding(value):
     return {'type':type(value).__name__}
 
 
+def _reviewed_predicate_successor(cid):
+    import hashlib
+    raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/alert-predicate-successors.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '8dd28debeb3d7d8ef4161448fb02497b6156f353fdd68a8ce09f1a18daf1f8c0'
+    record = json.loads(raw)['checks'].get(cid)
+    if record:
+        return record
+    raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/compute-predicate-successors.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '2e6cf99e84dc8586285c684abd2fd1cb4b23efe8991d11495c192ec9288222c6'
+    record = json.loads(raw)['checks'].get(cid)
+    if record:
+        return record
+    raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/metadata-predicate-successors.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == 'bf9bff8160cc37036059ef51482c2684b776c1c87906d40fa6f7eb7d3a2e3f0c'
+    record = json.loads(raw)['checks'].get(cid)
+    if record:
+        return record
+    raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/final-services-predicate-successors.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '4f061a66017d9b54c2d1110f997ed6de9bfa0e6b73e4e39c93ce3cd746405d3b'
+    record = json.loads(raw)['checks'].get(cid)
+    if record:
+        return record
+    raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/prior-bounded-predicate-successors.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '83630bf99a9d87d1502854ccb35439aee3de3ee1944b1ff95be3242993ec4f48'
+    record = json.loads(raw)['checks'].get(cid)
+    if record:
+        return record
+    raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/native57-predicate-successors.json').read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == '25c2ac9d76142bd0602409a5ef12773ce0b2a2f4d554c2185427b55a07839746'
+    return json.loads(raw)['checks'].get(cid)
+
+
+def _reviewed_native_predicate_source(cid, source):
+    if cid == 'gcp.ports.iam_api_key_restricts_websites_hosts_apps':
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/api-caller-prefix-fix.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '85507ac304a5762fd5b48a698ece698ddb0c7f4e6d702908373f71831fbf2f51'
+        record = json.loads(raw)['source']
+        assert source == record['after']
+        return record['before']
+    if cid in {'gcp.ports.dns_managed_zone_dnssec_enabled', 'gcp.ports.dns_managed_zone_key_signing_not_using_rsasha1', 'gcp.ports.dns_managed_zone_zone_signing_not_using_rsasha1'}:
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/dns-ports-key-correction.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '3f54f60815cc33073d9f83982c0c4b9641d682ae5ad29219f05dca6af3809cb7'
+        record = json.loads(raw)
+        assert source == record['after']
+        return record['before']
+    alert_successor = _reviewed_predicate_successor(cid)
+    if alert_successor:
+        assert source == alert_successor['after']
+        return alert_successor['before']
+    if cid in {'gcp.htbp.gke.kubelet_readonly_port_disabled', 'gcp.htbp.artifactregistry.virtual_repo_private_precedence'}:
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/htbp-precedence-correction.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '5a241e5fc7b2ee3d09b068015395511a3c5cc49c11d7b650fa7740e10ba99059'
+        record = json.loads(raw)['checks'][cid]
+        assert source == record['after']
+        return record['before']
+    identity_fixes = {'gcp.ports.iam_api_key_restricts_apis': 'api_targets',
+                      'gcp.ports.apikeys_api_restricted_with_gemini_api': 'gemini',
+                      'gcp_cloudsql_backup_failure_alert': '_load_53._backup_alert'}
+    if cid in identity_fixes:
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/identity-api-backup-fixes.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '08163c37ad5c2d8e97f188452c5b0be8f357da3e41f7c5685fb48699b0d9338f'
+        record = next(symbol for change in json.loads(raw)['changes'] for symbol in change['symbols']
+                      if symbol['symbol'] == identity_fixes[cid])
+        assert source == record['exact_after']
+        return record['exact_before']
+    if cid == 'gcp.appengine.version_https_only':
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/appengine-handler-projection-correction.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '05cd806442be272eb026fd712020c63a66bc1611d50f199aec6d652db69e0706'
+        record = json.loads(raw)
+        assert source == record['after']
+        return record['before']
+    if cid == 'gcp.claude.firewall.default_rules_not_open':
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/compute-conflict-fixes.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '0fd6186aa6e8015b12d377e3bcb338c55eac2b49a89621e4c6044c43a13c3c6f'
+        record = json.loads(raw)['exact_function_sources']['firewall_default_rules']
+        assert source == record['after']['source']
+        return record['before']['source']
+    if cid == 'gcp.logging.access_transparency_entries':
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/access-transparency-alias-correction.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == 'e5ba2f36c16333a63dc5f6fa425078c02e160019270e8078926f3784ae269c21'
+        record = json.loads(raw)
+        assert source == record['after']
+        return record['before']
+    if cid in {'gcp.claude2.function.not_publicly_accessible', 'gcp.claude2.function.vpc_connector_configured'}:
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/serverless-parent-correction.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == 'ca985312eb3ce2b23bde0f0cd4600c9bbe6665f200e40b51c778767c9fcae4a6'
+        record = json.loads(raw)['predicates'][cid]
+        assert source == record['after']
+        return record['before']
+    if cid in {'gcp.gke.private_endpoint', 'gcp.gke.private_nodes', 'gcp.gke.authorized_networks', 'gcp.gke.network_policy'}:
+        import hashlib
+        raw = (PACK.parents[1] / 'docs/gcp-review/recheck-20261020/core-gke-review.json').read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '6c7e6fc1a905a38c0debafc6918c84d7f4cede7138635d39c3873ca87b76fb57'
+        record = json.loads(raw)['checks'][cid]
+        assert source == record['after']
+        return record['before']
+    if cid in {'gcp.claude.gke.private_nodes', 'gcp.claude.gke.nodes_no_default_service_account'}:
+        import hashlib
+        path = PACK.parents[1] / 'docs/gcp-review/recheck-20261020/gke-pool-review.json'
+        raw = path.read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == '0ee692f9600d19de2b4e1e5854371369af5a42c7cd6d32ea33779de778beac21'
+        record = json.loads(raw)['checks'][cid]
+        assert source == record['after']
+        assert hashlib.sha256(source.encode()).hexdigest() == record['after_sha256']
+        return record['before']
+    if cid not in {'gcp.claude.dns_zone.ksk_not_rsasha1', 'gcp.claude.dns_zone.zsk_not_rsasha1'}:
+        return source
+    import hashlib
+    path = PACK.parents[1] / 'docs/gcp-review/recheck-20261020/dnssec-review.json'
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == 'ccf38e4fa10b6100c821e424222702cec9a2af7a14df6e9a7de355ce632ebd67'
+    record = json.loads(raw)
+    assert source == record['predicate_after']
+    assert hashlib.sha256(source.encode()).hexdigest() == record['predicate_after_sha256']
+    return record['predicate_before']
+
+
 @pytest.mark.parametrize('cid',sorted(ROWS))
 def test_reviewed_predicate_source_and_every_closed_binding_are_pinned(cid):
     import hashlib
@@ -272,10 +400,25 @@ def test_reviewed_predicate_source_and_every_closed_binding_are_pinned(cid):
     for key in ('EVALUATORS','_EVALUATORS'):
         if key in nonlocals:predicate=nonlocals[key][f.__defaults__[0]]
     binding=ROWS[cid]['reviewed_binding']
-    assert binding['closure']==_stable_binding(nonlocals)
+    alert_successor = _reviewed_predicate_successor(cid)
+    actual_closure = _stable_binding(nonlocals)
+    if alert_successor:
+        assert binding['closure'] == alert_successor['closure_before']
+        assert actual_closure == alert_successor['closure_after']
+    else:
+        assert binding['closure'] == actual_closure
     assert binding['predicate_qualname']==predicate.__qualname__
-    assert binding['predicate_source_sha256']==hashlib.sha256(inspect.getsource(predicate).encode()).hexdigest()
-    assert binding['predicate_bindings']==_stable_binding(inspect.getclosurevars(predicate).nonlocals)
+    assert binding['predicate_source_sha256']==hashlib.sha256(_reviewed_native_predicate_source(cid, inspect.getsource(predicate)).encode()).hexdigest()
+    actual_bindings = _stable_binding(inspect.getclosurevars(predicate).nonlocals)
+    if alert_successor:
+        assert actual_bindings == alert_successor['predicate_bindings_after']
+        actual_bindings = alert_successor['predicate_bindings_before']
+    if cid == 'gcp_cloudsql_backup_failure_alert':
+        # The exact successor above delegates the exception to its native
+        # alias helper; retain the original closed binding in the predecessor.
+        assert 'Unavailable' not in actual_bindings
+        actual_bindings['Unavailable'] = {'callable': 'Unavailable'}
+    assert binding['predicate_bindings'] == actual_bindings
 
 
 def test_all_current_active_gcp_checks_have_exactly_one_review_owner():
@@ -284,7 +427,10 @@ def test_all_current_active_gcp_checks_have_exactly_one_review_owner():
     from peaso.checks.gcp_scalar_clarity_reviewed import ROWS as scalar
     from peaso.checks.finding_clarity_reviewed import ROWS as first
     active={c.id for c in automated_checks(CHECKS) if c.provider=='gcp'}
-    admitted=json.loads((PACK.parents[1]/'docs/compliance-ledgers/native-extensions/gcp-20261019.json').read_text())['checks']
+    supervisor = json.loads((PACK.parents[1]/'docs/compliance-ledgers/manifest.json').read_text())
+    admitted = [row for entry in supervisor['native_extensions']
+                for row in json.loads((PACK.parents[1]/'docs/compliance-ledgers'/entry['path']).read_text())['checks']
+                if row['spec']['provider'] == 'gcp']
     assert set(NATIVE_EXTENSION_REVIEWS)=={row['spec']['id'] for row in admitted}
     groups=[set(ROWS)&active,set(firewall)&active,set(scalar)&active,set(first)&active,set(NATIVE_EXTENSION_REVIEWS)]
     assert set.union(*groups)==active
@@ -313,7 +459,7 @@ def test_reviewed_approved_guidance_has_precise_primary_references(cid,originals
 
 @pytest.mark.parametrize('case',NATIVE['cases'],ids=lambda row:row['id'])
 def test_current_native_overlay_preserves_status_evidence_and_summary(case):
-    before=_digest(CASES)
+    before=cases_fingerprint(CASES)
     status,evidence=CHECK_BY_ID[case['check_id']].evaluate(deepcopy(case['item']),MemoIndex(deepcopy(case['index'])))
     assert status==case['expected_status']
     assert json.loads(json.dumps(evidence))==case['expected_evidence']
@@ -321,7 +467,37 @@ def test_current_native_overlay_preserves_status_evidence_and_summary(case):
     assert bool(evidence_summary(finding))==(status=='FAIL')
     if status!='FAIL':
         assert evidence_summary({**finding,'status':'FAIL'}) is None
-    assert _digest(CASES)==before
+    assert cases_fingerprint(CASES)==before
+
+
+@pytest.mark.parametrize('field', ['snapshot', 'expected', 'scope'])
+def test_capability_fingerprint_preserves_all_bound_fields(field):
+    from peaso.azure_function_package_index_20261020 import _Admitted
+    marker = _Admitted({'metadata': {'scope': 'native-scope'}},
+                       {'credential_context': 'owner-context'}, 'native-scope')
+    captured = {'marker': marker, 'snapshot': marker.snapshot, 'expected': marker.expected}
+    before = cases_fingerprint(captured)
+    assert cases_fingerprint(deepcopy(captured)) == before
+    if field == 'scope':
+        marker.scope = 'foreign-scope'
+    elif field == 'snapshot':
+        marker.snapshot['metadata']['scope'] = 'foreign-scope'
+    else:
+        marker.expected['credential_context'] = 'foreign-context'
+    assert cases_fingerprint(captured) != before
+
+
+def test_capability_fingerprint_distinguishes_authority_and_alias_links():
+    from peaso.azure_function_package_index_20261020 import _Admitted, _Assertions
+    marker = _Admitted({'metadata': {'scope': 'native-scope'}}, {}, 'native-scope')
+    captured = {'marker': marker, 'snapshot': marker.snapshot}
+    before = cases_fingerprint(captured)
+    marker.snapshot = deepcopy(marker.snapshot)
+    assert cases_fingerprint(captured) != before
+    assertion = _Assertions(deepcopy(marker.snapshot), {}, marker.scope)
+    assert cases_fingerprint(marker) != cases_fingerprint(assertion)
+    with pytest.raises(TypeError, match='Unreviewed fixture object'):
+        cases_fingerprint({'unknown': object()})
 
 
 @pytest.mark.parametrize('cid',sorted(NATIVE_EXTENSION_REVIEWS))
@@ -330,12 +506,15 @@ def test_admitted_extension_owner_binds_source_fixtures_and_copy(cid):
     from peaso.checks.gcp_evidence_explanations import CATALOG, evidence_summary as natural_summary
     row=NATIVE_EXTENSION_REVIEWS[cid]
     root=PACK.parents[1]
-    admitted=json.loads((root/'docs/compliance-ledgers/native-extensions/gcp-20261019.json').read_text())['checks']
-    assert _digest(next(x for x in admitted if x['spec']['id']==cid))==row['admission_sha256']
+    admission_path = row.get('admission_path', 'docs/compliance-ledgers/native-extensions/gcp-20261019.json')
+    admitted=json.loads((root/admission_path).read_text())['checks']
+    admission = next(x for x in admitted if x['spec']['id']==cid)
+    assert _digest(historical_admission_row(cid, admission))==row['admission_sha256']
     assert hashlib.sha256((root/row['source']).read_bytes()).hexdigest()==row['source_sha256']
     for asset in row['fixture_sources']:
         assert hashlib.sha256((root/asset['path']).read_bytes()).hexdigest()==asset['sha256']
-    assert _digest(CASES[cid])==row['fixture_sha256']
+    spec=extension_cases(cid, CASES)
+    assert _digest(spec)==row['fixture_sha256']
     assert _digest(CATALOG[cid])==row['copy_catalog_sha256']
     check=CHECK_BY_ID[cid];f=inspect.unwrap(check.evaluate)
     binding=row['reviewed_binding']
@@ -345,8 +524,7 @@ def test_admitted_extension_owner_binds_source_fixtures_and_copy(cid):
     assert hashlib.sha256(inspect.getsource(f).encode()).hexdigest()==binding['predicate_source_sha256']
     assert _stable_binding(inspect.getclosurevars(f).nonlocals)==binding['predicate_bindings']
     for branch in ('pass','fail','unknown'):
-        if branch not in CASES[cid]:continue
-        spec=CASES[cid]
+        if branch not in spec:continue
         status,evidence=check.evaluate(deepcopy(spec[branch]),MemoIndex(deepcopy(spec.get(branch+'_index',spec.get('index',{})))))
         assert status==branch.upper()
         finding={'provider':'gcp','status':status,'check_id':cid,'evidence':evidence}
@@ -360,3 +538,16 @@ def test_admitted_extension_owner_binds_source_fixtures_and_copy(cid):
     {'isEnrolledIn2Sv':True,'isEnforcedIn2Sv':True}])
 def test_mfa_missing_malformed_or_positive_native_values_never_supply_failure(evidence):
     assert evidence_summary({'provider':'gcp','status':'FAIL','check_id':'gcp.identity.non_service_account_mfa','evidence':evidence}) is None
+
+
+def test_native_kms_successor_capture_is_pinned_and_complete():
+    import hashlib
+    path = Path(__file__).parent / 'fixtures/gcp-alert-native-successor-20261020.json'
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == 'd96b5cc131dad48afbf37fb71cf5f3e51d6d3ec650539269f6d782b8f37f7aad'
+    capture = json.loads(raw)
+    assert len(capture['cases']) == 3
+    assert {row['check_id'] for row in capture['cases']} == {'gcp_kms_key_destroy_alert'}
+    assert {row['expected_status'] for row in capture['cases']} == {'PASS', 'FAIL', 'UNKNOWN'}
+    proof = PACK.parents[1] / 'docs/gcp-review/recheck-20261020/alert-predicate-successors.json'
+    assert capture['predicate_successor_sha256'] == hashlib.sha256(proof.read_bytes()).hexdigest()

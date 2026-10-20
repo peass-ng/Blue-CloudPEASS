@@ -214,6 +214,10 @@ def _specific_observation(finding):
 
 
 def _observation(finding, row):
+    from .selected_content_observed import observation as selected_content
+    selected = selected_content(finding)
+    if selected:
+        return selected
     cid, e = finding['check_id'], finding['evidence']
     specific = _specific_observation(finding)
     if specific:
@@ -234,6 +238,15 @@ def _observation(finding, row):
                 return observation.removesuffix('; endpoint reachability is not established.') + '.'
             return observation
     observed = e.get('observed')
+    if (cid == 'aws.review.codebuild.selected_inline_buildspec_secret_indicators'
+            and finding.get('status') == 'UNKNOWN' and observed in {
+                'The selected inline CodeBuild buildspec was unavailable, a reference, incomplete or unbound. Secret absence could not be assessed.',
+                'Selected inline CodeBuild source was unavailable, incomplete or unbound.'}):
+        return 'The selected inline CodeBuild source could not be fully inspected, so no clean result is established.'
+    if (cid == 'aws.review.s3.selected_source_secret_indicators' and finding.get('status') == 'UNKNOWN'
+            and e == {'observed': 'Selected S3 source content was unreadable, unsupported, incomplete or unbound. A clean result cannot be established.',
+                      'complete': False, 'coverage': 'incomplete'}):
+        return 'The selected S3 source could not be fully inspected, so no clean result is established.'
     if _text(observed) and ' ' in observed and observed.endswith('.') and not observed.lstrip().startswith(('{', '[')):
         return observed
     facts = []

@@ -104,8 +104,8 @@ def test_scheduled_rule_list_provenance_preserves_native_shape():
 ])
 def test_mysql_configurations_shared_and_subscription_scoped(mode, status, children):
     server_id = ROOT + "Microsoft.DBforMySQL/servers/mysql"
-    server = {"id": server_id, "properties": {"sslEnforcement": "Enabled"}}
-    configs = [{"id": server_id + "/configurations/" + name, "name": name,
+    server = {"id": server_id, "type": "Microsoft.DBforMySQL/servers", "properties": {"sslEnforcement": "Enabled"}}
+    configs = [{"id": server_id + "/configurations/" + name, "type": "Microsoft.DBforMySQL/servers/configurations", "name": name,
                 "properties": {"value": value}} for name, value in
                (("audit_log_enabled", "ON"), ("audit_log_events", "CONNECTION"))]
     def response(query):
@@ -162,7 +162,7 @@ def test_simple_arm_inventory_pages_and_partial(kind):
 ])
 def test_aks_defender_pricing_complete_pair_and_parent_pages(mode, status, count):
     path = endpoint("aks_cluster")
-    clusters = [{"id": ROOT + "Microsoft.ContainerService/managedClusters/" + name,
+    clusters = [{"id": ROOT + "Microsoft.ContainerService/managedClusters/" + name, "type": "Microsoft.ContainerService/managedClusters",
                  "properties": {"kubernetesVersion": "1.30.1"}} for name in ("one", "two")]
     def list_response(query):
         if mode == "error":
@@ -188,7 +188,7 @@ def test_aks_defender_pricing_complete_pair_and_parent_pages(mode, status, count
 
 def test_vm_instance_view_current_patch_summary_and_denial():
     rid = ROOT + "Microsoft.Compute/virtualMachines/vm"
-    vm = {"id": rid, "properties": {"storageProfile": {}}}
+    vm = {"id": rid, "type": "Microsoft.Compute/virtualMachines", "properties": {"storageProfile": {}}}
     routes = {endpoint("vm"): {"value": [vm]}, rid: vm,
               rid + "/instanceView": {"patchStatus": {"availablePatchSummary": {
                   "status": "Succeeded", "criticalAndSecurityPatchCount": 0}}}}
@@ -223,7 +223,7 @@ def test_diagnostic_category_child_and_consolidated_coverage(mode, status, count
             return ReadError(403) if mode == "partial" else {"value": [values[1]]}
         return {"value": [values[0]], "nextLink": azure.ARM + base + "?page=2"} if mode in ("paginated", "partial") else {"value": [values[0]]}
     snapshot, _ = collect(["diagnostic_category"], {
-        endpoint("application_gateway"): {"value": [{"id": gateway_id, "properties": {}}]},
+        endpoint("application_gateway"): {"value": [{"id": gateway_id, "type": "Microsoft.Network/applicationGateways", "properties": {}}]},
         base: category_pages,
     })
     parent = rows(snapshot, "application_gateway")["items"][0]
@@ -241,12 +241,12 @@ def test_storage_event_subscriptions_and_mysql_flexible_admins_reuse_embedded_re
     event_id = account_id + "/providers/Microsoft.EventGrid/eventSubscriptions/sub"
     admin_id = mysql_id + "/administrators/admin"
     snapshot, _ = collect(["storage_account", "mysql_flexible_server"], {
-        endpoint("storage_account"): {"value": [{"id": account_id, "properties": {}}]},
-        account_id: {"id": account_id, "properties": {}},
+        endpoint("storage_account"): {"value": [{"id": account_id, "type": "Microsoft.Storage/storageAccounts", "properties": {}}]},
+        account_id: {"id": account_id, "type": "Microsoft.Storage/storageAccounts", "properties": {}},
         account_id + "/providers/Microsoft.EventGrid/eventSubscriptions": {"value": [
             {"id": event_id, "properties": {"provisioningState": "Succeeded"}}]},
-        endpoint("mysql_flexible_server"): {"value": [{"id": mysql_id, "properties": {"authConfig": {"activeDirectoryAuth": "Enabled"}}}]},
-        mysql_id + "/administrators": {"value": [{"id": admin_id, "properties": {"principalId": "user-a"}}]},
+        endpoint("mysql_flexible_server"): {"value": [{"id": mysql_id, "type": "Microsoft.DBforMySQL/flexibleServers", "properties": {"authConfig": {"activeDirectoryAuth": "Enabled"}}}]},
+        mysql_id + "/administrators": {"value": [{"id": admin_id, "type": "Microsoft.DBforMySQL/flexibleServers/administrators", "name": "admin", "properties": {"principalId": "user-a"}}]},
     })
     storage = rows(snapshot, "storage_account")["items"][0]
     mysql = rows(snapshot, "mysql_flexible_server")["items"][0]
@@ -262,7 +262,7 @@ def test_cosmos_supported_categories_and_group_resolution_from_same_read():
     setting = rid + "/providers/Microsoft.Insights/diagnosticSettings/export"
     snapshot, _ = collect(["cosmos_account", "diagnostic_setting", "diagnostic_category"], {
         SCOPE + "/resources": {"value": [{"id": rid, "type": "Microsoft.DocumentDB/databaseAccounts"}]},
-        endpoint("cosmos_account"): {"value": [{"id": rid, "properties": {"capabilities": [{"name": "EnableMongo"}]}}]},
+        endpoint("cosmos_account"): {"value": [{"id": rid, "type": "Microsoft.DocumentDB/databaseAccounts", "properties": {"capabilities": [{"name": "EnableMongo"}]}}]},
         base: {"value": [{"id": base + "/MongoRequests", "name": "MongoRequests",
                           "properties": {"categoryType": "Logs", "categoryGroups": ["allLogs"]}}]},
         rid + "/providers/Microsoft.Insights/diagnosticSettings": {"value": [{"id": setting,
@@ -327,9 +327,9 @@ def test_backup_jobs_and_sql_restore_points_reuse_paged_embedded_children():
     ltr_path = SCOPE + "/providers/Microsoft.Sql/locations/eastus/longTermRetentionServers/server/longTermRetentionDatabases/db/longTermRetentionBackups"
     ltr_id = ltr_path + "/backup"
     snapshot, _ = collect(["backup_job", "sql_restore_point", "sql_ltr_backup"], {
-        endpoint("recovery_vault"): {"value": [{"id": vault_id, "properties": {}}]},
-        vault_id: {"id": vault_id, "properties": {}},
-        endpoint("sql_server"): {"value": [{"id": sql_id, "properties": {}}]},
+        endpoint("recovery_vault"): {"value": [{"id": vault_id, "type": "Microsoft.RecoveryServices/vaults", "properties": {}}]},
+        vault_id: {"id": vault_id, "type": "Microsoft.RecoveryServices/vaults", "properties": {}},
+        endpoint("sql_server"): {"value": [{"id": sql_id, "type": "Microsoft.Sql/servers", "properties": {}}]},
         sql_id + "/databases": {"value": [{"id": db_id, "location": "eastus", "properties": {"status": "Online"}}]},
         vault_id + "/backupJobs": {"value": [{"id": job_id, "properties": {"status": "Completed", "protectedItemId": "item"}}]},
         db_id + "/restorePoints": {"value": [{"id": restore_id, "properties": {"restorePointCreationDate": "2026-01-01T00:00:00Z"}}]},

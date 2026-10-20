@@ -1,0 +1,4054 @@
+{
+  "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": {
+    "fail": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": "68392573a27bd55cb01a1f94f2966f14aecce300b77f4972d40dc6e69727c13d",
+        "capture": "b33613dd45ec4b279066bf9862da021d",
+        "captured_at": "2026-10-20T09:42:32.529807+00:00",
+        "complete": true,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+        "leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "9ff76b8d79b24233d6507d5243cef499f1f597c6c1f74bddc343076165889425",
+            "locations": [
+              {
+                "line": 1,
+                "path": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b.source"
+              }
+            ]
+          }
+        ],
+        "native_complete": true,
+        "parts": [
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ],
+        "profile": "cluster",
+        "reason": "complete",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+          "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+          "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+          "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+          "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407",
+          "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+          "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+          "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+          "dataproc-source-read:a316dd7430224273b67a4fa09f11818f"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+            "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+            "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+            "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+            "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407",
+            "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+            "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+            "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+            "dataproc-source-read:a316dd7430224273b67a4fa09f11818f"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:32.528652+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+          "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+          "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+          "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+          "dataproc-source-read:a316dd7430224273b67a4fa09f11818f",
+          "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+          "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+          "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+          "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+      "name": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+    },
+    "fail_index": {
+      "collections": {
+        "dataproc_selected_initialization_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": "68392573a27bd55cb01a1f94f2966f14aecce300b77f4972d40dc6e69727c13d",
+                  "capture": "b33613dd45ec4b279066bf9862da021d",
+                  "captured_at": "2026-10-20T09:42:32.529807+00:00",
+                  "complete": true,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                  "leaks": [
+                    {
+                      "detectors": [
+                        {
+                          "engine": "kingfisher",
+                          "rule": "betterleaks.github-pat"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "rule": "Github"
+                        }
+                      ],
+                      "fingerprint": "9ff76b8d79b24233d6507d5243cef499f1f597c6c1f74bddc343076165889425",
+                      "locations": [
+                        {
+                          "line": 1,
+                          "path": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b.source"
+                        }
+                      ]
+                    }
+                  ],
+                  "native_complete": true,
+                  "parts": [
+                    {
+                      "bytes": 46,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ]
+                    }
+                  ],
+                  "profile": "cluster",
+                  "reason": "complete",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+                    "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+                    "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+                    "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+                    "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407",
+                    "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+                    "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+                    "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+                    "dataproc-source-read:a316dd7430224273b67a4fa09f11818f"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+                      "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+                      "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+                      "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+                      "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407",
+                      "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+                      "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+                      "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+                      "dataproc-source-read:a316dd7430224273b67a4fa09f11818f"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:32.528652+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+                    "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+                    "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+                    "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+                    "dataproc-source-read:a316dd7430224273b67a4fa09f11818f",
+                    "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+                    "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+                    "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+                    "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "name": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+              "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+              "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+              "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+              "dataproc-source-read:a316dd7430224273b67a4fa09f11818f",
+              "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+              "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+              "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+              "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_initialization_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:32.528652+00:00",
+          "auth_method": "adc",
+          "calls": 9,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": [
+              "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+            ]
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_source_capture": "b33613dd45ec4b279066bf9862da021d",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:c80dc77411ea4a1b90a569ea45353a2c",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 242,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:6286e049c068455db0f2dde80a8e2d40",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "183e3963a5a9792008046a74f487ecc6f16ff195575215aba714455280d77d4d",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:984e9527a0bc432599f5f020fd803962",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "bucket_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:2481e75b34594101ba4c5bde9c422755",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "latest_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 46,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:fccda9ddb5484b7dadecc6a211e73407",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "content",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "ed117ab83d2048172bf09c61edbf7aaab576436ad5b0df6284ebfd89f1c7e6bc",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:9ad1517ff3fe49ba9778cb38f3716f7a",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "latest_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 242,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:bfb60d2f72144401888131eafc0eb3a9",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "reference_after",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "183e3963a5a9792008046a74f487ecc6f16ff195575215aba714455280d77d4d",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:e37ef0630c6b428ca0f97a9963e2aa88",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "bucket_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "b33613dd45ec4b279066bf9862da021d",
+              "id": "dataproc-source-read:a316dd7430224273b67a4fa09f11818f",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "project_after",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "index": {
+      "collections": {
+        "dataproc_selected_initialization_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": "68392573a27bd55cb01a1f94f2966f14aecce300b77f4972d40dc6e69727c13d",
+                  "capture": "afab64469901486ab1f136aac5c18342",
+                  "captured_at": "2026-10-20T09:42:31.818150+00:00",
+                  "complete": true,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                  "leaks": [],
+                  "native_complete": true,
+                  "parts": [
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ]
+                    }
+                  ],
+                  "profile": "cluster",
+                  "reason": "complete",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:596404f0552e476095295234c4b18d23",
+                    "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+                    "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+                    "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+                    "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+                    "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+                    "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+                    "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+                    "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:596404f0552e476095295234c4b18d23",
+                      "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+                      "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+                      "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+                      "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+                      "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+                      "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+                      "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+                      "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:31.817140+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+                    "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+                    "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+                    "dataproc-source-read:596404f0552e476095295234c4b18d23",
+                    "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+                    "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+                    "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+                    "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+                    "dataproc-source-read:e691a80fc6a6498ba436b7198264579b"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "name": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+              "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+              "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+              "dataproc-source-read:596404f0552e476095295234c4b18d23",
+              "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+              "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+              "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+              "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+              "dataproc-source-read:e691a80fc6a6498ba436b7198264579b"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_initialization_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:31.817140+00:00",
+          "auth_method": "adc",
+          "calls": 9,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": [
+              "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+            ]
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_source_capture": "afab64469901486ab1f136aac5c18342",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:596404f0552e476095295234c4b18d23",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 242,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "183e3963a5a9792008046a74f487ecc6f16ff195575215aba714455280d77d4d",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "bucket_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "latest_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 11,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "content",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "ed117ab83d2048172bf09c61edbf7aaab576436ad5b0df6284ebfd89f1c7e6bc",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "latest_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 242,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "reference_after",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "183e3963a5a9792008046a74f487ecc6f16ff195575215aba714455280d77d4d",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "bucket_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "project_after",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "malformed": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": "68392573a27bd55cb01a1f94f2966f14aecce300b77f4972d40dc6e69727c13d",
+        "capture": "afab64469901486ab1f136aac5c18342",
+        "captured_at": "2026-10-20T09:42:31.818150+00:00",
+        "complete": true,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+        "leaks": [],
+        "native_complete": true,
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ],
+        "profile": "cluster",
+        "reason": "complete",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:596404f0552e476095295234c4b18d23",
+          "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+          "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+          "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+          "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+          "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+          "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+          "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+          "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:596404f0552e476095295234c4b18d23",
+            "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+            "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+            "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+            "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+            "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+            "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+            "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+            "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:31.817140+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+          "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+          "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+          "dataproc-source-read:596404f0552e476095295234c4b18d23",
+          "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+          "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+          "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+          "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+          "dataproc-source-read:e691a80fc6a6498ba436b7198264579b"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+      "name": "unbound",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+    },
+    "missing": {},
+    "pass": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": "68392573a27bd55cb01a1f94f2966f14aecce300b77f4972d40dc6e69727c13d",
+        "capture": "afab64469901486ab1f136aac5c18342",
+        "captured_at": "2026-10-20T09:42:31.818150+00:00",
+        "complete": true,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+        "leaks": [],
+        "native_complete": true,
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ],
+        "profile": "cluster",
+        "reason": "complete",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:596404f0552e476095295234c4b18d23",
+          "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+          "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+          "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+          "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+          "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+          "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+          "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+          "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:596404f0552e476095295234c4b18d23",
+            "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+            "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+            "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+            "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+            "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+            "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+            "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+            "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:31.817140+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+          "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+          "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+          "dataproc-source-read:596404f0552e476095295234c4b18d23",
+          "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+          "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+          "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+          "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+          "dataproc-source-read:e691a80fc6a6498ba436b7198264579b"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+      "name": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+    },
+    "pass_index": {
+      "collections": {
+        "dataproc_selected_initialization_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": "68392573a27bd55cb01a1f94f2966f14aecce300b77f4972d40dc6e69727c13d",
+                  "capture": "afab64469901486ab1f136aac5c18342",
+                  "captured_at": "2026-10-20T09:42:31.818150+00:00",
+                  "complete": true,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                  "leaks": [],
+                  "native_complete": true,
+                  "parts": [
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ]
+                    }
+                  ],
+                  "profile": "cluster",
+                  "reason": "complete",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:596404f0552e476095295234c4b18d23",
+                    "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+                    "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+                    "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+                    "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+                    "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+                    "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+                    "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+                    "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:596404f0552e476095295234c4b18d23",
+                      "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+                      "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+                      "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+                      "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+                      "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+                      "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+                      "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+                      "dataproc-source-read:1e7eecb749414a438488038c30b82da2"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:31.817140+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+                    "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+                    "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+                    "dataproc-source-read:596404f0552e476095295234c4b18d23",
+                    "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+                    "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+                    "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+                    "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+                    "dataproc-source-read:e691a80fc6a6498ba436b7198264579b"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "name": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+              "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+              "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+              "dataproc-source-read:596404f0552e476095295234c4b18d23",
+              "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+              "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+              "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+              "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+              "dataproc-source-read:e691a80fc6a6498ba436b7198264579b"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_initialization_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:31.817140+00:00",
+          "auth_method": "adc",
+          "calls": 9,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": [
+              "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+            ]
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_source_capture": "afab64469901486ab1f136aac5c18342",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:596404f0552e476095295234c4b18d23",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 242,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:206560f3228e41f488fe58b311e57954",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "183e3963a5a9792008046a74f487ecc6f16ff195575215aba714455280d77d4d",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:be019a42a56b43b2a6cfffe1b7da008c",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "bucket_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:9686ed424d684916ac8556900d6016f1",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "latest_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 11,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:b2468baf76e6493c9c87aa38e72569a0",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "content",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "ed117ab83d2048172bf09c61edbf7aaab576436ad5b0df6284ebfd89f1c7e6bc",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:e691a80fc6a6498ba436b7198264579b",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "latest_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 242,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:14c6c6eb965c4490b443e3ec6b22b970",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "reference_after",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "183e3963a5a9792008046a74f487ecc6f16ff195575215aba714455280d77d4d",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:8707c46b9c7e4d0e8564ff7f56c179aa",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "bucket_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "afab64469901486ab1f136aac5c18342",
+              "id": "dataproc-source-read:1e7eecb749414a438488038c30b82da2",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "project_after",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "unknown": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": null,
+        "capture": "eb6b4c2fda9a41ab965208928e91077a",
+        "captured_at": null,
+        "complete": false,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+        "leaks": [],
+        "native_complete": false,
+        "parts": [],
+        "profile": "cluster",
+        "reason": "denied",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+          "dataproc-source-read:e33d94e6802b424398eb791b520291f2"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+            "dataproc-source-read:e33d94e6802b424398eb791b520291f2"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:33.254102+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+          "dataproc-source-read:e33d94e6802b424398eb791b520291f2"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+      "name": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+    },
+    "unknown_index": {
+      "collections": {
+        "dataproc_selected_initialization_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": null,
+                  "capture": "eb6b4c2fda9a41ab965208928e91077a",
+                  "captured_at": null,
+                  "complete": false,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                  "leaks": [],
+                  "native_complete": false,
+                  "parts": [],
+                  "profile": "cluster",
+                  "reason": "denied",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+                    "dataproc-source-read:e33d94e6802b424398eb791b520291f2"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+                      "dataproc-source-read:e33d94e6802b424398eb791b520291f2"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:33.254102+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+                    "dataproc-source-read:e33d94e6802b424398eb791b520291f2"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "name": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_initialization_source/dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+              "dataproc-source-read:e33d94e6802b424398eb791b520291f2"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_initialization_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:33.254102+00:00",
+          "auth_method": "adc",
+          "calls": 2,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": [
+              "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b"
+            ]
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_source_capture": "eb6b4c2fda9a41ab965208928e91077a",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "eb6b4c2fda9a41ab965208928e91077a",
+              "id": "dataproc-source-read:885644ccd5b945fb85262f628f536486",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": false,
+              "bytes": 0,
+              "capture": "eb6b4c2fda9a41ab965208928e91077a",
+              "id": "dataproc-source-read:e33d94e6802b424398eb791b520291f2",
+              "identity": "dataproc_selected_initialization_source:63addd9e2ace3663a54941fa9dae7970b05e5fa3840b8b29cd5326dbc996685b",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "183e3963a5a9792008046a74f487ecc6f16ff195575215aba714455280d77d4d",
+              "scope": "projects/review",
+              "status": "unavailable"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    }
+  },
+  "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": {
+    "fail": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": "dc8a1de03aef40e847e02a37ff1a9148eb1bfe39bfafa10657ceb8b2b3aaffa5",
+        "capture": "51f8672b9e21400c900c537a56e3e81a",
+        "captured_at": "2026-10-20T09:42:31.109171+00:00",
+        "complete": true,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+        "leaks": [
+          {
+            "detectors": [
+              {
+                "engine": "kingfisher",
+                "rule": "betterleaks.github-pat"
+              },
+              {
+                "engine": "trufflehog",
+                "rule": "Github"
+              }
+            ],
+            "fingerprint": "9ff76b8d79b24233d6507d5243cef499f1f597c6c1f74bddc343076165889425",
+            "locations": [
+              {
+                "line": 1,
+                "path": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd.source"
+              }
+            ]
+          }
+        ],
+        "native_complete": true,
+        "parts": [
+          {
+            "bytes": 46,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ],
+        "profile": "job",
+        "reason": "complete",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+          "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+          "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+          "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+          "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+          "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f",
+          "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+          "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+          "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+            "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+            "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+            "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+            "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+            "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f",
+            "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+            "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+            "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:31.108144+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+          "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+          "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+          "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+          "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+          "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+          "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+          "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c",
+          "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+      "name": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+    },
+    "fail_index": {
+      "collections": {
+        "dataproc_selected_job_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": "dc8a1de03aef40e847e02a37ff1a9148eb1bfe39bfafa10657ceb8b2b3aaffa5",
+                  "capture": "51f8672b9e21400c900c537a56e3e81a",
+                  "captured_at": "2026-10-20T09:42:31.109171+00:00",
+                  "complete": true,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                  "leaks": [
+                    {
+                      "detectors": [
+                        {
+                          "engine": "kingfisher",
+                          "rule": "betterleaks.github-pat"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "rule": "Github"
+                        }
+                      ],
+                      "fingerprint": "9ff76b8d79b24233d6507d5243cef499f1f597c6c1f74bddc343076165889425",
+                      "locations": [
+                        {
+                          "line": 1,
+                          "path": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd.source"
+                        }
+                      ]
+                    }
+                  ],
+                  "native_complete": true,
+                  "parts": [
+                    {
+                      "bytes": 46,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ]
+                    }
+                  ],
+                  "profile": "job",
+                  "reason": "complete",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+                    "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+                    "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+                    "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+                    "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+                    "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f",
+                    "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+                    "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+                    "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+                      "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+                      "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+                      "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+                      "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+                      "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f",
+                      "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+                      "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+                      "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:31.108144+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+                    "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+                    "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+                    "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+                    "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+                    "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+                    "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+                    "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c",
+                    "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "name": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+              "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+              "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+              "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+              "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+              "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+              "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+              "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c",
+              "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_job_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:31.108144+00:00",
+          "auth_method": "adc",
+          "calls": 9,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": [
+              "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+            ]
+          },
+          "dataproc_source_capture": "51f8672b9e21400c900c537a56e3e81a",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:5a03875a84314d7a9451e2fa89d77fd7",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 387,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:1fea61a952f94dfa91207849a10767b0",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "f9a528aaed18775137dd381dab66d6ae1fdcd13991ef805c1dcb973370721199",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:2ddbe8991256443b8b03be89ad1b2458",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "bucket_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:66d34ae0399c409c8addd2e0e76a3513",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "latest_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 46,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:30b7d086c0714887b61c09b3c6dbc0d2",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "content",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "ed117ab83d2048172bf09c61edbf7aaab576436ad5b0df6284ebfd89f1c7e6bc",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:ed74b69a8ce04d1c9dfe2c608fbfbe4f",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "latest_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 387,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:03d4afdbb3f745cbb09e4c46a61434fa",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "reference_after",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "f9a528aaed18775137dd381dab66d6ae1fdcd13991ef805c1dcb973370721199",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:5546a628cee4462a869bbe2df1f90919",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "bucket_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "51f8672b9e21400c900c537a56e3e81a",
+              "id": "dataproc-source-read:dd581519d6c9410aa7c1623f2791826c",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "project_after",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "index": {
+      "collections": {
+        "dataproc_selected_job_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": "dc8a1de03aef40e847e02a37ff1a9148eb1bfe39bfafa10657ceb8b2b3aaffa5",
+                  "capture": "9cb606f293db4feeb2b5310766e816f0",
+                  "captured_at": "2026-10-20T09:42:26.843747+00:00",
+                  "complete": true,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                  "leaks": [],
+                  "native_complete": true,
+                  "parts": [
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ]
+                    }
+                  ],
+                  "profile": "job",
+                  "reason": "complete",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+                    "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+                    "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+                    "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+                    "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+                    "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+                    "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+                    "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+                    "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+                      "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+                      "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+                      "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+                      "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+                      "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+                      "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+                      "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+                      "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:26.842407+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+                    "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+                    "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+                    "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+                    "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+                    "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+                    "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+                    "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+                    "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "name": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+              "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+              "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+              "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+              "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+              "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+              "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+              "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+              "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_job_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:26.842407+00:00",
+          "auth_method": "adc",
+          "calls": 9,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": [
+              "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+            ]
+          },
+          "dataproc_source_capture": "9cb606f293db4feeb2b5310766e816f0",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 387,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "f9a528aaed18775137dd381dab66d6ae1fdcd13991ef805c1dcb973370721199",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "bucket_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "latest_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 11,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "content",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "ed117ab83d2048172bf09c61edbf7aaab576436ad5b0df6284ebfd89f1c7e6bc",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "latest_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 387,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "reference_after",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "f9a528aaed18775137dd381dab66d6ae1fdcd13991ef805c1dcb973370721199",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "bucket_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "project_after",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "malformed": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": "dc8a1de03aef40e847e02a37ff1a9148eb1bfe39bfafa10657ceb8b2b3aaffa5",
+        "capture": "9cb606f293db4feeb2b5310766e816f0",
+        "captured_at": "2026-10-20T09:42:26.843747+00:00",
+        "complete": true,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+        "leaks": [],
+        "native_complete": true,
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ],
+        "profile": "job",
+        "reason": "complete",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+          "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+          "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+          "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+          "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+          "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+          "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+          "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+          "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+            "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+            "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+            "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+            "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+            "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+            "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+            "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+            "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:26.842407+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+          "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+          "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+          "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+          "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+          "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+          "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+          "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+          "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+      "name": "unbound",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+    },
+    "missing": {},
+    "pass": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": "dc8a1de03aef40e847e02a37ff1a9148eb1bfe39bfafa10657ceb8b2b3aaffa5",
+        "capture": "9cb606f293db4feeb2b5310766e816f0",
+        "captured_at": "2026-10-20T09:42:26.843747+00:00",
+        "complete": true,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+        "leaks": [],
+        "native_complete": true,
+        "parts": [
+          {
+            "bytes": 11,
+            "complete": true,
+            "engines": [
+              {
+                "engine": "kingfisher",
+                "status": "complete",
+                "version": "1.4.0"
+              },
+              {
+                "engine": "trufflehog",
+                "status": "complete",
+                "version": "3.92.5"
+              }
+            ]
+          }
+        ],
+        "profile": "job",
+        "reason": "complete",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+          "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+          "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+          "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+          "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+          "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+          "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+          "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+          "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+            "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+            "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+            "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+            "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+            "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+            "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+            "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+            "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:26.842407+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+          "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+          "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+          "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+          "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+          "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+          "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+          "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+          "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+      "name": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+    },
+    "pass_index": {
+      "collections": {
+        "dataproc_selected_job_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": "dc8a1de03aef40e847e02a37ff1a9148eb1bfe39bfafa10657ceb8b2b3aaffa5",
+                  "capture": "9cb606f293db4feeb2b5310766e816f0",
+                  "captured_at": "2026-10-20T09:42:26.843747+00:00",
+                  "complete": true,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                  "leaks": [],
+                  "native_complete": true,
+                  "parts": [
+                    {
+                      "bytes": 11,
+                      "complete": true,
+                      "engines": [
+                        {
+                          "engine": "kingfisher",
+                          "status": "complete",
+                          "version": "1.4.0"
+                        },
+                        {
+                          "engine": "trufflehog",
+                          "status": "complete",
+                          "version": "3.92.5"
+                        }
+                      ]
+                    }
+                  ],
+                  "profile": "job",
+                  "reason": "complete",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+                    "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+                    "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+                    "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+                    "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+                    "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+                    "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+                    "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+                    "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+                      "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+                      "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+                      "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+                      "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+                      "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+                      "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+                      "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+                      "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:26.842407+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+                    "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+                    "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+                    "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+                    "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+                    "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+                    "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+                    "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+                    "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "name": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+              "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+              "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+              "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+              "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+              "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+              "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+              "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+              "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_job_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:26.842407+00:00",
+          "auth_method": "adc",
+          "calls": 9,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": [
+              "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+            ]
+          },
+          "dataproc_source_capture": "9cb606f293db4feeb2b5310766e816f0",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:f389d3d8c4574409aa4e829335833e4b",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 387,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:c9fe02142fd4436fbef6ee820d4b1f57",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "f9a528aaed18775137dd381dab66d6ae1fdcd13991ef805c1dcb973370721199",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:ca9a8d44a0fe488faccda0efaf00a31d",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "bucket_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:779a19cd0868430eaa38bcde99680b96",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "latest_before",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 11,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:520d177da8ac4131827cb001cbaf84f2",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "content",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "ed117ab83d2048172bf09c61edbf7aaab576436ad5b0df6284ebfd89f1c7e6bc",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 122,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:d61b014dc00c42aaa32bc7d6d015a945",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "latest_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "7a1e9807126bebccb643d3ac051b8a1e74d9ff3e834e59a2dec3e67d3ebd54c6",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 387,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:1a0e36c5a50b4d058faa84d57dba5ae2",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "reference_after",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "f9a528aaed18775137dd381dab66d6ae1fdcd13991ef805c1dcb973370721199",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 51,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:f94fd1b4ecce4ebbb29fb8b82e7a3ba7",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "bucket_after",
+              "origin": "storage.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "cae8297530365ab40394060eb248f3147055307b0a9a6e17e64cd0a394efb896",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "9cb606f293db4feeb2b5310766e816f0",
+              "id": "dataproc-source-read:45e4ca5c5b4b4def999932184c3bf5ed",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "project_after",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    },
+    "unknown": {
+      "DataprocReferencedSourceSecretIndicators": {
+        "association": null,
+        "capture": "41120b33c9b444c891c2ea7bb8555499",
+        "captured_at": null,
+        "complete": false,
+        "executed_bytes_proven": false,
+        "generation": "12345",
+        "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+        "leaks": [],
+        "native_complete": false,
+        "parts": [],
+        "profile": "job",
+        "reason": "denied",
+        "schema": "gcp-dataproc-referenced-source-v1",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a",
+          "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d"
+        ],
+        "verification": "not_attempted"
+      },
+      "_coverage": {
+        "DataprocReferencedSourceSecretIndicators": {
+          "source_requests": [
+            "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a",
+            "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d"
+          ],
+          "status": "collected"
+        }
+      },
+      "_provenance": {
+        "collected_at": "2026-10-20T09:42:31.815422+00:00",
+        "scope": "projects/review",
+        "source_requests": [
+          "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d",
+          "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a"
+        ]
+      },
+      "_relationships": [],
+      "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+      "name": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+      "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+    },
+    "unknown_index": {
+      "collections": {
+        "dataproc_selected_job_source": [
+          {
+            "coverage_status": "collected",
+            "items": [
+              {
+                "DataprocReferencedSourceSecretIndicators": {
+                  "association": null,
+                  "capture": "41120b33c9b444c891c2ea7bb8555499",
+                  "captured_at": null,
+                  "complete": false,
+                  "executed_bytes_proven": false,
+                  "generation": "12345",
+                  "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                  "leaks": [],
+                  "native_complete": false,
+                  "parts": [],
+                  "profile": "job",
+                  "reason": "denied",
+                  "schema": "gcp-dataproc-referenced-source-v1",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a",
+                    "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d"
+                  ],
+                  "verification": "not_attempted"
+                },
+                "_coverage": {
+                  "DataprocReferencedSourceSecretIndicators": {
+                    "source_requests": [
+                      "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a",
+                      "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d"
+                    ],
+                    "status": "collected"
+                  }
+                },
+                "_provenance": {
+                  "collected_at": "2026-10-20T09:42:31.815422+00:00",
+                  "scope": "projects/review",
+                  "source_requests": [
+                    "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d",
+                    "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a"
+                  ]
+                },
+                "_relationships": [],
+                "_resource_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "name": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+                "native_id": "//gcp/projects/review/global/dataproc_selected_job_source/dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+              }
+            ],
+            "scope": "projects/review",
+            "service": "dataproc",
+            "source_requests": [
+              "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d",
+              "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a"
+            ],
+            "status": "collected",
+            "type": "dataproc_selected_job_source"
+          }
+        ]
+      },
+      "context": {
+        "metadata": {
+          "asset_read_time": "2026-10-20T09:42:31.815422+00:00",
+          "auth_method": "adc",
+          "calls": 2,
+          "cloudbuild_location_mode": "discovered",
+          "cloudbuild_location_selection": null,
+          "collection": "read-only",
+          "collection_mode": "full",
+          "collector": "native-gcp",
+          "concurrency": 1,
+          "data_service_project_bindings": {},
+          "dataproc_selected_initialization_source_authorized": true,
+          "dataproc_selected_initialization_source_selection": {
+            "projects/review": []
+          },
+          "dataproc_selected_job_source_authorized": true,
+          "dataproc_selected_job_source_selection": {
+            "projects/review": [
+              "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd"
+            ]
+          },
+          "dataproc_source_capture": "41120b33c9b444c891c2ea7bb8555499",
+          "dataproc_source_receipts": [
+            {
+              "bound": true,
+              "bytes": 68,
+              "capture": "41120b33c9b444c891c2ea7bb8555499",
+              "id": "dataproc-source-read:d2a8d94d79eb4a02ab5d91368fba268a",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "project_before",
+              "origin": "cloudresourcemanager.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "a0b030a7c2f55cca0c3d91f221c34e3fefde1f2119039fe7dade9d8d95cf5e79",
+              "scope": "projects/review",
+              "status": "collected"
+            },
+            {
+              "bound": false,
+              "bytes": 0,
+              "capture": "41120b33c9b444c891c2ea7bb8555499",
+              "id": "dataproc-source-read:390c4f79ecf2401d8b9d85363554b51d",
+              "identity": "dataproc_selected_job_source:07a4092ef4660e1bdb02f4c4f3551f0c428190b795187ca54314e0dc5665d3bd",
+              "method": "GET",
+              "operation": "reference_before",
+              "origin": "dataproc.googleapis.com",
+              "principal": "dfb03b78087a82413e9f91c46136bb04222502c4f0d466eb49392630cc726357",
+              "request": "f9a528aaed18775137dd381dab66d6ae1fdcd13991ef805c1dcb973370721199",
+              "scope": "projects/review",
+              "status": "unavailable"
+            }
+          ],
+          "hierarchy_discovery": [],
+          "inherited_scopes": [],
+          "intentional_limits": {},
+          "limitations": [
+            "CAI is eventually consistent; direct API reads are collected at their request time",
+            "Audit absence never proves inactivity; disabled/denied Data Access logging limits activity evidence",
+            "IAM policies and conditions are declared grants, not an effective-access decision",
+            "Shared VPC references outside selected projects are not traversed"
+          ],
+          "max_calls": null,
+          "max_pages": null,
+          "max_resources": null,
+          "max_scopes": null,
+          "omitted_inventories": [
+            "access_approval_request",
+            "access_approval_settings",
+            "access_transparency_entry",
+            "activity",
+            "address",
+            "alert_policy",
+            "alloydb_cluster",
+            "alloydb_instance",
+            "api_key",
+            "app_engine_application",
+            "app_engine_service",
+            "app_engine_version",
+            "app_engine_version_secret",
+            "appengine_deployment_source",
+            "artifact_image",
+            "artifact_repository",
+            "artifact_selected_file",
+            "asset",
+            "asset_audit_log",
+            "asset_previous",
+            "asset_service_inventory",
+            "audit_log",
+            "autoscaler",
+            "backend_bucket",
+            "backend_service",
+            "backup_target",
+            "batch_job",
+            "bigquery_dataset",
+            "bigquery_selected_routine",
+            "bigquery_table",
+            "bigtable_instance",
+            "billing_account",
+            "bucket",
+            "bucket_acl",
+            "bucket_effective_iam",
+            "bucket_notification",
+            "certificate",
+            "cloud_asset",
+            "cloudbuild_artifact_source",
+            "cloudbuild_build",
+            "cloudbuild_log_source",
+            "cloudbuild_trigger",
+            "clouddeploy_release_source",
+            "cloudrun_job",
+            "cloudrun_service",
+            "cloudtasks_selected_task",
+            "composer_dag_source",
+            "composer_environment",
+            "dataflow_job",
+            "dataform_selected_file",
+            "dataproc_cluster",
+            "dataproc_job",
+            "deployed_image",
+            "disk",
+            "dns_managed_zone",
+            "dns_policy",
+            "dns_record",
+            "domains_registration",
+            "effective_firewall",
+            "essential_contact",
+            "filestore_instance",
+            "firewall",
+            "firewall_policy",
+            "firewall_policy_association",
+            "folder",
+            "forwarding_rule",
+            "function",
+            "function_source_archive",
+            "gcp_v4_workload_facts",
+            "gcs_selected_archive",
+            "gcs_selected_object",
+            "gke_cluster",
+            "gke_workload_literal",
+            "group",
+            "group_membership",
+            "health_check",
+            "iam_deny_policy",
+            "iam_policy",
+            "iam_role",
+            "image",
+            "insight",
+            "instance",
+            "instance_group",
+            "instance_group_manager",
+            "instance_template",
+            "kms_effective_use",
+            "kms_key",
+            "kms_key_ring",
+            "kms_key_version",
+            "log_entry",
+            "log_secret_sample",
+            "log_sink",
+            "logging_bucket",
+            "logging_metric",
+            "monitoring_alert_policy",
+            "monitoring_notification_channel",
+            "network",
+            "network_attachment",
+            "network_endpoint_group",
+            "node_group",
+            "node_template",
+            "object_acl",
+            "org_policy_effective",
+            "organization",
+            "os_inventory",
+            "os_patch_deployment",
+            "os_vulnerability_report",
+            "policy_based_route",
+            "policy_binding",
+            "principal_access_boundary_policy",
+            "project",
+            "provider_access_event",
+            "pubsub_snapshot",
+            "pubsub_subscription",
+            "pubsub_topic",
+            "recommendation",
+            "redis_instance",
+            "resource_policy",
+            "route",
+            "router",
+            "sbom_occurrence",
+            "scc_finding",
+            "scc_notification_config",
+            "scheduler_job",
+            "secret",
+            "security_policy",
+            "server_tls_policy",
+            "service_account",
+            "service_account_key",
+            "service_attachment",
+            "service_perimeter",
+            "service_usage",
+            "shared_vpc",
+            "snapshot",
+            "source_repository",
+            "source_repository_file",
+            "sql_backup_run",
+            "sql_instance",
+            "sql_operation",
+            "sql_user",
+            "ssl_policy",
+            "storage_hmac_key",
+            "subnetwork",
+            "target_https_proxy",
+            "target_proxy",
+            "url_map",
+            "vpc_access_connector",
+            "vpc_flow_logs_config",
+            "vpn_gateway",
+            "vpn_tunnel",
+            "workbench_instance",
+            "worker_pool",
+            "workflow_source",
+            "workforce_pool",
+            "workforce_provider",
+            "workload_identity_pool",
+            "workload_identity_provider",
+            "workspace_role",
+            "workspace_role_assignment",
+            "workspace_user"
+          ],
+          "project_restrictions": null,
+          "requested_scopes": [
+            "projects/review"
+          ],
+          "resolved_scopes": [
+            "projects/review"
+          ],
+          "scope_coverage": [],
+          "scope_type_omissions": {},
+          "service_usage_mode": "complete_list",
+          "service_usage_selection": [
+            "*"
+          ],
+          "source_requests": [],
+          "supporting_inventories": [],
+          "trusted_domains": [],
+          "trusted_domains_explicit": false,
+          "trusted_groups": null,
+          "trusted_scope_ids": [],
+          "trusted_service_accounts": null,
+          "trusted_users": null
+        },
+        "provider": "gcp",
+        "scope": "projects/review"
+      }
+    }
+  }
+}

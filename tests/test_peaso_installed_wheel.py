@@ -12,6 +12,16 @@ import zipfile
 import pytest
 
 
+# Immutable admission receipts read these exact paths at runtime. Stage only
+# their data so the isolated build cannot accidentally package the test suite.
+ADMISSION_RUNTIME_DATA = (
+    'tests/fixtures/azure_nsp_query_cmk_metadata_proposal_20261020.json.gz',
+    'tests/fixtures/azure_nsp_query_cmk_runtime_native_20261020.json.gz',
+    'tests/fixtures/azure_nsp_query_cmk_production_native_20261020.json.gz',
+    'tests/fixtures/azure_sql_tde_parent_identity_predecessor_20261020.json.gz',
+)
+
+
 @pytest.fixture(scope='module')
 def installed_wheel(tmp_path_factory):
     root = Path(__file__).resolve().parents[1]
@@ -23,6 +33,10 @@ def installed_wheel(tmp_path_factory):
                         ignore=shutil.ignore_patterns('__pycache__', '*.pyc', '.cache', '.work'))
     for name in ('pyproject.toml', 'LICENSE'):
         shutil.copy2(root / name, source / name)
+    for name in ADMISSION_RUNTIME_DATA:
+        destination = source / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(root / name, destination)
     environment = {key: value for key, value in os.environ.items()
                    if key not in ('PYTHONPATH', 'HACKTRICKS_CLOUD_ROOT') and not key.startswith(
                        ('PEASO_', 'AWS_', 'AZURE_', 'GOOGLE_', 'CLOUDSDK_', 'GCLOUD_', 'K8S_'))}
@@ -34,6 +48,9 @@ def installed_wheel(tmp_path_factory):
     target = work / 'installed'
     target.mkdir()
     with zipfile.ZipFile(wheel) as archive:
+        assert {name for name in archive.namelist() if name.startswith('tests/')} == set(ADMISSION_RUNTIME_DATA)
+        for name in ADMISSION_RUNTIME_DATA:
+            assert archive.read(name) == (root / name).read_bytes(), name
         for folder in ('peaso', 'risk_rules'):
             paths = (source / folder).rglob('*') if folder == 'peaso' else (source / folder).glob('*')
             for path in paths:

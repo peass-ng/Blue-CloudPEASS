@@ -1,0 +1,121 @@
+{
+  "schema": "gcp-workbench-native-cases-20261020-v1",
+  "provenance": "offline_native_http_fixtures_not_live_cloud",
+  "source_bytes_retained": false,
+  "cases": [
+    {
+      "case": "gceSetup.metadata.post-startup-script",
+      "binding_expected": true,
+      "target": {
+        "resource": "projects/review/locations/us-central1-a/instances/review-instance",
+        "field": "gceSetup.metadata.post-startup-script",
+        "bucket": "review-source",
+        "object": "scripts/source.sh",
+        "generation": "12345"
+      },
+      "instance": {
+        "name": "projects/review/locations/us-central1-a/instances/review-instance",
+        "id": "1234567890123456789",
+        "createTime": "2026-10-01T00:00:00Z",
+        "gceSetup": {
+          "metadata": {
+            "post-startup-script": "gs://review-source/scripts/source.sh"
+          },
+          "instanceId": "123456789"
+        },
+        "proxyUri": "https://never-follow.invalid/private",
+        "state": "ACTIVE"
+      }
+    },
+    {
+      "case": "gceSetup.metadata.startup-script-url",
+      "binding_expected": true,
+      "target": {
+        "resource": "projects/review/locations/us-central1-a/instances/review-instance",
+        "field": "gceSetup.metadata.startup-script-url",
+        "bucket": "review-source",
+        "object": "scripts/source.sh",
+        "generation": "12345"
+      },
+      "instance": {
+        "name": "projects/review/locations/us-central1-a/instances/review-instance",
+        "id": "1234567890123456789",
+        "createTime": "2026-10-01T00:00:00Z",
+        "gceSetup": {
+          "metadata": {
+            "startup-script-url": "gs://review-source/scripts/source.sh"
+          },
+          "instanceId": "123456789"
+        },
+        "proxyUri": "https://never-follow.invalid/private",
+        "state": "ACTIVE"
+      }
+    },
+    {
+      "case": "legacy_top_level_unsupported",
+      "binding_expected": false,
+      "target": {
+        "resource": "projects/review/locations/us-central1-a/instances/review-instance",
+        "field": "gceSetup.metadata.post-startup-script",
+        "bucket": "review-source",
+        "object": "scripts/source.sh",
+        "generation": "12345"
+      },
+      "instance": {
+        "name": "projects/review/locations/us-central1-a/instances/review-instance",
+        "id": "1234567890123456789",
+        "createTime": "2026-10-01T00:00:00Z",
+        "proxyUri": "https://never-follow.invalid/private",
+        "state": "ACTIVE",
+        "postStartupScript": "gs://review-source/scripts/source.sh"
+      }
+    },
+    {
+      "case": "system_metadata_only_unknown",
+      "binding_expected": false,
+      "target": {
+        "resource": "projects/review/locations/us-central1-a/instances/review-instance",
+        "field": "gceSetup.metadata.post-startup-script",
+        "bucket": "review-source",
+        "object": "scripts/source.sh",
+        "generation": "12345"
+      },
+      "instance": {
+        "name": "projects/review/locations/us-central1-a/instances/review-instance",
+        "id": "1234567890123456789",
+        "createTime": "2026-10-01T00:00:00Z",
+        "gceSetup": {
+          "instanceId": "123456789",
+          "systemMetadata": {
+            "post-startup-script": "gs://review-source/scripts/source.sh"
+          }
+        },
+        "proxyUri": "https://never-follow.invalid/private",
+        "state": "ACTIVE"
+      }
+    },
+    {
+      "case": "missing_native_id_unknown",
+      "binding_expected": false,
+      "target": {
+        "resource": "projects/review/locations/us-central1-a/instances/review-instance",
+        "field": "gceSetup.metadata.post-startup-script",
+        "bucket": "review-source",
+        "object": "scripts/source.sh",
+        "generation": "12345"
+      },
+      "instance": {
+        "name": "projects/review/locations/us-central1-a/instances/review-instance",
+        "createTime": "2026-10-01T00:00:00Z",
+        "gceSetup": {
+          "metadata": {
+            "post-startup-script": "gs://review-source/scripts/source.sh"
+          },
+          "instanceId": "123456789"
+        },
+        "proxyUri": "https://never-follow.invalid/private",
+        "state": "ACTIVE"
+      }
+    }
+  ]
+}

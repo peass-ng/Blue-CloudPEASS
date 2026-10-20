@@ -29,10 +29,19 @@ hacktricks-cspm = "peaso.cli:main"
 peaso = "peaso.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["peaso*", "bluepeass*", "scripts*", "risk_rules*"]
+include = ["peaso*", "bluepeass*", "scripts*", "risk_rules*", "tests.fixtures"]
 
 [tool.setuptools.package-data]
-peaso = ["*.yaml", "ai/agents/*.yaml", "ai/*.json", "check_services.json", "rulepacks/*.json", "rulepacks/licenses/*.txt", "risk_catalog/*.yaml", "checks/*.json", "checks/*.json.gz", "collectors/*.json", "privesc/*.json", "privesc/*.yaml", "privesc/catalog_versions/*.json", "privesc/catalog_versions/*.tar.gz", "privesc/catalog/*/*.yaml"]
+peaso = ["*.yaml", "ai/agents/*.yaml", "ai/*.json", "server/*.json", "check_services.json", "rulepacks/*.json", "rulepacks/*.json.gz", "rulepacks/licenses/*.txt", "risk_catalog/*.yaml", "checks/*.json", "checks/*.json.gz", "collectors/*.json", "privesc/*.json", "privesc/*.yaml", "privesc/catalog_versions/*.json", "privesc/catalog_versions/*.tar.gz", "privesc/catalog/*/*.yaml"]
 bluepeass = ["*.yaml", "*.json"]
 
 risk_rules = ["*.yaml", "*.json"]
+
+# Required runtime admission data at immutable receipt-pinned logical paths.
+# This namespace contains only these four data files, not the test suite.
+"tests.fixtures" = [
+    "azure_nsp_query_cmk_metadata_proposal_20261020.json.gz",
+    "azure_nsp_query_cmk_runtime_native_20261020.json.gz",
+    "azure_nsp_query_cmk_production_native_20261020.json.gz",
+    "azure_sql_tde_parent_identity_predecessor_20261020.json.gz",
+]

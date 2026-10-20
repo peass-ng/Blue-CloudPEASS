@@ -7,6 +7,7 @@ import peaso.checks.claude_azure_network as network
 from peaso.checks import CHECKS
 from peaso.checks.claude_azure_common import cid, scope_index
 from peaso.checks.fixtures import CASES
+from tests.azure_native_successor_inputs_20261020 import current_cases
 
 REGISTRY = {check.id: check for check in CHECKS}
 GROUP = sorted(network.NETWORK_CHECK_IDS)
@@ -27,7 +28,7 @@ def test_group_registered():
 
 @pytest.mark.parametrize("check_id", GROUP)
 def test_pass_fail_and_unknown(check_id):
-    check, cases = REGISTRY[check_id], CASES[check_id]
+    check, cases = REGISTRY[check_id], current_cases(check_id, CASES[check_id])
     assert check.provider == "azure" and check.remediation and check.dependencies
     assert "index" not in cases, "scope fixtures must use pass_index/fail_index"
     assert run(check_id, cases["pass"], cases.get("pass_index")) == "PASS"

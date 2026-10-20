@@ -57,6 +57,7 @@ def advertise(commit):
 class Response:
     def __init__(self, payload, mime='application/json', status=200, headers=None):
         self.payload = json.dumps(payload).encode() if isinstance(payload, dict) else payload
+        self.content = self.payload
         self.stream = io.BytesIO(self.payload)
         self.status_code, self.raw, self.closed = status, self, False
         self.headers = {'Content-Type': mime, 'Content-Length': str(len(self.payload)), **(headers or {})}

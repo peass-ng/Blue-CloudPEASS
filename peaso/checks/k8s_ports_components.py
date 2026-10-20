@@ -84,7 +84,10 @@ SPECS = {
     "container_kubelet_streaming_connection_idle_timeout_not_zero": ("kubelet", ["streaming-connection-idle-timeout"], "nonzero_duration", None, "0"),
 }
 
-LEGACY_MAX = {"insecure-port": (1, 19), "insecure-bind-address": (1, 19), "basic-auth-file": (1, 18)}
+# kubelet-https becomes a discarded compatibility flag in v1.19; it no
+# longer controls transport, even before its flag registration is removed.
+LEGACY_MAX = {"insecure-port": (1, 19), "insecure-bind-address": (1, 19), "basic-auth-file": (1, 18),
+              "kubelet-https": (1, 18)}
 KNOWN_COMPONENTS = frozenset(("kube-apiserver", "kubelet", "kube-controller-manager", "kube-scheduler", "etcd"))
 _TITLE_SCOPE = {
     "container_argument_kubelet_terminated_pod_gc_threshold_configured": "declares kube-controller-manager terminated-pod-gc-threshold greater than zero",
@@ -229,12 +232,29 @@ def evaluate_component(item, kind, spec, index=None):
             if minor >= 25:
                 effective_operation, effective_expected = "contains", "SecurityContextDeny"
         if max_version:
-            if not isinstance(version, str) or not re.match(r"^v?[0-9]+\.[0-9]+", version):
+            match = re.fullmatch(r"v?(\d+)\.(\d+)(?:\.\d+)?(?:\+[A-Za-z0-9_.-]+)?", version) if isinstance(version, str) else None
+            if not match or int(match[1]) != 1:
                 return unknown("component version required for removed legacy control")
-            current = tuple(int(x) for x in version.lstrip("v").split(".")[:2])
+            current = (int(match[1]), int(match[2]))
             if current > max_version:
                 continue
         flags = get(configuration, "flags", dict)
+        if "feature-gates" in fields and "feature-gates" in flags:
+            gates = get(flags, "feature-gates", str).split(",")
+            names = [gate.partition("=")[0] for gate in gates]
+            if any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9]*=(?:true|false)", gate) for gate in gates) or len(set(names)) != len(names):
+                raise Unavailable("malformed or duplicate feature gate declarations")
+        if "authorization-mode" in fields and "authorization-mode" in flags:
+            declared = get(flags, "authorization-mode", str).split(",")
+            allowed = {"AlwaysAllow", "Webhook"} if captured == "kubelet" else {
+                "AlwaysAllow", "AlwaysDeny", "ABAC", "RBAC", "Webhook", "Node"}
+            if not declared or any(mode not in allowed for mode in declared) or len(set(declared)) != len(declared):
+                raise Unavailable("malformed native authorization mode declaration")
+        if "enable-admission-plugins" in fields and "disable-admission-plugins" in flags:
+            enabled = get(flags, "enable-admission-plugins", str).split(",") if "enable-admission-plugins" in flags else []
+            disabled = get(flags, "disable-admission-plugins", str).split(",")
+            if set(enabled).intersection(disabled):
+                raise Unavailable("contradictory enabled and disabled admission plugin declarations")
         safe = compare(flags, fields, effective_operation, effective_expected)
         observation = {"container": container["name"], "component": captured,
                        "settings": {field: flags.get(field) for field in fields}}

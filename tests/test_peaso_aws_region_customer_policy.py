@@ -89,8 +89,9 @@ def test_only_nine_enumerations_added_originals_and_limits_preserved():
 
 
 def test_current_active_template_retains_exact_historical_metadata_and_transit_grants():
- assert hashlib.sha256(ACTIVE_ROLE_BYTES).hexdigest()==ACTIVE_ROLE_SHA
- assert (ROOT/'infra/aws'/('customer-role-'+ACTIVE_ROLE_SHA+'.json')).read_bytes()==ACTIVE_ROLE_BYTES
+ # Freeze the historical artifact; the active role gains reviewed network reads.
+ archived=(ROOT/'infra/aws'/('customer-role-'+ACTIVE_ROLE_SHA+'.json')).read_bytes()
+ assert hashlib.sha256(archived).hexdigest()==ACTIVE_ROLE_SHA
  historical_rows=added()
  transit=ROLE['Resources']['CspmConfigurationReadOnly4']['Properties']['PolicyDocument']['Statement'][-1]
  expected={row['Action']:row for row in historical_rows}

@@ -1,5 +1,6 @@
 """Every registered Kubernetes ID is reviewed against actual evaluator output."""
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 
@@ -9,7 +10,9 @@ from peaso.checks import CHECKS
 from peaso.checks.fixtures import CASES
 from peaso.checks.native_only import exclusions
 from peaso.checks.k8s_evidence_explanations import evidence_summary, review_rows, reviewed_explanation
-from tests.test_peaso_k8s_observed_configuration import cases_for
+from tests.test_peaso_k8s_observed_configuration import (
+    cases_for, current_native_cases, preserved_predecessors, compatibility_receipt,
+    recorded_observation, SELECTED_SECRET_IDS, AUTHORIZATION_FIXTURE_IDS)
 
 K8S = {c.id: c for c in CHECKS if c.provider == 'k8s'}
 STATES = ('pass', 'fail', 'unknown', 'malformed', 'missing', 'manual', 'not_applicable')
@@ -86,13 +89,23 @@ def observations_for(cid):
         yield state, {'provider': 'k8s', 'check_id': cid, 'status': status, 'evidence': evidence}
 
 
-def test_all_1005_registered_ids_have_exact_review_records():
-    assert len(K8S) == 1005
+def test_every_current_registered_id_has_exact_review_records():
+    assert len(K8S) == 1016
     assert set(review_rows()) == set(K8S)
+    assert set(compatibility_receipt()['registered_ids']) == set(K8S)
+    assert review_rows() == json.loads(preserved_predecessors()['files']['peaso/checks/k8s_evidence_explanations.json']['source'])
     for cid, row in review_rows().items():
+        if cid.startswith('k8s.review.kubelet_configmap.'):
+            assert cid in current_native_cases() and row['renderer'] == 'native_declaration'
+        elif cid in ('k8s.review.selected_container_logs.secret_indicators', 'k8s.review.selected_metadata.secret_indicators'):
+            expected = ('selected_log_content' if 'selected_container_logs' in cid else 'selected_metadata_content')
+            assert row['renderer'] == expected and row.get('limit') is None
+            assert row['purpose'].endswith('.') and len(row['purpose']) < 160
+            continue
+        else:
+            assert row['renderer'] in ('native', 'external'), cid
         assert row['purpose'].endswith('.') and row['limit'].endswith('.'), cid
         assert len(row['purpose']) < 160 and len(row['limit']) < 150, cid
-        assert row['renderer'] in ('native', 'external'), cid
 
 
 @pytest.mark.parametrize('cid', sorted(K8S))
@@ -101,11 +114,22 @@ def test_every_existing_status_witness_has_short_explanatory_output(cid):
     assert observed
     for state, finding in observed:
         before = deepcopy(finding)
-        summary = evidence_summary(finding)
+        rendered = evidence_summary(finding)
+        summary = recorded_observation(finding, rendered)
         assert isinstance(summary, str) and summary, (cid, state, finding)
-        assert '\n' not in summary and len(summary) <= 240, (cid, state, summary)
-        assert review_rows()[cid]['purpose'] in summary
-        assert summary == reviewed_explanation(cid, summary, finding['status'])
+        if cid in current_native_cases() or cid in SELECTED_SECRET_IDS:
+            expected = compatibility_receipt()['current_native_contracts'][cid][state]
+            assert (finding['status'], rendered, summary) == (expected['status'], expected['generic_summary'], expected['recorded_observation'])
+            assert hashlib.sha256(json.dumps(finding['evidence'], sort_keys=True).encode()).hexdigest() == expected['evidence_sha256']
+            assert '\n' not in summary and len(summary.split()) <= 55
+            if rendered is None:
+                assert expected['generic_support'] == 'unsupported_canonical_evidence_only'
+            else:
+                assert expected['generic_support'] == 'supported'
+        else:
+            assert '\n' not in summary and len(summary) <= 240, (cid, state, summary)
+            assert review_rows()[cid]['purpose'] in summary
+            assert summary == reviewed_explanation(cid, summary, finding['status'])
         assert finding == before
 
 
@@ -168,9 +192,33 @@ def test_implicit_uid_and_partial_capability_drops_are_not_overstated():
 
 
 def test_review_ledger_accounts_for_each_id_and_replays_every_saved_explanation():
-    ledger = json.loads((Path(__file__).parents[1] / 'docs/evidence-reviews/k8s.json').read_text())
+    path = Path(__file__).parents[1] / 'docs/evidence-reviews/k8s.json'
+    original = preserved_predecessors()['files']['docs/evidence-reviews/k8s.json']['source']
+    assert path.read_text() == original
+    ledger = json.loads(original)
     assert set(ledger['checks']) == set(K8S)
     for cid, entry in ledger['checks'].items():
+        if cid in current_native_cases() or cid in SELECTED_SECRET_IDS:
+            # Exact historical entries remain preserved, including older text
+            # and branch schemas. Current native contracts are separate receipts.
+            assert cid in compatibility_receipt()['current_native_contracts']
+            replay = {state: finding for state, finding in observations_for(cid)}
+            current = compatibility_receipt()['current_native_contracts'][cid]
+            assert set(replay) == set(current)
+            for state, finding in replay.items():
+                assert finding['status'] == current[state]['status']
+                assert recorded_observation(finding, evidence_summary(finding)) == current[state]['recorded_observation']
+            continue
+        if cid in AUTHORIZATION_FIXTURE_IDS:
+            assert cid in compatibility_receipt()['current_legacy_successor_contracts']
+            replay = dict(observations_for(cid))
+            current = compatibility_receipt()['current_legacy_successor_contracts'][cid]
+            assert set(replay) == set(current)
+            for state, finding in replay.items():
+                assert finding['status'] == current[state]['status']
+                assert evidence_summary(finding) == current[state]['generic_summary']
+                assert hashlib.sha256(json.dumps(finding['evidence'], sort_keys=True).encode()).hexdigest() == current[state]['evidence_sha256']
+            continue
         assert entry['disposition'] == 'rewritten'
         assert entry['missing_fixtures'] == []
         replay = {state: finding for state, finding in observations_for(cid)}
@@ -193,7 +241,7 @@ def test_unhashable_identifiers_and_reason_payloads_do_not_crash():
 def test_observations_are_sentences_not_raw_field_label_tables(cid):
     import re
     for state, finding in observations_for(cid):
-        text = evidence_summary(finding)
+        text = recorded_observation(finding, evidence_summary(finding))
         assert not re.match(r'^(?:Supplied|Imported|Unrestricted)[^.“”]+:\s*(?:[-0-9]|enabled|disabled)', text), (cid, state, text)
         for internal in ('runAsNonRoot=true', 'feature-gate declaration', 'authorization-mode list', 'cipher-suite declaration', 'IPAddressDeny='):
             assert internal not in text, (cid, state, text)
@@ -231,3 +279,141 @@ def test_supplied_permission_bits_and_duration_are_explained():
     cid = 'k8s.claude.configuration.kubelet_streaming_timeout'
     text = evidence_summary({'provider': 'k8s', 'check_id': cid, 'status': 'PASS', 'evidence': {'streaming_connection_idle_timeout': '4h0m0s'}})
     assert '4 hours' in text and '4h0m0s' not in text
+
+
+@pytest.mark.parametrize('cid', sorted(SELECTED_SECRET_IDS))
+def test_current_selected_secret_saved_public_summary_retains_actual_hit(cid):
+    from peaso.secret_findings import deduplicate_secret_findings
+    from peaso.finding_observation import evidence_summary as public_summary
+    case = reviewed_cases(cid)
+    item = deepcopy(case['fail'])
+    index = deepcopy(case.get('fail_index', case.get('index', {})))
+    status, evidence = K8S[cid].evaluate(item, index)
+    assert status == 'FAIL' and evidence['secret_leaks']
+    native = {'id': 'current-native-hit', 'provider': 'k8s', 'check_id': cid,
+              'resource_id': item['id'], 'scope': index['context']['scope'],
+              'status': status, 'evidence': evidence, 'frameworks': []}
+    before = deepcopy(native)
+    saved, = deduplicate_secret_findings([native])
+    saved_before = deepcopy(saved)
+    generic = public_summary(saved)
+    assert generic is None or isinstance(generic, str) and generic
+    assert saved['evidence_summary'] == saved['evidence']['observed']
+    assert saved['evidence_summary'].startswith('The same secret was detected in ')
+    assert saved['status'] == 'FAIL' and saved['evidence']['secret_leaks']
+    assert saved['linked_check_ids'] == [cid]
+    assert saved == saved_before and native == before
+    # Simulate the saved canonical branch used by the public inspector: a
+    # missing generic observation cannot replace the stored per-secret summary.
+    assert (generic or saved['evidence_summary'])
+
+
+@pytest.mark.parametrize('cid', sorted(SELECTED_SECRET_IDS))
+def test_selected_clean_partial_inventory_remains_unknown(cid):
+    case = reviewed_cases(cid)
+    item = deepcopy(case['pass'])
+    index = deepcopy(case.get('pass_index', case.get('index', {})))
+    own, = index['collections'][K8S[cid].kind]
+    own['status'] = 'partial'
+    status, evidence = K8S[cid].evaluate(item, index)
+    assert status == 'UNKNOWN' and not evidence.get('secret_leaks')
+    finding = {'provider': 'k8s', 'check_id': cid, 'status': status, 'evidence': evidence}
+    assert 'unbound' in recorded_observation(finding, evidence_summary(finding)).lower() or 'incomplete' in evidence['observed'].lower()
+
+
+@pytest.mark.parametrize('cid', [
+    'k8s.claude.ingress.no_nginx_snippets', 'k8s.claude.ingress.no_nginx_snippet_alias',
+    'k8s.claude.ingress.no_nginx_snippet_lua', 'k8s.claude.podsecuritypolicy.default_seccomp_profile',
+    'k8s.claude.podsecuritypolicy.security_services_hardening'])
+def test_old_annotation_fixtures_never_establish_current_native_absence(cid):
+    # Historical annotations_complete test data is not authenticated native proof.
+    for branch in ('pass', 'fail'):
+        case = CASES[cid]
+        status, evidence = K8S[cid].evaluate(deepcopy(case[branch]), deepcopy(case.get(branch + '_index', case.get('index', {}))))
+        assert status == 'UNKNOWN'
+        finding = {'provider': 'k8s', 'check_id': cid, 'status': status, 'evidence': evidence}
+        assert evidence_summary(finding) is None
+        assert 'could not be bound' in recorded_observation(finding, None)
+    native = current_native_cases()[cid]
+    item = deepcopy(native['pass'])
+    index = deepcopy(native['pass_index'])
+    own, = index['collections'][K8S[cid].kind]
+    own['status'] = 'partial'
+    assert K8S[cid].evaluate(item, index)[0] == 'UNKNOWN'
+
+
+def test_current_canonical_evidence_and_saved_secret_summary_reach_actual_frontend_fallback():
+    """Run the real pure TS formatter and inspector expression in memory only."""
+    import subprocess
+    from peaso.secret_findings import deduplicate_secret_findings
+    samples = []
+    for cid in sorted(set(current_native_cases()) | SELECTED_SECRET_IDS):
+        for state, finding in observations_for(cid):
+            if state in ('pass', 'fail', 'unknown'):
+                samples.append(finding)
+    for cid in sorted(SELECTED_SECRET_IDS):
+        case = reviewed_cases(cid)
+        item, index = deepcopy(case['fail']), deepcopy(case.get('fail_index', case.get('index', {})))
+        status, evidence = K8S[cid].evaluate(item, index)
+        native = {'id': 'native-hit', 'provider': 'k8s', 'check_id': cid, 'status': status,
+                  'evidence': evidence, 'resource_id': item['id'], 'scope': index['context']['scope'], 'frameworks': []}
+        saved, = deduplicate_secret_findings([native])
+        samples.append(saved)
+    script = r'''
+const fs = require('node:fs');
+const path = require('node:path');
+const ts = require(path.join(process.cwd(), 'frontend/node_modules/typescript'));
+const base = path.join(process.cwd(), 'frontend/src');
+function load(name) {
+  if (!['findingExplanation', 'awsReviewedCheckIds'].includes(name)) throw Error('Unexpected import');
+  const raw = fs.readFileSync(path.join(base, name + '.ts'), 'utf8');
+  const code = ts.transpileModule(raw, {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022}}).outputText;
+  const module = {exports: {}};
+  new Function('require', 'exports', 'module', code)((request) => {
+    if (request !== './awsReviewedCheckIds') throw Error('Unexpected import');
+    return load('awsReviewedCheckIds');
+  }, module.exports, module);
+  return module.exports;
+}
+const actual = load('findingExplanation').explainFindingEvidence;
+const inspector = ts.createSourceFile('Findings.tsx', fs.readFileSync(path.join(base, 'Findings.tsx'), 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+const candidates = [];
+function visit(node) {
+  if (ts.isVariableDeclaration(node) && node.name.getText(inspector) === 'observation' && node.initializer
+      && node.initializer.getText(inspector).includes('observed.evidence_summary')) candidates.push(node.initializer.getText(inspector));
+  ts.forEachChild(node, visit);
+}
+visit(inspector);
+if (candidates.length !== 1) throw Error('Inspector observation expression changed');
+const inspectorObservation = new Function('observed', 'allowCurrentSummary', 'internetExposure', 'exposure',
+  'explainAzureNativeEvidenceObservation', 'explainAzureFindingEvidence', 'explainGcpFindingEvidence', 'explainFindingEvidence',
+  'return (' + candidates[0] + ');');
+const samples = JSON.parse(fs.readFileSync(0, 'utf8'));
+for (const row of samples) {
+  const observed = row.evidence.observed;
+  if (typeof observed !== 'string' || !observed) throw Error('Missing actual canonical native observation');
+  const expected = observed + (row.status === 'UNKNOWN' ? ' The overall assessment remains undetermined.' : '');
+  if (actual(row.evidence, row.status, row.check_id) !== expected) throw Error('Canonical evidence fallback changed');
+  for (const allow of [true, false]) {
+    const result = inspectorObservation(row, allow, false, undefined, () => undefined, () => undefined, () => undefined, actual);
+    if (row.evidence_summary && result !== row.evidence_summary) throw Error('Saved canonical secret summary was lost');
+    if (allow && !row.evidence_summary && result !== expected) throw Error('Native observed fallback was lost');
+  }
+}
+process.stdout.write(JSON.stringify({cases: samples.length, canonical_and_saved_summary: true}));
+'''
+    run = subprocess.run(['node', '-e', script], input=json.dumps(samples), text=True, capture_output=True,
+                         cwd=Path(__file__).parents[1], timeout=30)
+    assert run.returncode == 0, run.stderr
+    assert json.loads(run.stdout) == {'cases': len(samples), 'canonical_and_saved_summary': True}
+
+
+@pytest.mark.parametrize('cid', sorted(AUTHORIZATION_FIXTURE_IDS))
+def test_kubelet_webhook_fixture_is_decisive_and_old_rbac_mode_is_unknown(cid):
+    before = deepcopy(CASES[cid])
+    for state, expected in (('pass', 'PASS'), ('fail', 'FAIL'), ('unknown', 'UNKNOWN')):
+        cases = reviewed_cases(cid)
+        status, _ = K8S[cid].evaluate(deepcopy(cases[state]), deepcopy(cases.get(state + '_index', cases.get('index', {}))))
+        assert status == expected
+    assert K8S[cid].evaluate(deepcopy(CASES[cid]['pass']), deepcopy(CASES[cid].get('pass_index', CASES[cid].get('index', {}))))[0] == 'UNKNOWN'
+    assert CASES[cid] == before

@@ -1,0 +1,42 @@
+{
+  "k8s.review.kubelet_configmap.authorization_webhook": {
+    "field": "authorization_mode",
+    "PASS": "The ConfigMap explicitly declares Webhook authorization. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The ConfigMap explicitly declares AlwaysAllow authorization. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  },
+  "k8s.review.kubelet_configmap.client_ca_configured": {
+    "field": "client_ca_configured",
+    "PASS": "The ConfigMap explicitly declares a nonempty client CA path. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The ConfigMap explicitly declares an empty client CA path. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  },
+  "k8s.review.kubelet_configmap.anonymous_disabled": {
+    "field": "anonymous_disabled",
+    "PASS": "The ConfigMap explicitly disables anonymous authentication. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The ConfigMap explicitly enables anonymous authentication. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  },
+  "k8s.review.kubelet_configmap.readonly_disabled": {
+    "field": "readonly_disabled",
+    "PASS": "The ConfigMap explicitly disables the unauthenticated read-only port. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The ConfigMap explicitly declares a nonzero unauthenticated read-only port. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  },
+  "k8s.review.kubelet_configmap.client_certificate_rotation": {
+    "field": "client_rotation",
+    "PASS": "The ConfigMap explicitly enables client certificate rotation requests. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The ConfigMap explicitly disables client certificate rotation requests. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  },
+  "k8s.review.kubelet_configmap.explicit_cipher_allowlist": {
+    "field": "cipher_allowlist",
+    "PASS": "The explicit cipher list matches the fixed reviewed allowlist. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The explicit cipher list includes a recognized cipher outside the fixed reviewed allowlist. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  },
+  "k8s.review.kubelet_configmap.tls_file_pair_configured": {
+    "field": "tls_files_configured",
+    "PASS": "The ConfigMap explicitly declares nonempty certificate and key paths. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The ConfigMap explicitly declares an empty certificate or key path. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  },
+  "k8s.review.kubelet_configmap.event_qps_bounded": {
+    "field": "event_qps_bounded",
+    "PASS": "The ConfigMap explicitly declares a positive eventRecordQPS limit. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified.",
+    "FAIL": "The ConfigMap explicitly declares eventRecordQPS as zero, which means unlimited event creation. This named ConfigMap is a declaration source; node adoption, overrides and runtime behavior were not verified."
+  }
+}

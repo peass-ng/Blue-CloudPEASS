@@ -131,7 +131,7 @@ def _sized_api_archive(path, expanded_bytes):
 @pytest.mark.parametrize('over_budget',[0,1])
 def test_current_api_expanded_budget_accepts_exact_limit_and_rejects_one_byte_over(tmp_path,monkeypatch,over_budget):
     limit=release.deploy.CURRENT_API_UNCOMPRESSED_LIMIT
-    assert limit==245_000_000 and limit<250*1024*1024
+    assert limit==260_000_000 and limit<250*1024*1024
     _sized_api_archive(tmp_path/'api.zip',limit+over_budget)
     monkeypatch.setattr(release.deploy,'BUILD',tmp_path)
     if over_budget:
@@ -157,3 +157,17 @@ def test_api_producer_enforces_shared_expanded_budget_before_zip_write(tmp_path,
     with pytest.raises(RuntimeError,match='API uncompressed byte limit exceeded'):
         deploy.package_api()
     assert not (build/'api.zip').exists()
+
+
+def test_api_archive_upload_budget_accepts_exact_limit_and_rejects_one_byte_over(tmp_path, monkeypatch):
+    import zipfile
+    path = tmp_path / "api.zip"
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("runtime.py", b"# runtime\n")
+    monkeypatch.setattr(release.deploy, "BUILD", tmp_path)
+    measured = path.stat().st_size
+    monkeypatch.setattr(release.deploy, "CURRENT_API_ARCHIVE_LIMIT", measured)
+    release.verify_api_archive()
+    monkeypatch.setattr(release.deploy, "CURRENT_API_ARCHIVE_LIMIT", measured - 1)
+    with pytest.raises(ValueError, match="exceeds reviewed size"):
+        release.verify_api_archive()

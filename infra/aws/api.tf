@@ -47,7 +47,8 @@ resource "aws_lambda_function" "api" {
   handler                        = "peaso.server.lambda_handler.handler"
   filename                       = var.api_zip
   source_code_hash               = filebase64sha256(var.api_zip)
-  memory_size                    = 512
+  # Catalog data and native finding hydration can coexist in a warm API process.
+  memory_size                    = 1792
   timeout                        = 28
   reserved_concurrent_executions = 10
   environment { variables = local.runtime_env }

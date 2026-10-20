@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import json
+import re
 from urllib.parse import unquote, urlsplit
 
 from .common import as_list, finding, gcp_interface_resource_id, native_id, node, node_id, relationship, source, stable_id
+from .network_services import SERVICE_TYPES, service_references, azure_kind, azure_scope, gcp_ref
+from .network_catalog import CONTROL_TYPES
 
 NETWORK_TYPES = {"vpc", "subnet", "security_group", "network_interface", "instance", "route_table", "network_acl",
     "internet_gateway", "nat_gateway", "vpc_endpoint", "vpc_endpoint_service", "ec2_instance_connect_endpoint",
@@ -15,6 +18,8 @@ NETWORK_TYPES = {"vpc", "subnet", "security_group", "network_interface", "instan
     "target_group", "network", "subnetwork", "firewall", "firewall_policy", "route", "forwarding_rule", "backend_service", "backend_bucket", "url_map", "health_check", "address", "target_pool", "target_proxy", "instance_group",
     "shared_vpc", "router", "vpn_tunnel", "gke_cluster", "vnet", "nsg", "nic", "vm", "public_ip", "load_balancer", "loadbalancer", "application_gateway", "private_endpoint", "virtual_network_gateway", "peering", "vnet_peering",
     "pod", "service", "networkpolicy", "namespace", "ingress", "node", "endpoint", "endpointslice"}
+NETWORK_TYPES |= set().union(*SERVICE_TYPES.values())
+NETWORK_TYPES |= set().union(*CONTROL_TYPES.values())
 PUBLIC = {"0.0.0.0/0", "::/0", "*", "Internet"}
 
 
@@ -115,8 +120,78 @@ def exposure_findings(snapshot, resources):
 
 def references(resource):
     data, provider, kind = _object(resource.get("data")), resource["provider"], resource["type"]
+    if provider == "aws" and kind in SERVICE_TYPES['aws'] and kind != "route53_zone":
+        from .network_observations import network_observations, aws_attachment
+        from .network_services import aws_scope
+        for observation in network_observations(data):
+            if observation['name'] in {'ResourceConfigurationArn', 'resourceConfigurationArn'} and isinstance(observation['value'], str):
+                yield observation.get('evidence_path', observation['path']), 'lattice_resource_configuration', observation['value'], aws_scope(observation['value'], resource['scope']), 'private_connection_target'
+            for path, target, identity in aws_attachment(observation):
+                if kind == 'aoss_network_policy' and observation['name'] == 'SourceVPCEs':
+                    target = 'aoss_vpc_endpoint'
+                native = identity.rsplit('/', 1)[-1] if identity.startswith('arn:') else identity
+                fallback = resource['scope']
+                if kind == 'quicksight_network_restrictions':
+                    fallback = 'owner-unverified/region-unverified'
+                if kind == 'directory_region' and isinstance(data.get('RegionName'), str):
+                    fallback = fallback.split('/')[0] + '/' + data['RegionName']
+                owner = data.get('VpcOwnerId') or data.get('vpcOwnerId') or (data.get('AccountId') if kind == 'refactor_environment_vpc' else None)
+                if kind == 'lattice_service_network_endpoint_association' and target == 'vpc':
+                    owner = data.get('vpcEndpointOwnerId')
+                if target in {'vpc_endpoint', 'vpc_endpoint_service'}:
+                    endpoint_owner = data.get('VpcEndpointOwner') or data.get('vpcEndpointOwner') or data.get('vpcEndpointOwnerId')
+                    if isinstance(endpoint_owner, str) and re.fullmatch(r'\d{12}', endpoint_owner):
+                        fallback = endpoint_owner + '/' + fallback.split('/')[-1]
+                    endpoint_region = data.get('VpcEndpointRegion')
+                    if isinstance(endpoint_region, str):
+                        fallback = fallback.split('/')[0] + '/' + endpoint_region
+                if kind == 'drs_source_network' and observation['name'].lower() == 'sourcevpcid':
+                    owner = data.get('sourceAccountID')
+                    region = data.get('sourceRegion')
+                    if isinstance(region, str):
+                        fallback = fallback.split('/')[0] + '/' + region
+                if kind == 'gamelift_vpc_peering' and target == 'vpc':
+                    fallback = 'owner-unverified/' + fallback.split('/')[-1]
+                if target == 'vpc' and isinstance(owner, str) and re.fullmatch(r'\d{12}', owner):
+                    fallback = owner + '/' + fallback.split('/')[-1]
+                relation = ('declared_policy_source' if kind == 'quicksight_network_restrictions' else
+                    'protected_by' if target == 'security_group' else 'associated_with' if target in {'vpc', 'subnet'} else
+                    'attached_interface' if target == 'network_interface' else 'service_reference')
+                yield path, target, native, aws_scope(identity, fallback), relation
+    elif provider in {'azure', 'gcp'}:
+        from .network_observations import network_observations
+        from .network_services import gcp_ref, azure_scope, azure_kind
+        for observation in network_observations(data):
+            value = observation['value']
+            for i, identity in enumerate(value if isinstance(value, list) else [value]):
+                if not isinstance(identity, str):
+                    continue
+                path = observation.get('evidence_path', observation['path']) + (f'[{i}]' if isinstance(value, list) else '')
+                if provider == 'gcp':
+                    target = ('subnetwork' if re.search(r'/regions/[^/]+/subnetworks/', identity) else
+                              'network' if '/global/networks/' in identity else
+                              'service_attachment' if re.search(r'/regions/[^/]+/serviceAttachments/', identity) else
+                              'network_attachment' if re.search(r'/regions/[^/]+/networkAttachments/', identity) else None)
+                    if target and (ref := gcp_ref(identity, target, resource)):
+                        relation = ('psc_consumer_network' if observation['name'] == 'consumerNetwork' else
+                                    'peers_with' if 'peerings[' in path or observation['name'] in {'peerNetwork', 'peeredNetwork'} else 'associated_with')
+                        yield 'data.' + path, target, ref[0], ref[1], relation
+                    elif match := re.search(r'(projects/([^/]+)/locations/[^/]+/(?:vmwareEngineNetworks|networks)/[^/]+)$', identity):
+                        target = 'vmware_network' if '/vmwareEngineNetworks/' in identity else 'baremetal_network'
+                        yield 'data.' + path, target, match[1], 'projects/' + match[2], 'service_network_reference'
+                elif identity.casefold().startswith('/subscriptions/') and '/providers/' in identity.casefold():
+                    target = 'subnet' if '/subnets/' in identity.casefold() else azure_kind(identity)
+                    if target != 'private_link_service_reference':
+                        yield path, target, identity, azure_scope(identity, resource['scope']), 'associated_with'
+    from .network_catalog_refs import references as catalog_references
+    yield from catalog_references(resource)
+    if kind not in {"rds_instance", "rds_cluster", "lambda_function", "eks_cluster", "gke_cluster"}:
+        for path, target, rid, scope, relation in service_references(resource):
+            yield (f"data.{path}" if provider == "gcp" else path), target, rid, scope, relation
     if provider == "aws":
         if kind in {"rds_instance", "rds_cluster", "lambda_function", "eks_cluster"}:
+            if kind == "rds_cluster" and isinstance(data.get("DBSubnetGroup"), str) and data["DBSubnetGroup"]:
+                yield "DBSubnetGroup", "rds_db_subnet_group", data["DBSubnetGroup"], None, "subnet_group"
             facts = _managed_network_facts(resource)
             if not facts:
                 return
@@ -321,18 +396,26 @@ def references(resource):
                                     "router": "router", "vpnGateway": "vpn_gateway", "targetVpnGateway": "vpn_gateway", "peerNetwork": "network",
                                     "urlMap": "url_map", "defaultService": "backend_service", "service": "backend_service"}
                     if key in target_types and isinstance(val, str) and (key in {"network", "subnetwork"} or "/projects/" in val):
+                        if key in {"network", "subnetwork"} and kind in SERVICE_TYPES["gcp"] - {"gke_cluster"}:
+                            continue  # Managed-service references are emitted above.
                         target_kind = target_types[key]
                         if key in {"target", "defaultService", "service"}:
                             for fragment, resolved in (("/targetPools/", "target_pool"), ("/targetVpnGateways/", "vpn_gateway"),
                                     ("/backendBuckets/", "backend_bucket"), ("/backendServices/", "backend_service"),
-                                    ("/forwardingRules/", "forwarding_rule")):
+                                    ("/forwardingRules/", "forwarding_rule"), ("/serviceAttachments/", "service_attachment"),
+                                    ("/networkEndpointGroups/", "network_endpoint_group")):
                                 if fragment in val:
                                     target_kind = resolved
                                     break
+                        if key == "target" and "/instanceGroupManagers/" in val:
+                            target_kind = "instance_group_manager"
+                        if key == "group" and "/networkEndpointGroups/" in val:
+                            target_kind = "network_endpoint_group"
                         pieces = urlsplit(val).path.split("/")
                         project = pieces[pieces.index("projects") + 1] if "projects" in pieces else None
                         scope = f"projects/{project}" if project else resource["scope"]
-                        yield f"{path}.{key}", target_kind, val, scope, "associated_with"
+                        normalized = gcp_ref(val, target_kind, resource)
+                        yield f"{path}.{key}", target_kind, normalized[0] if normalized else val, scope, "associated_with"
                     elif key in {"users", "healthChecks"} and isinstance(val, list):
                         for i, rid in enumerate(val):
                             if not isinstance(rid, str) or "/projects/" not in rid:
@@ -389,9 +472,7 @@ def references(resource):
                                              else f"subscription:{subscription}")
                             yield f"{path}.{key}[{i}]", mapping[key], rid, scope, "associated_with"
                 if key == "privateLinkServiceId" and isinstance(val, str) and val:
-                    # A Private Endpoint's target may not be in the network
-                    # projection. Preserve the ARM ID as an unresolved reference.
-                    yield f"{path}.{key}", "private_link_service_reference", val, None, "private_link_target"
+                    yield f"{path}.{key}", azure_kind(val), val, azure_scope(val, resource["scope"]), "private_link_target"
                 if isinstance(val, dict):
                     yield from refs(val, f"{path}.{key}")
                 elif isinstance(val, list):
@@ -561,10 +642,84 @@ def _k8s_interface(snapshot, resource, owners, nodes, edges):
     current["card"] = {"attachment": attachment, "addresses": data.get("addresses", [])}
 
 
+def _k8s_storage_links(snapshot, selected, nodes, edges):
+    """Join storage by cluster + namespace + name, with UID checks on bindings."""
+    by_name = {}
+    for row in selected:
+        if row["provider"] != "k8s":
+            continue
+        cluster, namespace = _k8s_context(snapshot, row)
+        meta = _object(row["data"].get("metadata"))
+        if cluster and isinstance(meta.get("name"), str):
+            ns = "_cluster" if row["type"] == "persistentvolume" else namespace
+            by_name.setdefault((cluster, ns, row["type"], meta["name"]), []).append(row)
+    for row in selected:
+        if row["provider"] != "k8s":
+            continue
+        cluster, namespace = _k8s_context(snapshot, row)
+        if not cluster:
+            continue
+        data, kind = row["data"], row["type"]
+        spec = _object(data.get("spec"))
+        refs = []
+        if kind == "pod":
+            for i, volume in enumerate(as_list(spec.get("volumes"))):
+                claim = _object(_object(volume).get("persistentVolumeClaim")).get("claimName")
+                refs.append((f"spec.volumes[{i}].persistentVolumeClaim.claimName", "persistentvolumeclaim", namespace, claim, None))
+        if kind == "persistentvolumeclaim":
+            refs.append(("spec.volumeName", "persistentvolume", "_cluster", spec.get("volumeName"), None))
+        if kind == "persistentvolume":
+            claim = _object(spec.get("claimRef"))
+            refs.append(("spec.claimRef", "persistentvolumeclaim", claim.get("namespace"), claim.get("name"), claim.get("uid")))
+        for path, target_kind, ns, name, uid in refs:
+            if not isinstance(name, str) or not name or not isinstance(ns, str) or not ns:
+                continue
+            matches = by_name.get((cluster, ns, target_kind, name), [])
+            if kind == "persistentvolumeclaim" and len(matches) == 1:
+                binding = _object(_object(matches[0]["data"].get("spec")).get("claimRef"))
+                meta = _object(data.get("metadata"))
+                if binding and any(binding.get(key) and binding[key] != meta.get(key) for key in ("name", "namespace", "uid")):
+                    matches = []
+            if len(matches) == 1 and (not uid or _object(matches[0]["data"].get("metadata")).get("uid") == uid):
+                dst = node_id(matches[0])
+            else:
+                native = f"k8s://{cluster}/{target_kind}/{ns}/{name}"
+                dst = stable_id("k8s", row["scope"], target_kind, native)
+                nodes.setdefault(dst, {"id": dst, "native_id": native, "label": name, "resource_id": None,
+                    "type": target_kind, "provider": "k8s", "scope": row["scope"],
+                    "evidence": {"inventory_status": "reference_only", "uncertainty": "Storage target missing, ambiguous, or binding UID differs"}})
+            edges.append(relationship(node_id(row), dst, "storage_attachment", source(snapshot, row, path)))
+
+
+def _ecs_service_tasks(snapshot, selected, edges):
+    services = {}
+    for row in selected:
+        data = row["data"]
+        if row["provider"] == "aws" and row["type"] == "ecs_service" and all(
+                isinstance(data.get(k), str) and data[k] for k in ("clusterArn", "serviceName")):
+            services.setdefault((row["scope"], data["clusterArn"], data["serviceName"]), []).append(row)
+    for row in selected:
+        if row["provider"] != "aws" or row["type"] != "ecs_task":
+            continue
+        data = row["data"]
+        group = data.get("group")
+        if isinstance(group, str) and group.startswith("service:"):
+            matches = services.get((row["scope"], data.get("clusterArn"), group.removeprefix("service:")), [])
+            if len(matches) == 1:
+                edges.append(relationship(node_id(row), node_id(matches[0]), "ecs_service_task", source(snapshot, row, "group")))
+
+
 def build_network(snapshot, resources):
     selected = [r for r in resources if r["type"] in NETWORK_TYPES]
     nodes = {node_id(r): node(r) for r in selected}
+    from .network_observations import network_observations
+    for resource in selected:
+        observations = network_observations(resource["data"])
+        if observations:
+            nodes[node_id(resource)]["network_attributes"] = observations
     lookup = {}
+    azure_ids = {}
+    endpoint_services = {}
     k8s_pods, k8s_owners, pod_context_gaps = {}, {}, set()
     pod_status = {c["scope"]: c["status"] for c in snapshot["collections"] if c["type"] == "pod"}
     for resource in selected:
@@ -583,9 +738,20 @@ def build_network(snapshot, resources):
                     k8s_owners.setdefault((resource["scope"], cluster, alias), []).append(resource)
         aliases = [native_id(resource), data.get("id"), data.get("selfLink"), data.get("name"),
                    _object(data.get("metadata")).get("name")]
+        if resource["provider"] == "aws":
+            aliases += [data.get(key) for key in ("FileSystemId", "Id", "SubnetGroupName", "CacheSubnetGroupName", "ClusterSubnetGroupName", "DBSubnetGroupName", "EndpointConfigName", "ModelName", "Arn", "arn", "ARN")]
+            if resource["type"] == "vpc_endpoint_service" and isinstance(data.get("ServiceName"), str):
+                endpoint_services.setdefault(data["ServiceName"], []).append(node_id(resource))
+        if resource["provider"] == "gcp":
+            for alias in list(aliases):
+                if normalized := gcp_ref(alias, resource["type"], resource):
+                    aliases.append(normalized[0])
         for alias in aliases:
             if alias:
-                lookup[(resource["scope"], resource["type"], str(alias).casefold() if resource["provider"] == "azure" else str(alias))] = node_id(resource)
+                if resource["provider"] == "azure" and isinstance(alias, str) and alias.startswith("/"):
+                    azure_ids.setdefault((resource["type"], alias.casefold()), set()).add(node_id(resource))
+                lookup[(resource["scope"].casefold() if resource["provider"] == "azure" else resource["scope"],
+                        resource["type"], str(alias).casefold() if resource["provider"] == "azure" else str(alias))] = node_id(resource)
     edges = []
     for resource in selected:
         src = node_id(resource)
@@ -609,8 +775,15 @@ def build_network(snapshot, resources):
                     edges.append(relationship(dst, target, relation, source(snapshot, resource, f"networkInterfaces[{i}].{path}")))
         for path, kind, rid, scope, relation in references(resource):
             scope = scope or resource["scope"]
-            key = (scope, kind, str(rid).casefold() if resource["provider"] == "azure" else str(rid))
+            key = (scope.casefold() if resource["provider"] == "azure" else scope,
+                   kind, str(rid).casefold() if resource["provider"] == "azure" else str(rid))
             dst = lookup.get(key)
+            if resource["provider"] == "azure" and dst is None:
+                matches = azure_ids.get((kind, str(rid).casefold()), set())
+                if len(matches) == 1:
+                    dst = next(iter(matches))
+            if kind == "endpoint_service_reference" and len(endpoint_services.get(rid, [])) == 1:
+                dst = endpoint_services[rid][0]
             if dst is None:
                 dst = stable_id(resource["provider"], scope, kind, rid)
                 nodes.setdefault(dst, {"id": dst, "label": str(rid), "resource_id": None,
@@ -629,6 +802,13 @@ def build_network(snapshot, resources):
             edges.append(relationship(dst, src, "rule_candidate", {"source": source(snapshot, resource, path),
                 "native_rule": rule, "uncertainty": semantics,
                 "reachability": "unknown", "telemetry": "not_collected"}, layer="modeled_rule", confidence="low"))
+    _k8s_storage_links(snapshot, selected, nodes, edges)
+    from .k8s_network_links import add_links
+    add_links(snapshot, selected, nodes, edges, _k8s_context)
+    _ecs_service_tasks(snapshot, selected, edges)
+    # The managed-service and generic attachment readers can observe the same
+    # native field. Graph identities (and the AI evidence database) are unique.
+    edges = list({edge["id"]: edge for edge in edges}.values())
     # Parent IDs are layout hints derived from observed containment only.
     # Policies/peering/route adjacency cannot establish workload containment.
     parent_ranks = {"subnet": 0, "subnetwork": 0, "namespace": 0, "vpc": 1, "vnet": 1, "network": 1}

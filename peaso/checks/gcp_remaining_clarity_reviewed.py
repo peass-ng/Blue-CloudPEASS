@@ -16499,7 +16499,7 @@ ROWS = json.loads(r'''
   "gcp_cloud_armor_waf_enabled": {
     "description_base_sha256": "e93c6d22dc9c05b6d9d61b27ea00f8321e92044de5236e42a8643fe4d20d8189",
     "description_fields": {
-      "description": "Checks policies attached to declared public backends for a deny rule containing evaluatePreconfiguredWaf."
+      "description": "Checks the attached external-backend policy for an enforced preconfigured WAF deny rule and an earlier bypass. It evaluates declared configuration, not public reachability or blocked traffic."
     },
     "remediation_base_sha256": "c30353f4e20ce0b44faccb075a6fd293ca6226be1c419ec835ca28aa194e5980",
     "remediation_fields": {
@@ -16557,7 +16557,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "high",
-    "static_observed_sentence": "The attached public-backend policy lacks the recognized WAF deny-rule pattern."
+    "static_observed_sentence": "The attached external-backend policy lacks a supported enforced preconfigured WAF deny rule."
   },
   "gcp_cloudcdn_cookie_ttl": {
     "description_base_sha256": "de08a739fd4a4098839d0bbaf0ca3da57a2d9de98ac2c22f3c9f7015f14fbb6f",
@@ -16875,7 +16875,7 @@ ROWS = json.loads(r'''
   "gcp_kms_key_destroy_alert": {
     "description_base_sha256": "9c4bd8ed72e52d9c8bece1a2e95b1d6fd9fcd9589bb80727bc21efac9112916d",
     "description_fields": {
-      "description": "Matches the required disable and destroy KMS event filters and joins an enabled metric alert."
+      "description": "Matches the native DestroyCryptoKeyVersion audit event to an enabled, valid positive-count metric alert in the selected project."
     },
     "remediation_base_sha256": "31647bedf3cd96c4264ba9b89c09f9e7c53ed0d9d269b8344a4f5873b2f78b41",
     "remediation_fields": {
@@ -16885,9 +16885,9 @@ ROWS = json.loads(r'''
       "cli": [],
       "review_status": "approved",
       "steps": [
-        "Configure an enabled alert for key-version disable and destroy events."
+        "Configure an enabled positive-count alert for Cloud KMS key-version destruction events."
       ],
-      "summary": "Configure an enabled alert for key-version disable and destroy events."
+      "summary": "Configure an enabled positive-count alert for Cloud KMS key-version destruction events."
     },
     "review_batch": "native-families-1",
     "reviewed_binding": {
@@ -16909,7 +16909,7 @@ ROWS = json.loads(r'''
     },
     "reviewed_severity": "medium",
     "reviewed_source_severity": "high",
-    "static_observed_sentence": "No qualifying enabled KMS disable-and-destroy alert was found."
+    "static_observed_sentence": "No qualifying local alert for Cloud KMS key-version destruction was found."
   },
   "gcp_kms_key_kms_keys_scheduled_deletion_56316ac06650": {
     "description_base_sha256": "b2c0f107a503d68638dadae2f10aef462252ce9903b481f6ffdf5834f8d042e3",
@@ -18808,3 +18808,55 @@ NATIVE_EXTENSION_REVIEWS = json.loads(r'''
   }
 }
 ''')
+
+# Explicitly reviewed selected-content successors; older entries remain unchanged.
+NATIVE_EXTENSION_REVIEWS.update(json.loads(r'''
+{
+  "gcp.review.cloudtasks.selected_payload_secret_indicators": {
+    "admission_path": "docs/compliance-ledgers/native-extensions/gcp-selected-content-20261020.json",
+    "admission_sha256": "356c4f0cbcccf4d85a6dba163a7e4c2010c9ff0e4dec1198123ca2b3badcbc43",
+    "source": "peaso/checks/gcp_task_routine_secret_review_20261020.py",
+    "source_sha256": "18a4701d7e40fb18bc75291f80383a376713aa4a3fc3c4703b7c7f5c275aeeb1",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_task_routine_secret_review_20261020_fixtures.json.gz",
+        "sha256": "567fc1842443b68cc2311415d8420961cdd09441e18b68f4ad31a3399b85ae5a"
+      }
+    ],
+    "fixture_sha256": "58f96ec2f8e0f47e6cafde1377c57d5b74ed520f37af1b798b5dd3edacbee95f",
+    "copy_catalog_sha256": "96d4ffc8e8d6285864562f0a942dfc0bdf636f8a1bba3f0e83cb9f73cf19adbb",
+    "reviewed_binding": {
+      "kind": "cloudtasks_selected_task",
+      "module": "peaso.checks.gcp_task_routine_secret_review_20261020",
+      "source_qualname": "task_payload",
+      "predicate_qualname": "task_payload",
+      "predicate_source_sha256": "005b604df84c0134df4b2f09f14d170acc64722934c407c7ff39bdd3f8068878",
+      "closure": {},
+      "predicate_bindings": {}
+    }
+  },
+  "gcp.review.bigquery.selected_routine_secret_indicators": {
+    "admission_path": "docs/compliance-ledgers/native-extensions/gcp-selected-content-20261020.json",
+    "admission_sha256": "5570f5f9a9ce19dbe8f919c101469c2d0cb4596d74dbd4e8db76803f1dbfd88c",
+    "source": "peaso/checks/gcp_task_routine_secret_review_20261020.py",
+    "source_sha256": "18a4701d7e40fb18bc75291f80383a376713aa4a3fc3c4703b7c7f5c275aeeb1",
+    "fixture_sources": [
+      {
+        "path": "peaso/checks/gcp_task_routine_secret_review_20261020_fixtures.json.gz",
+        "sha256": "567fc1842443b68cc2311415d8420961cdd09441e18b68f4ad31a3399b85ae5a"
+      }
+    ],
+    "fixture_sha256": "d244fcb84810a81ca61c15db6ca22acc033f3f68e61b80c05b5ca45a502197c7",
+    "copy_catalog_sha256": "96d4ffc8e8d6285864562f0a942dfc0bdf636f8a1bba3f0e83cb9f73cf19adbb",
+    "reviewed_binding": {
+      "kind": "bigquery_selected_routine",
+      "module": "peaso.checks.gcp_task_routine_secret_review_20261020",
+      "source_qualname": "routine_definition",
+      "predicate_qualname": "routine_definition",
+      "predicate_source_sha256": "a309571032db42fce9a5993d1cb28d7d183c8b3dcddec747c5b1789bde162c72",
+      "closure": {},
+      "predicate_bindings": {}
+    }
+  }
+}
+'''))

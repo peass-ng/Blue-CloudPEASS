@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "description": "Independent documented ARM response fields; no CASES or invented effective/completeness markers. Resource responses are metadata fixtures, not live cloud observations.",
+  "subscription": {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111",
+    "subscriptionId": "11111111-1111-1111-1111-111111111111",
+    "tenantId": "22222222-2222-2222-2222-222222222222",
+    "state": "Enabled"
+  },
+  "log_analytics_cluster": {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.OperationalInsights/clusters/nativecluster",
+    "name": "nativecluster",
+    "type": "Microsoft.OperationalInsights/clusters",
+    "location": "eastus",
+    "properties": {
+      "provisioningState": "Succeeded",
+      "keyVaultProperties": {
+        "keyVaultUri": "https://reviewvault.vault.azure.net",
+        "keyName": "log-encryption",
+        "keyVersion": ""
+      },
+      "clusterId": "77777777-7777-7777-7777-777777777777",
+      "isDoubleEncryptionEnabled": true
+    },
+    "identity": {
+      "type": "SystemAssigned",
+      "principalId": "33333333-3333-3333-3333-333333333333",
+      "tenantId": "22222222-2222-2222-2222-222222222222"
+    },
+    "sku": {
+      "name": "CapacityReservation",
+      "capacity": 1000
+    }
+  },
+  "stream_analytics_job": {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.StreamAnalytics/streamingjobs/nativejob",
+    "name": "nativejob",
+    "type": "Microsoft.StreamAnalytics/streamingjobs",
+    "location": "eastus",
+    "properties": {
+      "provisioningState": "Succeeded",
+      "jobId": "66666666-6666-6666-6666-666666666666",
+      "jobState": "Running",
+      "jobType": "Cloud",
+      "contentStoragePolicy": "JobStorageAccount",
+      "jobStorageAccount": {
+        "accountName": "nativeexternal123",
+        "authenticationMode": "Msi"
+      }
+    }
+  },
+  "storage_account": {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.Storage/storageAccounts/nativeexternal123",
+    "name": "nativeexternal123",
+    "type": "Microsoft.Storage/storageAccounts",
+    "location": "eastus",
+    "properties": {
+      "provisioningState": "Succeeded",
+      "primaryEndpoints": {
+        "blob": "https://nativeexternal123.blob.core.windows.net/"
+      },
+      "encryption": {
+        "keySource": "Microsoft.Keyvault",
+        "keyvaultproperties": {
+          "keyvaulturi": "https://reviewvault.vault.azure.net",
+          "keyname": "storage-encryption",
+          "keyversion": "0123456789abcdef0123456789abcdef"
+        },
+        "services": {
+          "blob": {
+            "enabled": true,
+            "keyType": "Account"
+          },
+          "file": {
+            "enabled": true,
+            "keyType": "Account"
+          }
+        }
+      }
+    },
+    "identity": {
+      "type": "SystemAssigned",
+      "principalId": "44444444-4444-4444-4444-444444444444",
+      "tenantId": "22222222-2222-2222-2222-222222222222"
+    },
+    "sku": {
+      "name": "Standard_LRS",
+      "tier": "Standard"
+    },
+    "kind": "StorageV2"
+  },
+  "security_pricing": {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/providers/Microsoft.Security/pricings/CloudPosture",
+    "name": "CloudPosture",
+    "type": "Microsoft.Security/pricings",
+    "properties": {
+      "pricingTier": "Standard",
+      "resourcesCoverageStatus": "FullyCovered",
+      "freeTrialRemainingTime": "PT0S"
+    }
+  },
+  "role_definition": {
+    "id": "/subscriptions/11111111-1111-1111-1111-111111111111/providers/Microsoft.Authorization/roleDefinitions/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "name": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "type": "Microsoft.Authorization/roleDefinitions",
+    "properties": {
+      "roleName": "Resource lock administrator",
+      "description": "Declared lock administration only",
+      "type": "CustomRole",
+      "assignableScopes": [
+        "/subscriptions/11111111-1111-1111-1111-111111111111"
+      ],
+      "permissions": [
+        {
+          "actions": [
+            "Microsoft.Authorization/locks/write",
+            "Microsoft.Authorization/locks/delete"
+          ],
+          "notActions": [],
+          "dataActions": [],
+          "notDataActions": []
+        }
+      ]
+    }
+  }
+}

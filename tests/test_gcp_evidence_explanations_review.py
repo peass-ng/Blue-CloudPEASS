@@ -8,6 +8,8 @@ import pytest
 from peaso.checks import CHECKS, CHECK_ALIASES
 from peaso.checks.fixtures import CASES
 from peaso.checks.gcp_evidence_explanations import CATALOG, evidence_summary, reviewed_explanation
+from tests.gcp_clarity_combined_successor_20261020 import (
+    ADDED_EXTENSION_REVIEWS, JOB_ID, current_missing_observation, extension_cases)
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECK_BY_ID = {check.id: check for check in CHECKS if check.provider == 'gcp'}
@@ -47,9 +49,15 @@ def test_catalog_and_ledger_account_for_every_native_and_retired_alias():
     aliases = {old: new for old, new in CHECK_ALIASES.items() if old.startswith('gcp')}
     assert set(CATALOG) == set(CHECK_BY_ID) | set(aliases)
     assert set(LEDGER['checks']) == set(CATALOG)
-    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 525
+    import csv
+    baseline = {row['check_id'] for row in csv.DictReader((ROOT/'docs/gcp-review/checklist.csv').open())}
+    selected_content = {'gcp.review.cloudtasks.selected_payload_secret_indicators',
+                        'gcp.review.bigquery.selected_routine_secret_indicators'}
+    assert len(baseline) == 525 and not baseline & selected_content
+    assert set(CHECK_BY_ID) == baseline | selected_content | set(ADDED_EXTENSION_REVIEWS)
+    assert LEDGER['registered_check_count'] == len(CHECK_BY_ID) == 527 + len(ADDED_EXTENSION_REVIEWS) == 536
     for cid in CHECK_BY_ID:
-        assert CASES.get(cid) or SUPPLEMENTAL.get(cid), cid
+        assert (extension_cases(cid, CASES) if cid == JOB_ID else CASES.get(cid)) or SUPPLEMENTAL.get(cid), cid
         assert LEDGER['checks'][cid]['branch_coverage'], cid
     for cid, canonical in aliases.items():
         assert CATALOG[cid]['alias_of'] == canonical
@@ -77,7 +85,7 @@ def test_absent_evidence_never_creates_a_setting_or_grant(cid, status):
     summary = evidence_summary(dict(provider='gcp', check_id=cid, status=status, evidence={}))
     assert summary
     if status in ('UNKNOWN', 'DENIED'):
-        assert summary.startswith(CATALOG[cid]['missing_observation'])
+        assert summary.startswith(current_missing_observation(cid, CATALOG))
     if status in ('PASS', 'FAIL') and not summary.startswith(CATALOG[cid]['missing_observation']):
         assert not any(claim in summary.split(CATALOG[cid]['purpose'])[0] for claim in (' is enabled', ' is disabled', 'grants roles/', ' permits unencrypted'))
 

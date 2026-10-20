@@ -1,0 +1,1220 @@
+{
+  "gcp.review.workbench.terminal_access_disabled": {
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-terminal": "true"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-terminal": "true"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null,
+    "pass": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-terminal": "true"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-terminal": "true"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-terminal": "true"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-terminal": "false"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-terminal": "false"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-terminal": "false"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-terminal": null
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-terminal": null
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-terminal": null
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "deleted": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "DELETED",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-terminal": "true"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "deleted_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "DELETED",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-terminal": "true"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "DELETED",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-terminal": "true"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    }
+  },
+  "gcp.review.workbench.file_download_disabled": {
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-downloads": "true"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-downloads": "true"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null,
+    "pass": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-downloads": "true"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-downloads": "true"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-downloads": "true"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-downloads": "false"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-downloads": "false"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-downloads": "false"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-downloads": null
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-downloads": null
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-downloads": null
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "deleted": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "DELETED",
+      "gceSetup": {
+        "metadata": {
+          "notebook-disable-downloads": "true"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "deleted_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "DELETED",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-disable-downloads": "true"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "DELETED",
+            "gceSetup": {
+              "metadata": {
+                "notebook-disable-downloads": "true"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    }
+  },
+  "gcp.review.workbench.auto_upgrade_schedule_declared": {
+    "index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-upgrade-schedule": "00 19 * * MON"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-upgrade-schedule": "00 19 * * MON"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "missing": {},
+    "malformed": null,
+    "pass": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-upgrade-schedule": "00 19 * * MON"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "pass_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-upgrade-schedule": "00 19 * * MON"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-upgrade-schedule": "00 19 * * MON"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "fail": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-upgrade-schedule": ""
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "fail_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-upgrade-schedule": ""
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-upgrade-schedule": ""
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "unknown": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "ACTIVE",
+      "gceSetup": {
+        "metadata": {
+          "notebook-upgrade-schedule": null
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "unknown_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "ACTIVE",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-upgrade-schedule": null
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "ACTIVE",
+            "gceSetup": {
+              "metadata": {
+                "notebook-upgrade-schedule": null
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    },
+    "deleted": {
+      "name": "projects/review/locations/us-central1-a/instances/notebook",
+      "state": "DELETED",
+      "gceSetup": {
+        "metadata": {
+          "notebook-upgrade-schedule": "00 19 * * MON"
+        }
+      },
+      "_provenance": {
+        "scope": "projects/review",
+        "representation": "full",
+        "source_requests": [
+          "wb-read-1"
+        ]
+      },
+      "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+      "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+    },
+    "deleted_index": {
+      "context": {
+        "provider": "gcp",
+        "scope": "projects/review"
+      },
+      "collections": {
+        "workbench_instance": [
+          {
+            "type": "workbench_instance",
+            "scope": "projects/review",
+            "service": "notebooks",
+            "status": "collected",
+            "coverage_status": "collected",
+            "source_requests": [
+              "wb-read-1"
+            ],
+            "items": [
+              {
+                "name": "projects/review/locations/us-central1-a/instances/notebook",
+                "state": "DELETED",
+                "gceSetup": {
+                  "metadata": {
+                    "notebook-upgrade-schedule": "00 19 * * MON"
+                  }
+                },
+                "_provenance": {
+                  "scope": "projects/review",
+                  "representation": "full",
+                  "source_requests": [
+                    "wb-read-1"
+                  ]
+                },
+                "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+                "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+              }
+            ]
+          }
+        ]
+      },
+      "workbench_instance": [
+        {
+          "provider": "gcp",
+          "type": "workbench_instance",
+          "scope": "projects/review",
+          "native_id": "projects/review/locations/us-central1-a/instances/notebook",
+          "data": {
+            "name": "projects/review/locations/us-central1-a/instances/notebook",
+            "state": "DELETED",
+            "gceSetup": {
+              "metadata": {
+                "notebook-upgrade-schedule": "00 19 * * MON"
+              }
+            },
+            "_provenance": {
+              "scope": "projects/review",
+              "representation": "full",
+              "source_requests": [
+                "wb-read-1"
+              ]
+            },
+            "_resource_id": "projects/review/locations/us-central1-a/instances/notebook",
+            "native_id": "projects/review/locations/us-central1-a/instances/notebook"
+          }
+        }
+      ]
+    }
+  }
+}

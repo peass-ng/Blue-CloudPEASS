@@ -29,7 +29,8 @@ def project_log_entry(row, scope, project_aliases=None):
     if not isinstance(payload, dict) or payload.get('@type') != 'type.googleapis.com/google.cloud.audit.AuditLog':
         raise ReadError('malformed', 'audit_metadata_payload_type_mismatch')
     resource = row.get('resource', {})
-    if not isinstance(resource, dict) or not isinstance(resource.get('labels', {}), dict):
+    if (not isinstance(resource, dict) or not isinstance(resource.get('labels', {}), dict)
+            or not isinstance(resource.get('type'), str) or not resource['type'].strip()):
         raise ReadError('malformed', 'audit_metadata_resource_malformed')
     project = resource.get('labels', {}).get('project_id')
     if project is not None and project not in (project_aliases or {scope.split('/')[1]}):
@@ -37,6 +38,7 @@ def project_log_entry(row, scope, project_aliases=None):
     auth = payload.get('authenticationInfo')
     principal = auth.get('principalEmail') if isinstance(auth, dict) else None
     projected = {'name': log + '/entries/' + quote(insert, safe=''), 'logName': log, 'insertId': insert,
+                 'resource': {'type': resource['type']},
                  'eventClass': 'authenticated_audit' if isinstance(principal, str) and principal.strip() else 'unclassified_audit',
                  'protoPayload': {key: data for key, data in payload.items() if key in ('@type', 'serviceName', 'methodName')},
                  'auditCoverage': {'absence_proves_no_event': False, 'retention_verified': False, 'representation': 'metadata'}}
@@ -122,9 +124,12 @@ def located(collector, scope, service, version, segment, key, option):
 
 def sql_instances(collector, scope, project):
     from .gcp import ReadError, wire_status
+    binding = collector._data_project_binding(scope)
+    project = binding['project_id']
     base = f'https://sqladmin.googleapis.com/sql/v1beta4/projects/{project}/instances'
 
     def hydrate(instance):
+        collector._data_sql_identity(scope, instance)
         name = instance.get('name')
         if not isinstance(name, str) or not name:
             raise ReadError('malformed', 'sql_instance_identity_missing')
@@ -135,9 +140,11 @@ def sql_instances(collector, scope, project):
                 raise ReadError('malformed', 'sql_user_identity_missing')
             # The API may omit these URL-bound fields. Explicit contradictory
             # values cannot be rewritten into the requested instance identity.
-            for field, expected in (('instance', name), ('project', project)):
+            for field, expected in (('instance', name), ('instanceId', name), ('userName', username)):
                 if field in row and (not isinstance(row[field], str) or row[field] != expected):
                     raise ReadError('malformed', f'sql_user_{field}_mismatch')
+            if 'project' in row and not collector._data_project_matches(scope, row['project']):
+                raise ReadError('malformed', 'sql_user_project_mismatch')
             # Envelope identity de-duplicates rows. A repeated raw account,
             # even with different authentication or policy fields, cannot
             # certify a complete user inventory.
@@ -344,6 +351,10 @@ def dependent(collector):
     if 'server_tls_policy' in collector.needed:
         for scope in collector.scopes:
             if not scope.startswith('projects/'):
+                continue
+            # Native network inventory enumerates policies even when no proxy
+            # references them. Keep reference hydration for older callers only.
+            if ('server_tls_policy', scope) in collector.collections:
                 continue
             def policies(scope=scope):
                 parent = complete_parent(collector, 'target_https_proxy', scope)

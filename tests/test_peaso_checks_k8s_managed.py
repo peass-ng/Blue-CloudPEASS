@@ -288,22 +288,24 @@ def test_collector_keeps_gke_component_annotation_only():
     assert item["metadata"]["annotations"] == {"components.gke.io/component-name": "kube-dns"}
 
 
-# --- always_pull: digest-pinned images satisfy the control ---------------------------------------------------
+# --- Explicit Always and immutable-image intent retain distinct contracts ---
 
 DIGEST = "registry.k8s.io/pause@sha256:" + "e" * 64
 
 
-@pytest.mark.parametrize("image,policy,expected", [
-    (DIGEST, "IfNotPresent", "PASS"), (DIGEST, None, "PASS"), (DIGEST, "Always", "PASS"), (DIGEST, "Never", "FAIL"),
-    ("busybox:1.36", "IfNotPresent", "FAIL"), ("busybox:1.36", "Always", "PASS"), ("busybox@sha256:short", "IfNotPresent", "UNKNOWN"),
+@pytest.mark.parametrize("image,policy,literal_expected,digest_expected", [
+    (DIGEST, "IfNotPresent", "FAIL", "PASS"), (DIGEST, None, "FAIL", "PASS"),
+    (DIGEST, "Always", "PASS", "PASS"), (DIGEST, "Never", "FAIL", "FAIL"),
+    ("busybox:1.36", "IfNotPresent", "FAIL", "FAIL"), ("busybox:1.36", "Always", "PASS", "PASS"),
+    ("busybox@sha256:short", "IfNotPresent", "UNKNOWN", "UNKNOWN"),
 ])
-def test_always_pull_accepts_digest_pinned_images(image, policy, expected):
+def test_always_pull_accepts_digest_pinned_images(image, policy, literal_expected, digest_expected):
     container = {"name": "c", "image": image, **({"imagePullPolicy": policy} if policy else {})}
     item = {"spec": {"containers": [container]}}
     always = REGISTRY["k8s.ports.pod.always_pull"].evaluate(item, {})[0]
     digest_variant = REGISTRY["k8s.ports.pod.content_digest_or_always_pull"].evaluate(item, {})[0]
-    assert always == expected
-    assert always == digest_variant, "both image-pull variants agree on digest-pinned images"
+    assert always == literal_expected
+    assert digest_variant == digest_expected
 
 
 # --- Literal credential-like env values ----------------------------------------------------------------------

@@ -1612,10 +1612,15 @@ def _load_17():
             return result(status == 'NON_COMPLIANT', critical_and_security_patch_count=count, post_installation_status=status, operation_id=record['operationId'])
         return result(False, critical_and_security_patch_count=count, require_pci_compliance=False)
 
-    def _nullable(properties, key):
+    def _nullable(properties, key, owner=None):
         if key in properties or key in properties.get('_coverage', {}):
             value = get(properties, key)
-        elif properties.get('_provenance', {}).get('representation') == 'full':
+        elif (isinstance(owner, dict) and isinstance(owner.get('_provenance'), dict)
+              and str(owner.get('type', '')).casefold() in ('microsoft.network/networkinterfaces', 'microsoft.network/virtualnetworks/subnets', 'microsoft.network/loadbalancers')
+              and owner['_provenance'].get('representation') == 'full'
+              and owner['_provenance'].get('source_operation') == 'get'
+              and owner['_provenance'].get('read_only') is True
+              and owner['_provenance'].get('api_version') == '2023-09-01'):
             value = None
         else:
             raise Unavailable('association absence not measured: ' + key)
@@ -1655,7 +1660,7 @@ def _load_17():
                 subnet = _join(subnets, get(config, 'properties.subnet.id', str), index, 'subnet')
                 associated = []
                 for parent in (nic, subnet):
-                    link = _nullable(get(parent, 'properties', dict), 'networkSecurityGroup')
+                    link = _nullable(get(parent, 'properties', dict), 'networkSecurityGroup', parent)
                     if link is not None:
                         associated.append(_join(nsgs, get(link, 'id', str), index, 'nsg'))
                 paths.append((nic, config, associated))
@@ -1680,14 +1685,14 @@ def _load_17():
                 raise Unavailable('public-IP allocation is not an Internet address')
             return True
         for nic, config, _ in paths:
-            if public(_nullable(get(config, 'properties', dict), 'publicIPAddress')):
+            if public(_nullable(get(config, 'properties', dict), 'publicIPAddress', nic)):
                 facing.add(get(config, 'id', str).casefold())
         for lb in lbs:
             props = get(lb, 'properties', dict)
             frontends = list_of_objects(get(props, 'frontendIPConfigurations', list))
             public_frontends = set()
             for front in frontends:
-                if public(_nullable(get(front, 'properties', dict), 'publicIPAddress')):
+                if public(_nullable(get(front, 'properties', dict), 'publicIPAddress', lb)):
                     public_frontends.add(get(front, 'id', str).casefold())
             if not public_frontends:
                 continue
@@ -1732,7 +1737,7 @@ def _load_17():
                 rp = get(rule, 'properties', dict)
                 if get(rp, 'frontendIPConfiguration.id', str).casefold() not in public_frontends:
                     continue
-                backend = _nullable(rp, 'backendIPConfiguration')
+                backend = _nullable(rp, 'backendIPConfiguration', lb)
                 if backend is None:
                     raise Unavailable('LB NAT backend association unavailable')
                 cid = get(backend, 'id', str).casefold()
@@ -1826,12 +1831,16 @@ def _load_17():
         return residual
 
     def _permissive_nsg(nsg, destination):
+        proof = get(nsg, '_provenance', dict)
+        if (proof.get('representation') != 'full' or proof.get('source_operation') != 'get'
+                or proof.get('read_only') is not True or proof.get('api_version') != '2023-09-01'):
+            raise Unavailable('complete native NSG rule representation unavailable')
         props = get(nsg, 'properties', dict)
         rules = list_of_objects(get(props, 'securityRules', list)) + list_of_objects(get(props, 'defaultSecurityRules', list))
         if not rules:
             raise Unavailable('NSG rule inventory absent')
         tags = get(props, 'resolvedServiceTags', dict) if 'resolvedServiceTags' in props else {}
-        parsed, priorities = ([], set())
+        ordered, priorities = [], set()
         for row in rules:
             rp = get(row, 'properties', dict)
             direction = get(rp, 'direction', str)
@@ -1847,6 +1856,18 @@ def _load_17():
             protocol = get(rp, 'protocol', str).casefold()
             if access not in ('Allow', 'Deny') or protocol not in ('*', 'tcp', 'udp', 'icmp', 'ah', 'esp'):
                 raise Unavailable('NSG access or protocol unrecognized')
+            kind = get(row, 'type', str).casefold()
+            rid = get(row, 'id', str)
+            if (kind not in ('microsoft.network/networksecuritygroups/securityrules', 'microsoft.network/networksecuritygroups/defaultsecurityrules')
+                    or re.fullmatch(re.escape(get(nsg, 'id', str)) + r'/(?:securityRules|defaultSecurityRules)/[^/?#%\\\s]+', rid, re.I) is None
+                    or any(part in ('.', '..') for part in rid.split('/'))
+                    or kind.rsplit('/', 1)[-1] != rid.rsplit('/', 2)[-2].casefold()):
+                raise Unavailable('NSG native rule identity/type contradictory')
+            ordered.append((priority, access, protocol, rp))
+        if not priorities:
+            raise Unavailable('NSG inbound rule inventory absent')
+        previous = []
+        for priority, access, protocol, rp in sorted(ordered, key=lambda row: row[0]):
             for key in ('sourceApplicationSecurityGroups', 'destinationApplicationSecurityGroups'):
                 if key in rp and get(rp, key, list):
                     raise Unavailable('NSG ASG membership unresolved')
@@ -1854,15 +1875,10 @@ def _load_17():
             destinations, _ = _ranges(rp, 'destinationAddressPrefix', 'destinationAddressPrefixes', tags=tags, version=destination.version)
             source_ports, _ = _ranges(rp, 'sourcePortRange', 'sourcePortRanges', ports=True)
             dest_ports, _ = _ranges(rp, 'destinationPortRange', 'destinationPortRanges', ports=True)
-            if not any((lo <= int(destination) <= hi for lo, hi in destinations)):
+            if not any(lo <= int(destination) <= hi for lo, hi in destinations):
                 continue
             protocols = range(5) if protocol == '*' else [('tcp', 'udp', 'icmp', 'ah', 'esp').index(protocol)]
             boxes = [tuple(parts) for parts in itertools.product(sources, source_ports, dest_ports, [(p, p) for p in protocols])]
-            parsed.append((priority, access, public, boxes))
-        if not priorities:
-            raise Unavailable('NSG inbound rule inventory absent')
-        previous = []
-        for priority, access, public, boxes in sorted(parsed):
             if access == 'Allow' and public:
                 residual = list(boxes)
                 for blocker in previous:
@@ -1872,9 +1888,15 @@ def _load_17():
                     if not residual:
                         break
                 if residual:
+                    # Later unknown selectors cannot override this priority decision.
                     return priority
+            if (access == 'Deny' and protocol == '*'
+                    and all(rp.get(key) == '*' for key in ('sourceAddressPrefix', 'destinationAddressPrefix', 'sourcePortRange', 'destinationPortRange'))):
+                # Native wildcard declarations cover both IP families, all destinations,
+                # ports and protocols; any earlier uncertainty has already stopped us.
+                return None
             previous.extend(boxes)
-        return None
+        raise Unavailable('no decisive public allow or complete all-family wildcard deny')
 
     def _public_rules(check_id, item, index):
         _vm(item, index)

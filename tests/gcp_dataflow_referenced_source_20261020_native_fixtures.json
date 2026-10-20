@@ -1,0 +1,276 @@
+{
+  "scope": "Synthetic native metadata, no live evidence or workload bytes",
+  "reference_cases": [
+    {
+      "name": "canonical_sdk_package_hex",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "review",
+        "id": "2026-10-20_01_23_45-123456789",
+        "location": "us-central1",
+        "createTime": "2026-10-20T01:23:45Z",
+        "currentState": "JOB_STATE_DONE",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "storage.googleapis.com/review-source/staged/workflow.py",
+                  "sha256": "9927c09b81b51a5d2e499e5548958c0b0d89757dd1632a3b43c78b6a22f29194"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "native_checksum_optional",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "review",
+        "id": "2026-10-20_01_23_45-123456789",
+        "location": "us-central1",
+        "createTime": "2026-10-20T01:23:45Z",
+        "currentState": "JOB_STATE_DONE",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "storage.googleapis.com/review-source/staged/workflow.py"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": true
+    },
+    {
+      "name": "reject_projectId",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "other-project",
+        "id": "2026-10-20_01_23_45-123456789",
+        "location": "us-central1",
+        "createTime": "2026-10-20T01:23:45Z",
+        "currentState": "JOB_STATE_DONE",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "storage.googleapis.com/review-source/staged/workflow.py",
+                  "sha256": "9927c09b81b51a5d2e499e5548958c0b0d89757dd1632a3b43c78b6a22f29194"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "reject_id",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "review",
+        "id": "other-job",
+        "location": "us-central1",
+        "createTime": "2026-10-20T01:23:45Z",
+        "currentState": "JOB_STATE_DONE",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "storage.googleapis.com/review-source/staged/workflow.py",
+                  "sha256": "9927c09b81b51a5d2e499e5548958c0b0d89757dd1632a3b43c78b6a22f29194"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "reject_location",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "review",
+        "id": "2026-10-20_01_23_45-123456789",
+        "location": "europe-west1",
+        "createTime": "2026-10-20T01:23:45Z",
+        "currentState": "JOB_STATE_DONE",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "storage.googleapis.com/review-source/staged/workflow.py",
+                  "sha256": "9927c09b81b51a5d2e499e5548958c0b0d89757dd1632a3b43c78b6a22f29194"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "reject_createTime",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "review",
+        "id": "2026-10-20_01_23_45-123456789",
+        "location": "us-central1",
+        "createTime": "invalid",
+        "currentState": "JOB_STATE_DONE",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "storage.googleapis.com/review-source/staged/workflow.py",
+                  "sha256": "9927c09b81b51a5d2e499e5548958c0b0d89757dd1632a3b43c78b6a22f29194"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "reject_currentState",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "review",
+        "id": "2026-10-20_01_23_45-123456789",
+        "location": "us-central1",
+        "createTime": "2026-10-20T01:23:45Z",
+        "currentState": "JOB_STATE_PENDING",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "storage.googleapis.com/review-source/staged/workflow.py",
+                  "sha256": "9927c09b81b51a5d2e499e5548958c0b0d89757dd1632a3b43c78b6a22f29194"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false
+    },
+    {
+      "name": "reject_foreign_package_url",
+      "target": {
+        "resource": "projects/review/locations/us-central1/jobs/2026-10-20_01_23_45-123456789",
+        "worker_pool": 0,
+        "package": 0,
+        "name": "workflow.py",
+        "bucket": "review-source",
+        "object": "staged/workflow.py",
+        "generation": "12345",
+        "format": "text"
+      },
+      "native": {
+        "projectId": "review",
+        "id": "2026-10-20_01_23_45-123456789",
+        "location": "us-central1",
+        "createTime": "2026-10-20T01:23:45Z",
+        "currentState": "JOB_STATE_DONE",
+        "environment": {
+          "workerPools": [
+            {
+              "packages": [
+                {
+                  "name": "workflow.py",
+                  "location": "https://never-follow.invalid/source",
+                  "sha256": "9927c09b81b51a5d2e499e5548958c0b0d89757dd1632a3b43c78b6a22f29194"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "valid": false
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "provider": "gcp",
   "format": "One to three brief plain-language sentences: observed fact, check-specific meaning, and evidence limit. No effective-access inference.",
-  "registered_check_count": 525,
+  "registered_check_count": 536,
   "alias_count": 2,
   "checks": {
     "gcp.iam.restrict_public_members": {
@@ -111,7 +111,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Bucket uses uniform bucket-level access” was not recorded reliably. Uniform access centralizes bucket permissions in IAM; object ACL behavior depends on this setting."
+          "example": "The evidence needed to evaluate \u201cBucket uses uniform bucket-level access\u201d was not recorded reliably. Uniform access centralizes bucket permissions in IAM; object ACL behavior depends on this setting."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -141,7 +141,7 @@
             "detail",
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Bucket public access prevention is enforced” was not recorded reliably. Public access prevention can block public grants; inherited policy and object access still need consideration."
+          "example": "The evidence needed to evaluate \u201cBucket public access prevention is enforced\u201d was not recorded reliably. Public access prevention can block public grants; inherited policy and object access still need consideration."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -191,7 +191,7 @@
             "direction",
             "disabled"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         },
         "UNKNOWN": {
           "case": "isolated-native-fixture",
@@ -657,7 +657,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Project IAM configures all-service data access audit logs” was not recorded reliably. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
+          "example": "The evidence needed to evaluate \u201cProject IAM configures all-service data access audit logs\u201d was not recorded reliably. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -1241,7 +1241,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Compute VM has one network interface” was not recorded reliably. Multiple interfaces can connect separate network paths; this count does not establish traffic isolation."
+          "example": "The evidence needed to evaluate \u201cCompute VM has one network interface\u201d was not recorded reliably. Multiple interfaces can connect separate network paths; this count does not establish traffic isolation."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -1523,7 +1523,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Bucket configures a positive soft-delete retention period” was not recorded reliably. Soft deletion creates a recovery window for deleted objects; a successful restore was not tested."
+          "example": "The evidence needed to evaluate \u201cBucket configures a positive soft-delete retention period\u201d was not recorded reliably. Soft deletion creates a recovery window for deleted objects; a successful restore was not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -1633,7 +1633,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Bucket declares a supported lifecycle rule and condition” was not recorded reliably. Lifecycle rules control retained object or artifact versions; deletion behavior and recovery need separate review."
+          "example": "The evidence needed to evaluate \u201cBucket declares a supported lifecycle rule and condition\u201d was not recorded reliably. Lifecycle rules control retained object or artifact versions; deletion behavior and recovery need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -2003,7 +2003,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Symmetric KMS key enables automatic rotation” was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
+          "example": "The evidence needed to evaluate \u201cSymmetric KMS key enables automatic rotation\u201d was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -2041,7 +2041,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Symmetric KMS key schedules rotation within ninety days” was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
+          "example": "The evidence needed to evaluate \u201cSymmetric KMS key schedules rotation within ninety days\u201d was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -3474,7 +3474,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “VM explicitly blocks project SSH keys outside GKE source scope” was not recorded reliably. Project SSH keys can extend login access across VMs; OS Login and other SSH controls affect actual access."
+          "example": "The evidence needed to evaluate \u201cVM explicitly blocks project SSH keys outside GKE source scope\u201d was not recorded reliably. Project SSH keys can extend login access across VMs; OS Login and other SSH controls affect actual access."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -3510,7 +3510,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “VM explicitly enables both vTPM and integrity monitoring” was not recorded reliably. Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload."
+          "example": "The evidence needed to evaluate \u201cVM explicitly enables both vTPM and integrity monitoring\u201d was not recorded reliably. Shielded VM controls help detect or block boot tampering; this setting does not verify the running workload."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -3546,7 +3546,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Network avoids the legacy IPv4Range model” was not recorded reliably. Explicit subnet design helps control network layout; the subnet mode alone does not establish isolation."
+          "example": "The evidence needed to evaluate \u201cNetwork avoids the legacy IPv4Range model\u201d was not recorded reliably. Explicit subnet design helps control network layout; the subnet mode alone does not establish isolation."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -3858,7 +3858,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “kms key rotated within 90 day” was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
+          "example": "The evidence needed to evaluate \u201ckms key rotated within 90 day\u201d was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -3930,7 +3930,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “iam api key restricts websites hosts apps” was not recorded reliably. API and caller restrictions limit where a stolen key can be used; successful requests were not tested."
+          "example": "The evidence needed to evaluate \u201ciam api key restricts websites hosts apps\u201d was not recorded reliably. API and caller restrictions limit where a stolen key can be used; successful requests were not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -4646,7 +4646,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “project service cloudasset api enabled” was not recorded reliably. The Cloud Asset API supports inventory collection; enabling it does not establish inventory completeness."
+          "example": "The evidence needed to evaluate \u201cproject service cloudasset api enabled\u201d was not recorded reliably. The Cloud Asset API supports inventory collection; enabling it does not establish inventory completeness."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -4684,7 +4684,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “artifacts container analysis enabled” was not recorded reliably. The analysis API supports vulnerability scanning; enabled service metadata does not prove artifacts were scanned."
+          "example": "The evidence needed to evaluate \u201cartifacts container analysis enabled\u201d was not recorded reliably. The analysis API supports vulnerability scanning; enabled service metadata does not prove artifacts were scanned."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -5127,7 +5127,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “compute ssl policy strict declaration” was not recorded reliably. The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested."
+          "example": "The evidence needed to evaluate \u201ccompute ssl policy strict declaration\u201d was not recorded reliably. The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -5639,7 +5639,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “api key meaningful restrictions” was not recorded reliably. API and caller restrictions limit where a stolen key can be used; successful requests were not tested."
+          "example": "The evidence needed to evaluate \u201capi key meaningful restrictions\u201d was not recorded reliably. API and caller restrictions limit where a stolen key can be used; successful requests were not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -5843,7 +5843,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -5893,7 +5893,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -5943,7 +5943,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -5993,7 +5993,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6043,7 +6043,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6093,7 +6093,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6143,7 +6143,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6193,7 +6193,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6243,7 +6243,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6293,7 +6293,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6343,7 +6343,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6393,7 +6393,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6443,7 +6443,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6493,7 +6493,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6543,7 +6543,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6593,7 +6593,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6643,7 +6643,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6693,7 +6693,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6743,7 +6743,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6793,7 +6793,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6843,7 +6843,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6893,7 +6893,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6943,7 +6943,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -6993,7 +6993,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7043,7 +7043,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7093,7 +7093,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7143,7 +7143,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7193,7 +7193,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7243,7 +7243,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7293,7 +7293,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7339,7 +7339,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7387,7 +7387,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7467,7 +7467,7 @@
             "name",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7513,7 +7513,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An internet-wide service rule can expose the named port; listeners, target matching and authentication remain separate."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -7557,7 +7557,7 @@
             "direction",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8186,7 +8186,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Disk snapshot is not older than 90 days” was not recorded reliably. Older snapshots may not meet recovery freshness requirements; recoverability and restore success were not tested."
+          "example": "The evidence needed to evaluate \u201cDisk snapshot is not older than 90 days\u201d was not recorded reliably. Older snapshots may not meet recovery freshness requirements; recoverability and restore success were not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8408,7 +8408,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. TLS policy limits obsolete ciphers; negotiated connections were not tested."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. TLS policy limits obsolete ciphers; negotiated connections were not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8449,7 +8449,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. The frontend TLS policy limits obsolete protocols and ciphers; negotiated connections were not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8526,7 +8526,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. DNSSEC protects DNS responses from tampering; validation by resolvers was not tested."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. DNSSEC protects DNS responses from tampering; validation by resolvers was not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8569,7 +8569,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8612,7 +8612,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Avoiding SHA-1 strengthens DNSSEC signatures; the deployed DNS responses were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8659,7 +8659,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8697,14 +8697,14 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Log sink destination bucket has a retention policy” was not recorded reliably. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
+          "example": "The evidence needed to evaluate \u201cLog sink destination bucket has a retention policy\u201d was not recorded reliably. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
         },
         "NOT_APPLICABLE": {
           "case": "not_applicable",
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8749,7 +8749,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8794,7 +8794,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Object versioning retains older versions; retention and successful recovery need separate evidence."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Object versioning retains older versions; retention and successful recovery need separate evidence."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8828,7 +8828,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Bucket retention policy is at least 90 days” was not recorded reliably. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
+          "example": "The evidence needed to evaluate \u201cBucket retention policy is at least 90 days\u201d was not recorded reliably. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8907,7 +8907,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8948,7 +8948,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -8989,7 +8989,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9030,7 +9030,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Broad identity grants increase the impact of misuse; these declarations do not prove usable permissions."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9075,7 +9075,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Long-lived identity keys can be reused if stolen; key metadata does not establish actual use."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Long-lived identity keys can be reused if stolen; key metadata does not establish actual use."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9120,7 +9120,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Unused identities or keys can create avoidable credential exposure; observed usage history may not cover all activity."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Unused identities or keys can create avoidable credential exposure; observed usage history may not cover all activity."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9163,7 +9163,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Unused identities or keys can create avoidable credential exposure; observed usage history may not cover all activity."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Unused identities or keys can create avoidable credential exposure; observed usage history may not cover all activity."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9206,7 +9206,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An issuer-wide trust without an attribute condition can admit unintended workloads; effective token exchange was not tested."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An issuer-wide trust without an attribute condition can admit unintended workloads; effective token exchange was not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9240,14 +9240,14 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Organization has at least one Essential Contact” was not recorded reliably. Essential Contacts route security and operational notices; successful delivery and owner response were not verified."
+          "example": "The evidence needed to evaluate \u201cOrganization has at least one Essential Contact\u201d was not recorded reliably. Essential Contacts route security and operational notices; successful delivery and owner response were not verified."
         },
         "NOT_APPLICABLE": {
           "case": "not_applicable",
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Essential Contacts route security and operational notices; successful delivery and owner response were not verified."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Essential Contacts route security and operational notices; successful delivery and owner response were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9283,7 +9283,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Container Scanning API is enabled” was not recorded reliably. The analysis API supports vulnerability scanning; enabled service metadata does not prove artifacts were scanned."
+          "example": "The evidence needed to evaluate \u201cContainer Scanning API is enabled\u201d was not recorded reliably. The analysis API supports vulnerability scanning; enabled service metadata does not prove artifacts were scanned."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9319,7 +9319,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Generative Language (Gemini) API is disabled where not required” was not recorded reliably. The Gemini API enables generative AI workloads; service enablement does not prove data was sent to it."
+          "example": "The evidence needed to evaluate \u201cGenerative Language (Gemini) API is disabled where not required\u201d was not recorded reliably. The Gemini API enables generative AI workloads; service enablement does not prove data was sent to it."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9842,7 +9842,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “KMS key automatic rotation period is at most 100 days” was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
+          "example": "The evidence needed to evaluate \u201cKMS key automatic rotation period is at most 100 days\u201d was not recorded reliably. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
         },
         "NOT_APPLICABLE": {
           "case": "not_applicable",
@@ -9850,7 +9850,7 @@
             "purpose",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Rotation limits the lifetime of encryption material or secrets; the schedule does not prove consumers use a new version."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9899,7 +9899,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9948,7 +9948,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -9997,7 +9997,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10046,7 +10046,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10095,7 +10095,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10144,7 +10144,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10193,7 +10193,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10242,7 +10242,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10291,7 +10291,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10340,7 +10340,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10389,7 +10389,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10438,7 +10438,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10487,7 +10487,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Untrusted policy declarations can extend access beyond approved identities; project principals and effective access need separate review."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -10701,7 +10701,7 @@
             "backend_type",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11183,7 +11183,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Zonal GKE cluster declares node locations in at least three distinct zones” was not recorded reliably. Multiple zones reduce reliance on one failure domain; application failover was not tested."
+          "example": "The evidence needed to evaluate \u201cZonal GKE cluster declares node locations in at least three distinct zones\u201d was not recorded reliably. Multiple zones reduce reliance on one failure domain; application failover was not tested."
         },
         "NOT_APPLICABLE": {
           "case": "not_applicable",
@@ -11191,7 +11191,7 @@
             "location",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Multiple zones reduce reliance on one failure domain; application failover was not tested."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Multiple zones reduce reliance on one failure domain; application failover was not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11392,7 +11392,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect project ownership changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect project ownership changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11453,7 +11453,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect audit policy changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect audit policy changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11514,7 +11514,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11575,7 +11575,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect custom IAM role changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11636,7 +11636,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect firewall rule changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect firewall rule changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11697,7 +11697,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect route changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect route changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11758,7 +11758,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect VPC network changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect VPC network changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11819,7 +11819,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect bucket IAM changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect bucket IAM changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11880,7 +11880,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Alerts help detect Cloud SQL configuration changes; configured metrics and notifications do not prove delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Alerts help detect Cloud SQL configuration changes; configured metrics and notifications do not prove delivery or response."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -11967,7 +11967,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -12026,7 +12026,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -12077,7 +12077,7 @@
             "reason",
             "state"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. VPC connectivity can route function traffic through private network controls; actual egress and routes were not tested."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. VPC connectivity can route function traffic through private network controls; actual egress and routes were not tested."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -12155,14 +12155,14 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “API key was created within the last 90 days” was not recorded reliably. An old API key has a longer exposure window if leaked; metadata does not establish misuse or current key rotation."
+          "example": "The evidence needed to evaluate \u201cAPI key was created within the last 90 days\u201d was not recorded reliably. An old API key has a longer exposure window if leaked; metadata does not establish misuse or current key rotation."
         },
         "NOT_APPLICABLE": {
           "case": "not_applicable",
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. An old API key has a longer exposure window if leaked; metadata does not establish misuse or current key rotation."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. An old API key has a longer exposure window if leaked; metadata does not establish misuse or current key rotation."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -12238,7 +12238,7 @@
             "backend_type",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. These network declarations affect exposure; firewall paths and authentication determine who can connect."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -12672,7 +12672,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “compute network dns logging scoped” was not recorded reliably. Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained."
+          "example": "The evidence needed to evaluate \u201ccompute network dns logging scoped\u201d was not recorded reliably. Traffic logging supports incident investigation; this configuration does not prove logs arrive or are retained."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -13622,7 +13622,7 @@
             "disabled",
             "sink"
           ],
-          "example": "The project’s default log sink is disabled. The default sink supports routine log retention; enabling it does not prove all required logs are collected."
+          "example": "The project\u2019s default log sink is disabled. The default sink supports routine log retention; enabling it does not prove all required logs are collected."
         },
         "UNKNOWN": {
           "case": "missing",
@@ -13855,7 +13855,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. A pull-request gate can prevent unreviewed build execution; approval enforcement was not exercised."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. A pull-request gate can prevent unreviewed build execution; approval enforcement was not exercised."
         },
         "UNKNOWN": {
           "case": "missing",
@@ -13938,14 +13938,14 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Long-lived identity keys can be reused if stolen; key metadata does not establish actual use."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Long-lived identity keys can be reused if stolen; key metadata does not establish actual use."
         },
         "UNKNOWN": {
           "case": "missing",
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Active Cloud Storage HMAC key is recent and not bound to a default service account” was not recorded reliably. Long-lived identity keys can be reused if stolen; key metadata does not establish actual use."
+          "example": "The evidence needed to evaluate \u201cActive Cloud Storage HMAC key is recent and not bound to a default service account\u201d was not recorded reliably. Long-lived identity keys can be reused if stolen; key metadata does not establish actual use."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -14057,7 +14057,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. A recurring access-changing job could restore unwanted grants; successful execution and effective access were not established."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. A recurring access-changing job could restore unwanted grants; successful execution and effective access were not established."
         },
         "UNKNOWN": {
           "case": "missing",
@@ -14456,7 +14456,7 @@
             "source_selectors",
             "target_tags"
           ],
-          "example": "The TCP ingress sources are outside the profile’s IAP and health-check list. Restricting sources to proxy and health-check ranges narrows ingress; actual backend reachability was not tested."
+          "example": "The TCP ingress sources are outside the profile\u2019s IAP and health-check list. Restricting sources to proxy and health-check ranges narrows ingress; actual backend reachability was not tested."
         },
         "UNKNOWN": {
           "case": "missing",
@@ -14758,7 +14758,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Backend cookie affinity TTL is at most 30 minutes” was not recorded reliably. Long affinity cookies extend client-to-backend association; the declared TTL does not prove session-token behavior."
+          "example": "The evidence needed to evaluate \u201cBackend cookie affinity TTL is at most 30 minutes\u201d was not recorded reliably. Long affinity cookies extend client-to-backend association; the declared TTL does not prove session-token behavior."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -15050,7 +15050,7 @@
             "scope",
             "service"
           ],
-          "example": "The evidence needed to evaluate “Spanner Data Access audit logging” was not recorded reliably. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
+          "example": "The evidence needed to evaluate \u201cSpanner Data Access audit logging\u201d was not recorded reliably. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -15107,7 +15107,7 @@
             "scope",
             "service"
           ],
-          "example": "The evidence needed to evaluate “Pub/Sub Data Access audit logging” was not recorded reliably. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
+          "example": "The evidence needed to evaluate \u201cPub/Sub Data Access audit logging\u201d was not recorded reliably. Audit policy controls which data access events are recorded; log delivery and method coverage were not verified."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -15504,7 +15504,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Cloud Logging bucket retention meets minimum” was not recorded reliably. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
+          "example": "The evidence needed to evaluate \u201cCloud Logging bucket retention meets minimum\u201d was not recorded reliably. Log retention preserves records for investigations; the configured duration does not prove complete log delivery."
         },
         "PASS": {
           "case": "pass",
@@ -15623,7 +15623,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “API keys target only active enabled services” was not recorded reliably. Disabled API targets can leave stale key restrictions; an enabled API alone does not prove the key is in use."
+          "example": "The evidence needed to evaluate \u201cAPI keys target only active enabled services\u201d was not recorded reliably. Disabled API targets can leave stale key restrictions; an enabled API alone does not prove the key is in use."
         }
       },
       "fixture_source": "peaso/checks/fixtures.py",
@@ -16220,7 +16220,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Autoscaler cannot expand at 80 percent capacity” was not recorded reliably. Scaling headroom helps handle demand; live load and application capacity were not measured."
+          "example": "The evidence needed to evaluate \u201cAutoscaler cannot expand at 80 percent capacity\u201d was not recorded reliably. Scaling headroom helps handle demand; live load and application capacity were not measured."
         },
         "PASS": {
           "case": "pass",
@@ -16700,7 +16700,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Cloud Armor policy has a non-default rule” was not recorded reliably. Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence."
+          "example": "The evidence needed to evaluate \u201cCloud Armor policy has a non-default rule\u201d was not recorded reliably. Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence."
         },
         "PASS": {
           "case": "pass",
@@ -17014,7 +17014,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Super-admin recovery email belongs to a multi-person group” was not recorded reliably. A shared recovery group can avoid reliance on one administrator; account recovery was not exercised."
+          "example": "The evidence needed to evaluate \u201cSuper-admin recovery email belongs to a multi-person group\u201d was not recorded reliably. A shared recovery group can avoid reliance on one administrator; account recovery was not exercised."
         },
         "PASS": {
           "case": "pass",
@@ -17113,37 +17113,43 @@
       "disposition": "rewritten",
       "native_status": "active",
       "source": "peaso/checks/batch_remaining_gcp.py",
-      "evaluator_line": 1986,
-      "evaluator_sha256": "0c5951530a2ac5e3b139f7e1297462bb14ebeee54237d9d9555da87f27e69424",
+      "evaluator_line": 2097,
+      "evaluator_sha256": "4762601e9fc9b3f392906a24b8c94af7006ee4c4a38704111b664b692cc42eac",
       "observation_contract": "typed check-bound existing observations plus explicit missing-evidence limit",
-      "purpose": "Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence.",
+      "purpose": "Checks the attached external-backend policy for a supported preconfigured WAF deny rule, including preview and earlier bypass rules. Public reachability and traffic blocking are not tested.",
       "branch_coverage": {
-        "FAIL": {
-          "case": "fail",
+        "PASS": {
+          "case": "native-pass",
           "evidence_keys": [
             "policy",
-            "public_backends"
+            "external_backends",
+            "waf_rule_priorities"
           ],
-          "example": "Cloud Armor policy p1 was assessed; the deciding rule settings were not stored. Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence."
+          "example": "The attached external-backend policy declares an enforced preconfigured WAF deny rule."
         },
-        "UNKNOWN": {
-          "case": "malformed",
+        "FAIL": {
+          "case": "native-fail",
           "evidence_keys": [
+            "policy",
+            "external_backends",
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Public backend has no web application filtering” was not recorded reliably. Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence."
+          "example": "The attached external-backend policy has no supported active preconfigured WAF deny rule."
         },
-        "PASS": {
-          "case": "pass",
+        "UNKNOWN": {
+          "case": "native-unknown",
           "evidence_keys": [
             "policy",
-            "public_backends"
+            "external_backends",
+            "reason"
           ],
-          "example": "Cloud Armor policy p1 was assessed; the deciding rule settings were not stored. Cloud Armor rules can filter malicious or unapproved requests; deciding rules or enforcement may be absent from this evidence."
+          "example": "The recorded association or rules do not establish an enforced preconfigured WAF deny rule."
         }
       },
-      "fixture_source": "peaso/checks/fixtures.py",
-      "fixture_limitations": []
+      "fixture_source": "tests/fixtures/gcp-final-services-native-successor-20261020.json",
+      "fixture_limitations": [],
+      "predecessor_evaluator_sha256": "0c5951530a2ac5e3b139f7e1297462bb14ebeee54237d9d9555da87f27e69424",
+      "review_receipt": "docs/gcp-review/recheck-20261020/final-services-fixes.json"
     },
     "gcp_cloudbuild_private_pool": {
       "disposition": "rewritten",
@@ -17318,7 +17324,7 @@
             "unrewritten_route_indexes",
             "url_map"
           ],
-          "example": "A public URL-map route lacks the profile’s Server: lb replacement. Replacing the Server header can reduce software disclosure; actual HTTP responses were not inspected."
+          "example": "A public URL-map route lacks the profile\u2019s Server: lb replacement. Replacing the Server header can reduce software disclosure; actual HTTP responses were not inspected."
         },
         "UNKNOWN": {
           "case": "malformed",
@@ -17741,7 +17747,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “KMS key disable or destroy events lack an alert” was not recorded reliably. Key-destruction alerts help detect loss of decryptability; configured alerting does not prove notification delivery."
+          "example": "The evidence needed to evaluate \u201cKMS key disable or destroy events lack an alert\u201d was not recorded reliably. Key-destruction alerts help detect loss of decryptability; configured alerting does not prove notification delivery."
         },
         "PASS": {
           "case": "pass",
@@ -17777,7 +17783,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Cloud resource enumeration lacks an alert” was not recorded reliably. Enumeration alerts can reveal reconnaissance; configured alerting does not establish malicious activity or delivery."
+          "example": "The evidence needed to evaluate \u201cCloud resource enumeration lacks an alert\u201d was not recorded reliably. Enumeration alerts can reveal reconnaissance; configured alerting does not establish malicious activity or delivery."
         },
         "PASS": {
           "case": "pass",
@@ -17813,7 +17819,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Excessive log queries lack an alert” was not recorded reliably. Query-rate alerts can reveal excessive log access; configured alerting does not prove notification delivery."
+          "example": "The evidence needed to evaluate \u201cExcessive log queries lack an alert\u201d was not recorded reliably. Query-rate alerts can reveal excessive log access; configured alerting does not prove notification delivery."
         },
         "PASS": {
           "case": "pass",
@@ -18007,7 +18013,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The evidence needed to evaluate “Certificate lacks timely renewal” was not recorded reliably. Expired or old certificates can disrupt or weaken trusted connections; served certificates and replacement coverage need separate review."
+          "example": "The evidence needed to evaluate \u201cCertificate lacks timely renewal\u201d was not recorded reliably. Expired or old certificates can disrupt or weaken trusted connections; served certificates and replacement coverage need separate review."
         },
         "PASS": {
           "case": "pass",
@@ -18667,7 +18673,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -18707,7 +18713,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Access Approval supports explicit consent before provider access; actual provider access events need separate review."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Access Approval supports explicit consent before provider access; actual provider access events need separate review."
         },
         "UNKNOWN": {
           "case": "isolated-native-fixture",
@@ -18754,7 +18760,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Audit matches support attribution; event history may be incomplete."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Audit matches support attribution; event history may be incomplete."
         },
         "UNKNOWN": {
           "case": "isolated-native-fixture",
@@ -18796,7 +18802,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Inventory coverage helps identify unmanaged assets; approved-scope comparison does not discover every possible asset."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Inventory coverage helps identify unmanaged assets; approved-scope comparison does not discover every possible asset."
         },
         "UNKNOWN": {
           "case": "isolated-native-fixture",
@@ -18850,7 +18856,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. A separate backup location reduces shared regional risk; replication success and restore capability were not tested."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. A separate backup location reduces shared regional risk; replication success and restore capability were not tested."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -18898,7 +18904,7 @@
             "reason",
             "trigger"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Build provenance links artifacts to source revisions; the record alone does not verify source trust or reproducibility."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Build provenance links artifacts to source revisions; the record alone does not verify source trust or reproducibility."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -18985,7 +18991,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -19032,7 +19038,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Restore target permissions affect who can access recovered data; declarations do not prove effective access parity."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Restore target permissions affect who can access recovered data; declarations do not prove effective access parity."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -19079,7 +19085,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. A recorded restore test supports recoverability; one test does not prove every backup can be restored."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. A recorded restore test supports recoverability; one test does not prove every backup can be restored."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -19195,7 +19201,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Patch inventory and deployment records support patch compliance; successful installation and live vulnerability state need separate evidence."
         }
       },
       "fixture_source": "tests/fixtures/gcp-reviewed-evidence.json",
@@ -19493,7 +19499,7 @@
           "evidence_keys": [
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. SCC alert routes help owners act on severe findings; route declarations do not prove notification delivery or response."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. SCC alert routes help owners act on severe findings; route declarations do not prove notification delivery or response."
         },
         "UNKNOWN": {
           "case": "isolated-native-fixture",
@@ -19574,7 +19580,7 @@
             "bucket",
             "reason"
           ],
-          "example": "The recorded resource is outside this check’s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Public grants can admit unintended callers; conditions and other access controls still affect access."
         },
         "UNKNOWN": {
           "case": "isolated-native-fixture",
@@ -19748,13 +19754,14 @@
             "secret_leaks",
             "surfaces"
           ],
-          "example": "A likely secret was detected in the function’s literal environment values. Values remain hidden and credential validity is not tested."
+          "example": "A likely secret was detected in the function\u2019s literal environment values. Values remain hidden and credential validity is not tested."
         }
       },
       "fixture_source": "tests/test_gcp_function_secret_review_20261019.py",
       "fixture_limitations": [
         "Native API responses mocked; real pinned offline tools tested separately. No live GCP verification."
-      ]
+      ],
+      "current_erratum": "docs/check-review/gcp-function-current-ledger-erratum-20261020.json"
     },
     "gcp.review.instance.literal_configuration_secret_indicators": {
       "disposition": "new-native-check",
@@ -20829,7 +20836,7 @@
             "secret_leaks",
             "source_relationship"
           ],
-          "example": "Both offline detectors finished without finding a supported secret in the function’s resolved source archive. Values remain hidden and credential validity is not tested."
+          "example": "Both offline detectors finished without finding a supported secret in the function\u2019s resolved source archive. Values remain hidden and credential validity is not tested."
         },
         "FAIL": {
           "case": "native-reviewed-fail",
@@ -20849,7 +20856,7 @@
             "secret_leaks",
             "source_relationship"
           ],
-          "example": "A likely secret was detected in the function’s resolved source archive. Values remain hidden and credential validity is not tested."
+          "example": "A likely secret was detected in the function\u2019s resolved source archive. Values remain hidden and credential validity is not tested."
         },
         "UNKNOWN": {
           "case": "native-reviewed-unknown",
@@ -21038,7 +21045,7 @@
       "evaluator_line": 34,
       "evaluator_sha256": "7a4d78e54b01344cae0539f479c8dc841be8b07e5a53fc171499ad080cb9390c",
       "observation_contract": "Explicit content opt-in and named selection, native bound sources and complete bounded offline detector results. No raw values or credential validity claim.",
-      "purpose": "This covers the observed log object generation, not the build’s complete log history.",
+      "purpose": "This covers the observed log object generation, not the build\u2019s complete log history.",
       "branch_coverage": {
         "PASS": {
           "case": "native-reviewed-pass",
@@ -21055,7 +21062,7 @@
             "secret_leaks",
             "source_requests"
           ],
-          "example": "Both offline detectors finished without finding a supported secret in the observed Cloud Build stored log generation. This covers the observed log object generation, not the build’s complete log history."
+          "example": "Both offline detectors finished without finding a supported secret in the observed Cloud Build stored log generation. This covers the observed log object generation, not the build\u2019s complete log history."
         },
         "FAIL": {
           "case": "native-reviewed-fail",
@@ -21072,14 +21079,14 @@
             "secret_leaks",
             "source_requests"
           ],
-          "example": "A likely secret was detected in the observed Cloud Build stored log generation. This covers the observed log object generation, not the build’s complete log history."
+          "example": "A likely secret was detected in the observed Cloud Build stored log generation. This covers the observed log object generation, not the build\u2019s complete log history."
         },
         "UNKNOWN": {
           "case": "native-reviewed-unknown",
           "evidence_keys": [
             "observed"
           ],
-          "example": "The selected Cloud Build log object could not be completely scanned or bound to its build. This covers the observed log object generation, not the build’s complete log history."
+          "example": "The selected Cloud Build log object could not be completely scanned or bound to its build. This covers the observed log object generation, not the build\u2019s complete log history."
         }
       },
       "fixture_source": "tests/test_gcp_cloudbuild_log_secret_review_20261019.py",
@@ -21294,6 +21301,555 @@
       "fixture_limitations": [
         "Native API responses mocked; real pinned offline tools tested separately. No live GCP verification."
       ]
+    },
+    "gcp.review.cloudtasks.selected_payload_secret_indicators": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_task_routine_secret_review_20261020.py",
+      "evaluator_line": 129,
+      "evaluator_sha256": "005b604df84c0134df4b2f09f14d170acc64722934c407c7ff39bdd3f8068878",
+      "observation_contract": "Explicit selected native content and complete bounded dual offline scan. No raw values, credential validation or unselected-content absence claims.",
+      "purpose": "Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "native-reviewed-pass",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "Both offline detectors completed without detecting a supported secret in the selected task body and headers. Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked."
+        },
+        "FAIL": {
+          "case": "native-reviewed-fail",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "A likely secret was detected in the selected task body and headers. The value is hidden; offline detection did not validate the credential. Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked."
+        },
+        "UNKNOWN": {
+          "case": "native-reviewed-unknown",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "Selected supported content could not be completely read and scanned with both offline detectors. Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked."
+        }
+      },
+      "fixture_source": "tests/test_gcp_task_routine_secret_review_20261020.py",
+      "review_receipt": "docs/gcp-review/recheck-20261020/task-routine-secret-implementation.json"
+    },
+    "gcp.review.bigquery.selected_routine_secret_indicators": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_task_routine_secret_review_20261020.py",
+      "evaluator_line": 133,
+      "evaluator_sha256": "a309571032db42fce9a5993d1cb28d7d183c8b3dcddec747c5b1789bde162c72",
+      "observation_contract": "Explicit selected native content and complete bounded dual offline scan. No raw values, credential validation or unselected-content absence claims.",
+      "purpose": "Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "native-reviewed-pass",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "Both offline detectors completed without detecting a supported secret in the selected routine definition. Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked."
+        },
+        "FAIL": {
+          "case": "native-reviewed-fail",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "A likely secret was detected in the selected routine definition. The value is hidden; offline detection did not validate the credential. Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked."
+        },
+        "UNKNOWN": {
+          "case": "native-reviewed-unknown",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "Selected supported content could not be completely read and scanned with both offline detectors. Only selected content observed during this read was inspected; unselected resources, history and credential validity were not checked."
+        }
+      },
+      "fixture_source": "tests/test_gcp_task_routine_secret_review_20261020.py",
+      "review_receipt": "docs/gcp-review/recheck-20261020/task-routine-secret-implementation.json"
+    },
+    "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_dataproc_referenced_source_secret_review_20261020.py",
+      "evaluator_sha256": "fe9e41d0218cbf6e86de887465ac5e6ab7630ee6ef6daa8e3468238380eb850a",
+      "observation_contract": "Exact selected native reference and coherently pinned current GCS generation; bounded dual offline scan. No executed-code or credential-validity claim.",
+      "purpose": "Only the captured referenced source is covered; original executed bytes were not established.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "native-reviewed-pass",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "Both offline detectors found no supported secret in the selected Dataproc referenced source. Only the captured referenced source is covered; original executed bytes were not established."
+        },
+        "FAIL": {
+          "case": "native-reviewed-fail",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "A likely secret was detected in the selected Dataproc referenced source. Its value is hidden and was not validated. Only the captured referenced source is covered; original executed bytes were not established."
+        },
+        "UNKNOWN": {
+          "case": "native-reviewed-unknown",
+          "evidence_keys": [
+            "complete",
+            "observed"
+          ],
+          "example": "The selected Dataproc referenced source could not be completely read and scanned. Only the captured referenced source is covered; original executed bytes were not established."
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_dataproc_source_runtime_cases_20261020.json",
+      "review_receipt": "docs/gcp-review/recheck-20261020/dataproc-referenced-source-secret-review-20261020.json"
+    },
+    "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_dataproc_referenced_source_secret_review_20261020.py",
+      "evaluator_sha256": "1892e940ffbf22eb6225f001e076f7b7cb9e8cc50849a2a5f3917030d7de0b85",
+      "observation_contract": "Exact selected native reference and coherently pinned current GCS generation; bounded dual offline scan. No executed-code or credential-validity claim.",
+      "purpose": "Only the captured referenced source is covered; original executed bytes were not established.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "native-reviewed-pass",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "Both offline detectors found no supported secret in the selected Dataproc referenced source. Only the captured referenced source is covered; original executed bytes were not established."
+        },
+        "FAIL": {
+          "case": "native-reviewed-fail",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "A likely secret was detected in the selected Dataproc referenced source. Its value is hidden and was not validated. Only the captured referenced source is covered; original executed bytes were not established."
+        },
+        "UNKNOWN": {
+          "case": "native-reviewed-unknown",
+          "evidence_keys": [
+            "complete",
+            "observed"
+          ],
+          "example": "The selected Dataproc referenced source could not be completely read and scanned. Only the captured referenced source is covered; original executed bytes were not established."
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_dataproc_source_runtime_cases_20261020.json",
+      "review_receipt": "docs/gcp-review/recheck-20261020/dataproc-referenced-source-secret-review-20261020.json"
+    },
+    "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_workbench_source_runtime_consumer_20261020.py",
+      "evaluator_line": 138,
+      "evaluator_sha256": "4ec558290b75c52482c002e347f61da6b61effa0246cb63a3b118d8a75c4ca7c",
+      "source_sha256": "c72dacd26ccba160b22a919d5d4885984f69bf3aebc5c2e08539cf7ddf751ad7",
+      "observation_contract": "Exact selected current native reference and current GCS generation with actual bound runtime capture; clean results require complete dual offline detectors, incomplete trustworthy hits remain FAIL; no executed-byte or credential-validity claim.",
+      "purpose": "Only the captured current referenced source is covered; cached or previously executed bytes were not established.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "actual-admitted-runtime-pass",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "Both offline detectors found no supported secret in the selected Workbench referenced source. Only the captured current referenced source is covered; cached or previously executed bytes were not established.",
+          "evidence_sha256": "45607201e46a743e8c9298847a98ae9824c24d6913823df6cb14ed0434211615"
+        },
+        "FAIL": {
+          "case": "actual-admitted-runtime-fail",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "A likely secret was detected in the selected Workbench referenced source. Its value is hidden and was not validated. Only the captured current referenced source is covered; cached or previously executed bytes were not established.",
+          "evidence_sha256": "f557ee28b5a304135beb7e8309e5824f2da15e33581c8e35d640fd4b6451a3a3"
+        },
+        "UNKNOWN": {
+          "case": "actual-admitted-runtime-unknown",
+          "evidence_keys": [
+            "complete",
+            "observed"
+          ],
+          "example": "The selected Workbench referenced source could not be completely read, identity-bound and scanned. Only the captured current referenced source is covered; cached or previously executed bytes were not established.",
+          "evidence_sha256": "e8534e87096b03a7521d5a20de92d2d661d61354465bf15d8d411f8fd4c7687f"
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_workbench_source_runtime_cases_20261020.json",
+      "review_receipt": "docs/check-review/workbench-current-acceptance-20261020.json",
+      "fixture_limitations": [
+        "Source-bound packaged offline native capture; no live authenticated cloud behavior certified."
+      ]
+    },
+    "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_dataflow_batch_source_runtime_consumer_20261020.py",
+      "evaluator_line": 61,
+      "evaluator_sha256": "d5d608d2cbc74efcc9346ab226fb4f2f67f11050240f60c0eb39fc8b611b4edf",
+      "source_sha256": "c06098ba7318daf6519e0647e7f9e0acd49496790d1ee22f2f8a3f16d1136489",
+      "observation_contract": "Exact selected current native reference and current GCS generation with actual bound runtime capture; clean results require complete dual offline detectors, incomplete trustworthy hits remain FAIL; no executed-byte or credential-validity claim.",
+      "purpose": "Only captured current referenced source is covered; previously executed bytes were not established.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "actual-admitted-runtime-pass",
+          "evidence_keys": [
+            "complete",
+            "secret_leaks",
+            "parts",
+            "executed_bytes_proven",
+            "credential_validation",
+            "coverage",
+            "observed"
+          ],
+          "example": "Both offline detectors found no supported secret in the selected Dataflow package source. Only captured current referenced source is covered; previously executed bytes were not established.",
+          "evidence_sha256": "e9579f244236188b82ff62e2b27385ddc55686440375e63d594d5353d70fc8e3"
+        },
+        "FAIL": {
+          "case": "actual-admitted-runtime-fail",
+          "evidence_keys": [
+            "complete",
+            "secret_leaks",
+            "parts",
+            "executed_bytes_proven",
+            "credential_validation",
+            "coverage",
+            "observed"
+          ],
+          "example": "A likely secret was detected in the selected Dataflow package source. Its value is hidden and was not validated. Only captured current referenced source is covered; previously executed bytes were not established.",
+          "evidence_sha256": "8b7ad5e592baa7b8c43b550b1cad06dc83e6174e04acaee0f827e100c1853efe"
+        },
+        "UNKNOWN": {
+          "case": "actual-admitted-runtime-unknown",
+          "evidence_keys": [
+            "complete",
+            "observed"
+          ],
+          "example": "The selected Dataflow package source could not be completely read, identity-bound and scanned. Only captured current referenced source is covered; previously executed bytes were not established.",
+          "evidence_sha256": "af8a571e44b3c2a57cf69bd6fa7aecdc043671399fb954f5b2674ad346be77ea"
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_dataflow_batch_source_runtime_cases_20261020.json",
+      "review_receipt": "docs/check-review/dataflow-current-acceptance-20261020.json",
+      "fixture_limitations": [
+        "Source-bound packaged offline native capture; no live authenticated cloud behavior certified."
+      ]
+    },
+    "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_dataflow_batch_source_runtime_consumer_20261020.py",
+      "evaluator_line": 65,
+      "evaluator_sha256": "c61f78ddb45d98a492862e475dd78915ac5832700dc617c98ad22d90a7cc6e2f",
+      "source_sha256": "c06098ba7318daf6519e0647e7f9e0acd49496790d1ee22f2f8a3f16d1136489",
+      "observation_contract": "Exact selected current native reference and current GCS generation with actual bound runtime capture; clean results require complete dual offline detectors, incomplete trustworthy hits remain FAIL; no executed-byte or credential-validity claim.",
+      "purpose": "Only captured current referenced source is covered; previously executed bytes were not established.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "actual-admitted-runtime-pass",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "Both offline detectors found no supported secret in the selected Batch mounted script source. Only captured current referenced source is covered; previously executed bytes were not established.",
+          "evidence_sha256": "1402c6bf488e7b1d534d97d20259327a885f7461a9916fd01f6c31b005d736ca"
+        },
+        "FAIL": {
+          "case": "actual-admitted-runtime-fail",
+          "evidence_keys": [
+            "observed",
+            "secret_leaks",
+            "complete",
+            "coverage",
+            "executed_bytes_proven",
+            "credential_validation",
+            "parts"
+          ],
+          "example": "A likely secret was detected in the selected Batch mounted script source. Its value is hidden and was not validated. Only captured current referenced source is covered; previously executed bytes were not established.",
+          "evidence_sha256": "5b9652da6ee0628bcac28e17a0032e2b55f88ef23d4985515a1297376accea8b"
+        },
+        "UNKNOWN": {
+          "case": "actual-admitted-runtime-unknown",
+          "evidence_keys": [
+            "complete",
+            "observed"
+          ],
+          "example": "The selected Batch mounted script source could not be completely read, identity-bound and scanned. Only captured current referenced source is covered; previously executed bytes were not established.",
+          "evidence_sha256": "2995a5e18ae50180f81c9ed6c493c385ab3decc922ce29e5f1ea1ba7ba27571f"
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_dataflow_batch_source_runtime_cases_20261020.json",
+      "review_receipt": "docs/check-review/batch-current-acceptance-20261020.json",
+      "fixture_limitations": [
+        "Source-bound packaged offline native capture; no live authenticated cloud behavior certified."
+      ]
+    },
+    "gcp.review.workbench.terminal_access_disabled": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_workbench_head3_admission_20261020.py",
+      "evaluator_line": 191,
+      "evaluator_sha256": "48326cbfeda5f2c4d042a124f29f4aa701820b174fae6193a0f9ad78ae40546c",
+      "source_sha256": "c974c7adbba841fa2b17a54e02fb677fe859f08eda0885c292b5be33da4b3a7d",
+      "observation_contract": "Complete native Workbench v2 metadata declarations with documented omission defaults; incomplete, malformed, redacted and unsupported values remain UNKNOWN. No runtime enforcement or patch-state claim.",
+      "purpose": "Kernel execution and other shell paths are outside this check.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "actual-admitted-runtime-pass",
+          "evidence_keys": [
+            "observed",
+            "instance",
+            "setting",
+            "disabled"
+          ],
+          "example": "The notebook terminal is disabled in Workbench settings. Kernel execution and other shell paths are outside this check.",
+          "evidence_sha256": "f1d78bea2598b7444b3be71a916aeb06451d0109028255f461a88c929c65b02f"
+        },
+        "FAIL": {
+          "case": "actual-admitted-runtime-fail",
+          "evidence_keys": [
+            "observed",
+            "instance",
+            "setting",
+            "disabled"
+          ],
+          "example": "The notebook terminal is enabled in Workbench settings. Kernel execution and other shell paths are outside this check.",
+          "evidence_sha256": "dc4757fb069495c80b0179c71127340411098193b704661f65f2138d6e4f4a50"
+        },
+        "UNKNOWN": {
+          "case": "actual-admitted-runtime-unknown",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "The Workbench setting could not be established from complete native configuration. Kernel execution and other shell paths are outside this check.",
+          "evidence_sha256": "e60b012724e82251fc4a5a4c5d3552f55a7f41689d21717840121b90a3be1ccc"
+        },
+        "NOT_APPLICABLE": {
+          "case": "actual-admitted-runtime-deleted",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Kernel execution and other shell paths are outside this check.",
+          "evidence_sha256": "741b6c155126c2d02afb9fef5fb7f57ffa2538f5da6025c04f69c4b37e20fe52"
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_workbench_head3_admission_cases_20261020.json",
+      "review_receipt": "docs/check-review/gcp-workbench-head3-runtime-20261020-admission.json",
+      "fixture_limitations": [
+        "Native fakeHTTP runtime admission50PASS; no authenticated cloud or deployment verification."
+      ]
+    },
+    "gcp.review.workbench.file_download_disabled": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_workbench_head3_admission_20261020.py",
+      "evaluator_line": 195,
+      "evaluator_sha256": "ac2c7002518abb2fd5aa58d056b450c57e618455c66818fd40ed9e270637194d",
+      "source_sha256": "c974c7adbba841fa2b17a54e02fb677fe859f08eda0885c292b5be33da4b3a7d",
+      "observation_contract": "Complete native Workbench v2 metadata declarations with documented omission defaults; incomplete, malformed, redacted and unsupported values remain UNKNOWN. No runtime enforcement or patch-state claim.",
+      "purpose": "Other transfer paths and effective DLP enforcement are not established.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "actual-admitted-runtime-pass",
+          "evidence_keys": [
+            "observed",
+            "instance",
+            "setting",
+            "disabled"
+          ],
+          "example": "JupyterLab file downloads are disabled in Workbench settings. Other transfer paths and effective DLP enforcement are not established.",
+          "evidence_sha256": "fd00e393abc54f1b405d5e196c86c7f1df66cf311c30c4e542ce6668b76d1994"
+        },
+        "FAIL": {
+          "case": "actual-admitted-runtime-fail",
+          "evidence_keys": [
+            "observed",
+            "instance",
+            "setting",
+            "disabled"
+          ],
+          "example": "JupyterLab file downloads are enabled in Workbench settings. Other transfer paths and effective DLP enforcement are not established.",
+          "evidence_sha256": "22365d8da5102d98be6244bdbd04149ac5c35bcb692d8f088422393a602a8968"
+        },
+        "UNKNOWN": {
+          "case": "actual-admitted-runtime-unknown",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "The Workbench setting could not be established from complete native configuration. Other transfer paths and effective DLP enforcement are not established.",
+          "evidence_sha256": "e60b012724e82251fc4a5a4c5d3552f55a7f41689d21717840121b90a3be1ccc"
+        },
+        "NOT_APPLICABLE": {
+          "case": "actual-admitted-runtime-deleted",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Other transfer paths and effective DLP enforcement are not established.",
+          "evidence_sha256": "741b6c155126c2d02afb9fef5fb7f57ffa2538f5da6025c04f69c4b37e20fe52"
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_workbench_head3_admission_cases_20261020.json",
+      "review_receipt": "docs/check-review/gcp-workbench-head3-runtime-20261020-admission.json",
+      "fixture_limitations": [
+        "Native fakeHTTP runtime admission50PASS; no authenticated cloud or deployment verification."
+      ]
+    },
+    "gcp.review.workbench.auto_upgrade_schedule_declared": {
+      "disposition": "new-native-check",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_workbench_head3_admission_20261020.py",
+      "evaluator_line": 199,
+      "evaluator_sha256": "5d45c3d0a93909291b433855598398879ca3b21c91235ed5b78c4363093e79a4",
+      "source_sha256": "c974c7adbba841fa2b17a54e02fb677fe859f08eda0885c292b5be33da4b3a7d",
+      "observation_contract": "Complete native Workbench v2 metadata declarations with documented omission defaults; incomplete, malformed, redacted and unsupported values remain UNKNOWN. No runtime enforcement or patch-state claim.",
+      "purpose": "Upgrade execution and patch status were not established.",
+      "branch_coverage": {
+        "PASS": {
+          "case": "actual-admitted-runtime-pass",
+          "evidence_keys": [
+            "observed",
+            "instance",
+            "setting",
+            "schedule_declared"
+          ],
+          "example": "An automatic upgrade schedule is configured for this Workbench instance. Upgrade execution and patch status were not established.",
+          "evidence_sha256": "4d098bab8d92f0ddafae6f9c40d46b0be6117ec29ffecec8f61371148f6c2937"
+        },
+        "FAIL": {
+          "case": "actual-admitted-runtime-fail",
+          "evidence_keys": [
+            "observed",
+            "instance",
+            "setting",
+            "schedule_declared"
+          ],
+          "example": "This Workbench instance has no automatic upgrade schedule configured. Upgrade execution and patch status were not established.",
+          "evidence_sha256": "805f59ef3812cc153b3cda2390ddb2423caefaeab63e468aa59beda10de463be"
+        },
+        "UNKNOWN": {
+          "case": "actual-admitted-runtime-unknown",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "The Workbench setting could not be established from complete native configuration. Upgrade execution and patch status were not established.",
+          "evidence_sha256": "e60b012724e82251fc4a5a4c5d3552f55a7f41689d21717840121b90a3be1ccc"
+        },
+        "NOT_APPLICABLE": {
+          "case": "actual-admitted-runtime-deleted",
+          "evidence_keys": [
+            "observed"
+          ],
+          "example": "The recorded resource is outside this check\u2019s evaluated scope. Upgrade execution and patch status were not established.",
+          "evidence_sha256": "741b6c155126c2d02afb9fef5fb7f57ffa2538f5da6025c04f69c4b37e20fe52"
+        }
+      },
+      "fixture_source": "peaso/checks/gcp_workbench_head3_admission_cases_20261020.json",
+      "review_receipt": "docs/check-review/gcp-workbench-head3-runtime-20261020-admission.json",
+      "fixture_limitations": [
+        "Native fakeHTTP runtime admission50PASS; no authenticated cloud or deployment verification."
+      ]
+    },
+    "gcp.review.cloudrun_job.declared_image_secret_indicators": {
+      "disposition": "accepted_explicit_selected_native_thematic_addition",
+      "native_status": "active",
+      "source": "peaso/checks/gcp_cloudrun_job_image_secret_review_20261020.py",
+      "source_sha256": "6411b11c8d7926311ebd88da98890b42b56e0a63b936bf7568792c42c4cd3a22",
+      "evaluator_line": 153,
+      "evaluator_sha256": "762b8f49bfca1c935537f8c8f624d964ccd78173aada34c2c7cc4908b3491f32",
+      "predicate_qualname": "peaso.checks.gcp_cloudrun_job_image_secret_review_20261020.evaluate",
+      "purpose": "This covers the declared image; executed workload images and credential validity are not verified.",
+      "observation_contract": "Scans supported image configuration and layer text for immutable images declared by selected Cloud Run Job containers. Native Job and registry identity reads bind the selected captured image; executed workload bytes are not established.",
+      "catalog": {
+        "description": "Scans supported image configuration and layer text for immutable images declared by selected Cloud Run Job containers. Native Job and registry identity reads bind the selected captured image; executed workload bytes are not established.",
+        "fail_when": "A supported secret is detected in identity-bound selected source, including when other inspection is incomplete.",
+        "evaluated": [
+          "Exact selected native resource identity and captured content",
+          "Both offline detectors and selected-source completeness"
+        ],
+        "not_applicable_when": "No source is selected; denied, missing, unsupported and incomplete selected evidence remains undetermined.",
+        "pass_when": "All selected supported source fields and both detectors complete without a supported secret detection."
+      },
+      "catalog_sha256": "bb84c5e3433dc56148779af51b9c277c8cb8450282455aae1632e90f01f6b4b2",
+      "status_coverage": [
+        "FAIL",
+        "PASS",
+        "UNKNOWN"
+      ],
+      "branch_coverage": {
+        "PASS": {
+          "basis": "verified_actual_normal_runtime_native_contract",
+          "native_node": "tests.test_gcp_cloudrun_job_image_runtime_20261020::test_normal_native_saved_json_public_roundtrip[production-PASS]",
+          "meaning": "All selected supported source fields and both detectors complete without a supported secret detection."
+        },
+        "FAIL": {
+          "basis": "verified_actual_normal_runtime_native_contract",
+          "native_node": "tests.test_gcp_cloudrun_job_image_runtime_20261020::test_normal_native_saved_json_public_roundtrip[ghp_7mQ2zR9wL4cV8nK1sF6aH3jP5uD0xB2yE9rT-FAIL]",
+          "meaning": "A supported secret is detected in identity-bound selected source, including when other inspection is incomplete."
+        },
+        "UNKNOWN": {
+          "basis": "actual_registered_predicate_missing_evidence",
+          "meaning": "No source is selected; denied, missing, unsupported and incomplete selected evidence remains undetermined.",
+          "native_node": "tests.test_gcp_cloudrun_job_image_runtime_20261020::test_native_denied_partial_cancellation_unknown_and_cleanup[metadata_denied]",
+          "evidence": {
+            "observed": "Selected Job declared image evidence is incomplete, unsupported or unbound."
+          }
+        }
+      },
+      "runtime_receipt": {
+        "path": "docs/gcp-review/recheck-20261020/gcp_cloudrun_job_image_runtime_20261020_receipt.json",
+        "sha256": "dc63589448228096c334e087e84dd299cc49ac18a53941660a7a3ba8686eb8bc"
+      },
+      "native_replay_witnesses": {
+        "path": "docs/check-review/gcp-cloudrun-job-image-current-native-witnesses-20261020.json.gz",
+        "sha256": "fcefb8902ed785450b974a54bbefd938ed436042b5da2719412f0c3f9b085670"
+      },
+      "review_receipt": "docs/check-review/gcp-cloudrun-job-image-current-acceptance-20261020.json",
+      "fixture_limitations": [
+        "No new fabricated native input fixture; PASS/FAIL native statuses are bound to the actual runtime receipt and directed native test contracts",
+        "UNKNOWN is the actual registered predicate result on absent native evidence",
+        "Root final concise/merged rendering and whole-wave/wheel acceptance remain separate"
+      ],
+      "upstream_source_addition": false
     }
   },
   "plain_language_reaudit": {
@@ -21501,5 +22057,6 @@
       "Malware-agent evidence stores the expected package but omits the installed-package match; no installation or running protection is inferred."
     ],
     "unreviewed_ids": []
-  }
+  },
+  "current_source_conservation": "docs/check-review/commands-job-current-ledger-source-conservation-20261020.json"
 }

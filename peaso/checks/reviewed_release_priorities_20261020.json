@@ -79,6 +79,14 @@
     "source_module": "peaso.checks.aws_review_20261019",
     "source_title": "Cognito app client enables refresh token rotation"
   },
+  "aws.review.configuration.selected_content_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in explicitly selected configuration. Credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "configuration_selected_content",
+    "source_module": "peaso.checks.aws_selected_configuration_secret_review_20261020",
+    "source_title": "Selected AWS configuration literals have no detected secrets"
+  },
   "aws.review.datapipeline_pipeline.payload_secret_indicators": {
     "current": "high",
     "reason": "datapipeline_pipeline review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
@@ -191,6 +199,14 @@
     "source_module": "peaso.checks.aws_review_20261019",
     "source_title": "Lambda execution-role policies avoid literal administrator Allow patterns"
   },
+  "aws.review.lambda.selected_environment_secret_indicators": {
+    "current": "high",
+    "reason": "Potential credential disclosure in explicitly selected literal content; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "lambda_selected_environment",
+    "source_module": "peaso.checks.aws_lambda_environment_secret_review_20261020",
+    "source_title": "Selected Lambda literal environment variables have no detected secrets"
+  },
   "aws.review.lambda_function.package_content_secret_indicators": {
     "current": "high",
     "reason": "lambda_function review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
@@ -239,6 +255,14 @@
     "source_module": "peaso.checks.aws_review_20261019",
     "source_title": "Sampled S3 current objects have no non-ignored public ACL grants"
   },
+  "aws.review.s3.selected_source_secret_indicators": {
+    "current": "high",
+    "reason": "Likely credential literal detected in explicitly selected stored source; validity is not tested.",
+    "recommended": "high",
+    "source_kind": "s3_selected_source_content",
+    "source_module": "peaso.checks.aws_s3_selected_source_secret_review_20261020",
+    "source_title": "Selected S3 source text and archive members have no detected secrets"
+  },
   "aws.review.sagemaker_notebook_instance.payload_secret_indicators": {
     "current": "high",
     "reason": "sagemaker_notebook_instance review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
@@ -278,6 +302,262 @@
     "source_kind": "ssm_document_metadata",
     "source_module": "peaso.checks.aws_review_20261019",
     "source_title": "Owned SSM document version content has no observed selected secret indicators"
+  },
+  "azure.encryption.automation_cmk_declared": {
+    "current": "medium",
+    "reason": "Read-only declared configuration, with no demonstrated key-use or log-delivery claim.",
+    "recommended": "medium",
+    "source_kind": "automation_account",
+    "source_module": "peaso.checks.azure_automation_aci_metadata_review_20261020",
+    "source_title": "Automation declares a customer-managed key reference and attached system identity"
+  },
+  "azure.encryption.log_analytics_cluster_cmk_declared": {
+    "current": "medium",
+    "reason": "Declared security configuration; effective protection was not established.",
+    "recommended": "medium",
+    "source_kind": "log_analytics_cluster",
+    "source_module": "peaso.checks.azure_native_contract_closure_20261020",
+    "source_title": "Log Analytics cluster declares a customer-managed key and managed identity"
+  },
+  "azure.encryption.stream_analytics_job_storage_cmk_declared": {
+    "current": "medium",
+    "reason": "Declared security configuration; effective protection was not established.",
+    "recommended": "medium",
+    "source_kind": "stream_analytics_job",
+    "source_module": "peaso.checks.azure_native_contract_closure_20261020",
+    "source_title": "External Stream Analytics job storage declares customer-managed encryption"
+  },
+  "azure.logging.aci_log_analytics_declared": {
+    "current": "medium",
+    "reason": "Read-only declared configuration, with no demonstrated key-use or log-delivery claim.",
+    "recommended": "medium",
+    "source_kind": "container_group",
+    "source_module": "peaso.checks.azure_automation_aci_metadata_review_20261020",
+    "source_title": "Container groups declare a Log Analytics customer UUID and supported log type"
+  },
+  "azure.logging.aks_supported_log_categories_destination_declared": {
+    "current": "medium",
+    "reason": "Declared security configuration; effective protection was not established.",
+    "recommended": "medium",
+    "source_kind": "aks_cluster",
+    "source_module": "peaso.checks.azure_aks_legacy_projection_review_20261020",
+    "source_title": "AKS declares supported log categories to diagnostic destinations"
+  },
+  "azure.logging.managed_hsm_audit_destination_declared": {
+    "current": "medium",
+    "reason": "Declared security configuration; effective protection was not established.",
+    "recommended": "medium",
+    "source_kind": "managed_hsm",
+    "source_module": "peaso.checks.azure_hsm_audit_destination_review_20261020",
+    "source_title": "Managed HSM declares AuditEvent logging to Storage or Log Analytics"
+  },
+  "azure.network.acr_public_ip_ranges_restricted": {
+    "current": "medium",
+    "reason": "Passive declared configuration only; no anonymous access, exploitation, event delivery or effective retention is established.",
+    "recommended": "medium",
+    "source_kind": "container_registry",
+    "source_module": "peaso.checks.azure_acr_public_ip_review_20261020",
+    "source_title": "ACR public network rules do not allow every IPv4 address"
+  },
+  "azure.review.acr.selected_image_secret_indicators": {
+    "current": "high",
+    "reason": "Potential credential disclosure in explicitly selected literal content; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "acr_selected_image",
+    "source_module": "peaso.checks.azure_acr_image_secret_review_20261020",
+    "source_title": "Selected immutable ACR images have no detected secrets"
+  },
+  "azure.review.ai_services.audit_logging": {
+    "current": "medium",
+    "reason": "Native configuration posture only; no runtime exploitation or delivery is inferred.",
+    "recommended": "medium",
+    "source_kind": "cognitive_account_audit_logging",
+    "source_module": "peaso.checks.azure_ai_services_review_20261020",
+    "source_title": "AI Services configures supported audit logs to a destination"
+  },
+  "azure.review.ai_services.managed_identity": {
+    "current": "medium",
+    "reason": "Native configuration posture only; no runtime exploitation or delivery is inferred.",
+    "recommended": "medium",
+    "source_kind": "cognitive_account_managed_identity",
+    "source_module": "peaso.checks.azure_ai_services_review_20261020",
+    "source_title": "AI Services declares a managed identity"
+  },
+  "azure.review.ai_services.outbound_restriction": {
+    "current": "medium",
+    "reason": "Native configuration posture only; no runtime exploitation or delivery is inferred.",
+    "recommended": "medium",
+    "source_kind": "cognitive_account_outbound_restriction",
+    "source_module": "peaso.checks.azure_ai_services_review_20261020",
+    "source_title": "AI Services declares restricted outbound network access"
+  },
+  "azure.review.ai_services.prompt_shield": {
+    "current": "high",
+    "reason": "Native configuration posture only; no runtime exploitation or delivery is inferred.",
+    "recommended": "high",
+    "source_kind": "cognitive_account_prompt_shield",
+    "source_module": "peaso.checks.azure_ai_services_review_20261020",
+    "source_title": "Text deployments explicitly configure blocking Prompt Shields"
+  },
+  "azure.review.app_configuration.selected_value_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_app_configuration_selected_values",
+    "source_module": "peaso.checks.azure_selected_declaration_secret_review_20261020",
+    "source_title": "Selected App Configuration literal values have no detected secrets"
+  },
+  "azure.review.app_service.selected_app_settings_secret_indicators": {
+    "current": "high",
+    "reason": "Potential credential disclosure in explicitly selected literal content; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "app_service_selected_settings",
+    "source_module": "peaso.checks.azure_app_settings_secret_review_20261020",
+    "source_title": "Selected App Service and Function literal app settings have no detected secrets"
+  },
+  "azure.review.application_insights.selected_trace_sample_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_selected_application_trace_sample",
+    "source_module": "peaso.checks.azure_selected_log_sample_secret_review_20261020",
+    "source_title": "Selected Application Insights trace samples have no detected secrets"
+  },
+  "azure.review.configuration.selected_content_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in explicitly selected content; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_configuration_selected_content",
+    "source_module": "peaso.checks.azure_selected_configuration_secret_review_20261020",
+    "source_title": "Selected Azure ARM configuration and code literals have no detected secrets"
+  },
+  "azure.review.data_factory.selected_declaration_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_data_factory_selected_declarations",
+    "source_module": "peaso.checks.azure_selected_declaration_secret_review_20261020",
+    "source_title": "Selected Data Factory inline declarations have no detected secrets"
+  },
+  "azure.review.databricks.selected_notebook_source_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_databricks_selected_notebook",
+    "source_module": "peaso.checks.azure_databricks_notebook_secret_review_20261020",
+    "source_title": "Selected Databricks notebook source has no detected secrets"
+  },
+  "azure.review.devops.selected_content_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in explicitly selected content; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_devops_selected_content",
+    "source_module": "peaso.checks.azure_devops_selected_content_secret_review_20261020",
+    "source_title": "Selected Azure DevOps source and pipeline literals have no detected secrets"
+  },
+  "azure.review.devops.visible_clone_urls_without_userinfo": {
+    "current": "high",
+    "reason": "Credential-like userinfo in selected visible clone URL metadata. Presence does not establish credential validity.",
+    "recommended": "high",
+    "source_kind": "devops_project",
+    "source_module": "peaso.checks.azure_devops_visible_urls_review_20261020",
+    "source_title": "Visible selected Azure DevOps clone URLs do not contain userinfo"
+  },
+  "azure.review.function.application_insights_setting_declared": {
+    "current": "medium",
+    "reason": "A bounded defense-in-depth configuration declaration; effective runtime, delivery and key usability remain separate.",
+    "recommended": "medium",
+    "source_kind": "azure_selected_function_settings_declaration",
+    "source_module": "peaso.checks.azure_function_settings_runtime_consumer_20261020",
+    "source_title": "Selected Function declares an Application Insights setting"
+  },
+  "azure.review.function.runtime_major4_update_channel_declared": {
+    "current": "medium",
+    "reason": "A bounded defense-in-depth configuration declaration; effective runtime, delivery and key usability remain separate.",
+    "recommended": "medium",
+    "source_kind": "azure_selected_function_settings_declaration",
+    "source_module": "peaso.checks.azure_function_settings_runtime_consumer_20261020",
+    "source_title": "Selected classic Function declares the automatic major4 runtime update channel"
+  },
+  "azure.review.log_analytics.query_storage_cmk_declared": {
+    "current": "medium",
+    "reason": "A bounded defense-in-depth configuration declaration; effective runtime, delivery and key usability remain separate.",
+    "recommended": "medium",
+    "source_kind": "workspace_query_storage_cmk_declaration",
+    "source_module": "peaso.checks.azure_nsp_query_cmk_runtime_review_20261020",
+    "source_title": "Query-linked workspace storage declares customer-managed Table encryption"
+  },
+  "azure.review.log_analytics.selected_message_sample_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_selected_workspace_log_sample",
+    "source_module": "peaso.checks.azure_selected_log_sample_secret_review_20261020",
+    "source_title": "Selected Log Analytics message samples have no detected secrets"
+  },
+  "azure.review.machine_learning.selected_code_file_secret_indicators": {
+    "current": "high",
+    "reason": "A credential-like literal in selected source text can disclose privileged access; actual credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_ml_selected_code_file",
+    "source_module": "peaso.checks.azure_ml_selected_asset_secret_review_20261020",
+    "source_title": "Selected ML code source files have no detected secrets"
+  },
+  "azure.review.machine_learning.selected_command_job_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_ml_selected_command_job",
+    "source_module": "peaso.checks.azure_ml_selected_job_secret_review_20261020",
+    "source_title": "Selected Machine Learning Command-job literals have no detected secrets"
+  },
+  "azure.review.machine_learning.selected_environment_conda_secret_indicators": {
+    "current": "high",
+    "reason": "A credential-like literal in selected source text can disclose privileged access; actual credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_ml_selected_environment_conda",
+    "source_module": "peaso.checks.azure_ml_selected_asset_secret_review_20261020",
+    "source_title": "Selected ML environment Conda literals have no detected secrets"
+  },
+  "azure.review.managed_hsm.audit_storage_destination": {
+    "current": "medium",
+    "reason": "Passive declared configuration only; no anonymous access, exploitation, event delivery or effective retention is established.",
+    "recommended": "medium",
+    "source_kind": "managed_hsm",
+    "source_module": "peaso.checks.azure_hsm_audit_review_20261020",
+    "source_title": "Managed HSM declares AuditEvent logging to Azure Storage"
+  },
+  "azure.review.network.perimeter_association_enforced": {
+    "current": "medium",
+    "reason": "A bounded defense-in-depth configuration declaration; effective runtime, delivery and key usability remain separate.",
+    "recommended": "medium",
+    "source_kind": "network_security_perimeter_association_declaration",
+    "source_module": "peaso.checks.azure_nsp_query_cmk_runtime_review_20261020",
+    "source_title": "Storage resource declares an enforced network perimeter association"
+  },
+  "azure.review.storage.blocking_sas_expiry_policy_declared": {
+    "current": "medium",
+    "reason": "Declared expiry enforcement is a defense-in-depth setting; token issuance, exempt SAS types and client compatibility remain separate.",
+    "recommended": "medium",
+    "source_kind": "storage_account",
+    "source_module": "peaso.checks.azure_sas_expiry_policy_declaration_proposal_20261020",
+    "source_title": "Storage account declares a blocking SAS expiration policy"
+  },
+  "azure.review.storage.selected_source_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in explicitly selected content; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_storage_selected_source",
+    "source_module": "peaso.checks.azure_selected_storage_secret_review_20261020",
+    "source_title": "Selected Azure stored source objects have no detected secrets"
+  },
+  "azure.review.synapse.selected_pipeline_secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "azure_synapse_selected_pipelines",
+    "source_module": "peaso.checks.azure_selected_declaration_secret_review_20261020",
+    "source_title": "Selected Synapse pipeline inline declarations have no detected secrets"
   },
   "gcp.compute.os_config_fixable_vulnerabilities": {
     "current": "high",
@@ -326,6 +606,14 @@
     "source_kind": "batch_job",
     "source_module": "peaso.checks.gcp_job_literal_secret_review_20261019",
     "source_title": "Batch job literal configuration has no detected secrets"
+  },
+  "gcp.review.bigquery.selected_routine_secret_indicators": {
+    "current": "high",
+    "reason": "A supported offline secret match in explicitly selected content indicates a potential credential exposure; no credential validity or use is inferred.",
+    "recommended": "high",
+    "source_kind": "bigquery_selected_routine",
+    "source_module": "peaso.checks.gcp_task_routine_secret_review_20261020",
+    "source_title": "Selected BigQuery routine definitions have no detected secrets"
   },
   "gcp.review.cloudbuild.artifact_secret_indicators": {
     "current": "high",
@@ -383,6 +671,14 @@
     "source_module": "peaso.checks.gcp_configuration_secret_review_20261019",
     "source_title": "Cloud Run service literal configuration has no detected secrets"
   },
+  "gcp.review.cloudtasks.selected_payload_secret_indicators": {
+    "current": "high",
+    "reason": "A supported offline secret match in explicitly selected content indicates a potential credential exposure; no credential validity or use is inferred.",
+    "recommended": "high",
+    "source_kind": "cloudtasks_selected_task",
+    "source_module": "peaso.checks.gcp_task_routine_secret_review_20261020",
+    "source_title": "Selected Cloud Tasks payloads have no detected secrets"
+  },
   "gcp.review.composer.dag_source_secret_indicators": {
     "current": "high",
     "reason": "composer_dag_source review detects selected literal secret indicators in bounded collected material. The high source rating describes a potential exposure, not a demonstrated read or credential use.",
@@ -414,6 +710,22 @@
     "source_kind": "dataform_selected_file",
     "source_module": "peaso.checks.gcp_dataform_secret_review_20261019",
     "source_title": "Selected Dataform file has no detected secrets"
+  },
+  "gcp.review.dataproc.selected_initialization_referenced_source_secret_indicators": {
+    "current": "high",
+    "reason": "A credential literal in a currently referenced source can disclose access; actual credential validity and executed code are not tested.",
+    "recommended": "high",
+    "source_kind": "dataproc_selected_initialization_source",
+    "source_module": "peaso.checks.gcp_dataproc_referenced_source_secret_review_20261020",
+    "source_title": "Captured selected Dataproc initialization source has no detected secrets"
+  },
+  "gcp.review.dataproc.selected_job_referenced_source_secret_indicators": {
+    "current": "high",
+    "reason": "A credential literal in a currently referenced source can disclose access; actual credential validity and executed code are not tested.",
+    "recommended": "high",
+    "source_kind": "dataproc_selected_job_source",
+    "source_module": "peaso.checks.gcp_dataproc_referenced_source_secret_review_20261020",
+    "source_title": "Captured selected Dataproc job referenced source has no detected secrets"
   },
   "gcp.review.dataproc_cluster.literal_configuration_secret_indicators": {
     "current": "high",
@@ -550,5 +862,173 @@
     "source_kind": "workflow_source",
     "source_module": "peaso.checks.gcp_additional_literal_secret_review_20261019",
     "source_title": "Workflows deployed source has no detected secrets"
+  },
+  "k8s.review.kubelet_configmap.anonymous_disabled": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet declaration disables anonymous authentication"
+  },
+  "k8s.review.kubelet_configmap.authorization_webhook": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet declaration uses Webhook authorization"
+  },
+  "k8s.review.kubelet_configmap.client_ca_configured": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet declaration configures a client CA path"
+  },
+  "k8s.review.kubelet_configmap.client_certificate_rotation": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet declaration enables client certificate rotation"
+  },
+  "k8s.review.kubelet_configmap.event_qps_bounded": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet declaration limits event creation rate"
+  },
+  "k8s.review.kubelet_configmap.explicit_cipher_allowlist": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet cipher declaration matches the reviewed allowlist"
+  },
+  "k8s.review.kubelet_configmap.readonly_disabled": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet declaration disables the read-only port"
+  },
+  "k8s.review.kubelet_configmap.tls_file_pair_configured": {
+    "current": "medium",
+    "reason": "Explicit kubelet declaration only; node adoption and effective runtime behavior are not verified.",
+    "recommended": "medium",
+    "source_kind": "kubelet_configmap_declaration",
+    "source_module": "peaso.checks.k8s_kubelet_configmap_review_20261020",
+    "source_title": "Explicit kubelet declaration configures certificate and key paths"
+  },
+  "k8s.review.selected_container_logs.secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in exact selected public configuration; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "k8s_selected_log_samples",
+    "source_module": "peaso.checks.k8s_selected_log_sample_secret_review_20261020",
+    "source_title": "Selected current container log samples have no detected secrets"
+  },
+  "k8s.review.selected_literals.secret_indicators": {
+    "current": "high",
+    "reason": "Potential credential disclosure in explicitly selected literal content; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "k8s_selected_literals",
+    "source_module": "peaso.checks.k8s_literal_secret_review_20261020",
+    "source_title": "Selected Pod and ConfigMap literals have no detected secrets"
+  },
+  "k8s.review.selected_metadata.secret_indicators": {
+    "current": "high",
+    "reason": "Detected credential-like literal in selected object labels or annotations; credential validity is not tested.",
+    "recommended": "high",
+    "source_kind": "k8s_selected_metadata",
+    "source_module": "peaso.checks.k8s_selected_metadata_secret_review_20261020",
+    "source_title": "Selected object labels and annotations have no detected secrets"
+  },
+  "gcp.review.workbench.selected_referenced_source_secret_indicators_20261020": {
+    "current": "high",
+    "recommended": "high",
+    "reason": "A credential literal in a current referenced startup source can disclose access; credential validity and executed bytes are not tested.",
+    "source_kind": "workbench_selected_referenced_source_20261020",
+    "source_module": "peaso.checks.gcp_workbench_source_runtime_consumer_20261020",
+    "source_title": "Captured selected Workbench startup source has no detected secrets"
+  },
+  "gcp.review.dataflow.selected_package_referenced_source_secret_indicators": {
+    "current": "high",
+    "recommended": "high",
+    "reason": "A credential literal in currently referenced source can disclose access; credential validity and executed bytes are not tested.",
+    "source_kind": "dataflow_selected_package_source",
+    "source_module": "peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020",
+    "source_title": "Captured selected Dataflow package source has no detected secrets"
+  },
+  "gcp.review.batch.selected_mounted_script_source_secret_indicators": {
+    "current": "high",
+    "recommended": "high",
+    "reason": "A credential literal in currently referenced source can disclose access; credential validity and executed bytes are not tested.",
+    "source_kind": "batch_selected_mounted_script_source",
+    "source_module": "peaso.checks.gcp_dataflow_batch_source_runtime_consumer_20261020",
+    "source_title": "Captured selected Batch mounted script source has no detected secrets"
+  },
+  "aws.review.codebuild.selected_inline_buildspec_secret_indicators": {
+    "current": "high",
+    "recommended": "high",
+    "reason": "A credential literal in an inline build instruction can disclose access; detected values are hidden and validity is not tested.",
+    "source_kind": "codebuild_selected_inline_buildspec",
+    "source_module": "peaso.checks.aws_codebuild_buildspec_runtime_consumer_20261020",
+    "source_title": "Selected inline CodeBuild buildspec has no detected secrets"
+  },
+  "azure.review.function.selected_package_source_secret_indicators": {
+    "current": "high",
+    "recommended": "high",
+    "reason": "Credential literals in package source can disclose access; detected values are hidden and credential validity is not tested.",
+    "source_kind": "azure_function_package_portable_20261020",
+    "source_module": "peaso.checks.azure_function_package_integrated_consumer_20261020",
+    "source_title": "Selected configured deployment package source has no detected secrets"
+  },
+  "gcp.review.workbench.terminal_access_disabled": {
+    "current": "medium",
+    "recommended": "medium",
+    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
+    "source_title": "Workbench notebook terminal access is disabled"
+  },
+  "gcp.review.workbench.file_download_disabled": {
+    "current": "medium",
+    "recommended": "medium",
+    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
+    "source_title": "Workbench JupyterLab file downloads are disabled"
+  },
+  "gcp.review.workbench.auto_upgrade_schedule_declared": {
+    "current": "low",
+    "recommended": "low",
+    "reason": "Bounded Workbench setting declaration; runtime enforcement, approval and workload sensitivity are not established.",
+    "source_kind": "workbench_instance",
+    "source_module": "peaso.checks.gcp_workbench_head3_admission_20261020",
+    "source_title": "Workbench automatic upgrade schedule is declared"
+  },
+  "aws.review.workload.selected_command_literal_secret_indicators": {
+    "current": "high",
+    "recommended": "high",
+    "reason": "Detected credential literals in selected identity-bound application content can disclose access; values and credential validity are not exposed or tested.",
+    "source_kind": "aws_selected_workload_command_literals",
+    "source_module": "peaso.checks.aws_workload_command_runtime_consumer_20261020",
+    "source_title": "Selected ECS and Batch command literals have no detected secrets"
+  },
+  "gcp.review.cloudrun_job.declared_image_secret_indicators": {
+    "current": "high",
+    "recommended": "high",
+    "reason": "Detected credential literals in selected identity-bound application content can disclose access; values and credential validity are not exposed or tested.",
+    "source_kind": "cloudrun_job_declared_image",
+    "source_module": "peaso.checks.gcp_cloudrun_job_image_secret_review_20261020",
+    "source_title": "Selected Cloud Run Job declared image has no detected secrets"
   }
 }

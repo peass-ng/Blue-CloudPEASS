@@ -16,6 +16,8 @@ CENTRAL = json.loads((ROOT / "tests/fixtures/batch_remaining_gcp_k8s/central-fix
 # These source-produced native cases supersede unbound historical inputs. The
 # archived CENTRAL fragment remains intact so its loss of authority is tested.
 NATIVE = json.loads((ROOT / "tests/fixtures/gcp-native-review-behavior.json").read_text())
+NATIVE['cases'] += json.loads((ROOT / 'tests/fixtures/gcp-alert-native-successor-20261020.json').read_text())['cases']
+NATIVE['cases'] += json.loads((ROOT / 'tests/fixtures/gcp-final-services-native-successor-20261020.json').read_text())['cases']
 CURRENT = {row["check_id"]: [] for row in NATIVE["cases"]}
 for row in NATIVE["cases"]:
     CURRENT[row["check_id"]].append(row)
@@ -83,8 +85,11 @@ def test_gcp_central_case_fragment(check_id):
                 if check_id == "gcp_pci_bucket_157fb0c69361" and label == "fail":
                     assert status == "FAIL"
                     assert json.loads(json.dumps(evidence["grants"])) == [["bucketAccessControls", "allUsers"]]
+                elif check_id == 'gcp_logging_enumeration_alert' and label == 'fail':
+                    assert status == 'FAIL'
+                    assert evidence['reason'] == 'no qualifying enabled alert in complete inventories'
                 else:
-                    assert status == "UNKNOWN", (check_id, label)
+                    assert status == 'UNKNOWN', (check_id, label)
         assert_current_native_cases(check_id)
         return
     for label, expected in (("pass", "PASS"), ("fail", "FAIL"), ("unknown", "UNKNOWN"),

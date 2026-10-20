@@ -31,7 +31,9 @@ def test_transport_enforces_response_byte_limit(monkeypatch):
     monkeypatch.setattr(transport, "token", lambda audience: "placeholder")
     class Opener:
         def open(self, request, timeout):
-            return BytesIO(b"1234567")
+            response = BytesIO(b"1234567")
+            response.status = 200
+            return response
     monkeypatch.setattr("peaso.collectors.azure.build_opener", lambda *args: Opener())
     with pytest.raises(AzureReadError, match="response_too_large"):
         transport.request("https://management.azure.com/subscriptions?api-version=2022-12-01", max_response_bytes=5)

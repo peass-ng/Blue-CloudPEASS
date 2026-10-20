@@ -1,0 +1,58 @@
+{
+  "azure.review.function.application_insights_setting_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "The Function declares a nonempty Application Insights setting. Telemetry delivery and destination validity were not tested.",
+        "telemetry_setting_declared": true,
+        "coverage": "selected_function_configuration_only"
+      },
+      "summary": "The Function declares a nonempty Application Insights setting. Telemetry delivery and destination validity were not tested."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "The Function has no nonempty Application Insights setting. Telemetry delivery and destination validity were not tested.",
+        "telemetry_setting_declared": false,
+        "coverage": "selected_function_configuration_only"
+      },
+      "summary": "The Function has no nonempty Application Insights setting. Telemetry delivery and destination validity were not tested."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The selected Function telemetry declaration could not be established.",
+        "coverage": "incomplete_selected_function_configuration"
+      },
+      "summary": "The selected Function telemetry declaration could not be established."
+    }
+  ],
+  "azure.review.function.runtime_major4_update_channel_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "observed": "The Function declares the automatic major4 runtime update channel. The resolved host build was not tested.",
+        "channel": "major4_automatic",
+        "coverage": "selected_function_configuration_only"
+      },
+      "summary": "The Function declares the automatic major4 runtime update channel. The resolved host build was not tested."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "observed": "The Function does not declare the automatic major4 runtime update channel. The resolved host build was not tested.",
+        "channel": "absent",
+        "coverage": "selected_function_configuration_only"
+      },
+      "summary": "The Function does not declare the automatic major4 runtime update channel. The resolved host build was not tested."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "observed": "The selected Function runtime update-channel declaration could not be established.",
+        "coverage": "incomplete_selected_function_configuration"
+      },
+      "summary": "The selected Function runtime update-channel declaration could not be established."
+    }
+  ]
+}

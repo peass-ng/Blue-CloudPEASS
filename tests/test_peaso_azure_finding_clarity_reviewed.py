@@ -5,8 +5,11 @@ from pathlib import Path
 
 import pytest
 
+from tests.provider_observation_residual_successors_20261020 import immutable_inputs
 from peaso.checks import CHECKS
 from peaso.checks.azure_finding_clarity_reviewed import ROWS, _digest, description, remediation
+from peaso.checks.azure_native_review_copy_20261020 import reviewed_fields
+from tests.azure_native_successor_inputs_20261020 import current_cases
 
 PACK = Path(__file__).resolve().parents[1] / "peaso/rulepacks"
 
@@ -43,21 +46,35 @@ def test_description_preserves_actual_evaluation_contract(check_id, source_rows)
     before = deepcopy(original)
     actual = description(check_id, original)
     assert original == before
-    assert actual["description"] == ROWS[check_id]["description_fields"]["description"]
+    fields = reviewed_fields(check_id, 'description', ROWS[check_id]['description_fields'])
+    assert actual["description"] == fields["description"]
     assert len(actual["description"].split()) <= 40
-    changed = set(ROWS[check_id]["description_fields"])
+    changed = set(fields)
     corrected_contracts = {
+        "azure.claude.iam_custom_role_administers_locks",
         "azure.claude.storage_key_expiration_policy_max_90",
         "azure.claude.network_watcher_flow_logs_retention_90",
         "azure.claude.sql_database_long_term_retention",
         "azure.port.keyvault_key_automatic_rotation_enabled",
         "azure.claude2.vnet_flow_logs_to_log_analytics",
         "azure.claude2.nsg_flow_logs_to_log_analytics",
+        "azure.claude.storage_access_keys_rotated_90",
+        "azure.claude2.nsg_flow_log_configured",
+        "azure.claude.vm_windows_secure_boot",
+        "azure.claude.managed_hsm_audit_logging",
+        "azure.claude.recovery_vault_backup_retention_30_days",
+        "azure.claude.aks_authorized_ip_ranges",
+        "azure.claude2.app_gateway_min_tls_12",
+        "azure.claude2.app_gateway_waf_enabled",
+        "azure.claude.sql_database_va_findings_resolved",
     }
+    if check_id == 'azure.claude.iam_custom_role_administers_locks':
+        assert changed == {'description', 'pass_when', 'fail_when'}
+        assert all(actual[k] == v for k, v in fields.items())
     if check_id not in corrected_contracts:
         assert changed == {"description"}
     else:
-        assert changed <= {"description", "pass_when", "fail_when", "not_applicable_when"}
+        assert changed <= {"description", "evaluated", "pass_when", "fail_when", "not_applicable_when"}
     assert {k: v for k, v in actual.items() if k not in changed} == {
         k: v for k, v in original.items() if k not in changed}
 
@@ -72,6 +89,10 @@ def test_remediation_preserves_references_commands_and_bindings(check_id, source
     assert len(actual["caveats"]) == 1
     assert len(actual["summary"].split()) <= 40
     changed = {"summary", "steps", "caveats"}
+    if check_id == 'azure.claude.synapse_workspace_vulnerability_assessment':
+        # Correct the unrelated historical diagnostic-settings link explicitly.
+        assert actual['references'] == reviewed_fields(check_id, 'remediation', ROWS[check_id]['remediation_fields'])['references']
+        changed.add('references')
     if ROWS[check_id].get("new_text_only_template"):
         assert actual["review_status"] == "approved"
         assert actual["cli"] == []
@@ -118,7 +139,7 @@ def test_private_endpoint_existence_does_not_claim_approval(source_rows):
 def test_reviewed_copy_matches_real_positive_negative_and_missing_facts(check_id):
     from peaso.checks.fixtures import CASES
     check = next(c for c in CHECKS if c.id == check_id)
-    cases = CASES.get(check_id) or json.loads((Path(__file__).parent / "fixtures/azure_core6.json").read_text())[check_id]
+    cases = current_cases(check_id, CASES.get(check_id) or json.loads((Path(__file__).parent / "fixtures/azure_core6.json").read_text())[check_id])
     for state in ("pass", "fail", "unknown", "not_applicable"):
         if state not in cases:
             continue
@@ -134,7 +155,7 @@ def test_semantic_limits_remain_explicit(source_rows):
     assert "One matching operation is enough" in row("activity_log_alert_subscription_administrative_operations")["caveats"][0]
     assert "not plaintext" in row("synapse_workspace_cmk")["caveats"][0]
     assert "NSG" in row("nsg_internet_http_https")["caveats"][0]
-    assert "No reported key times is not applicable" in row("storage_access_keys_rotated_90")["caveats"][0]
+    assert "Missing or future dates remain unresolved" in row("storage_access_keys_rotated_90")["caveats"][0]
 
 
 def test_new_text_templates_discard_pending_commands_iac_and_unreviewed_metadata(source_rows):

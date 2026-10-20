@@ -71,7 +71,9 @@ OpenAPI is available at `/docs`. Protected endpoints require `Authorization: Bea
 | `/api/scans/{id}/reachability` POST | One selected TCP/UDP configuration query over the owned immutable network sidecar, with no cloud calls or probes. |
 | `/api/schedules` GET/POST | Create scan selectors plus `rules` (1–20 calendar rules), IANA `timezone`, `enabled`, optional timezone-aware `next_run_at`. Legacy `interval_hours` remains supported. |
 | `/api/schedules/{id}` PATCH/DELETE | Owned schedule updates/removal. |
-| `/api/catalog` GET | Engine catalog dictionary: providers, categories, checks, framework families/versions and coverage limitations. |
+| `/api/catalog` GET | Materialized full metadata pages: `offset`, `limit` (1–500, default 100), `pagination.next_offset` and `total`; follow continuation until null. Each response is bounded to 4 MiB JSON. |
+| `/api/catalog?view=summary` / `/api/catalog/frameworks` GET | Compact selector views with existing authenticated private ETag contracts. |
+| `/api/catalog/checks/{check_id}` GET | Complete active check metadata; unknown IDs return 404. See [materialized catalog](peaso-api-materialized-catalog-20261020.md) for build, pagination and package requirements. |
 
 Findings filters are `categories` (comma-separated), `framework`, `severity`, `service`, `status`, and `search`. Search covers summary metadata: title, check, service, resource, scope, framework and remediation; detailed evidence is retrieved separately. `group_by=service|check_id|resource_id` provides stable grouping before pagination. Evidence summaries explicitly mark any shortened large metadata; complete values remain in detail and downloads. Fetch pages until `has_more` is false; the first page is not the complete result set.
 

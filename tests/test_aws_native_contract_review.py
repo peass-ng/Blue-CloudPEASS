@@ -6,6 +6,7 @@ import pytest
 
 from scripts.audit_aws_native_contracts import active_ids, producer_contracts, registry, source_ref
 from tests.test_peaso_checks import CASES
+from tests.aws_late_native_contracts_20261020 import assert_workload_producer, workload_witness_case
 
 CHECKS = registry()
 
@@ -19,15 +20,22 @@ def test_active_aws_registry_has_resolvable_collectors_and_real_evaluators():
         assert Path(ref['file']).is_file() and ref['line'] > 0
         assert ref['file'].startswith('peaso/checks/')
         if check.id in active:
-            assert all(producers[kind]['producer_found'] for kind in check.dependencies), check.id
+            if check.id == 'aws.review.workload.selected_command_literal_secret_indicators':
+                assert_workload_producer(check, producers[check.kind])
+            else:
+                assert all(producers[kind]['producer_found'] for kind in check.dependencies), check.id
 
 
 @pytest.mark.parametrize('check', CHECKS, ids=lambda c: c.id)
 def test_explicit_partial_resource_never_passes(check):
-    cases = CASES[check.id]
-    item = deepcopy(cases.get('pass', {}))
+    if check.id == 'aws.review.workload.selected_command_literal_secret_indicators':
+        item, index = workload_witness_case()
+        assert check.evaluate(deepcopy(item), deepcopy(index))[0] == 'FAIL'
+    else:
+        cases = CASES[check.id]
+        item = deepcopy(cases.get('pass', {}))
+        index = deepcopy(cases.get('pass_index', cases.get('case_indices', {}).get('pass', cases.get('index', {}))))
     item['collection_status'] = 'partial'
-    index = deepcopy(cases.get('pass_index', cases.get('case_indices', {}).get('pass', cases.get('index', {}))))
     assert check.evaluate(item, index)[0] == 'UNKNOWN'
 
 

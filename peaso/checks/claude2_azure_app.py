@@ -295,7 +295,7 @@ def _health_check(item, index):
     path = _cfg(item, "healthCheckPath")
     if path is not None and not isinstance(path, str):
         raise Unavailable("malformed healthCheckPath")
-    return result(path is None, health_check_path=path)
+    return result(not path, health_check_path=path)
 
 
 app_rule("web_app_health_check", "App Service web app configures a health check path", _health_check,
@@ -410,11 +410,47 @@ app_rule("function_app_authentication_enabled", "Function app has App Service Au
 
 
 def _public_any_allow(item, index):
+    from ipaddress import ip_network
+
     rules = _cfg(item, "ipSecurityRestrictions")
-    if rules is None:
-        return result(False, ip_security_restrictions=None)
-    hits = [r.get("name") for r in list_of_objects(rules) if r.get("ipAddress") == "Any" and r.get("action") == "Allow"]
-    return result(bool(hits), allow_any_rules=hits)
+    # A returned null/empty ACL has no rules. Azure's unmatched default is
+    # Allow without rules and Deny with rules; an explicit action overrides it.
+    rules = [] if rules is None else list_of_objects(rules)
+    default = optional(_config(item), "ipSecurityRestrictionsDefaultAction", None)
+    if default is None:
+        default = "Deny" if rules else "Allow"
+    if default not in ("Allow", "Deny"):
+        raise Unavailable("unrecognized access restriction default action")
+    hits, conditional = [], False
+    for rule in rules:
+        action = enum(rule, "action", ("Allow", "Deny"))
+        if action != "Allow":
+            continue
+        source = optional(rule, "ipAddress", None)
+        if source is None and isinstance(rule.get("vnetSubnetResourceId"), str) and rule["vnetSubnetResourceId"]:
+            continue
+        if not isinstance(source, str) or not source.strip():
+            raise Unavailable("access restriction source unavailable")
+        for part in source.split(","):
+            part = part.strip()
+            if part in ("Any", "Internet"):
+                conditional = conditional or bool(rule.get("headers"))
+                hits.append(rule.get("name"))
+                break
+            if rule.get("tag") == "ServiceTag":
+                raise Unavailable("service-tag access restriction requires resolved source ranges")
+            try:
+                world = ip_network(part, strict=False).prefixlen == 0
+            except ValueError:
+                raise Unavailable("unsupported access restriction source") from None
+            if world:
+                conditional = conditional or bool(rule.get("headers"))
+                hits.append(rule.get("name"))
+                break
+    if hits and (conditional or any(rule.get("action") == "Deny" for rule in rules)):
+        raise Unavailable("world-source access restriction has unresolved headers or priority interaction")
+    return result(default == "Allow" or bool(hits), allow_any_rules=hits, unmatched_action=default,
+                  semantics="Access restriction declarations; priority, header filters and effective reachability are separate")
 
 
 app_rule("function_app_restrict_public_access", "Function app access restrictions do not allow any source", _public_any_allow,
@@ -513,10 +549,10 @@ def _principals(item):
 def _admin_identity(item, index):
     if _identity_type(item) == "None":
         return na("Function app has no managed identity")
-    principals = _principals(item)
+    principals = {principal.casefold() for principal in _principals(item)}
     roles = []
     for assignment in scoped(index, "role_assignment"):
-        if get(assignment, "properties.principalId", str) in principals:
+        if get(assignment, "properties.principalId", str).casefold() in principals:
             role = get(assignment, "properties.roleDefinitionId", str).rsplit("/", 1)[-1].lower()
             if role in ADMIN_ROLES:
                 roles.append(role)

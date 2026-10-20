@@ -1,0 +1,157 @@
+{
+  "azure.logging.aks_supported_log_categories_destination_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "missing_categories": [],
+        "destination_references": [
+          [
+            "workspaceId",
+            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/native/providers/Microsoft.OperationalInsights/workspaces/native-audit"
+          ]
+        ],
+        "observed": "AKS declares supported log categories with native diagnostic destination references. Destination access and log delivery were not tested.",
+        "native_declaration_id": "azure.logging.aks_supported_log_categories_destination_declared",
+        "native_declaration_satisfied": true,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "AKS declares destinations for all supported control-plane log categories."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "missing_categories": [
+          "kube-apiserver"
+        ],
+        "destination_references": [
+          [
+            "workspaceId",
+            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/native/providers/Microsoft.OperationalInsights/workspaces/native-audit"
+          ]
+        ],
+        "observed": "Some supported AKS log categories lack an enabled native destination declaration. Log delivery was not tested.",
+        "native_declaration_id": "azure.logging.aks_supported_log_categories_destination_declared",
+        "native_declaration_satisfied": false,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "Some supported AKS control-plane log categories have no enabled destination declaration."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native AKS diagnostic declaration incomplete, malformed or unbound"
+      },
+      "expected_observation": null
+    }
+  ],
+  "azure.logging.managed_hsm_audit_destination_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "criterion": "declared_audit_destination",
+        "audit_destination_configured": true,
+        "destination_references": [
+          [
+            "LogAnalytics",
+            "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/native/providers/Microsoft.OperationalInsights/workspaces/native-audit"
+          ]
+        ],
+        "observed": "Managed HSM declares enabled AuditEvent logging to Storage or Log Analytics. Destination access, delivery and retention were not tested.",
+        "native_declaration_id": "azure.logging.managed_hsm_audit_destination_declared",
+        "native_declaration_satisfied": true,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "Managed HSM declares AuditEvent logging to Storage or Log Analytics."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "criterion": "declared_audit_destination",
+        "audit_destination_configured": false,
+        "observed": "No enabled AuditEvent logging declaration to Storage or Log Analytics was found.",
+        "native_declaration_id": "azure.logging.managed_hsm_audit_destination_declared",
+        "native_declaration_satisfied": false,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "Managed HSM has no enabled AuditEvent destination declaration to Storage or Log Analytics."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "native HSM diagnostic declaration incomplete, malformed or unbound",
+        "observed": "Managed HSM diagnostic settings were incomplete or unsupported. The AuditEvent destination declaration could not be assessed."
+      },
+      "expected_observation": null
+    }
+  ],
+  "azure.encryption.log_analytics_cluster_cmk_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "reason": "The cluster declares a coherent CMK reference and assigned managed identity.",
+        "key_reference": "https://reviewvault.vault.azure.net/keys/log-encryption",
+        "key_version_mode": "latest",
+        "identity_reference": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.OperationalInsights/clusters/nativecluster",
+        "principal_id": "33333333-3333-3333-3333-333333333333",
+        "semantics": "Configuration only; key access, availability and encryption of actual data are not assessed.",
+        "native_declaration_id": "azure.encryption.log_analytics_cluster_cmk_declared",
+        "native_declaration_satisfied": true,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "The Log Analytics cluster declares a customer-managed key and managed identity."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "reason": "The native cluster GET declares no CMK reference.",
+        "native_declaration_id": "azure.encryption.log_analytics_cluster_cmk_declared",
+        "native_declaration_satisfied": false,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "The Log Analytics cluster lacks a customer-managed key reference or managed identity."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "missing fact: principalId"
+      },
+      "expected_observation": null
+    }
+  ],
+  "azure.encryption.stream_analytics_job_storage_cmk_declared": [
+    {
+      "status": "PASS",
+      "evidence": {
+        "reason": "The external job storage resolves uniquely to a native CMK declaration and assigned encryption identity.",
+        "storage_account_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.Storage/storageAccounts/nativeexternal123",
+        "key_reference": "https://reviewvault.vault.azure.net/keys/storage-encryption/0123456789abcdef0123456789abcdef",
+        "key_version_mode": "versioned",
+        "identity_reference": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.Storage/storageAccounts/nativeexternal123",
+        "principal_id": "44444444-4444-4444-4444-444444444444",
+        "semantics": "Job-storage configuration only; built-in storage, effective key access and encryption of actual job data are not assessed.",
+        "native_declaration_id": "azure.encryption.stream_analytics_job_storage_cmk_declared",
+        "native_declaration_satisfied": true,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "The selected Stream Analytics storage account declares a customer-managed key and managed identity."
+    },
+    {
+      "status": "FAIL",
+      "evidence": {
+        "reason": "The selected external job storage account declares Microsoft-managed encryption.",
+        "storage_account_id": "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/review/providers/Microsoft.Storage/storageAccounts/nativeexternal123",
+        "native_declaration_id": "azure.encryption.stream_analytics_job_storage_cmk_declared",
+        "native_declaration_satisfied": false,
+        "effective_access": "not_tested"
+      },
+      "expected_observation": "The selected Stream Analytics storage account lacks a customer-managed key reference or managed identity."
+    },
+    {
+      "status": "UNKNOWN",
+      "evidence": {
+        "reason": "storage encryption key source is unrecognized"
+      },
+      "expected_observation": null
+    }
+  ]
+}

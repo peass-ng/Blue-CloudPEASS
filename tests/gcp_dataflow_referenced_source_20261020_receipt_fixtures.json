@@ -1,0 +1,401 @@
+{
+  "scope": "Actual reader output from fake native HTTP and real pinned offline detectors; no live cloud or source-byte persistence",
+  "cases": [
+    {
+      "case": "clean",
+      "capture": {
+        "schema": "gcp-dataflow-referenced-source-20261020-v1",
+        "capture": "ea8cd88a840e4141849db7d1e109e61f",
+        "authorized": true,
+        "selected": [
+          "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00"
+        ],
+        "items": [
+          {
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "native_complete": true,
+            "complete": true,
+            "association": "eb971b8d9aea2a860a92ea9acae9216ac6b1532b10f5ae72ea0dad3c484171a0",
+            "generation": "12345",
+            "format": "text",
+            "source_bytes": 15,
+            "parts": [
+              {
+                "path": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00.part-1",
+                "bytes": 15,
+                "engines": [
+                  {
+                    "engine": "kingfisher",
+                    "version": "1.4.0",
+                    "status": "complete"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "version": "3.92.5",
+                    "status": "complete"
+                  }
+                ],
+                "complete": true
+              }
+            ],
+            "leaks": [],
+            "requests": [
+              "dataflow-source-read:0a15eb7f3a1b473c9b89304bedc47bbd",
+              "dataflow-source-read:a57fc3de2dc34644bf46b2e269f62bb2",
+              "dataflow-source-read:b31cf6eeb3834517a5938038924ad8cd",
+              "dataflow-source-read:87b60a52ebfd4960b2b9dd0c57c9d8de",
+              "dataflow-source-read:af57d9aeb34246ee8c53cc09c68dc0a0",
+              "dataflow-source-read:eea0072f0aab443f85a564b0288d0c00",
+              "dataflow-source-read:e2ca050749a74fdc9c197e02bb6df4c4",
+              "dataflow-source-read:93b58acc2ad14f9889e49d21b47d7e76",
+              "dataflow-source-read:1f8b721dec2144319376769afc3cac2b"
+            ],
+            "reason": "complete",
+            "captured_at": "2026-10-20T11:13:01.638177+00:00",
+            "executed_bytes_proven": false,
+            "credential_validation": "not_attempted"
+          }
+        ],
+        "receipts": [
+          {
+            "id": "dataflow-source-read:0a15eb7f3a1b473c9b89304bedc47bbd",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "project_before",
+            "method": "GET",
+            "origin": "cloudresourcemanager.googleapis.com",
+            "request": "aabcca378fb9681ae2baf322e72bf73712d92e24c8fc13b7325c8357dbdcdbe8",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 72
+          },
+          {
+            "id": "dataflow-source-read:a57fc3de2dc34644bf46b2e269f62bb2",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "reference_before",
+            "method": "GET",
+            "origin": "dataflow.googleapis.com",
+            "request": "26ee8724ab4379c86698e89326e71f94e26d57931450d09ab88615acff126b6e",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 536
+          },
+          {
+            "id": "dataflow-source-read:b31cf6eeb3834517a5938038924ad8cd",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "bucket_before",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "ef0ef496e3dfd7a2a6358e0ef5b564f7d2a549d48cd33e7ea4a1f94d54ac28e7",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 55
+          },
+          {
+            "id": "dataflow-source-read:87b60a52ebfd4960b2b9dd0c57c9d8de",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "latest_before",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "cfcb6a93a79d37812b3db10bc7969a1062c0e24ef920f573be2831a15d1013e2",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 126
+          },
+          {
+            "id": "dataflow-source-read:af57d9aeb34246ee8c53cc09c68dc0a0",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "content",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "c0a25a13fa9c713352be491e9ffed20070406bc980f7cee020491356fbb85879",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 15
+          },
+          {
+            "id": "dataflow-source-read:eea0072f0aab443f85a564b0288d0c00",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "latest_after",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "cfcb6a93a79d37812b3db10bc7969a1062c0e24ef920f573be2831a15d1013e2",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 126
+          },
+          {
+            "id": "dataflow-source-read:e2ca050749a74fdc9c197e02bb6df4c4",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "reference_after",
+            "method": "GET",
+            "origin": "dataflow.googleapis.com",
+            "request": "26ee8724ab4379c86698e89326e71f94e26d57931450d09ab88615acff126b6e",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 536
+          },
+          {
+            "id": "dataflow-source-read:93b58acc2ad14f9889e49d21b47d7e76",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "bucket_after",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "ef0ef496e3dfd7a2a6358e0ef5b564f7d2a549d48cd33e7ea4a1f94d54ac28e7",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 55
+          },
+          {
+            "id": "dataflow-source-read:1f8b721dec2144319376769afc3cac2b",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "ea8cd88a840e4141849db7d1e109e61f",
+            "operation": "project_after",
+            "method": "GET",
+            "origin": "cloudresourcemanager.googleapis.com",
+            "request": "aabcca378fb9681ae2baf322e72bf73712d92e24c8fc13b7325c8357dbdcdbe8",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 72
+          }
+        ]
+      },
+      "expected_verdict": "PASS"
+    },
+    {
+      "case": "redacted_hit",
+      "capture": {
+        "schema": "gcp-dataflow-referenced-source-20261020-v1",
+        "capture": "8ec52c1337394ecd95ad80a80fed4989",
+        "authorized": true,
+        "selected": [
+          "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00"
+        ],
+        "items": [
+          {
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "native_complete": true,
+            "complete": true,
+            "association": "9e5a004b398973a38bd193ac9bba734838e55e804338c52d46f8bfe42ef3c9a1",
+            "generation": "12345",
+            "format": "text",
+            "source_bytes": 49,
+            "parts": [
+              {
+                "path": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00.part-1",
+                "bytes": 49,
+                "engines": [
+                  {
+                    "engine": "kingfisher",
+                    "version": "1.4.0",
+                    "status": "complete"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "version": "3.92.5",
+                    "status": "complete"
+                  }
+                ],
+                "complete": true
+              }
+            ],
+            "leaks": [
+              {
+                "fingerprint": "1b7ca2d28272becec21368b6acce4912714d016c15573c0586ff946030de8dd3",
+                "detectors": [
+                  {
+                    "engine": "kingfisher",
+                    "rule": "betterleaks.github-pat"
+                  },
+                  {
+                    "engine": "trufflehog",
+                    "rule": "Github"
+                  }
+                ],
+                "locations": [
+                  {
+                    "path": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00.part-1",
+                    "line": 1
+                  }
+                ]
+              }
+            ],
+            "requests": [
+              "dataflow-source-read:0522643fb850470696e63b5a3cb12112",
+              "dataflow-source-read:2291f8a308844aea84f83a135b1b83d5",
+              "dataflow-source-read:6882426799bf48709a624843f4eff99c",
+              "dataflow-source-read:f649a541f4d94ed7ac457a093e9c468c",
+              "dataflow-source-read:2b0930eeb3b841b5bf4e8f440b9f682e",
+              "dataflow-source-read:1188305b93ce4ac5a06cb44d1bf0de85",
+              "dataflow-source-read:14e8a9c583a04de09cdf81883e3d041e",
+              "dataflow-source-read:5f22142c143543009be2ad2d7d7ecd45",
+              "dataflow-source-read:8caf01a7a60948c29d4c6d3886fa1d0b"
+            ],
+            "reason": "complete",
+            "captured_at": "2026-10-20T11:13:06.728224+00:00",
+            "executed_bytes_proven": false,
+            "credential_validation": "not_attempted"
+          }
+        ],
+        "receipts": [
+          {
+            "id": "dataflow-source-read:0522643fb850470696e63b5a3cb12112",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "project_before",
+            "method": "GET",
+            "origin": "cloudresourcemanager.googleapis.com",
+            "request": "aabcca378fb9681ae2baf322e72bf73712d92e24c8fc13b7325c8357dbdcdbe8",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 72
+          },
+          {
+            "id": "dataflow-source-read:2291f8a308844aea84f83a135b1b83d5",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "reference_before",
+            "method": "GET",
+            "origin": "dataflow.googleapis.com",
+            "request": "26ee8724ab4379c86698e89326e71f94e26d57931450d09ab88615acff126b6e",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 536
+          },
+          {
+            "id": "dataflow-source-read:6882426799bf48709a624843f4eff99c",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "bucket_before",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "ef0ef496e3dfd7a2a6358e0ef5b564f7d2a549d48cd33e7ea4a1f94d54ac28e7",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 55
+          },
+          {
+            "id": "dataflow-source-read:f649a541f4d94ed7ac457a093e9c468c",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "latest_before",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "cfcb6a93a79d37812b3db10bc7969a1062c0e24ef920f573be2831a15d1013e2",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 126
+          },
+          {
+            "id": "dataflow-source-read:2b0930eeb3b841b5bf4e8f440b9f682e",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "content",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "c0a25a13fa9c713352be491e9ffed20070406bc980f7cee020491356fbb85879",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 49
+          },
+          {
+            "id": "dataflow-source-read:1188305b93ce4ac5a06cb44d1bf0de85",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "latest_after",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "cfcb6a93a79d37812b3db10bc7969a1062c0e24ef920f573be2831a15d1013e2",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 126
+          },
+          {
+            "id": "dataflow-source-read:14e8a9c583a04de09cdf81883e3d041e",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "reference_after",
+            "method": "GET",
+            "origin": "dataflow.googleapis.com",
+            "request": "26ee8724ab4379c86698e89326e71f94e26d57931450d09ab88615acff126b6e",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 536
+          },
+          {
+            "id": "dataflow-source-read:5f22142c143543009be2ad2d7d7ecd45",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "bucket_after",
+            "method": "GET",
+            "origin": "storage.googleapis.com",
+            "request": "ef0ef496e3dfd7a2a6358e0ef5b564f7d2a549d48cd33e7ea4a1f94d54ac28e7",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 55
+          },
+          {
+            "id": "dataflow-source-read:8caf01a7a60948c29d4c6d3886fa1d0b",
+            "identity": "dataflow-source:25e76c8199c93b57f98a69d82234d74a248e2018f4cca1b5d69488f6584e3d00",
+            "scope": "projects/review",
+            "capture": "8ec52c1337394ecd95ad80a80fed4989",
+            "operation": "project_after",
+            "method": "GET",
+            "origin": "cloudresourcemanager.googleapis.com",
+            "request": "aabcca378fb9681ae2baf322e72bf73712d92e24c8fc13b7325c8357dbdcdbe8",
+            "principal": "ae6017ad6996c391ae8cddd049b6d47434f1d549346bc6d3253e9ac6134384f6",
+            "bound": true,
+            "status": "collected",
+            "bytes": 72
+          }
+        ]
+      },
+      "expected_verdict": "FAIL"
+    }
+  ]
+}

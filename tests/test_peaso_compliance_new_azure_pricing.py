@@ -198,6 +198,10 @@ def test_snapshot_engine_keeps_two_distinct_results_and_denied_inventory_unknown
 def test_actual_collector_pricing_list_and_owner_policy_reach_engine_once():
     rows = [pricing("VirtualMachines", subplan="P2", extensions=[ext("FileIntegrityMonitoring")]),
             pricing("Containers", extensions=[ext("ContainerSensor"), ext("AgentlessDiscoveryForKubernetes")])]
+    # Actual ARM pricing GETs include the resource type; old synthetic predicate
+    # rows above remain unchanged and are not accepted as complete native GETs.
+    for row in rows:
+        row['type'] = 'Microsoft.Security/pricings'
 
     class PricingTransport:
         tenant = "tenant-fixture"

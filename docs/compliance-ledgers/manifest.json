@@ -106,14 +106,159 @@
     },
     {
       "path": "native-extensions/gcp-20261019.json",
-      "sha256": "04e57a0543a1b225dbcf03661bdf02b909605088f2539d6cb7ddd1c4eb3cca6f",
+      "sha256": "adbe603af5de60d8407077a9a75dea12c87a9f3248f9db6af50948cbe41bc86c",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/gcp-selected-content-20261020.json",
+      "sha256": "eabd169d33be080c5810b82e897ae50efb50f218a19e8fe03fb75de2c62197f5",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/selected-content-20261020.json",
+      "sha256": "4c1d01b798799aac658098f7aa7debcfdc7ec17c20bab925eec1ba22fe852d90",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-ai-services-20261020.json",
+      "sha256": "49f6b03304063f6fd9d2084e2c1a214ec23f5d21e748ebf14956b9906d789a31",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-network-audit-20261020.json",
+      "sha256": "0bf337d65de5322fa37ccf74a9ae63cde48b9a0aed78e139c0d6d7f77df705c3",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-automation-aci-20261020.json",
+      "sha256": "8971ea305b791c2c6d36f6eb2da3989cc2f3c7e4a6ab91e384da60128e9d66ad",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-final-native-20261020.json",
+      "sha256": "c2eb444abb7c9f37df8fc89cfd15402a31c3e4439c757858479a0eca2f21a5d6",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-devops-visible-urls-20261020.json",
+      "sha256": "57efb9f1b10d262866b22088b3d148ad0bbaa9ead18e2a8f3ad6545e9d5c0a04",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/aws-selected-configuration-content-20261020.json",
+      "sha256": "90a3f5a7312c8e67bae156b61f8c75938d29965bf68af5f835b232e95f443d11",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-selected-secrets-20261020.json",
+      "sha256": "30dce063fd39124cb57a4a1d14360fe789fe15388fafd8eadc821742f2e8c1ef",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-selected-declarations-20261020.json",
+      "sha256": "04fe222ca7135f9dc02eb4405c103a6afac308eb8e31c6e53dd4a1542a62892e",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/k8s-kubelet-configmap-declarations-20261020.json",
+      "sha256": "1626fb103098765967d0fb1119fb480b4a3459d2c4da0e8b15d2795d636ba245",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/aws-selected-s3-source-20261020.json",
+      "sha256": "1e9f1aeff758f989219ae2cb1623f5e3f2c7c0b5d054e648d0799fc0dea5646f",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-selected-log-samples-20261020.json",
+      "sha256": "31a682493a973dbdac520e8b8d01a426555752c3759dbfb38280a86af02a1df0",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-selected-ml-jobs-20261020.json",
+      "sha256": "257e17870f72844d32686c534beb3144c327f53bbabd4017c315e7ab41c49ff9",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/k8s-selected-log-samples-20261020.json",
+      "sha256": "0f7e3e158ebe84fb0a4360d5d9873759369da1d711f46b21c296687cecc4fb0f",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-selected-databricks-notebooks-20261020.json",
+      "sha256": "a5e7d54d7711d6fb20e9991a4f34e04f49a2df5b31de162786daffebd697142c",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-blocking-sas-policy-20261020.json",
+      "sha256": "00956ea784a442e3e3fa5f14e174aa4eecb0528bdd4f40c6515b926030d4d240",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-selected-ml-assets-20261020.json",
+      "sha256": "0401619721af3e614e398b9f66e828e1245ba6f4115a605e719c2c94bf793d70",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-functions-declarations-20261020.json",
+      "sha256": "e11fb148640bc3534e1c4d45445e43f006ad691b55127b99111aafc7e115b56d",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-nsp-query-declarations-20261020.json",
+      "sha256": "55fbfaeddf9d49cc862729e5456b65ca3c393463497bbe803a50e68ac161a068",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/gcp-dataproc-referenced-source-20261020.json",
+      "sha256": "084b861b7cad7ca872d96a87a0b70431a0ebed2033cfa9ff0f5fe71102df9bce",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/k8s-selected-object-metadata-20261020.json",
+      "sha256": "4c6324223d0284e6ac616aa35e5ac6e3483118d609ec342ba01ad0007a14430e",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/gcp-workbench-referenced-source-20261020.json",
+      "sha256": "7ee9ab010077c71a27fadf08c231d715073eb8df1800739a09aa54042adb2845",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/gcp-dataflow-referenced-source-20261020.json",
+      "sha256": "3602c9ef9ef8ba2a1cdcfee853587a2f67f1a08ec0f1d56b33425754a553eb70",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/gcp-batch-referenced-source-20261020.json",
+      "sha256": "53808fbafe6709eccb594951e5151d5a132298600ff18ae060e9ba44927ed233",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/aws-codebuild-inline-buildspec-20261020.json",
+      "sha256": "c1ee171234586100a2f7e3f020172a8458f696d127d0b24aebde56125a0114da",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/azure-selected-configured-package-20261020.json",
+      "sha256": "c2bcbddea4dd1e4f66761c38b4bea50383a68227279abba60ef143852532712e",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/gcp-workbench-head3-20261020.json",
+      "sha256": "f39bb9be12da90641f7c554cc03c91259d60b426184b417eeee5e3a3a4a26661",
+      "verified": true
+    },
+    {
+      "path": "native-extensions/workload-content-20261020.json",
+      "sha256": "990f38aa7472ec959a524ed52b5652075bbba0d1a0f4c5894747b5a1a9abf9ff",
       "verified": true
     }
   ],
   "new_descriptions": {
-    "checks": 950,
+    "checks": 1010,
     "path": "descriptions/implemented-new-checks.json",
-    "sha256": "d036904ddc3434b8d7ab4a197d5ffc95e1af78de7706416eeceec87b13790d52",
+    "sha256": "851bd2d3c62dacd6c3b0b721065aebc3f5a39a72496a885db3afc8188ada4cc9",
     "verified": true
   },
   "slices": {

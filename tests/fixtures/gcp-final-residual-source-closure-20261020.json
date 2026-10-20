@@ -1,0 +1,70 @@
+{
+  "additional_current_id": "gcp.review.function.literal_environment_secret_indicators",
+  "check_ids": {
+    "tests/test_gcp_appengine_source_secret_review_20261019.py": "gcp.review.appengine.deployment_source_secret_indicators",
+    "tests/test_gcp_cloudbuild_log_secret_review_20261019.py": "gcp.review.cloudbuild.stored_log_secret_indicators",
+    "tests/test_gcp_clouddeploy_source_secret_review_20261019.py": "gcp.review.clouddeploy.release_source_secret_indicators",
+    "tests/test_gcp_composer_source_secret_review_20261019.py": "gcp.review.composer.dag_source_secret_indicators",
+    "tests/test_gcp_function_source_secret_review_20261019.py": "gcp.review.function.resolved_source_archive_secret_indicators",
+    "tests/test_peaso_gcp_observation_source_parity.py": [
+      "gcp.ports.compute_instance_ip_forwarding_disabled",
+      "gcp.ports.compute_instance_block_project_wide_ssh_enabled",
+      "gcp.ports.bigquery_dataset_not_publicly_accessible",
+      "gcp.ports.sql_instance_with_no_public_ips",
+      "gcp.ports.sql_instance_not_publicly_accessible",
+      "gcp.ports.sql_private_ip_assignments",
+      "gcp.ports.sql_no_primary_address"
+    ]
+  },
+  "current_test_sha256": {
+    "tests/test_gcp_appengine_source_secret_review_20261019.py": "a52e8ecc4d54364d203169f81d02fab96cf59e847ca285712418b692104eccee",
+    "tests/test_gcp_cloudbuild_log_secret_review_20261019.py": "67ca2859c33bdfd978e9fd797eba297d958afd171233bf9be648e047c6316da3",
+    "tests/test_gcp_clouddeploy_source_secret_review_20261019.py": "d1e44aef7dbb050696cff81801141c11c287bdeb3c38f3e66487c4fa33866f0b",
+    "tests/test_gcp_composer_source_secret_review_20261019.py": "35e43f3422d64bed8061563bc6db2a4c5783360dc77bf8ce57b104d6dc60c57b",
+    "tests/test_gcp_function_source_secret_review_20261019.py": "8b2b9e116a8418a2f48254367b5e30407e13cd09e128c9484692a798433d3bd8",
+    "tests/test_peaso_gcp_observation_source_parity.py": "c72ffe2c90926b9da50394249184d0d6cc74cfe50b2a42a9ca435c08b2b478ba"
+  },
+  "predecessor_archive": {
+    "path": "tests/fixtures/gcp-final-residual-predecessors-20261020.json.gz",
+    "sha256": "c925aa78e3ff14794248bd90eb4e910d9ebd56521cc0ef87c416fcdff167f89a"
+  },
+  "predecessor_test_sha256": {
+    "tests/test_gcp_appengine_source_secret_review_20261019.py": "506404c7c650d44402100e42f531057323e95f0e24bb4dd9c8efe1ee03155a51",
+    "tests/test_gcp_cloudbuild_log_secret_review_20261019.py": "73c36e4a88d62a29f227cf6b3e74d2dcc4e25cdcfda9af6cd5487131d105eb21",
+    "tests/test_gcp_clouddeploy_source_secret_review_20261019.py": "f12df988c5e02a9bdf4f7867171377a544d1550ad6b395fec8df14bab925486b",
+    "tests/test_gcp_composer_source_secret_review_20261019.py": "aeb0b20c5c389d801313360c1ff6651d0bb2c4bc7475edecdcb43608e8842ac9",
+    "tests/test_gcp_function_source_secret_review_20261019.py": "7f86d99ff0d806294560de145c09c93a7747662c859238df57a53ad74d1b0670",
+    "tests/test_peaso_gcp_observation_source_parity.py": "e60b0f51c4f46b4fdbe22effc10298b769639601a5d17a69a38a9f1ce2d33075"
+  },
+  "schema": "gcp-final-residual-test-successor-v1",
+  "source_fixture_closure": {
+    "peaso/checks/gcp_appengine_source_secret_review_20261019.py": "2dabaf4b09352a4095e89c55e090682638ee95cf5d9efbd7d2699e64a720d2a1",
+    "peaso/checks/gcp_appengine_source_secret_review_20261019_fixtures.json.gz": "913856603087ab7e9668ef680c3919abe660e6ca0c3489cb9bbd96c7669d5c27",
+    "peaso/checks/gcp_cloudbuild_log_secret_review_20261019.py": "d1f3618df951b59b8ebc73424acb7b1fed9795121f21054571061a4173c01967",
+    "peaso/checks/gcp_cloudbuild_log_secret_review_20261019_fixtures.json.gz": "500251be960b27060d983b1640adc9e65a423d9cfc5e4751f8ae5f157475c57d",
+    "peaso/checks/gcp_clouddeploy_source_secret_review_20261019.py": "e10c324a6eb280c64cb26aa44d579fdedaff199b24d524bd02900f9fd3b2ec71",
+    "peaso/checks/gcp_clouddeploy_source_secret_review_20261019_fixtures.json.gz": "811fd8fb21a1b4d23aac2eecffcd0de00efffa6f3c03710e43f38bd4c42a2162",
+    "peaso/checks/gcp_composer_source_secret_fixtures.json.gz": "430911930ba429c127d1ee6f71b0c56e2afca14f6db8f5d7944b7c1f5fa50afd",
+    "peaso/checks/gcp_composer_source_secret_review_20261019.py": "d176034b246ff2f901e767f52d3c02832ec192766f361e552852d579dd567027",
+    "peaso/checks/gcp_function_secret_paired_review_20261020.py": "f813bced01a020adf8c11393424080a0412270862aabe871c46f090aa57640aa",
+    "peaso/checks/gcp_function_secret_partial_page_20261020.py": "56a16e3da541ed741109f02c7324fa54d8c7f95704eb342cc140a7d8b8454093",
+    "peaso/checks/gcp_function_secret_review_20261019.py": "53a529741f79b2de837cf4deb228c517be8ec1572d8d9ea6e5a4ec975035da14",
+    "peaso/checks/gcp_function_source_secret_fixtures.json.gz": "5abe5283e927c80b97f4b89c6d5d174a70c50ed8c8d69ed7b5e4a43ca468bacd",
+    "peaso/checks/gcp_function_source_secret_review_20261019.py": "fb51def8c4cc2be7787b0734299753ef51e78e273f51ff9673f2bf2ced4a7b01",
+    "peaso/checks/gcp_ports_compute.py": "47805cd4afa8bc54214f9ad4e3fb5f962022f3cea7112bbc252d6bca316b22d5",
+    "peaso/checks/gcp_ports_metadata.py": "12fbec622df7f16219844ce5c38371fba91abe75ecf5a7e454192d2d2280d165",
+    "peaso/collectors/gcp.py": "f7554a0e905d712242bfd2826866517bbc410b1a4aa9e3ef195c75c07df37e96",
+    "peaso/collectors/gcp_appengine_source_secret_indicators.py": "5f0dc6ceb82d853f10f4af47858504ae09b266e50800f49ecf8724238385ad61",
+    "peaso/collectors/gcp_cloudbuild_log_secret_indicators.py": "d3b9e2f4a76079808f7c3b6b47daeaf215b46df1abb28669224e0eeb848f7568",
+    "peaso/collectors/gcp_clouddeploy_source_secret_indicators.py": "123ab7378d7c706b5c6dec0ba4da2790f317c813c630df78e548430e7c23f98d",
+    "peaso/collectors/gcp_composer_source_secret_indicators.py": "fbe60d18f2ec81fd014ed8b1650daf194f49166324c01e0d5d9ab09c4f062257",
+    "peaso/collectors/gcp_function_secret_indicators.py": "f0107e484b39ca361710b0c838c07eb861fe8701239f79e91b41230a211b58c3",
+    "peaso/collectors/gcp_function_secret_pairs_20261020.py": "e6f344088f0fbbbb50ff782852495cc9c23a874448e9b732543027e01e068598",
+    "peaso/collectors/gcp_function_source_secret_indicators.py": "a49c3fa67b5b6ab859ffe3107d18ec861289f755bb89d436d9ded1a16a5fe58c",
+    "peaso/collectors/gcp_selected_archive_secret_indicators.py": "5da0da030a5d7be256956f7126f5a8b5aaed8c552b49185a8d6ed7d4e1badd23",
+    "peaso/collectors/gcp_selected_object_secret_indicators.py": "fb9d1c2837660501bd87ab9642519f4caadfc395eee3193d1ccefd1bb2517959",
+    "peaso/secret_findings.py": "5ca5fa75a345863b6c266f7b1055c4423c7d8a99f190542dbef4ce542919e470",
+    "peaso/secret_scanning.py": "72aaf391e3b168d9b8f7a10603a5763c04137b5e7807fef320b4fc22fa1a9d19",
+    "tests/test_gcp_selected_archive_secret_review_20261019.py": "d27c4979789d130ad965bcfd639522e6d03364d4591b9ae2885a8ac900a5b72b"
+  }
+}

@@ -47,47 +47,96 @@ scalar("loadbalancer.backend_logging", "backend_service", "logConfig.enable", Tr
 FLOW_LOG_PURPOSES = ("PRIVATE", "PRIVATE_RFC_1918")
 NON_FLOW_LOG_PURPOSES = ("REGIONAL_MANAGED_PROXY", "GLOBAL_MANAGED_PROXY", "INTERNAL_HTTPS_LOAD_BALANCER",
     "PRIVATE_SERVICE_CONNECT", "PRIVATE_NAT", "PEER_MIGRATION")
-DEPENDENCIES = {PREFIX + "network.flow_logs": ["subnetwork", "vpc_flow_logs_config"]}
+DEPENDENCIES = {PREFIX + "network.flow_logs": ["subnetwork", "vpc_flow_logs_config"],
+                PREFIX + "project.os_login_2fa": ["project", "org_policy_effective"]}
 
 
 def _relative(link):
-    """Compute selfLink/URL or relative name -> `projects/...` relative name."""
-    if isinstance(link, str) and "projects/" in link:
-        return "projects/" + link.split("projects/", 1)[1]
-    return link
+    """Validate native Flow Logs target identities without discarding authority."""
+    from urllib.parse import urlsplit
+    if not isinstance(link, str):
+        raise Unavailable("Flow Logs target identity unavailable")
+    parsed = urlsplit(link)
+    if parsed.query or parsed.fragment:
+        raise Unavailable("Flow Logs target query or fragment unsupported")
+    if parsed.scheme or parsed.netloc:
+        if parsed.scheme != "https" or parsed.netloc not in ("www.googleapis.com", "compute.googleapis.com"):
+            raise Unavailable("foreign Flow Logs target authority")
+        if not parsed.path.startswith("/compute/v1/projects/"):
+            raise Unavailable("unsupported Flow Logs target API path")
+        link = parsed.path
+    value = link.removeprefix("/").removeprefix("compute/v1/")
+    if not re.fullmatch(r"projects/[A-Za-z0-9_-]+/(?:global/networks|regions/[a-z][a-z0-9-]*/"
+                        r"(?:subnetworks|vpnTunnels|interconnectAttachments))/[a-z](?:[-a-z0-9]*[a-z0-9])?", value):
+        raise Unavailable("malformed Flow Logs target resource")
+    return value
 
 
 def network_management_flow_logs(item, index):
     """Network Management VpcFlowLogsConfig coverage of this subnet, or None."""
+    from .facts import optional
     envelopes = index.get("collections", {}).get("vpc_flow_logs_config", []) if isinstance(index, dict) else []
     if not envelopes:
         return None, {"network_management_configs": "not_collected"}
+    envelopes = list_of_objects(envelopes)
     bad = [{"status": row.get("status"), "error": row.get("error", {}).get("reason") or row.get("error", {}).get("code")}
-           for row in envelopes if not isinstance(row, dict) or row.get("status") not in ("collected", "empty")]
-    subnet = _relative(item.get("selfLink"))
-    network = _relative(item.get("network"))
-    matched = []
-    for resource in index.get("vpc_flow_logs_config", []) if not bad else []:
+           for row in envelopes if row.get("status") not in ("collected", "empty")]
+    context = index.get("context", {})
+    if context and get(context, "provider", str) != "gcp":
+        raise Unavailable("GCP Flow Logs context unavailable")
+    scope = context.get("scope")
+    if scope is None and len(envelopes) == 1:
+        scope = envelopes[0].get("scope")
+    if (not isinstance(scope, str) or not re.fullmatch(r"projects/[A-Za-z0-9_-]+", scope)
+            or any(row.get("scope") != scope for row in envelopes)):
+        raise Unavailable("Flow Logs alternative project scope unavailable or inconsistent")
+    subnet = _relative(get(item, "selfLink", str))
+    network = _relative(get(item, "network", str))
+    if not subnet.startswith(scope + "/") or not network.startswith(scope + "/"):
+        raise Unavailable("subnet/network outside the Flow Logs evaluation project")
+    matched, identities = [], {}
+    for resource in list_of_objects(index.get("vpc_flow_logs_config", [])):
         config = get(resource, "data", dict)
-        targets = {field: _relative(config.get(field)) for field in ("subnet", "network", "vpnTunnel", "interconnectAttachment") if config.get(field)}
-        level = config.get("configLevel")
+        name = get(config, "name", str)
+        native = {key: value for key, value in config.items() if not key.startswith("_")}
+        if name in identities and identities[name] != native:
+            raise Unavailable("conflicting Flow Logs config observations")
+        identities[name] = native
+        level = get(config, "configLevel", str)
+        if level not in ("project", "organization"):
+            raise Unavailable("Flow Logs config level unavailable")
+        parent = re.escape(scope) if level == "project" else r"organizations/[1-9][0-9]*"
+        if not re.fullmatch(parent + r"/locations/global/vpcFlowLogsConfigs/[A-Za-z0-9_-]+", name):
+            raise Unavailable("Flow Logs config identity outside its declared scope")
+        targets = {}
+        for field in ("subnet", "network", "vpnTunnel", "interconnectAttachment"):
+            target = optional(config, field, None, str)
+            if target is not None:
+                targets[field] = _relative(target)
+        if len(targets) > 1:
+            raise Unavailable("conflicting Flow Logs target selectors")
+        state = optional(config, "state", "ENABLED", str)
+        filtered = bool(optional(config, "filterExpr", "", str))
+        if state not in ("ENABLED", "STATE_UNSPECIFIED", "DISABLED"):
+            raise Unavailable("unrecognized Flow Logs config state")
         covers = targets.get("subnet") == subnet or targets.get("network") == network or (level == "organization" and not targets)
-        if covers and config.get("state", "ENABLED") in ("ENABLED", "STATE_UNSPECIFIED"):
-            matched.append({"name": config.get("name"), "level": level, "filtered": bool(config.get("filterExpr"))})
+        if covers and state != "DISABLED":
+            matched.append({"name": name, "level": level, "filtered": filtered})
     if bad:
-        return None, {"network_management_configs": "unverified", "network_management_status": bad}
+        return matched, {"network_management_configs": "unverified", "network_management_status": bad}
     return matched, {"network_management_configs": "collected"}
 
 
 @rule("network.flow_logs", "subnetwork", "Subnet explicitly enables VPC Flow Logs", control="AU-2")
 def flow_logs(item, index):
+    from .facts import optional
     purpose = omitted(item, "purpose", "PRIVATE", str)
     context = {"network": item.get("network"), "region": item.get("region"), "purpose": purpose}
     if purpose in NON_FLOW_LOG_PURPOSES:
         return "NOT_APPLICABLE", {**context, "reason": "Subnet purpose does not carry VM traffic or support Flow Logs"}
     if purpose not in FLOW_LOG_PURPOSES:
         return unknown("unrecognized subnet purpose", **context)
-    legacy = get(item, "enableFlowLogs", bool) if "enableFlowLogs" in item else None
+    legacy = optional(item, "enableFlowLogs", None, bool)
     if "logConfig" in item and "enable" in get(item, "logConfig", dict):
         enabled = get(item, "logConfig.enable", bool)
         if legacy is not None and legacy != enabled:
@@ -104,10 +153,14 @@ def flow_logs(item, index):
     matched, coverage = network_management_flow_logs(item, index)
     if matched:
         if all(row["filtered"] for row in matched):
+            if coverage["network_management_configs"] != "collected":
+                return unknown("unfiltered Flow Logs alternative coverage unresolved", **context, **coverage)
             return "MANUAL", {**context, **coverage, "vpc_flow_logs_configs": matched,
                 "reason": "Only filtered Network Management Flow Logs configs cover this subnet"}
         return result(False, **context, **coverage, flow_logs_enabled=True, source="networkmanagement.vpcFlowLogsConfigs",
                       vpc_flow_logs_configs=matched)
+    if coverage["network_management_configs"] != "collected":
+        return unknown("alternative Flow Logs configuration inventory incomplete or unavailable", **context, **coverage)
     return result(True, **context, **coverage, flow_logs_enabled=False, source=source,
                   semantics="Subnet-level setting; Network Management configs are counted only when collected")
 
@@ -211,23 +264,30 @@ def project_os_login_2fa(item, index):
     # and OS Login 2FA (enable-oslogin-2fa) must be set to TRUE" (Set up OS Login).
     # compute.requireOsLogin does not set enable-oslogin-2fa, so an unset project
     # key on a successful projects.get read is "not enforced".
-    from . import ComputeDisabled, gcp_project_metadata_items
+    from . import ComputeDisabled, gcp_project_metadata_items, gcp_oslogin_unset
     try:
         rows = gcp_project_metadata_items(item)
     except ComputeDisabled:
         return "NOT_APPLICABLE", {"reason": "Compute Engine API is disabled in the project; no VM uses project metadata"}
-    values = []
+    values = {"enable-oslogin": [], "enable-oslogin-2fa": []}
     for row in rows:
-        if get(row, "key", str) == "enable-oslogin-2fa":
+        key = get(row, "key", str)
+        if key in values:
             value = get(row, "value", str).lower()
             if value not in ("true", "false"):
                 raise Unavailable("malformed explicit metadata boolean")
-            values.append(value == "true")
-    if len(values) > 1:
-        raise Unavailable("duplicated enable-oslogin-2fa project metadata")
-    enabled = values[0] if values else False
-    return result(not enabled, enable_oslogin_2fa=values[0] if values else None,
-        semantics="Project declaration; unset means 2FA is not enforced. Instance overrides and principal eligibility need review")
+            values[key].append(value == "true")
+    if any(len(flags) > 1 for flags in values.values()):
+        raise Unavailable("duplicated OS Login project metadata")
+    login = values["enable-oslogin"][0] if values["enable-oslogin"] else None
+    two_factor = values["enable-oslogin-2fa"][0] if values["enable-oslogin-2fa"] else None
+    if two_factor is True and login is None:
+        try:
+            login, policy = gcp_oslogin_unset(index)
+        except Unavailable as exc:
+            return unknown("OS Login enablement unresolved while 2FA flag is true", detail=str(exc), enable_oslogin_2fa=True)
+    return result(not (login and two_factor), enable_oslogin=login, enable_oslogin_2fa=two_factor,
+        semantics="Both OS Login and 2FA declarations are required. Instance overrides, guest enforcement and principal eligibility need review")
 
 
 @rule("network.no_default_vpc", "network", "VPC network avoids the default network", control="SC-7")
@@ -482,7 +542,7 @@ CASES.update({
         "fail": {"metadata": {"items": [{"key": "block-project-ssh-keys", "value": "false"}]}}},
     PREFIX + "compute.no_serial_console": {"pass": {"metadata": {"items": [{"key": "serial-port-enable", "value": "false"}]}},
         "fail": {"metadata": {"items": [{"key": "serial-port-enable", "value": "true"}]}}},
-    PREFIX + "project.os_login_2fa": {"pass": {"commonInstanceMetadata": {"fingerprint": "f", "items": [{"key": "enable-oslogin-2fa", "value": "true"}]}},
+    PREFIX + "project.os_login_2fa": {"pass": {"commonInstanceMetadata": {"fingerprint": "f", "items": [{"key": "enable-oslogin", "value": "true"}, {"key": "enable-oslogin-2fa", "value": "true"}]}},
         "fail": {"commonInstanceMetadata": {"fingerprint": "f", "items": [{"key": "enable-oslogin-2fa", "value": "false"}]}},
         "unknown": {"commonInstanceMetadata": {"fingerprint": "f", "items": [{"key": "enable-oslogin-2fa", "value": "true"}, {"key": "enable-oslogin-2fa", "value": "false"}]}}},
     PREFIX + "network.no_default_vpc": {"pass": {"name": "production"}, "fail": {"name": "default"}},

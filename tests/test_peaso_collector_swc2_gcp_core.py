@@ -97,9 +97,9 @@ def test_bigquery_table_schema_is_full_only_after_successful_detail():
     def resolve(request):
         url = request['url']
         if url.endswith('/datasets'):
-            return {'datasets': [{'datasetReference': {'datasetId': 'ds'}, 'id': 'p-one:ds'}]}
+            return {'datasets': [{'datasetReference': {'projectId': 'p-one', 'datasetId': 'ds'}, 'id': 'p-one:ds'}]}
         if url.endswith('/datasets/ds'):
-            return {'datasetReference': {'datasetId': 'ds'}, 'id': 'p-one:ds'}
+            return {'datasetReference': {'projectId': 'p-one', 'datasetId': 'ds'}, 'id': 'p-one:ds'}
         if url.endswith('/tables'):
             return {'tables': [{'tableReference': {'projectId': 'p-one', 'datasetId': 'ds', 'tableId': 't'}}]}
         assert url.endswith('/tables/t')
@@ -118,9 +118,9 @@ def test_bigquery_table_denied_schema_never_claims_full():
     def resolve(request):
         url = request['url']
         if url.endswith('/datasets'):
-            return {'datasets': [{'datasetReference': {'datasetId': 'ds'}, 'id': 'p-one:ds'}]}
+            return {'datasets': [{'datasetReference': {'projectId': 'p-one', 'datasetId': 'ds'}, 'id': 'p-one:ds'}]}
         if url.endswith('/datasets/ds'):
-            return {'datasetReference': {'datasetId': 'ds'}, 'id': 'p-one:ds'}
+            return {'datasetReference': {'projectId': 'p-one', 'datasetId': 'ds'}, 'id': 'p-one:ds'}
         if url.endswith('/tables'):
             return {'tables': [{'tableReference': {'projectId': 'p-one', 'datasetId': 'ds', 'tableId': 't'}}]}
         raise ReadError('denied', 'fixture_denial')

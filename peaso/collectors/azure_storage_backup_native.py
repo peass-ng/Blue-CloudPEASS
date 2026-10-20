@@ -47,6 +47,13 @@ def _identity(row, parent, suffix):
 
 
 def _project(row, rid, operation, version):
+    parts = re.split('/providers/', rid, flags=re.I)[-1].split('/')
+    native_type = '/'.join([parts[0], *parts[1::2]])
+    names=(rid.rsplit('/',1)[-1].casefold(),'/'.join(parts[2::2]).casefold())
+    if 'name' in row and str(row['name']).casefold() not in names:
+        raise ValueError('native backup resource name contradicts request identity')
+    if 'type' in row and str(row['type']).casefold() != native_type.casefold():
+        raise ValueError('native backup resource type contradicts request identity')
     props = row.get('properties')
     if not isinstance(props, dict):
         raise ValueError('storage backup properties missing')

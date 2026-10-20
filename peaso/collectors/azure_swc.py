@@ -9,6 +9,305 @@ ARM = "https://management.azure.com"
 MG = "/providers/Microsoft.Management/managementGroups/"
 
 
+def authorized_storage_service_scopes(snapshot, scope):
+    """Expose exact native default-service reads through verified account GETs.
+
+    An observed full account remains a configuration subject when another account
+    page fails. This does not attest the unobserved subscription inventory.
+    """
+    if not isinstance(scope, str) or re.fullmatch(r'/subscriptions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', scope, re.I) is None:
+        return set()
+    parents = [c for c in snapshot['collections'] if c['type'] == 'storage_account'
+               and c['scope'].casefold() == scope.casefold()]
+    if len(parents) != 1 or parents[0]['status'] not in ('collected', 'partial'):
+        return set()
+    accounts, seen = set(), set()
+    pattern = re.escape(scope) + r'/resourceGroups/[^/?#%\\\s]+/providers/Microsoft\.Storage/storageAccounts/[a-z0-9]{3,24}'
+    for row in parents[0]['items']:
+        rid = row.get('id')
+        if (not isinstance(rid, str) or re.fullmatch(pattern, rid, re.I) is None
+                or any(part in ('.', '..') for part in rid.split('/')) or rid.casefold() in seen):
+            return set()
+        seen.add(rid.casefold())
+        proof = row.get('_provenance', {})
+        if (str(row.get('type', '')).casefold() == 'microsoft.storage/storageaccounts'
+                and isinstance(row.get('properties'), dict) and isinstance(proof, dict)
+                and proof.get('representation') == 'full' and proof.get('source_operation') == 'get'
+                and proof.get('read_only') is True and proof.get('api_version') == '2023-05-01'):
+            accounts.add(rid.casefold())
+    candidates = [c for c in snapshot['collections'] if c['type'] == 'storage_service']
+    counts = {}
+    for child in candidates:
+        key = child['scope'].casefold()
+        counts[key] = counts.get(key, 0) + 1
+    allowed = set()
+    for child in candidates:
+        parent, separator, service = child['scope'].rpartition('/')
+        service = service.casefold()
+        if (not separator or parent.casefold() not in accounts or counts[child['scope'].casefold()] != 1
+                or service not in ('blobservices', 'fileservices', 'queueservices', 'tableservices')):
+            continue
+        expected = child['scope'].casefold() + '/default'
+        rows = child['items']
+        if len(rows) > 1 or any(not isinstance(row, dict)
+                or str(row.get('id', '')).casefold() != expected
+                or str(row.get('type', '')).casefold() != 'microsoft.storage/storageaccounts/' + service
+                for row in rows):
+            continue
+        # Retain denied/partial envelopes so the consumer cannot infer absence.
+        allowed.add(child['scope'])
+    return allowed
+
+
+def authorized_subnet_scopes(snapshot, scope):
+    """Join native subnet GETs only through the selected VNet's declarations."""
+    if not isinstance(scope, str) or re.fullmatch(r'/subscriptions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', scope, re.I) is None:
+        return set()
+    parents = [c for c in snapshot['collections'] if c['type'] == 'vnet'
+               and c['scope'].casefold() == scope.casefold()]
+    if len(parents) != 1 or parents[0]['status'] not in ('collected', 'empty'):
+        return set()
+    declarations = {}
+    pattern = re.escape(scope) + r'/resourceGroups/[^/?#%\\\s]+/providers/Microsoft\.Network/virtualNetworks/[^/?#%\\\s]+'
+    def full(row, typ):
+        proof = row.get('_provenance', {})
+        return (str(row.get('type', '')).casefold() == typ and isinstance(row.get('properties'), dict)
+                and isinstance(proof, dict) and proof.get('representation') == 'full'
+                and proof.get('source_operation') == 'get' and proof.get('read_only') is True
+                and proof.get('api_version') == '2023-09-01')
+    for row in parents[0]['items']:
+        rid = row.get('id')
+        if (not isinstance(rid, str) or re.fullmatch(pattern, rid, re.I) is None
+                or any(part in ('.', '..') for part in rid.split('/'))
+                or rid.casefold() in declarations or not full(row, 'microsoft.network/virtualnetworks')):
+            return set()
+        references = row['properties'].get('subnets')
+        if not isinstance(references, list):
+            return set()
+        ids = []
+        for reference in references:
+            child_id = reference.get('id') if isinstance(reference, dict) else None
+            if (not isinstance(child_id, str) or re.fullmatch(re.escape(rid) + r'/subnets/[^/?#%\\\s]+', child_id, re.I) is None
+                    or any(part in ('.', '..') for part in child_id.split('/'))):
+                return set()
+            ids.append(child_id.casefold())
+        if len(ids) != len(set(ids)):
+            return set()
+        declarations[rid.casefold()] = set(ids)
+    children = [c for c in snapshot['collections'] if c['type'] == 'subnet']
+    counts = {}
+    for child in children:
+        key = child['scope'].casefold()
+        counts[key] = counts.get(key, 0) + 1
+    allowed = set()
+    for child in children:
+        parent = child['scope'].casefold()
+        if parent not in declarations or counts[parent] != 1:
+            continue
+        rows = child['items']
+        ids = [row.get('id') for row in rows]
+        if (any(not isinstance(rid, str) or rid.casefold() not in declarations[parent]
+                or not full(row, 'microsoft.network/virtualnetworks/subnets') for row, rid in zip(rows, ids))
+                or len(ids) != len(set(rid.casefold() for rid in ids))):
+            continue
+        if child['status'] in ('collected', 'empty') and set(rid.casefold() for rid in ids) != declarations[parent]:
+            continue
+        # Incomplete reads remain in the dependency index, never an empty proof.
+        allowed.add(child['scope'])
+    return allowed
+
+
+def authorized_vault_collection_scopes(snapshot, scope):
+    """Exact native vault/secret/diagnostic joins, without descendant-scope trust."""
+    from peaso.checks.facts import resolve_embedded_fact, Unavailable
+    uuid = r'[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}'
+    metadata = snapshot.get('metadata', {})
+    credential, customer = metadata.get('credential_context_id'), metadata.get('customer_context_id')
+    if (not isinstance(credential, str) or not re.fullmatch(r'[0-9a-f]{32}', credential)
+            or customer != 'scan-local:' + credential or metadata.get('collection') != 'read-only'):
+        return set()
+    def captured(value):
+        proof = value.get('_provenance', {})
+        return isinstance(proof, dict) and proof.get('credential_context_id') == credential and proof.get('customer_context_id') == customer
+    selected = {str(s).casefold() for s in snapshot['scopes'] if re.fullmatch('/subscriptions/' + uuid, str(s), re.I)}
+    parents = {}
+    for collection in snapshot['collections']:
+        root = collection['scope']
+        if collection['type'] != 'vault' or root.casefold() not in selected or not captured(collection):
+            continue
+        if sum(c['type'] == 'vault' and c['scope'].casefold() == root.casefold() for c in snapshot['collections']) != 1:
+            continue
+        seen, valid = set(), True
+        for row in collection['items']:
+            rid = row.get('id')
+            if (not isinstance(rid, str) or not re.fullmatch(re.escape(root) + r'/resourceGroups/[^/?#%]+/providers/Microsoft\.KeyVault/vaults/[A-Za-z0-9-]{3,24}', rid, re.I)
+                    or any(p in ('.', '..') or any(ord(c) < 33 for c in p) for p in rid.split('/'))
+                    or str(row.get('type', '')).casefold() != 'microsoft.keyvault/vaults'
+                    or rid.casefold() in seen or not captured(row) or not isinstance(row.get('properties'), dict)):
+                valid = False
+                break
+            seen.add(rid.casefold())
+        if valid:
+            for row in collection['items']:
+                parents[row['id'].casefold()] = (root, collection, row)
+    allowed = set()
+    for collection in snapshot['collections']:
+        parent = parents.get(collection['scope'].casefold())
+        if parent is None or not captured(collection):
+            continue
+        root, parent_collection, row = parent
+        if collection['type'] in ('secret_metadata', 'key_metadata') and scope.casefold() == row['id'].casefold():
+            metadata_kind = collection['type']
+            component = 'secrets' if metadata_kind == 'secret_metadata' else 'keys'
+            if sum(c['type'] == metadata_kind and c['scope'].casefold() == scope.casefold() for c in snapshot['collections']) != 1:
+                continue
+            valid = True
+            for child in collection['items']:
+                identity, proof = child.get('id'), child.get('_provenance', {})
+                if (not isinstance(identity, str) or not re.fullmatch(re.escape(row['id']) + '/' + component + r'/[A-Za-z0-9-]{1,127}', identity, re.I)
+                        or str(child.get('parent_id', '')).casefold() != row['id'].casefold()
+                        or str(child.get('type', '')).casefold() != 'microsoft.keyvault/vaults/' + component
+                        or not captured(child) or proof.get('endpoint') != component + '/list' or proof.get('read_only') is not True):
+                    valid = False
+                    break
+            if valid:
+                allowed.add(('vault', root))
+                if metadata_kind == 'key_metadata' and collection['status'] in ('collected', 'empty'):
+                    keys = {key['id'].casefold(): key for key in collection['items']}
+                    if len(keys) != len(collection['items']):
+                        continue
+                    for policy_collection in snapshot['collections']:
+                        key = keys.get(policy_collection['scope'].casefold())
+                        if (policy_collection['type'] != 'key_rotation_policy' or key is None
+                                or not captured(policy_collection)):
+                            continue
+                        valid_policy = True
+                        for policy in policy_collection['items']:
+                            proof = policy.get('_provenance', {})
+                            if (str(policy.get('id', '')).casefold() != (key['id'] + '/rotationpolicy').casefold()
+                                    or str(policy.get('parent_id', '')).casefold() != key['id'].casefold()
+                                    or str(policy.get('type', '')).casefold() != 'microsoft.keyvault/vaults/keys/rotationpolicy'
+                                    or not captured(policy) or proof.get('endpoint') != 'keys/rotationpolicy/get'
+                                    or proof.get('read_only') is not True):
+                                valid_policy = False
+                                break
+                        if valid_policy and len(policy_collection['items']) <= 1:
+                            allowed.add(('key_rotation_policy', policy_collection['scope']))
+        elif collection['type'] == 'diagnostic_setting' and scope.casefold() == root.casefold():
+            if parent_collection['status'] not in ('collected', 'empty', 'partial'):
+                continue
+            if sum(c['type'] == 'diagnostic_setting' and c['scope'].casefold() == row['id'].casefold() for c in snapshot['collections']) != 1:
+                continue
+            wrappers = [{'native_id': row['id'], 'provider': 'azure', 'type': 'vault', 'data': row}]
+            valid = True
+            for child in collection['items']:
+                try:
+                    child = resolve_embedded_fact(child, wrappers, child_status=collection['status'])
+                except Unavailable:
+                    valid = False
+                    break
+                identity, proof = child.get('id'), child.get('_provenance', {})
+                path = row['id'] + '/providers/Microsoft.Insights/diagnosticSettings'
+                if (not isinstance(identity, str) or not re.fullmatch(re.escape(path) + r'/[^/?#%]+', identity, re.I)
+                        or str(child.get('type', '')).casefold() != 'microsoft.insights/diagnosticsettings'
+                        or str(child.get('parent_id', '')).casefold() != row['id'].casefold()
+                        or not captured(child) or proof.get('source_operation') != 'DiagnosticSettings_List'
+                        or proof.get('api_version') != '2021-05-01-preview' or proof.get('read_only') is not True
+                        or str(proof.get('scope', '')).casefold() != row['id'].casefold()
+                        or str(proof.get('request_path', '')).casefold() != path.casefold()):
+                    valid = False
+                    break
+            if valid:
+                allowed.add(('diagnostic_setting', collection['scope']))
+    return allowed
+
+
+def authorized_service_diagnostic_scopes(snapshot, scope):
+    """Join only captured native Application Gateway/Load Balancer diagnostics."""
+    from peaso.checks.facts import resolve_embedded_fact, Unavailable
+    uuid = r'[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}'
+    if re.fullmatch('/subscriptions/' + uuid, scope, re.I) is None:
+        return set()
+    if scope.casefold() not in {s.casefold() for s in snapshot['scopes']}:
+        return set()
+    meta = snapshot.get('metadata', {})
+    credential, customer = meta.get('credential_context_id'), meta.get('customer_context_id')
+    if (not isinstance(credential, str) or re.fullmatch(r'[0-9a-f]{32}', credential) is None
+            or customer != 'scan-local:' + credential or meta.get('collection') != 'read-only'):
+        return set()
+    def captured(row):
+        p = row.get('_provenance', {})
+        return isinstance(p, dict) and p.get('credential_context_id') == credential and p.get('customer_context_id') == customer
+    kinds = {'application_gateway': 'Microsoft.Network/applicationGateways',
+             'load_balancer': 'Microsoft.Network/loadBalancers'}
+    parents = {}
+    for kind, native_type in kinds.items():
+        envelopes = [c for c in snapshot['collections'] if c['type'] == kind and c['scope'].casefold() == scope.casefold()]
+        if len(envelopes) != 1 or not captured(envelopes[0]):
+            continue
+        rows, seen, valid = envelopes[0]['items'], set(), True
+        for row in rows:
+            rid = row.get('id')
+            if (not isinstance(rid, str)
+                    or re.fullmatch(re.escape(scope) + r'/resourceGroups/[^/?#%\\\s]+/providers/' + re.escape(native_type) + r'/[^/?#%\\\s]+', rid, re.I) is None
+                    or any(p in ('.', '..') for p in rid.split('/'))
+                    or rid.casefold() in seen or not captured(row)
+                    or str(row.get('type', '')).casefold() != native_type.casefold()
+                    or not isinstance(row.get('properties'), dict)):
+                valid = False
+                break
+            seen.add(rid.casefold())
+        if valid:
+            parents.update({row['id'].casefold(): (kind, row) for row in rows})
+    allowed = set()
+    for child in snapshot['collections']:
+        parent = parents.get(child['scope'].casefold())
+        if child['type'] != 'diagnostic_setting' or parent is None or not captured(child):
+            continue
+        if sum(c['type'] == child['type'] and c['scope'].casefold() == child['scope'].casefold() for c in snapshot['collections']) != 1:
+            continue
+        kind, row = parent
+        expected = row['id'] + '/providers/Microsoft.Insights/diagnosticSettings'
+        # Empty native responses still need the actual completed LIST receipt.
+        # Denied/partial envelopes retain their status and can never prove
+        # absence; they may enter the exact tuple solely to propagate that gap.
+        if child['status'] in ('collected', 'empty'):
+            proof = child.get('_provenance', {})
+            if (proof.get('source_operation') != 'DiagnosticSettings_List'
+                    or proof.get('read_only') is not True
+                    or proof.get('api_version') != '2021-05-01-preview'
+                    or str(proof.get('scope', '')).casefold() != row['id'].casefold()
+                    or str(proof.get('request_path', '')).casefold() != expected.casefold()):
+                continue
+        wrappers = [{'native_id': row['id'], 'provider': 'azure', 'type': kind, 'data': row}]
+        expected = row['id'] + '/providers/Microsoft.Insights/diagnosticSettings'
+        seen, valid = {}, True
+        for raw in child['items']:
+            try:
+                item = resolve_embedded_fact(raw, wrappers, child_status=child['status'])
+            except Unavailable:
+                valid = False
+                break
+            rid, proof = item.get('id'), item.get('_provenance', {})
+            if (not isinstance(rid, str) or re.fullmatch(re.escape(expected) + r'/[^/?#%\\\s]+', rid, re.I) is None
+                    or not captured(item) or not isinstance(item.get('properties'), dict)
+                    or str(item.get('type', '')).casefold() != 'microsoft.insights/diagnosticsettings'
+                    or str(item.get('parent_id', '')).casefold() != row['id'].casefold()
+                    or proof.get('source_operation') != 'DiagnosticSettings_List' or proof.get('read_only') is not True
+                    or proof.get('api_version') != '2021-05-01-preview'
+                    or str(proof.get('scope', '')).casefold() != row['id'].casefold()
+                    or str(proof.get('request_path', '')).casefold() != expected.casefold()
+                    or rid.casefold() in seen and seen[rid.casefold()] != item):
+                valid = False
+                break
+            seen[rid.casefold()] = item
+        # Retain denied and partial envelopes: consumers require their real
+        # status before absence/cardinality, never a fabricated empty inventory.
+        if valid:
+            allowed.add(('diagnostic_setting', child['scope']))
+    return allowed
+
+
 def full_detail(value, kind, version):
     """Called only after the native GET identity and properties are verified."""
     value = {**value, "properties": dict(value["properties"]),

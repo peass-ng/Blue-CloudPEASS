@@ -5,6 +5,7 @@ or unrecognized native fact. A helper never turns absence into a FAIL.
 """
 from __future__ import annotations
 import re
+from ipaddress import ip_network
 from . import register, result, unknown
 from .facts import get, list_of_objects, optional, complete_items, Unavailable
 from .fixtures import CASES, nest
@@ -83,7 +84,7 @@ def setting(slug, kind, path, good, bad, title, *, expected=None, severity="medi
 
 # --- Network security group rule normalization -------------------------------------------------------------
 
-INTERNET_SOURCES = ("*", "0.0.0.0", "0.0.0.0/0", "Internet", "any", "<nw>/0", "/0")
+INTERNET_SOURCES = ("*", "0.0.0.0", "0.0.0.0/0", "::/0", "Internet", "any", "<nw>/0", "/0")
 
 
 def _strings(properties, plural, singular):
@@ -100,12 +101,24 @@ def _strings(properties, plural, singular):
     return [one]
 
 
+def _nsg_source_prefix(source):
+    """Canonicalize equivalent universal IPv6 prefixes, never narrower nets."""
+    if ":" in source and "/" in source:
+        try:
+            network = ip_network(source, strict=False)
+        except ValueError:
+            return source
+        if network.version == 6 and network.prefixlen == 0:
+            return "::/0"
+    return source
+
+
 def nsg_sources(properties):
     sources = _strings(properties, "sourceAddressPrefixes", "sourceAddressPrefix")
     if sources:
         if any(not source.strip() for source in sources):
             raise Unavailable("empty NSG source prefix")
-        return sources
+        return [_nsg_source_prefix(source) for source in sources]
     groups = list_of_objects(optional(properties, "sourceApplicationSecurityGroups", [], list))
     if not groups:
         raise Unavailable("NSG source address or application security group selector unavailable")

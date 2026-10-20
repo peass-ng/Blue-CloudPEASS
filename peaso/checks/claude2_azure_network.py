@@ -6,6 +6,7 @@ subscription; NSG and VNet joins compare ARM ids case-insensitively. Every absen
 dependency inventory (``scoped``), otherwise the result is UNKNOWN.
 """
 from __future__ import annotations
+import re
 from .claude2_azure_common import *  # noqa: F401,F403
 from .claude2_azure_common import CHECK_IDS
 from .claude_azure_network import _conditions, _has, _alert
@@ -99,10 +100,10 @@ def nsg_flow_log(item, index):
     subnets, nics = _attachments(item)
     if not subnets and not nics:
         return na("NSG is not attached to any subnet or network interface")
-    refs = list_of_objects(optional(get(item, "properties", dict), "flowLogs", [], list))
     logs = _nsg_flow_logs(index, item)
-    if refs or logs:
-        return result(False, nsg_flow_logs=[r.get("id") for r in refs] + [f.get("name") for f in logs])
+    enabled = [f for f in logs if get(f, "properties.enabled", bool)]
+    if enabled:
+        return result(False, nsg_flow_logs=[f.get("name") for f in enabled])
     covering = [f for f in _vnet_coverage(index, item) if get(f, "properties.enabled", bool)]
     return result(not covering, vnet_flow_logs=[f.get("name") for f in covering],
                   semantics="An enabled VNet flow log on an attached subnet, its VNet or an attached NIC (the supported "
@@ -147,11 +148,34 @@ CASES[cid("vnet_flow_log_retention_90")] = {"pass": _flow_log(VNET_ID, days=0), 
 
 def _analytics_count(index, target_types):
     hits = []
+    scope = lower_id(get(index, "context.scope", str))
+    if not re.fullmatch(r"/subscriptions/[^/]+", scope):
+        raise Unavailable("Traffic Analytics requires a selected subscription")
     for flow_log in scoped(index, "flow_log"):
+        target = lower_id(get(flow_log, "properties.targetResourceId", str))
+        match = re.fullmatch(r"(/subscriptions/[^/]+)/resourcegroups/[^/]+/providers/microsoft\.network/"
+                             r"(virtualnetworks|networksecuritygroups|networkinterfaces)/[^/]+(?:/subnets/[^/]+)?", target)
+        if not match or ("/subnets/" in target and match[2] != "virtualnetworks"):
+            raise Unavailable("malformed or unsupported flow log target resource ID")
+        if match[1] != scope:
+            continue
         if not any(t in _target_type(flow_log) for t in target_types):
+            continue
+        kind = {"virtualnetworks": "vnet", "networksecuritygroups": "nsg", "networkinterfaces": "nic"}[match[2]]
+        parent_id = target.split("/subnets/", 1)[0]
+        parents = [row for row in scoped(index, kind) if lower_id(get(row, "id", str)) == parent_id]
+        if len(parents) != 1:
+            raise Unavailable("flow log target not uniquely resolved in selected network inventory")
+        if "/subnets/" in target:
+            subnets = list_of_objects(get(parents[0], "properties.subnets", list))
+            if sum(lower_id(get(row, "id", str)) == target for row in subnets) != 1:
+                raise Unavailable("flow log subnet target not uniquely resolved")
+        if not get(flow_log, "properties.enabled", bool):
             continue
         analytics = optional(get(flow_log, "properties", dict), "flowAnalyticsConfiguration", {}, dict)
         config = optional(analytics, "networkWatcherFlowAnalyticsConfiguration", {}, dict)
+        if not optional(config, "enabled", False, bool):
+            continue
         workspace = config.get("workspaceId")
         if workspace is not None:
             if not isinstance(workspace, str) or not workspace.strip():
@@ -295,7 +319,10 @@ PREDEFINED_TLS = {"AppGwSslPolicy20150501": False, "AppGwSslPolicy20170401": Fal
 def agw_tls(item, index):
     policy = omitted(item, "properties", "sslPolicy", "provisioningState", None)
     if policy is None:
-        return result(False, ssl_policy=None, semantics="Upstream treats an unset sslPolicy as compliant (service default policy)")
+        name = get(item, "properties.defaultPredefinedSslPolicy", str)
+        if name not in PREDEFINED_TLS:
+            return unknown("native default TLS policy cannot be resolved", policy_name=name)
+        return result(not PREDEFINED_TLS[name], ssl_policy=None, default_policy_name=name)
     if not isinstance(policy, dict):
         raise Unavailable("malformed sslPolicy")
     minimum = policy.get("minProtocolVersion")
@@ -315,12 +342,24 @@ CASES[cid("app_gateway_min_tls_12")] = {
 
 
 @claude2("app_gateway_waf_enabled", "application_gateway", "Application Gateway has a Web Application Firewall enabled", severity="high",
-         control="SC-7", remediation="Use the WAF_v2 SKU and associate an enabled WAF policy with the Application Gateway.")
+         control="SC-7", dependencies=["application_gateway", "web_application_firewall_policy"],
+         remediation="Use the WAF_v2 SKU and associate an enabled WAF policy with the Application Gateway.")
 def agw_waf(item, index):
     props = get(item, "properties", dict)
     policy = omitted(item, "properties", "firewallPolicy", "provisioningState", None)
-    if isinstance(policy, dict) and isinstance(policy.get("id"), str) and policy["id"]:
-        return result(False, firewall_policy=policy["id"])
+    if policy is not None:
+        wanted = lower_id(get(policy, "id", str))
+        gateway = lower_id(get(item, "id", str))
+        scope = lower_id(get(index, "context.scope", str))
+        if not wanted.startswith(scope + "/resourcegroups/") or not gateway.startswith(scope + "/resourcegroups/"):
+            raise Unavailable("associated WAF policy is outside the selected subscription")
+        rows = [row for row in scoped(index, "web_application_firewall_policy") if lower_id(get(row, "id", str)) == wanted]
+        if len(rows) != 1:
+            raise Unavailable("associated WAF policy not uniquely resolved in collected inventory")
+        state = get(rows[0], "properties.policySettings.state", str)
+        if state not in ("Enabled", "Disabled"):
+            raise Unavailable("unrecognized WAF policy state")
+        return result(state != "Enabled", firewall_policy=policy["id"], policy_state=state)
     config = omitted(item, "properties", "webApplicationFirewallConfiguration", "provisioningState", None)
     if config is None:
         return result(True, reason="no WAF configuration or WAF policy")

@@ -7,6 +7,7 @@ import peaso.checks.claude_azure_identity as identity
 from peaso.checks import CHECKS
 from peaso.checks.claude_azure_common import scope_index
 from peaso.checks.fixtures import CASES
+from tests.azure_native_successor_inputs_20261020 import current_cases
 
 REGISTRY = {check.id: check for check in CHECKS}
 IDS = list(identity.IDENTITY_CHECK_IDS)
@@ -27,7 +28,7 @@ def test_group_registers_unique_prefixed_ids():
 
 @pytest.mark.parametrize("check_id", IDS)
 def test_fixtures(check_id):
-    cases = CASES[check_id]
+    cases = current_cases(check_id, CASES[check_id])
     assert "index" not in cases or REGISTRY[check_id].target != "scope"
     expected_cases = (("pass", "PASS"), ("fail", "FAIL"))
     if check_id == cid("iam_root_custom_role_no_wildcard"):
@@ -36,6 +37,10 @@ def test_fixtures(check_id):
         # root-scope criterion. Preserve the historical UNKNOWN and ordinary
         # non-root NOT_APPLICABLE evidence under truthful CASES keys.
         expected_cases = (("not_applicable", "NOT_APPLICABLE"), ("unknown", "UNKNOWN"))
+    if check_id == cid('managed_hsm_audit_logging'):
+        # The obsolete retention field cannot prove current retention; the
+        # separate declared-audit replacement is reviewed independently.
+        expected_cases = (('unknown', 'UNKNOWN'), ('fail', 'FAIL'))
     for name, expected in expected_cases:
         data = copy.deepcopy(cases[name])
         index = copy.deepcopy(cases.get(name + "_index", {}))

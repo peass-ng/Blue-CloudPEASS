@@ -124,7 +124,8 @@ def _ingress_rules(item):
         raise Unavailable("missing or malformed NetworkPolicy policyTypes")
     if "Ingress" not in types:
         return None
-    return list_of_objects(get(spec, "ingress", list))
+    native = item.get("provenance", {}).get("evidence") == "read-only list"
+    return list_of_objects(optional(spec, "ingress", [], list) if native else get(spec, "ingress", list))
 
 
 @register(IDS[0], "k8s", "network", "networkpolicy",

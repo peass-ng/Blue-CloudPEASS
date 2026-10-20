@@ -182,7 +182,10 @@ def test_content_operations_never_expand_default_metadata_customer_policy():
  assert role.UNGRANTED_CONTENT_OPERATIONS==native.READ_ACTIONS|{
   ('lambda','get_function'),('lambda','get_layer_version'),
   ('codecommit','get_repository'),('codecommit','get_branch'),('codecommit','get_folder'),
-  ('codecommit','get_file'),('logs','filter_log_events')}
+  ('codecommit','get_file'),('logs','filter_log_events'),
+  ('amplify','get_app'),('apigateway','get_stage'),
+  ('glue','get_job'),('glue','get_connection'),('ssm','describe_document'),
+  ('s3','head_object'),('s3','get_object')}
  policy=role.build_policy(include_credential_report_generation=False)
  assert policy==role.build_policy(aws.READ_ACTIONS|role.PRESERVED_TEMPLATE_READ_ACTIONS|native.READ_ACTIONS,
                                  include_credential_report_generation=False)

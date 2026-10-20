@@ -901,7 +901,9 @@ def test_gcp_captures_final_transport_token_not_impersonation_source(monkeypatch
     source = Credentials({'token': 'private-source-token'})
     final = Credentials({'token': 'private-final-token'})
     transport = Transport(final, {'retries': 0})
-    response = SimpleNamespace(status_code=200, json=lambda: {'name': 'projects/one'}, headers={})
+    payload = {'name': 'projects/one'}
+    response = SimpleNamespace(status_code=200, json=lambda: payload,
+                               content=json.dumps(payload).encode(), headers={})
     monkeypatch.setattr(transport, '_session', lambda: SimpleNamespace(request=lambda *a, **kw: response))
     access.begin()
     try:

@@ -10,16 +10,38 @@ from peaso.checks import CHECKS, evaluate_check
 from peaso.checks.facts import MemoIndex
 from peaso.checks.fixtures import CASES
 from peaso.checks.gcp_evidence_explanations import evidence_summary, CATALOG
+from tests.gcp_clarity_combined_successor_20261020 import (
+    CURRENT_NATIVE_EXAMPLES, FUNCTION_ID, current_golden_rows, digest, extension_cases)
 
-GOLDEN=json.loads((Path(__file__).parent/'fixtures/gcp-natural-evidence-golden.json').read_text())
+HISTORICAL_GOLDEN=json.loads((Path(__file__).parent/'fixtures/gcp-natural-evidence-golden.json').read_text())
+GOLDEN=current_golden_rows(HISTORICAL_GOLDEN)
 NATIVE=json.loads((Path(__file__).parent/'fixtures/gcp-native-review-behavior.json').read_text())
 NATIVE_BY_ID={row['id']:row for row in NATIVE['cases']}
 CURRENT_EXAMPLES=[row for row in GOLDEN if 'reviewed_fields' in row]
 
 
 def test_every_registered_gcp_check_has_a_reviewed_natural_example():
-    assert {x['finding']['check_id'] for x in GOLDEN}=={c.id for c in CHECKS if c.provider=='gcp'}
-    assert len({x['finding']['check_id'] for x in GOLDEN})==525
+    historical={x['finding']['check_id'] for x in GOLDEN}
+    admitted=set(CURRENT_NATIVE_EXAMPLES)-{FUNCTION_ID}
+    assert not historical & admitted
+    assert historical | admitted=={c.id for c in CHECKS if c.provider=='gcp'}
+    assert len(historical)==525
+    assert len(admitted)==11
+
+
+@pytest.mark.parametrize('cid,example', [(cid, row) for cid, rows in CURRENT_NATIVE_EXAMPLES.items()
+    if cid != FUNCTION_ID for row in rows], ids=lambda value: value if isinstance(value, str) else value['branch'])
+def test_later_admissions_preserve_source_status_evidence_and_typed_prose(cid, example):
+    spec=extension_cases(cid, CASES);branch=example['branch']
+    item=deepcopy(spec[branch]);index=deepcopy(spec.get(branch+'_index',spec.get('index',{})))
+    before=deepcopy((item,index))
+    status,evidence=evaluate_check(cid,item,MemoIndex(index))
+    assert status==example['status']==branch.upper()
+    assert digest(json.loads(json.dumps(evidence)))==example['evidence_sha256']
+    finding={'provider':'gcp','check_id':cid,'status':status,'evidence':evidence,
+             'scope':index.get('context',{}).get('scope')}
+    assert evidence_summary(finding)==example['expected']
+    assert (item,index)==before
 
 
 @pytest.mark.parametrize('row',CURRENT_EXAMPLES,ids=lambda x:x['finding']['check_id']+'-'+x['case'])

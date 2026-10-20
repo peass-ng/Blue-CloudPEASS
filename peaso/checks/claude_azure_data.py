@@ -8,6 +8,7 @@ scratchpad facts_data.md and stay UNKNOWN until collected.
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from ipaddress import collapse_addresses, ip_network
+import re
 from urllib.parse import urlparse
 from .claude_azure_common import *  # noqa: F401,F403
 from .claude_azure_common import CHECK_IDS
@@ -516,6 +517,13 @@ def fabric_aad(item, index):
     aad = optional(get(item, "properties", dict), "azureActiveDirectory", None)
     if aad is not None and not isinstance(aad, dict):
         return unknown("malformed azureActiveDirectory")
+    if aad is not None:
+        for name in ("tenantId", "clusterApplication", "clientApplication"):
+            if name == "clientApplication" and name not in aad:
+                continue
+            value = aad.get(name)
+            if not isinstance(value, str) or re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", value) is None:
+                return unknown("incomplete or malformed Entra application identity", field=name)
     return result(aad is None, entra_configured=aad is not None)
 CASES[cid("servicefabric_cluster_entra_auth")] = {"pass": {"properties": {"azureActiveDirectory": {"tenantId": "t", "clusterApplication": "a"}}},
                                                   "fail": {"properties": {"azureActiveDirectory": None}}}
@@ -524,8 +532,15 @@ CASES[cid("servicefabric_cluster_entra_auth")] = {"pass": {"properties": {"azure
 @claude("servicefabric_cluster_encrypt_and_sign", "service_fabric_cluster", "Service Fabric cluster protection level is EncryptAndSign", control="SC-8")
 def fabric_protection(item, index):
     sections = list_of_objects(optional(get(item, "properties", dict), "fabricSettings", [], list))
-    values = [get(p, "value") for s in sections for p in list_of_objects(get(s, "parameters", list))]
-    return result("EncryptAndSign" not in values, encrypt_and_sign=("EncryptAndSign" in values))
+    values = [get(parameter, "value", str) for section in sections
+              if get(section, "name", str) == "Security"
+              for parameter in list_of_objects(get(section, "parameters", list))
+              if get(parameter, "name", str) == "ClusterProtectionLevel"]
+    if len(values) > 1 or values and values[0] not in ("None", "Sign", "EncryptAndSign"):
+        return unknown("ambiguous or unrecognized ClusterProtectionLevel")
+    configured = values[0] if values else None
+    return result(configured != "EncryptAndSign", cluster_protection_level=configured)
+
 _fabric = lambda value: {"properties": {"fabricSettings": [{"name": "Security", "parameters": [{"name": "ClusterProtectionLevel", "value": value}]}]}}
 CASES[cid("servicefabric_cluster_encrypt_and_sign")] = {"pass": _fabric("EncryptAndSign"), "fail": _fabric("None")}
 
@@ -607,9 +622,18 @@ def sql_va_findings(item, index):
     if not scans:
         return _manual("No vulnerability assessment scan records exist for this database")
     latest = max(scans, key=lambda s: _when(get(s, "properties.endTime", str)))
+    state = get(latest, "properties.state", str)
+    if state not in ("Passed", "Failed"):
+        return unknown("latest vulnerability scan did not complete successfully", latest_scan_state=state)
+    properties = get(latest, "properties", dict)
+    errors = list_of_objects(get(properties, "errors", list)) if "errors" in properties else []
+    if errors:
+        return unknown("latest vulnerability scan reports execution errors", latest_scan_state=state)
     failed = get(latest, "properties.numberOfFailedSecurityChecks", int)
     if failed < 0:
         return unknown("negative vulnerability assessment failed-check count")
+    if (state == "Failed") != (failed > 0):
+        return unknown("scan completion state contradicts failed-check count", latest_scan_state=state)
     return result(failed > 0, latest_scan_end=latest["properties"]["endTime"], failed_checks=failed,
                   semantics="Latest scan per database; upstream's global LIMIT 1 is not reproduced")
 _scan = lambda n: {"name": "app", "vulnerabilityAssessmentScans": [{"properties": {"endTime": "2026-01-01T00:00:00Z", "numberOfFailedSecurityChecks": 9}},
@@ -808,15 +832,22 @@ CASES[cid("storage_key_expiration_policy_max_90")] = {"pass": nest("properties.k
 @claude("storage_access_keys_rotated_90", "storage_account", "Storage account access keys were regenerated within 90 days", control="IA-5")
 def keys_rotated(item, index):
     created = get(item, "properties.keyCreationTime", dict)
-    if not created:
-        return _na("No access key creation times are reported")
-    now = datetime.now(timezone.utc)
-    ages = {}
-    for key, value in created.items():
-        if not isinstance(value, str):
-            return unknown("key creation time unavailable", key=key)
-        ages[key] = (now - _when(value)).days
-    return result(any(age > 90 for age in ages.values()), key_age_days=ages)
+    context = optional(index, "context", None)
+    now = _when(get(context, "created_at", str)) if context is not None else datetime.now(timezone.utc)
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise Unavailable("scan capture time lacks a timezone")
+    ages, seconds, timestamps = {}, {}, {}
+    for key in ("key1", "key2"):
+        value = _when(get(created, key, str))
+        if value.tzinfo is None or value.utcoffset() is None or value > now:
+            raise Unavailable("key creation time lacks a timezone or is after capture")
+        seconds[key] = (now - value).total_seconds()
+        ages[key] = seconds[key] / 86400
+        timestamps[key] = get(created, key, str)
+    return result(any(age > 90 * 86400 for age in seconds.values()), key_age_days=ages,
+                  key_age_seconds=seconds, threshold_seconds=90 * 86400,
+                  captured_at=now.isoformat(), key_creation_time=timestamps,
+                  time_source="scan_capture" if context is not None else "evaluation_clock")
 _recent = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
 _old = (datetime.now(timezone.utc) - timedelta(days=200)).isoformat()
 CASES[cid("storage_access_keys_rotated_90")] = {"pass": nest("properties.keyCreationTime", {"key1": _recent, "key2": _recent}),
@@ -900,30 +931,105 @@ for _svc, _skip in (("blob", _blob_skip), ("queue", _premium), ("table", _premiu
         "fail": {"sku": {"tier": "Standard"}, "kind": "StorageV2", "serviceDiagnosticSettings": {_svc: []}}}
 
 
+def _storage_account_identity(account, scope):
+    """Validate every inventory identity without requiring an unused service."""
+    rid = get(account, "id", str)
+    pattern = re.escape(scope) + r"/resourceGroups/[^/?#%\\\s]+/providers/Microsoft\.Storage/storageAccounts/([a-z0-9]{3,24})"
+    match = re.fullmatch(pattern, rid, re.I)
+    if (match is None or any(part in (".", "..") for part in rid.split("/"))
+            or get(account, "type", str).casefold() != "microsoft.storage/storageaccounts"
+            or get(account, "name", str).casefold() != match.group(1).casefold()):
+        raise Unavailable("VHD backing account native identity unresolved")
+    proof = get(account, "_provenance", dict)
+    if (proof.get("representation") != "full" or proof.get("source_operation") != "get"
+            or proof.get("read_only") is not True or proof.get("api_version") != "2023-05-01"):
+        raise Unavailable("VHD backing account full GET unavailable")
+    get(account, "properties", dict)
+    return match.group(1).lower()
+
+
+def _storage_blob_origin(account, scope):
+    """Require a native Blob endpoint only for an actual backing candidate."""
+    name = _storage_account_identity(account, scope)
+    endpoint = urlparse(get(account, "properties.primaryEndpoints.blob", str))
+    if (endpoint.scheme != "https" or endpoint.hostname != name + ".blob.core.windows.net"
+            or endpoint.username is not None or endpoint.password is not None or endpoint.port not in (None, 443)
+            or endpoint.netloc.lower() not in (endpoint.hostname, endpoint.hostname + ":443")
+            or endpoint.path not in ("", "/") or endpoint.query or endpoint.fragment):
+        raise Unavailable("VHD backing account Blob endpoint unsupported or contradictory")
+    return endpoint.hostname, endpoint.port or 443
+
+
 @_scope_check("storage_vhd_accounts_cmk", "storage_account", "Storage accounts hosting unmanaged VM OS disks use customer-managed keys",
               dependencies=["storage_account", "vm"], control="SC-28")
 def vhd_cmk(item, index):
-    accounts = {get(a, "name", str).lower(): a for a in scoped(index, "storage_account")}
-    offending, unresolved = [], []
+    scope = get(item, "scope", str)
+    if re.fullmatch(r"/subscriptions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", scope, re.I) is None:
+        raise Unavailable("VHD selected subscription identity malformed")
+    context = optional(index, "context", None)
+    if context is not None and get(context, "scope", str).casefold() != scope.casefold():
+        raise Unavailable("VHD selected subscription context differs")
+    accounts, names = {}, set()
+    for account in scoped(index, "storage_account"):
+        name = _storage_account_identity(account, scope)
+        if name in names:
+            raise Unavailable("storage account inventory identity ambiguous")
+        names.add(name)
+        # These are lookup candidates only. A matching canonical name never
+        # substitutes for the actual full native endpoint proof below.
+        hosts = {name + ".blob.core.windows.net"}
+        try:
+            endpoint = urlparse(get(account, "properties.primaryEndpoints.blob", str))
+            if endpoint.scheme == "https" and endpoint.hostname and endpoint.port in (None, 443):
+                hosts.add(endpoint.hostname)
+        except (Unavailable, ValueError):
+            pass  # An unrelated FileStorage account need not expose Blob.
+        for host in hosts:
+            accounts.setdefault(host, []).append(account)
+    offending, unresolved, vhd_count = [], [], 0
     for vm in scoped(index, "vm"):
+        vm_id = get(vm, "id", str)
+        if (re.fullmatch(re.escape(scope) + r"/resourceGroups/[^/?#%\\\s]+/providers/Microsoft\.Compute/virtualMachines/[^/?#%\\\s]+", vm_id, re.I) is None
+                or any(part in (".", "..") for part in vm_id.split("/"))
+                or get(vm, "type", str).casefold() != "microsoft.compute/virtualmachines"
+                or get(vm, "_provenance.representation", str) != "full"
+                or get(vm, "_provenance.source_operation", str) != "get"
+                or get(vm, "_provenance.read_only", bool) is not True
+                or get(vm, "_provenance.api_version", str) != "2023-09-01"):
+            raise Unavailable("VHD VM full scoped identity unresolved")
         disk = get(vm, "properties.storageProfile.osDisk", dict)
         if disk.get("managedDisk") is not None:
+            managed_id = get(disk, "managedDisk.id", str)
+            if ("vhd" in disk or any(part in (".", "..") for part in managed_id.split("/"))
+                    or not re.fullmatch(re.escape(scope) + r"/resourceGroups/[^/?#%\\\s]+/providers/Microsoft\.Compute/disks/[^/?#%\\\s]+", managed_id, re.I)):
+                raise Unavailable("VM disk attachment identity contradictory or foreign")
             continue
-        host = urlparse(get(disk, "vhd.uri", str)).hostname or ""
-        account = accounts.get(host.split(".", 1)[0].lower())
-        if account is None:
-            unresolved.append(host)
+        vhd_count += 1
+        uri = urlparse(get(disk, "vhd.uri", str))
+        if (uri.scheme != "https" or not uri.hostname or uri.username is not None or uri.password is not None
+                or uri.port not in (None, 443) or uri.query or uri.fragment
+                or uri.netloc.lower() not in (uri.hostname, uri.hostname + ":443")
+                or len(uri.path.strip("/").split("/")) < 2 or any(part in (".", "..") for part in uri.path.split("/"))):
+            unresolved.append("unsupported VHD URI origin")
+            continue
+        candidates = accounts.get(uri.hostname, [])
+        if len(candidates) != 1:
+            unresolved.append(uri.hostname)
         else:
+            account = candidates[0]
+            if _storage_blob_origin(account, scope) != (uri.hostname, uri.port or 443):
+                raise Unavailable("VHD native Blob origin differs from backing reference")
             source = get(account, "properties.encryption.keySource", str).casefold()
             if source not in ("microsoft.storage", "microsoft.keyvault"):
                 raise Unavailable("unrecognized VHD storage key source")
             if source == "microsoft.storage":
                 offending.append(account["name"])
     if offending:
-        return result(True, platform_key_vhd_accounts=sorted(set(offending)))
+        return result(True, platform_key_vhd_accounts=sorted(set(offending)), unmanaged_os_vhd_count=vhd_count)
     if unresolved:
         return unknown("VHD host account is outside the collected inventory", hosts=unresolved)
-    return result(False, platform_key_vhd_accounts=[], semantics="Account matched by VHD URI host; upstream matched any name substring")
+    return result(False, platform_key_vhd_accounts=[], unmanaged_os_vhd_count=vhd_count,
+                  semantics="Full native same-subscription account GET and exact HTTPS Blob origin; key-source configuration only" if vhd_count else "Complete native VM inventory declares no unmanaged OS VHD")
 _vhd_vm = {"id": "/subscriptions/s/v", "properties": {"storageProfile": {"osDisk": {"vhd": {"uri": "https://disks.blob.core.windows.net/vhds/os.vhd"}}}}}
 _acct = lambda source: {"id": "/subscriptions/s/a", "name": "disks", "properties": {"encryption": {"keySource": source}}}
 CASES[cid("storage_vhd_accounts_cmk")] = {
@@ -1073,9 +1179,22 @@ CASES[cid("synapse_workspace_private_link")] = {"pass": approved_private_link_ca
 
 @claude("synapse_workspace_vulnerability_assessment", "synapse_workspace", "Synapse workspace SQL vulnerability assessment recurring scans are enabled", control="RA-5")
 def synapse_va(item, index):
-    rows = list_of_objects(get(item, "sqlVulnerabilityAssessments", list))
-    enabled = [get(r, "properties.recurringScans.isEnabled", bool) for r in rows]
-    return result(True not in enabled, recurring_scans=enabled)
+    # The upstream workspace criterion uses the workspace-managed SQL server
+    # policy. Dedicated-pool policies attest a different native resource.
+    rows = list_of_objects(get(item, "workspaceVulnerabilityAssessments", list))
+    rid = get(item, "id", str)
+    expected = (rid + "/vulnerabilityAssessments/default").casefold()
+    if len(rows) > 1:
+        raise Unavailable("duplicate workspace vulnerability assessment")
+    enabled = []
+    for row in rows:
+        if (get(row, "id", str).casefold() != expected or
+                get(row, "parent_id", str).casefold() != rid.casefold() or
+                get(row, "type", str).casefold() != "microsoft.synapse/workspaces/vulnerabilityassessments"):
+            raise Unavailable("foreign workspace vulnerability assessment")
+        enabled.append(get(row, "properties.recurringScans.isEnabled", bool))
+    return result(True not in enabled, recurring_scans=enabled,
+                  semantics="Workspace managed SQL server recurring-scan policy; pool policies and scan results are separate")
 CASES[cid("synapse_workspace_vulnerability_assessment")] = {"pass": {"sqlVulnerabilityAssessments": [{"properties": {"recurringScans": {"isEnabled": True}}}]},
                                                             "fail": {"sqlVulnerabilityAssessments": []}}
 

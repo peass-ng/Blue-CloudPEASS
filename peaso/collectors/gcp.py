@@ -20,16 +20,21 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from urllib.parse import quote, urlsplit
 
+from . import gcp_dataproc_source_runtime_20261020 as dataproc_source_runtime
+from . import gcp_workbench_source_runtime_20261020 as workbench_source_runtime
+from . import gcp_dataflow_batch_source_runtime_20261020 as selected_job_source_runtime
+
 OAUTH_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 HOSTS = frozenset(f"{s}.googleapis.com" for s in (
     "cloudasset", "cloudresourcemanager", "compute", "storage", "iam", "logging",
     "sqladmin", "container", "cloudkms", "secretmanager", "recommender", "bigquery", "artifactregistry",
     "run", "cloudfunctions", "cloudidentity", "appengine", "admin", "apikeys", "dataproc", "dns", "monitoring",
     "alloydb", "essentialcontacts", "accessapproval", "securitycenter", "serviceusage", "bigtableadmin", "cloudbilling",
-    "networkmanagement", "networkconnectivity", "networksecurity", "certificatemanager", "orgpolicy", "pubsub", "policyanalyzer", "accesscontextmanager",
+    "networkmanagement", "networkconnectivity", "networksecurity", "networkservices", "datastream", "datamigration", "certificatemanager", "orgpolicy", "pubsub", "policyanalyzer", "accesscontextmanager",
     "cloudbuild", "composer", "notebooks", "cloudscheduler", "domains", "sourcerepo", "osconfig", "integrations", "policytroubleshooter", "containeranalysis",
     # Groups Settings API (www.googleapis.com/groups/v1), read only with group_settings=true.
-    "www", "workflows"))
+    "www", "workflows", "vpcaccess", "file", "redis", "netapp", "servicenetworking", "dataflow", "batch", "aiplatform", "managedkafka", "memorystore",
+    "memcache", "looker", "lustre", "ids", "tpu", "backupdr", "vmwareengine", "datafusion", "apigee", "ml", "workstations", "baremetalsolution", "connectors"))
 SAFE_REASONS = frozenset(("SERVICE_DISABLED", "ACCESS_TOKEN_SCOPE_INSUFFICIENT", "IAM_PERMISSION_DENIED",
     "PERMISSION_DENIED", "UNAUTHENTICATED", "NOT_FOUND", "RESOURCE_EXHAUSTED", "INVALID_ARGUMENT",
     "BILLING_DISABLED", "USER_PROJECT_DENIED", "QUOTA_EXCEEDED", "RATE_LIMIT_EXCEEDED", "UNAVAILABLE",
@@ -71,8 +76,42 @@ def sanitize(value):
             if normalized in SENSITIVE_KEYS or normalized.endswith(("password", "token", "privatekey", "clientsecret", "secretvalue")):
                 continue
             if key == "env" and isinstance(item, list):
-                output[key] = [{"name": entry.get("name"), **({"valueFrom": sanitize(entry["valueFrom"])}
-                    if "valueFrom" in entry else {})} for entry in item if isinstance(entry, dict)]
+                output[key] = []
+                for entry in item:
+                    if not isinstance(entry, dict):
+                        output[key].append(None)  # Retain malformed entries as unavailable evidence.
+                        continue
+                    projected = {"name": entry.get("name")}
+                    # Presence is sufficient to detect invalid literal/reference unions;
+                    # the literal value itself never enters the snapshot.
+                    if "value" in entry:
+                        projected["_literal_value_present"] = True
+                        projected["_literal_value_empty"] = entry["value"] == ""
+                    elif "_literal_value_present" in entry:
+                        for marker in ("_literal_value_present", "_literal_value_empty"):
+                            if marker in entry:
+                                projected[marker] = entry[marker] if type(entry[marker]) is bool else None
+                    if "_coverage" in entry:
+                        projected["_coverage"] = sanitize(entry["_coverage"])
+                    for source, fields in (("valueSource", ("secret", "version")),
+                                           ("valueFrom", ("name", "key"))):
+                        if source not in entry:
+                            continue
+                        body = entry[source]
+                        if not isinstance(body, dict):
+                            projected[source] = None
+                            continue
+                        reference = {}
+                        if "_coverage" in body:
+                            reference["_coverage"] = sanitize(body["_coverage"])
+                        if "secretKeyRef" in body:
+                            selector = body["secretKeyRef"]
+                            reference["secretKeyRef"] = ({field: (sanitize(selector[field])
+                                if field == "_coverage" or isinstance(selector[field], str) else None)
+                                for field in (*fields, "_coverage") if field in selector}
+                                if isinstance(selector, dict) else None)
+                        projected[source] = reference
+                    output[key].append(projected)
                 continue
             if key in ("metadata", "commonInstanceMetadata") and isinstance(item, dict) and isinstance(item.get("items"), list):
                 output[key] = {**sanitize({k: v for k, v in item.items() if k != "items"}),
@@ -378,6 +417,15 @@ def native_header_session(transport):
     return session
 
 
+def _unique_data_identity_pairs(pairs):
+    value = {}
+    for key, member in pairs:
+        if key in value:
+            raise ReadError("malformed", "duplicate_project_identity_field")
+        value[key] = member
+    return value
+
+
 class Transport:
     def __init__(self, credentials, options, *, sleep=time.sleep):
         self.credentials, self.options, self.sleep = credentials, options, sleep
@@ -527,9 +575,17 @@ class Transport:
                     raise error from None
                 evidence["http_status"] = response.status_code
                 try:
-                    data = response.json()
+                    if (method == "GET" and parsed.hostname == "cloudresourcemanager.googleapis.com"
+                            and re.fullmatch(r"/v3/projects/[A-Za-z0-9_-]+", parsed.path)):
+                        # Canonical alias facts must survive a single cache read
+                        # without silently choosing one duplicate JSON identity.
+                        data = json.loads(response.content, object_pairs_hook=_unique_data_identity_pairs)
+                    else:
+                        data = response.json()
                     if extra.scheduler_endpoint(url):
                         data = extra.scheduler_metadata_response(data)
+                except ReadError:
+                    raise
                 except Exception:
                     data = None
                 if response.status_code >= 400 or 300 <= response.status_code < 400:
@@ -579,7 +635,7 @@ class Transport:
                         parsed.path.endswith('/functions') or re.fullmatch(r'/v2/projects/[^/]+/locations/[^/]+/functions/[A-Za-z0-9_-]+', parsed.path)):
                     from .gcp_function_source_secret_indicators import capture_response
                     data = capture_response(self, data, method=method, url=url, params=params, body=body, scope=scope)
-                    from peaso.collectors.gcp_function_secret_indicators import project_response
+                    from peaso.collectors.gcp_function_secret_pairs_20261020 import project_response
                     data = project_response(data, method=method, url=url, params=params, body=body,
                         scope=scope, enabled=(self.options.get('content_secret_scans') is True
                             and 'function' in self.options.get('_content_secret_scan_kinds', [])),
@@ -678,6 +734,12 @@ class Transport:
 # returned by these list calls; IAM and fields absent from list APIs are hydrated.
 COMPUTE = (
     ("network", "global/networks", "items", False),
+    ("interconnect", "global/interconnects", "items", False),
+    ("interconnect_attachment", "aggregated/interconnectAttachments", "interconnectAttachments", True),
+    ("service_attachment", "aggregated/serviceAttachments", "serviceAttachments", True),
+    ("network_endpoint_group", "aggregated/networkEndpointGroups", "networkEndpointGroups", True),
+    ("network_endpoint_group", "global/networkEndpointGroups", "items", False),
+    ("network_attachment", "aggregated/networkAttachments", "networkAttachments", True),
     ("subnetwork", "aggregated/subnetworks", "subnetworks", True),
     ("firewall", "global/firewalls", "items", False),
     ("firewall_policy", "aggregated/firewallPolicies", "firewallPolicies", True),
@@ -725,16 +787,27 @@ SUPPORTED_TYPES = frozenset({x[0] for x in COMPUTE} | {
     "worker_pool", "sql_backup_run", "source_repository", "alert_policy",
     "access_transparency_entry", "audit_log", "os_inventory", "security_policy", "gcp_v4_workload_facts",
     "dns_record", "cloudbuild_build", "sql_operation"})
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'vpc_access_connector', 'filestore_instance', 'redis_instance'}
+from .gcp_network_catalog import TYPES as NETWORK_CATALOG_TYPES
+from .gcp_network_catalog import PRIVATE_SERVICES as NETWORK_PRIVATE_SERVICES, SERVICE_ENDPOINTS as NETWORK_SERVICE_ENDPOINTS, REGIONAL as NETWORK_REGIONAL_SERVICES
+_NETWORK_API_SERVICES = {plan['service'] for plan in NETWORK_PRIVATE_SERVICES.values()} | {plan[0] for plan in NETWORK_REGIONAL_SERVICES.values()}
+HOSTS |= frozenset({service + '.googleapis.com' for service in _NETWORK_API_SERVICES} |
+    {host for service in _NETWORK_API_SERVICES
+     for host in NETWORK_SERVICE_ENDPOINTS.get(service, {}).values()})
+SUPPORTED_TYPES = SUPPORTED_TYPES | NETWORK_CATALOG_TYPES
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'artifact_image', 'sbom_occurrence', 'deployed_image', 'log_secret_sample', 'gcs_selected_object'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'app_engine_version_secret', 'workflow_source'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'clouddeploy_release_source', 'cloudbuild_artifact_source', 'gcs_selected_archive', 'composer_dag_source', 'cloudbuild_log_source', 'appengine_deployment_source'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'artifact_selected_file', 'function_source_archive', 'gke_workload_literal', 'dataform_selected_file', 'dataflow_job', 'batch_job', 'dataproc_job'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'bucket_acl', 'object_acl', 'bucket_effective_iam', 'os_patch_deployment', 'os_vulnerability_report', 'kms_effective_use'}
 SUPPORTED_TYPES = SUPPORTED_TYPES | {'log_entry', 'scc_finding', 'scc_notification_config', 'backup_target', 'asset_service_inventory', 'access_approval_request', 'provider_access_event', 'asset_previous', 'asset_audit_log'}
-SUPPORTED_TYPES = SUPPORTED_TYPES | {'source_repository_file'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'source_repository_file', 'cloudtasks_selected_task', 'bigquery_selected_routine'}
+SUPPORTED_TYPES = SUPPORTED_TYPES | dataproc_source_runtime.KINDS | workbench_source_runtime.KINDS | selected_job_source_runtime.KINDS
+SUPPORTED_TYPES = SUPPORTED_TYPES | {'cloudrun_job_declared_image'}
 # These inventories represent optional application content, not metadata.
 # An unselected read cannot establish that no resources/content exist.
-CONTENT_ONLY_TYPES = frozenset({
+CONTENT_ONLY_TYPES = selected_job_source_runtime.KINDS | dataproc_source_runtime.KINDS | workbench_source_runtime.KINDS | frozenset({
+    'cloudtasks_selected_task', 'bigquery_selected_routine',
     'source_repository_file',
     'clouddeploy_release_source',
     'cloudbuild_artifact_source',
@@ -743,6 +816,7 @@ CONTENT_ONLY_TYPES = frozenset({
     'dataflow_job', 'batch_job', 'dataproc_job', 'gke_workload_literal',
     'function_source_archive', 'composer_dag_source', 'artifact_selected_file', 'cloudbuild_log_source', 'appengine_deployment_source',
 })
+CONTENT_ONLY_TYPES = CONTENT_ONLY_TYPES | {'cloudrun_job_declared_image'}
 # Compute kinds whose resource IAM policy is read with the per-kind GET
 # {resource}/getIamPolicy method (collection path segment, location kind).
 COMPUTE_IAM = {"subnetwork": ("subnetworks", "region"), "image": ("images", None), "node_group": ("nodeGroups", "zone"),
@@ -765,9 +839,18 @@ DEPENDENCIES = {"service_account_key": {"service_account"}, "workload_identity_p
                 "workforce_provider": {"workforce_pool"}, "kms_key": {"kms_key_ring"},
                 "group": {"iam_policy", "organization"}, "group_membership": {"group", "iam_policy", "organization"}}
 DEPENDENCIES["bigquery_table"] = {"bigquery_dataset"}
+# Dedicated Dataproc source jobs independently GET exact parents; no list dependency.
+for _selected_job_source_kind in selected_job_source_runtime.KINDS:
+    DEPENDENCIES[_selected_job_source_kind] = set()
+for _workbench_source_kind in workbench_source_runtime.KINDS:
+    DEPENDENCIES[_workbench_source_kind] = set()
+for _dataproc_source_kind in dataproc_source_runtime.KINDS:
+    DEPENDENCIES[_dataproc_source_kind] = set()
 DEPENDENCIES['composer_dag_source'] = {'project', 'bucket', 'composer_environment'}
 DEPENDENCIES['cloudbuild_log_source'] = {'project', 'bucket'}
 DEPENDENCIES['source_repository_file'] = {'project'}
+DEPENDENCIES['cloudtasks_selected_task'] = {'project'}
+DEPENDENCIES['bigquery_selected_routine'] = {'project'}
 DEPENDENCIES['clouddeploy_release_source'] = {'project', 'bucket'}
 DEPENDENCIES['cloudbuild_artifact_source'] = {'project', 'bucket'}
 DEPENDENCIES['appengine_deployment_source'] = {'project', 'bucket'}
@@ -1000,6 +1083,14 @@ class GCPCollector:
                     '_content_secret_scan_kinds': [KIND]}, self.scopes)
             except Incomplete:
                 raise ValueError('Cloud Build log inspection requires bounded exact same-project Build names') from None
+        from .gcp_selected_task_routine_secret_indicators import SPECS as task_routine_specs, selected_targets as task_routine_targets, Incomplete as TaskRoutineIncomplete
+        for kind, spec in task_routine_specs.items():
+            if spec['option'] in self.options:
+                try:
+                    task_routine_targets({**self.options, 'content_secret_scans': True,
+                        '_content_secret_scan_kinds': [kind]}, self.scopes, kind)
+                except TaskRoutineIncomplete:
+                    raise ValueError('Task/routine inspection requires 1-8 exact unique names in one matching project-ID scope') from None
         if 'selected_source_repository_files' in self.options:
             from .gcp_sourcerepo_secret_indicators import selected_targets, KIND, Incomplete
             try:
@@ -1028,6 +1119,12 @@ class GCPCollector:
                     '_content_secret_scan_kinds': [KIND]}, self.scopes)
             except Incomplete:
                 raise ValueError('App Engine source inspection requires bounded exact same-project Version names') from None
+        selected_job_permitted = selected_job_source_runtime.authorize_collector(self.options, self.scopes)
+        self.needed.difference_update(selected_job_source_runtime.KINDS - selected_job_permitted)
+        workbench_permitted = workbench_source_runtime.authorize_collector(self.options, self.scopes)
+        self.needed.difference_update(workbench_source_runtime.KINDS - workbench_permitted)
+        dataproc_permitted = dataproc_source_runtime.authorize_collector(self.options, self.scopes)
+        self.needed.difference_update(dataproc_source_runtime.KINDS - dataproc_permitted)
         self.requested_scopes = self.scopes[:]
         self.platform_proof_label = None
         if self.auth.get("method") == "platform-service-account":
@@ -1097,6 +1194,8 @@ class GCPCollector:
         self.ancestry_source_requests = {}
         self.native_asset_times = {}
         self.native_asset_bindings = {}
+        self.data_project_lock = threading.RLock()
+        self.data_project_bindings = {}
 
     def progress(self, phase=None, scope="", *, complete=False):
         if not callable(self.progress_callback):
@@ -1113,6 +1212,131 @@ class GCPCollector:
 
     def read(self, url, scope, *, params=None, body=None, method="GET", operation=None):
         return self.transport.request(method, url, params=params, body=body, scope=scope, operation=operation)
+
+    def _data_project_binding(self, scope, *, require_alias=False):
+        """Resolve only native CRM-proven aliases; one read/error per scope."""
+        token = scope.removeprefix("projects/") if isinstance(scope, str) else ""
+        if not re.fullmatch(r"projects/[A-Za-z0-9_-]+", scope or ""):
+            raise ReadError("malformed", "data_project_scope_invalid")
+        with self.data_project_lock:
+            cached = self.data_project_bindings.get(scope)
+            if isinstance(cached, ReadError):
+                raise cached
+            if cached is not None:
+                return copy.deepcopy(cached)
+            if not token.isdecimal() and not require_alias:
+                return {"scope": scope, "status": "scope_bound", "project_id": token,
+                        "project_number": None, "source_requests": []}
+            request_id = None
+            try:
+                url = "https://cloudresourcemanager.googleapis.com/v3/" + scope
+                value, request_id = self.read(url, scope, params={})
+                number = value.get("name", "") if isinstance(value, dict) else ""
+                project_id = value.get("projectId") if isinstance(value, dict) else None
+                if (not re.fullmatch(r"projects/[1-9][0-9]*", number)
+                        or not isinstance(project_id, str) or not re.fullmatch(r"[a-z][a-z0-9-]{4,28}[a-z0-9]", project_id)
+                        or token not in (number.split("/")[1], project_id)
+                        or any(k in value for k in ("items", "projects", "nextPageToken", "_coverage"))):
+                    raise ReadError("malformed", "data_project_alias_identity_mismatch")
+                receipts = [r for r in getattr(self.transport, "evidence", []) if r.get("id") == request_id]
+                if (len(receipts) != 1 or receipts[0].get("scope") != scope
+                        or receipts[0].get("method") != "GET" or receipts[0].get("url") != url
+                        or receipts[0].get("status") != "collected" or receipts[0].get("http_status") != 200
+                        or receipts[0].get("query", {}) != {}):
+                    raise ReadError("malformed", "data_project_alias_receipt_unbound")
+                binding = {"scope": scope, "status": "collected", "project_id": project_id,
+                           "project_number": number.split("/")[1], "source_requests": [request_id]}
+                self.data_project_bindings[scope] = binding
+                return copy.deepcopy(binding)
+            except ReadError as exc:
+                if request_id and not getattr(exc, "request_id", None):
+                    exc.request_id = request_id
+                self.data_project_bindings[scope] = exc
+                raise
+
+    def _data_project_matches(self, scope, project):
+        if not isinstance(project, str) or not project:
+            return False
+        binding = self._data_project_binding(scope)
+        if project in (binding["project_id"], binding["project_number"]):
+            return True
+        if project.isdecimal():
+            binding = self._data_project_binding(scope, require_alias=True)
+            return project == binding["project_number"]
+        return False
+
+    def _data_sql_identity(self, scope, item):
+        """Check raw native parent identity before any users/provenance join."""
+        name = item.get("name")
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,97}", name):
+            raise ReadError("malformed", "sql_instance_identity_missing")
+        if "kind" in item and item["kind"] != "sql#instance":
+            raise ReadError("malformed", "sql_instance_kind_mismatch")
+        for field in ("project", "projectId"):
+            if field in item and not self._data_project_matches(scope, item[field]):
+                raise ReadError("malformed", "sql_instance_project_mismatch")
+        if "selfLink" in item:
+            link = urlsplit(item["selfLink"]) if isinstance(item["selfLink"], str) else None
+            match = re.fullmatch(r"/sql/v1beta4/projects/([^/]+)/instances/([^/]+)", link.path) if link else None
+            if (not link or link.scheme != "https" or link.hostname not in ("sqladmin.googleapis.com", "www.googleapis.com")
+                    or link.port not in (None, 443) or link.username is not None or link.password is not None
+                    or link.query or link.fragment or not match or match[2] != name
+                    or not self._data_project_matches(scope, match[1])):
+                raise ReadError("malformed", "sql_instance_self_link_mismatch")
+        if "connectionName" in item:
+            parts = item["connectionName"].split(":") if isinstance(item["connectionName"], str) else []
+            if (len(parts) != 3 or not self._data_project_matches(scope, parts[0]) or parts[2] != name
+                    or not parts[1] or "region" in item and parts[1] != item["region"]):
+                raise ReadError("malformed", "sql_instance_connection_name_mismatch")
+        return item
+
+    def _data_bigquery_identity(self, scope, item, dataset_id=None, table_id=None):
+        """Bind every present identity component to the exact native GET parent."""
+        table = table_id is not None
+        ref = item.get("tableReference" if table else "datasetReference")
+        if (not isinstance(ref, dict) or not self._data_project_matches(scope, ref.get("projectId"))
+                or not isinstance(ref.get("datasetId"), str)
+                or not re.fullmatch(r"[A-Za-z0-9_]{1,1024}", ref["datasetId"])):
+            raise ReadError("malformed", "bigquery_reference_identity_mismatch")
+        for field in ("projectId", "project"):
+            if field in item and not self._data_project_matches(scope, item[field]):
+                raise ReadError("malformed", "bigquery_project_identity_mismatch")
+        dataset_id = dataset_id if dataset_id is not None else ref["datasetId"]
+        if ref["datasetId"] != dataset_id:
+            raise ReadError("malformed", "bigquery_dataset_parent_mismatch")
+        if table and (not isinstance(ref.get("tableId"), str) or not ref["tableId"]
+                or len(ref["tableId"]) > 1024 or ref["tableId"] != table_id
+                or any(ord(c) < 32 or c in "/?#\\" for c in table_id)):
+            raise ReadError("malformed", "bigquery_table_parent_mismatch")
+        suffix = "/datasets/" + quote(dataset_id, safe="")
+        opaque = dataset_id
+        if table:
+            suffix += "/tables/" + quote(table_id, safe="")
+            opaque += "." + table_id
+        if "id" in item:
+            ident = item["id"]
+            if not isinstance(ident, str) or ":" not in ident:
+                raise ReadError("malformed", "bigquery_native_id_mismatch")
+            project, native = ident.split(":", 1)
+            if native != opaque or not self._data_project_matches(scope, project):
+                raise ReadError("malformed", "bigquery_native_id_mismatch")
+        for field, expected in (("datasetId", dataset_id), ("tableId", table_id)):
+            if field in item and item[field] != expected:
+                raise ReadError("malformed", "bigquery_native_parent_mismatch")
+        if "name" in item:
+            binding = self._data_project_binding(scope)
+            if item["name"] not in {"projects/" + p + suffix for p in
+                    (binding["project_id"], binding["project_number"]) if p is not None}:
+                raise ReadError("malformed", "bigquery_native_name_mismatch")
+        if "selfLink" in item:
+            link = urlsplit(item["selfLink"]) if isinstance(item["selfLink"], str) else None
+            match = re.fullmatch(r"/bigquery/v2/projects/([^/]+)(/.*)", link.path) if link else None
+            if (not link or link.scheme != "https" or link.hostname not in ("bigquery.googleapis.com", "www.googleapis.com")
+                    or link.port not in (None, 443) or link.username is not None or link.password is not None
+                    or link.query or link.fragment or not match or match[2] != suffix
+                    or not self._data_project_matches(scope, match[1])):
+                raise ReadError("malformed", "bigquery_self_link_mismatch")
+        return dataset_id
 
     def pages(self, url, scope, *, key="items", params=None, body=None, method="GET", aggregate=None,
               single=False, transform=None, operation=None, page_size_key="pageSize", response_validator=None):
@@ -1160,7 +1384,7 @@ class GCPCollector:
             yield items, request_id
             if incomplete:
                 raise ReadError("unavailable", "partial_api_warning")
-            if data.get("unreachables") or data.get("unreachable") or data.get("missingZones") or data.get("failedLocations"):
+            if data.get("unreachables") or data.get("unreachable") or data.get("missingZones") or data.get("failedLocations") or data.get("failedLocation"):
                 raise ReadError("unavailable", "unreachable_locations")
             token = data.get("nextPageToken")
             if token is not None and not isinstance(token, str):
@@ -1213,11 +1437,23 @@ class GCPCollector:
                                 ordinal += 1
                             rid = f"{rid}#observation-{ordinal}"
                     elif rid in items:
+                        if kind == "iam_role":
+                            raise ReadError("malformed", "duplicate_iam_role_identity")
                         if kind == "project":
                             raise ReadError("malformed", "duplicate_project_identity")
                         if kind == "bucket":
                             # A repeated list identity makes ACL absence ambiguous.
                             raise ReadError("malformed", "duplicate_bucket_identity")
+                        if kind in ("ssl_policy", "service_usage", "monitoring_notification_channel",
+                                    "monitoring_alert_policy", "logging_metric"):
+                            excluded = {"_resource_id", "native_id", "_provenance", "_relationships",
+                                        "_aggregated_scope", "_representation"}
+                            previous = {key: value for key, value in items[rid].items() if key not in excluded}
+                            current = {key: value for key, value in item.items() if key not in excluded}
+                            if previous != current:
+                                raise ReadError("malformed", "conflicting_" + kind + "_identity")
+                            refs = items[rid]["_provenance"]["source_requests"]
+                            items[rid]["_provenance"]["source_requests"] = sorted(set([*refs, request_id]))
                         if kind == 'log_entry':
                             excluded = {'_resource_id', 'native_id', '_provenance', '_relationships'}
                             previous = {key: value for key, value in items[rid].items() if key not in excluded}
@@ -1242,6 +1478,10 @@ class GCPCollector:
                     representation = item.pop("_representation", None)
                     item["_provenance"] = {"source_requests": sorted(set([request_id, *details])), "scope": scope,
                                            "collected_at": self.read_time}
+                    if kind in selected_job_source_runtime.KINDS:
+                        selected_job_source_runtime.preserve_capture(item, raw, self.transport)
+                    if kind == workbench_source_runtime.KIND:
+                        workbench_source_runtime.preserve_capture(item, raw, self.transport)
                     # "full" asserts that the API returned the complete resource
                     # representation (no field mask/partial projection), so a
                     # documented omitted-when-unset field may be read as unset.
@@ -1307,6 +1547,23 @@ class GCPCollector:
                                 ordinal += 1
                             rid = f"{native_id}#observation-{ordinal}"
                             item["_resource_id"] = rid
+                    if kind == "iam_role" and rid in output:
+                        envelope["error"] = {"kind": "malformed", "code": "duplicate_iam_role_identity"}
+                    if kind in ("ssl_policy", "service_usage", "monitoring_notification_channel",
+                                    "monitoring_alert_policy", "logging_metric") and rid in output:
+                        excluded = {"_resource_id", "native_id", "_provenance", "_relationships",
+                                    "_aggregated_scope", "_representation"}
+                        prior = {key: value for key, value in output[rid].items() if key not in excluded}
+                        current = {key: value for key, value in item.items() if key not in excluded}
+                        if prior != current:
+                            if not previous.get("error"):
+                                envelope.setdefault("error", {"kind": "malformed",
+                                    "code": "conflicting_" + kind + "_identity"})
+                        else:
+                            refs = output[rid]["_provenance"]["source_requests"]
+                            output[rid]["_provenance"]["source_requests"] = sorted(set(
+                                [*refs, *item["_provenance"]["source_requests"]]))
+                        continue
                     output[rid] = item
                     if kind == "iam_policy":
                         iam_by_native_id.setdefault(item["native_id"], []).append(item)
@@ -1377,13 +1634,15 @@ class GCPCollector:
                 "semantics": "Key absent from Policy Analyzer results: usage unknown"}
         return output
 
-    def hydrate(self, item, field, url, scope, *, params=None, body=None, method="GET"):
+    def hydrate(self, item, field, url, scope, *, params=None, body=None, method="GET", identity_validator=None):
         output = dict(item)
         coverage = output.setdefault("_coverage", {})
         try:
             value, request_id = self.read(url, scope, params=params, body=body, method=method)
             if not isinstance(value, dict):
                 raise ReadError("malformed", "malformed_response")
+            if identity_validator is not None:
+                identity_validator(value)
             # An omitted repeated binding field in a successful IAM Policy is
             # the API's empty list, distinct from denied/malformed hydration.
             if field == "iamPolicy":
@@ -1494,6 +1753,8 @@ class GCPCollector:
         jobs.extend(native_evidence_jobs(self, scope))
         from .gcp_os_patch_native import scope_jobs as os_patch_jobs
         jobs.extend(os_patch_jobs(self, scope))
+        from .gcp_network_catalog import scope_jobs as network_catalog_jobs
+        jobs.extend(network_catalog_jobs(self, scope))
         def add(kind, service, factory):
             if kind in self.needed:
                 jobs.append((kind, scope, service, factory))
@@ -1998,26 +2259,31 @@ class GCPCollector:
                     scope, params={"options.requestedPolicyVersion": 3}), items), request_id
         add("secret", "secretmanager", secrets)
         def datasets():
-            for items, request_id in self.pages(f"https://bigquery.googleapis.com/bigquery/v2/{scope}/datasets", scope,
+            binding = self._data_project_binding(scope)
+            api_scope = "projects/" + binding["project_id"]
+            for items, request_id in self.pages(f"https://bigquery.googleapis.com/bigquery/v2/{api_scope}/datasets", scope,
                 key="datasets", params={"all": "true"}, page_size_key="maxResults"):
                 def detail(item):
-                    dataset_id = item["datasetReference"]["datasetId"]
+                    dataset_id = self._data_bigquery_identity(scope, item)
                     name = f"{scope}/datasets/{dataset_id}"
                     item = self.hydrate({**item, "name": name}, "datasetDetails",
-                        f"https://bigquery.googleapis.com/bigquery/v2/{scope}/datasets/{quote(dataset_id, safe='')}", scope,
-                        params={"accessPolicyVersion": 3, "datasetView": "FULL"})
-                    # datasets.get with datasetView=FULL returns metadata and ACL;
-                    # the list call alone is a partial projection.
+                        f"https://bigquery.googleapis.com/bigquery/v2/{api_scope}/datasets/{quote(dataset_id, safe='')}", scope,
+                        params={"accessPolicyVersion": 3, "datasetView": "FULL"},
+                        identity_validator=lambda value: self._data_bigquery_identity(scope, value, dataset_id))
                     if item["_coverage"]["datasetDetails"]["status"] == "collected":
-                        details = item.pop("datasetDetails")
-                        item.update(details)
+                        item.update(item.pop("datasetDetails"))
                         item["_representation"] = "full"
                     else:
                         item["_representation"] = "partial"
+                        # A denied ACL read does not invalidate the list identity
+                        # for independent tables.get. Contradictory detail identity
+                        # invalidates the object itself before provenance stamping.
+                        if item["_coverage"]["datasetDetails"]["status"] == "malformed":
+                            raise ReadError("malformed", "bigquery_dataset_detail_identity_unbound")
                     return item
                 yield self.parallel(detail, items), request_id
         add("bigquery_dataset", "bigquery", datasets)
-        def region_metadata(service, version, segment, key, location_option, *, locations_version=None):
+        def region_metadata(service, version, segment, key, location_option, *, locations_version=None, with_iam=True):
             def policy(page):
                 return self.parallel(lambda item: self.hydrate(item, "iamPolicy", f"https://{service}.googleapis.com/{version}/{item['name']}:getIamPolicy",
                     scope, params={"options.requestedPolicyVersion": 3}), page)
@@ -2038,7 +2304,7 @@ class GCPCollector:
                 try:
                     for items, request_id in self.pages(f"https://{service}.googleapis.com/{version}/{scope}/locations/{location}/{segment}",
                         scope, key=key):
-                        yield [{**item, "_representation": "full"} for item in policy(items)], request_id
+                        yield [{**item, "_representation": "full"} for item in (policy(items) if with_iam else items)], request_id
                 except ReadError as exc:
                     # Same semantics as Dataproc: an org-policy restricted region
                     # is unusable by the project; a disabled service is project-wide.
@@ -2056,6 +2322,12 @@ class GCPCollector:
         add("cloudrun_service", "run", lambda: region_metadata("run", "v2", "services", "services", "cloudrun_locations",
             locations_version="v1"))
         add("cloudrun_job", "run", lambda: region_metadata("run", "v2", "jobs", "jobs", "cloudrun_locations", locations_version="v1"))
+        add("vpc_access_connector", "vpcaccess", lambda: region_metadata("vpcaccess", "v1", "connectors",
+            "connectors", "vpcaccess_locations", with_iam=False))
+        add("filestore_instance", "file", lambda: region_metadata("file", "v1", "instances",
+            "instances", "filestore_locations", with_iam=False))
+        add("redis_instance", "redis", lambda: region_metadata("redis", "v1", "instances",
+            "instances", "redis_locations", with_iam=False))
         def functions():
             def env_names(function):
                 # functions.list returns the full Function: an absent inline
@@ -2236,6 +2508,8 @@ class GCPCollector:
             if isinstance(setup, dict) and isinstance(setup.get("metadata"), dict):
                 setup["metadata"] = {k: (copy.deepcopy(v) if k == '_coverage' and isinstance(v, dict)
                     else v if k in WORKBENCH_METADATA else None) for k, v in setup["metadata"].items()}
+                from .gcp_workbench_head3_projection_20261020 import project_upgrade_schedule
+                setup["metadata"] = project_upgrade_schedule(instance["gceSetup"]["metadata"], setup["metadata"])
             # This list request has no fields mask. The retained security keys
             # can use documented omitted-field defaults; redacted values stay
             # present as None and cannot be treated as missing/default values.
@@ -2544,6 +2818,22 @@ class GCPCollector:
             for scope in self.scopes:
                 if scope.startswith('projects/'):
                     jobs.extend(cloudbuild_log_jobs(self, scope))
+        if self.needed & selected_job_source_runtime.KINDS:
+            for scope in self.scopes:
+                jobs.extend(selected_job_source_runtime.jobs(self, scope))
+        if workbench_source_runtime.KIND in self.needed:
+            for scope in self.scopes:
+                jobs.extend(workbench_source_runtime.jobs(self, scope))
+        for profile, spec in dataproc_source_runtime.source.PROFILES.items():
+            if spec['kind'] in self.needed:
+                for scope in self.scopes:
+                    jobs.extend(dataproc_source_runtime.source.jobs(self, scope, profile))
+        from .gcp_selected_task_routine_secret_indicators import SPECS as task_routine_specs, jobs as task_routine_jobs
+        for kind in task_routine_specs:
+            if kind in self.needed:
+                for scope in self.scopes:
+                    if scope.startswith('projects/'):
+                        jobs.extend(task_routine_jobs(self, scope, kind))
         if 'source_repository_file' in self.needed:
             from .gcp_sourcerepo_secret_indicators import jobs as sourcerepo_jobs
             for scope in self.scopes:
@@ -2681,15 +2971,22 @@ class GCPCollector:
                     datasets = self.collections.get(("bigquery_dataset", scope))
                     if not datasets or datasets["status"] not in ("collected", "empty"):
                         raise ReadError("unavailable", "dataset_inventory_incomplete")
+                    binding = self._data_project_binding(scope)
+                    api_scope = "projects/" + binding["project_id"]
                     for dataset in datasets["items"]:
-                        dataset_id = dataset.get("datasetReference", {}).get("datasetId") or dataset["name"].rsplit("/", 1)[1]
+                        dataset_id = self._data_bigquery_identity(scope, dataset)
                         if ANONYMOUS_DATASET.fullmatch(dataset_id):
                             continue  # owner-only cached query results, not customer tables
-                        base = f"https://bigquery.googleapis.com/bigquery/v2/{scope}/datasets/{quote(dataset_id, safe='')}/tables"
+                        base = f"https://bigquery.googleapis.com/bigquery/v2/{api_scope}/datasets/{quote(dataset_id, safe='')}/tables"
                         def detail(item, base=base):
-                            table_id = item["tableReference"]["tableId"]
+                            reference = item.get("tableReference", {})
+                            table_id = reference.get("tableId") if isinstance(reference, dict) else None
+                            self._data_bigquery_identity(scope, item, dataset_id, table_id if isinstance(table_id, str) else "")
                             item = self.hydrate(item, "tableDetails", base + "/" + quote(table_id, safe=""), scope,
-                                params={"fields": "id,tableReference,type,encryptionConfiguration,timePartitioning,rangePartitioning,expirationTime,creationTime,lastModifiedTime,labels,requirePartitionFilter,resourceTags,schema(fields(name,fields,policyTags(names)))"})
+                                params={"fields": "id,tableReference,type,encryptionConfiguration,timePartitioning,rangePartitioning,expirationTime,creationTime,lastModifiedTime,labels,requirePartitionFilter,resourceTags,schema(fields(name,fields,policyTags(names)))"},
+                                identity_validator=lambda value: self._data_bigquery_identity(scope, value, dataset_id, table_id))
+                            if item["_coverage"]["tableDetails"]["status"] == "malformed":
+                                raise ReadError("malformed", "bigquery_table_detail_identity_unbound")
                             if item["_coverage"]["tableDetails"]["status"] == "collected":
                                 item.update(item.pop("tableDetails"))
                                 if isinstance(item.get("schema"), dict) and isinstance(item["schema"].get("fields"), list):
@@ -3312,6 +3609,8 @@ class GCPCollector:
                 ("max_calls", "max_pages", "max_resources", "max_scopes", "deadline_seconds")) else "full",
             "omitted_inventories": sorted(SUPPORTED_TYPES - self.wanted), "supporting_inventories": sorted(self.needed - self.wanted),
             "source_requests": getattr(self.transport, "evidence", []), "scope_coverage": self.scope_errors,
+            "data_service_project_bindings": {scope: copy.deepcopy(value) for scope, value in self.data_project_bindings.items()
+                if isinstance(value, dict) and value.get("status") == "collected"},
             "hierarchy_discovery": hierarchy_discovery,
             "scope_type_omissions": {kind: sorted(types) for kind, types in sorted(getattr(self, "scope_type_omissions", {}).items())},
             "project_restrictions": sorted(self.allowed) if self.allowed is not None else None,
@@ -3407,6 +3706,9 @@ class GCPCollector:
         if 'cloudbuild_log_source' in self.needed:
             from .gcp_cloudbuild_log_secret_indicators import selection_metadata as cloudbuild_log_selection
             metadata.update(cloudbuild_log_selection(self))
+        if self.needed & {'cloudtasks_selected_task', 'bigquery_selected_routine'}:
+            from .gcp_selected_task_routine_secret_indicators import selection_metadata as task_routine_selection
+            metadata.update(task_routine_selection(self))
         if 'source_repository_file' in self.needed:
             from .gcp_sourcerepo_secret_indicators import selection_metadata as sourcerepo_selection
             metadata.update(sourcerepo_selection(self))
@@ -3420,6 +3722,12 @@ class GCPCollector:
             from .gcp_appengine_source_secret_indicators import selection_metadata as appengine_source_selection
             metadata.update(appengine_source_selection(self))
         snapshot = make_snapshot("gcp", snapshot_scopes, envelopes, metadata=sanitize(metadata))
+        if self.needed & selected_job_source_runtime.KINDS:
+            snapshot = selected_job_source_runtime.final_snapshot(self, snapshot)
+        if self.needed & workbench_source_runtime.KINDS:
+            snapshot = workbench_source_runtime.final_snapshot(self, snapshot)
+        if self.needed & dataproc_source_runtime.KINDS:
+            snapshot = dataproc_source_runtime.final_snapshot(self, snapshot)
         self.progress("error" if self.auth_error else "completed", complete=True)
         return snapshot
 
@@ -3504,6 +3812,10 @@ class GCPCollector:
             return self.finish()
         finally:
             self.hydration_pool.shutdown(wait=True)
+            if self.transport is not None:
+                selected_job_source_runtime.clear_pending(self.transport)
+                workbench_source_runtime.source.clear_pending(self.transport)
+                dataproc_source_runtime.source.clear_pending(self.transport)
             if owned_transport and self.transport is not None:
                 self.transport.close()
 
@@ -3513,6 +3825,9 @@ def collect(connector: dict, requirements: list[str] | None = None) -> dict:
     options = connector.get("options") or {}
     inventories = options.get("inventories", [])
     selected = inventories if requirements is None else requirements
+    if 'cloudrun_job_declared_image' in selected:
+        from .gcp_cloudrun_job_image_runtime_20261020 import collect_connector
+        return collect_connector(connector, requirements)
     if isinstance(inventories, list) and "audit_log" in inventories and "audit_log" in selected:
         from .gcp_audit_native import AuditGCPCollector
         return AuditGCPCollector(connector, selected).collect()
