@@ -254,8 +254,9 @@ for (const width of [1280, 390]) {
     await page.keyboard.press('Escape');
     await expect(drawer).toHaveCount(0);
     await expect(title).toBeFocused();
-    const geometry = await table.evaluate(element => ({ pageWidth: document.documentElement.scrollWidth, viewport: innerWidth, width: element.clientWidth, content: element.scrollWidth }));
+    const geometry = await table.evaluate(element => ({ pageWidth: document.documentElement.scrollWidth, viewport: innerWidth, width: element.clientWidth, content: element.scrollWidth, titleWidth: element.querySelectorAll("th")[1].getBoundingClientRect().width }));
     expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
+    expect(geometry.titleWidth).toBeGreaterThanOrEqual(260);
     if (width === 390) expect(geometry.content).toBeGreaterThan(geometry.width);
     await page.screenshot({ path: `/tmp/cspm-network-findings-table-${width}.png`, fullPage: true });
   });

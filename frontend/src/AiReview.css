@@ -36,7 +36,7 @@
 .network-findings-panel .filters { align-items: center; }
 .network-findings-panel .actions-empty { text-align: center; color: var(--muted); height: 160px; }
 .network-finding-inspector h2, .network-finding-inspector p { overflow-wrap: anywhere; }
-.network-findings-table { min-width: 1100px; }
-.network-findings-table th:nth-child(2) { width: 32%; }
-.network-findings-table th:nth-child(3) { width: 100px; }
-.network-findings-table th:nth-child(4), .network-findings-table th:nth-child(5) { width: 180px; }
+.ai-review-view .network-findings-table { min-width: 1100px; }
+.ai-review-view .network-findings-table th:nth-child(2) { width: 32%; }
+.ai-review-view .network-findings-table th:nth-child(3) { width: 100px; }
+.ai-review-view .network-findings-table th:nth-child(4), .ai-review-view .network-findings-table th:nth-child(5) { width: 180px; }
