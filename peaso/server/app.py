@@ -365,7 +365,7 @@ def create_app(settings=None, *, store=None, authenticator=None, artifacts=None)
         if not allow_summary:
             return finding
         from peaso.finding_observation import evidence_summary
-        observation = evidence_summary(finding)
+        observation = (finding.get("ai_review") or {}).get("reason") or evidence_summary(finding)
         if observation:
             finding = dict(finding, evidence_summary=observation, evidence_summary_format="natural-language-v2")
         details = finding.get("remediation_details")

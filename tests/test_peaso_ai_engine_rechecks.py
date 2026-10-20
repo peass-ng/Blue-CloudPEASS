@@ -64,8 +64,8 @@ def test_dlq_requires_an_exact_native_reference_and_not_a_name_suffix():
     assert run(cid, native, index)[0] == 'FAIL'
 
 
-def test_owning_service_is_required_to_exclude_customer_rotation_rules():
-    cid = 'aws.cb.secretsmanager.rotation_rules_present'
+@pytest.mark.parametrize('cid', ['aws.cb.secretsmanager.rotation_rules_present', 'aws.cb.secretsmanager.rotated_as_scheduled'])
+def test_owning_service_is_required_to_exclude_customer_rotation_rules(cid):
     assert run(cid, dict(CASES[cid]['fail'], OwningService='events'))[0] == 'NOT_APPLICABLE'
     assert run(cid)[0] == 'FAIL'
 
@@ -233,3 +233,21 @@ def test_global_shield_resource_is_assessed_once_without_hiding_regional_resourc
     west['collections']['load_balancer'][0].update(status='collected', items=[alb])
     status, evidence = REGISTRY[cid].evaluate({}, west)
     assert status == 'FAIL' and evidence['unprotected_resource_arns'] == [alb['LoadBalancerArn']]
+
+
+@pytest.mark.parametrize('cid,key,fragment', [
+    ('aws.c2b.efs.policy_not_open_to_vpc_clients', 'policy', 'mount targets'),
+    ('aws.c2b.efs.policy_enforces_ssl', 'policy', 'unencrypted NFS'),
+    ('aws.c2b.efs.automatic_backups_enabled', 'backup_policy_status', 'enabled AWS Backup'),
+    ('aws.cb.secretsmanager.rotated_as_scheduled', 'rotation_rules', 'rotation schedule'),
+    ('aws.cb.ssmincidents.active_with_response_plans', 'replication_set', 'response plan'),
+    ('aws.claude_a.ec2.account_imdsv2_default', 'http_tokens', 'IMDSv2'),
+    ('aws.claude_a.iam.role_used_within_60_days', 'last_used', 'does not prove'),
+])
+def test_recorded_absence_is_explained_without_inventing_missing_facts(cid, key, fragment):
+    from peaso.checks.aws_ai_recheck_evidence_20261020 import evidence_summary
+    finding = dict(provider='aws', check_id=cid, status='FAIL', evidence={key: None})
+    text = evidence_summary(finding)
+    assert fragment in text and len(text) < 250
+    finding['evidence'] = {}
+    assert evidence_summary(finding) is None

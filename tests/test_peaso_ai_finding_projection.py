@@ -65,3 +65,29 @@ def test_existing_scan_filters_counts_groups_and_details_use_rechecked_status(tm
         client.headers['Authorization'] = 'Bearer bob'
         assert client.get(base).status_code == 404
     assert report == original
+
+
+def test_review_reason_takes_precedence_over_the_original_native_observation(tmp_path):
+    from peaso.checks.catalog import description_for
+    store, artifacts = SQLiteStore(tmp_path/'state'), FileArtifacts(tmp_path/'artifacts')
+    connector = store.add_connector('alice', {'provider': 'aws'}, 'encrypted')
+    job = store.enqueue('alice', {'connector_id': connector['id']})
+    report = fixture_report()
+    finding = dict(report['findings'][0], **description_for('aws.iam.root_mfa'))
+    finding.update(id='reviewed-root', check_id='aws.iam.root_mfa', status='FAIL',
+                   evidence={'account_mfa_enabled': False})
+    reason = 'A targeted read confirms root MFA is now enabled; this setting changed after collection.'
+    report['findings'] = [finding]
+    report['ai'] = {'status': 'completed', 'reviews': {'hardening': [
+        {'finding_id': finding['id'], 'verdict': 'PASS', 'reason': reason}]}}
+    reference = publish_report(artifacts, 'alice', job['id'], report)
+    with store.transaction() as db:
+        db.execute("UPDATE jobs SET status='completed',report=? WHERE id=?", (reference, job['id']))
+    app = create_app(Settings(state_dir=tmp_path/'settings', identity_dir=tmp_path/'identity'),
+        store=store, artifacts=artifacts, authenticator=TestIdentities())
+    with TestClient(app, base_url='http://127.0.0.1:8000', headers={'Authorization': 'Bearer alice'}) as client:
+        response = client.get(f"/api/scans/{job['id']}/findings/{finding['id']}")
+        assert response.status_code == 200
+        detail = response.json()
+        assert detail['status'] == 'PASS' and detail['evidence_summary'] == reason
+        assert detail['evidence'] == {'account_mfa_enabled': False}

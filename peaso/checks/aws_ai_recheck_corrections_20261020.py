@@ -14,7 +14,7 @@ BOUNDARY_APPLICABILITY = {'aws.claude_a.iam.custom_policy_attached_to_role', 'aw
 IDS = POLICY_USE | BOUNDARY_APPLICABILITY | {
     'aws.b.rds.engine_log_exports', 'aws.claude_a.ec2.instance_ebs_optimized',
     'aws.cb.sns.failure_feedback_role', 'aws.cb.sqs.dead_letter_queue',
-    'aws.cb.secretsmanager.rotation_rules_present', 'aws.c2b.apigateway.rest_api_policy_not_public',
+    'aws.cb.secretsmanager.rotation_rules_present', 'aws.cb.secretsmanager.rotated_as_scheduled', 'aws.claude_a.ebs.volume_in_backup_selection', 'aws.c2b.apigateway.rest_api_policy_not_public',
     'aws.claude_a.iam.prowler_role_confused_deputy_prevented',
     'aws.claude_a.iam.prowler_role_service_trust_bound_to_account',
     'aws.pci.shield.protection_all_internet_resources',
@@ -114,6 +114,17 @@ def _override(check, original, item, index):
                     witnesses.append({'protocol': rule.get('IpProtocol'), 'from_port': rule.get('FromPort'),
                                       'to_port': rule.get('ToPort'), 'source': world})
         return status, dict(evidence, internet_ingress=witnesses)
+    if cid == 'aws.claude_a.ebs.volume_in_backup_selection':
+        from inspect import unwrap
+        helpers = unwrap(original).__globals__
+        arn = helpers['ec2_arn'](index, 'volume', get(item, 'VolumeId', str))
+        keys = set(helpers['tags'](item))
+        selections = helpers['items'](index, 'backup_selection')
+        matched = any(arn in helpers['optional'](selection, 'Resources', [], list) or
+                      any(get(condition, 'ConditionKey', str) in keys for condition in
+                          helpers['list_of_objects'](helpers['optional'](selection, 'ListOfTags', [], list)))
+                      for selection in selections)
+        return status, dict(evidence, backup_selection_match=matched, backup_selections_evaluated=len(selections))
     if cid == 'aws.c2b.apigateway.rest_api_policy_not_public':
         from .aws_ip_policy_boundary import normalize
         from .aws_resource_policy_scope import review_document
@@ -158,7 +169,7 @@ def _override(check, original, item, index):
         if isinstance(inverse, dict) and inverse.get('collection_status') not in ('collected', 'empty'):
             from . import unknown
             return unknown('Dead-letter source metadata was unavailable')
-    if cid == 'aws.cb.secretsmanager.rotation_rules_present' and isinstance(item.get('OwningService'), str) and item['OwningService']:
+    if cid in {'aws.cb.secretsmanager.rotation_rules_present', 'aws.cb.secretsmanager.rotated_as_scheduled'} and isinstance(item.get('OwningService'), str) and item['OwningService']:
         return 'NOT_APPLICABLE', {'owning_service': item['OwningService'], 'reason': 'The owning AWS service manages this secret; customer rotation rules are not required.'}
     return status, evidence
 
